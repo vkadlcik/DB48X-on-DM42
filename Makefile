@@ -1,25 +1,26 @@
 ######################################
 # target
 ######################################
-TARGET = SDKdemo
+TARGET = DB48X
 
 ######################################
 # building variables
 ######################################
-# debug build?
 ifdef DEBUG
-DEBUG = 1
+OPT=debug
+else
+OPT=release
 endif
 
 #######################################
 # pathes
 #######################################
 # Build path
-BUILD_DIR = build
+BUILD = build/$(OPT)
 
 # Path to aux build scripts (including trailing /)
 # Leave empty for scripts in PATH
-BIN_DIR = bin/
+TOOLS = tools
 
 ######################################
 # System sources
@@ -49,16 +50,20 @@ C_SOURCES += src/menu.c
 #C_DEFS += -DXXX
 
 # Intel library related defines
-C_DEFS += -DDECIMAL_CALL_BY_REFERENCE=1 -DDECIMAL_GLOBAL_ROUNDING=1 \
-  -DDECIMAL_GLOBAL_ROUNDING_ACCESS_FUNCTIONS=1 -DDECIMAL_GLOBAL_EXCEPTION_FLAGS=1 \
-  -DDECIMAL_GLOBAL_EXCEPTION_FLAGS_ACCESS_FUNCTIONS=1
+DEFINES += \
+	DECIMAL_CALL_BY_REFERENCE \
+	DECIMAL_GLOBAL_ROUNDING \
+	DECIMAL_GLOBAL_ROUNDING_ACCESS_FUNCTIONS \
+	DECIMAL_GLOBAL_EXCEPTION_FLAGS \
+	DECIMAL_GLOBAL_EXCEPTION_FLAGS_ACCESS_FUNCTIONS \
+	$(DEFINES_$(OPT))
+DEFINES_debug=DEBUG
+DEFINES_release=RELEASE
+
+C_DEFS += $(DEFINES:%=-D%)
 
 # Libraries
-ifeq ($(DEBUG), 1)
 LIBS += lib/gcc111libbid_hard.a
-else
-LIBS += lib/gcc111libbid_hard.a
-endif
 
 # ---
 
@@ -86,18 +91,14 @@ AS_INCLUDES =
 
 CPUFLAGS += -mthumb -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
-
 # compile gcc flags
-ASFLAGS = $(CPUFLAGS) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
-CFLAGS  = $(CPUFLAGS) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+ASFLAGS = $(CPUFLAGS) $(AS_DEFS) $(AS_INCLUDES) $(ASFLAGS_$(OPT)) -Wall -fdata-sections -ffunction-sections
+CFLAGS  = $(CPUFLAGS) $(C_DEFS) $(C_INCLUDES) $(CFLAGS_$(OPT)) -Wall -fdata-sections -ffunction-sections
 CFLAGS += -Wno-misleading-indentation
-DBGFLAGS = -g 
+DBGFLAGS = -g
 
-ifeq ($(DEBUG), 1)
-CFLAGS += -O0 -DDEBUG
-else
-CFLAGS += -O2
-endif
+CFLAGS_debug += -O0 -DDEBUG
+CFLAGS_release += -O3
 
 CFLAGS  += $(DBGFLAGS)
 LDFLAGS += $(DBGFLAGS)
@@ -109,63 +110,74 @@ CFLAGS += -MD -MP -MF .dep/$(@F).d
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPT = stm32_program.ld
+LDSCRIPT = src/stm32_program.ld
 LIBDIR =
-LDFLAGS = $(CPUFLAGS) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections \
-  -Wl,--wrap=_malloc_r
+LDFLAGS = $(CPUFLAGS) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) \
+	-Wl,-Map=$(BUILD)/$(TARGET).map,--cref \
+	-Wl,--gc-sections \
+	-Wl,--wrap=_malloc_r
 
 
 # default action: build all
-all: $(BUILD_DIR)/$(TARGET).elf 
+all: $(TARGET).pgm
+
+debug-%:
+	$(MAKE) $@ OPT=debug
+release-%:
+	$(MAKE) $@ OPT=release
+
 
 #######################################
 # build the application
 #######################################
 # list of objects
-OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
+OBJECTS = $(addprefix $(BUILD)/,$(notdir $(C_SOURCES:.c=.o)))
 vpath %.c $(sort $(dir $(C_SOURCES)))
 # C++ sources
-OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(CXX_SOURCES:.cc=.o)))
+OBJECTS += $(addprefix $(BUILD)/,$(notdir $(CXX_SOURCES:.cc=.o)))
 vpath %.cc $(sort $(dir $(CXX_SOURCES)))
 # list of ASM program objects
-OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
+OBJECTS += $(addprefix $(BUILD)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 
-$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
-	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+$(BUILD)/%.o: %.c Makefile | $(BUILD)
+	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD)/$(notdir $(<:.c=.lst)) $< -o $@
 
-$(BUILD_DIR)/%.o: %.cc Makefile | $(BUILD_DIR) 
-	$(CXX) -c $(CXXFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cc=.lst)) $< -o $@
+$(BUILD)/%.o: %.cc Makefile | $(BUILD)
+	$(CXX) -c $(CXXFLAGS) -Wa,-a,-ad,-alms=$(BUILD)/$(notdir $(<:.cc=.lst)) $< -o $@
 
-$(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
+$(BUILD)/%.o: %.s Makefile | $(BUILD)
 	$(AS) -c $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
+$(BUILD)/$(TARGET).elf: $(OBJECTS) Makefile
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
-	$(OBJCOPY) --remove-section .qspi -O ihex    $@  $(BUILD_DIR)/$(TARGET)_flash.hex
-	$(OBJCOPY) --remove-section .qspi -O binary  $@  $(BUILD_DIR)/$(TARGET)_flash.bin
-	$(OBJCOPY) --only-section   .qspi -O ihex    $@  $(BUILD_DIR)/$(TARGET)_qspi.hex
-	$(OBJCOPY) --only-section   .qspi -O binary  $@  $(BUILD_DIR)/$(TARGET)_qspi.bin
-	$(BIN_DIR)check_qspi_crc $(TARGET) src/qspi_crc.h || ( $(MAKE) clean && false )
-	$(BIN_DIR)add_pgm_chsum build/$(TARGET)_flash.bin build/$(TARGET).pgm
-	$(SIZE) $@
+$(TARGET).pgm: $(BUILD)/$(TARGET).elf Makefile
+	$(OBJCOPY) --remove-section .qspi -O ihex    $<  $(BUILD)/$(TARGET)_flash.hex
+	$(OBJCOPY) --remove-section .qspi -O binary  $<  $(BUILD)/$(TARGET)_flash.bin
+	$(OBJCOPY) --only-section   .qspi -O ihex    $<  $(BUILD)/$(TARGET)_qspi.hex
+	$(OBJCOPY) --only-section   .qspi -O binary  $<  $(BUILD)/$(TARGET)_qspi.bin
+	$(TOOLS)/check_qspi_crc $(TARGET) $(BUILD)/$(TARGET)_qspi.bin src/qspi_crc.h || ( $(MAKE) clean && false )
+	$(TOOLS)/add_pgm_chsum $(BUILD)/$(TARGET)_flash.bin $@
+	$(SIZE) $<
+	wc -c $@
 
-$(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+
+$(BUILD)/%.hex: $(BUILD)/%.elf | $(BUILD)
 	$(HEX) $< $@
-	
-$(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
+
+$(BUILD)/%.bin: $(BUILD)/%.elf | $(BUILD)
 	$(BIN) $< $@
-	
-$(BUILD_DIR):
+
+$(BUILD):
 	mkdir -p $@
 
 #######################################
 # clean up
 #######################################
 clean:
-	-rm -fR .dep $(BUILD_DIR)/*.o $(BUILD_DIR)/*.lst
+	-rm -fR .dep build
 
 #######################################
 # dependencies

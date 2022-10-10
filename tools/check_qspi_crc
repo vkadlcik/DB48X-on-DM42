@@ -1,9 +1,8 @@
 #!/bin/bash
 
 pgm=$1
-h=${2:-dm/qspi_crc.h}
-
-q=build/${pgm}_qspi.bin
+q=$2
+h=${3:-dm/qspi_crc.h}
 
 
 filesize() {

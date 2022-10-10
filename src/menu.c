@@ -52,6 +52,8 @@ const uint8_t mid_menu[] = {
     MI_MSC,
     MI_SYSTEM_ENTER,
     MI_ABOUT_PGM,
+    MI_PGM_LOAD,
+    MI_PGM_RUN,
     0 }; // Terminator
 
 

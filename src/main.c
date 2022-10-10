@@ -69,6 +69,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define strend(s) (s + strlen(s))
 
+char *buf128b = NULL;
+char *buf1024b = NULL;
+char *buf4096b = NULL;
+int mallocSuccesses = 0;
 
 
 // ==================================================
@@ -337,6 +341,9 @@ void disp_annun(int xpos, const char * txt) {
 
 
 const char *ang_mode_ann[ANG_MODE_CNT] = {"[DEG]", "[RAD]", "[GRAD]"};
+int lastkey = 0;
+
+static int counter = 0;
 
 void redraw_lcd() {
   char s[MAX_LINE_SIZE];
@@ -359,6 +366,10 @@ void redraw_lcd() {
     disp_annun(180, s);
   }
 
+  char buffer[40];
+  snprintf(buffer, sizeof(buffer), "Key: %d Cnt=%d", lastkey, counter++);
+  disp_annun(60, buffer);
+
   t20->newln = 1; // Revert to default
 
   // == Menu ==
@@ -379,6 +390,7 @@ void redraw_lcd() {
     disp_stack_line(s, a, cpl);
     lcd_puts(fReg,s);
   }
+
 
   lcd_refresh();
 }
@@ -669,7 +681,7 @@ void handle_key(int key) {
         break;
 
       case KEY_F1:
-        run_help_file("/HELP/sdkdemo.html");
+        run_help_file("/HELP/sdkdemo.html#about_help");
         break;
 
       case KEY_F5: // F5 = Decrease font size
@@ -905,16 +917,25 @@ void program_main() {
       reset_auto_off();
 
 
+    lastkey = key_tail();
+    redraw_lcd();
+    sys_delay(200);
+
     // Fetch the key
     //  < 0 -> No key event
     //  > 0 -> Key pressed
     // == 0 -> Key released
     key = key_pop();
 
+    lastkey = key;
+    redraw_lcd();
+    sys_delay(200);
+
     if (key >= 0)
       handle_key(key);
 
     redraw_lcd();
+
   }
 
 }

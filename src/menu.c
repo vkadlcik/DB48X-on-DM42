@@ -31,7 +31,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-  The software and related material is released as “NOMAS”  (NOt MAnufacturer Supported). 
+  The software and related material is released as “NOMAS”  (NOt MAnufacturer Supported).
 
   1. Info is released to assist customers using, exploring and extending the product
   2. Do NOT contact the manufacturer with questions, seeking support, etc. regarding
@@ -44,6 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <dmcp.h>
 
 #include <menu.h>
+#include <stdio.h>
 
 
 const uint8_t mid_menu[] = {
@@ -67,7 +68,6 @@ const smenu_t     MID_SETTINGS = { "Settings",  mid_settings,  NULL, NULL};
 
 
 
-
 void disp_about() {
   lcd_clear_buf();
   lcd_writeClr(t24);
@@ -77,15 +77,31 @@ void disp_about() {
   lcd_putsAt(t24,4,"");
   lcd_prevLn(t24);
   // --
-      
+
   int h2 = lcd_lineHeight(t20)/2;
   lcd_setXY(t20, t24->x, t24->y);
   t20->y += h2;
-  lcd_print(t20, "SDKdemo v" PROGRAM_VERSION " (C) SwissMicros GmbH");
+  lcd_print(t20, "DM48 demo v" PROGRAM_VERSION " (C) Christophe");
   t20->y += h2;
+  for (int r = 0; r < 8; r++)
+  {
+      uint8_t *buffer = lcd_line_addr(t20->y + r);
+      for (int i = 0; i < 40; i++)
+          buffer[i] = 0; // (1 << (r + i) % 8) - 1;
+  }
   t20->y += h2;
-  lcd_puts(t20, "Intel Decimal Floating-Point Math Lib v2.0");
-  lcd_puts(t20, "  (C) 2007-2011, Intel Corp.");
+  char line_info[80];
+  snprintf(line_info, sizeof(line_info),
+           "S0=%p S1=%p",
+           lcd_line_addr(0),
+           lcd_line_addr(1));
+  lcd_puts(t20, line_info);
+  t20->y += h2;
+  snprintf(line_info, sizeof(line_info),
+           "S2=%p S20=%p",
+           lcd_line_addr(2),
+           lcd_line_addr(20));
+  lcd_puts(t20, line_info);
 
   t20->y = LCD_Y - lcd_lineHeight(t20);
   lcd_putsR(t20, "    Press EXIT key to continue...");

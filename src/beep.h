@@ -1,12 +1,12 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef BEEP_H
+#define BEEP_H
 // ****************************************************************************
-//  main.h                                                        DB48X project
+//  beep.h                                                        DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Defines for the main entry point
+//     Emit a beep
 //
 //
 //
@@ -29,7 +29,18 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#define PROGRAM_NAME    "DB48X"
-#define PROGRAM_VERSION "0.0.1"
+#include <rpl.h>
 
-#endif // MAIN_H
+inline void beep(int freq, int dur)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    start_buzzer_freq(freq * 1000);
+    sys_delay(dur);
+    stop_buzzer();
+}
+
+
+
+#endif // BEEP_H

@@ -1,12 +1,12 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef RPL_H
+#define RPL_H
 // ****************************************************************************
-//  main.h                                                        DB48X project
+//  rpl.h                                                         DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Defines for the main entry point
+//     Basic definitions for RPL objects
 //
 //
 //
@@ -29,7 +29,24 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#define PROGRAM_NAME    "DB48X"
-#define PROGRAM_VERSION "0.0.1"
+#include <stdint.h>
+#include <types.h>
 
-#endif // MAIN_H
+
+
+struct runtime
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+
+
+
+struct object
+// ----------------------------------------------------------------------------
+//   The basic RPL object
+// ----------------------------------------------------------------------------
+{
+
+};
+
+#endif // RPL_H

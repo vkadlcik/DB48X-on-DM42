@@ -1,12 +1,12 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef TYPES_H
+#define TYPES_H
 // ****************************************************************************
-//  main.h                                                        DB48X project
+//  types.h                                                       DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Defines for the main entry point
+//
 //
 //
 //
@@ -29,7 +29,21 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#define PROGRAM_NAME    "DB48X"
-#define PROGRAM_VERSION "0.0.1"
+#include <stdint.h>
 
-#endif // MAIN_H
+
+// ============================================================================
+//
+//    Basic data types
+//
+// ============================================================================
+
+typedef unsigned    uint;
+typedef uint8_t     byte;
+typedef const char *cstring;
+typedef const char *utf8;
+typedef unsigned    utf8code;
+typedef unsigned    type;
+
+
+#endif // TYPES_H

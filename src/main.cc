@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  main.c                                                        DB48X project
+//  main.cc                                                        DB48X project
 // ****************************************************************************
 //
 //   File Description:
@@ -57,27 +57,11 @@
 #include <menu.h>
 
 
+template<typename T> inline T max(T x, T y) { return x > y ? x : y; }
+template<typename T> inline T min(T x, T y) { return x < y ? x : y; }
 
-#ifndef max
-#define max(x,y) ({ \
-  __typeof__ (x) _x = (x); \
-  __typeof__ (y) _y = (y); \
-  _x > _y ? _x : _y; })
-#endif
+char *strend(char *s) { return s + strlen(s); }
 
-#ifndef min
-#define min(x,y) ({ \
-  __typeof__ (x) _x = (x); \
-  __typeof__ (y) _y = (y); \
-  _x < _y ? _x : _y; })
-#endif
-
-#define strend(s) (s + strlen(s))
-
-char *buf128b = NULL;
-char *buf1024b = NULL;
-char *buf4096b = NULL;
-int mallocSuccesses = 0;
 
 
 // ==================================================
@@ -219,7 +203,8 @@ void num_format(num_t * num, char *str, int len, int mode, int mode_digits) {
     int isexp = 1;
     int exp = atoi(ep+1)+mexp;  // Exp to num and translate to point before first mantissa digit
     int elen;
-    int a,b,c; // Aux vars
+    int a,b;
+    unsigned c; // Aux vars
     char * mp;
 
     // Terminate mantissa string
@@ -853,7 +838,7 @@ void program_init() {
 
 
 
-
+extern "C"
 void program_main() {
   int key = 0;
 

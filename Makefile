@@ -42,12 +42,12 @@ ASM_SOURCES = dmcp/startup_pgm.s
 C_INCLUDES += -Isrc -Iinc
 
 # C sources
-C_SOURCES +=		\
-	src/main.c	\
-	src/menu.c
+C_SOURCES +=
 
 # C++ sources
-#CXX_SOURCES += src/xxx.cc
+CXX_SOURCES +=		\
+	src/main.cc	\
+	src/menu.cc
 
 # ASM sources
 #ASM_SOURCES += src/xxx.s

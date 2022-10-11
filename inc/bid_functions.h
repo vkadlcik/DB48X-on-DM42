@@ -112,7 +112,7 @@ typedef BID_UINT128 _Quad;
   #define SQRT80 sqrtl
 #else
   #define BINARY80 __float80
-  //#define BINARY128 __float128 
+  //#define BINARY128 __float128
   #define BINARY128 BID_UINT128
   #define SQRT80 sqrtw
 #endif
@@ -2635,7 +2635,7 @@ BID_EXTERN_C _IDEC_round _IDEC_glbround; // initialized to BID_ROUNDING_TO_NEARE
      BID_EXTERN_C void bid64_to_string (char *ps, BID_UINT64 * px
                                   _EXC_FLAGS_PARAM
                                   _EXC_MASKS_PARAM _EXC_INFO_PARAM);
-     BID_EXTERN_C void bid128_from_string (BID_UINT128 * pres, char *ps
+     BID_EXTERN_C void bid128_from_string (BID_UINT128 * pres, const char *ps
                                      _RND_MODE_PARAM _EXC_FLAGS_PARAM
                                      _EXC_MASKS_PARAM _EXC_INFO_PARAM);
      BID_EXTERN_C void bid128_to_string (char *str, BID_UINT128 * px
@@ -5222,4 +5222,3 @@ int bid_fetestexcept( int excepts _EXC_FLAGS_PARAM );
                        int *ptr_is_inexact_gt_midpoint);
 
 #endif
-

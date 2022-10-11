@@ -31,7 +31,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-  The software and related material is released as “NOMAS”  (NOt MAnufacturer Supported). 
+  The software and related material is released as “NOMAS”  (NOt MAnufacturer Supported).
 
   1. Info is released to assist customers using, exploring and extending the product
   2. Do NOT contact the manufacturer with questions, seeking support, etc. regarding
@@ -44,11 +44,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __NUM_H__
 
 /*
- ▄▄   ▄              
- █▀▄  █ ▄   ▄  ▄▄▄▄▄ 
- █ █▄ █ █   █  █ █ █ 
- █  █ █ █   █  █ █ █ 
- █   ██ ▀▄▄▀█  █ █ █ 
+ ▄▄   ▄
+ █▀▄  █ ▄   ▄  ▄▄▄▄▄
+ █ █▄ █ █   █  █ █ █
+ █  █ █ █   █  █ █ █
+ █   ██ ▀▄▄▀█  █ █ █
 
 */
 

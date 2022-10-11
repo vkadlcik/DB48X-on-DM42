@@ -12,6 +12,11 @@ else
 OPT=release
 endif
 
+# Warning: macOSX only
+MOUNTPOINT=/Volumes/DM42/
+EJECT=hdiutil eject $(MOUNTPOINT)
+
+
 #######################################
 # pathes
 #######################################
@@ -37,8 +42,9 @@ ASM_SOURCES = dmcp/startup_pgm.s
 C_INCLUDES += -Isrc -Iinc
 
 # C sources
-C_SOURCES += src/main.c
-C_SOURCES += src/menu.c
+C_SOURCES +=		\
+	src/main.c	\
+	src/menu.c
 
 # C++ sources
 #CXX_SOURCES += src/xxx.cc
@@ -119,7 +125,9 @@ LDFLAGS = $(CPUFLAGS) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) \
 
 
 # default action: build all
-all: $(TARGET).pgm
+all: $(TARGET).pgm help/$(TARGET).html
+install: all
+	(tar cf - $(TARGET).pgm help/$(TARGET).html | (cd $(MOUNTPOINT) && tar xvf -)) && $(EJECT)
 
 debug-%:
 	$(MAKE) $@ OPT=debug

@@ -29,19 +29,44 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-inline uint leb128(void *&p)
+#include <stdint.h>
+
+template <typename Data, typename Int = uint>
+inline Int leb128(Data *&p)
 // ----------------------------------------------------------------------------
 //   Return the leb128 value at pointer
 // ----------------------------------------------------------------------------
 {
-    byte *bp = (byte *) p;
-    uint result = 0;
+    byte    *bp     = (byte *) p;
+    Int      result = 0;
+    unsigned shift  = 0;
+    bool     sign   = false;
     do
     {
-        result = (result << 7) | (*bp & 0x7F);
+        result |= (*bp & 0x7F) << shift;
+        sign = *bp & 0x40;
+        shift += 7;
     } while (*bp++ & 0x80);
-    p = (void *) bp;
+    p = (Data *) bp;
+    if (Int(-1) < Int(0) && sign)
+        result |= Int(-1) << (shift - 1);
     return result;
+}
+
+
+template<typename Data, typename Int = uint>
+inline void *leb128(Data *p, Int value)
+// ----------------------------------------------------------------------------
+//   Write the LEB value at pointer
+// ----------------------------------------------------------------------------
+{
+    byte *bp = (byte *) p;
+    do
+    {
+        *bp++ = value;
+        value >>= 7;
+    } while (value && (Int(-1) > Int(0) || ~value));
+    return (Data *) bp;
 }
 
 #endif // LEB128_H

@@ -56,7 +56,7 @@ struct runtime
 //   Stack elements point to temporaries, globals or robjects (read-only)
 //   What is above Temporaries is byte-aligned
 {
-    runtime(byte *memory, size_t size)
+    runtime(byte *memory = nullptr, size_t size = 0)
         : Error(nullptr),
           Code(nullptr),
           LowMem((object *) memory),
@@ -69,6 +69,17 @@ struct runtime
           GCSafe(nullptr)
     {}
     ~runtime() {}
+
+    void memory(byte *memory, size_t size)
+    {
+        LowMem = (object *) memory;
+        Returns = (object **) LowMem;
+        StackBottom = (object **) Returns;
+        StackTop = (object **) LowMem;
+        Temporaries = (object *) (memory + size);
+        Globals = (global *) Temporaries;
+        HighMem = Globals;
+    }
 
     // Amount of space we want to keep between stack top and temporaries
     const uint redzone = 8;

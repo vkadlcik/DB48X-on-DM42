@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <rpl.h>
 
 
 template <typename T>
@@ -938,6 +939,11 @@ void program_init()
     // Setup application menu callbacks
     run_menu_item_app = run_menu_item;
     menu_line_str_app = menu_line_str;
+
+    // Give 64K to the runtime
+    size_t size = 64 * 1024;
+    byte *memory = (byte *) malloc(size);
+    runtime::RT.memory(memory, size);
 
 
     // ==================

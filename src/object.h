@@ -77,7 +77,7 @@ struct object
     ~object() {}
 
 
-    size_t required_memory(id i)
+    static size_t required_memory(id i)
     // ------------------------------------------------------------------------
     //  Compute the amount of memory required for an object
     // ------------------------------------------------------------------------
@@ -169,10 +169,10 @@ struct object
 
 #define OBJECT_PARSER(type)                                     \
     static result parse(cstring begin, cstring end,             \
-                         type **out, runtime &rt = RT)
+                        object **out, runtime &rt = RT)
 #define OBJECT_PARSER_BODY(type)                                \
     object::result type::parse(cstring begin, cstring end,      \
-                               type **out, runtime &rt = RT)
+                               object **out, runtime &rt)
 
     OBJECT_PARSER(object)
     // ------------------------------------------------------------------------
@@ -204,7 +204,7 @@ struct object
     intptr_t render(char *begin, cstring end, runtime &rt = RT)
 
 #define OBJECT_RENDERER_BODY(type)                                      \
-    intptr_t type::render(char *begin, cstring end, runtime &rt = RT)
+    intptr_t type::render(char *begin, cstring end, runtime &rt)
 
     OBJECT_RENDERER(object)
     // ------------------------------------------------------------------------
@@ -236,7 +236,20 @@ struct object
                           object  *payload)
     OBJECT_HANDLER_NO_ID(object);
 
+    static cstring name(id i)
+    // ------------------------------------------------------------------------
+    //   Return the name for a given ID
+    // ------------------------------------------------------------------------
+    {
 
+        return id_name[i];
+    }
+
+    template <typename T, typename U>
+    static intptr_t ptrdiff(T *t, U *u)
+    {
+        return (byte *) t - (byte *) u;
+    }
 
 
   protected:
@@ -244,8 +257,8 @@ struct object
                                    command cmd, void *arg,
                                    object *obj, object *payload);
     static const handler_fn handler[NUM_IDS];
-    static const cstring id_name[NUM_IDS];
-    static runtime &RT;
+    static const cstring    id_name[NUM_IDS];
+    static runtime         &RT;
 };
 
 

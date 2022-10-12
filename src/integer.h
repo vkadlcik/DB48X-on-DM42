@@ -44,7 +44,7 @@ struct integer : object
     }
 
     template <typename Int>
-    size_t required_memory(id i, Int value)
+    static size_t required_memory(id i, Int value)
     {
         return leb128size(i) + leb128size(value);
     }

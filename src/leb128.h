@@ -55,7 +55,7 @@ inline Int leb128(Data *&p)
 
 
 template<typename Data, typename Int = uint>
-inline void *leb128(Data *p, Int value)
+inline Data *leb128(Data *p, Int value)
 // ----------------------------------------------------------------------------
 //   Write the LEB value at pointer
 // ----------------------------------------------------------------------------
@@ -70,10 +70,10 @@ inline void *leb128(Data *p, Int value)
 }
 
 
-template<typename Int = uint>
+template<typename Int>
 inline size_t leb128size(Int value)
 // ----------------------------------------------------------------------------
-//   Write the size required for a given LEB128 value
+//   Compute the size required for a given integer value
 // ----------------------------------------------------------------------------
 {
     size_t result = 1;
@@ -84,6 +84,20 @@ inline size_t leb128size(Int value)
     } while (value && (Int(-1) > Int(0) || value != Int(-1)));
     return result;
 }
+
+
+template<typename Data>
+inline size_t leb128size(Data *ptr)
+// ----------------------------------------------------------------------------
+//   Compute the size of an LEB128 value at pointer
+// ----------------------------------------------------------------------------
+{
+    byte *s = (byte *) ptr;
+    byte *p = s;
+    do { } while (*p++ & 0x80);
+    return p - s;
+}
+
 
 
 #endif // LEB128_H

@@ -29,6 +29,8 @@
 
 #include <object.h>
 #include <integer.h>
+#include <rplstring.h>
+
 #include <runtime.h>
 #include <stdio.h>
 
@@ -69,7 +71,15 @@ OBJECT_HANDLER_BODY(object)
     case SIZE:
         return payload - obj;
     case PARSE:
-        return object::SKIP;
+    {
+        parser *p = (parser *) arg;
+        if (p->begin >= p->end)
+        {
+            rt.error("Syntax error", p->begin);
+            return ERROR;
+        }
+        return SKIP;
+    }
     case RENDER:
     {
         renderer *out = (renderer *) arg;

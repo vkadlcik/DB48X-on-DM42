@@ -28,6 +28,9 @@
 // ****************************************************************************
 
 #include <integer.h>
+#include <runtime.h>
+#include <stdio.h>
+
 
 OBJECT_HANDLER_BODY(integer)
 // ----------------------------------------------------------------------------
@@ -38,19 +41,19 @@ OBJECT_HANDLER_BODY(integer)
     {
     case EVAL:
         // Integer values evaluate as self
-        rt.push(this);
+        rt.push(obj);
         return 0;
     case SIZE:
-        return payload - obj + leb128size(payload);
+        return ptrdiff(payload, obj) + leb128size(payload);
     case PARSE:
     {
         parser *p = (parser *) arg;
-        return parse(p->begin, p->end, &r->output, rt);
+        return parse(p->begin, p->end, &p->output, rt);
     }
     case RENDER:
     {
-        renderer *r = (renderer *) r;
-        return render(r->begin, r->end, r);
+        renderer *r = (renderer *) arg;
+        return obj->render(r->begin, r->end, rt);
     }
 
     default:
@@ -61,18 +64,12 @@ OBJECT_HANDLER_BODY(integer)
 }
 
 
-OBJECT_PARSER(integer)
+OBJECT_PARSER_BODY(integer)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an integer
 // ----------------------------------------------------------------------------
 //    For simplicity, this deals with all kinds of integers
 {
-    if (begin >= end)
-    {
-        rt.error("Invalid empty integer", begin);
-        return ERROR;
-    }
-
     int sign = 1;
     int base = 10;
     id type = ID_integer;
@@ -138,13 +135,13 @@ OBJECT_PARSER(integer)
     if (!value['A'])
     {
         // Initialize value array on first use
-        for (byte c = 0; c < 256; c++)
+        for (int c = 0; c < 256; c++)
             value[c] = (byte) -1;
-        for (char c = '0'; c <= '9'; c++)
+        for (int c = '0'; c <= '9'; c++)
             value[c] = c - '0';
-        for (char c = 'A'; c <= 'Z'; c++)
+        for (int c = 'A'; c <= 'Z'; c++)
             value[c] = c - 'A' + 10;
-        for (char c = 'a'; c <= 'z'; c++)
+        for (int c = 'a'; c <= 'z'; c++)
             value[c] = c - 'a' + 10;
     }
 
@@ -153,7 +150,7 @@ OBJECT_PARSER(integer)
     uint shift = sign < 0 ? 1 : 0;
     while (p < end)
     {
-        int v = value[*p++];
+        int v = value[(uint) *p++];
         if (v >= base)
         {
             rt.error("Invalid digit for base", p-1);
@@ -180,62 +177,69 @@ OBJECT_PARSER(integer)
         if (out)
             *out = rt.make<integer>(type, result);
     }
+
+    return OK;
 }
 
 
-OBJECT_RENDERER(integer)
+OBJECT_RENDERER_BODY(integer)
 // ----------------------------------------------------------------------------
 //   Render the integer into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(begin, end - begin, "%llu", value<ull>());
+    return snprintf(begin, end - begin, "%llu", value<ularge>());
 }
 
 
-OBJECT_RENDERER(neg_integer)
+template<>
+OBJECT_RENDERER_BODY(neg_integer)
 // ----------------------------------------------------------------------------
 //   Render the negative integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(begin, end - begin, "-%llu", value<ull>());
+    return snprintf(begin, end - begin, "-%llu", value<ularge>());
 }
 
 
-OBJECT_RENDERER(hex_integer)
+template<>
+OBJECT_RENDERER_BODY(hex_integer)
 // ----------------------------------------------------------------------------
 //   Render the hexadecimal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(begin, end - begin, "#%llXh", value<ull>());
+    return snprintf(begin, end - begin, "#%llXh", value<ularge>());
 }
 
-OBJECT_RENDERER(oct_integer)
+template<>
+OBJECT_RENDERER_BODY(oct_integer)
 // ----------------------------------------------------------------------------
 //   Render the octal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(begin, end - begin, "#%lloo", value<ull>());
+    return snprintf(begin, end - begin, "#%lloo", value<ularge>());
 }
 
-OBJECT_RENDERER(dec_integer)
+template<>
+OBJECT_RENDERER_BODY(dec_integer)
 // ----------------------------------------------------------------------------
 //   Render the negative integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(begin, end - begin, "#%llud", value<ull>());
+    return snprintf(begin, end - begin, "#%llud", value<ularge>());
 }
 
-OBJECT_RENDERER(dec_integer)
+template<>
+OBJECT_RENDERER_BODY(bin_integer)
 // ----------------------------------------------------------------------------
 //   Render the binary integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
     // Why is there no printf format for binary?
-    ull num = value<ull>();
+    ularge num = value<ularge>();
     char *p = begin;
     if (p < end)
         *p = '#';
-    ull testbit = num;
+    ularge testbit = num;
     do
     {
         p++;
@@ -247,7 +251,7 @@ OBJECT_RENDERER(dec_integer)
     do
     {
         *(--p) = (num & 1) ? '1' : '0';
-        numm >>= 1;
+        num >>= 1;
     } while (num);
     return result;
 }

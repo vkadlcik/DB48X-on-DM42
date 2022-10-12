@@ -49,7 +49,10 @@ CXX_SOURCES +=		\
 	src/main.cc	\
 	src/menu.cc	\
 	src/runtime.cc  \
-	src/object.cc
+	src/object.cc	\
+	src/integer.cc	\
+	src/rplstring.cc
+
 
 # ASM sources
 #ASM_SOURCES += src/xxx.s

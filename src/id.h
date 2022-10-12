@@ -27,6 +27,8 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
+ID(string)
+
 ID(integer)
 ID(neg_integer)
 ID(hex_integer)

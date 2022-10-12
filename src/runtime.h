@@ -112,13 +112,12 @@ struct runtime
     }
 
     template <typename Obj, typename ... Args>
-    Obj *make(Args &... args)
+    Obj *make(typename Obj::id type, const Args &... args)
     // ------------------------------------------------------------------------
     //   Make a new temporary of the given size
     // ------------------------------------------------------------------------
     {
-        // Find the required size for this object
-        typename Obj::id type = Obj::static_type();
+        // Find required memory for this object
         size_t size = Obj::required_memory(type, args...);
 
         // Check if we have room
@@ -128,10 +127,21 @@ struct runtime
         Temporaries = (object *) ((byte *) Temporaries + size);
 
         // Initialize the object in place
-        new(result) Obj(type, args...);
+        new(result) Obj(args..., type);
 
         // Return initialized object
         return result;
+    }
+
+    template <typename Obj, typename ... Args>
+    Obj *make(const Args &... args)
+    // ------------------------------------------------------------------------
+    //   Make a new temporary of the given size
+    // ------------------------------------------------------------------------
+    {
+        // Find the required type for this object
+        typename Obj::id type = Obj::static_type();
+        return make(type, args...);
     }
 
     void dispose(object *object)
@@ -395,5 +405,14 @@ inline Obj *make(Args &... args)
     return runtime::RT.make<Obj>(args...);
 }
 
+
+template <typename Obj>
+inline void *operator new(size_t size, Obj *where)
+// ----------------------------------------------------------------------------
+//    Placement new for objects
+// ----------------------------------------------------------------------------
+{
+    return where;
+}
 
 #endif // RUNTIME_H

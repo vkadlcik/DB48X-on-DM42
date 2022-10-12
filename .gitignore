@@ -3,3 +3,12 @@
 /build/
 /cscope.files
 /cscope.out
+/sim/.qmake.stash
+/sim/simulator.app/
+/sim/simulator.mak
+/sim/*.o
+/sim/ui_sim-window.h
+/sim/moc_predefs.h
+/sim/moc_sim-screen.cpp
+/sim/moc_sim-window.cpp
+/sim/qrc_sim.cpp

@@ -39,13 +39,13 @@
 #include <rpl.h>
 
 
-template <typename T>
-inline T max(T x, T y)
+template <typename T, typename U>
+inline T max(T x, U y)
 {
     return x > y ? x : y;
 }
-template <typename T>
-inline T min(T x, T y)
+template <typename T, typename U>
+inline T min(T x, U y)
 {
     return x < y ? x : y;
 }
@@ -379,7 +379,8 @@ void disp_annun(int xpos, const char *txt)
 
 
 const char *ang_mode_ann[ANG_MODE_CNT] = { "[DEG]", "[RAD]", "[GRAD]" };
-int         lastkey                    = 0;
+int         k1                         = 0;
+int         k2                         = 0;
 
 static int  counter                    = 0;
 
@@ -407,7 +408,7 @@ void        redraw_lcd()
     }
 
     char buffer[40];
-    snprintf(buffer, sizeof(buffer), "Key: %d Cnt=%d", lastkey, counter++);
+    snprintf(buffer, sizeof(buffer), "Key: %d %d Cnt=%d", k1, k2, counter++);
     disp_annun(60, buffer);
 
     t20->newln = 1; // Revert to default
@@ -1060,8 +1061,10 @@ extern "C" void program_main()
         if (!key_empty())
             reset_auto_off();
 
-
-        lastkey = key_tail();
+#ifndef __sysfn_read_key
+#define __sysfn_read_key read_key
+#endif
+        __sysfn_read_key(&k1, &k2);
         redraw_lcd();
         sys_delay(200);
 
@@ -1070,11 +1073,6 @@ extern "C" void program_main()
         //  > 0 -> Key pressed
         // == 0 -> Key released
         key     = key_pop();
-
-        lastkey = key;
-        redraw_lcd();
-        sys_delay(200);
-
         if (key >= 0)
             handle_key(key);
 

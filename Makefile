@@ -133,6 +133,10 @@ LDFLAGS = $(CPUFLAGS) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) \
 all: $(TARGET).pgm help/$(TARGET).html
 install: all
 	(tar cf - $(TARGET).pgm help/$(TARGET).html | (cd $(MOUNTPOINT) && tar xvf -)) && $(EJECT)
+sim: sim/simulator.mak .ALWAYS
+	cd sim; make -f $(<F)
+sim/simulator.mak: sim/simulator.pro
+	cd sim; qmake $(<F) -o $(@F)
 
 debug-%:
 	$(MAKE) $@ OPT=debug
@@ -198,5 +202,6 @@ clean:
 -include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
 
 .PHONY: clean all
+.ALWAYS:
 
 # *** EOF ***

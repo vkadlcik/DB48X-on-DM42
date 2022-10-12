@@ -1,5 +1,5 @@
 #ifndef RPLSTRING_H
-#define RPLSTRING_JH
+#define RPLSTRING_H
 // ****************************************************************************
 //  rplstring.h                                                  DB48X project
 // ****************************************************************************
@@ -46,6 +46,7 @@ struct string : object
 
     static size_t required_memory(id i, utf8 str, size_t len)
     {
+        UNUSED(str);
         return leb128size(i) + leb128size(len) + len;
     }
 

@@ -45,6 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <menu.h>
 #include <stdio.h>
+#include <types.h>
 
 
 const uint8_t mid_menu[] = {
@@ -136,18 +137,19 @@ int run_menu_item(uint8_t line_id) {
 }
 
 
-const char * menu_line_str(uint8_t line_id, char * s, const int slen) {
-  const char * ln;
+const char *menu_line_str(uint8_t line_id, char *s, const int slen)
+{
+    UNUSED(s);
+    UNUSED(slen);
+    const char *ln;
 
-  switch(line_id) {
+    switch (line_id)
+    {
+    case MI_SETTINGS: ln = "Settings >"; break;
+    case MI_ABOUT_PGM: ln = "About >"; break;
 
-  case MI_SETTINGS:     ln = "Settings >";           break;
-  case MI_ABOUT_PGM:    ln = "About >";              break;
+    default: ln = NULL; break;
+    }
 
-  default:
-    ln = NULL;
-    break;
-  }
-
-  return ln;
+    return ln;
 }

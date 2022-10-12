@@ -56,7 +56,7 @@ struct runtime
 //   Everything below Temporaries is byte-aligned
 //   Stack elements point to temporaries, globals or robjects (read-only)
 {
-    runtime(byte *memory = nullptr, size_t size = 0)
+    runtime(byte *mem = nullptr, size_t size = 0)
         : Error(nullptr),
           ErrorSource(nullptr),
           Code(nullptr),
@@ -68,7 +68,9 @@ struct runtime
           Returns(),
           HighMem(),
           GCSafe(nullptr)
-    {}
+    {
+        memory(mem, size);
+    }
     ~runtime() {}
 
     void memory(byte *memory, size_t size)
@@ -327,7 +329,7 @@ struct runtime
         object *safe;
         gcptr  *next;
 
-        friend class runtime;
+        friend struct runtime;
     };
 
 
@@ -412,6 +414,7 @@ inline void *operator new(size_t size, Obj *where)
 //    Placement new for objects
 // ----------------------------------------------------------------------------
 {
+    UNUSED(size);
     return where;
 }
 

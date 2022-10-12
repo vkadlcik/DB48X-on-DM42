@@ -132,7 +132,7 @@ OBJECT_PARSER_BODY(integer)
 
     // Array of values for digits
     static byte value[256] = { 0 };
-    if (!value['A'])
+    if (!value[(byte) 'A'])
     {
         // Initialize value array on first use
         for (int c = 0; c < 256; c++)
@@ -187,6 +187,7 @@ OBJECT_RENDERER_BODY(integer)
 //   Render the integer into the given string buffer
 // ----------------------------------------------------------------------------
 {
+    UNUSED(rt);
     return snprintf(begin, end - begin, "%llu", value<ularge>());
 }
 
@@ -197,6 +198,7 @@ OBJECT_RENDERER_BODY(neg_integer)
 //   Render the negative integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
+    UNUSED(rt);
     return snprintf(begin, end - begin, "-%llu", value<ularge>());
 }
 
@@ -207,6 +209,7 @@ OBJECT_RENDERER_BODY(hex_integer)
 //   Render the hexadecimal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
+    UNUSED(rt);
     return snprintf(begin, end - begin, "#%llXh", value<ularge>());
 }
 
@@ -216,6 +219,7 @@ OBJECT_RENDERER_BODY(oct_integer)
 //   Render the octal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
+    UNUSED(rt);
     return snprintf(begin, end - begin, "#%lloo", value<ularge>());
 }
 
@@ -225,6 +229,7 @@ OBJECT_RENDERER_BODY(dec_integer)
 //   Render the negative integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
+    UNUSED(rt);
     return snprintf(begin, end - begin, "#%llud", value<ularge>());
 }
 
@@ -234,6 +239,8 @@ OBJECT_RENDERER_BODY(bin_integer)
 //   Render the binary integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
+    UNUSED(rt);
+
     // Why is there no printf format for binary?
     ularge num = value<ularge>();
     char *p = begin;

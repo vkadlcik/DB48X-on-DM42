@@ -28,6 +28,7 @@
 // ****************************************************************************
 
 #include <object.h>
+#include <integer.h>
 #include <runtime.h>
 #include <stdio.h>
 
@@ -35,27 +36,27 @@
 runtime &object::RT = runtime::RT;
 
 
-const object::handler_fn object::handler[] =
+const object::handler_fn object::handler[NUM_IDS] =
 // ----------------------------------------------------------------------------
 //   The list of all possible handler
 // ----------------------------------------------------------------------------
 {
-    object::handle
+#define ID(id)  [ID_##id] = (handler_fn) id::handle,
+#include <id.h>
 };
 
 
-const size_t object::handlers =
+const cstring object::id_name[NUM_IDS] =
 // ----------------------------------------------------------------------------
-//   Size of the handler table
+//   The name of all handlers
 // ----------------------------------------------------------------------------
-    sizeof(object::handler) / sizeof(object::handler[0]);
+{
+#define ID(id)  #id,
+#include <id.h>
+};
 
 
-int object::handle(runtime &rt,
-                   command  cmd,
-                   void    *arg,
-                   object  *obj,
-                   object  *payload)
+OBJECT_HANDLER_BODY(object)
 // ----------------------------------------------------------------------------
 //   Default handler for object
 // ----------------------------------------------------------------------------
@@ -68,14 +69,15 @@ int object::handle(runtime &rt,
     case SIZE:
         return payload - obj;
     case PARSE:
-        return parser::SKIP;
+        return object::SKIP;
     case RENDER:
     {
         renderer *out = (renderer *) arg;
-        return snprintf(out->begin, out->end - out->begin, "<Unknown object %p>", obj);
+        return snprintf(out->begin, out->end - out->begin,
+                        "<Unknown object %p>", obj);
     }
     default:
         rt.error("Invalid command for default object");
-        return -1;
+        return ERROR;
     }
 }

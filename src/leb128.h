@@ -64,9 +64,26 @@ inline void *leb128(Data *p, Int value)
     do
     {
         *bp++ = value;
-        value >>= 7;
-    } while (value && (Int(-1) > Int(0) || ~value));
+        value = Int(value >> 7);
+    } while (value != 0 && (Int(-1) > Int(0) || value != Int(-1)));
     return (Data *) bp;
 }
+
+
+template<typename Int = uint>
+inline size_t leb128size(Int value)
+// ----------------------------------------------------------------------------
+//   Write the size required for a given LEB128 value
+// ----------------------------------------------------------------------------
+{
+    size_t result = 1;
+    do
+    {
+        value = Int(value >> 7);
+        result++;
+    } while (value && (Int(-1) > Int(0) || value != Int(-1)));
+    return result;
+}
+
 
 #endif // LEB128_H

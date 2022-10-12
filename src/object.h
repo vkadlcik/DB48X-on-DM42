@@ -56,10 +56,39 @@ struct object
 //  The basic RPL object
 // ----------------------------------------------------------------------------
 {
-    object() {}
+    enum id
+    // ------------------------------------------------------------------------
+    //  Object ID
+    // ------------------------------------------------------------------------
+    {
+#define ID(i)   ID_##i,
+#include <id.h>
+        NUM_IDS
+    };
+
+    object(id i)
+    // ------------------------------------------------------------------------
+    //  Write the id of the object
+    // ------------------------------------------------------------------------
+    {
+        byte *ptr = (byte *) this;
+        leb128(ptr, i);
+    }
     ~object() {}
 
+
+    size_t required_memory(id i)
+    // ------------------------------------------------------------------------
+    //  Compute the amount of memory required for an object
+    // ------------------------------------------------------------------------
+    {
+        return leb128size(i);
+    }
+
     enum command
+    // ------------------------------------------------------------------------
+    //  The commands that all handlers must deal with
+    // ------------------------------------------------------------------------
     {
         EVAL,
         SIZE,
@@ -68,60 +97,154 @@ struct object
         LAST,
     };
 
-    int run(runtime &rt, command cmd, void *arg = nullptr)
+    enum result
+    // ------------------------------------------------------------------------
+    //   Common return values for handlers
+    // ------------------------------------------------------------------------
+    {
+        OK    = 0,          // Object parsed successfully
+        SKIP  = -1,         // Not for this handler
+        ERROR = -2,         // Error processing the command
+    };
+
+
+    static intptr_t run(runtime &rt, id type, command cmd, void *arg = nullptr)
+    // ------------------------------------------------------------------------
+    //  Run a command without an object
+    // ------------------------------------------------------------------------
+    {
+        if (type >= NUM_IDS)
+            return -1;
+        return handler[type](rt, cmd, arg, nullptr, nullptr);
+    }
+
+    intptr_t run(runtime &rt, command cmd, void *arg = nullptr)
     // ------------------------------------------------------------------------
     //  Run an arbitrary command
     // ------------------------------------------------------------------------
     {
-        void *ptr = this;
-        uint type = leb128(ptr);
-        if (type >= handlers)
+        byte *ptr = (byte *) this;
+        id type = (id) leb128(ptr);
+        if (type >= NUM_IDS)
             return -1;
         return handler[type](rt, cmd, arg, this, (object *) ptr);
     }
 
-    size_t  size(runtime &rt = RT) { return (size_t) run(rt, SIZE); }
-    object *skip(runtime &rt = RT) { return this + size(rt); }
+    size_t size(runtime &rt = RT)
+    // ------------------------------------------------------------------------
+    //  Compute the size of the object by calling the handler with SIZE
+    // ------------------------------------------------------------------------
+    {
+        return (size_t) run(rt, SIZE);
+    }
 
+    object *skip(runtime &rt = RT)
+    // ------------------------------------------------------------------------
+    //  Return the pointer to the next object in memory by skipping its size
+    // ------------------------------------------------------------------------
+    {
+        return this + size(rt);
+    }
+
+
+    byte * payload()
+    // ------------------------------------------------------------------------
+    //  Return the object's payload, i.e. first byte after ID
+    // ------------------------------------------------------------------------
+    {
+        byte *ptr = (byte *) this;
+        leb128(ptr);            // Skip ID
+        return ptr;
+    }
 
     struct parser
+    // ------------------------------------------------------------------------
+    //  Arguments to the PARSE command
+    // ------------------------------------------------------------------------
     {
         cstring begin;
         cstring end;
-        enum result { OK = 0, SKIP = 1, ERROR = -1 };
+        object *output;
     };
 
-    parser::result parse(cstring begin, cstring end, runtime &rt = RT)
+#define OBJECT_PARSER(type)                                     \
+    static result parse(cstring begin, cstring end,             \
+                         type **out, runtime &rt = RT)
+#define OBJECT_PARSER_BODY(type)                                \
+    object::result type::parse(cstring begin, cstring end,      \
+                               type **out, runtime &rt = RT)
+
+    OBJECT_PARSER(object)
+    // ------------------------------------------------------------------------
+    //  Try parsing the object as a top-level temporary
+    // ------------------------------------------------------------------------
     {
-        parser p = { .begin = begin, .end = end };
-        return (parser::result) run(rt, PARSE, &p);
+        parser p = { .begin = begin, .end = end, .output = nullptr };
+        result r = SKIP;
+
+        // Try parsing with the various handlers
+        for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
+            r = (result) handler[i](rt, PARSE, &p, nullptr, nullptr);
+        if (r == OK && out)
+            *out = p.output;
+        return r;
     }
 
+
     struct renderer
+    // ------------------------------------------------------------------------
+    //  Arguments to the RENDER command
+    // ------------------------------------------------------------------------
     {
-        char *begin;
+        char   *begin;          // Buffer where we can write
         cstring end;
     };
 
-    size_t render(char *begin, cstring end, runtime &rt = RT)
+#define OBJECT_RENDERER(type)                                   \
+    intptr_t render(char *begin, cstring end, runtime &rt = RT)
+
+#define OBJECT_RENDERER_BODY(type)                                      \
+    intptr_t type::render(char *begin, cstring end, runtime &rt = RT)
+
+    OBJECT_RENDERER(object)
+    // ------------------------------------------------------------------------
+    //   Render the object to buffer starting at begin
+    // ------------------------------------------------------------------------
+    //   Returns number of bytes needed - If larger than end - begin, retry
     {
         renderer r = { .begin = begin, .end = end };
         return run(rt, RENDER, &r);
     }
 
+
     // The actual work is done here
-    static int handle(runtime &rt,
-                      command  cmd,
-                      void    *arg,
-                      object  *obj,
-                      object  *payload);
+#define OBJECT_HANDLER_NO_ID(type)                      \
+    static intptr_t handle(runtime &rt,                 \
+                           command  cmd,                \
+                           void    *arg,                \
+                           type    *obj,                \
+                           object  *payload)
+#define OBJECT_HANDLER(type)                            \
+    static id static_type() { return ID_##type; }       \
+    OBJECT_HANDLER_NO_ID(type)
+
+#define OBJECT_HANDLER_BODY(type)                       \
+    intptr_t type::handle(runtime &rt,                  \
+                          command  cmd,                 \
+                          void    *arg,                 \
+                          type  *obj,                   \
+                          object  *payload)
+    OBJECT_HANDLER_NO_ID(object);
+
+
+
 
   protected:
-    typedef int (*handler_fn)(runtime &rt,
-                              command cmd, void *arg,
-                              object *obj, object *payload);
-    static const handler_fn handler[];
-    static const size_t handlers;
+    typedef intptr_t (*handler_fn)(runtime &rt,
+                                   command cmd, void *arg,
+                                   object *obj, object *payload);
+    static const handler_fn handler[NUM_IDS];
+    static const cstring id_name[NUM_IDS];
     static runtime &RT;
 };
 

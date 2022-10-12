@@ -1,12 +1,10 @@
-#ifndef TYPES_H
-#define TYPES_H
 // ****************************************************************************
-//  types.h                                                       DB48X project
+//  id.h                                                          DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//
+//     List of all IDs for RPL opcodes
 //
 //
 //
@@ -29,22 +27,15 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <stdint.h>
-#include <stddef.h>
+ID(integer)
+ID(neg_integer)
+ID(hex_integer)
+ID(oct_integer)
+ID(bin_integer)
+ID(dec_integer)
+//ID(add)
+//ID(sub)
+//ID(mul)
+//ID(div)
 
-
-// ============================================================================
-//
-//    Basic data types
-//
-// ============================================================================
-
-typedef unsigned           uint;
-typedef uint8_t            byte;
-typedef unsigned long long ularge;
-typedef long long          ilarge;
-typedef const char        *cstring;
-typedef const char        *utf8;
-typedef unsigned           utf8code;
-
-#endif // TYPES_H
+#undef ID

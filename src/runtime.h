@@ -58,6 +58,7 @@ struct runtime
 {
     runtime(byte *memory = nullptr, size_t size = 0)
         : Error(nullptr),
+          ErrorSource(nullptr),
           Code(nullptr),
           LowMem(),
           Globals(),
@@ -110,16 +111,26 @@ struct runtime
         return size;
     }
 
-
-    object *make(size_t size, type ty)
+    template <typename Obj, typename ... Args>
+    Obj *make(Args &... args)
     // ------------------------------------------------------------------------
-    //   Make a new temporary
+    //   Make a new temporary of the given size
     // ------------------------------------------------------------------------
     {
+        // Find the required size for this object
+        typename Obj::id type = Obj::static_type();
+        size_t size = Obj::required_memory(type, args...);
+
+        // Check if we have room
         if (available(size) < size)
             return nullptr;    // Failed to allocate
-        object *result = (object *) Temporaries;
+        Obj *result = (Obj *) Temporaries;
         Temporaries = (object *) ((byte *) Temporaries + size);
+
+        // Initialize the object in place
+        new(result) Obj(type, args...);
+
+        // Return initialized object
         return result;
     }
 
@@ -331,18 +342,20 @@ struct runtime
     //
     // ========================================================================
 
-    void error(cstring message)
+    void error(cstring message, cstring source = nullptr)
     // ------------------------------------------------------------------------
     //   Set the error message
     // ------------------------------------------------------------------------
     {
         Error = message;
+        ErrorSource = source;
     }
 
 
   public:
-    cstring  Error;   // Error message if any
-    object  *Code;    // Currently executing code
+    cstring  Error;             // Error message if any
+    cstring  ErrorSource;       // Source of the error if known
+    object  *Code;              // Currently executing code
     object  *LowMem;
     global  *Globals;
     object  *Temporaries;
@@ -359,28 +372,27 @@ struct runtime
 };
 
 
+template<typename T>
+using gcptr = runtime::gcp<T>;
+
+using gcstring = gcptr<const char>;
+using gcmstring = gcptr<char>;
+
+
 
 // ============================================================================
 //
-//    Standard C++ memory allocation
+//    Allocate objects
 //
 // ============================================================================
 
-inline void *operator new(size_t sz, runtime &rt, type ty)
+template <typename Obj, typename ...Args>
+inline Obj *make(Args &... args)
 // ----------------------------------------------------------------------------
-//   Allocate an object as a temporary in the runtime
-// ----------------------------------------------------------------------------
-{
-    return rt.make(sz, ty);
-}
-
-
-inline void operator delete(void *mem, runtime &rt)
-// ----------------------------------------------------------------------------
-//   Immediately deallocate an object
+//    Create an object in the runtime
 // ----------------------------------------------------------------------------
 {
-    rt.dispose((object *) mem);
+    return runtime::RT.make<Obj>(args...);
 }
 
 

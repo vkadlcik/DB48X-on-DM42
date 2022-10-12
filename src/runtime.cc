@@ -29,6 +29,7 @@
 
 #include <runtime.h>
 #include <object.h>
+#include <cstring>
 
 // The one and only runtime
 runtime runtime::RT(nullptr, 0);
@@ -42,14 +43,17 @@ size_t runtime::gc()
 //   Objects in the global area are copied there, so they need no recycling
 {
     size_t  recycled = 0;
-    object *last = (object *) Globals;
+    object *last = (object *) Temporaries;
     object *next;
-    for (object *obj = Temporaries; obj < last; obj = next)
+    for (object *obj = (object *) Globals; obj < last; obj = next)
     {
         bool found = false;
         next = skip(obj);
-        for (object **s = StackBottom; s < StackTop && !found; s++)
+        for (object **s = StackTop; s < StackBottom && !found; s++)
             found = *s == obj;
+        if (!found)
+            for (gcptr *p = GCSafe; p && !found; p = p->next)
+                found = p->safe == obj;
         if (!found)
         {
             recycled += next - obj;
@@ -65,20 +69,23 @@ void runtime::unused(object *obj, object *next)
 // ----------------------------------------------------------------------------
 {
     size_t sz = next - obj;
-    object *first = Temporaries;
+    object *last = Temporaries;
 
     // Adjust the stack pointers
-    for (object **s = StackBottom; s < StackTop; s++)
-        if (*s >= first && *s < next)
+    for (object **s = StackTop; s < StackBottom; s++)
+        if (*s >= obj && *s < last)
             *s += sz;
 
     // Adjust the protected pointers
     for (gcptr *p = GCSafe; p; p = p->next)
-        if (p->safe >= first && p->safe < next)
+        if (p->safe >= obj && p->safe < last)
             p->safe += sz;
 
+    // Move the other temporaries down
+    memmove((byte *) obj, (byte *) next, (byte *) Temporaries - (byte *) next);
+
     // Adjust the temporaries pointer
-    Temporaries += sz;
+    Temporaries -= sz;
 }
 
 

@@ -42,30 +42,30 @@ struct runtime
 //   Layout in memory is as follows
 //
 //      HighMem         End of usable memory
-//      Globals         Global named RPL objects
-//      Temporaries     Temporaries, allocated down
-//        ...
-//      StackTop        Top of stack
-//      StackBottom     Bottom of stack
 //      Returns         Top of return stack
+//      StackBottom     Bottom of stack
+//      StackTop        Top of stack
+//        ...
+//      Temporaries     Temporaries, allocated down
+//      Globals         Global named RPL objects
 //      LowMem          Bottom of memory
 //
-//   When allocating a temporary, we move 'Temporaries' down
-//   When allocating stuff on the stack, we move StackTop up
-//   What is below StackTop is word-aligned
+//   When allocating a temporary, we move 'Temporaries' up
+//   When allocating stuff on the stack, we move StackTop down
+//   Everything above StackTop is word-aligned
+//   Everything below Temporaries is byte-aligned
 //   Stack elements point to temporaries, globals or robjects (read-only)
-//   What is above Temporaries is byte-aligned
 {
     runtime(byte *memory = nullptr, size_t size = 0)
         : Error(nullptr),
           Code(nullptr),
-          LowMem((object *) memory),
-          Returns((object **) LowMem),
-          StackBottom((object **) Returns),
-          StackTop((object **) LowMem),
-          Temporaries((object *) (memory + size)),
-          Globals((global *) Temporaries),
-          HighMem(Globals),
+          LowMem(),
+          Globals(),
+          Temporaries(),
+          StackTop(),
+          StackBottom(),
+          Returns(),
+          HighMem(),
           GCSafe(nullptr)
     {}
     ~runtime() {}
@@ -73,12 +73,12 @@ struct runtime
     void memory(byte *memory, size_t size)
     {
         LowMem = (object *) memory;
-        Returns = (object **) LowMem;
+        HighMem = (object *) (memory + size);
+        Returns = (object **) HighMem;
         StackBottom = (object **) Returns;
-        StackTop = (object **) LowMem;
-        Temporaries = (object *) (memory + size);
+        StackTop = (object **) StackBottom;
+        Temporaries = (object *) LowMem;
         Globals = (global *) Temporaries;
-        HighMem = Globals;
     }
 
     // Amount of space we want to keep between stack top and temporaries
@@ -97,7 +97,7 @@ struct runtime
     //   Return the size available for temporaries
     // ------------------------------------------------------------------------
     {
-        return (byte *) Temporaries - (byte *) StackTop - redzone;
+        return (byte *) StackTop - (byte *) Temporaries - redzone;
     }
 
     size_t available(size_t size)
@@ -118,8 +118,9 @@ struct runtime
     {
         if (available(size) < size)
             return nullptr;    // Failed to allocate
-        Temporaries = (object *) ((byte *) Temporaries - size);
-        return Temporaries;
+        object *result = (object *) Temporaries;
+        Temporaries = (object *) ((byte *) Temporaries + size);
+        return result;
     }
 
     void dispose(object *object)
@@ -127,8 +128,8 @@ struct runtime
     //   Dispose of a temporary (must not be referenced elsewhere)
     // ------------------------------------------------------------------------
     {
-        if (object == Temporaries)
-            Temporaries = skip(object);
+        if (skip(object) == Temporaries)
+            Temporaries = object;
         else
             unused(object);
     }
@@ -148,7 +149,7 @@ struct runtime
     {
         if (available(sizeof(obj)) < sizeof(obj))
             return;
-        *(++StackTop) = obj;
+        *(--StackTop) = obj;
     }
 
     object *top()
@@ -156,7 +157,7 @@ struct runtime
     //   Return the top of the runtime stack
     // ------------------------------------------------------------------------
     {
-        return StackTop > StackBottom ? *StackTop : nullptr;
+        return StackTop < StackBottom ? *StackTop : nullptr;
     }
 
     void top(object *obj)
@@ -164,7 +165,7 @@ struct runtime
     //   Set the top of the runtime stack
     // ------------------------------------------------------------------------
     {
-        if (StackTop <= StackBottom)
+        if (StackTop >= StackBottom)
             return error("Cannot replace empty stack");
         *StackTop = obj;
     }
@@ -174,9 +175,9 @@ struct runtime
     //   Pop the top-level object from the stack, or return NULL
     // ------------------------------------------------------------------------
     {
-        if (StackTop <= StackBottom)
+        if (StackTop >= StackBottom)
             return error("Not enough arguments"), nullptr;
-        return *StackTop--;
+        return *StackTop++;
     }
 
     object *stack(uint idx)
@@ -186,7 +187,7 @@ struct runtime
     {
         if (idx >= depth())
             return error("Insufficient stack depth"), nullptr;
-        return StackTop[~idx];
+        return StackTop[idx];
     }
 
     void stack(uint idx, object *obj)
@@ -196,7 +197,7 @@ struct runtime
     {
         if (idx >= depth())
             return error("Insufficient stack depth");
-        StackTop[~idx] = obj;
+        StackTop[idx] = obj;
     }
 
     uint depth()
@@ -204,7 +205,7 @@ struct runtime
     //   Return the stack depth
     // ------------------------------------------------------------------------
     {
-        return StackTop - StackBottom;
+        return StackBottom - StackTop;
     }
 
 
@@ -222,11 +223,11 @@ struct runtime
     {
         if (available(sizeof(callee)) < sizeof(callee))
             return error("Too many recursive calls");
-        StackTop++;
-        StackBottom++;
-        for (object **s = StackTop; s > StackBottom; s--)
-            s[0] = s[-1];
-        *(++Returns) = Code;
+        StackTop--;
+        StackBottom--;
+        for (object **s = StackBottom; s < StackTop; s++)
+            s[0] = s[1];
+        *(--Returns) = Code;
         Code = callee;
     }
 
@@ -235,13 +236,13 @@ struct runtime
     //   Return from an RPL call
     // ------------------------------------------------------------------------
     {
-        if ((byte *) Returns <= (byte *) LowMem)
+        if ((byte *) Returns >= (byte *) HighMem)
             return error("Cannot return without a caller");
-        Code = *Returns--;
-        StackTop--;
-        StackBottom--;
-        for (object **s = StackBottom; s < StackTop; s++)
-            s[0] = s[1];
+        Code = *Returns++;
+        StackTop++;
+        StackBottom++;
+        for (object **s = StackTop; s > StackTop; s--)
+            s[0] = s[-1];
     }
 
 
@@ -343,12 +344,12 @@ struct runtime
     cstring  Error;   // Error message if any
     object  *Code;    // Currently executing code
     object  *LowMem;
-    object **Returns;
-    object **StackBottom;
-    object **StackTop;
-    object  *Temporaries;
     global  *Globals;
-    global  *HighMem;
+    object  *Temporaries;
+    object **StackTop;
+    object **StackBottom;
+    object **Returns;
+    object  *HighMem;
 
     // Pointers that are GC-adjusted
     gcptr   *GCSafe;

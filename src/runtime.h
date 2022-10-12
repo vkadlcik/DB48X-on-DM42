@@ -56,11 +56,11 @@ struct runtime
 //   Stack elements point to temporaries, globals or robjects (read-only)
 //   What is above Temporaries is byte-aligned
 {
-    runtime(byte *memory, size_t_size)
+    runtime(byte *memory, size_t size)
         : Error(nullptr),
           Code(nullptr),
           LowMem((object *) memory),
-          Returns((object *) LowMem),
+          Returns((object **) LowMem),
           StackBottom((object **) Returns),
           StackTop((object **) LowMem),
           Temporaries((object *) (memory + size)),
@@ -107,11 +107,11 @@ struct runtime
     {
         if (available(size) < size)
             return nullptr;    // Failed to allocate
-        Temporaries = (object *) (Temporaries - size);
+        Temporaries = (object *) ((byte *) Temporaries - size);
         return Temporaries;
     }
 
-    size_t dispose(object *object)
+    void dispose(object *object)
     // ------------------------------------------------------------------------
     //   Dispose of a temporary (must not be referenced elsewhere)
     // ------------------------------------------------------------------------
@@ -130,14 +130,14 @@ struct runtime
     //
     // ========================================================================
 
-    void push(object *object)
+    void push(object *obj)
     // ------------------------------------------------------------------------
     //   Push an object on top of RPL stack
     // ------------------------------------------------------------------------
     {
-        if (available(sizeof(object *)) < sizeof(object *))
+        if (available(sizeof(obj)) < sizeof(obj))
             return;
-        *(++StackTop) = object;
+        *(++StackTop) = obj;
     }
 
     object *top()
@@ -174,7 +174,7 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         if (idx >= depth())
-            return error("Insufficient stack depth");
+            return error("Insufficient stack depth"), nullptr;
         return StackTop[~idx];
     }
 
@@ -224,7 +224,7 @@ struct runtime
     //   Return from an RPL call
     // ------------------------------------------------------------------------
     {
-        if (Returns <= LowMem)
+        if ((byte *) Returns <= (byte *) LowMem)
             return error("Cannot return without a caller");
         Code = *Returns--;
         StackTop--;
@@ -256,7 +256,7 @@ struct runtime
     //   Skip an RPL object
     // ------------------------------------------------------------------------
     {
-        return obj + size(obj); // Size of empty object is 1
+        return (object *) ((byte *) obj + size(obj));
     }
 
 
@@ -265,15 +265,15 @@ struct runtime
     //   Protect a pointer against garbage collection
     // ------------------------------------------------------------------------
     {
-        gcptr(object *ptr = nullptr) : safe(ptr), next(RT.gcsafe)
+        gcptr(object *ptr = nullptr) : safe(ptr), next(RT.GCSafe)
         {
-            RT.gcsafe = this;
+            RT.GCSafe = this;
         }
         gcptr(const gcptr &o) = delete;
         ~gcptr()
         {
             gcptr *last = nullptr;
-            for (gcptr *gc = RT.gcsafe; gc; gc = gc->next)
+            for (gcptr *gc = RT.GCSafe; gc; gc = gc->next)
             {
                 last = gc;
                 if (gc == this)
@@ -281,7 +281,7 @@ struct runtime
                     if (last)
                         last->next = gc->next;
                     else
-                        RT.gcsafe = gc->next;
+                        RT.GCSafe = gc->next;
                     break;
                 }
             }
@@ -299,13 +299,13 @@ struct runtime
 
 
     template<typename Obj>
-    struct gcp<Obj> : gcptr
+    struct gcp : gcptr
     // ------------------------------------------------------------------------
     //   Protect a pointer against garbage collection
     // ------------------------------------------------------------------------
     {
         gcp(Obj *obj): gcptr(obj) {}
-        ~gcp(Obj *obj): gcptr(obj) {}
+        ~gcp() {}
 
         operator Obj *() const  { return (Obj *) safe; }
         operator Obj *&()       { return (Obj *&) safe; }
@@ -330,7 +330,7 @@ struct runtime
 
   public:
     cstring  Error;   // Error message if any
-    object  *Command; // Currently executing command
+    object  *Code;    // Currently executing code
     object  *LowMem;
     object **Returns;
     object **StackBottom;

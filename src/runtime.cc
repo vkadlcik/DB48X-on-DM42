@@ -31,7 +31,7 @@
 #include <object.h>
 
 // The one and only runtime
-runtime runtime::RT;
+runtime runtime::RT(nullptr, 0);
 
 
 size_t runtime::gc()
@@ -42,8 +42,9 @@ size_t runtime::gc()
 //   Objects in the global area are copied there, so they need no recycling
 {
     size_t  recycled = 0;
+    object *last = (object *) Globals;
     object *next;
-    for (object *obj = Temporaries; obj < Globals; obj = next)
+    for (object *obj = Temporaries; obj < last; obj = next)
     {
         bool found = false;
         next = skip(obj);
@@ -72,7 +73,7 @@ void runtime::unused(object *obj, object *next)
             *s += sz;
 
     // Adjust the protected pointers
-    for (object *p = GCSafe; p; p = p->next)
+    for (gcptr *p = GCSafe; p; p = p->next)
         if (p->safe >= first && p->safe < next)
             p->safe += sz;
 
@@ -86,5 +87,5 @@ size_t runtime::size(object *obj)
 //   Delegate the size to the object
 // ----------------------------------------------------------------------------
 {
-    return obj->size();
+    return obj->size(*this);
 }

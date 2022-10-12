@@ -35,6 +35,7 @@
 #include <num.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 
 template <typename T>

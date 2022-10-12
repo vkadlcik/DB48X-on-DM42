@@ -47,7 +47,9 @@ C_SOURCES +=
 # C++ sources
 CXX_SOURCES +=		\
 	src/main.cc	\
-	src/menu.cc
+	src/menu.cc	\
+	src/runtime.cc  \
+	src/object.cc
 
 # ASM sources
 #ASM_SOURCES += src/xxx.s

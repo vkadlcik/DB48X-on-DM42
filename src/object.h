@@ -50,6 +50,22 @@
 
 struct runtime;
 
+inline uint leb128(void *&p)
+// ----------------------------------------------------------------------------
+//   Return the leb128 value at pointer
+// ----------------------------------------------------------------------------
+{
+    byte *bp = (byte *) p;
+    uint result = 0;
+    do
+    {
+        result = (result << 7) | (*bp & 0x7F);
+    } while (*bp++ & 0x80);
+    p = (void *) bp;
+    return result;
+}
+
+
 struct object
 // ----------------------------------------------------------------------------
 //  The basic RPL object
@@ -58,13 +74,70 @@ struct object
     object() {}
     ~object() {}
 
-    enum
+    enum command
+    {
+        EVAL,
+        SIZE,
+        PARSE,
+        RENDER,
+        LAST,
+    };
 
-    void run(runtime *rt, uint command
+    int run(runtime &rt, command cmd, void *arg = nullptr)
+    // ------------------------------------------------------------------------
+    //  Run an arbitrary command
+    // ------------------------------------------------------------------------
+    {
+        void *ptr = this;
+        uint type = leb128(ptr);
+        if (type >= handlers)
+            return -1;
+        return handler[type](rt, cmd, arg, this, (object *) ptr);
+    }
 
-    size_t size();
-    object *skip()      { return this + size(); }
+    size_t  size(runtime &rt = RT) { return (size_t) run(rt, SIZE); }
+    object *skip(runtime &rt = RT) { return this + size(rt); }
 
+
+    struct parser
+    {
+        cstring begin;
+        cstring end;
+        enum result { OK = 0, SKIP = 1, ERROR = -1 };
+    };
+
+    parser::result parse(cstring begin, cstring end, runtime &rt = RT)
+    {
+        parser p = { .begin = begin, .end = end };
+        return (parser::result) run(rt, PARSE, &p);
+    }
+
+    struct renderer
+    {
+        char *begin;
+        cstring end;
+    };
+
+    size_t render(char *begin, cstring end, runtime &rt = RT)
+    {
+        renderer r = { .begin = begin, .end = end };
+        return run(rt, RENDER, &r);
+    }
+
+    // The actual work is done here
+    static int handle(runtime &rt,
+                      command  cmd,
+                      void    *arg,
+                      object  *obj,
+                      object  *payload);
+
+  protected:
+    typedef int (*handler_fn)(runtime &rt,
+                              command cmd, void *arg,
+                              object *obj, object *payload);
+    static const handler_fn handler[];
+    static const size_t handlers;
+    static runtime &RT;
 };
 
 

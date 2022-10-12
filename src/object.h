@@ -47,24 +47,9 @@
 
 
 #include <types.h>
+#include <leb128.h>
 
 struct runtime;
-
-inline uint leb128(void *&p)
-// ----------------------------------------------------------------------------
-//   Return the leb128 value at pointer
-// ----------------------------------------------------------------------------
-{
-    byte *bp = (byte *) p;
-    uint result = 0;
-    do
-    {
-        result = (result << 7) | (*bp & 0x7F);
-    } while (*bp++ & 0x80);
-    p = (void *) bp;
-    return result;
-}
-
 
 struct object
 // ----------------------------------------------------------------------------

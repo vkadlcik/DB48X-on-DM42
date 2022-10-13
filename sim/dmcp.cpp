@@ -170,9 +170,10 @@ inline void lcd_pixel(int x, int y, int val)
 
 void lcd_draw_menu_keys(const char *keys[])
 {
-    int my = LCD_H - t20->f->height - 2;
+    int my = LCD_H - t20->f->height - 4;
     int mh = t20->f->height + 2;
     int mw = (LCD_W - 10) / 6;
+    int sp = (LCD_W - 5) - 6 * mw;
 
     t20->inv = 1;
     t20->lnfill = 0;
@@ -181,12 +182,31 @@ void lcd_draw_menu_keys(const char *keys[])
     t20->y = my + 1;
     for (int m = 0; m < 6; m++)
     {
-        int w = lcd_textWidth(t20, keys[m]);
-        int x = (2 * m + 1) * LCD_W / 12;
-        lcd_fill_rect(x - mw/2, my, mw, mh, 1);
+        int x = (2 * m + 1) * mw / 2 + (m * sp) / 5 + 2;
+        lcd_fill_rect(x - mw/2+2, my,   mw-4,   mh, 1);
+        lcd_fill_rect(x - mw/2+1, my+1, mw-2, mh-2, 1);
+        lcd_fill_rect(x - mw/2,   my+2, mw,   mh-4, 1);
+
+        // Truncate the menu to fit
+        // Note that DMCP is NOT robust to overflow here and can die
+        int size = 11;
+        int w = 0;
+        char buffer[12];
+        do
+        {
+            snprintf(buffer, sizeof(buffer), "%.*s", size, keys[m]);
+            w = lcd_textWidth(t20, buffer);
+            size--;
+        } while (w > mw);
+
+        if (size < strlen(keys[m]))
+            fprintf(stderr,
+                    "WARNING: Menu entry %d [%s] is too long "
+                    "(%d chars lost, shows as [%s])\n",
+                    m, keys[m], strlen(keys[m]) - size + 1, buffer);
 
         t20->x = x - w / 2;
-        lcd_puts(t20, keys[m]);
+        lcd_puts(t20, buffer);
     }
     t20->lnfill = 1;
     t20->inv = 0;
@@ -305,7 +325,7 @@ int lcd_textWidth(disp_stat_t * ds, const char* text)
     const uint8_t     *data  = f->data;
     uint               xspc  = ds->xspc;
 
-    while ((c = *text++))
+    while ((c = (byte) *text++))
     {
         c -= first;
         if (c >= 0 && c < count)
@@ -324,6 +344,7 @@ void lcd_writeClr(disp_stat_t *ds)
     ds->inv    = 0;
     ds->bgfill = 1;
     ds->lnfill = 1;
+    ds->xspc   = 1;
 }
 
 inline void lcd_writeTextInternal(disp_stat_t *ds, const char *text, int write)
@@ -335,15 +356,15 @@ inline void lcd_writeTextInternal(disp_stat_t *ds, const char *text, int write)
     uint               height   = f->height;
     const uint8_t     *data     = f->data;
     const uint16_t    *offs     = f->offs;
-    int                x        = ds->x;
+    int                xspc     = ds->xspc;
+    int                x        = ds->x + xspc;
     int                y        = ds->y + ds->ln_offs;
     int                inv      = ds->inv != 0;
-    int                xspc     = ds->xspc;
 
     if (ds->lnfill)
         lcd_fill_rect(ds->xoffs, y, LCD_W, height, inv);
 
-    while ((c = *text++))
+    while ((c = (byte) *text++))
     {
         c -= first;
         if (c < count)
@@ -388,6 +409,11 @@ inline void lcd_writeTextInternal(disp_stat_t *ds, const char *text, int write)
 
 
             x += cx + cols + xspc;
+        }
+        else
+        {
+            fprintf(stderr, "Character [%d] (%c) not found, max=%d\n",
+                    c + first, c + first, count + first);
         }
 
     }

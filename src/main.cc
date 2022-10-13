@@ -148,7 +148,7 @@ num_t      num_1_100;
 
 const char **f_menu        = NULL;
 const int   *f_menu_fns    = NULL;
-const char  *fm_disp[]     = { "None", "FIX", "SCI", "ENG", "", "" };
+const char  *fm_disp[]     = { "None", "FIX", "SCI", "ENG", "abcdefgh", "12345678" };
 const int    fm_disp_fns[] = { FM_DISP_NONE, FM_DISP_FIX, FM_DISP_SCI,
                                FM_DISP_ENG,  0,           0 };
 
@@ -997,6 +997,7 @@ int save_fonts(const char * fpath, const char * fname, void * data)
         {
             lidx = fidx;
             lcd_switchFont(fReg, fidx);
+            lcd_printAt(t20, 3, "Writing font %s...", fReg->f->name);
             write_font(f, fReg->f->name, fReg->f);
             fidx = lcd_nextFontNr(fidx);
         } while (fidx != lidx);

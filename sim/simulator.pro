@@ -59,7 +59,7 @@ DEFINES += 	DECIMAL_CALL_BY_REFERENCE \
 # Additional external library HIDAPI linked statically into the code
 INCLUDEPATH += ../src ../inc
 
-LIBS += libbid.a
+LIBS += gcc111libbid.a
 
 win32:   LIBS += -lsetupapi
 android: LIBS +=

@@ -124,7 +124,7 @@ void Screen::update()
     }
 
     // Monochrome screen
-    screen.setBackgroundBrush(QBrush(bgColor));
+    screen.setBackgroundBrush(QBrush(fgColor));
     QPainter      pt(&mainPixmap);
 
     for (int y = 0; y < LCD_H; y++)

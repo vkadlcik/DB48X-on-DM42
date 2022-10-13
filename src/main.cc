@@ -356,7 +356,7 @@ void disp_stack_line(char *s, int a, int cpl)
     }
     char *t = strchr(s, expchar);
     if (t)
-        *t = '\x98';
+        *t = exponent_char; // Special 'E'
 }
 
 

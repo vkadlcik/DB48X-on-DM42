@@ -48,7 +48,7 @@ OBJECT_HANDLER_BODY(integer)
     case PARSE:
     {
         parser *p = (parser *) arg;
-        return parse(p->begin, p->end, &p->output, rt);
+        return parse(p->begin, &p->end, &p->output, rt);
     }
     case RENDER:
     {
@@ -74,6 +74,21 @@ OBJECT_PARSER_BODY(integer)
     int base = 10;
     id type = ID_integer;
 
+    // Array of values for digits
+    static byte value[256] = { 0 };
+    if (!value[(byte) 'A'])
+    {
+        // Initialize value array on first use
+        for (int c = 0; c < 256; c++)
+            value[c] = (byte) -1;
+        for (int c = '0'; c <= '9'; c++)
+            value[c] = c - '0';
+        for (int c = 'A'; c <= 'Z'; c++)
+            value[c] = c - 'A' + 10;
+        for (int c = 'a'; c <= 'z'; c++)
+            value[c] = c - 'a' + 10;
+    }
+
     cstring p = begin;
     if (*p == '-')
     {
@@ -89,9 +104,17 @@ OBJECT_PARSER_BODY(integer)
     else if (*p == '#')
     {
         p++;
-        if (end > p)
+        cstring endp = nullptr;
+        for (cstring e = p; *e && !endp; e++)
+            if (value[(byte) *e] == (byte) -1)
+                endp = e;
+
+        if (!endp)
+            endp = p+1;
+
+        if (endp > p)
         {
-            switch(end[-1])
+            switch(endp[-1])
             {
             case 'b':
             case 'B':
@@ -114,11 +137,11 @@ OBJECT_PARSER_BODY(integer)
                 type = ID_hex_integer;
                 break;
             default:
-                rt.error("Invalid base", end-1);
+                rt.error("Invalid base", endp-1);
                 return ERROR;
             }
-            end--;
-            if (p >= end)
+            endp--;
+            if (p >= endp)
             {
                 rt.error("Invalid based number", p);
                 return ERROR;
@@ -126,31 +149,16 @@ OBJECT_PARSER_BODY(integer)
         }
     }
 
-    // If this is a + or - operator
-    if (p >= end)
+    // If this is a + or - operator, skip
+    if (value[(byte) *p] >= base)
         return SKIP;
-
-    // Array of values for digits
-    static byte value[256] = { 0 };
-    if (!value[(byte) 'A'])
-    {
-        // Initialize value array on first use
-        for (int c = 0; c < 256; c++)
-            value[c] = (byte) -1;
-        for (int c = '0'; c <= '9'; c++)
-            value[c] = c - '0';
-        for (int c = 'A'; c <= 'Z'; c++)
-            value[c] = c - 'A' + 10;
-        for (int c = 'a'; c <= 'z'; c++)
-            value[c] = c - 'a' + 10;
-    }
 
     // Loop on digits
     ularge result = 0;
     uint shift = sign < 0 ? 1 : 0;
-    while (p < end)
+    byte v;
+    while ((v = value[(byte) *p]) != (byte) -1)
     {
-        int v = value[(uint) *p++];
         if (v >= base)
         {
             rt.error("Invalid digit for base", p-1);
@@ -165,6 +173,8 @@ OBJECT_PARSER_BODY(integer)
         result = next;
     }
 
+    if (end)
+        *end = p;
     if (sign < 0)
     {
         // Write negative integer

@@ -91,3 +91,28 @@ OBJECT_HANDLER_BODY(object)
         return ERROR;
     }
 }
+
+
+OBJECT_PARSER_BODY(object)
+// ----------------------------------------------------------------------------
+//   Parser for the object type
+// ----------------------------------------------------------------------------
+//   This would only be called if a derived class forgets to implement a parser
+{
+    UNUSED(begin);
+    UNUSED(end);
+    UNUSED(out);
+    rt.error("Default object parser called");
+    return ERROR;
+}
+
+
+OBJECT_RENDERER_BODY(object)
+// ----------------------------------------------------------------------------
+//   Render the object to buffer starting at begin
+// ----------------------------------------------------------------------------
+//   Returns number of bytes needed - If larger than end - begin, retry
+{
+    UNUSED(rt);
+    return snprintf(begin, end - begin, "<Unimplemented object renderer>");
+}

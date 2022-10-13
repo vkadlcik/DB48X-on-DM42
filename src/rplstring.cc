@@ -53,7 +53,7 @@ OBJECT_HANDLER_BODY(string)
     case PARSE:
     {
         parser *p = (parser *) arg;
-        return parse(p->begin, p->end, &p->output, rt);
+        return parse(p->begin, &p->end, &p->output, rt);
     }
     case RENDER:
     {
@@ -79,14 +79,16 @@ OBJECT_PARSER_BODY(string)
     if (*p++ != '"')
         return SKIP;
 
-    while (p < end && *p++ != '"')
-        ;
+    while (*p && *p++ != '"');
 
-    if (p != end || p[-1] != '"')
+    if (p[-1] != '"')
     {
         rt.error("Invalid string", p);
         return ERROR;
     }
+
+    if (end)
+        *end = p;
 
     if (out)
     {

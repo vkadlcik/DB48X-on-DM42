@@ -85,6 +85,26 @@ struct object
         return leb128size(i);
     }
 
+    static object *parse(cstring beg, cstring *end = nullptr, runtime &rt = RT)
+    // ------------------------------------------------------------------------
+    //  Try parsing the object as a top-level temporary
+    // ------------------------------------------------------------------------
+    {
+        parser p = { .begin = beg, .end = nullptr, .output = nullptr };
+        result r = SKIP;
+
+        // Try parsing with the various handlers
+        for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
+            r = (result) handler[i](rt, PARSE, &p, nullptr, nullptr);
+
+        if (end)
+            *end = p.end;
+
+        return r == OK ? p.output : nullptr;
+    }
+
+
+
     enum command
     // ------------------------------------------------------------------------
     //  The commands that all handlers must deal with
@@ -168,28 +188,13 @@ struct object
     };
 
 #define OBJECT_PARSER(type)                                     \
-    static result parse(cstring begin, cstring end,             \
+    static result parse(cstring begin, cstring *end,            \
                         object **out, runtime &rt = RT)
 #define OBJECT_PARSER_BODY(type)                                \
-    object::result type::parse(cstring begin, cstring end,      \
+    object::result type::parse(cstring begin, cstring *end,     \
                                object **out, runtime &rt)
 
-    OBJECT_PARSER(object)
-    // ------------------------------------------------------------------------
-    //  Try parsing the object as a top-level temporary
-    // ------------------------------------------------------------------------
-    {
-        parser p = { .begin = begin, .end = end, .output = nullptr };
-        result r = SKIP;
-
-        // Try parsing with the various handlers
-        for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
-            r = (result) handler[i](rt, PARSE, &p, nullptr, nullptr);
-        if (r == OK && out)
-            *out = p.output;
-        return r;
-    }
-
+    OBJECT_PARSER(object);
 
     struct renderer
     // ------------------------------------------------------------------------
@@ -206,15 +211,7 @@ struct object
 #define OBJECT_RENDERER_BODY(type)                                      \
     intptr_t type::render(char *begin, cstring end, runtime &rt)
 
-    OBJECT_RENDERER(object)
-    // ------------------------------------------------------------------------
-    //   Render the object to buffer starting at begin
-    // ------------------------------------------------------------------------
-    //   Returns number of bytes needed - If larger than end - begin, retry
-    {
-        renderer r = { .begin = begin, .end = end };
-        return run(rt, RENDER, &r);
-    }
+    OBJECT_RENDERER(object);
 
 
     // The actual work is done here
@@ -241,7 +238,6 @@ struct object
     //   Return the name for a given ID
     // ------------------------------------------------------------------------
     {
-
         return id_name[i];
     }
 

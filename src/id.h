@@ -35,6 +35,14 @@ ID(hex_integer)
 ID(oct_integer)
 ID(bin_integer)
 ID(dec_integer)
+
+
+// ID(real)
+// ID(real32)
+// ID(decimal32)
+// ID(decimal64)
+// ID(decimal128)
+
 //ID(add)
 //ID(sub)
 //ID(mul)

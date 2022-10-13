@@ -355,7 +355,7 @@ typedef struct {
 #define t24             (sdb.pds_t24)
 #define fReg            (sdb.pds_fReg)
 
-#define sdb (*((sys_sdb_t*)0x10002000))
+extern sys_sdb_t sdb;
 
 
 // ----------------------------------

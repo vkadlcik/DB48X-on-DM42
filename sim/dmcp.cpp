@@ -34,7 +34,7 @@
 
 int lcd_needsupdate = 0;
 uint8_t lcd_buffer[LCD_SCANLINE * LCD_H / 8];
-
+sys_sdb_t sdb;
 
 void LCD_power_off(int clear)
 {

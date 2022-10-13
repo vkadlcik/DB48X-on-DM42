@@ -55,6 +55,7 @@ const uint8_t mid_menu[] = {
     MI_ABOUT_PGM,
     MI_PGM_LOAD,
     MI_PGM_RUN,
+    MI_SAVE_FONTS,
     0 }; // Terminator
 
 
@@ -84,7 +85,7 @@ void disp_about() {
   int h2 = lcd_lineHeight(t20)/2;
   lcd_setXY(t20, t24->x, t24->y);
   t20->y += h2;
-  lcd_print(t20, "DM48 demo v" PROGRAM_VERSION " (C) Christophe");
+  lcd_print(t20, "DM48 demo v" PROGRAM_VERSION " (C) C. de Dinechin");
   t20->y += h2;
   for (int r = 0; r < 8; r++)
   {
@@ -115,6 +116,11 @@ void disp_about() {
 }
 
 
+#define FONTS_DIR "/FONTS"
+#define FONTS_EXT_MASK ".c"
+#define FONTS_EXT ".c"
+
+int save_fonts(const char * fpath, const char * fname, void * data);
 
 int run_menu_item(uint8_t line_id) {
   int ret = 0;
@@ -128,7 +134,16 @@ int run_menu_item(uint8_t line_id) {
       ret = handle_menu(&MID_SETTINGS,MENU_ADD, 0);
       break;
 
-     default:
+  case MI_SAVE_FONTS:
+    // Don't pass through if the power is insufficient
+    if (power_check_screen())
+        break;
+    ret = file_selection_screen("Save Fonts", FONTS_DIR, FONTS_EXT_MASK, save_fonts, 1, 1, NULL);
+    if (ret == MRET_EXIT)
+        ret = 0;
+    break;
+
+  default:
       ret = MRET_UNIMPL;
       break;
   }
@@ -147,6 +162,7 @@ const char *menu_line_str(uint8_t line_id, char *s, const int slen)
     {
     case MI_SETTINGS: ln = "Settings >"; break;
     case MI_ABOUT_PGM: ln = "About >"; break;
+    case MI_SAVE_FONTS: ln = "Save Fonts"; break;
 
     default: ln = NULL; break;
     }

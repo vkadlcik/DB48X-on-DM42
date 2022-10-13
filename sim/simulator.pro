@@ -31,6 +31,7 @@ SOURCES += \
 	sim-screen.cpp \
 	sim-rpl.cpp \
 	dmcp.cpp \
+	dmcp_fonts.c \
         ../src/object.cc \
         ../src/integer.cc \
         ../src/runtime.cc \

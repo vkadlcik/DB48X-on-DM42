@@ -930,6 +930,87 @@ void clear_regs()
         regs[a] = num_zero;
 }
 
+template <typename ...Args>
+void fprintf(FIL *f, cstring format, Args ...a)
+{
+    char buffer[256];
+    size_t sz = snprintf(buffer, sizeof(buffer), format, a...);
+    UINT written;
+    f_write(f, buffer, sz, &written);
+}
+
+
+void write_font(FIL *f, cstring font, const line_font_t *l)
+{
+    fprintf(f, "uint8_t %s_data[] =\n{", font);
+    size_t sz = l->offs[l->char_cnt];
+    for (uint i = 0; i < sz; i++)
+        fprintf(f, "%s0x%02X,", i % 8 ? " " : "\n    ", l->data[i]);
+    fprintf(f, "\n};\n");
+
+    fprintf(f, "uint16_t %s_offs[] =\n{", font);
+    for (uint i = 0; i <= l->char_cnt; i++)
+        fprintf(f, "%s%u,", i % 8 ? " " : "\n    ", l->offs[i]);
+    fprintf(f, "\n};\n");
+
+    fprintf(f, "line_font_t %s = {\n", font);
+    fprintf(f, "    .name = \"%s\",\n", l->name);
+    fprintf(f, "    .width = %u,\n", l->width);
+    fprintf(f, "    .height = %u,\n", l->height);
+    fprintf(f, "    .baseline = %u,\n", l->baseline);
+    fprintf(f, "    .first_char = %u,\n", l->first_char);
+    fprintf(f, "    .char_cnt = %u,\n", l->char_cnt);
+    fprintf(f, "    .scale_x = %u,\n", l->scale_x);
+    fprintf(f, "    .scale_y = %u,\n", l->scale_y);
+    fprintf(f, "    .data = %s_data, /* %p */\n", font, l->data);
+    fprintf(f, "    .offs = %s_offs, /* %p */\n", font, l->offs);
+    fprintf(f, "}; /* %s */\n", font);
+
+}
+
+int save_fonts(const char * fpath, const char * fname, void * data)
+{
+    UNUSED(fname);
+    UNUSED(data);
+
+    FIL fd;
+    FIL *f = &fd;
+    sys_disk_write_enable(1);
+    FRESULT fr = f_open(f, fpath, FA_WRITE | FA_CREATE_ALWAYS);
+    if (fr != FR_OK)
+    {
+        sys_disk_write_enable(0);
+        lcd_puts(t24,sys_disk_ok() ? "Failed, disk OK." : "Failed, disk KO" );
+        if (sys_disk_ok())
+            lcd_puts(t24, "Disk OK.");
+        else
+        lcd_refresh();
+        if (sys_disk_ok())
+            wait_for_key_press();
+    }
+    else
+    {
+        int fidx = reg_font_ix;
+        int lidx = fidx;
+        do
+        {
+            lidx = fidx;
+            fidx = lcd_prevFontNr(fidx);
+        } while (fidx != lidx);
+
+        do
+        {
+            lidx = fidx;
+            lcd_switchFont(fReg, fidx);
+            write_font(f, fReg->f->name, fReg->f);
+            fidx = lcd_nextFontNr(fidx);
+        } while (fidx != lidx);
+
+        f_close(f);
+    }
+    sys_disk_write_enable(0);
+    return MRET_EXIT;
+}
 
 void program_init()
 {

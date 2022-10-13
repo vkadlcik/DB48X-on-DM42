@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent)
     qreal dpratio = qApp->primaryScreen()->devicePixelRatio();
     resize(210 * dpratio, 390 * dpratio);
 
-    // rpl.start();
+    rpl.start();
 }
 
 MainWindow::~MainWindow()

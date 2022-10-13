@@ -395,7 +395,7 @@ void        redraw_lcd()
     lcd_writeClr(t20);
     t20->newln = 0; // No skip to next line
 
-    lcd_putsR(t20, "SDK DEMO");
+    lcd_putsR(t20, "DB48X");
 
     // Annunciators
     disp_annun(270, ang_mode_ann[ang_mode]);
@@ -424,11 +424,6 @@ void        redraw_lcd()
     fReg->newln = 0;
     const int cpl =
         (LCD_X - fReg->xoffs) / lcd_fontWidth(fReg); // Chars per line
-    printf("Font: X=%i  xoffs=%i  fw=%i  cpl=%i\n",
-           LCD_X,
-           fReg->xoffs,
-           lcd_fontWidth(fReg),
-           cpl);
     for (int a = 0; a < STACK_SIZE; a++)
     {
         lcd_prevLn(fReg);
@@ -1147,7 +1142,7 @@ extern "C" void program_main()
 #endif
         __sysfn_read_key(&k1, &k2);
         redraw_lcd();
-        sys_delay(200);
+
 
         // Fetch the key
         //  < 0 -> No key event

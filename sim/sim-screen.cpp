@@ -46,14 +46,14 @@ Screen::Screen(QWidget *parent)
       scale(1),
       bgColor(230, 230, 230),
       fgColor(0, 0, 0),
+      bgPen(bgColor),
+      fgPen(fgColor),
       screenTimer(new QTimer(this)),
       mainPixmap(LCD_W, LCD_H)
 {
     connect(&screenTimer, SIGNAL(timeout()), this, SLOT(update()));
-
-    bgPen.setColor(bgColor);
-    bgPen.setStyle(Qt::NoPen);
-    bgPen.setWidthF(0.05);
+    screenTimer.setSingleShot(true);
+    screenTimer.start(20);
 
     screen.clear();
     screen.setBackgroundBrush(QBrush(Qt::black));
@@ -85,10 +85,10 @@ void Screen::setPixel(int x, int y, int on)
 // ----------------------------------------------------------------------------
 {
     // Pixels[offset]->setBrush(GrayBrush[color & 15]);
-
     QPainter pt(&mainPixmap);
     pt.setPen(on ? fgPen : bgPen);
     pt.drawPoint(LCD_W - x, y);
+    pt.end();
 }
 
 
@@ -133,10 +133,12 @@ void Screen::update()
         {
             unsigned bo = y * LCD_SCANLINE + x;
             int on = (lcd_buffer[bo/8] >> (bo % 8)) & 1;
-            setPixel(x, y, on);
+            pt.setPen(on ? fgPen : bgPen);
+            pt.drawPoint(LCD_W - x, y);
         }
     }
     pt.end();
+
 
     mainScreen->setPixmap(mainPixmap);
     QGraphicsView::update();

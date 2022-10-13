@@ -34,7 +34,7 @@
 #include <QTimer>
 
 
-extern int lcd_needsupdate;
+extern volatile int lcd_needsupdate;
 extern uint8_t lcd_buffer[];
 
 class Screen : public QGraphicsView

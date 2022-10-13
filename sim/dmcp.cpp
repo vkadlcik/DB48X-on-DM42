@@ -34,6 +34,7 @@
 #include <types.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <sys/time.h>
 #include "dmcp_fonts.c"
 
 #undef ppgm_fp
@@ -497,6 +498,13 @@ int sys_disk_ok()
 int sys_disk_write_enable(int val)
 {
     return 0;
+}
+
+uint32_t sys_current_ms()
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (tv.tv_sec * 1000000 + tv.tv_usec) / 1000;
 }
 
 

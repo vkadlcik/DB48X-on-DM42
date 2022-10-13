@@ -38,6 +38,8 @@
 #include <stdio.h>
 #include <rpl.h>
 
+#include <math.h>
+
 
 template <typename T, typename U>
 inline T max(T x, U y)
@@ -379,10 +381,7 @@ void disp_annun(int xpos, const char *txt)
 
 
 const char *ang_mode_ann[ANG_MODE_CNT] = { "[DEG]", "[RAD]", "[GRAD]" };
-int         k1                         = 0;
-int         k2                         = 0;
-
-static int  counter                    = 0;
+unsigned benchmark = 0;
 
 void        redraw_lcd()
 {
@@ -408,7 +407,7 @@ void        redraw_lcd()
     }
 
     char buffer[40];
-    snprintf(buffer, sizeof(buffer), "Key: %d %d Cnt=%d", k1, k2, counter++);
+    snprintf(buffer, sizeof(buffer), "Run %ums", benchmark);
     disp_annun(60, buffer);
 
     t20->newln = 1; // Revert to default
@@ -575,6 +574,59 @@ num_t *reg_by_ix(num_t *a)
     return ix > 0 ? regs + (ix % REGS_SIZE) : stack + ((1 - ix) % STACK_SIZE);
 }
 
+void benchmark_bid(num_t *a)
+{
+    int ix;
+    num_t res;
+    num_to_int(&ix, a);
+
+    uint32_t ms = sys_current_ms();
+    for (int count = 0; count < ix; count++)
+    {
+        num_sin(&res, stack);
+        num_cos(stack, &res);
+        num_tan(&res, stack);
+        num_atan(stack, &res);
+        num_acos(&res, stack);
+        num_asin(stack, &res);
+        num_exp10(&res, stack);
+        num_log10(stack, &res);
+        num_exp(&res, stack);
+        num_log(stack, &res);
+        num_mul(&res, stack, stack);
+        num_sqrt(stack, &res);
+    }
+
+    benchmark = sys_current_ms() - ms;
+}
+
+void benchmark_fp(num_t *a)
+{
+    int ix;
+    num_to_int(&ix, a);
+
+    uint32_t ms = sys_current_ms();
+    float x = ix;
+    for (int count = 0; count < ix; count++)
+    {
+        x = sin(x);
+        x = cosf(x);
+        x = tanf(x);
+        x = atanf(x);
+        x = acosf(x);
+        x = asinf(x);
+        x = powf(10.0, x);
+        x = log10f(x);
+        x = expf(x);
+        x = logf(x);
+        x = x * x;
+        x = sqrtf(x);
+    }
+
+    benchmark = sys_current_ms() - ms;
+}
+
+
 int reg_to_fmt_num(num_t *a)
 {
     int k;
@@ -625,13 +677,14 @@ int run_fn(int key)
     {
     case KEY_BSP | FNSH: clear_regs(); break;
 
-    case KEY_BSP:
-    case KEY_RDN: stack_pop(); break;
+    case KEY_BSP: stack_pop(); break;
 
+#if 0
     case KEY_RDN | FNSH:
         stack_dup();
         stack[0] = num_pi;
         break;
+#endif
     case KEY_STO:
         reg_by_ix(stack)[0] = stack[1];
         stack_pop();
@@ -642,6 +695,11 @@ int run_fn(int key)
         stack_pop();
         num_mul(stack, &res, &num_1_100);
         break;
+
+    case KEY_RDN:
+        benchmark_bid(stack); break;
+    case KEY_RDN | FNSH:
+        benchmark_fp(stack); break;
 
     case KEY_ADD:
         num_add(&res, stack + 1, stack);
@@ -1076,11 +1134,10 @@ extern "C" void program_main()
      =================
 
      Status flags:
-       ST(STAT_PGM_END)   - Indicates that program should go to off state (set
-     by auto off timer) ST(STAT_SUSPENDED) - Program signals it is ready for off
-     and doesn't need to be woken-up again ST(STAT_OFF)       - Program in off
-     state (OS goes to sleep and only [EXIT] key can wake it up again)
-       ST(STAT_RUNNING)   - OS doesn't sleep in this mode
+     ST(STAT_PGM_END)   - Indicates that program should go to off state (set by auto off timer)
+     ST(STAT_SUSPENDED) - Program signals it is ready for off and doesn't need to be woken-up again
+     ST(STAT_OFF)       - Program in off state (OS goes to sleep and only [EXIT] key can wake it up again)
+     ST(STAT_RUNNING)   - OS doesn't sleep in this mode
 
     */
     for (;;)
@@ -1137,13 +1194,6 @@ extern "C" void program_main()
         // Key is ready -> clear auto off timer
         if (!key_empty())
             reset_auto_off();
-
-#ifndef __sysfn_read_key
-#define __sysfn_read_key read_key
-#endif
-        __sysfn_read_key(&k1, &k2);
-        redraw_lcd();
-
 
         // Fetch the key
         //  < 0 -> No key event

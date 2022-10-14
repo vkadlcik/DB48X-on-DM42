@@ -1,16 +1,14 @@
-#ifndef MENU_H
-#define MENU_H
 // ****************************************************************************
-//  menu.h                                                        DB48X project
+//  util.cc                                                       DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Access to DMCP menus
+//     Basic utilities
 //
-//     According to DMCP "documentation", menu items range are:
-//       1..127: Usable by the application
-//     128..255: System menus, e.g. Load Program
+//
+//
+//
 //
 //
 //
@@ -29,25 +27,43 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include "types.h"
-
+#include "util.h"
 #include <dmcp.h>
 
-enum menu_item
+void beep(int frequency, int duration)
 // ----------------------------------------------------------------------------
-//   The menu items in our application
+//   Emit a short beep
 // ----------------------------------------------------------------------------
 {
-    MI_SETTINGS = 1,            // Application settings
-    MI_ABOUT_PROGRAM,           // Display the "About" dialog
-};
+    start_buzzer_freq(frequency * 1000);
+    sys_delay(duration);
+    stop_buzzer();
+}
 
 
-extern const smenu_t  application_menu;
-extern const smenu_t  settings_menu;
+void click(int frequency)
+// ----------------------------------------------------------------------------
+//   A very short beep
+// ----------------------------------------------------------------------------
+{
+    beep(frequency, 10);
+}
 
-// Callbacks installed in the SDB to run the menu system
-int                   menu_item_run(uint8_t mid);
-cstring               menu_item_description(uint8_t mid, char *, const int);
 
-#endif // MENU_H
+void screenshot()
+// ----------------------------------------------------------------------------
+//  Take a screenshot
+// ----------------------------------------------------------------------------
+{
+    click(4400);
+
+    // Make screenshot - allow to report errors
+    if (create_screenshot(1) == 2)
+    {
+        // Was error just wait for confirmation
+        wait_for_key_press();
+    }
+
+    // End click
+    click(8000);
+}

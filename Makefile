@@ -48,6 +48,7 @@ C_SOURCES +=
 CXX_SOURCES +=		\
 	src/main.cc	\
 	src/menu.cc	\
+	src/util.cc	\
 	src/runtime.cc  \
 	src/object.cc	\
 	src/integer.cc	\

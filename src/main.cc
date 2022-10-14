@@ -28,75 +28,23 @@
 //
 // This code is distantly derived from the SwissMicro SDKDemo calculator
 
-#include <ctype.h>
+#include "main.h"
+
+#include "menu.h"
+#include "num.h"
+#include "rpl.h"
+#include "util.h"
+
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
 #include <dmcp.h>
-#include <main.h>
-#include <menu.h>
-#include <num.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <rpl.h>
 
-#include <math.h>
-
-
-template <typename T, typename U>
-inline T max(T x, U y)
-{
-    return x > y ? x : y;
-}
-template <typename T, typename U>
-inline T min(T x, U y)
-{
-    return x < y ? x : y;
-}
-
-char *strend(char *s)
-{
-    return s + strlen(s);
-}
-
-
-// ==================================================
-//  Prototypes
-// ==================================================
-void stack_dup();
-void stack_pop();
-void clear_regs();
-
-
-// ==================================================
-// == Util functions
-// ==================================================
-
-
-void beep(int freq, int dur)
-{
-    start_buzzer_freq(freq * 1000);
-    sys_delay(dur);
-    stop_buzzer();
-}
-
-
-void make_screenshot()
-{
-    // Start click
-    start_buzzer_freq(4400);
-    sys_delay(10);
-    stop_buzzer();
-    // Make screenshot - allow to report errors
-    if (create_screenshot(1) == 2)
-    {
-        // Was error just wait for confirmation
-        wait_for_key_press();
-    }
-    // End click
-    start_buzzer_freq(8800);
-    sys_delay(10);
-    stop_buzzer();
-}
-
+using std::min;
+using std::max;
 
 // ==================================================
 
@@ -284,7 +232,7 @@ void num_format(num_t *num, char *str, int len, int mode, int mode_digits)
         // Add Mantissa
         strcpy(str, ms ? "-" : "");
         strncat(str, s + 1, c = max(dbp, 0));
-        mp = s + 1 + min(c, strlen(s + 1));
+        mp = s + 1 + min(c, (uint) strlen(s + 1));
         strncat(str, zeros, max(-b, 0));
 
         // Add frac
@@ -437,6 +385,31 @@ void        redraw_lcd()
 }
 
 
+void stack_dup()
+{
+    memmove(stack + 1, stack, sizeof(num_t) * (STACK_SIZE - 1));
+}
+
+void stack_pop()
+{
+    memmove(stack, stack + 1, sizeof(num_t) * (STACK_SIZE - 1));
+}
+
+void clear_regs()
+{
+    // Set regs to zeroes
+    for (int a = 0; a < REGS_SIZE; a++)
+        regs[a] = num_zero;
+}
+
+num_t *reg_by_ix(num_t *a)
+{
+    int ix;
+    num_to_int(&ix, a);
+    return ix > 0 ? regs + (ix % REGS_SIZE) : stack + ((1 - ix) % STACK_SIZE);
+}
+
+
 // ==================================================
 //  Editing
 // ==================================================
@@ -555,24 +528,6 @@ void add_edit_key(int key)
 // ==================================================
 
 #define FNSH 0x100
-
-void stack_dup()
-{
-    memmove(stack + 1, stack, sizeof(num_t) * (STACK_SIZE - 1));
-}
-
-void stack_pop()
-{
-    memmove(stack, stack + 1, sizeof(num_t) * (STACK_SIZE - 1));
-}
-
-
-num_t *reg_by_ix(num_t *a)
-{
-    int ix;
-    num_to_int(&ix, a);
-    return ix > 0 ? regs + (ix % REGS_SIZE) : stack + ((1 - ix) % STACK_SIZE);
-}
 
 void benchmark_bid(num_t *a)
 {
@@ -851,7 +806,7 @@ void handle_key(int key)
         consumed = 1;
         switch (key)
         {
-        case KEY_SCREENSHOT: make_screenshot(); break;
+        case KEY_SCREENSHOT: screenshot(); break;
         case KEY_DOUBLE_RELEASE: break;
 
         case KEY_SUB:
@@ -975,13 +930,6 @@ void handle_key(int key)
         beep(1835, 125);
 }
 
-
-void clear_regs()
-{
-    // Set regs to zeroes
-    for (int a = 0; a < REGS_SIZE; a++)
-        regs[a] = num_zero;
-}
 
 template <typename ...Args>
 void fprintf(FIL *f, cstring format, Args ...a)

@@ -1,12 +1,12 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef UTIL_H
+#define UTIL_H
 // ****************************************************************************
-//  types.h                                                       DB48X project
+//  util.h                                                        DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//
+//     Basic utilities
 //
 //
 //
@@ -29,27 +29,16 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <cstdint>
-#include <cstddef>
+#include "types.h"
+#include <cstring>
+
+void beep(int frequency, int duration);
+void click(int frequency = 4400);
+void screenshot();
 
 
+inline cstring strend(cstring s)        { return s + strlen(s); }
+inline char *  strend(char *s)          { return s + strlen(s); }
 
-// ============================================================================
-//
-//    Basic data types
-//
-// ============================================================================
 
-typedef unsigned           uint;
-typedef uint8_t            byte;
-typedef unsigned long long ularge;
-typedef long long          ilarge;
-typedef const char        *cstring;
-typedef const char        *utf8;
-typedef unsigned           utf8code;
-
-enum { exponent_char = 0x98 };
-
-#define UNUSED(var)        ((void *) &(var))
-
-#endif // TYPES_H
+#endif // UTIL_H

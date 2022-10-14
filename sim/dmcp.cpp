@@ -200,11 +200,11 @@ void lcd_draw_menu_keys(const char *keys[])
             size--;
         } while (w > mw);
 
-        if (size < strlen(keys[m]))
+        if (size < (int) strlen(keys[m]))
             fprintf(stderr,
                     "WARNING: Menu entry %d [%s] is too long "
                     "(%d chars lost, shows as [%s])\n",
-                    m, keys[m], strlen(keys[m]) - size + 1, buffer);
+                    m, keys[m], (int) strlen(keys[m]) - size + 1, buffer);
 
         t20->x = x - w / 2;
         lcd_puts(t20, buffer);
@@ -318,10 +318,10 @@ void lcd_switchFont(disp_stat_t * ds, int nr)
 int lcd_textWidth(disp_stat_t * ds, const char* text)
 {
     int                width = 0;
-    uint               c;
+    byte               c;
     const line_font_t *f     = ds->f;
-    uint               first = f->first_char;
-    uint               count = f->char_cnt;
+    byte               first = f->first_char;
+    byte               count = f->char_cnt;
     const uint16_t    *offs  = f->offs;
     const uint8_t     *data  = f->data;
     uint               xspc  = ds->xspc;
@@ -404,7 +404,7 @@ inline void lcd_writeTextInternal(disp_stat_t *ds, const char *text, int write)
                 }
             }
 
-            for (int r = cy + rows; r < height; r++)
+            for (uint r = cy + rows; r < height; r++)
                 for (int c = 0; c < cx + cols; c++)
                     lcd_pixel(x+c, y+r, inv);
 

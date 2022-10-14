@@ -31,11 +31,12 @@ SOURCES += \
 	sim-screen.cpp \
 	sim-rpl.cpp \
 	dmcp.cpp \
+        ../src/menu.cc \
+        ../src/main.cc \
+	../src/util.cc \
         ../src/object.cc \
         ../src/integer.cc \
         ../src/runtime.cc \
-        ../src/menu.cc \
-        ../src/main.cc \
         ../src/rplstring.cc
 
 HEADERS += \

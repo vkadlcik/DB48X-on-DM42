@@ -44,9 +44,8 @@ struct string : object
             *p++ = *str++;
     }
 
-    static size_t required_memory(id i, utf8 str, size_t len)
+    static size_t required_memory(id i, utf8 UNUSED str, size_t len)
     {
-        UNUSED(str);
         return leb128size(i) + leb128size(len) + len;
     }
 

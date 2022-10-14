@@ -50,7 +50,7 @@ struct decimal64 : object
         memcpy(p, &num, sizeof(num));
     }
 
-    static size_t required_memory(id i, cstring value)
+    static size_t required_memory(id i, cstring UNUSED value)
     {
         return leb128size(i) + sizeof(bid64);
     }

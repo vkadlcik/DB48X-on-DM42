@@ -102,10 +102,11 @@ OBJECT_PARSER_BODY(object)
 // ----------------------------------------------------------------------------
 //   This would only be called if a derived class forgets to implement a parser
 {
-    UNUSED(begin);
-    UNUSED(end);
-    UNUSED(out);
-    rt.error("Default object parser called");
+    if (out)
+        *out = nullptr;
+    if (end)
+        *end = begin;
+    rt.error("Default object parser called", begin);
     return ERROR;
 }
 
@@ -116,6 +117,6 @@ OBJECT_RENDERER_BODY(object)
 // ----------------------------------------------------------------------------
 //   Returns number of bytes needed - If larger than end - begin, retry
 {
-    UNUSED(rt);
+    rt.error("Rendering unimplemented object");
     return snprintf(begin, end - begin, "<Unimplemented object renderer>");
 }

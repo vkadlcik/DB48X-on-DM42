@@ -973,11 +973,8 @@ void write_font(FIL *f, cstring font, const line_font_t *l)
 
 }
 
-int save_fonts(const char * fpath, const char * fname, void * data)
+int save_fonts(const char * fpath, const char * UNUSED fname, void * UNUSED data)
 {
-    UNUSED(fname);
-    UNUSED(data);
-
     FIL fd;
     FIL *f = &fd;
     sys_disk_write_enable(1);

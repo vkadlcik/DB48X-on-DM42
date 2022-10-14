@@ -129,14 +129,13 @@ int menu_item_run(uint8_t menu_id)
 }
 
 
-cstring menu_item_description(uint8_t menu_id, char *s, const int slen)
+cstring menu_item_description(uint8_t          menu_id,
+                              char *UNUSED     s,
+                              const int UNUSED len)
 // ----------------------------------------------------------------------------
 //   Return the menu item description
 // ----------------------------------------------------------------------------
 {
-    UNUSED(s);
-    UNUSED(slen);
-
     const char *ln;
 
     switch (menu_id)

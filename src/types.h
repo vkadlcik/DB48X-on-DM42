@@ -49,6 +49,6 @@ typedef const char        *utf8;
 typedef unsigned           utf8code;
 
 // Indicate that an argument may be unused
-#define UNUSED(x)        ((void) &x)
+#define UNUSED          __attribute__((unused))
 
 #endif // TYPES_H

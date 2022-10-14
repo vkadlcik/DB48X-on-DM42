@@ -61,9 +61,8 @@ sys_sdb_t sdb =
 };
 
 
-void LCD_power_off(int clear)
+void LCD_power_off(int UNUSED clear)
 {
-    UNUSED(clear);
     fprintf(stderr, "LCD_power_off\n");
 }
 

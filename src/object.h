@@ -189,12 +189,12 @@ struct object
 
 #define OBJECT_PARSER(type)                                     \
     static result parse(cstring begin, cstring *end,            \
-                        object **out, runtime &rt = RT)
-#define OBJECT_PARSER_BODY(type)                                \
-    object::result type::parse(cstring begin, cstring *end,     \
-                               object **out, runtime &rt)
+                        object **out,                           \
+                        runtime & UNUSED rt = RT)
 
-    OBJECT_PARSER(object);
+#define OBJECT_PARSER_BODY(type)                                        \
+    object::result type::parse(cstring begin, cstring *end,             \
+                               object **out, runtime & UNUSED rt)
 
     struct renderer
     // ------------------------------------------------------------------------
@@ -205,33 +205,37 @@ struct object
         cstring end;
     };
 
-#define OBJECT_RENDERER(type)                                   \
-    intptr_t render(char *begin, cstring end, runtime &rt = RT)
+#define OBJECT_RENDERER(type)                                           \
+    intptr_t render(char *begin, cstring end, runtime &UNUSED rt = RT)
 
-#define OBJECT_RENDERER_BODY(type)                              \
-    intptr_t type::render(char *begin, cstring end, runtime &rt)
-
-    OBJECT_RENDERER(object);
+#define OBJECT_RENDERER_BODY(type)                                      \
+    intptr_t type::render(char *begin, cstring end, runtime &UNUSED rt)
 
 
     // The actual work is done here
 #define OBJECT_HANDLER_NO_ID(type)                      \
-    static intptr_t handle(runtime &rt,                 \
-                           command  cmd,                \
-                           void    *arg,                \
-                           type    *obj,                \
-                           object  *payload)
+    static intptr_t handle(runtime & UNUSED rt,         \
+                           command   UNUSED cmd,        \
+                           void    * UNUSED arg,        \
+                           type    * UNUSED obj,        \
+                           object  * UNUSED payload)
+
 #define OBJECT_HANDLER(type)                            \
     static id static_type() { return ID_##type; }       \
     OBJECT_HANDLER_NO_ID(type)
 
 #define OBJECT_HANDLER_BODY(type)                       \
-    intptr_t type::handle(runtime &rt,                  \
-                          command  cmd,                 \
-                          void    *arg,                 \
-                          type  *obj,                   \
-                          object  *payload)
+    intptr_t type::handle(runtime & UNUSED rt,          \
+                          command   UNUSED cmd,         \
+                          void    * UNUSED arg,         \
+                          type  *   UNUSED obj,         \
+                          object  * UNUSED payload)
+
+    // The default object handlers
+    OBJECT_PARSER(object);
+    OBJECT_RENDERER(object);
     OBJECT_HANDLER_NO_ID(object);
+
 
 #define DELEGATE(base)                                  \
     base::handle(rt, cmd, arg, obj, payload)

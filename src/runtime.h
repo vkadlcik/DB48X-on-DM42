@@ -409,12 +409,11 @@ inline Obj *make(Args &... args)
 
 
 template <typename Obj>
-inline void *operator new(size_t size, Obj *where)
+inline void *operator new(size_t UNUSED size, Obj *where)
 // ----------------------------------------------------------------------------
 //    Placement new for objects
 // ----------------------------------------------------------------------------
 {
-    UNUSED(size);
     return where;
 }
 

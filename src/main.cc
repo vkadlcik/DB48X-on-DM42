@@ -47,9 +47,10 @@
 using std::min;
 using std::max;
 
+
 // ==================================================
 
-#define MAX_LINE_SIZE 51
+#define MAX_LINE_SIZE 256
 
 #define STACK_SIZE    10
 #define REGS_SIZE     100
@@ -68,7 +69,16 @@ num_t      stack[STACK_SIZE];
 num_t      regs[REGS_SIZE];
 
 // -- Input/Edit --
-uint8_t    shift;
+enum  shift { NONE, SHIFT, ALPHA, LOWERCASE, LONG_SHIFT } shift = NONE;
+static cstring shift_name[] = { "", "Shift", "ABC", "abc", "Long" };
+
+
+#define HAS_SHIFT       (SHIFT          << 8)
+#define HAS_ALPHA       (ALPHA          << 8)
+#define HAS_LOWERCASE   (LOWERCASE      << 8)
+#define HAS_LONG_SHIFT  (LONG_SHIFT     << 8)
+
+
 uint8_t    edit;
 uint8_t    ang_mode;
 uint8_t    fmt_mode;
@@ -99,9 +109,27 @@ num_t      num_1_100;
 
 const char **f_menu        = NULL;
 const int   *f_menu_fns    = NULL;
-const char  *fm_disp[]     = { "None", "FIX", "SCI", "ENG", "abcdefgh", "12345678" };
-const int    fm_disp_fns[] = { FM_DISP_NONE, FM_DISP_FIX, FM_DISP_SCI,
-                               FM_DISP_ENG,  0,           0 };
+const char  *fm_disp[]     =
+{
+    "None", "FIX", "SCI", "ENG", "abcdefgh", "12345678",
+    "Sin", "Cos", "Tan", "Ln", "Exp", "Sqrt"
+};
+const int fm_disp_fns[] = {
+    FM_DISP_NONE,
+    FM_DISP_FIX,
+    FM_DISP_SCI,
+    FM_DISP_ENG,
+    0,
+    0,
+
+    KEY_SIN,
+    KEY_COS,
+    KEY_TAN,
+    KEY_LN,
+    KEY_LN | HAS_SHIFT,
+    KEY_SQRT,
+};
+
 
 // ----------------
 
@@ -289,15 +317,14 @@ void num_format(num_t *num, char *str, int len, int mode, int mode_digits)
 
 void disp_stack_line(char *s, int a, int cpl)
 {
-    sprintf(s, "%i:", a);
 
     if (edit && a == 0)
     {
-        strcat(s, ed);
-        strcat(s, "_");
+        strcpy(s, ed);
     }
     else
     {
+        snprintf(s, MAX_LINE_SIZE, "%i: ", a);
         num_format(stack + a,
                    strend(s),
                    cpl - strlen(s),
@@ -313,10 +340,11 @@ void disp_stack_line(char *s, int a, int cpl)
 
 void disp_annun(int xpos, const char *txt)
 {
-    t20->lnfill =
-        0;         // Don't clear line (we expect dark background already drawn)
-    t20->x = xpos; // Align
+    // Don't clear line (we expect dark background already drawn)
+    t20->lnfill = 0;
+    t20->x = xpos;              // Align
     t20->y -= 2;
+
     // White rectangle for text
     lcd_fill_rect(t20->x,
                   1,
@@ -347,8 +375,9 @@ void        redraw_lcd()
 
     // Annunciators
     disp_annun(270, ang_mode_ann[ang_mode]);
-    if (shift)
-        disp_annun(330, "[SHIFT]");
+    if (shift != NONE)
+        disp_annun(330, shift_name[shift]);
+
     if (fmt_mode != FMT_MODE_NONE)
     {
         sprintf(s, "[%s|%i]", fm_disp[fmt_mode], fmt_mode_digits);
@@ -363,12 +392,27 @@ void        redraw_lcd()
 
     // == Menu ==
     if (f_menu)
-        lcd_draw_menu_keys(f_menu);
+        lcd_draw_menu_keys(f_menu + 6 * (shift == SHIFT));
+
+    int stky = LCD_Y - (f_menu ? LCD_MENU_LINES : 0);
+
+    // Edit line
+    if (edit)
+    {
+        lcd_switchFont(fReg, 5);
+        int height = lcd_lineHeight(fReg);
+        fReg->y = stky;
+        fReg->newln = 0;
+        lcd_prevLn(fReg);
+        lcd_puts(fReg, ed);
+        lcd_fill_rect(fReg->x, fReg->y, 2, height, 1);
+        stky -= height;
+    }
 
     // == Stack ==
     lcd_writeClr(fReg);
     lcd_switchFont(fReg, reg_font_ix);
-    fReg->y     = LCD_Y - (f_menu ? LCD_MENU_LINES : 0);
+    fReg->y     = stky;
     fReg->newln = 0;
     const int cpl =
         (LCD_X - fReg->xoffs) / lcd_fontWidth(fReg); // Chars per line
@@ -428,7 +472,7 @@ const char key_to_char[] =
 
 void start_edit()
 {
-    strcpy(ed, "0");
+    strcpy(ed, shift == ALPHA ? "" : "0");
     edit = 1;
     stack_dup();
 }
@@ -527,8 +571,6 @@ void add_edit_key(int key)
 // ==================================================
 //  Functions
 // ==================================================
-
-#define FNSH 0x100
 
 void benchmark_bid(num_t *a)
 {
@@ -631,31 +673,33 @@ int run_fn(int key)
 
     switch (fnr)
     {
-    case KEY_BSP | FNSH: clear_regs(); break;
+    case KEY_BSP | HAS_SHIFT: clear_regs(); break;
 
     case KEY_BSP: stack_pop(); break;
 
-#if 0
-    case KEY_RDN | FNSH:
+    case KEY_RDN: stack_pop(); break;
+    case KEY_RDN | HAS_SHIFT:
         stack_dup();
         stack[0] = num_pi;
         break;
-#endif
     case KEY_STO:
         reg_by_ix(stack)[0] = stack[1];
         stack_pop();
         break;
     case KEY_RCL: stack[0] = reg_by_ix(stack)[0]; break;
-    case KEY_RCL | FNSH:
+    case KEY_RCL | HAS_SHIFT:
         num_mul(&res, stack + 1, stack);
         stack_pop();
         num_mul(stack, &res, &num_1_100);
         break;
 
+#if 0
+        // Benchmark function
     case KEY_RDN:
         benchmark_bid(stack); break;
-    case KEY_RDN | FNSH:
+    case KEY_RDN | HAS_SHIFT:
         benchmark_fp(stack); break;
+#endif
 
     case KEY_ADD:
         num_add(&res, stack + 1, stack);
@@ -691,19 +735,19 @@ int run_fn(int key)
         RES1;
         break;
 
-    case KEY_INV | FNSH:
+    case KEY_INV | HAS_SHIFT:
         num_pow(&res, stack + 1, stack);
         RES2;
         break;
-    case KEY_SQRT | FNSH:
+    case KEY_SQRT | HAS_SHIFT:
         num_mul(&res, stack, stack);
         RES1;
         break;
-    case KEY_LOG | FNSH:
+    case KEY_LOG | HAS_SHIFT:
         num_exp10(&res, stack);
         RES1;
         break;
-    case KEY_LN | FNSH:
+    case KEY_LN | HAS_SHIFT:
         num_exp(&res, stack);
         RES1;
         break;
@@ -712,15 +756,15 @@ int run_fn(int key)
     case KEY_COS: num_cos(stack, TO_RAD(&res, stack)); break;
     case KEY_TAN: num_tan(stack, TO_RAD(&res, stack)); break;
 
-    case KEY_SIN | FNSH:
+    case KEY_SIN | HAS_SHIFT:
         num_asin(&res, stack);
         FROM_RAD(stack, &res);
         break;
-    case KEY_COS | FNSH:
+    case KEY_COS | HAS_SHIFT:
         num_acos(&res, stack);
         FROM_RAD(stack, &res);
         break;
-    case KEY_TAN | FNSH:
+    case KEY_TAN | HAS_SHIFT:
         num_atan(&res, stack);
         FROM_RAD(stack, &res);
         break;
@@ -758,22 +802,95 @@ int run_fn(int key)
     return consumed;
 }
 
-// ==================================================
-
-void handle_fmenu(int key)
+int handle_shifts(int key)
 {
-    if (!f_menu)
-        return;
-
-    if (f_menu_fns)
+    static int last = 0;
+    int consumed = 0;
+    if (key == KEY_SHIFT)
     {
-        int ix     = key - KEY_F1;
-        int fm_key = f_menu_fns[ix];
-        if (fm_key)
-            run_fn(fm_key);
+        switch (shift)
+        {
+        case NONE:       shift = SHIFT;                                         break;
+        case SHIFT:      shift = (last == KEY_SHIFT) ? ALPHA : NONE;            break;
+        case ALPHA:      shift = (last == KEY_SHIFT) ? NONE  : LOWERCASE;       break;
+        case LOWERCASE:  shift = (last == KEY_SHIFT) ? NONE  : ALPHA;           break;
+        case LONG_SHIFT: shift = NONE;                                          break;
+        }
+        consumed = 1;
     }
 
-    f_menu = NULL;
+    if (key)
+    {
+        last = key;
+    }
+    return consumed;
+}
+
+
+// ==================================================
+
+int handle_fmenu(int key)
+{
+    if (f_menu_fns && key >= KEY_F1 && key <= KEY_F6)
+    {
+        int ix     = key - KEY_F1;
+        int fm_key = f_menu_fns[ix + 6 * (shift == SHIFT)];
+        if (fm_key)
+            return run_fn(fm_key);
+    }
+    return 0;
+}
+
+int handle_alpha(int key)
+{
+    if (shift != ALPHA && shift != LOWERCASE)
+        return 0;
+
+    switch(key)
+    {
+    case KEY_BSP:
+        add_edit_key(key);
+        return 1;
+    case KEY_ENTER:
+        finish_edit();
+        return 1;
+    case KEY_EXIT:
+        shift = NONE;
+        cancel_edit();
+        return 1;
+    case KEY_UP:
+    case KEY_DOWN:
+        return 0;
+    case 0:
+        return 0;
+    }
+
+    static const char upper[] =
+        "_" // code 0 unused
+        "ABCDEF"
+        "GHIJKL"
+        "_MNO_"
+        "_PQRS"
+        "_TUVW"
+        "_XYZ_"
+        "_:.? ";
+    static const char lower[] =
+        "_" // code 0 unused
+        "abcdef"
+        "ghijkl"
+        "_mno_"
+        "_pqrs"
+        "_tuvw"
+        "_xyz-"
+        "_;,! ";
+
+    if (!edit)
+        start_edit();
+
+    int len = strlen(ed);
+    char c = shift == ALPHA ? upper[key] : lower[key];
+    ed_cat(c, len);
+    return 1;
 }
 
 // ==================================================
@@ -785,21 +902,15 @@ void handle_key(int key)
 
     printf("HK: key[%02x] sh[%i] ed[%i]\n", key, shift, edit);
 
+    consumed = handle_shifts(key);
+
     // Handle fmenu keys
-    if (f_menu)
-    {
-        consumed = 1;
-        switch (key)
-        {
-        case KEY_F1:
-        case KEY_F2:
-        case KEY_F3:
-        case KEY_F4:
-        case KEY_F5:
-        case KEY_F6: handle_fmenu(key); break;
-        default: consumed = 0; break;
-        }
-    }
+    if (!consumed)
+        consumed = handle_fmenu(key);
+
+    // Handle alpha mode)
+    if (!consumed)
+        consumed = handle_alpha(key);
 
     // Keys independent on shift state
     if (!consumed)
@@ -837,12 +948,12 @@ void handle_key(int key)
 
         default: consumed = 0; break;
         }
-        if (consumed)
-            shift = 0;
+        if (consumed && (shift == SHIFT || shift == LONG_SHIFT))
+            shift = NONE;
     }
 
 
-    if (!consumed && shift)
+    if (!consumed && shift == SHIFT)
     {
         consumed = 1;
         switch (key)
@@ -882,16 +993,14 @@ void handle_key(int key)
         default: consumed = 0; break;
         }
         if (key != 0)
-            shift = 0;
+            shift = NONE;
     }
 
     if (!consumed)
     {
         consumed = 1;
-        switch (key)
+        switch(key)
         {
-        case KEY_SHIFT: shift = 1; break;
-
         case KEY_EXIT: SET_ST(STAT_PGM_END); break;
 
         case KEY_ENTER:
@@ -1062,7 +1171,7 @@ void program_init()
 
     // State
     edit  = 0;
-    shift = 0;
+    shift = NONE;
 
     // Zero numbers
     clear_regs();

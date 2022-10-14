@@ -1,45 +1,32 @@
-/*
+// ****************************************************************************
+//  menu.cc                                                       DB48X project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Handles the application menus
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+//   (C) 2022 Christophe de Dinechin <christophe@dinechin.org>
+//   This software is licensed under the terms outlined in LICENSE.txt
+// ****************************************************************************
+//   This file is part of DB48X.
+//
+//   DB48X is free software: you can redistribute it and/or modify
+//   it under the terms outlined in the LICENSE.txt file
+//
+//   DB48X is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// ****************************************************************************
 
-BSD 3-Clause License
-
-Copyright (c) 2015-2022, SwissMicros
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
-
-* Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
-
-* Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-  The software and related material is released as “NOMAS”  (NOt MAnufacturer Supported).
-
-  1. Info is released to assist customers using, exploring and extending the product
-  2. Do NOT contact the manufacturer with questions, seeking support, etc. regarding
-     NOMAS material as no support is implied or committed-to by the Manufacturer
-  3. The Manufacturer may reply and/or update materials if and when needed solely
-     at their discretion
-
-*/
 #include <main.h>
 #include <dmcp.h>
 
@@ -47,65 +34,72 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <types.h>
 
-
-const uint8_t mid_menu[] = {
-    MI_SETTINGS,
-    MI_MSC,
-    MI_SYSTEM_ENTER,
-    MI_ABOUT_PGM,
-    MI_PGM_LOAD,
-    MI_PGM_RUN,
-    MI_SAVE_FONTS,
-    0 }; // Terminator
-
-
-const uint8_t mid_settings[] = {
-    MI_SET_TIME,
-    MI_SET_DATE,
-    MI_BEEP_MUTE,
-    MI_SLOW_AUTOREP,
-    0 }; // Terminator
+const uint8_t application_menu_items[] =
+// ----------------------------------------------------------------------------
+//    Application menu items
+// ----------------------------------------------------------------------------
+{
+    MI_SETTINGS,                // Application setting
+    MI_ABOUT_PROGRAM,           // About dialog
+    MI_PGM_LOAD,                // Load program
+    MI_MSC,                     //
+    MI_SYSTEM_ENTER,            // Enter system
+    0
+}; // Terminator
 
 
-const smenu_t         MID_MENU = { "Setup",  mid_menu,   NULL, NULL };
-const smenu_t     MID_SETTINGS = { "Settings",  mid_settings,  NULL, NULL};
+const smenu_t application_menu =
+// ----------------------------------------------------------------------------
+//   Application menu
+// ----------------------------------------------------------------------------
+{
+    "Setup",  application_menu_items,   NULL, NULL
+};
 
 
+const uint8_t settings_menu_items[] =
+// ----------------------------------------------------------------------------
+//    The settings menu
+// ----------------------------------------------------------------------------
+{
+    MI_SET_TIME,                // Standard set time menu
+    MI_SET_DATE,                // Standard set date menu
+    MI_BEEP_MUTE,               // Mute the beep
+    MI_SLOW_AUTOREP,            // Slow auto-repeat
+    0
+}; // Terminator
 
-void disp_about() {
+
+const smenu_t settings_menu =
+// ----------------------------------------------------------------------------
+//   The settings menu
+// ----------------------------------------------------------------------------
+{
+    "Settings",  settings_menu_items,  NULL, NULL
+};
+
+
+void about_dialog()
+// ----------------------------------------------------------------------------
+//   Display the About dialog
+// ----------------------------------------------------------------------------
+{
   lcd_clear_buf();
   lcd_writeClr(t24);
 
-  // Just base of original system about
+  // Header based on original system about
   lcd_for_calc(DISP_ABOUT);
   lcd_putsAt(t24,4,"");
   lcd_prevLn(t24);
-  // --
 
-  int h2 = lcd_lineHeight(t20)/2;
-  lcd_setXY(t20, t24->x, t24->y);
+  // Display the main text
+  int h2 = lcd_lineHeight(t20)/2; // Extra spacing
+  lcd_setXY(t20, t24->x, t24->y + h2);
+  lcd_puts(t20, "DB48X v" PROGRAM_VERSION " (C) C. de Dinechin");
   t20->y += h2;
-  lcd_print(t20, "DM48 demo v" PROGRAM_VERSION " (C) C. de Dinechin");
-  t20->y += h2;
-  for (int r = 0; r < 8; r++)
-  {
-      uint8_t *buffer = lcd_line_addr(t20->y + r);
-      for (int i = 0; i < 40; i++)
-          buffer[i] = 0; // (1 << (r + i) % 8) - 1;
-  }
-  t20->y += h2;
-  char line_info[80];
-  snprintf(line_info, sizeof(line_info),
-           "S0=%p S1=%p",
-           lcd_line_addr(0),
-           lcd_line_addr(1));
-  lcd_puts(t20, line_info);
-  t20->y += h2;
-  snprintf(line_info, sizeof(line_info),
-           "S2=%p S20=%p",
-           lcd_line_addr(2),
-           lcd_line_addr(20));
-  lcd_puts(t20, line_info);
+  lcd_puts(t20, "DMCP platform (C) SwissMicros GmbH");
+  lcd_puts(t20, "Intel Decimal Floating Point Library v2.0u1");
+  lcd_puts(t20, "  (C) 2007-2018, Intel Corp.");
 
   t20->y = LCD_Y - lcd_lineHeight(t20);
   lcd_putsR(t20, "    Press EXIT key to continue...");
@@ -116,55 +110,39 @@ void disp_about() {
 }
 
 
-#define FONTS_DIR "/FONTS"
-#define FONTS_EXT_MASK ".c"
-#define FONTS_EXT ".c"
-
-int save_fonts(const char * fpath, const char * fname, void * data);
-
-int run_menu_item(uint8_t line_id) {
+int menu_item_run(uint8_t menu_id)
+// ----------------------------------------------------------------------------
+//   Callback to run a menu item
+// ----------------------------------------------------------------------------
+{
   int ret = 0;
 
-  switch(line_id) {
-    case MI_ABOUT_PGM:
-      disp_about();
-      break;
-
-    case MI_SETTINGS:
-      ret = handle_menu(&MID_SETTINGS,MENU_ADD, 0);
-      break;
-
-  case MI_SAVE_FONTS:
-    // Don't pass through if the power is insufficient
-    if (power_check_screen())
-        break;
-    ret = file_selection_screen("Save Fonts", FONTS_DIR, FONTS_EXT_MASK, save_fonts, 1, 1, NULL);
-    if (ret == MRET_EXIT)
-        ret = 0;
-    break;
-
-  default:
-      ret = MRET_UNIMPL;
-      break;
+  switch(menu_id)
+  {
+  case MI_ABOUT_PROGRAM: about_dialog(); break;
+  case MI_SETTINGS:      ret = handle_menu(&settings_menu, MENU_ADD, 0); break;
+  default:               ret = MRET_UNIMPL; break;
   }
 
   return ret;
 }
 
 
-const char *menu_line_str(uint8_t line_id, char *s, const int slen)
+cstring menu_item_description(uint8_t menu_id, char *s, const int slen)
+// ----------------------------------------------------------------------------
+//   Return the menu item description
+// ----------------------------------------------------------------------------
 {
     UNUSED(s);
     UNUSED(slen);
+
     const char *ln;
 
-    switch (line_id)
+    switch (menu_id)
     {
-    case MI_SETTINGS: ln = "Settings >"; break;
-    case MI_ABOUT_PGM: ln = "About >"; break;
-    case MI_SAVE_FONTS: ln = "Save Fonts"; break;
-
-    default: ln = NULL; break;
+    case MI_SETTINGS:           ln = "Settings >";      break;
+    case MI_ABOUT_PROGRAM:      ln = "About >";         break;
+    default:                    ln = NULL;              break;
     }
 
     return ln;

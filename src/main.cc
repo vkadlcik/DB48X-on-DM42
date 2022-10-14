@@ -894,7 +894,7 @@ void handle_key(int key)
         case KEY_0:
             SET_ST(STAT_MENU);
             // int ret =
-            handle_menu(&MID_MENU, MENU_RESET, 0); // App menu
+            handle_menu(&application_menu, MENU_RESET, 0); // App menu
             CLR_ST(STAT_MENU);
             wait_for_key_release(-1);
             break;
@@ -1073,8 +1073,8 @@ void program_init()
     // =========================
 
     // Setup application menu callbacks
-    run_menu_item_app = run_menu_item;
-    menu_line_str_app = menu_line_str;
+    run_menu_item_app = menu_item_run;
+    menu_line_str_app = menu_item_description;
 
     // Give 64K to the runtime
     size_t size = 64 * 1024;

@@ -29,7 +29,7 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <stdint.h>
+#include <cstdint>
 
 template <typename Data, typename Int = uint>
 inline Int leb128(Data *&p)

@@ -27,8 +27,8 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <rplstring.h>
-#include <runtime.h>
+#include "rplstring.h"
+#include "runtime.h"
 #include <stdio.h>
 
 

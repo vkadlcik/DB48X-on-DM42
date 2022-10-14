@@ -29,7 +29,7 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <rpl.h>
+#include "rpl.h"
 
 inline void beep(int freq, int dur)
 // ----------------------------------------------------------------------------

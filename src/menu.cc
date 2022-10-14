@@ -27,12 +27,13 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <main.h>
-#include <dmcp.h>
+#include "menu.h"
 
-#include <menu.h>
-#include <stdio.h>
-#include <types.h>
+#include "main.h"
+#include "types.h"
+
+#include <cstdio>
+#include <dmcp.h>
 
 const uint8_t application_menu_items[] =
 // ----------------------------------------------------------------------------

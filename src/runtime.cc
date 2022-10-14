@@ -27,8 +27,8 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <runtime.h>
-#include <object.h>
+#include "runtime.h"
+#include "object.h"
 #include <cstring>
 
 // The one and only runtime

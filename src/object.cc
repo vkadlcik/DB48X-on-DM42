@@ -27,11 +27,12 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <object.h>
-#include <integer.h>
-#include <rplstring.h>
+#include "object.h"
 
-#include <runtime.h>
+#include "integer.h"
+#include "rplstring.h"
+#include "runtime.h"
+
 #include <stdio.h>
 
 

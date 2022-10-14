@@ -27,8 +27,8 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <integer.h>
-#include <runtime.h>
+#include "integer.h"
+#include "runtime.h"
 #include <stdio.h>
 
 

@@ -43,7 +43,7 @@ size_t runtime::gc()
 //   Objects in the global area are copied there, so they need no recycling
 {
     size_t  recycled = 0;
-    object *last = (object *) Temporaries;
+    object *last = Temporaries + Editing;
     object *next;
     for (object *obj = (object *) Globals; obj < last; obj = next)
     {
@@ -69,7 +69,7 @@ void runtime::unused(object *obj, object *next)
 // ----------------------------------------------------------------------------
 {
     size_t sz = next - obj;
-    object *last = Temporaries;
+    object *last = Temporaries + Editing;
 
     // Adjust the stack pointers
     for (object **s = StackTop; s < StackBottom; s++)
@@ -82,7 +82,7 @@ void runtime::unused(object *obj, object *next)
             p->safe += sz;
 
     // Move the other temporaries down
-    memmove((byte *) obj, (byte *) next, (byte *) Temporaries - (byte *) next);
+    memmove((byte *) obj, (byte *) next, (byte *) last - (byte *) next);
 
     // Adjust the temporaries pointer
     Temporaries -= sz;

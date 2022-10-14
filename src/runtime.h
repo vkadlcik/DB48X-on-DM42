@@ -31,6 +31,8 @@
 
 #include "types.h"
 
+#include <cstring>
+
 
 struct object;                  // RPL object
 struct global;                  // RPL global variable
@@ -46,6 +48,7 @@ struct runtime
 //      StackBottom     Bottom of stack
 //      StackTop        Top of stack
 //        ...
+//      Editor          The text editor
 //      Temporaries     Temporaries, allocated down
 //      Globals         Global named RPL objects
 //      LowMem          Bottom of memory
@@ -63,6 +66,7 @@ struct runtime
           LowMem(),
           Globals(),
           Temporaries(),
+          Editing(),
           StackTop(),
           StackBottom(),
           Returns(),
@@ -80,6 +84,7 @@ struct runtime
         Returns = (object **) HighMem;
         StackBottom = (object **) Returns;
         StackTop = (object **) StackBottom;
+        Editing = 0;
         Temporaries = (object *) LowMem;
         Globals = (global *) Temporaries;
     }
@@ -156,6 +161,97 @@ struct runtime
         else
             unused(object);
     }
+
+
+    // ========================================================================
+    //
+    //    Command-line editor (and buffer for renderer)x
+    //
+    // ========================================================================
+
+    char *editor()
+    // ------------------------------------------------------------------------
+    //   Return the buffer for the editor
+    // ------------------------------------------------------------------------
+    //   This must be called each time a GC could have happened
+    {
+        return (char *) Temporaries;
+    }
+
+
+    size_t editing()
+    // ------------------------------------------------------------------------
+    //   Current size of the editing buffer
+    // ------------------------------------------------------------------------
+    {
+        return Editing;
+    }
+
+
+    void clear()
+    // ------------------------------------------------------------------------
+    //   Clear the editor
+    // ------------------------------------------------------------------------
+    {
+        Editing = 0;
+    }
+
+
+    void insert(size_t offset, cstring data, size_t len)
+    // ------------------------------------------------------------------------
+    //   Insert data in the editor
+    // ------------------------------------------------------------------------
+    {
+        if (available(len) >= len)
+        {
+            size_t moved = Editing - offset;
+            memmove(editor() + offset, editor() + offset + len, moved);
+            memcpy(editor() + offset, data, len);
+            Editing += len;
+        }
+    }
+
+
+    void insert(size_t offset, char c)
+    // ------------------------------------------------------------------------
+    //   Insert a single character in the editor
+    // ------------------------------------------------------------------------
+    {
+        insert(offset, &c, 1);
+    }
+
+
+    void remove(size_t offset, size_t len)
+    // ------------------------------------------------------------------------
+    //   Remove characers from the editor
+    // ------------------------------------------------------------------------
+    {
+        size_t end = offset + len;
+        if (end > Editing)
+            end = Editing;
+        if (offset > end)
+            offset = end;
+        len = end - offset;
+        memmove(editor() + offset + len, editor() + offset, len);
+        Editing -= len;
+    }
+
+
+    template <typename ...Args>
+    void edit(const char *format, const Args &...args)
+    // ------------------------------------------------------------------------
+    //   Edit some arbitrary text
+    // ------------------------------------------------------------------------
+    {
+        size_t wanted = snprintf(editor(), available(), format, args...);
+        if (wanted > available())
+        {
+            gc();
+            wanted = snprintf(editor(), available(), format, args...);
+        }
+        Editing = strlen(editor());
+    }
+
 
 
 
@@ -371,6 +467,7 @@ struct runtime
     object  *LowMem;
     global  *Globals;
     object  *Temporaries;
+    size_t   Editing;
     object **StackTop;
     object **StackBottom;
     object **Returns;

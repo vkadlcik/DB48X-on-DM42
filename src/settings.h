@@ -40,13 +40,39 @@ struct settings
         : precision(32),
           displayed(0),
           decimalDot('.'),
-          exponentChar(0x98)    // The special mini-'E'
+          exponentChar(0x98),   // The special mini-'E'
+          angle_mode(DEGREES)
     {}
 
-    uint precision;             // Internal precision for numbers
-    uint displayed;             // Number of displayed digits
-    char decimalDot;            // Character used for decimal separator
-    char exponentChar;          // The character used to represent exponents
+    enum angles
+    // ------------------------------------------------------------------------
+    //   The base used for angles
+    // ------------------------------------------------------------------------
+    {
+        DEGREES,
+        RADIANS,
+        GRADS,
+        NUM_ANGLES,
+    };
+
+    angles nextAngleMode()
+    {
+        switch(angle_mode)
+        {
+        case DEGREES:   angle_mode = RADIANS; break;
+        case RADIANS:   angle_mode = GRADS; break;
+        case GRADS:     angle_mode = DEGREES; break;
+        default:        angle_mode = DEGREES; break;
+        }
+        return angle_mode;
+    }
+
+public:
+  uint   precision;    // Internal precision for numbers
+  uint   displayed;    // Number of displayed digits
+  char   decimalDot;   // Character used for decimal separator
+  char   exponentChar; // The character used to represent exponents
+  angles angle_mode;
 };
 
 

@@ -55,12 +55,6 @@ using std::max;
 #define STACK_SIZE    10
 #define REGS_SIZE     100
 
-#define ANG_MODE_DEG  0
-#define ANG_MODE_RAD  1
-#define ANG_MODE_GRAD 2
-#define ANG_MODE_CNT  3
-
-
 // ----------------
 // Calc state
 // ----------------
@@ -80,7 +74,6 @@ static cstring shift_name[] = { "", "Shift", "ABC", "abc", "Long" };
 
 
 uint8_t    edit;
-uint8_t    ang_mode;
 uint8_t    fmt_mode;
 uint8_t    fmt_mode_digits;
 char       ed[MAX_LINE_SIZE];
@@ -357,7 +350,7 @@ void disp_annun(int xpos, const char *txt)
 }
 
 
-const char *ang_mode_ann[ANG_MODE_CNT] = { "[DEG]", "[RAD]", "[GRAD]" };
+const char *ang_mode_ann[settings::angles::NUM_ANGLES] = { "[DEG]", "[RAD]", "[GRAD]" };
 unsigned benchmark = 0;
 
 void        redraw_lcd()
@@ -374,7 +367,7 @@ void        redraw_lcd()
     lcd_putsR(t20, "DB48X");
 
     // Annunciators
-    disp_annun(270, ang_mode_ann[ang_mode]);
+    disp_annun(270, ang_mode_ann[Settings.angle_mode]);
     if (shift != NONE)
         disp_annun(330, shift_name[shift]);
 
@@ -635,22 +628,24 @@ int reg_to_fmt_num(num_t *a)
 // Angle conversions (according to ang_mode)
 num_t *TO_RAD(num_t *y, num_t *x)
 {
-    switch (ang_mode)
+    switch (Settings.angle_mode)
     {
-    case ANG_MODE_RAD: *y = *x; break;
-    case ANG_MODE_DEG: num_mul(y, x, &num_pi_180); break;
-    case ANG_MODE_GRAD: num_mul(y, x, &num_pi_200); break;
+    default:
+    case settings::angles::DEGREES: *y = *x; break;
+    case settings::angles::RADIANS: num_mul(y, x, &num_pi_180); break;
+    case settings::angles::GRADS: num_mul(y, x, &num_pi_200); break;
     }
     return y;
 }
 
 num_t *FROM_RAD(num_t *y, num_t *x)
 {
-    switch (ang_mode)
+    switch (Settings.angle_mode)
     {
-    case ANG_MODE_RAD: *y = *x; break;
-    case ANG_MODE_DEG: num_mul(y, x, &num_180_pi); break;
-    case ANG_MODE_GRAD: num_mul(y, x, &num_200_pi); break;
+    default:
+    case settings::angles::RADIANS: *y = *x; break;
+    case settings::angles::DEGREES: num_mul(y, x, &num_180_pi); break;
+    case settings::angles::GRADS:   num_mul(y, x, &num_200_pi); break;
     }
     return y;
 }
@@ -973,7 +968,7 @@ void handle_key(int key)
             break;
 
         case KEY_CHS: // MODES
-            ang_mode = (ang_mode + 1) % ANG_MODE_CNT;
+            Settings.nextAngleMode();
             break;
 
         case KEY_BSP:

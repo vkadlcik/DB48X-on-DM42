@@ -931,6 +931,8 @@ void handle_key(int key)
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
 template <typename ...Args>
 void fprintf(FIL *f, cstring format, Args ...a)
 {
@@ -939,6 +941,7 @@ void fprintf(FIL *f, cstring format, Args ...a)
     UINT written;
     f_write(f, buffer, sz, &written);
 }
+#pragma GCC diagnostic pop
 
 
 void write_font(FIL *f, cstring font, const line_font_t *l)

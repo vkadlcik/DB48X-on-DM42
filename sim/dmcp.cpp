@@ -37,6 +37,9 @@
 #include <sys/time.h>
 #include "dmcp_fonts.c"
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+
 #undef ppgm_fp
 
 volatile int lcd_needsupdate = 1;
@@ -511,33 +514,40 @@ uint32_t sys_current_ms()
 FRESULT f_open(FIL *fp, const TCHAR *path, BYTE mode)
 {
     fprintf(stderr, "f_open not implemented\n");
+    return FR_NOT_ENABLED;
 }
 FRESULT f_close(FIL *fp)
 {
     fprintf(stderr, "f_close not implemented\n");
+    return FR_NOT_ENABLED;
 }
 
 FRESULT f_read(FIL *fp, void *buff, UINT btr, UINT *br)
 {
     fprintf(stderr, "f_read not implemented\n");
+    return FR_NOT_ENABLED;
 }
 
 FRESULT f_write(FIL *fp, const void *buff, UINT btw, UINT *bw)
 {
     fprintf(stderr, "f_write not implemented\n");
+    return FR_NOT_ENABLED;
 }
 
 FRESULT f_lseek(FIL *fp, FSIZE_t ofs)
 {
     fprintf(stderr, "f_lseek not implemented\n");
+    return FR_NOT_ENABLED;
 }
 
 FRESULT f_rename(const TCHAR *path_old, const TCHAR *path_new)
 {
     fprintf(stderr, "f_rename not implemented\n");
+    return FR_NOT_ENABLED;
 }
 
 FRESULT f_unlink(const TCHAR *path)
 {
     fprintf(stderr, "f_unlink not implemented\n");
+    return FR_NOT_ENABLED;
 }

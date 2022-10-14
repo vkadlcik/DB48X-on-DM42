@@ -51,6 +51,7 @@ DECIMAL_SOURCES=$(DECIMAL_SIZES:%=src/decimal-%.cc)
 # C++ sources
 CXX_SOURCES +=				\
 	src/main.cc			\
+	src/input.cc			\
 	src/menu.cc			\
 	src/util.cc			\
 	src/settings.cc			\

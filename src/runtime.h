@@ -62,6 +62,7 @@ struct runtime
     runtime(byte *mem = nullptr, size_t size = 0)
         : Error(nullptr),
           ErrorSource(nullptr),
+          ErrorCommand(nullptr),
           Code(nullptr),
           LowMem(),
           Globals(),
@@ -205,7 +206,7 @@ struct runtime
         if (available(len) >= len)
         {
             size_t moved = Editing - offset;
-            memmove(editor() + offset, editor() + offset + len, moved);
+            memmove(editor() + offset + len, editor() + offset, moved);
             memcpy(editor() + offset, data, len);
             Editing += len;
         }
@@ -232,7 +233,7 @@ struct runtime
         if (offset > end)
             offset = end;
         len = end - offset;
-        memmove(editor() + offset + len, editor() + offset, len);
+        memmove(editor() + offset, editor() + offset + len, Editing - end);
         Editing -= len;
     }
 
@@ -285,8 +286,9 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         if (StackTop >= StackBottom)
-            return error("Cannot replace empty stack");
-        *StackTop = obj;
+            error("Cannot replace empty stack");
+        else
+            *StackTop = obj;
     }
 
     object *pop()
@@ -315,8 +317,9 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         if (idx >= depth())
-            return error("Insufficient stack depth");
-        StackTop[idx] = obj;
+            error("Insufficient stack depth");
+        else
+            StackTop[idx] = obj;
     }
 
     uint depth()
@@ -341,7 +344,10 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         if (available(sizeof(callee)) < sizeof(callee))
-            return error("Too many recursive calls");
+        {
+            error("Too many recursive calls");
+            return;
+        }
         StackTop--;
         StackBottom--;
         for (object **s = StackBottom; s < StackTop; s++)
@@ -356,7 +362,10 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         if ((byte *) Returns >= (byte *) HighMem)
-            return error("Cannot return without a caller");
+        {
+            error("Cannot return without a caller");
+            return;
+        }
         Code = *Returns++;
         StackTop++;
         StackBottom++;
@@ -450,19 +459,54 @@ struct runtime
     //
     // ========================================================================
 
-    void error(cstring message, cstring source = nullptr)
+    runtime &error(cstring message, cstring source = nullptr)
     // ------------------------------------------------------------------------
     //   Set the error message
     // ------------------------------------------------------------------------
     {
         Error = message;
         ErrorSource = source;
+        return *this;
+    }
+
+    cstring error()
+    // ------------------------------------------------------------------------
+    //   Get the error message
+    // ------------------------------------------------------------------------
+    {
+        return Error;
+    }
+
+    cstring source()
+    // ------------------------------------------------------------------------
+    //   Get the pointer to the problem
+    // ------------------------------------------------------------------------
+    {
+        return ErrorSource;
+    }
+
+    runtime &command(cstring cmd)
+    // ------------------------------------------------------------------------
+    //   Set the faulting command
+    // ------------------------------------------------------------------------
+    {
+        ErrorCommand = cmd;
+        return *this;
+    }
+
+    cstring command()
+    // ------------------------------------------------------------------------
+    //   Get the faulting command if there is one
+    // ------------------------------------------------------------------------
+    {
+        return ErrorCommand;
     }
 
 
-  public:
+protected:
     cstring  Error;             // Error message if any
     cstring  ErrorSource;       // Source of the error if known
+    cstring  ErrorCommand;      // Source of the error if known
     object  *Code;              // Currently executing code
     object  *LowMem;
     global  *Globals;
@@ -476,6 +520,7 @@ struct runtime
     // Pointers that are GC-adjusted
     gcptr   *GCSafe;
 
+public:
     // The one and only runtime
     static runtime RT;
 };

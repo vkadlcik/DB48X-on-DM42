@@ -34,6 +34,7 @@ SOURCES += \
         ../src/menu.cc \
         ../src/main.cc \
 	../src/util.cc \
+	../src/input.cc \
 	../src/settings.cc \
         ../src/object.cc \
         ../src/integer.cc \

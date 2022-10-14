@@ -27,6 +27,8 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
+ID(object)                      // Value 0 is reserved for "not implemented"
+
 ID(string)
 
 ID(integer)

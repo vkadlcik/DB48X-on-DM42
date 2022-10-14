@@ -317,6 +317,27 @@ void lcd_switchFont(disp_stat_t * ds, int nr)
     else
         fprintf(stderr, "lcd_switchFont not implemented\n");
 }
+
+int lcd_charWidth(disp_stat_t * ds, int c)
+{
+    int                width = 0;
+    const line_font_t *f     = ds->f;
+    byte               first = f->first_char;
+    byte               count = f->char_cnt;
+    const uint16_t    *offs  = f->offs;
+    const uint8_t     *data  = f->data;
+    uint               xspc  = ds->xspc;
+
+    c -= first;
+    if (c >= 0 && c < count)
+    {
+        uint off = offs[c];
+        width += data[off + 0] + data[off + 2] + xspc;
+    }
+
+    return width;
+}
+
 int lcd_textWidth(disp_stat_t * ds, const char* text)
 {
     int                width = 0;

@@ -77,12 +77,93 @@ struct object
     ~object() {}
 
 
+    // ========================================================================
+    //
+    //   Object command protocol
+    //
+    // ========================================================================
+
+    enum command
+    // ------------------------------------------------------------------------
+    //  The commands that all handlers must deal with
+    // ------------------------------------------------------------------------
+    {
+        EVAL,                   // Evaluate the object (e.g. push on stack)
+        SIZE,                   // Compute the size of the object
+        PARSE,                  // Parse the object
+        RENDER,                 // Render the object
+    };
+
+    enum result
+    // ------------------------------------------------------------------------
+    //   Common return values for handlers
+    // ------------------------------------------------------------------------
+    {
+        OK    = 0,              // Command ran successfully
+        SKIP  = -1,             // Command not for this handler, try next
+        ERROR = -2,             // Error processing the command
+    };
+
+
+
+    // ========================================================================
+    //
+    //   Memory management
+    //
+    // ========================================================================
+
     static size_t required_memory(id i)
     // ------------------------------------------------------------------------
     //  Compute the amount of memory required for an object
     // ------------------------------------------------------------------------
     {
         return leb128size(i);
+    }
+
+
+    id type()
+    // ------------------------------------------------------------------------
+    //   Return the type of the object
+    // ------------------------------------------------------------------------
+    {
+        byte *ptr = (byte *) this;
+        return (id) leb128(ptr);
+    }
+
+
+    size_t size(runtime &rt = RT)
+    // ------------------------------------------------------------------------
+    //  Compute the size of the object by calling the handler with SIZE
+    // ------------------------------------------------------------------------
+    {
+        return (size_t) run(rt, SIZE);
+    }
+
+    object *skip(runtime &rt = RT)
+    // ------------------------------------------------------------------------
+    //  Return the pointer to the next object in memory by skipping its size
+    // ------------------------------------------------------------------------
+    {
+        return this + size(rt);
+    }
+
+    byte * payload()
+    // ------------------------------------------------------------------------
+    //  Return the object's payload, i.e. first byte after ID
+    // ------------------------------------------------------------------------
+    {
+        byte *ptr = (byte *) this;
+        leb128(ptr);            // Skip ID
+        return ptr;
+    }
+
+
+    void evaluate(runtime &rt = RT)
+    // ------------------------------------------------------------------------
+    //  Evaluate an object by calling the handler
+    // ------------------------------------------------------------------------
+    {
+        run(rt, EVAL);
     }
 
     static object *parse(cstring beg, cstring *end = nullptr, runtime &rt = RT)
@@ -104,30 +185,6 @@ struct object
     }
 
 
-
-    enum command
-    // ------------------------------------------------------------------------
-    //  The commands that all handlers must deal with
-    // ------------------------------------------------------------------------
-    {
-        EVAL,
-        SIZE,
-        PARSE,
-        RENDER,
-        LAST,
-    };
-
-    enum result
-    // ------------------------------------------------------------------------
-    //   Common return values for handlers
-    // ------------------------------------------------------------------------
-    {
-        OK    = 0,          // Object parsed successfully
-        SKIP  = -1,         // Not for this handler
-        ERROR = -2,         // Error processing the command
-    };
-
-
     static intptr_t run(runtime &rt, id type, command cmd, void *arg = nullptr)
     // ------------------------------------------------------------------------
     //  Run a command without an object
@@ -140,41 +197,14 @@ struct object
 
     intptr_t run(runtime &rt, command cmd, void *arg = nullptr)
     // ------------------------------------------------------------------------
-    //  Run an arbitrary command
+    //  Run an arbitrary command on the object
     // ------------------------------------------------------------------------
     {
         byte *ptr = (byte *) this;
-        id type = (id) leb128(ptr);
+        id type = (id) leb128(ptr); // Don't use type() to update payload
         if (type >= NUM_IDS)
             return -1;
         return handler[type](rt, cmd, arg, this, (object *) ptr);
-    }
-
-    size_t size(runtime &rt = RT)
-    // ------------------------------------------------------------------------
-    //  Compute the size of the object by calling the handler with SIZE
-    // ------------------------------------------------------------------------
-    {
-        return (size_t) run(rt, SIZE);
-    }
-
-    object *skip(runtime &rt = RT)
-    // ------------------------------------------------------------------------
-    //  Return the pointer to the next object in memory by skipping its size
-    // ------------------------------------------------------------------------
-    {
-        return this + size(rt);
-    }
-
-
-    byte * payload()
-    // ------------------------------------------------------------------------
-    //  Return the object's payload, i.e. first byte after ID
-    // ------------------------------------------------------------------------
-    {
-        byte *ptr = (byte *) this;
-        leb128(ptr);            // Skip ID
-        return ptr;
     }
 
     struct parser

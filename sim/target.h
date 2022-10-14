@@ -91,7 +91,7 @@
 #define KB_ON                33         //! ON
 #define KB_ESC               33         //! Exit
 #define KB_DOT               35         //! Dot
-#define KB_SPC               36         //! Space
+#define KB_SPC               37         //! Space
 #define KB_RUNSTOP           36         //! R/S
 #define KB_QUESTION          36         //! ?
 #define KB_SHIFT             28         //! Shift

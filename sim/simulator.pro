@@ -34,8 +34,12 @@ SOURCES += \
         ../src/menu.cc \
         ../src/main.cc \
 	../src/util.cc \
+	../src/settings.cc \
         ../src/object.cc \
         ../src/integer.cc \
+        ../src/decimal128.cc \
+        ../src/decimal-64.cc \
+        ../src/decimal-32.cc \
         ../src/runtime.cc \
         ../src/rplstring.cc
 

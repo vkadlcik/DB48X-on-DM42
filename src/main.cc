@@ -4,7 +4,7 @@
 //
 //   File Description:
 //
-//
+//      The DB48X main RPL loop
 //
 //
 //
@@ -33,14 +33,15 @@
 #include "menu.h"
 #include "num.h"
 #include "rpl.h"
+#include "settings.h"
 #include "util.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cctype>
 #include <dmcp.h>
 
 using std::min;
@@ -306,7 +307,7 @@ void disp_stack_line(char *s, int a, int cpl)
     }
     char *t = strchr(s, expchar);
     if (t)
-        *t = exponent_char; // Special 'E'
+        *t = Settings.exponentChar; // Special 'E'
 }
 
 

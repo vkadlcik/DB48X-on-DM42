@@ -2623,13 +2623,13 @@ BID_EXTERN_C _IDEC_round _IDEC_glbround; // initialized to BID_ROUNDING_TO_NEARE
                                   px _RND_MODE_PARAM _EXC_FLAGS_PARAM
                                   _EXC_MASKS_PARAM _EXC_INFO_PARAM);
 
-     BID_EXTERN_C void bid32_from_string (BID_UINT32 * pres, char *ps
+     BID_EXTERN_C void bid32_from_string (BID_UINT32 * pres, const char *ps
                                     _RND_MODE_PARAM _EXC_FLAGS_PARAM
                                     _EXC_MASKS_PARAM _EXC_INFO_PARAM);
      BID_EXTERN_C void bid32_to_string (char *ps, BID_UINT32 * px
                                   _EXC_FLAGS_PARAM
                                   _EXC_MASKS_PARAM _EXC_INFO_PARAM);
-     BID_EXTERN_C void bid64_from_string (BID_UINT64 * pres, char *ps
+     BID_EXTERN_C void bid64_from_string (BID_UINT64 * pres, const char *ps
                                     _RND_MODE_PARAM _EXC_FLAGS_PARAM
                                     _EXC_MASKS_PARAM _EXC_INFO_PARAM);
      BID_EXTERN_C void bid64_to_string (char *ps, BID_UINT64 * px

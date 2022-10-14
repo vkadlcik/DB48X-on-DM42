@@ -63,7 +63,7 @@ OBJECT_HANDLER_BODY(string)
 
     default:
         // Check if anyone else knows how to deal with it
-        return SKIP;
+        return DELEGATE(object);
     }
 
 }

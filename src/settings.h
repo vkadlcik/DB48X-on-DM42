@@ -1,10 +1,12 @@
+#ifndef SETTINGS_H
+#define SETTINGS_H
 // ****************************************************************************
-//  id.h                                                          DB48X project
+//  settings.h                                                    DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     List of all IDs for RPL opcodes
+//     List of system-wide settings
 //
 //
 //
@@ -27,23 +29,27 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-ID(string)
+#include <types.h>
 
-ID(integer)
-ID(neg_integer)
-ID(hex_integer)
-ID(oct_integer)
-ID(bin_integer)
-ID(dec_integer)
+struct settings
+// ----------------------------------------------------------------------------
+//    Internal representation of settings
+// ----------------------------------------------------------------------------
+{
+    settings()
+        : precision(32),
+          displayed(0),
+          decimalDot('.'),
+          exponentChar(0x98)    // The special mini-'E'
+    {}
+
+    uint precision;             // Internal precision for numbers
+    uint displayed;             // Number of displayed digits
+    char decimalDot;            // Character used for decimal separator
+    char exponentChar;          // The character used to represent exponents
+};
 
 
-ID(decimal32)
-ID(decimal64)
-ID(decimal128)
+extern settings Settings;
 
-//ID(add)
-//ID(sub)
-//ID(mul)
-//ID(div)
-
-#undef ID
+#endif // SETTINGS_H

@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  id.h                                                          DB48X project
+//  settings.cc                                                   DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     List of all IDs for RPL opcodes
+//     Representation of settings
 //
 //
 //
@@ -27,23 +27,6 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-ID(string)
+#include "settings.h"
 
-ID(integer)
-ID(neg_integer)
-ID(hex_integer)
-ID(oct_integer)
-ID(bin_integer)
-ID(dec_integer)
-
-
-ID(decimal32)
-ID(decimal64)
-ID(decimal128)
-
-//ID(add)
-//ID(sub)
-//ID(mul)
-//ID(div)
-
-#undef ID
+settings Settings;

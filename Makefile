@@ -44,16 +44,28 @@ C_INCLUDES += -Isrc -Iinc
 # C sources
 C_SOURCES +=
 
+# Floating point sizes
+DECIMAL_SIZES=32 64
+DECIMAL_SOURCES=$(DECIMAL_SIZES:%=src/decimal-%.cc)
+
 # C++ sources
-CXX_SOURCES +=		\
-	src/main.cc	\
-	src/menu.cc	\
-	src/util.cc	\
-	src/runtime.cc  \
-	src/object.cc	\
-	src/integer.cc	\
+CXX_SOURCES +=				\
+	src/main.cc			\
+	src/menu.cc			\
+	src/util.cc			\
+	src/settings.cc			\
+	src/runtime.cc			\
+	src/object.cc			\
+	src/integer.cc			\
+	src/decimal128.cc		\
+	$(DECIMAL_SOURCES)		\
 	src/rplstring.cc
 
+# Generate the sized variants of decimal128
+src/decimal-%.cc: src/decimal128.cc src/decimal-%.h
+	sed -e s/decimal128.h/decimal-$*.h/g -e s/128/$*/g $< > $@
+src/decimal-%.h: src/decimal128.h
+	sed -e s/128/$*/g -e s/leb$*/leb128/g $< > $@
 
 # ASM sources
 #ASM_SOURCES += src/xxx.s
@@ -181,6 +193,7 @@ $(TARGET).pgm: $(BUILD)/$(TARGET).elf Makefile
 	$(SIZE) $<
 	wc -c $@
 
+$(OBJECTS): $(DECIMAL_SOURCES)
 
 $(BUILD)/%.hex: $(BUILD)/%.elf | $(BUILD)
 	$(HEX) $< $@

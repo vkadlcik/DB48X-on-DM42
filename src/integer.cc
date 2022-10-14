@@ -58,7 +58,7 @@ OBJECT_HANDLER_BODY(integer)
 
     default:
         // Check if anyone else knows how to deal with it
-        return SKIP;
+        return DELEGATE(object);
     }
 
 }

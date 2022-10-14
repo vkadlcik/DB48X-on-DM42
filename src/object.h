@@ -208,7 +208,7 @@ struct object
 #define OBJECT_RENDERER(type)                                   \
     intptr_t render(char *begin, cstring end, runtime &rt = RT)
 
-#define OBJECT_RENDERER_BODY(type)                                      \
+#define OBJECT_RENDERER_BODY(type)                              \
     intptr_t type::render(char *begin, cstring end, runtime &rt)
 
     OBJECT_RENDERER(object);
@@ -232,6 +232,9 @@ struct object
                           type  *obj,                   \
                           object  *payload)
     OBJECT_HANDLER_NO_ID(object);
+
+#define DELEGATE(base)                                  \
+    base::handle(rt, cmd, arg, obj, payload)
 
     static cstring name(id i)
     // ------------------------------------------------------------------------

@@ -48,8 +48,7 @@ typedef const char        *cstring;
 typedef const char        *utf8;
 typedef unsigned           utf8code;
 
-enum { exponent_char = 0x98 };
-
-#define UNUSED(var)        ((void *) &(var))
+// Indicate that an argument may be unused
+#define UNUSED(x)        ((void) &x)
 
 #endif // TYPES_H

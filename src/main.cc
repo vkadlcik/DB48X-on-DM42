@@ -48,7 +48,6 @@
 using std::min;
 using std::max;
 
-
 static void redraw_lcd()
 // ----------------------------------------------------------------------------
 //   Redraw the whole LCD
@@ -141,6 +140,8 @@ extern "C" void program_main()
 // ST(STAT_OFF)       - Program in off state (only [EXIT] key can wake it up)
 // ST(STAT_RUNNING)   - OS doesn't sleep in this mode
 {
+    int key = 0;
+
     // Initialization
     program_init();
     redraw_lcd();
@@ -197,14 +198,18 @@ extern "C" void program_main()
 
         // Key is ready -> clear auto off timer
         if (!key_empty())
+        {
             reset_auto_off();
+            key = key_pop();
+        }
 
         // Fetch the key (<0: no key event, >0: key pressed, 0: key released)
-        int key = key_pop();
         if (key >= 0)
+        {
             handle_key(key);
 
-        // Redraw the LCD
-        redraw_lcd();
+            // Redraw the LCD
+            redraw_lcd();
+        }
     }
 }

@@ -68,6 +68,7 @@ struct input
 
 
     bool        key(int key);
+    bool        repeating()     { return repeat; }
     void        assign(int key, uint plane, object *code);
     object *    assigned(int key, uint plane);
     void        menus(cstring labels[NUM_MENUS], object *function[NUM_MENUS]);
@@ -102,6 +103,9 @@ protected:
     bool        hideMenu  : 1;  // Hide the menu
     bool        down      : 1;  // Move one line down
     bool        up        : 1;  // Move one line up
+    bool        repeat    : 1;  // Repeat the key
+    bool        longpress : 1;  // We had a long press of the key
+
 protected:
     // Key mappings
   object         *function[NUM_PLANES][NUM_KEYS];
@@ -109,6 +113,8 @@ protected:
   static runtime &RT;
 };
 
+
+enum { TIMER0, TIMER1, TIMER2, TIMER3 };
 
 extern input Input;
 

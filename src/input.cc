@@ -55,12 +55,15 @@ input::input()
 
 static int counter = 0;
 
-bool input::key(int key, bool islong)
+bool input::key(int key)
 // ----------------------------------------------------------------------------
 //   Process an input key
 // ----------------------------------------------------------------------------
 {
-    longpress = islong;
+    longpress = key && sys_timer_timeout(TIMER0);
+    sys_timer_disable(TIMER0);
+    if (key)
+        sys_timer_start(TIMER0, longpress ? 80 : 500);
 
     bool result =
         handle_shifts(key)    ||

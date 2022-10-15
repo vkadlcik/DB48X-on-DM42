@@ -29,14 +29,13 @@
 
 #include "input.h"
 
+#include "display.h"
 #include "runtime.h"
 #include "settings.h"
 #include "util.h"
 
 #include <dmcp.h>
 #include <stdio.h>
-
-enum { LCD_W = LCD_X, LCD_H = LCD_Y };
 
 // The primary input of the calculator
 input Input;
@@ -141,23 +140,30 @@ void input::draw_annunciators()
     if (alpha)
     {
         cstring label = lowercase ? "abc" : "ABC";
-        t20->lnfill = false;
-        t20->x = LCD_W - lcd_textWidth(t20, label) - 3;
-        t20->y = lcd_lineHeight(t20) + 2;
-        lcd_puts(t20, label);
+        display dann(t20);
+        int     w = dann.width(label);
+        int     h = dann.lineHeight();
+        dann.clearing(false)
+            .x(LCD_W - w - 3)
+            .y(h + 2)
+            .write(label);
     }
     if (shift)
     {
         const uint ann_height = 12;
         static const byte ann_right[] =
         {
-            0xfe, 0x3f, 0xff, 0x7f, 0x9f, 0x7f, 0xcf, 0x7f, 0xe7, 0x7f, 0x03, 0x78,
-            0x03, 0x70, 0xe7, 0x73, 0xcf, 0x73, 0x9f, 0x73, 0xff, 0x73, 0xfe, 0x33
+            0xfe, 0x3f, 0xff, 0x7f, 0x9f, 0x7f,
+            0xcf, 0x7f, 0xe7, 0x7f, 0x03, 0x78,
+            0x03, 0x70, 0xe7, 0x73, 0xcf, 0x73,
+            0x9f, 0x73, 0xff, 0x73, 0xfe, 0x33
         };
         static const byte ann_left[] =
         {
-            0xfe, 0x3f, 0xff, 0x7f, 0xff, 0x7c, 0xff, 0x79, 0xff, 0x73, 0x0f, 0x60,
-            0x07, 0x60, 0xe7, 0x73, 0xe7, 0x79, 0xe7, 0x7c, 0xe7, 0x7f, 0xe6, 0x3f
+            0xfe, 0x3f, 0xff, 0x7f, 0xff, 0x7c,
+            0xff, 0x79, 0xff, 0x73, 0x0f, 0x60,
+            0x07, 0x60, 0xe7, 0x73, 0xe7, 0x79,
+            0xe7, 0x7c, 0xe7, 0x7f, 0xe6, 0x3f
         };
         const byte *source = xshift ? ann_right : ann_left;
         int top = lcd_lineHeight(t20) + 2;
@@ -186,12 +192,14 @@ void input::draw_editor()
         return;
 
     // Count rows and colums
-    int    rows    = 1; // Number of rows in editor
-    int    column  = 0; // Current column
-    int    cwidth  = 0; // Column width
-    int    edrow   = 0; // Row number of line being edited
-    int    edcol   = 0; // Column of line being edited
-    int    cursx   = 0; // Cursor X position
+    int     rows   = 1; // Number of rows in editor
+    int     column = 0; // Current column
+    int     cwidth = 0; // Column width
+    int     edrow  = 0; // Row number of line being edited
+    int     edcol  = 0; // Column of line being edited
+    int     cursx  = 0; // Cursor X position
+    display dtxt(fReg);
+    display dcsr(t20);
 
     for (char *p = ed; p <= last; p++)
     {
@@ -214,7 +222,7 @@ void input::draw_editor()
         else
         {
             column++;
-            cwidth += lcd_charWidth(fReg, (byte) *p);
+            cwidth += dtxt.width((byte) *p);
         }
     }
 
@@ -249,8 +257,8 @@ void input::draw_editor()
     }
 
     // Draw the area that fits on the screen
-    int   lineHeight      = lcd_lineHeight(fReg);
-    int   top             = lcd_lineHeight(t20) + 2;
+    int   lineHeight      = dtxt.lineHeight();
+    int   top             = dcsr.lineHeight() + 2;
     int   bottom          = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES);
     int   availableHeight = bottom - top;
     int   availableRows   = availableHeight / lineHeight;
@@ -279,13 +287,9 @@ void input::draw_editor()
 
     int y        = bottom - rows * lineHeight;
     int x        = -xoffset;
-    fReg->x      = x;
-    fReg->y      = y;
-    fReg->lnfill = false;
-    fReg->bgfill = false;
-    t20->inv     = true;
-    t20->lnfill  = false;
-    t20->bgfill  = false;
+    dtxt.xy(x, y)
+        .clearing(false).background(false);
+    dcsr.clearing(false).background(true).inverted(true);
 
     for (int r = 0; r < rows && display < last; r++)
     {
@@ -293,15 +297,15 @@ void input::draw_editor()
         while (display < last && *display != '\n')
         {
             int c = *display++;
-            int cw = lcd_charWidth(fReg, c);
-            if (fReg->x >= 0 && fReg->x + cw < LCD_W)
+            int cw = dtxt.width(c);
+            if (dtxt.x() >= 0 && dtxt.x() + cw < LCD_W)
             {
                 const char buf[2] = { (char) c, 0 };
-                lcd_writeText(fReg, buf);
+                dtxt.write(buf);
             }
             else
             {
-                fReg->x += cw;
+                dtxt.x(dtxt.x() + cw);
             }
         }
 
@@ -315,24 +319,14 @@ void input::draw_editor()
                 mode == MATRIX    ? 'm' : 'x';
             char buf[2] = { cursorChar, 0 };
             lcd_fill_rect(x + cursx, y, 2, lineHeight, 1);
-            t20->x = x + cursx;
-            t20->y = y + (lineHeight - top) / 2 + 1;
-            t20->bgfill = true;
-            lcd_putsR(t20, buf);
-            t20->bgfill = false;
+            dcsr.x(x + cursx)
+                .y(y + (lineHeight - top) / 2 + 1)
+                .write(buf);
         }
 
-        fReg->x = x;
-        fReg->y += lineHeight;
+        dtxt.x(x)
+            .y(dtxt.y() + lineHeight);
     }
-
-    // Restore display state
-    fReg->inv = false;
-    fReg->lnfill = true;
-    fReg->bgfill = true;
-    t20->inv = false;
-    t20->lnfill = true;
-    t20->bgfill = true;
 }
 
 
@@ -343,33 +337,30 @@ void input::draw_error()
 {
     if (cstring err = RT.error())
     {
-        const int b = 4;
-        lcd_switchFont(fReg, 5);
+        const int border = 4;
+        display   derr(fReg);
+        display   dhdr(t20);
 
-        int lineHeight = lcd_lineHeight(fReg);
-        int top        = lcd_lineHeight(t20) + 10;
+        derr.font(5);
+
+        int top        = dhdr.lineHeight() + 10;
         int height     = LCD_H / 3;
         int width      = LCD_W - 20;
         int x          = LCD_W / 2 - width / 2;
         int y          = top;
 
         lcd_fill_rect(x, y, width, height, 1);
-        lcd_fill_rect(x + b, y + b, width - 2*b, height - 2*b, 0);
+        lcd_fill_rect(x + border, y + border,
+                      width - 2*border, height - 2*border, 0);
 
-        x += 2*b+1;
-        y += 2*b+1;
-        fReg->x = x;
-        fReg->y = y;
-        fReg->lnfill = false;
-        fReg->bgfill = false;
+        x += 2*border+1;
+        y += 2*border+1;
+
+        derr.xy(x, y).clearing(false).background(false);
         if (cstring cmd = RT.command())
-        {
-            lcd_print(fReg, "%s error:", cmd);
-            fReg->y += lineHeight;
-        }
-        lcd_puts(fReg, err);
-        fReg->lnfill = true;
-        fReg->bgfill = true;
+            derr.write("%s error:", cmd).newline();
+
+        derr.write(err);
     }
 }
 

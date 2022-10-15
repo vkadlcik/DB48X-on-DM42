@@ -371,6 +371,12 @@ void lcd_writeClr(disp_stat_t *ds)
     ds->xspc   = 1;
 }
 
+void lcd_writeNl(disp_stat_t *ds)
+{
+    ds->x = ds->xoffs;
+    ds->y += lcd_lineHeight(ds);
+}
+
 inline void lcd_writeTextInternal(disp_stat_t *ds, const char *text, int write)
 {
     uint               c;

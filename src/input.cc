@@ -483,6 +483,11 @@ bool input::handle_editing(int key)
                 lowercase = !lowercase;
 
             }
+            else if (xshift)
+            {
+                // Process it as alpha (CR)
+                return false;
+            }
             else
             {
                 // Finish editing and parse the result
@@ -622,17 +627,67 @@ bool input::handle_alpha(int key)
         "_tuvw"
         "_xyz-"
         "_:.? ";
+
+#define DIV        "\x80"  // ÷
+#define MUL        "\x81"  // ×
+#define SQRT       "\x82"  // √
+#define INTEG      "\x83"  // ∫
+#define FILL       "\x84"  // ▒
+#define SIGMA      "\x85"  // Σ
+#define STO        "\x86"  // ▶
+#define PI         "\x87"  // π
+#define INVQ       "\x88"  // ¿
+#define LE         "\x89"  // ≤
+#define LF         "\x8A"  // ␊
+#define GE         "\x8B"  // ≥
+#define NE         "\x8C"  // ≠
+#define CR         "\x8D"  // ↲
+#define DOWN       "\x8E"  // ↓
+#define RIGHT      "\x8F"  // →
+#define LEFT       "\x90"  // ←
+#define MU         "\x91"  // μ
+#define POUND      "\x92"  // £
+#define DEG        "\x93"  // °
+#define ANGST      "\x94"  // Å
+#define NTILD      "\x95"  // Ñ
+#define ABAR       "\x96"  // Ä
+#define ANGLE      "\x97"  // ∡
+#define EXP        "\x98"  // ᴇ
+#define AE         "\x99"  // Æ
+#define ETC        "\x9A"  // …
+#define ESC        "\x9B"  // ␛
+#define OUML       "\x9C"  // Ö
+#define UUML       "\x9D"  // Ü
+#define FILL2      "\x9E"  // ▒
+#define SQ         "\x9F"  // ■
+#define DOWNTRI    "\xA0"  // Down triangle
+#define UPTRI      "\xA1"  // Up triangle
+#define FREE       "@"
+
     static const char shifted[] =
-        "\x85^\x82([{"
-        "\x86%\x87<=>"
-        "_\"'\x98_"
-        "_789\x80"
-        "_456\x81"
-        "_123-"
-        "_;,!+";
+        SIGMA "^" SQRT "([{"
+        STO   "%" PI   "<=>"
+        "_"  "\"" "'"  EXP "_"
+        "_789" DIV
+        "_456" MUL
+        "_123" "-"
+        "_0,!" "+";
+
+    static const char xshifted[] =
+        INTEG UPTRI DOWNTRI  MU   ANGLE DEG
+        LEFT  RIGHT DOWN     LE   NE    GE
+        "\n"        ETC      FILL POUND "_"
+        "_"   NTILD ANGST    FREE LF
+        "_"   AE    OUML     UUML ABAR
+        "_"   "&"   "@"      "#"  "$"
+        "_"   ";"   FREE     INVQ "\\";
 
     key--;
-    char c = shift ? shifted[key] : lowercase ? lower[key] : upper[key];
+    char c =
+        xshift    ? xshifted[key] :
+        shift     ? shifted[key]  :
+        lowercase ? lower[key]    :
+        upper[key];
     RT.insert(cursor, c);
     cursor++;
 
@@ -649,8 +704,9 @@ bool input::handle_alpha(int key)
     }
     if (closing)
         RT.insert(cursor, closing);
-    shift = false;
-    repeat = true;
+    repeat = !shift && !xshift;
+    shift  = false;
+    xshift = false;
 
     return 1;
 }

@@ -53,11 +53,15 @@ input::input()
 {}
 
 
-bool input::key(int key)
+static int counter = 0;
+
+bool input::key(int key, bool islong)
 // ----------------------------------------------------------------------------
 //   Process an input key
 // ----------------------------------------------------------------------------
 {
+    longpress = islong;
+
     bool result =
         handle_shifts(key)    ||
         handle_editing(key)   ||
@@ -130,6 +134,8 @@ void input::draw_menus()
     cstring labels[NUM_SOFTKEYS];
     for (int k = 0; k < NUM_SOFTKEYS; k++)
         labels[k] = menu_label[plane][k];
+    snprintf((char *) labels[0], 8, "%d", counter++);
+    snprintf((char *) labels[1], 8, "%s", longpress ? "Long" : "Short");
     lcd_draw_menu_keys(labels);
 }
 
@@ -376,22 +382,31 @@ bool input::handle_shifts(int key)
     bool consumed = false;
     if (key == KEY_SHIFT)
     {
+        if (longpress)
+        {
+            xshift = true;
+            shift = false;
+        }
+        else
+        {
+            xshift = false;
 #define SHM(d, a, s)    ((d<<2) | (a<<1) | (s<<0))
 #define SHD(d, a, s)    (1 << SHM(d, a, s))
-        bool dshift = last == KEY_SHIFT; // Double shift toggles alpha
-        int plane = SHM(dshift, alpha, shift);
-        const unsigned nextShift =
-            SHD(0, 0, 0) |
-            SHD(0, 1, 0) |
-            SHD(1, 0, 0) |
-            SHD(1, 1, 0);
-        const unsigned nextAlpha =
-            SHD(0, 0, 1) |
-            SHD(0, 1, 0) |
-            SHD(0, 1, 1) |
-            SHD(1, 0, 1);
-        shift = (nextShift & (1 << plane)) != 0;
-        alpha = (nextAlpha & (1 << plane)) != 0;
+            bool dshift = last == KEY_SHIFT; // Double shift toggles alpha
+            int plane = SHM(dshift, alpha, shift);
+            const unsigned nextShift =
+                SHD(0, 0, 0) |
+                SHD(0, 1, 0) |
+                SHD(1, 0, 0) |
+                SHD(1, 1, 0);
+            const unsigned nextAlpha =
+                SHD(0, 0, 1) |
+                SHD(0, 1, 0) |
+                SHD(0, 1, 1) |
+                SHD(1, 0, 1);
+            shift = (nextShift & (1 << plane)) != 0;
+            alpha = (nextAlpha & (1 << plane)) != 0;
+        }
         consumed = true;
 #undef SHM
 #undef SHD

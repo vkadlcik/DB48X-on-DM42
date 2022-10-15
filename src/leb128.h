@@ -76,7 +76,7 @@ inline size_t leb128size(Int value)
 //   Compute the size required for a given integer value
 // ----------------------------------------------------------------------------
 {
-    size_t result = 1;
+    size_t result = 0;
     do
     {
         value = Int(value >> 7);

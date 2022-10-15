@@ -32,6 +32,7 @@
 #include "types.h"
 
 #include <cstring>
+#include <cstdio>
 
 
 struct object;                  // RPL object
@@ -203,12 +204,20 @@ struct runtime
     //   Insert data in the editor
     // ------------------------------------------------------------------------
     {
-        if (available(len) >= len)
+        if (offset <= Editing)
         {
-            size_t moved = Editing - offset;
-            memmove(editor() + offset + len, editor() + offset, moved);
-            memcpy(editor() + offset, data, len);
-            Editing += len;
+            if (available(len) >= len)
+            {
+                size_t moved = Editing - offset;
+                memmove(editor() + offset + len, editor() + offset, moved);
+                memcpy(editor() + offset, data, len);
+                Editing += len;
+            }
+        }
+        else
+        {
+            fprintf(stderr, "Invalid insert at %zu size=%zu len=%zu [%.*s]\n",
+                    offset, Editing, len, (int) len, data);
         }
     }
 

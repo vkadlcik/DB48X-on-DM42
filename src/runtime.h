@@ -188,16 +188,10 @@ struct runtime
     }
 
 
-    char *close_editor()
+    char *close_editor();
     // ------------------------------------------------------------------------
-    //   Return the buffer for the editor with a null terminator
+    //   Close the editor and encapsulate its content in a temporary string
     // ------------------------------------------------------------------------
-    //   This must be called each time a GC could have happened
-    {
-        char *ed = (char *) Temporaries;
-        ed[Editing] = 0;
-        return ed;
-    }
 
 
     size_t editing()

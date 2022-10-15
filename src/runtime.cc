@@ -96,3 +96,37 @@ size_t runtime::size(object *obj)
 {
     return obj->size(*this);
 }
+
+
+char *runtime::close_editor()
+// ----------------------------------------------------------------------------
+//   Close the editor and encapsulate its content into a string
+// ----------------------------------------------------------------------------
+//   This will move the editor below the temporaries, encapsulated as
+//   a string. After that, it is safe to allocate temporaries without
+//   overwriting the editor
+{
+    // Compute the extra size we need for a string header
+    size_t hdrsize = leb128size(object::ID_string) + leb128size(Editing + 1);
+
+    // Move the editor data above that header
+    char *ed = (char *) Temporaries;
+    char *str = ed + hdrsize;
+    memmove(str, ed, Editing);
+
+    // Null-terminate that string for safe use by C code
+    str[Editing] = 0;
+
+    // Write the string header
+    ed = leb128(ed, object::ID_string);
+    ed = leb128(ed, Editing + 1);
+
+    // Move Temporaries past that newly created string
+    Temporaries = (object *) str + Editing + 1;
+
+    // We are no longer editing
+    Editing = 0;
+
+    // Return a pointer to a valid C string safely wrapped in a RPL string
+    return str;
+}

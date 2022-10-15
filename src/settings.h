@@ -41,7 +41,8 @@ struct settings
           displayed(0),
           decimalDot('.'),
           exponentChar(0x98),   // The special mini-'E'
-          angle_mode(DEGREES)
+          angle_mode(DEGREES),
+          base(10)
     {}
 
     enum angles
@@ -68,11 +69,12 @@ struct settings
     }
 
 public:
-  uint   precision;    // Internal precision for numbers
-  uint   displayed;    // Number of displayed digits
-  char   decimalDot;   // Character used for decimal separator
-  char   exponentChar; // The character used to represent exponents
-  angles angle_mode;
+    uint   precision;    // Internal precision for numbers
+    uint   displayed;    // Number of displayed digits
+    char   decimalDot;   // Character used for decimal separator
+    char   exponentChar; // The character used to represent exponents
+    angles angle_mode;   // Whether we compute in degrees, radians or grads
+    uint   base;         // The default base for #numbers
 };
 
 

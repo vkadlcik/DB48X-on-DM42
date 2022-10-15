@@ -137,8 +137,14 @@ OBJECT_PARSER_BODY(integer)
                 type = ID_hex_integer;
                 break;
             default:
-                rt.error("Invalid base", endp-1);
-                return ERROR;
+                // Check if we can use the current default base
+                base = Settings.base;
+                if (value[endp[-1]] > base)
+                {
+                    rt.error("Invalid base", endp-1);
+                    return ERROR;
+                }
+                break;
             }
             endp--;
             if (p >= endp)

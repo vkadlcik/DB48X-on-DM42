@@ -63,9 +63,10 @@ inline Data *leb128(Data *p, Int value)
     byte *bp = (byte *) p;
     do
     {
-        *bp++ = value;
+        *bp++ = (value & 0x7F) | 0x80;
         value = Int(value >> 7);
     } while (value != 0 && (Int(-1) > Int(0) || value != Int(-1)));
+    bp[-1] &= ~0x80;
     return (Data *) bp;
 }
 
@@ -97,7 +98,5 @@ inline size_t leb128size(Data *ptr)
     do { } while (*p++ & 0x80);
     return p - s;
 }
-
-
 
 #endif // LEB128_H

@@ -39,7 +39,7 @@
 #include <stdio.h>
 
 // The primary input of the calculator
-input Input;
+input    Input;
 
 runtime &input::RT = runtime::RT;
 
@@ -47,13 +47,25 @@ input::input()
 // ----------------------------------------------------------------------------
 //   Initialize the input
 // ----------------------------------------------------------------------------
-    : cursor(0), xoffset(0), mode(STACK), last(0),
-      cx(0), cy(0), cchar(' '),
-      shift(false), xshift(false), alpha(false), lowercase(false),
-      hideMenu(false), down(false), up(false),
-      repeat(false), longpress(false),
+    : cursor(0),
+      xoffset(0),
+      mode(STACK),
+      last(0),
+      cx(0),
+      cy(0),
+      cchar(' '),
+      shift(false),
+      xshift(false),
+      alpha(false),
+      lowercase(false),
+      hideMenu(false),
+      down(false),
+      up(false),
+      repeat(false),
+      longpress(false),
       blink(false)
-{}
+{
+}
 
 
 void input::end_edit()
@@ -62,9 +74,9 @@ void input::end_edit()
 // ----------------------------------------------------------------------------
 {
     RT.clear();
-    cursor = 0;
+    cursor  = 0;
     xoffset = 0;
-    alpha = false;
+    alpha   = false;
 }
 
 
@@ -96,7 +108,7 @@ bool input::key(int key)
         // Initiate key repeat
         if (repeat)
             sys_timer_start(TIMER0, longpress ? 80 : 500);
-        blink = true;           // Show cursor if things changed
+        blink = true; // Show cursor if things changed
         sys_timer_disable(TIMER1);
         sys_timer_start(TIMER1, 500);
     }
@@ -111,7 +123,7 @@ void input::assign(int key, uint plane, object *code)
 // ----------------------------------------------------------------------------
 {
     if (key >= 1 && key <= NUM_KEYS && plane <= NUM_PLANES)
-        function[plane][key-1] = code;
+        function[plane][key - 1] = code;
 }
 
 
@@ -121,7 +133,7 @@ object *input::assigned(int key, uint plane)
 // ----------------------------------------------------------------------------
 {
     if (key >= 1 && key <= NUM_KEYS && plane <= NUM_PLANES)
-        return function[plane][key-1];
+        return function[plane][key - 1];
     return nullptr;
 }
 
@@ -144,9 +156,9 @@ void input::menu(uint menu_id, cstring label, object *fn)
 {
     if (menu_id < NUM_MENUS)
     {
-        int softkey_id = menu_id % NUM_SOFTKEYS;
-        int key = KEY_F1 + softkey_id;
-        int plane = menu_id / NUM_SOFTKEYS;
+        int softkey_id       = menu_id % NUM_SOFTKEYS;
+        int key              = KEY_F1 + softkey_id;
+        int plane            = menu_id / NUM_SOFTKEYS;
         function[plane][key] = fn;
         strncpy(menu_label[plane][softkey_id], label, NUM_LABEL_CHARS);
     }
@@ -158,7 +170,7 @@ void input::draw_menus()
 //   Draw the softkey menus
 // ----------------------------------------------------------------------------
 {
-    int plane = shift_plane();
+    int     plane = shift_plane();
     cstring labels[NUM_SOFTKEYS];
     for (int k = 0; k < NUM_SOFTKEYS; k++)
         labels[k] = menu_label[plane][k];
@@ -214,13 +226,13 @@ void input::draw_annunciators()
         for (uint r = 0; r < ann_height; r++)
         {
             byte *dest = lcd_line_addr(r + top) + 48;
-            dest[0] = ~*source++;
-            dest[1] = ~*source++;
+            dest[0]    = ~*source++;
+            dest[1]    = ~*source++;
         }
     }
 
     // Temporary - Display some internal information
-    char buffer[64];
+    char            buffer[64];
     static unsigned counter = 0;
     snprintf(buffer, sizeof(buffer), "%c %u", longpress ? 'L' : ' ', counter++);
     display tmp(t20);
@@ -234,9 +246,9 @@ void input::draw_editor()
 // ----------------------------------------------------------------------------
 {
     // Get the editor area
-    char  *ed      = RT.editor();
-    size_t len     = RT.editing();
-    char  *last    = ed + len;
+    char  *ed   = RT.editor();
+    size_t len  = RT.editing();
+    char  *last = ed + len;
 
     if (!len)
         return;
@@ -257,9 +269,9 @@ void input::draw_editor()
     {
         if (p - ed == (int) cursor)
         {
-            edrow  = rows - 1;
-            edcol  = column;
-            cursx  = cwidth;
+            edrow = rows - 1;
+            edcol = column;
+            cursx = cwidth;
         }
         if (p == last)
             break;
@@ -280,9 +292,9 @@ void input::draw_editor()
     // Check if we want to move the cursor up or down
     if (up || down)
     {
-        int r = 0;
-        int c = 0;
-        int tgt = edrow - up + down;
+        int  r    = 0;
+        int  c    = 0;
+        int  tgt  = edrow - up + down;
         bool done = false;
         for (char *p = ed; p < last && !done; p++)
         {
@@ -298,12 +310,12 @@ void input::draw_editor()
             if ((r == tgt && c > edcol) || r > tgt)
             {
                 cursor = p - ed;
-                edrow = r;
-                done = true;
+                edrow  = r;
+                done   = true;
             }
         }
-        up    = false;
-        down  = false;
+        up   = false;
+        down = false;
     }
 
     // Draw the area that fits on the screen
@@ -317,10 +329,9 @@ void input::draw_editor()
     if (rows > availableRows)
     {
         // Skip rows to show the cursor
-        int skip =
-            edrow < availableRows ? 0 :
-            edrow >= rows - availableRows ? rows - availableRows :
-            edrow - availableRows / 2;
+        int skip = edrow < availableRows         ? 0
+                 : edrow >= rows - availableRows ? rows - availableRows
+                                                 : edrow - availableRows / 2;
         for (int r = 0; r < skip; r++)
             while (*display != '\n')
                 display++;
@@ -328,28 +339,27 @@ void input::draw_editor()
     }
 
     // Draw the editor rows
-    int skip = 64;
+    int skip  = 64;
     int cursw = t20->f->width;
     if (xoffset > cursx)
         xoffset = (cursx > skip) ? cursx - skip : 0;
     else if (xoffset + LCD_W - cursw < cursx)
         xoffset = cursx - LCD_W + cursw + skip;
 
-    int y        = bottom - rows * lineHeight;
-    int x        = -xoffset;
-    dtxt.xy(x, y)
-        .clearing(false).background(false);
+    int y = bottom - rows * lineHeight;
+    int x = -xoffset;
+    dtxt.xy(x, y).clearing(false).background(false);
 
     cchar = 0;
     int r = 0;
     while (r < rows && display <= last)
     {
         bool atCursor = display == ed + cursor;
-        char c = *display++;
+        char c        = *display++;
         if (atCursor)
         {
-            cx = dtxt.x();
-            cy = dtxt.y();
+            cx    = dtxt.x();
+            cy    = dtxt.y();
             cchar = c;
         }
         if (c == '\n')
@@ -374,8 +384,8 @@ void input::draw_editor()
     }
     if (!cchar)
     {
-        cx = dtxt.x();
-        cy = dtxt.y();
+        cx    = dtxt.x();
+        cy    = dtxt.y();
         cchar = ' ';
     }
 }
@@ -394,29 +404,30 @@ void input::draw_cursor()
     }
 
     display dtxt(fReg);
+    int     lineHeight  = dtxt.font(5).lineHeight();
 
     // Write the character under the cursor
-    char buf[2] = { cchar, 0 };
-    dtxt.xy(cx, cy).background(true).clearing(false).newlines(false)
-        .write(buf);
+    char    buf[2] = { cchar, 0 };
+    int     cw = dtxt.width(cchar);
+    lcd_fill_rect(cx, cy, cw, lineHeight, 0);
+    dtxt.xy(cx, cy).background(false).clearing(false).newlines(false).write(buf);
 
     if (blink)
     {
         display dcsr(t20);
-        int lineHeight = dtxt.font(5).lineHeight();
-        int smallHeight = dcsr.font(0).lineHeight();
+        int     lineHeight  = dtxt.font(5).lineHeight();
+        int     smallHeight = dcsr.font(0).lineHeight();
         dcsr.clearing(false).background(true).inverted(true);
 
-        char cursorChar =
-            mode == DIRECT    ? 'd' :
-            mode == TEXT      ? (lowercase ? 'l' : 'c') :
-            mode == PROGRAM   ? 'p' :
-            mode == ALGEBRAIC ? 'a' :
-            mode == MATRIX    ? 'm' : 'x';
-        char buf[2] = { cursorChar, 0 };
+        char cursorChar = mode == DIRECT    ? 'd'
+                        : mode == TEXT      ? (lowercase ? 'l' : 'c')
+                        : mode == PROGRAM   ? 'p'
+                        : mode == ALGEBRAIC ? 'a'
+                        : mode == MATRIX    ? 'm'
+                                            : 'x';
+        char buf[2]     = { cursorChar, 0 };
         lcd_fill_rect(cx, cy, 2, lineHeight, 1);
-        dcsr.xy(cx+1, cy + (lineHeight - smallHeight) / 2 + 1)
-            .write(buf);
+        dcsr.xy(cx + 1, cy + (lineHeight - smallHeight) / 2 + 1).write(buf);
     }
 
     if (sys_timer_timeout(TIMER1) || !sys_timer_active(TIMER1))
@@ -444,18 +455,21 @@ void input::draw_error()
 
         derr.font(2);
 
-        int top        = dhdr.lineHeight() + 10;
-        int height     = LCD_H / 3;
-        int width      = LCD_W - 8;
-        int x          = LCD_W / 2 - width / 2;
-        int y          = top;
+        int top    = dhdr.lineHeight() + 10;
+        int height = LCD_H / 3;
+        int width  = LCD_W - 8;
+        int x      = LCD_W / 2 - width / 2;
+        int y      = top;
 
         lcd_fill_rect(x, y, width, height, 1);
-        lcd_fill_rect(x + border, y + border,
-                      width - 2*border, height - 2*border, 0);
+        lcd_fill_rect(x + border,
+                      y + border,
+                      width - 2 * border,
+                      height - 2 * border,
+                      0);
 
-        x += 2*border+1;
-        y += 2*border+1;
+        x += 2 * border + 1;
+        y += 2 * border + 1;
         derr.xy(x, y).clearing(false).background(false).xoffset(x);
         if (cstring cmd = RT.command())
             derr.write("%s error:", cmd).newline();
@@ -478,26 +492,21 @@ bool input::handle_shifts(int key)
         if (longpress)
         {
             xshift = true;
-            shift = false;
+            shift  = false;
         }
         else
         {
             xshift = false;
-#define SHM(d, a, s)    ((d<<2) | (a<<1) | (s<<0))
-#define SHD(d, a, s)    (1 << SHM(d, a, s))
+#define SHM(d, a, s) ((d << 2) | (a << 1) | (s << 0))
+#define SHD(d, a, s) (1 << SHM(d, a, s))
             bool dshift = last == KEY_SHIFT; // Double shift toggles alpha
-            int plane = SHM(dshift, alpha, shift);
+            int  plane  = SHM(dshift, alpha, shift);
             const unsigned nextShift =
-                SHD(0, 0, 0) |
-                SHD(0, 1, 0) |
-                SHD(1, 0, 0);
+                SHD(0, 0, 0) | SHD(0, 1, 0) | SHD(1, 0, 0);
             const unsigned nextAlpha =
-                SHD(0, 0, 1) |
-                SHD(0, 1, 0) |
-                SHD(0, 1, 1) |
-                SHD(1, 0, 1);
-            shift = (nextShift & (1 << plane)) != 0;
-            alpha = (nextAlpha & (1 << plane)) != 0;
+                SHD(0, 0, 1) | SHD(0, 1, 0) | SHD(0, 1, 1) | SHD(1, 0, 1);
+            shift  = (nextShift & (1 << plane)) != 0;
+            alpha  = (nextAlpha & (1 << plane)) != 0;
             repeat = true;
         }
         consumed = true;
@@ -506,9 +515,7 @@ bool input::handle_shifts(int key)
     }
 
     if (key)
-    {
         last = key;
-    }
     return consumed;
 }
 
@@ -523,7 +530,7 @@ bool input::handle_editing(int key)
 
     if (editing)
     {
-        switch(key)
+        switch (key)
         {
         case KEY_BSP:
             repeat = true;
@@ -555,7 +562,6 @@ bool input::handle_editing(int key)
                     lowercase = !lowercase;
                 else
                     alpha = true;
-
             }
             else if (xshift)
             {
@@ -575,7 +581,7 @@ bool input::handle_editing(int key)
                 else
                 {
                     cstring pos = RT.source();
-                    cstring ed = RT.editor();
+                    cstring ed  = RT.editor();
                     if (pos >= ed && pos <= ed + editing)
                         cursor = pos - ed;
                     beep(3300, 100);
@@ -827,7 +833,6 @@ bool input::handle_digits(int key)
             RT.insert(p - ed, '-');
             cursor++;
         }
-
     }
     else if (key > KEY_CHS)
     {
@@ -1054,17 +1059,17 @@ bool input::handle_functions(int key)
     }
 
 
-    int plane = shift_plane();
-    object *obj = function[plane][key-1];
+    int     plane = shift_plane();
+    object *obj   = function[plane][key - 1];
     if (obj)
     {
         obj->evaluate();
         return true;
     }
-    const byte *ptr = defaultCommand[plane] + key-1;
+    const byte *ptr = defaultCommand[plane] + key - 1;
     if (*ptr)
     {
-        obj = (object *) ptr;   // Uh oh! Evaluate bytecode in ROM
+        obj = (object *) ptr; // Uh oh! Evaluate bytecode in ROM
         obj->evaluate();
         return true;
     }

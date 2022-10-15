@@ -62,7 +62,9 @@ bool input::key(int key)
         handle_shifts(key)    ||
         handle_editing(key)   ||
         handle_alpha(key)     ||
-        handle_functions(key);
+        handle_functions(key) ||
+        handle_digits(key)    ||
+        false;
 
     if (key && key != KEY_SHIFT)
         shift = false;
@@ -596,6 +598,61 @@ bool input::handle_alpha(int key)
 
     return 1;
 }
+
+
+bool input::handle_digits(int key)
+// ----------------------------------------------------------------------------
+//    Handle alphabetic input
+// ----------------------------------------------------------------------------
+{
+    if (alpha || !key)
+        return false;
+
+    static const char numbers[] =
+        "abcdef"
+        "ghijkl"
+        "_m-\x98_"
+        "_789\x80"
+        "_456\x81"
+        "_123-"
+        "_;, +";
+
+    if (key == KEY_CHS)
+    {
+        // Special case for change of sign
+        char *ed = RT.editor();
+        char *p  = ed + cursor;
+        while (p > ed)
+        {
+            p--;
+            if ((*p < '0' || *p > '9') && *p != Settings.decimalDot)
+                break;
+        }
+
+        if (*p == '-' || *p == '+')
+        {
+            *p = '+' + '-' - *p;
+            return true;
+        }
+        else
+        {
+            RT.insert(p - ed, '-');
+            cursor++;
+        }
+
+    }
+    else if (key > KEY_CHS)
+    {
+        key--;
+        char c = numbers[key];
+        RT.insert(cursor, c);
+        cursor++;
+        shift = false;
+        return true;
+    }
+    return false;
+}
+
 
 
 // ============================================================================

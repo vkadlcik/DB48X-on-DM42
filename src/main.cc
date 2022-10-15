@@ -127,9 +127,6 @@ void program_init()
         num_asin(&res, &res);
         num_acos(&res, &res);
         num_atan(&res, &res);
-
-
-
     }
 }
 

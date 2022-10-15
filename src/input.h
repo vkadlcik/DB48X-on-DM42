@@ -82,6 +82,7 @@ protected:
     bool        handle_editing(int key);
     bool        handle_alpha(int key);
     bool        handle_functions(int key);
+    bool        handle_digits(int key);
 
     bool        handle_enter(int key);
     bool        handle_backspace(int key);

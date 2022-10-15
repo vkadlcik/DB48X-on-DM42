@@ -246,6 +246,9 @@ void input::draw_editor()
     display dtxt(fReg);
     display dcsr(t20);
 
+    // Chose the largest font for editing
+    dtxt.font(5);
+
     for (char *p = ed; p <= last; p++)
     {
         if (p - ed == (int) cursor)
@@ -639,7 +642,8 @@ bool input::handle_alpha(int key)
         "_PQRS"
         "_TUVW"
         "_XYZ_"
-        "_:.? ";
+        "_:.? "
+        "......";
     static const char lower[] =
         "abcdef"
         "ghijkl"
@@ -647,7 +651,8 @@ bool input::handle_alpha(int key)
         "_pqrs"
         "_tuvw"
         "_xyz-"
-        "_:.? ";
+        "_:.? "
+        "......";
 
 #define DIV        "\x80"  // ÷
 #define MUL        "\x81"  // ×
@@ -692,7 +697,8 @@ bool input::handle_alpha(int key)
         "_789" DIV
         "_456" MUL
         "_123" "-"
-        "_0,!" "+";
+        "_0,!" "+"
+        "......";
 
     static const char xshifted[] =
         INTEG UPTRI DOWNTRI  MU   ANGLE DEG
@@ -701,7 +707,8 @@ bool input::handle_alpha(int key)
         "_"   NTILD ANGST    FREE LF
         "_"   AE    OUML     UUML ABAR
         "_"   "&"   "@"      "#"  "$"
-        "_"   ";"   FREE     INVQ "\\";
+        "_"   ";"   FREE     INVQ "\\"
+        "......";
 
     key--;
     char c =

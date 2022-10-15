@@ -42,6 +42,9 @@ struct display
         : ds(*ds),
           s_x(ds->x),
           s_y(ds->y),
+          s_yoffset(ds->ln_offs),
+          s_xspc(ds->xspc),
+          s_xoffset(ds->xoffs),
           s_fixed(ds->fixed),
           s_invert(ds->inv),
           s_fill(ds->bgfill),
@@ -52,6 +55,9 @@ struct display
     {
         ds.x = s_x;
         ds.y = s_y;
+        ds.ln_offs = s_yoffset;
+        ds.xspc = s_xspc;
+        ds.xoffs = s_xoffset;
         ds.fixed = s_fixed;
         ds.inv = s_invert;
         ds.bgfill = s_fill;
@@ -83,6 +89,9 @@ struct display
     // Getters
     int16_t x()                         { return ds.x; }
     int16_t y()                         { return ds.y; }
+    int8_t  xspc()                      { return ds.xspc; }
+    int8_t  xoffset()                   { return ds.xoffs; }
+    int8_t  yoffset()                   { return ds.ln_offs; }
     bool    fixed()                     { return ds.fixed; }
     bool    inverted()                  { return ds.inv; }
     bool    background()                { return ds.bgfill; }
@@ -92,6 +101,9 @@ struct display
     // Setters
     display &x(int16_t nx)              { ds.x = nx; return *this; }
     display &y(int16_t ny)              { ds.y = ny; return *this; }
+    display &xspc(int8_t nx)            { ds.xspc = nx; return *this; }
+    display &xoffset(int16_t nx)        { ds.xoffs = nx; return *this; }
+    display &yoffset(int16_t ny)        { ds.ln_offs = ny; return *this; }
     display &xy(int16_t nx, int16_t ny) { return x(nx).y(ny); }
     display &fixed(bool fx = true)      { ds.fixed = fx; return *this; }
     display &inverted(bool inv = true)  { ds.inv = inv; return *this; }
@@ -106,6 +118,9 @@ struct display
 protected:
     disp_stat_t &ds;
     int16_t      s_x, s_y;
+    int8_t       s_yoffset;
+    int8_t       s_xspc;
+    int8_t       s_xoffset;
     bool         s_fixed    : 1;
     bool         s_invert   : 1;
     bool         s_fill     : 1;

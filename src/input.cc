@@ -393,7 +393,7 @@ void input::draw_error()
         display   derr(fReg);
         display   dhdr(t20);
 
-        derr.font(5);
+        derr.font(2);
 
         int top        = dhdr.lineHeight() + 10;
         int height     = LCD_H / 3;
@@ -407,10 +407,11 @@ void input::draw_error()
 
         x += 2*border+1;
         y += 2*border+1;
-
-        derr.xy(x, y).clearing(false).background(false);
+        derr.xy(x, y).clearing(false).background(false).xoffset(x);
         if (cstring cmd = RT.command())
             derr.write("%s error:", cmd).newline();
+        else
+            derr.write("Error:").newline();
 
         derr.write(err);
     }

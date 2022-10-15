@@ -89,6 +89,15 @@ bool input::key(int key)
     sys_timer_disable(TIMER0);
     repeat = false;
 
+    if (RT.error())
+    {
+        if (key == KEY_EXIT || key == KEY_ENTER || key == KEY_BSP)
+            RT.error(nullptr);
+        else if (key)
+            beep(2200, 75);
+        return true;
+    }
+
     bool result =
         handle_shifts(key)    ||
         handle_editing(key)   ||

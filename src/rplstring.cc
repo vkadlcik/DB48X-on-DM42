@@ -106,5 +106,5 @@ OBJECT_RENDERER_BODY(string)
 {
     size_t  len = 0;
     cstring txt = text(&len);
-    return snprintf(begin, end - begin, "%.*s", (int) len, txt);
+    return snprintf(begin, end - begin, "\"%.*s\"", (int) len, txt);
 }

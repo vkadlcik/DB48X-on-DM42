@@ -30,6 +30,7 @@
 #include "sim-rpl.h"
 #include <dmcp.h>
 
+
 RPLThread::RPLThread(QObject *parent) : QThread(parent)
 // ----------------------------------------------------------------------------
 //   Constructor

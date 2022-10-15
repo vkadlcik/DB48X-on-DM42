@@ -27,15 +27,17 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <QThread>
-#include <sim-screen.h>
-#include <dmcp.h>
-#include <target.h>
-#include <types.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <sys/time.h>
+#include "dmcp.h"
+
 #include "dmcp_fonts.c"
+#include "sim-rpl.h"
+#include "sim-screen.h"
+#include "types.h"
+
+#include <stdarg.h>
+#include <stdio.h>
+#include <sys/time.h>
+#include <target.h>
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
@@ -43,7 +45,6 @@
 #undef ppgm_fp
 
 volatile int lcd_needsupdate = 1;
-volatile int timer_interrupt = 0;
 int lcd_buf_cleared = 0;
 uint8_t lcd_buffer[LCD_SCANLINE * LCD_H / 8];
 
@@ -491,11 +492,50 @@ void sys_delay(uint32_t ms_delay)
 {
     QThread::msleep(ms_delay);
 }
+
+static struct timer
+{
+    uint32_t deadline;
+    bool     enabled;
+} timers[4];
+
 void sys_sleep()
 {
-    while (key_empty() && !timer_interrupt)
+    while (key_empty())
+    {
+        uint32_t now = sys_current_ms();
+        for (int i = 0; i < 4; i++)
+            if (timers[i].enabled && int(timers[i].deadline - now) < 0)
+                return;
         QThread::msleep(20);
+    }
 }
+
+void sys_timer_disable(int timer_ix)
+{
+    timers[timer_ix].enabled = false;
+}
+
+void sys_timer_start(int timer_ix, uint32_t ms_value)
+{
+    uint32_t now = sys_current_ms();
+    uint32_t then = now + ms_value;
+    timers[timer_ix].deadline = then;
+    timers[timer_ix].enabled = true;
+}
+int sys_timer_active(int timer_ix)
+{
+    return timers[timer_ix].enabled;
+}
+
+int sys_timer_timeout(int timer_ix)
+{
+    uint32_t now = sys_current_ms();
+    if (timers[timer_ix].enabled)
+        return int(timers[timer_ix].deadline - now) < 0;
+    return false;
+}
+
 void wait_for_key_press()
 {
     fprintf(stderr, "wait_for_key_press not implemented\n");

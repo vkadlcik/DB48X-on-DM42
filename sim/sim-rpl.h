@@ -29,15 +29,15 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-
 #include <QThread>
+#include <QTimer>
 
 class RPLThread:public QThread
 // ----------------------------------------------------------------------------
 //    Thread running the RPL program
 // ----------------------------------------------------------------------------
 {
-  public:
+public:
     RPLThread(QObject * parent);
     ~RPLThread();
 

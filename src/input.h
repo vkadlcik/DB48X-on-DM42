@@ -78,6 +78,8 @@ struct input
     void        draw_editor();
     void        draw_cursor();
     void        draw_error();
+    int         stack_screen_bottom() { return stack; }
+
 
 protected:
     void        end_edit();
@@ -99,6 +101,7 @@ protected:
     int         xoffset;        // Offset of the cursor
     modes       mode;           // Current editing mode
     int         last;           // Last key
+    int         stack;          // Vertical bottom of the stack
     int         cx, cy;         // Cursor position on screen
     char        cchar;          // Character under the cursor
     bool        shift     : 1;  // Normal shift active

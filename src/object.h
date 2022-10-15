@@ -166,6 +166,15 @@ struct object
         run(rt, EVAL);
     }
 
+    size_t render(char *output, cstring end, runtime &rt = RT)
+    // ------------------------------------------------------------------------
+    //    Render the object according to its type
+    // ------------------------------------------------------------------------
+    {
+        renderer r = { .begin = output, .end = end };
+        return run(rt, RENDER, &r);
+    }
+
     static object *parse(cstring beg, cstring *end = nullptr, runtime &rt = RT)
     // ------------------------------------------------------------------------
     //  Try parsing the object as a top-level temporary
@@ -210,6 +219,17 @@ struct object
         return handler[type](rt, cmd, arg, this, (object *) ptr);
     }
 
+    static cstring name(id i)
+    // ------------------------------------------------------------------------
+    //   Return the name for a given ID
+    // ------------------------------------------------------------------------
+    {
+        return id_name[i];
+    }
+
+
+
+protected:
     struct parser
     // ------------------------------------------------------------------------
     //  Arguments to the PARSE command
@@ -221,15 +241,6 @@ struct object
         object *output;
     };
 
-#define OBJECT_PARSER(type)                                     \
-    static result parse(cstring begin, cstring *end,            \
-                        object **out,                           \
-                        runtime & UNUSED rt = RT)
-
-#define OBJECT_PARSER_BODY(type)                                        \
-    object::result type::parse(cstring begin, cstring *end,             \
-                               object **out, runtime & UNUSED rt)
-
     struct renderer
     // ------------------------------------------------------------------------
     //  Arguments to the RENDER command
@@ -239,31 +250,46 @@ struct object
         cstring end;
     };
 
-#define OBJECT_RENDERER(type)                                           \
-    intptr_t render(char *begin, cstring end, runtime &UNUSED rt = RT)
 
-#define OBJECT_RENDERER_BODY(type)                                      \
-    intptr_t type::render(char *begin, cstring end, runtime &UNUSED rt)
+
+#define OBJECT_PARSER(type)                                             \
+    static result object_parser(cstring begin, cstring *end,            \
+                                object **out,                           \
+                                runtime & UNUSED rt = RT)
+
+#define OBJECT_PARSER_BODY(type)                            \
+  object::result type::object_parser(cstring         begin, \
+                                     cstring        *end,   \
+                                     object        **out,   \
+                                     runtime &UNUSED rt)
+
+#define OBJECT_RENDERER(type)                           \
+    intptr_t object_renderer(char *begin, cstring end,  \
+                             runtime &UNUSED rt = RT)
+
+#define OBJECT_RENDERER_BODY(type)                              \
+    intptr_t type::object_renderer(char *begin, cstring end,    \
+                                   runtime &UNUSED rt)
 
 
     // The actual work is done here
-#define OBJECT_HANDLER_NO_ID(type)                      \
-    static intptr_t handle(runtime & UNUSED rt,         \
-                           command   UNUSED cmd,        \
-                           void    * UNUSED arg,        \
-                           type    * UNUSED obj,        \
-                           object  * UNUSED payload)
+#define OBJECT_HANDLER_NO_ID(type)                              \
+    static intptr_t object_handler(runtime & UNUSED rt,         \
+                                   command   UNUSED cmd,        \
+                                   void    * UNUSED arg,        \
+                                   type    * UNUSED obj,        \
+                                   object  * UNUSED payload)
 
 #define OBJECT_HANDLER(type)                            \
     static id static_type() { return ID_##type; }       \
     OBJECT_HANDLER_NO_ID(type)
 
-#define OBJECT_HANDLER_BODY(type)                       \
-    intptr_t type::handle(runtime & UNUSED rt,          \
-                          command   UNUSED cmd,         \
-                          void    * UNUSED arg,         \
-                          type  *   UNUSED obj,         \
-                          object  * UNUSED payload)
+#define OBJECT_HANDLER_BODY(type)                               \
+    intptr_t type::object_handler(runtime & UNUSED rt,          \
+                                  command   UNUSED cmd,         \
+                                  void    * UNUSED arg,         \
+                                  type  *   UNUSED obj,         \
+                                  object  * UNUSED payload)
 
     // The default object handlers
     OBJECT_PARSER(object);
@@ -272,15 +298,7 @@ struct object
 
 
 #define DELEGATE(base)                                  \
-    base::handle(rt, cmd, arg, obj, payload)
-
-    static cstring name(id i)
-    // ------------------------------------------------------------------------
-    //   Return the name for a given ID
-    // ------------------------------------------------------------------------
-    {
-        return id_name[i];
-    }
+    base::object_handler(rt, cmd, arg, obj, payload)
 
     template <typename T, typename U>
     static intptr_t ptrdiff(T *t, U *u)

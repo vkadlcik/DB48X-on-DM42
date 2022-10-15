@@ -67,7 +67,7 @@ struct display
 
     // Wrapping operations
     template <typename ...Args>
-    display &write(cstring format, Args &...args)
+    display &write(cstring format, const Args &...args)
     {
         lcd_print(&ds, format, args...);
         return *this;

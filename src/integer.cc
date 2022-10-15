@@ -51,12 +51,12 @@ OBJECT_HANDLER_BODY(integer)
     case PARSE:
     {
         parser *p = (parser *) arg;
-        return parse(p->begin, &p->end, &p->output, rt);
+        return object_parser(p->begin, &p->end, &p->output, rt);
     }
     case RENDER:
     {
         renderer *r = (renderer *) arg;
-        return obj->render(r->begin, r->end, rt);
+        return obj->object_renderer(r->begin, r->end, rt);
     }
 
     default:
@@ -139,7 +139,7 @@ OBJECT_PARSER_BODY(integer)
             default:
                 // Check if we can use the current default base
                 base = Settings.base;
-                if (value[endp[-1]] > base)
+                if (value[(byte) endp[-1]] > base)
                 {
                     rt.error("Invalid base", endp-1);
                     return ERROR;

@@ -47,7 +47,7 @@ const object::handler_fn object::handler[NUM_IDS] =
 //   The list of all possible handler
 // ----------------------------------------------------------------------------
 {
-#define ID(id)  [ID_##id] = (handler_fn) id::handle,
+#define ID(id)  [ID_##id] = (handler_fn) id::object_handler,
 #include <id.h>
 };
 

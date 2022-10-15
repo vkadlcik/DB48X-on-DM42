@@ -53,12 +53,12 @@ OBJECT_HANDLER_BODY(decimal128)
     case PARSE:
     {
         parser *p = (parser *) arg;
-        return parse(p->begin, &p->end, &p->output, rt);
+        return object_parser(p->begin, &p->end, &p->output, rt);
     }
     case RENDER:
     {
         renderer *r = (renderer *) arg;
-        return obj->render(r->begin, r->end, rt);
+        return obj->object_renderer(r->begin, r->end, rt);
     }
 
     default:

@@ -51,6 +51,7 @@ input::input()
       xoffset(0),
       mode(STACK),
       last(0),
+      stack(LCD_H),
       cx(0),
       cy(0),
       cchar(' '),
@@ -260,7 +261,11 @@ void input::draw_editor()
     char  *last = ed + len;
 
     if (!len)
+    {
+        // Editor is not open, compute stack bottom
+        stack = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES - 4);
         return;
+    }
 
     // Count rows and colums
     int     rows   = 1; // Number of rows in editor
@@ -330,7 +335,7 @@ void input::draw_editor()
     // Draw the area that fits on the screen
     int   lineHeight      = dtxt.lineHeight();
     int   top             = lcd_lineHeight(t20) + 2;
-    int   bottom          = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES);
+    int   bottom          = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES - 4);
     int   availableHeight = bottom - top;
     int   availableRows   = availableHeight / lineHeight;
     char *display         = ed;
@@ -358,6 +363,7 @@ void input::draw_editor()
     int y = bottom - rows * lineHeight;
     int x = -xoffset;
     dtxt.xy(x, y).clearing(false).background(false);
+    stack = y;
 
     cchar = 0;
     int r = 0;

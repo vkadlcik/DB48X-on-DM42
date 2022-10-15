@@ -52,6 +52,7 @@ DECIMAL_SOURCES=$(DECIMAL_SIZES:%=src/decimal-%.cc)
 CXX_SOURCES +=				\
 	src/main.cc			\
 	src/input.cc			\
+	src/stack.cc			\
 	src/menu.cc			\
 	src/util.cc			\
 	src/settings.cc			\

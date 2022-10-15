@@ -35,6 +35,7 @@
 #include "num.h"
 #include "rpl.h"
 #include "settings.h"
+#include "stack.h"
 #include "util.h"
 
 #include <algorithm>
@@ -64,6 +65,7 @@ static void redraw_lcd()
     Input.draw_menus();
     Input.draw_editor();
     Input.draw_cursor();
+    Stack.draw_stack();
     Input.draw_error();
 
     // Refres the screen

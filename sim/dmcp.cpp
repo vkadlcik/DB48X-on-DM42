@@ -135,7 +135,7 @@ int read_key(int *k1, int *k2)
 void lcd_clear_buf()
 {
     for (unsigned i = 0; i < sizeof(lcd_buffer); i++)
-        lcd_buffer[i] = 0x00;
+        lcd_buffer[i] = 0xFF;
     lcd_needsupdate = 1;
 }
 
@@ -165,7 +165,7 @@ inline void lcd_clear_pixel(int x, int y)
 
 inline void lcd_pixel(int x, int y, int val)
 {
-    if (val)
+    if (!val)
         lcd_set_pixel(x, y);
     else
         lcd_clear_pixel(x, y);

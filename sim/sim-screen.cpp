@@ -133,7 +133,7 @@ void Screen::update()
         {
             unsigned bo = y * LCD_SCANLINE + x;
             int on = (lcd_buffer[bo/8] >> (bo % 8)) & 1;
-            pt.setPen(on ? fgPen : bgPen);
+            pt.setPen(on ? bgPen : fgPen);
             pt.drawPoint(LCD_W - x, y);
         }
     }

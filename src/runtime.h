@@ -116,7 +116,13 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         if (available() < size)
-            return gc();
+        {
+            gc();
+            size_t avail = available();
+            if (avail < size)
+                error("Out of memory");
+            return avail;
+        }
         return size;
     }
 

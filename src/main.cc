@@ -95,8 +95,8 @@ void program_init()
     // Give 64K to the runtime
     size_t size = 64 * 1024;
 #else
-    // Give 2K to the runtime to stress-test the GC
-    size_t size = 2 * 1024;
+    // Give 256 bytes to the runtime to stress-test the GC
+    size_t size = 256;
 #endif
     byte *memory = (byte *) malloc(size);
     runtime::RT.memory(memory, size);

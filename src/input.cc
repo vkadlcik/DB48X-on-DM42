@@ -289,7 +289,7 @@ void input::draw_editor()
             {
                 c++;
             }
-            if ((r == tgt && c >= edcol) || r > tgt)
+            if ((r == tgt && c > edcol) || r > tgt)
             {
                 cursor = p - ed;
                 edrow = r;

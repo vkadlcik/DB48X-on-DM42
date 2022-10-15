@@ -184,6 +184,17 @@ struct runtime
     //   This must be called each time a GC could have happened
     {
         char *ed = (char *) Temporaries;
+        return ed;
+    }
+
+
+    char *close_editor()
+    // ------------------------------------------------------------------------
+    //   Return the buffer for the editor with a null terminator
+    // ------------------------------------------------------------------------
+    //   This must be called each time a GC could have happened
+    {
+        char *ed = (char *) Temporaries;
         ed[Editing] = 0;
         return ed;
     }

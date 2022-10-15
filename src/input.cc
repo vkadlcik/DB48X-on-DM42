@@ -586,7 +586,7 @@ bool input::handle_editing(int key)
             else
             {
                 // Finish editing and parse the result
-                object *obj = object::parse(RT.editor());
+                object *obj = object::parse(RT.close_editor());
                 if (obj)
                 {
                     // We successfully parsed the line

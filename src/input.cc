@@ -548,6 +548,10 @@ bool input::handle_editing(int key)
             {
                 up = true;
             }
+            else if (xshift)
+            {
+                cursor = 0;
+            }
             else if (cursor > 0)
             {
                 cursor--;
@@ -563,6 +567,10 @@ bool input::handle_editing(int key)
             if (shift)
             {
                 down = true;
+            }
+            else if (xshift)
+            {
+                cursor = editing;
             }
             else if (cursor < editing)
             {

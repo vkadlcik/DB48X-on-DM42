@@ -397,7 +397,7 @@ void input::draw_error()
 
         int top        = dhdr.lineHeight() + 10;
         int height     = LCD_H / 3;
-        int width      = LCD_W - 20;
+        int width      = LCD_W - 8;
         int x          = LCD_W / 2 - width / 2;
         int y          = top;
 

@@ -339,7 +339,7 @@ void input::draw_editor()
         .clearing(false).background(false);
     dcsr.clearing(false).background(true).inverted(true);
 
-    for (int r = 0; r < rows && display < last; r++)
+    for (int r = 0; r < rows && display <= last; r++)
     {
         int drawCursor = display == edline;
         while (display < last)

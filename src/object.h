@@ -236,8 +236,8 @@ protected:
     // ------------------------------------------------------------------------
     {
         id      candidate; // Candidate ID for lookup
-        cstring begin;
-        cstring end;
+        cstring begin;     // REVISIT: Should really be gcptr<char>
+        cstring end;       // REVISIT: gcptr<char>
         object *output;
     };
 

@@ -28,7 +28,10 @@
 // ****************************************************************************
 
 #include "integer.h"
+
 #include "runtime.h"
+#include "settings.h"
+
 #include <stdio.h>
 
 
@@ -90,6 +93,7 @@ OBJECT_PARSER_BODY(integer)
     }
 
     cstring p = begin;
+    cstring endp = nullptr;
     if (*p == '-')
     {
         sign = -1;
@@ -104,7 +108,6 @@ OBJECT_PARSER_BODY(integer)
     else if (*p == '#')
     {
         p++;
-        cstring endp = nullptr;
         for (cstring e = p; !endp; e++)
             if (value[(byte) *e] == (byte) -1)
                 endp = e;
@@ -154,7 +157,7 @@ OBJECT_PARSER_BODY(integer)
     ularge result = 0;
     uint shift = sign < 0 ? 1 : 0;
     byte v;
-    while ((v = value[(byte) *p++]) != (byte) -1)
+    while (p < endp && (v = value[(byte) *p++]) != (byte) -1)
     {
         if (v >= base)
         {
@@ -162,13 +165,17 @@ OBJECT_PARSER_BODY(integer)
             return ERROR;
         }
         ularge next = result * base + v;
+
+        // If the value does not fit in an integer, defer to bignum / real
         if ((next << shift) <  result)
-        {
-            rt.error("Integer constant is too large", p-1);
-            return ERROR;
-        }
+            return SKIP;
+
         result = next;
     }
+
+    // Check if we finish with something indicative of a real number
+    if (*p == Settings.decimalDot || *p == Settings.exponentChar)
+        return SKIP;
 
     if (end)
         *end = p;

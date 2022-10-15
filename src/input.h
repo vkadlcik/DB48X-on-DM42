@@ -79,6 +79,8 @@ struct input
     void        draw_error();
 
 protected:
+    void        end_edit();
+
     bool        handle_shifts(int key);
     bool        handle_editing(int key);
     bool        handle_alpha(int key);

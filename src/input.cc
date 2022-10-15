@@ -53,6 +53,18 @@ input::input()
 {}
 
 
+void input::end_edit()
+// ----------------------------------------------------------------------------
+//   Clear the editor
+// ----------------------------------------------------------------------------
+{
+    RT.clear();
+    cursor = 0;
+    xoffset = 0;
+    alpha = false;
+}
+
+
 bool input::key(int key)
 // ----------------------------------------------------------------------------
 //   Process an input key
@@ -327,9 +339,12 @@ void input::draw_editor()
     for (int r = 0; r < rows && display < last; r++)
     {
         int drawCursor = display == edline;
-        while (display < last && *display != '\n')
+        while (display < last)
         {
             int c = *display++;
+            if (c == '\n')
+                break;
+
             int cw = dtxt.width(c);
             if (dtxt.x() >= 0 && dtxt.x() + cw < LCD_W)
             {
@@ -351,6 +366,7 @@ void input::draw_editor()
                 mode == ALGEBRAIC ? 'a' :
                 mode == MATRIX    ? 'm' : 'x';
             char buf[2] = { cursorChar, 0 };
+            y = dtxt.y();
             lcd_fill_rect(x + cursx, y, 2, lineHeight, 1);
             dcsr.x(x + cursx)
                 .y(y + (lineHeight - top) / 2 + 1)
@@ -497,10 +513,7 @@ bool input::handle_editing(int key)
                 if (obj)
                 {
                     // We successfully parsed the line
-                    RT.clear();
-                    alpha = false;
-                    cursor = 0;
-                    xoffset = 0;
+                    end_edit();
                     obj->evaluate();
                 }
                 else
@@ -516,20 +529,14 @@ bool input::handle_editing(int key)
         }
         case KEY_EXIT:
             if (shift)
-            {
+                // Power off
                 SET_ST(STAT_PGM_END);
-            }
             else if (RT.error())
-            {
                 // Clear error
                 RT.error(nullptr);
-            }
             else
-            {
                 // Clear the editor
-                RT.clear();
-                alpha = false;
-            }
+                end_edit();
             return true;
 
         case KEY_UP:

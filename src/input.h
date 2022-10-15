@@ -76,6 +76,7 @@ struct input
     void        draw_menus();
     void        draw_annunciators();
     void        draw_editor();
+    void        draw_cursor();
     void        draw_error();
 
 protected:
@@ -98,6 +99,8 @@ protected:
     int         xoffset;        // Offset of the cursor
     modes       mode;           // Current editing mode
     int         last;           // Last key
+    int         cx, cy;         // Cursor position on screen
+    char        cchar;          // Character under the cursor
     bool        shift     : 1;  // Normal shift active
     bool        xshift    : 1;  // Extended shift active (simulate Right)
     bool        alpha     : 1;  // Alpha mode active
@@ -107,6 +110,7 @@ protected:
     bool        up        : 1;  // Move one line up
     bool        repeat    : 1;  // Repeat the key
     bool        longpress : 1;  // We had a long press of the key
+    bool        blink     : 1;  // Cursor blink indicator
 
 protected:
     // Key mappings

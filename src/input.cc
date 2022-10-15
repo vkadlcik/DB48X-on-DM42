@@ -48,8 +48,11 @@ input::input()
 //   Initialize the input
 // ----------------------------------------------------------------------------
     : cursor(0), xoffset(0), mode(STACK), last(0),
+      cx(0), cy(0), cchar(' '),
       shift(false), xshift(false), alpha(false), lowercase(false),
-      hideMenu(false), down(false), up(false)
+      hideMenu(false), down(false), up(false),
+      repeat(false), longpress(false),
+      blink(false)
 {}
 
 
@@ -93,6 +96,9 @@ bool input::key(int key)
         // Initiate key repeat
         if (repeat)
             sys_timer_start(TIMER0, longpress ? 80 : 500);
+        blink = true;           // Show cursor if things changed
+        sys_timer_disable(TIMER1);
+        sys_timer_start(TIMER1, 500);
     }
 
     return result;
@@ -231,7 +237,6 @@ void input::draw_editor()
     char  *ed      = RT.editor();
     size_t len     = RT.editing();
     char  *last    = ed + len;
-    char  *edline  = ed;
 
     if (!len)
         return;
@@ -244,7 +249,6 @@ void input::draw_editor()
     int     edcol  = 0; // Column of line being edited
     int     cursx  = 0; // Cursor X position
     display dtxt(fReg);
-    display dcsr(t20);
 
     // Chose the largest font for editing
     dtxt.font(5);
@@ -255,7 +259,6 @@ void input::draw_editor()
         {
             edrow  = rows - 1;
             edcol  = column;
-            edline = p - edcol;
             cursx  = cwidth;
         }
         if (p == last)
@@ -296,17 +299,16 @@ void input::draw_editor()
             {
                 cursor = p - ed;
                 edrow = r;
-                edline = p - c;
                 done = true;
             }
         }
-        up   = false;
-        down = false;
+        up    = false;
+        down  = false;
     }
 
     // Draw the area that fits on the screen
     int   lineHeight      = dtxt.lineHeight();
-    int   top             = dcsr.lineHeight() + 2;
+    int   top             = lcd_lineHeight(t20) + 2;
     int   bottom          = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES);
     int   availableHeight = bottom - top;
     int   availableRows   = availableHeight / lineHeight;
@@ -337,48 +339,95 @@ void input::draw_editor()
     int x        = -xoffset;
     dtxt.xy(x, y)
         .clearing(false).background(false);
-    dcsr.clearing(false).background(true).inverted(true);
 
-    for (int r = 0; r < rows && display <= last; r++)
+    cchar = 0;
+    int r = 0;
+    while (r < rows && display <= last)
     {
-        int drawCursor = display == edline;
-        while (display < last)
+        bool atCursor = display == ed + cursor;
+        char c = *display++;
+        if (atCursor)
         {
-            int c = *display++;
-            if (c == '\n')
-                break;
-
-            int cw = dtxt.width(c);
-            if (dtxt.x() >= 0 && dtxt.x() + cw < LCD_W)
-            {
-                const char buf[2] = { (char) c, 0 };
-                dtxt.write(buf);
-            }
-            else
-            {
-                dtxt.x(dtxt.x() + cw);
-            }
+            cx = dtxt.x();
+            cy = dtxt.y();
+            cchar = c;
         }
-
-        if (drawCursor)
+        if (c == '\n')
         {
-            char cursorChar =
-                mode == DIRECT    ? 'd' :
-                mode == TEXT      ? (lowercase ? 'l' : 'c') :
-                mode == PROGRAM   ? 'p' :
-                mode == ALGEBRAIC ? 'a' :
-                mode == MATRIX    ? 'm' : 'x';
-            char buf[2] = { cursorChar, 0 };
-            y = dtxt.y();
-            lcd_fill_rect(x + cursx, y, 2, lineHeight, 1);
-            dcsr.x(x + cursx)
-                .y(y + (lineHeight - top) / 2 + 1)
-                .write(buf);
+            dtxt.xy(x, dtxt.y() + lineHeight);
+            r++;
+            continue;
         }
+        if (display > last)
+            break;
 
-        dtxt.x(x)
-            .y(dtxt.y() + lineHeight);
+        int cw = dtxt.width(c);
+        if (dtxt.x() >= 0 && dtxt.x() + cw < LCD_W)
+        {
+            const char buf[2] = { c, 0 };
+            dtxt.write(buf);
+        }
+        else
+        {
+            dtxt.x(dtxt.x() + cw);
+        }
     }
+    if (!cchar)
+    {
+        cx = dtxt.x();
+        cy = dtxt.y();
+        cchar = ' ';
+    }
+}
+
+
+void input::draw_cursor()
+// ----------------------------------------------------------------------------
+//   Draw the cursor at the location
+// ----------------------------------------------------------------------------
+{
+    // Do not draw
+    if (!RT.editing())
+    {
+        sys_timer_disable(TIMER1);
+        return;
+    }
+
+    display dtxt(fReg);
+
+    // Write the character under the cursor
+    char buf[2] = { cchar, 0 };
+    dtxt.xy(cx, cy).background(true).clearing(false).newlines(false)
+        .write(buf);
+
+    if (blink)
+    {
+        display dcsr(t20);
+        int lineHeight = dtxt.font(5).lineHeight();
+        int smallHeight = dcsr.font(0).lineHeight();
+        dcsr.clearing(false).background(true).inverted(true);
+
+        char cursorChar =
+            mode == DIRECT    ? 'd' :
+            mode == TEXT      ? (lowercase ? 'l' : 'c') :
+            mode == PROGRAM   ? 'p' :
+            mode == ALGEBRAIC ? 'a' :
+            mode == MATRIX    ? 'm' : 'x';
+        char buf[2] = { cursorChar, 0 };
+        lcd_fill_rect(cx, cy, 2, lineHeight, 1);
+        dcsr.xy(cx+1, cy + (lineHeight - smallHeight) / 2 + 1)
+            .write(buf);
+    }
+
+    if (sys_timer_timeout(TIMER1) || !sys_timer_active(TIMER1))
+    {
+        // Refresh the cursor after 500ms
+        sys_timer_disable(TIMER1);
+        sys_timer_start(TIMER1, 500);
+        blink = !blink;
+    }
+
+    lcd_refresh();
 }
 
 

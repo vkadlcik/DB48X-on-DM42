@@ -63,6 +63,7 @@ static void redraw_lcd()
     Input.draw_annunciators();
     Input.draw_menus();
     Input.draw_editor();
+    Input.draw_cursor();
     Input.draw_error();
 
     // Refres the screen
@@ -197,19 +198,28 @@ extern "C" void program_main()
         }
 
         // Key is ready -> clear auto off timer
+        bool hadKey = false;
         if (!key_empty())
         {
             reset_auto_off();
             key = key_pop();
+            hadKey = true;
         }
+        if (sys_timer_timeout(TIMER0))
+            hadKey = true;
 
         // Fetch the key (<0: no key event, >0: key pressed, 0: key released)
-        if (key >= 0)
+        if (key >= 0 && hadKey)
         {
             handle_key(key);
 
             // Redraw the LCD
             redraw_lcd();
+        }
+        else
+        {
+            // Blink the cursor
+            Input.draw_cursor();
         }
     }
 }

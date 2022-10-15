@@ -62,8 +62,7 @@ bool input::key(int key)
 {
     longpress = key && sys_timer_timeout(TIMER0);
     sys_timer_disable(TIMER0);
-    if (key)
-        sys_timer_start(TIMER0, longpress ? 80 : 500);
+    repeat = false;
 
     bool result =
         handle_shifts(key)    ||
@@ -75,6 +74,13 @@ bool input::key(int key)
 
     if (key && key != KEY_SHIFT)
         shift = false;
+
+    if (key && result)
+    {
+        // Initiate key repeat
+        if (repeat)
+            sys_timer_start(TIMER0, longpress ? 80 : 500);
+    }
 
     return result;
 }
@@ -436,6 +442,7 @@ bool input::handle_editing(int key)
         switch(key)
         {
         case KEY_BSP:
+            repeat = true;
             if (shift && cursor < editing)
             {
                 // Shift + Backspace = Delete to right of cursor
@@ -450,6 +457,7 @@ bool input::handle_editing(int key)
             else
             {
                 // Limits of line: beep
+                repeat = false;
                 beep(4400, 50);
             }
             return true;
@@ -510,20 +518,36 @@ bool input::handle_editing(int key)
             return true;
 
         case KEY_UP:
+            repeat = true;
             if (shift)
+            {
                 up = true;
+            }
             else if (cursor > 0)
+            {
                 cursor--;
+            }
             else
+            {
+                repeat = false;
                 beep(4000, 50);
+            }
             return true;
         case KEY_DOWN:
+            repeat = true;
             if (shift)
+            {
                 down = true;
+            }
             else if (cursor < editing)
+            {
                 cursor++;
+            }
             else
+            {
+                repeat = false;
                 beep(4800, 50);
+            }
             return true;
         case 0:
             return false;
@@ -613,6 +637,7 @@ bool input::handle_alpha(int key)
     if (closing)
         RT.insert(cursor, closing);
     shift = false;
+    repeat = true;
 
     return 1;
 }
@@ -666,6 +691,7 @@ bool input::handle_digits(int key)
         RT.insert(cursor, c);
         cursor++;
         shift = false;
+        repeat = true;
         return true;
     }
     return false;

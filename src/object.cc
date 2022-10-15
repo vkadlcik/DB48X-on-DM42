@@ -78,13 +78,16 @@ OBJECT_HANDLER_BODY(object)
     {
         // Default is to identify an object by its name
         parser *p = (parser *) arg;
-        cstring name = object::name(p->candidate);
-        size_t len = strlen(name);
-        if (strncasecmp(name, p->begin, len) == 0 && !isalnum(p->begin[len]))
+        if (p->candidate != ID_object)
         {
-            p->end = p->begin + len;
-            p->output = obj;
-            return OK;
+            cstring name = object::name(p->candidate);
+            size_t len = strlen(name);
+            if (strncasecmp(name, p->begin, len) == 0 && !isalnum(p->begin[len]))
+            {
+                p->end = p->begin + len;
+                p->output = obj;
+                return OK;
+            }
         }
         return SKIP;
     }

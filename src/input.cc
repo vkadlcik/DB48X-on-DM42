@@ -823,7 +823,7 @@ bool input::handle_digits(int key)
         "_789\x80"
         "_456\x81"
         "_123-"
-        "_0, +"
+        "_0. +"
         ".....";
 
     if (key == KEY_CHS)
@@ -853,6 +853,8 @@ bool input::handle_digits(int key)
     {
         key--;
         char c = numbers[key];
+        if (c == '.')
+            c = Settings.decimalDot;
         RT.insert(cursor, c);
         cursor++;
         repeat = true;

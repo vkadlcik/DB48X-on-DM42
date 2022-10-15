@@ -76,7 +76,7 @@ struct special_integer : integer
         if (cmd == RENDER)
         {
             renderer *r = (renderer *) arg;
-            return obj->special_integer::render(r->begin, r->end, rt);
+            return obj->special_integer::object_renderer(r->begin, r->end, rt);
         }
         return DELEGATE(integer);
     }

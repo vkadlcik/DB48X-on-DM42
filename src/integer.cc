@@ -105,12 +105,9 @@ OBJECT_PARSER_BODY(integer)
     {
         p++;
         cstring endp = nullptr;
-        for (cstring e = p; *e && !endp; e++)
+        for (cstring e = p; !endp; e++)
             if (value[(byte) *e] == (byte) -1)
                 endp = e;
-
-        if (!endp)
-            endp = p+1;
 
         if (endp > p)
         {

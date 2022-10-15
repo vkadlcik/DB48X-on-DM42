@@ -70,7 +70,7 @@ bool input::key(int key)
         handle_digits(key)    ||
         false;
 
-    if (key && key != KEY_SHIFT && !longpress)
+    if (!key && last != KEY_SHIFT)
     {
         shift = false;
         xshift = false;

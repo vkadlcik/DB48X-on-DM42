@@ -70,8 +70,11 @@ bool input::key(int key)
         handle_digits(key)    ||
         false;
 
-    if (key && key != KEY_SHIFT)
+    if (key && key != KEY_SHIFT && !longpress)
+    {
         shift = false;
+        xshift = false;
+    }
 
     if (key && result)
     {
@@ -418,8 +421,7 @@ bool input::handle_shifts(int key)
             const unsigned nextShift =
                 SHD(0, 0, 0) |
                 SHD(0, 1, 0) |
-                SHD(1, 0, 0) |
-                SHD(1, 1, 0);
+                SHD(1, 0, 0);
             const unsigned nextAlpha =
                 SHD(0, 0, 1) |
                 SHD(0, 1, 0) |
@@ -496,7 +498,6 @@ bool input::handle_editing(int key)
                 {
                     // We successfully parsed the line
                     RT.clear();
-                    shift = false;
                     alpha = false;
                     cursor = 0;
                     xoffset = 0;
@@ -517,20 +518,16 @@ bool input::handle_editing(int key)
             if (shift)
             {
                 SET_ST(STAT_PGM_END);
-                shift = false;
-                alpha = false;
             }
             else if (RT.error())
             {
                 // Clear error
                 RT.error(nullptr);
-                shift = false;
             }
             else
             {
                 // Clear the editor
                 RT.clear();
-                shift = false;
                 alpha = false;
             }
             return true;
@@ -585,7 +582,6 @@ bool input::handle_editing(int key)
         case KEY_EXIT:
             if (shift)
                 SET_ST(STAT_PGM_END);
-            shift = false;
             alpha = false;
             return true;
         case KEY_UP:
@@ -704,10 +700,7 @@ bool input::handle_alpha(int key)
     }
     if (closing)
         RT.insert(cursor, closing);
-    repeat = !shift && !xshift;
-    shift  = false;
-    xshift = false;
-
+    repeat = true;
     return 1;
 }
 
@@ -759,7 +752,6 @@ bool input::handle_digits(int key)
         char c = numbers[key];
         RT.insert(cursor, c);
         cursor++;
-        shift = false;
         repeat = true;
         return true;
     }

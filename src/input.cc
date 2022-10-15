@@ -53,8 +53,6 @@ input::input()
 {}
 
 
-static int counter = 0;
-
 bool input::key(int key)
 // ----------------------------------------------------------------------------
 //   Process an input key
@@ -143,8 +141,6 @@ void input::draw_menus()
     cstring labels[NUM_SOFTKEYS];
     for (int k = 0; k < NUM_SOFTKEYS; k++)
         labels[k] = menu_label[plane][k];
-    snprintf((char *) labels[0], 8, "%d", counter++);
-    snprintf((char *) labels[1], 8, "%s", longpress ? "Long" : "Short");
     lcd_draw_menu_keys(labels);
 }
 
@@ -166,9 +162,11 @@ void input::draw_annunciators()
             .y(h + 2)
             .write(label);
     }
-    if (shift)
+
+    const uint ann_height = 12;
+    const byte *source = nullptr;
+    if (xshift)
     {
-        const uint ann_height = 12;
         static const byte ann_right[] =
         {
             0xfe, 0x3f, 0xff, 0x7f, 0x9f, 0x7f,
@@ -176,6 +174,10 @@ void input::draw_annunciators()
             0x03, 0x70, 0xe7, 0x73, 0xcf, 0x73,
             0x9f, 0x73, 0xff, 0x73, 0xfe, 0x33
         };
+        source = ann_right;
+    }
+    if (shift)
+    {
         static const byte ann_left[] =
         {
             0xfe, 0x3f, 0xff, 0x7f, 0xff, 0x7c,
@@ -183,7 +185,10 @@ void input::draw_annunciators()
             0x07, 0x60, 0xe7, 0x73, 0xe7, 0x79,
             0xe7, 0x7c, 0xe7, 0x7f, 0xe6, 0x3f
         };
-        const byte *source = xshift ? ann_right : ann_left;
+        source = ann_left;
+    }
+    if (source)
+    {
         int top = lcd_lineHeight(t20) + 2;
         for (uint r = 0; r < ann_height; r++)
         {
@@ -192,6 +197,13 @@ void input::draw_annunciators()
             dest[1] = ~*source++;
         }
     }
+
+    // Temporary - Display some internal information
+    char buffer[64];
+    static unsigned counter = 0;
+    snprintf(buffer, sizeof(buffer), "%c %u", longpress ? 'L' : ' ', counter++);
+    display tmp(t20);
+    tmp.x(120).y(0).clearing(false).inverted(true).write(buffer);
 }
 
 
@@ -415,6 +427,7 @@ bool input::handle_shifts(int key)
                 SHD(1, 0, 1);
             shift = (nextShift & (1 << plane)) != 0;
             alpha = (nextAlpha & (1 << plane)) != 0;
+            repeat = true;
         }
         consumed = true;
 #undef SHM

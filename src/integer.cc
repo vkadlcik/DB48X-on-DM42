@@ -163,7 +163,7 @@ OBJECT_PARSER_BODY(integer)
     ularge result = 0;
     uint shift = sign < 0 ? 1 : 0;
     byte v;
-    while (p < endp && (v = value[(byte) *p++]) != (byte) -1)
+    while ((!endp || p < endp) && (v = value[(byte) *p++]) != (byte) -1)
     {
         if (v >= base)
         {

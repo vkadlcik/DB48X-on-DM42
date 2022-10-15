@@ -76,11 +76,15 @@ OBJECT_HANDLER_BODY(object)
         return payload - obj;
     case PARSE:
     {
+        // Default is to identify an object by its name
         parser *p = (parser *) arg;
-        if (p->begin >= p->end)
+        cstring name = object::name(p->candidate);
+        size_t len = strlen(name);
+        if (strncasecmp(name, p->begin, len) == 0 && !isalnum(p->begin[len]))
         {
-            rt.error("Syntax error", p->begin);
-            return ERROR;
+            p->end = p->begin + len;
+            p->output = obj;
+            return OK;
         }
         return SKIP;
     }

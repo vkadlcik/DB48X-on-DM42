@@ -176,7 +176,10 @@ struct object
 
         // Try parsing with the various handlers
         for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
+        {
+            p.candidate = id(i);
             r = (result) handler[i](rt, PARSE, &p, nullptr, nullptr);
+        }
 
         if (end)
             *end = p.end;
@@ -212,6 +215,7 @@ struct object
     //  Arguments to the PARSE command
     // ------------------------------------------------------------------------
     {
+        id      candidate; // Candidate ID for lookup
         cstring begin;
         cstring end;
         object *output;

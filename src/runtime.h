@@ -177,7 +177,9 @@ struct runtime
     // ------------------------------------------------------------------------
     //   This must be called each time a GC could have happened
     {
-        return (char *) Temporaries;
+        char *ed = (char *) Temporaries;
+        ed[Editing] = 0;
+        return ed;
     }
 
 

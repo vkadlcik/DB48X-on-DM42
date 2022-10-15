@@ -4,7 +4,7 @@
 //
 //   File Description:
 //
-//
+//     Input to the calculator
 //
 //
 //
@@ -30,6 +30,7 @@
 #include "input.h"
 
 #include "display.h"
+#include "menu.h"
 #include "runtime.h"
 #include "settings.h"
 #include "util.h"
@@ -170,8 +171,8 @@ void input::draw_annunciators()
         for (uint r = 0; r < ann_height; r++)
         {
             byte *dest = lcd_line_addr(r + top) + 48;
-            dest[0] = *source++;
-            dest[1] = *source++;
+            dest[0] = ~*source++;
+            dest[1] = ~*source++;
         }
     }
 }
@@ -796,6 +797,18 @@ bool input::handle_functions(int key)
 {
     if (!key)
         return false;
+
+    // Hard-code system menu
+    if (!alpha && shift && key == KEY_0)
+    {
+        SET_ST(STAT_MENU);
+        handle_menu(&application_menu, MENU_RESET, 0);
+        CLR_ST(STAT_MENU);
+        wait_for_key_release(-1);
+        return true;
+    }
+
+
     int plane = shift_plane();
     object *obj = function[plane][key-1];
     if (obj)

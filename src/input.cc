@@ -497,8 +497,11 @@ bool input::handle_editing(int key)
             if (shift)
             {
                 // TODO: Show Alpha menu
-                // For now, shift lowercase
-                lowercase = !lowercase;
+                // For now, enter Alpha mode or shift lowercase
+                if (alpha)
+                    lowercase = !lowercase;
+                else
+                    alpha = true;
 
             }
             else if (xshift)
@@ -585,6 +588,13 @@ bool input::handle_editing(int key)
             return true;
         case KEY_ENTER:
             // RT.evaluate(ID_dup);
+            if (shift)
+            {
+                if (alpha)
+                    lowercase = !lowercase;
+                else
+                    alpha = true;
+            }
             return true;
         case KEY_EXIT:
             if (shift)

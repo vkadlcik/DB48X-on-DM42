@@ -753,7 +753,8 @@ bool input::handle_digits(int key)
         "_789\x80"
         "_456\x81"
         "_123-"
-        "_0, +";
+        "_0, +"
+        ".....";
 
     if (key == KEY_CHS)
     {

@@ -98,6 +98,8 @@ object *object::parse(cstring beg, cstring *end, runtime &rt)
     record(parse, ">Parsing [%s]", beg);
     parser p = { .begin = beg, .end = beg, .output = nullptr };
     result r = SKIP;
+    cstring err = nullptr;
+    cstring src = nullptr;
 
     // Try parsing with the various handlers
     for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
@@ -109,6 +111,13 @@ object *object::parse(cstring beg, cstring *end, runtime &rt)
         if (r != SKIP)
             record(parse_attempts, "Result was %+s (%d) for [%s]",
                    name(r), r, beg);
+        if (r == WARN)
+        {
+            err = rt.error();
+            src = rt.source();
+            rt.error(nullptr);
+            r = SKIP;
+        }
     }
 
     record(parse, "<Done parsing [%s], end is at %d", beg, p.end - beg);
@@ -116,7 +125,12 @@ object *object::parse(cstring beg, cstring *end, runtime &rt)
         *end = p.end;
 
     if (r == SKIP)
-        error("Syntax error", beg);
+    {
+        if (err)
+            error(err, src);
+        else
+            error("Syntax error", beg);
+    }
 
     return r == OK ? p.output : nullptr;
 }

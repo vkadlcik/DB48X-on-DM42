@@ -111,6 +111,7 @@ struct object
         OK    = 0,              // Command ran successfully
         SKIP  = -1,             // Command not for this handler, try next
         ERROR = -2,             // Error processing the command
+        WARN  = -3,             // Possible error (if no object succeeds)
     };
 
 
@@ -243,6 +244,7 @@ struct object
         case OK:        return "OK";
         case SKIP:      return "SKIP";
         case ERROR:     return "ERROR";
+        case WARN:      return "WARN";
         }
         return "<Unknown>";
     }

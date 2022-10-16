@@ -73,9 +73,10 @@ OBJECT_PARSER_BODY(integer)
 // ----------------------------------------------------------------------------
 //    For simplicity, this deals with all kinds of integers
 {
-    int sign = 1;
-    int base = 10;
-    id type = ID_integer;
+    int         sign       = 1;
+    int         base       = 10;
+    id          type       = ID_integer;
+    const byte  NODIGIT    = (byte) -1;
 
     // Array of values for digits
     static byte value[256] = { 0 };
@@ -83,7 +84,7 @@ OBJECT_PARSER_BODY(integer)
     {
         // Initialize value array on first use
         for (int c = 0; c < 256; c++)
-            value[c] = (byte) -1;
+            value[c] = NODIGIT;
         for (int c = '0'; c <= '9'; c++)
             value[c] = c - '0';
         for (int c = 'A'; c <= 'Z'; c++)
@@ -92,8 +93,9 @@ OBJECT_PARSER_BODY(integer)
             value[c] = c - 'a' + 10;
     }
 
-    cstring p = begin;
-    cstring endp = nullptr;
+    byte_p p = (byte_p) begin;
+    byte_p endp = nullptr;
+
     if (*p == '-')
     {
         sign = -1;
@@ -108,8 +110,8 @@ OBJECT_PARSER_BODY(integer)
     else if (*p == '#')
     {
         p++;
-        for (cstring e = p; !endp; e++)
-            if (value[(byte) *e] == (byte) -1)
+        for (byte_p e = p; !endp; e++)
+            if (value[*e] == NODIGIT)
                 endp = e;
 
         if (endp > p)
@@ -156,14 +158,14 @@ OBJECT_PARSER_BODY(integer)
     }
 
     // If this is a + or - operator, skip
-    if (value[(byte) *p] >= base)
+    if (value[*p] >= base)
         return SKIP;
 
     // Loop on digits
     ularge result = 0;
     uint shift = sign < 0 ? 1 : 0;
     byte v;
-    while ((!endp || p < endp) && (v = value[(byte) *p++]) != (byte) -1)
+    while ((!endp || p < endp) && (v = value[*p++]) != NODIGIT)
     {
         if (v >= base)
         {
@@ -184,7 +186,7 @@ OBJECT_PARSER_BODY(integer)
         return SKIP;
 
     if (end)
-        *end = p;
+        *end = (cstring) p;
     if (sign < 0)
     {
         // Write negative integer

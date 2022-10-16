@@ -42,6 +42,7 @@
 
 typedef unsigned           uint;
 typedef uint8_t            byte;
+typedef const byte *       byte_p;
 typedef unsigned long long ularge;
 typedef long long          ilarge;
 typedef const char        *cstring;

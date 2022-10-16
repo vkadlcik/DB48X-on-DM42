@@ -43,13 +43,13 @@ inline Int leb128(Data *&p)
     bool     sign   = false;
     do
     {
-        result |= (*bp & 0x7F) << shift;
+        result |= Int(*bp & 0x7F) << shift;
         sign = *bp & 0x40;
         shift += 7;
     } while (*bp++ & 0x80);
     p = (Data *) bp;
-    if (Int(-1) < Int(0) && sign)
-        result |= Int(-1) << (shift - 1);
+    if (Int(~0ULL) < Int(0) && sign)
+        result |= Int(~0ULL) << (shift - 1);
     return result;
 }
 
@@ -65,7 +65,7 @@ inline Data *leb128(Data *p, Int value)
     {
         *bp++ = (value & 0x7F) | 0x80;
         value = Int(value >> 7);
-    } while (value != 0 && (Int(-1) > Int(0) || value != Int(-1)));
+    } while (value != 0 && (Int(~0ULL) > Int(0) || value != Int(~0ULL)));
     bp[-1] &= ~0x80;
     return (Data *) bp;
 }
@@ -82,7 +82,7 @@ inline size_t leb128size(Int value)
     {
         value = Int(value >> 7);
         result++;
-    } while (value && (Int(-1) > Int(0) || value != Int(-1)));
+    } while (value && (Int(~0ULL) > Int(0) || value != Int(~0ULL)));
     return result;
 }
 

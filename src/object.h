@@ -192,7 +192,7 @@ struct object
     // ------------------------------------------------------------------------
     {
         record(parse, ">Parsing [%s]", beg);
-        parser p = { .begin = beg, .end = nullptr, .output = nullptr };
+        parser p = { .begin = beg, .end = beg, .output = nullptr };
         result r = SKIP;
 
         // Try parsing with the various handlers
@@ -204,8 +204,7 @@ struct object
             r = (result) handler[i](rt, PARSE, &p, nullptr, nullptr);
             if (r != SKIP)
                 record(parse_attempts, "Result was %+s (%d) for [%s]",
-                       r == OK ? "OK" : r == ERROR ? "ERROR" : "unknown",
-                       r, beg);
+                       name(r), r, beg);
         }
 
         record(parse, "<Done parsing [%s], end is at %d", beg, p.end - beg);
@@ -224,10 +223,10 @@ struct object
         if (type >= NUM_IDS)
         {
             record(object_errors, "Static run cmd %+s with id %u, max %u",
-                   cmdname(cmd), type, NUM_IDS);
+                   name(cmd), type, NUM_IDS);
             return -1;
         }
-        record(run, "Static run %+s cmd %+s", name(type), cmdname(cmd));
+        record(run, "Static run %+s cmd %+s", name(type), name(cmd));
         return handler[type](rt, cmd, arg, nullptr, nullptr);
     }
 
@@ -241,19 +240,34 @@ struct object
         if (type >= NUM_IDS)
         {
             record(object_errors, "Dynamic run cmd %+s with id %u, max %u",
-                   cmdname(cmd), type, NUM_IDS);
+                   name(cmd), type, NUM_IDS);
             return -1;
         }
-        record(run, "Dynamic run %+s cmd %+s", name(type), cmdname(cmd));
+        record(run, "Dynamic run %+s cmd %+s", name(type), name(cmd));
         return handler[type](rt, cmd, arg, this, (object *) ptr);
     }
 
-    static cstring cmdname(command c)
+    static cstring name(command c)
     // ------------------------------------------------------------------------
     //   Return the name for a given ID
     // ------------------------------------------------------------------------
     {
         return c < NUM_COMMANDS ? cmd_name[c] : "<invalid CMD>";
+    }
+
+
+    static cstring name(result r)
+    // ------------------------------------------------------------------------
+    //    Convenience function for the name of results
+    // ------------------------------------------------------------------------
+    {
+        switch (r)
+        {
+        case OK:        return "OK";
+        case SKIP:      return "SKIP";
+        case ERROR:     return "ERROR";
+        }
+        return "<Unknown>";
     }
 
 

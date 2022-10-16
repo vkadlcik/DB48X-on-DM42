@@ -113,9 +113,11 @@ size_t runtime::gc()
         if (!found)
         {
             recycled += next - obj;
+            last -= next - obj;
             record(gc_details, "Recycling %p size %u total %u",
                    obj, next - obj, recycled);
             unused(obj, next);
+            next = obj;
         }
     }
     if (RECORDER_TRACE(gc) > 1)
@@ -140,7 +142,7 @@ void runtime::unused(object *obj, object *next)
         if (*s >= obj && *s < last)
         {
             record(gc_details, "Adjusting stack level %u from %p to %p",
-                   s - StackTop, *s, *s + sz);
+                   s - StackTop, *s, *s - sz);
             *s -= sz;
         }
     }
@@ -152,7 +154,7 @@ void runtime::unused(object *obj, object *next)
         if (p->safe >= (byte *) obj && p->safe < (byte *) last)
         {
             record(gc_details, "Adjusting GC-safe %p from %p to %p",
-                   p, p->safe, p->safe + sz);
+                   p, p->safe, p->safe - sz);
             p->safe -= sz;
         }
     }

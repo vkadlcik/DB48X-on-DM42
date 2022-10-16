@@ -80,7 +80,7 @@ size_t runtime::gc()
 //   Objects in the global area are copied there, so they need no recycling
 {
     size_t  recycled = 0;
-    object *last = Temporaries + Editing;
+    object *last = Temporaries;
     object *next;
     record(gc, "Garbage collection, available %u, range %p-%p",
            available(), Globals, last);
@@ -132,7 +132,7 @@ void runtime::unused(object *obj, object *next)
 // ----------------------------------------------------------------------------
 {
     size_t sz = next - obj;
-    object *last = Temporaries + Editing;
+    object *last = Temporaries;
 
     // Adjust the stack pointers
     for (object **s = StackTop; s < StackBottom; s++)
@@ -146,6 +146,7 @@ void runtime::unused(object *obj, object *next)
     }
 
     // Adjust the protected pointers
+    last += Editing;            // GC-safe pointers can be in the editor
     for (gcptr *p = GCSafe; p; p = p->next)
     {
         if (p->safe >= (byte *) obj && p->safe < (byte *) last)

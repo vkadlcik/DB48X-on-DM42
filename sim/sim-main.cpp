@@ -42,6 +42,7 @@ int main(int argc, char *argv[])
 // ----------------------------------------------------------------------------
 {
     const char *traces = getenv("DB48X_TRACES");
+    recorder_trace_set(".*(error|warning)s?");
     if (traces)
         recorder_trace_set(traces);
     recorder_dump_on_common_signals(0, 0);

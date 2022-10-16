@@ -196,6 +196,23 @@ struct runtime
     }
 
 
+    void edit(cstring buffer, size_t len)
+    // ------------------------------------------------------------------------
+    //   Open the editor with a known buffer
+    // ------------------------------------------------------------------------
+    {
+        if (available(len) < len)
+        {
+            record(editor, "Insufficent memory for %u bytes", len);
+            error("Out of memory", "Editor");
+            return;
+        }
+
+        memcpy((byte *) Temporaries, buffer, len);
+        Editing = len;
+    }
+
+
     char *close_editor();
     // ------------------------------------------------------------------------
     //   Close the editor and encapsulate its content in a temporary string
@@ -266,23 +283,6 @@ struct runtime
         memmove(editor() + offset, editor() + offset + len, Editing - end);
         Editing -= len;
     }
-
-
-    template <typename ...Args>
-    void edit(const char *format, const Args &...args)
-    // ------------------------------------------------------------------------
-    //   Edit some arbitrary text
-    // ------------------------------------------------------------------------
-    {
-        size_t wanted = snprintf(editor(), available(), format, args...);
-        if (wanted > available())
-        {
-            gc();
-            wanted = snprintf(editor(), available(), format, args...);
-        }
-        Editing = strlen(editor());
-    }
-
 
 
 

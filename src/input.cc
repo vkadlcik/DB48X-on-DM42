@@ -586,6 +586,7 @@ bool input::handle_editing(int key)
             else
             {
                 // Finish editing and parse the result
+                size_t edlen = RT.editing();
                 gcp<char> editor = RT.close_editor();
                 object *obj = object::parse(editor);
                 if (obj)
@@ -596,10 +597,12 @@ bool input::handle_editing(int key)
                 }
                 else
                 {
+                    // Move cursor to error if there is one
                     cstring pos = RT.source();
-                    cstring ed  = RT.editor();
-                    if (pos >= ed && pos <= ed + editing)
+                    cstring ed = editor;
+                    if (pos >= editor && pos <= ed + edlen)
                         cursor = pos - ed;
+                    RT.edit(editor, edlen);
                     beep(3300, 100);
                 }
             }

@@ -501,6 +501,14 @@ struct runtime
         return *this;
     }
 
+    runtime &error(cstring message, byte_p source)
+    // ------------------------------------------------------------------------
+    //   Set the error message
+    // ------------------------------------------------------------------------
+    {
+        return error(message, (cstring) source);
+    }
+
     cstring error()
     // ------------------------------------------------------------------------
     //   Get the error message

@@ -41,8 +41,22 @@
 #define RECORDER_TWEAK_DECLARE(Name)
 #define RECORDER_TWEAK_DEFINE(Name, Value, Info)
 #define RECORDER_TWEAK(Name)    0
-#define RECORD(...)     do { } while(0)
-#define record(...)     do { } while(0)
+#define RECORD(rec, fmt, ...)   do { recorder_ignore(__VA_ARGS__); } while(0)
+#define record(...)             RECORD(__VA_ARGS__)
+
+// This is just to avoid warnings about unused parameters
+inline void recorder_ignore() {}
+
+template <typename T>
+inline void recorder_ignore(const T &) {}
+
+template<typename T, typename ...Args>
+inline void recorder_ignore(const T& first, const Args &...rest)
+{
+    recorder_ignore(first);     // A lot of work for nothing
+    recorder_ignore(rest...);
+}
+
 #endif
 
 #endif // RECORDER_DB48X_H

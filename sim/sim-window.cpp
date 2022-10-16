@@ -42,6 +42,10 @@
 #include "sim-window.h"
 #include "sim-rpl.h"
 #include "ui_sim-window.h"
+#include "recorder.h"
+
+
+RECORDER(sim_keys, 16, "Recorder keys from the simulator");
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -264,10 +268,15 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
         return;
     }
 
+    int k = ev->key();
+    record(sim_keys, "Key press %d", k);
+
     for (int i = 0; keyMap[i] != 0; i += 2)
     {
-        if (ev->key() == keyMap[i])
+        if (k == keyMap[i])
         {
+            record(sim_keys, "Key %d found at %d, DM42 key is %d",
+                   k, i, keyMap[i+1]);
             key_push(keyMap[i+1]);
             ev->accept();
             return;
@@ -288,13 +297,13 @@ void MainWindow::keyReleaseEvent(QKeyEvent * ev)
         return;
     }
 
-
-    int mykey = ev->key();
-
+    int k = ev->key();
+    record(sim_keys, "Key press %d", k);
     for (int i = 0; keyMap[i] != 0; i += 2)
     {
-        if (mykey == keyMap[i])
+        if (k == keyMap[i])
         {
+            record(sim_keys, "Key %d found at %d, sending key up", k, i);
             key_push(0);
             ev->accept();
             return;
@@ -317,20 +326,23 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
             (ev->type() == QEvent::TouchCancel))
         {
             QTouchEvent *me = static_cast < QTouchEvent * >(ev);
-            int k, pressed;
 #if QT_VERSION < 0x060000
             auto &touchPoints = me->touchPoints();
 #else
             auto &touchPoints = me->points();
 #endif // Qt version 6
             qsizetype npoints = touchPoints.count();
-            for(k = 0; k < npoints; ++k) {
+
+            record(sim_keys, "Touch event %d points", npoints);
+
+            for(int k = 0; k < npoints; ++k) {
 #if QT_VERSION < 0x060000
                 QPointF coordinates = touchPoints.at(k).startPos();
 #else
                 QPointF coordinates = touchPoints.at(k).pressPosition();
 #endif // Qt version 6
                 qreal relx, rely;
+                int   pressed;
 
                 if(touchPoints.at(k).state() & Qt::TouchPointPressed)
                     pressed = 1;
@@ -342,6 +354,8 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
 
                 relx = coordinates.x() / (qreal) ui.keyboard->width();
                 rely = coordinates.y() / (qreal) ui.keyboard->height();
+                record(sim_keys, "  [%d] at (%f, %f) %+s",
+                       k, relx, rely, pressed ? "pressed" : "released");
 
                 if (!pressed)
                     key_push(0);
@@ -349,7 +363,11 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                     for (mousemap *ptr = mouseMap; ptr->key; ptr++)
                         if ((relx >= ptr->left) && (relx <= ptr->right) &&
                             (rely >= ptr->top) && (rely <= ptr->bot))
+                        {
+                            record(sim_keys, "  [%d] found at %d as %d",
+                                   k, ptr - mouseMap, ptr->keynum);
                             key_push(ptr->keynum);
+                        }
             }
 
             return true;
@@ -368,16 +386,23 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
                 (qreal) me->position().y() / (qreal) ui.keyboard->height();
 #endif // Qt vertsion 6
 
+            record(sim_keys, "Mouse button press at (%f, %f)", relx, rely);
             for (mousemap *ptr = mouseMap; ptr->key; ptr++)
                 if ((relx >= ptr->left) && (relx <= ptr->right) &&
                     (rely >= ptr->top) && (rely <= ptr->bot))
+                {
+                    record(sim_keys, "Mouse coordinates found at %d as %d",
+                           ptr - mouseMap, ptr->keynum);
+
                     key_push(ptr->keynum);
+                }
 
             return true;
         }
 
         if(ev->type() == QEvent::MouseButtonRelease)
         {
+            record(sim_keys, "Mouse button released");
             key_push(0);
             return true;
         }

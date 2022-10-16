@@ -156,7 +156,7 @@ install: all
 sim: sim/simulator.mak recorder/config.h .ALWAYS
 	cd sim; make -f $(<F)
 sim/simulator.mak: sim/simulator.pro
-	cd sim; qmake $(<F) -o $(@F)
+	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(OPT)
 
 debug-%:
 	$(MAKE) $* OPT=debug

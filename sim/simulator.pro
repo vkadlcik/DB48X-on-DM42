@@ -60,6 +60,9 @@ RESOURCES += sim.qrc
 # Indicate we are on simulator
 DEFINES += SIMULATOR
 
+# Pass debug flag
+debug:DEFINES += DEBUG
+
 # For DMCP headers
 DEFINES += __packed= _WCHAR_T_DEFINED
 

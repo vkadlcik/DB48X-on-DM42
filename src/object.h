@@ -217,8 +217,9 @@ struct object
         id type = (id) leb128(ptr); // Don't use type() to update payload
         if (type >= NUM_IDS)
         {
-            record(object_errors, "Dynamic run cmd %+s with id %u, max %u",
-                   name(cmd), type, NUM_IDS);
+            record(object_errors,
+                   "Dynamic run cmd %+s at %p with id %u, max %u",
+                   name(cmd), this, type, NUM_IDS);
             return -1;
         }
         record(run, "Dynamic run %+s cmd %+s", name(type), name(cmd));

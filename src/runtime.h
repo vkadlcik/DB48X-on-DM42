@@ -427,7 +427,7 @@ struct runtime
     //   Protect a pointer against garbage collection
     // ------------------------------------------------------------------------
     {
-        gcptr(byte *ptr = nullptr) : safe(ptr), next(RT.GCSafe)
+        gcptr(byte *ptr) : safe(ptr), next(RT.GCSafe)
         {
             RT.GCSafe = this;
         }
@@ -453,7 +453,7 @@ struct runtime
         operator byte *&()         { return safe; }
 
     private:
-        byte *&safe;
+        byte  *safe;
         gcptr *next;
 
         friend struct runtime;

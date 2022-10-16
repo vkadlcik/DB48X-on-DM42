@@ -41,8 +41,8 @@
 #define RECORDER_TWEAK_DECLARE(Name)
 #define RECORDER_TWEAK_DEFINE(Name, Value, Info)
 #define RECORDER_TWEAK(Name)    0
-#define RECORD(...)
-#define record(...)
+#define RECORD(...)     do { } while(0)
+#define record(...)     do { } while(0)
 #endif
 
 #endif // RECORDER_DB48X_H

@@ -101,7 +101,7 @@ struct runtime
     }
 
     // Amount of space we want to keep between stack top and temporaries
-    const uint redzone = 8;
+    const uint redzone = 2*sizeof(object *);;
 
 
 

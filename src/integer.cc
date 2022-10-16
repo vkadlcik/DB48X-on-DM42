@@ -163,7 +163,7 @@ OBJECT_PARSER_BODY(integer)
     }
 
     // If this is a + or - operator, skip
-    if (value[*p] >= base)
+    if (*p && value[*p] >= base)
         return SKIP;
 
     // Loop on digits
@@ -178,13 +178,25 @@ OBJECT_PARSER_BODY(integer)
             return ERROR;
         }
         ularge next = result * base + v;
+        record(integer, "Digit %c value %u value=%llu next=%llu",
+               p[-1], v, result, next);
 
         // If the value does not fit in an integer, defer to bignum / real
         if ((next << shift) <  result)
-            return SKIP;
+        {
+            rt.error("Number is too big");
+            return WARN;
+        }
 
         result = next;
     }
+
+    // Skip base if one was given, else point at char that got us out
+    if (endp && p == endp)
+        p++;
+    else
+        p--;
+
 
     // Check if we finish with something indicative of a real number
     if (*p == Settings.decimalDot || *p == Settings.exponentChar)
@@ -214,7 +226,10 @@ OBJECT_RENDERER_BODY(integer)
 //   Render the integer into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(begin, end - begin, "%llu", value<ularge>());
+    ularge v = value<ularge>();
+    size_t result = snprintf(begin, end - begin, "%llu", v);
+    record(integer, "Render %llu (0x%llX) as [%s]", v, v, begin);
+    return result;
 }
 
 

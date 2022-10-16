@@ -90,6 +90,38 @@ void object::error(cstring message, cstring source, runtime &rt)
 }
 
 
+object *object::parse(cstring beg, cstring *end, runtime &rt)
+// ----------------------------------------------------------------------------
+//  Try parsing the object as a top-level temporary
+// ----------------------------------------------------------------------------
+{
+    record(parse, ">Parsing [%s]", beg);
+    parser p = { .begin = beg, .end = beg, .output = nullptr };
+    result r = SKIP;
+
+    // Try parsing with the various handlers
+    for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
+    {
+        p.candidate = id(i);
+        record(parse_attempts, "Trying [%s] against %+s",
+               beg, name(id(i)));
+        r = (result) handler[i](rt, PARSE, &p, nullptr, nullptr);
+        if (r != SKIP)
+            record(parse_attempts, "Result was %+s (%d) for [%s]",
+                   name(r), r, beg);
+    }
+
+    record(parse, "<Done parsing [%s], end is at %d", beg, p.end - beg);
+    if (end)
+        *end = p.end;
+
+    if (r == SKIP)
+        error("Syntax error", beg);
+
+    return r == OK ? p.output : nullptr;
+}
+
+
 
 OBJECT_HANDLER_BODY(object)
 // ----------------------------------------------------------------------------

@@ -42,7 +42,7 @@ ASM_SOURCES = dmcp/startup_pgm.s
 C_INCLUDES += -Isrc -Iinc
 
 # C sources
-C_SOURCES +=
+C_SOURCES += recorder/recorder.c recorder/recorder_ring.c
 
 # Floating point sizes
 DECIMAL_SIZES=32 64
@@ -90,6 +90,11 @@ C_DEFS += $(DEFINES:%=-D%)
 
 # Libraries
 LIBS += lib/gcc111libbid_hard.a
+
+# Recorder and dependencies
+recorder/config.h: recorder/recorder.h recorder/Makefile
+	cd recorder && $(MAKE)
+$(BUILD)/recorder.o $(BUILD)/recorder_ring.o: recorder/config.h
 
 # ---
 
@@ -148,7 +153,7 @@ LDFLAGS = $(CPUFLAGS) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) \
 all: $(TARGET).pgm help/$(TARGET).html
 install: all
 	(tar cf - $(TARGET).pgm help/$(TARGET).html | (cd $(MOUNTPOINT) && tar xvf -)) && $(EJECT)
-sim: sim/simulator.mak .ALWAYS
+sim: sim/simulator.mak recorder/config.h .ALWAYS
 	cd sim; make -f $(<F)
 sim/simulator.mak: sim/simulator.pro
 	cd sim; qmake $(<F) -o $(@F)

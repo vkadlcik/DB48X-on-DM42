@@ -26,6 +26,8 @@ CONFIG += debug
 
 # Qt support code
 SOURCES += \
+	../recorder/recorder.c \
+	../recorder/recorder_ring.c \
         sim-main.cpp \
         sim-window.cpp \
 	sim-screen.cpp \
@@ -55,8 +57,13 @@ HEADERS += \
 FORMS    += sim-window.ui
 RESOURCES += sim.qrc
 
+# Indicate we are on simulator
+DEFINES += SIMULATOR
+
+# For DMCP headers
 DEFINES += __packed= _WCHAR_T_DEFINED
 
+# COnfigure Intel Decimal Floating Point Library
 DEFINES += 	DECIMAL_CALL_BY_REFERENCE \
 		DECIMAL_GLOBAL_ROUNDING \
 		DECIMAL_GLOBAL_ROUNDING_ACCESS_FUNCTIONS \

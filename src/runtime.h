@@ -40,6 +40,7 @@ struct object;                  // RPL object
 struct global;                  // RPL global variable
 
 RECORDER_DECLARE(runtime);
+RECORDER_DECLARE(runtime_error);
 RECORDER_DECLARE(errors);
 RECORDER_DECLARE(gc);
 RECORDER_DECLARE(editor);
@@ -242,6 +243,9 @@ struct runtime
     //   Insert data in the editor
     // ------------------------------------------------------------------------
     {
+        record(editor,
+               "Insert %u bytes at offset %u starting with %c, %u available",
+               len, offset, data[0], available());
         if (offset <= Editing)
         {
             if (available(len) >= len)
@@ -254,8 +258,9 @@ struct runtime
         }
         else
         {
-            fprintf(stderr, "Invalid insert at %zu size=%zu len=%zu [%.*s]\n",
-                    offset, Editing, len, (int) len, data);
+            record(runtime_error,
+                   "Invalid insert at %zu size=%zu len=%zu [%s]\n",
+                   offset, Editing, len, data);
         }
     }
 
@@ -274,6 +279,7 @@ struct runtime
     //   Remove characers from the editor
     // ------------------------------------------------------------------------
     {
+        record(editor, "Removing %u bytes at offset %u", len, offset);
         size_t end = offset + len;
         if (end > Editing)
             end = Editing;
@@ -497,7 +503,10 @@ struct runtime
     //   Set the error message
     // ------------------------------------------------------------------------
     {
-        record(errors, "Error [%s] at source [%s]", message, source);
+        if (message)
+            record(errors, "Error [%s] at source [%s]", message, source);
+        else
+            record(runtime, "Clearing error");
         Error = message;
         ErrorSource = source;
         return *this;

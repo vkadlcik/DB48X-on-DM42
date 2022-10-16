@@ -35,10 +35,41 @@
 runtime runtime::RT(nullptr, 0);
 
 RECORDER(runtime,       16, "RPL runtime");
+RECORDER(runtime_error, 16, "RPL runtime error (anomalous behaviors)");
 RECORDER(editor,        16, "Text editor (command line)");
 RECORDER(errors,        16, "Runtime errors)");
 RECORDER(gc,            16, "Garbage collection events");
 RECORDER(gc_details,    32, "Details about garbage collection (noisy)");
+
+
+static void dump_object_list(cstring  message,
+                             object  *first,
+                             object  *last,
+                             object **stack,
+                             object **stackEnd)
+// ----------------------------------------------------------------------------
+//   Dump all objects in a given range
+// ----------------------------------------------------------------------------
+{
+    uint count = 0;
+    size_t sz = 0;
+    object *next;
+
+    record(gc, "%+s object list", message);
+    for (object *obj = first; obj < last; obj = next)
+    {
+        next = obj->skip();
+        object::id i = obj->type();
+        record(gc, " %p-%p: %+s (%d) uses %d bytes)",
+               obj, next-1, object::name(i), i, next - obj);
+        sz += next - obj;
+        count++;
+    }
+    record(gc, "%+s stack", message);
+    for (object **s = stack; s < stackEnd; s++)
+        record(gc, " %u: %p (%+s)", s - stack, *s, object::name((*s)->type()));
+    record(gc, "%+s: %u objects using %u bytes", message, count, sz);
+}
 
 
 size_t runtime::gc()
@@ -51,7 +82,12 @@ size_t runtime::gc()
     size_t  recycled = 0;
     object *last = Temporaries + Editing;
     object *next;
-    record(gc, "Garbage collection, available %u", available());
+    record(gc, "Garbage collection, available %u, range %p-%p",
+           available(), Globals, last);
+    if (RECORDER_TRACE(gc) > 1)
+        dump_object_list("Pre-collection",
+                         (object *) Globals, last, StackTop, StackBottom);
+
     for (object *obj = (object *) Globals; obj < last; obj = next)
     {
         bool found = false;
@@ -82,6 +118,9 @@ size_t runtime::gc()
             unused(obj, next);
         }
     }
+    if (RECORDER_TRACE(gc) > 1)
+        dump_object_list("Post-collection",
+                         (object *) Globals, last, StackTop, StackBottom);
     record(gc, "Garbage collection done, purged %u, available %u",
            recycled, available());
     return recycled;
@@ -102,7 +141,7 @@ void runtime::unused(object *obj, object *next)
         {
             record(gc_details, "Adjusting stack level %u from %p to %p",
                    s - StackTop, *s, *s + sz);
-            *s += sz;
+            *s -= sz;
         }
     }
 
@@ -113,7 +152,7 @@ void runtime::unused(object *obj, object *next)
         {
             record(gc_details, "Adjusting GC-safe %p from %p to %p",
                    p, p->safe, p->safe + sz);
-            p->safe += sz;
+            p->safe -= sz;
         }
     }
 

@@ -35,11 +35,14 @@
 #include <stdio.h>
 
 
+RECORDER(integer, 16, "Integers");
+
 OBJECT_HANDLER_BODY(integer)
 // ----------------------------------------------------------------------------
 //    Handle commands for integers
 // ----------------------------------------------------------------------------
 {
+    record(integer, "Command %+s on %p", name(cmd), obj);
     switch(cmd)
     {
     case EVAL:
@@ -77,6 +80,8 @@ OBJECT_PARSER_BODY(integer)
     int         base       = 10;
     id          type       = ID_integer;
     const byte  NODIGIT    = (byte) -1;
+
+    record(integer, "Parsing [%s]", begin);
 
     // Array of values for digits
     static byte value[256] = { 0 };

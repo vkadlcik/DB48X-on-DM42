@@ -137,7 +137,19 @@ struct object
     // ------------------------------------------------------------------------
     {
         byte *ptr = (byte *) this;
-        return (id) leb128(ptr);
+        id ty = (id) leb128(ptr);
+        if (ty > NUM_IDS)
+        {
+            uintptr_t debug[2];
+            byte *d = (byte *) debug;
+            byte *s = (byte *) this;
+            for (uint i = 0; i < sizeof(debug); i++)
+                d[i] = s[i];
+            record(object_errors,
+                   "Invalid type %d for %p  Data %16llX %16llX",
+                   ty, this, debug[0], debug[1]);
+        }
+        return ty;
     }
 
 

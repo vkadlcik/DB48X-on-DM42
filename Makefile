@@ -17,6 +17,27 @@ MOUNTPOINT=/Volumes/DM42/
 EJECT=hdiutil eject $(MOUNTPOINT)
 
 
+#==============================================================================
+#
+#  Primary build rules
+#
+#==============================================================================
+
+# default action: build all
+all: $(TARGET).pgm help/$(TARGET).html
+install: all
+	(tar cf - $(TARGET).pgm help/$(TARGET).html | (cd $(MOUNTPOINT) && tar xvf -)) && $(EJECT)
+sim: sim/simulator.mak recorder/config.h .ALWAYS
+	cd sim; make -f $(<F)
+sim/simulator.mak: sim/simulator.pro
+	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(OPT)
+
+debug-%:
+	$(MAKE) $* OPT=debug
+release-%:
+	$(MAKE) $* OPT=release
+
+
 #######################################
 # pathes
 #######################################
@@ -42,7 +63,7 @@ ASM_SOURCES = dmcp/startup_pgm.s
 C_INCLUDES += -Isrc -Iinc
 
 # C sources
-C_SOURCES += recorder/recorder.c recorder/recorder_ring.c
+C_SOURCES +=
 
 # Floating point sizes
 DECIMAL_SIZES=32 64
@@ -149,19 +170,6 @@ LDFLAGS = $(CPUFLAGS) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) \
 	-Wl,--wrap=_malloc_r
 
 
-# default action: build all
-all: $(TARGET).pgm help/$(TARGET).html
-install: all
-	(tar cf - $(TARGET).pgm help/$(TARGET).html | (cd $(MOUNTPOINT) && tar xvf -)) && $(EJECT)
-sim: sim/simulator.mak recorder/config.h .ALWAYS
-	cd sim; make -f $(<F)
-sim/simulator.mak: sim/simulator.pro
-	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(OPT)
-
-debug-%:
-	$(MAKE) $* OPT=debug
-release-%:
-	$(MAKE) $* OPT=release
 
 
 #######################################

@@ -117,7 +117,7 @@ OBJECT_PARSER_BODY(decimal128)
     record(decimal128, "Had %u digits, max %u", mantissa, BID128_MAXDIGITS);
     if (mantissa >= BID128_MAXDIGITS)
     {
-        rt.error("Too many digits", p);
+        rt.error("Too many digits", digits + BID128_MAXDIGITS);
         return WARN;                    // Try again with higher-precision
     }
 

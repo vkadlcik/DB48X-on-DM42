@@ -117,7 +117,7 @@ OBJECT_PARSER_BODY(decimal32)
     record(decimal32, "Had %u digits, max %u", mantissa, BID32_MAXDIGITS);
     if (mantissa >= BID32_MAXDIGITS)
     {
-        rt.error("Too many digits", p);
+        rt.error("Too many digits", digits + BID32_MAXDIGITS);
         return WARN;                    // Try again with higher-precision
     }
 

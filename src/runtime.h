@@ -115,7 +115,7 @@ struct runtime
     //   Return the size available for temporaries
     // ------------------------------------------------------------------------
     {
-        return (byte *) StackTop - (byte *) Temporaries - redzone;
+        return (byte *) StackTop - (byte *) Temporaries - Editing - redzone;
     }
 
     size_t available(size_t size)

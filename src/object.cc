@@ -80,6 +80,17 @@ const cstring object::cmd_name[NUM_COMMANDS] =
 };
 
 
+void object::error(cstring message, cstring source, runtime &rt)
+// ----------------------------------------------------------------------------
+//    Send the error to the runtime
+// ----------------------------------------------------------------------------
+//    This function is not inline to avoid including runtime.h in object.h
+{
+    rt.error(message, source);
+}
+
+
+
 OBJECT_HANDLER_BODY(object)
 // ----------------------------------------------------------------------------
 //   Default handler for object

@@ -210,6 +210,8 @@ struct object
         record(parse, "<Done parsing [%s], end is at %d", beg, p.end - beg);
         if (end)
             *end = p.end;
+        if (r == SKIP)
+            error("Syntax error", beg);
 
         return r == OK ? p.output : nullptr;
     }
@@ -288,6 +290,9 @@ struct object
         return id_name[type()];
     }
 
+
+    // Off-line so that we don't need to import runtime.h
+    static void error(cstring err, cstring source = nullptr, runtime &rt = RT);
 
 
 protected:

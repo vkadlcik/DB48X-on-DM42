@@ -34,6 +34,11 @@
 // The one and only runtime
 runtime runtime::RT(nullptr, 0);
 
+RECORDER(runtime,       16, "RPL runtime");
+RECORDER(editor,        16, "Text editor (command line)");
+RECORDER(gc,            16, "Garbage collection events");
+RECORDER(gc_details,    32, "Details about garbage collection (noisy)");
+
 
 size_t runtime::gc()
 // ----------------------------------------------------------------------------
@@ -45,21 +50,39 @@ size_t runtime::gc()
     size_t  recycled = 0;
     object *last = Temporaries + Editing;
     object *next;
+    record(gc, "Garbage collection, available %u", available());
     for (object *obj = (object *) Globals; obj < last; obj = next)
     {
         bool found = false;
         next = skip(obj);
+        record(gc_details, "Scanning object %p (ends at %p)", obj, next);
         for (object **s = StackTop; s < StackBottom && !found; s++)
+        {
             found = *s >= obj && *s < next;
+            if (found)
+                record(gc_details, "Found %p at stack level %u",
+                       obj, s - StackTop);
+        }
         if (!found)
+        {
             for (gcptr *p = GCSafe; p && !found; p = p->next)
+            {
                 found = p->safe >= (byte *) obj && p->safe <= (byte *) next;
+                if (found)
+                    record(gc_details, "Found %p in GC-safe pointer %p (%p)",
+                           obj, p->safe, p);
+            }
+        }
         if (!found)
         {
             recycled += next - obj;
+            record(gc_details, "Recycling %p size %u total %u",
+                   obj, next - obj, recycled);
             unused(obj, next);
         }
     }
+    record(gc, "Garbage collection done, purged %u, available %u",
+           recycled, available());
     return recycled;
 }
 
@@ -73,13 +96,25 @@ void runtime::unused(object *obj, object *next)
 
     // Adjust the stack pointers
     for (object **s = StackTop; s < StackBottom; s++)
+    {
         if (*s >= obj && *s < last)
+        {
+            record(gc_details, "Adjusting stack level %u from %p to %p",
+                   s - StackTop, *s, *s + sz);
             *s += sz;
+        }
+    }
 
     // Adjust the protected pointers
     for (gcptr *p = GCSafe; p; p = p->next)
+    {
         if (p->safe >= (byte *) obj && p->safe < (byte *) last)
+        {
+            record(gc_details, "Adjusting GC-safe %p from %p to %p",
+                   p, p->safe, p->safe + sz);
             p->safe += sz;
+        }
+    }
 
     // Move the other temporaries down
     memmove((byte *) obj, (byte *) next, (byte *) last - (byte *) next);
@@ -116,6 +151,7 @@ char *runtime::close_editor()
 
     // Null-terminate that string for safe use by C code
     str[Editing] = 0;
+    record(editor, "Closing editor size %u at %p [%s]", Editing, ed, str);
 
     // Write the string header
     ed = leb128(ed, object::ID_string);

@@ -29,14 +29,19 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
+#include "recorder.h"
 #include "types.h"
 
-#include <cstring>
 #include <cstdio>
+#include <cstring>
 
 
 struct object;                  // RPL object
 struct global;                  // RPL global variable
+
+RECORDER_DECLARE(runtime);
+RECORDER_DECLARE(gc);
+RECORDER_DECLARE(editor);
 
 struct runtime
 // ----------------------------------------------------------------------------
@@ -89,6 +94,8 @@ struct runtime
         Editing = 0;
         Temporaries = (object *) LowMem;
         Globals = (global *) Temporaries;
+        record(runtime, "Memory %p-%p size %u (%uK)",
+               LowMem, HighMem, size, size>>10);
     }
 
     // Amount of space we want to keep between stack top and temporaries

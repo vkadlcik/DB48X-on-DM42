@@ -104,7 +104,7 @@ OBJECT_PARSER_BODY(decimal32)
     }
 
     // Check decimal dot
-    char *decimal = nullptr;
+    gcp<char> decimal = nullptr;
     if (*p == '.' || *p == ',')
     {
         decimal = (char *) p++;
@@ -122,7 +122,7 @@ OBJECT_PARSER_BODY(decimal32)
     }
 
     // Check exponent
-    char *exponent = nullptr;
+    gcp<char> exponent = nullptr;
     if (*p == 'e' || *p == 'E' || *p == Settings.exponentChar)
     {
         exponent = (char *) p++;
@@ -141,7 +141,7 @@ OBJECT_PARSER_BODY(decimal32)
     // Check if exponent is withing range, if not skip to wider format
     if (exponent)
     {
-        int expval = atoi(exponent+1);
+        int expval = atoi(cstring(exponent)+1);
         int maxexp = 32 == 127+1 ? 6144 : 32 == 63+1 ? 384 : 96;
         record(decimal32, "Exponent is %d, max is %d", expval, maxexp);
         if (expval < -(maxexp-1) || expval > maxexp)

@@ -491,6 +491,8 @@ struct runtime
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
         operator Obj *() const  { return (Obj *) safe; }
         operator Obj *&()       { return (Obj *&) safe; }
+        Obj operator *() const  { return *((Obj *) safe); }
+        Obj &operator *()       { return *((Obj *) safe); }
 #pragma GCC diagnostic pop
     };
 

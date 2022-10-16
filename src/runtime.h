@@ -449,11 +449,11 @@ struct runtime
             }
         }
 
-        operator byte  *() const    { return safe; }
+        operator byte  *() const   { return safe; }
         operator byte *&()         { return safe; }
 
     private:
-        byte  *safe;
+        byte *&safe;
         gcptr *next;
 
         friend struct runtime;

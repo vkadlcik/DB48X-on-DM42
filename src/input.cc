@@ -590,22 +590,25 @@ bool input::handle_editing(int key)
                 // Finish editing and parse the result
                 size_t edlen = RT.editing();
                 gcp<char> editor = RT.close_editor();
-                object *obj = object::parse(editor);
-                if (obj)
+                if (editor)
                 {
-                    // We successfully parsed the line
-                    end_edit();
-                    obj->evaluate();
-                }
-                else
-                {
-                    // Move cursor to error if there is one
-                    cstring pos = RT.source();
-                    cstring ed = editor;
-                    if (pos >= editor && pos <= ed + edlen)
-                        cursor = pos - ed;
-                    RT.edit(editor, edlen);
-                    beep(3300, 100);
+                    object *obj = object::parse(editor);
+                    if (obj)
+                    {
+                        // We successfully parsed the line
+                        end_edit();
+                        obj->evaluate();
+                    }
+                    else
+                    {
+                        // Move cursor to error if there is one
+                        cstring pos = RT.source();
+                        cstring ed = editor;
+                        if (pos >= editor && pos <= ed + edlen)
+                            cursor = pos - ed;
+                        RT.edit(editor, edlen);
+                        beep(3300, 100);
+                    }
                 }
             }
             return true;

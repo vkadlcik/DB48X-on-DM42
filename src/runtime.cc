@@ -186,6 +186,8 @@ char *runtime::close_editor()
 {
     // Compute the extra size we need for a string header
     size_t hdrsize = leb128size(object::ID_string) + leb128size(Editing + 1);
+    if (available(hdrsize) < hdrsize)
+        return nullptr;
 
     // Move the editor data above that header
     char *ed = (char *) Temporaries;

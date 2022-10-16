@@ -465,6 +465,7 @@ struct runtime
 
         operator byte  *() const   { return safe; }
         operator byte *&()         { return safe; }
+        operator bool()            { return safe != nullptr; }
 
     private:
         byte  *safe;

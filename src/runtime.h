@@ -445,7 +445,6 @@ struct runtime
             gcptr *last = nullptr;
             for (gcptr *gc = RT.GCSafe; gc; gc = gc->next)
             {
-                last = gc;
                 if (gc == this)
                 {
                     if (last)
@@ -454,6 +453,7 @@ struct runtime
                         RT.GCSafe = gc->next;
                     break;
                 }
+                last = gc;
             }
         }
 

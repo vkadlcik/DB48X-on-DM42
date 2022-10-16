@@ -159,9 +159,9 @@ sim/simulator.mak: sim/simulator.pro
 	cd sim; qmake $(<F) -o $(@F)
 
 debug-%:
-	$(MAKE) $@ OPT=debug
+	$(MAKE) $* OPT=debug
 release-%:
-	$(MAKE) $@ OPT=release
+	$(MAKE) $* OPT=release
 
 
 #######################################

@@ -38,7 +38,8 @@ struct settings
 {
     settings()
         : precision(32),
-          displayed(0),
+          displayed(12),
+
           decimalDot('.'),
           exponentChar(0x98),   // The special mini-'E'
           angle_mode(DEGREES),
@@ -56,6 +57,14 @@ struct settings
         NUM_ANGLES,
     };
 
+    enum display
+    // ------------------------------------------------------------------------
+    //   The display mode for numbers
+    // ------------------------------------------------------------------------
+    {
+        NORMAL, SCI, FIX, ENG
+    };
+
     angles nextAngleMode()
     {
         switch(angle_mode)
@@ -69,12 +78,13 @@ struct settings
     }
 
 public:
-    uint   precision;    // Internal precision for numbers
-    uint   displayed;    // Number of displayed digits
-    char   decimalDot;   // Character used for decimal separator
-    char   exponentChar; // The character used to represent exponents
-    angles angle_mode;   // Whether we compute in degrees, radians or grads
-    uint   base;         // The default base for #numbers
+    uint16_t precision;    // Internal precision for numbers
+    uint8_t  displayed;    // Number of displayed digits
+    display  display_mode; // Display mode
+    char     decimalDot;   // Character used for decimal separator
+    char     exponentChar; // The character used to represent exponents
+    angles   angle_mode;   // Whether we compute in degrees, radians or grads
+    uint8_t  base;         // The default base for #numbers
 };
 
 

@@ -68,4 +68,8 @@ struct decimal32 : object
     OBJECT_RENDERER(decimal32);
 };
 
+
+// Utlity common to all formats to format a number for display
+void decimal_format(char *out, size_t len);
+
 #endif // DECIMAL32_H

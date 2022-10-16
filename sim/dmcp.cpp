@@ -527,8 +527,9 @@ inline void lcd_writeTextInternal(disp_stat_t *ds, const char *text, int write)
         }
         else
         {
-            record(lcd_warning, "Nonexistent character [%d] in [%s], max=%d",
-                   c + first, text, count + first);
+            record(lcd_warning,
+                   "Nonexistent character [%d] in [%s] at %d, max=%d",
+                   c + first, text, p - (byte_p) text, count + first);
         }
 
     }

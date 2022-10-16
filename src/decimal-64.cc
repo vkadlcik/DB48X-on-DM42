@@ -40,12 +40,15 @@
 
 using std::min, std::max;
 
+RECORDER(decimal64, 32, "Decimal64 data type");
+
 
 OBJECT_HANDLER_BODY(decimal64)
 // ----------------------------------------------------------------------------
 //    Handle commands for decimal64s
 // ----------------------------------------------------------------------------
 {
+    record(decimal64, "Command %+s on %p", name(cmd), obj);
     switch(cmd)
     {
     case EVAL:
@@ -78,6 +81,8 @@ OBJECT_PARSER_BODY(decimal64)
 //    Try to parse this as an decimal64
 // ----------------------------------------------------------------------------
 {
+    record(decimal64, "Parsing [%s]", begin);
+
     cstring p = begin;
 
     // Skip leading sign
@@ -92,9 +97,10 @@ OBJECT_PARSER_BODY(decimal64)
     // If we had no digits, check for special names or exit
     if (p == digits)
     {
-        if (strncasecmp(p, "infinity", sizeof("infinity") - 1) != 0 &&
-            strncasecmp(p, "NaN",      sizeof("NaN")      - 1) != 0)
+        if (strncasecmp(p, "inf", sizeof("inf") - 1) != 0 &&
+            strncasecmp(p, "NaN", sizeof("NaN") - 1) != 0)
             return SKIP;
+        record(decimal64, "Recognized NaN or Inf", begin);
     }
 
     // Check decimal dot
@@ -104,6 +110,15 @@ OBJECT_PARSER_BODY(decimal64)
         decimal = (char *) p++;
         while (*p >= '0' && *p <= '9')
             p++;
+    }
+
+    // Check how many digits were given
+    uint mantissa = p - digits;
+    record(decimal64, "Had %u digits, max %u", mantissa, BID64_MAXDIGITS);
+    if (mantissa >= BID64_MAXDIGITS)
+    {
+        rt.error("Too many digits", p);
+        return WARN;                    // Try again with higher-precision
     }
 
     // Check exponent
@@ -120,6 +135,19 @@ OBJECT_PARSER_BODY(decimal64)
         {
             rt.error("Malformed exponent");
             return ERROR;
+        }
+    }
+
+    // Check if exponent is withing range, if not skip to wider format
+    if (exponent)
+    {
+        int expval = atoi(exponent+1);
+        int maxexp = 64 == 127+1 ? 6144 : 64 == 63+1 ? 384 : 96;
+        record(decimal64, "Exponent is %d, max is %d", expval, maxexp);
+        if (expval < -(maxexp-1) || expval > maxexp)
+        {
+            rt.error("Exponent out of range");
+            return WARN;
         }
     }
 

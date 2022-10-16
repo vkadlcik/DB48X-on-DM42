@@ -41,12 +41,13 @@
 
 runtime &object::RT = runtime::RT;
 
-RECORDER(object,        16, "Operations on objects");
-RECORDER(parse,         16, "Parsing objects");
-RECORDER(render,        16, "Rendering objects");
-RECORDER(eval,          16, "Evaluating objects");
-RECORDER(run,           16, "Running commands on objects");
-RECORDER(object_errors, 16, "Runtime errors on objects");
+RECORDER(object,         16, "Operations on objects");
+RECORDER(parse,          16, "Parsing objects");
+RECORDER(parse_attempts,256, "Attempts parsing an object");
+RECORDER(render,         16, "Rendering objects");
+RECORDER(eval,           16, "Evaluating objects");
+RECORDER(run,            16, "Running commands on objects");
+RECORDER(object_errors,  16, "Runtime errors on objects");
 
 
 const object::handler_fn object::handler[NUM_IDS] =

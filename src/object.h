@@ -54,6 +54,7 @@ struct runtime;
 
 RECORDER_DECLARE(object);
 RECORDER_DECLARE(parse);
+RECORDER_DECLARE(parse_attempts);
 RECORDER_DECLARE(render);
 RECORDER_DECLARE(eval);
 RECORDER_DECLARE(run);
@@ -190,7 +191,7 @@ struct object
     //  Try parsing the object as a top-level temporary
     // ------------------------------------------------------------------------
     {
-        record(parse, "Parsing [%s]", beg);
+        record(parse, ">Parsing [%s]", beg);
         parser p = { .begin = beg, .end = nullptr, .output = nullptr };
         result r = SKIP;
 
@@ -198,9 +199,16 @@ struct object
         for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
         {
             p.candidate = id(i);
+            record(parse_attempts, "Trying [%s] against %+s",
+                   beg, name(id(i)));
             r = (result) handler[i](rt, PARSE, &p, nullptr, nullptr);
+            if (r != SKIP)
+                record(parse_attempts, "Result was %+s (%d) for [%s]",
+                       r == OK ? "OK" : r == ERROR ? "ERROR" : "unknown",
+                       r, beg);
         }
 
+        record(parse, "<Done parsing [%s], end is at %d", beg, p.end - beg);
         if (end)
             *end = p.end;
 

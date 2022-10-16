@@ -375,7 +375,7 @@ void input::draw_editor()
         {
             cx    = dtxt.x();
             cy    = dtxt.y();
-            cchar = c;
+            cchar = display <= last ? c : ' ';
         }
         if (c == '\n')
         {
@@ -425,7 +425,9 @@ void input::draw_cursor()
     char    buf[2] = { cchar, 0 };
     int     cw = dtxt.width(cchar);
     lcd_fill_rect(cx, cy, cw, lineHeight, 0);
-    dtxt.xy(cx, cy).background(false).clearing(false).newlines(false).write(buf);
+    dtxt.xy(cx, cy)
+        .background(false).clearing(false).newlines(false)
+        .write(buf);
 
     if (blink)
     {

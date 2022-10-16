@@ -427,7 +427,7 @@ struct runtime
     //   Protect a pointer against garbage collection
     // ------------------------------------------------------------------------
     {
-        gcptr(object *ptr = nullptr) : safe(ptr), next(RT.GCSafe)
+        gcptr(byte *ptr = nullptr) : safe(ptr), next(RT.GCSafe)
         {
             RT.GCSafe = this;
         }
@@ -449,12 +449,12 @@ struct runtime
             }
         }
 
-        operator object *() const    { return safe; }
-        operator object *&()         { return safe; }
+        operator byte  *() const    { return safe; }
+        operator byte *&()         { return safe; }
 
     private:
-        object *safe;
-        gcptr  *next;
+        byte  *safe;
+        gcptr *next;
 
         friend struct runtime;
     };
@@ -466,11 +466,14 @@ struct runtime
     //   Protect a pointer against garbage collection
     // ------------------------------------------------------------------------
     {
-        gcp(Obj *obj): gcptr(obj) {}
+        gcp(Obj *obj): gcptr((byte *) obj) {}
         ~gcp() {}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
         operator Obj *() const  { return (Obj *) safe; }
         operator Obj *&()       { return (Obj *&) safe; }
+#pragma GCC diagnostic pop
     };
 
 
@@ -549,10 +552,10 @@ public:
 
 
 template<typename T>
-using gcptr = runtime::gcp<T>;
+using gcp = runtime::gcp<T>;
 
-using gcstring = gcptr<const char>;
-using gcmstring = gcptr<char>;
+using gcstring = gcp<const char>;
+using gcmstring = gcp<char>;
 
 
 

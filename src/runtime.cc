@@ -50,10 +50,10 @@ size_t runtime::gc()
         bool found = false;
         next = skip(obj);
         for (object **s = StackTop; s < StackBottom && !found; s++)
-            found = *s == obj;
+            found = *s >= obj && *s < next;
         if (!found)
             for (gcptr *p = GCSafe; p && !found; p = p->next)
-                found = p->safe == obj;
+                found = p->safe >= (byte *) obj && p->safe <= (byte *) next;
         if (!found)
         {
             recycled += next - obj;
@@ -78,7 +78,7 @@ void runtime::unused(object *obj, object *next)
 
     // Adjust the protected pointers
     for (gcptr *p = GCSafe; p; p = p->next)
-        if (p->safe >= obj && p->safe < last)
+        if (p->safe >= (byte *) obj && p->safe < (byte *) last)
             p->safe += sz;
 
     // Move the other temporaries down

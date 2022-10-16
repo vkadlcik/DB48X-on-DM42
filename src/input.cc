@@ -586,7 +586,7 @@ bool input::handle_editing(int key)
             else
             {
                 // Finish editing and parse the result
-                gcptr<char> editor = RT.close_editor();
+                gcp<char> editor = RT.close_editor();
                 object *obj = object::parse(editor);
                 if (obj)
                 {

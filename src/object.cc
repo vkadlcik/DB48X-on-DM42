@@ -41,6 +41,13 @@
 
 runtime &object::RT = runtime::RT;
 
+RECORDER(object,        16, "Operations on objects");
+RECORDER(parse,         16, "Parsing objects");
+RECORDER(render,        16, "Rendering objects");
+RECORDER(eval,          16, "Evaluating objects");
+RECORDER(run,           16, "Running commands on objects");
+RECORDER(object_errors, 16, "Runtime errors on objects");
+
 
 const object::handler_fn object::handler[NUM_IDS] =
 // ----------------------------------------------------------------------------
@@ -59,6 +66,16 @@ const cstring object::id_name[NUM_IDS] =
 {
 #define ID(id)  #id,
 #include <id.h>
+};
+
+
+const cstring object::cmd_name[NUM_COMMANDS] =
+// ----------------------------------------------------------------------------
+//   The name of all handlers
+// ----------------------------------------------------------------------------
+{
+#define COMMAND(cmd)  #cmd,
+#include <commands.h>
 };
 
 

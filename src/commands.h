@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  id.h                                                          DB48X project
+//  command.h                                                          DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     List of all IDs for RPL opcodes
+//     List of all commands for RPL opcodes
 //
 //
 //
@@ -27,29 +27,9 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-ID(object)                      // Value 0 is reserved for "not implemented"
+COMMAND(EVAL)                   // Evaluate the object (e.g. push on stack)
+COMMAND(SIZE)                   // Compute the size of the object
+COMMAND(PARSE)                  // Parse the object
+COMMAND(RENDER)                 // Render the object
 
-ID(string)
-
-ID(integer)
-ID(neg_integer)
-ID(hex_integer)
-ID(oct_integer)
-ID(bin_integer)
-ID(dec_integer)
-
-
-ID(decimal32)
-ID(decimal64)
-ID(decimal128)
-
-// ID(drop)
-// ID(dup)
-// ID(swap)
-
-//ID(add)
-//ID(sub)
-//ID(mul)
-//ID(div)
-
-#undef ID
+#undef COMMAND

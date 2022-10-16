@@ -27,16 +27,33 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include "sim-window.h"
+#include "recorder.h"
 #include "sim-rpl.h"
+#include "sim-window.h"
+
 #include <QApplication>
 #include <QWindow>
+
+RECORDER(options, 32, "Information about command line options");
 
 int main(int argc, char *argv[])
 // ----------------------------------------------------------------------------
 //   Main entry point for the simulator
 // ----------------------------------------------------------------------------
 {
+    const char *traces = getenv("DB48X_TRACES");
+    if (traces)
+        recorder_trace_set(traces);
+    recorder_dump_on_common_signals(0, 0);
+    record(options,
+           "Simulator invoked as %+s with %d arguments", argv[0], argc-1);
+    for (int a = 1; a < argc; a++)
+    {
+        record(options, "  %u: %+s", a, argv[a]);
+        if (argv[a][0] == '-' && argv[a][1] == 't')
+            recorder_trace_set(argv[a]+2);
+    }
+
 #if QT_VERSION < 0x060000
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif // QT version 6

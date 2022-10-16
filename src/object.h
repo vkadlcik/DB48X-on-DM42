@@ -48,8 +48,17 @@
 
 #include "types.h"
 #include "leb128.h"
+#include "recorder.h"
 
 struct runtime;
+
+RECORDER_DECLARE(object);
+RECORDER_DECLARE(parse);
+RECORDER_DECLARE(render);
+RECORDER_DECLARE(eval);
+RECORDER_DECLARE(run);
+RECORDER_DECLARE(object_errors);
+
 
 struct object
 // ----------------------------------------------------------------------------
@@ -88,10 +97,9 @@ struct object
     //  The commands that all handlers must deal with
     // ------------------------------------------------------------------------
     {
-        EVAL,                   // Evaluate the object (e.g. push on stack)
-        SIZE,                   // Compute the size of the object
-        PARSE,                  // Parse the object
-        RENDER,                 // Render the object
+#define COMMAND(n)      n,
+#include "commands.h"
+        NUM_COMMANDS
     };
 
     enum result
@@ -163,6 +171,7 @@ struct object
     //  Evaluate an object by calling the handler
     // ------------------------------------------------------------------------
     {
+        record(eval, "Evaluating %+s %p", name(), this);
         run(rt, EVAL);
     }
 
@@ -171,6 +180,7 @@ struct object
     //    Render the object according to its type
     // ------------------------------------------------------------------------
     {
+        record(render, "Rendering %+s %p", name(), this);
         renderer r = { .begin = output, .end = end };
         return run(rt, RENDER, &r);
     }
@@ -180,6 +190,7 @@ struct object
     //  Try parsing the object as a top-level temporary
     // ------------------------------------------------------------------------
     {
+        record(parse, "Parsing [%s]", beg);
         parser p = { .begin = beg, .end = nullptr, .output = nullptr };
         result r = SKIP;
 
@@ -203,7 +214,12 @@ struct object
     // ------------------------------------------------------------------------
     {
         if (type >= NUM_IDS)
+        {
+            record(object_errors, "Static run cmd %+s with id %u, max %u",
+                   cmdname(cmd), type, NUM_IDS);
             return -1;
+        }
+        record(run, "Static run %+s cmd %+s", name(type), cmdname(cmd));
         return handler[type](rt, cmd, arg, nullptr, nullptr);
     }
 
@@ -215,16 +231,39 @@ struct object
         byte *ptr = (byte *) this;
         id type = (id) leb128(ptr); // Don't use type() to update payload
         if (type >= NUM_IDS)
+        {
+            record(object_errors, "Dynamic run cmd %+s with id %u, max %u",
+                   cmdname(cmd), type, NUM_IDS);
             return -1;
+        }
+        record(run, "Dynamic run %+s cmd %+s", name(type), cmdname(cmd));
         return handler[type](rt, cmd, arg, this, (object *) ptr);
     }
+
+    static cstring cmdname(command c)
+    // ------------------------------------------------------------------------
+    //   Return the name for a given ID
+    // ------------------------------------------------------------------------
+    {
+        return c < NUM_COMMANDS ? cmd_name[c] : "<invalid CMD>";
+    }
+
 
     static cstring name(id i)
     // ------------------------------------------------------------------------
     //   Return the name for a given ID
     // ------------------------------------------------------------------------
     {
-        return id_name[i];
+        return i < NUM_IDS ? id_name[i] : "<invalid ID>";
+    }
+
+
+    cstring name()
+    // ------------------------------------------------------------------------
+    //   Return the name for the current object
+    // ------------------------------------------------------------------------
+    {
+        return id_name[type()];
     }
 
 
@@ -313,6 +352,7 @@ protected:
                                    object *obj, object *payload);
     static const handler_fn handler[NUM_IDS];
     static const cstring    id_name[NUM_IDS];
+    static const cstring    cmd_name[NUM_COMMANDS];
     static runtime         &RT;
 };
 

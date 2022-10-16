@@ -265,7 +265,7 @@ struct object
     //   Return the name for the current object
     // ------------------------------------------------------------------------
     {
-        return id_name[type()];
+        return name(type());
     }
 
 

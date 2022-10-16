@@ -99,7 +99,8 @@ void draw_power_off_image(int allow_errors)
 }
 int handle_menu(const smenu_t * menu_id, int action, int cur_line)
 {
-    record(dmcp_notyet, "handle_menu(%p, %d, %d) not implemented", menu_id, action, cur_line);
+    record(dmcp_notyet, "handle_menu(%p, %d, %d) not implemented",
+           menu_id, action, cur_line);
     return 0;
 }
 
@@ -203,6 +204,9 @@ void lcd_draw_menu_keys(const char *keys[])
     t20->bgfill = 1;
     t20->newln = 0;
     t20->y = my + 1;
+
+    record(lcd, "Menu [%s][%s][%s][%s][%s][%s]",
+           keys[0], keys[1], keys[2], keys[3], keys[4], keys[5]);
     for (int m = 0; m < 6; m++)
     {
         int x = (2 * m + 1) * mw / 2 + (m * sp) / 5 + 2;
@@ -393,7 +397,8 @@ int lcd_charWidth(disp_stat_t * ds, int c)
         uint off = offs[c];
         width += data[off + 0] + data[off + 2] + xspc;
         record(lcd_width,
-               "Character width of %c (%d=0x%x) is %d", c, c, c, width);
+               "Character width of %c (%d=0x%x) is %d",
+               c + first, c + first, c + first, width);
     }
     else
     {

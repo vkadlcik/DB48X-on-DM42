@@ -40,6 +40,7 @@ struct object;                  // RPL object
 struct global;                  // RPL global variable
 
 RECORDER_DECLARE(runtime);
+RECORDER_DECLARE(errors);
 RECORDER_DECLARE(gc);
 RECORDER_DECLARE(editor);
 
@@ -496,6 +497,7 @@ struct runtime
     //   Set the error message
     // ------------------------------------------------------------------------
     {
+        record(errors, "Error [%s] at source [%s]", message, source);
         Error = message;
         ErrorSource = source;
         return *this;

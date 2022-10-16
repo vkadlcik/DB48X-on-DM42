@@ -36,6 +36,7 @@ runtime runtime::RT(nullptr, 0);
 
 RECORDER(runtime,       16, "RPL runtime");
 RECORDER(editor,        16, "Text editor (command line)");
+RECORDER(errors,        16, "Runtime errors)");
 RECORDER(gc,            16, "Garbage collection events");
 RECORDER(gc_details,    32, "Details about garbage collection (noisy)");
 

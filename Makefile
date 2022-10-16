@@ -215,7 +215,8 @@ $(BUILD):
 # clean up
 #######################################
 clean:
-	-rm -fR .dep build
+	-rm -fR .dep build sim/*.o
+
 
 #######################################
 # dependencies

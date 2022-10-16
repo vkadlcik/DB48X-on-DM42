@@ -143,6 +143,9 @@ struct runtime
     {
         // Find required memory for this object
         size_t size = Obj::required_memory(type, args...);
+        record(runtime,
+               "Initializing object %p type %d size %u",
+               Temporaries, type, size);
 
         // Check if we have room
         if (available(size) < size)

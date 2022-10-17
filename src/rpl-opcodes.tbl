@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  commands.tbl                                                 DB48X project
+//  rpl-opcodes.tbl                                              DB48X project
 // ****************************************************************************
 //
 //   File Description:
@@ -27,9 +27,9 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-COMMAND(EVAL)                   // Evaluate the object (e.g. push on stack)
-COMMAND(SIZE)                   // Compute the size of the object
-COMMAND(PARSE)                  // Parse the object
-COMMAND(RENDER)                 // Render the object
+RPL_OPCODE(EVAL)               // Evaluate the object (e.g. push on stack)
+RPL_OPCODE(SIZE)               // Compute the size of the object
+RPL_OPCODE(PARSE)              // Parse the object
+RPL_OPCODE(RENDER)             // Render the object
 
-#undef COMMAND
+#undef RPL_OPCODE

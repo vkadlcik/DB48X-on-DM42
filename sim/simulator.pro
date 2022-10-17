@@ -40,6 +40,7 @@ SOURCES += \
 	../src/stack.cc \
 	../src/settings.cc \
         ../src/object.cc \
+        ../src/command.cc \
         ../src/integer.cc \
         ../src/decimal128.cc \
         ../src/decimal-64.cc \

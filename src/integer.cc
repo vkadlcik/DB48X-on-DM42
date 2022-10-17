@@ -44,8 +44,8 @@ OBJECT_HANDLER_BODY(integer)
 //    Handle commands for integers
 // ----------------------------------------------------------------------------
 {
-    record(integer, "Command %+s on %p", name(cmd), obj);
-    switch(cmd)
+    record(integer, "Command %+s on %p", name(op), obj);
+    switch(op)
     {
     case EVAL:
         // Integer values evaluate as self
@@ -62,7 +62,6 @@ OBJECT_HANDLER_BODY(integer)
         // Check if anyone else knows how to deal with it
         return DELEGATE(object);
     }
-
 }
 
 

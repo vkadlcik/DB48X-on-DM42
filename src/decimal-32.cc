@@ -50,8 +50,8 @@ OBJECT_HANDLER_BODY(decimal32)
 //    Handle commands for decimal32s
 // ----------------------------------------------------------------------------
 {
-    record(decimal32, "Command %+s on %p", name(cmd), obj);
-    switch(cmd)
+    record(decimal32, "Command %+s on %p", name(op), obj);
+    switch(op)
     {
     case EVAL:
         // Decimal32 values evaluate as self

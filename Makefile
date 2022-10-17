@@ -79,6 +79,7 @@ CXX_SOURCES +=				\
 	src/settings.cc			\
 	src/runtime.cc			\
 	src/object.cc			\
+	src/command.cc			\
 	src/integer.cc			\
 	src/decimal128.cc		\
 	$(DECIMAL_SOURCES)		\

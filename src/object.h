@@ -95,14 +95,14 @@ struct object
     //
     // ========================================================================
 
-    enum command
+    enum opcode
     // ------------------------------------------------------------------------
     //  The commands that all handlers must deal with
     // ------------------------------------------------------------------------
     {
-#define COMMAND(n)      n,
-#include "commands.tbl"
-        NUM_COMMANDS
+#define RPL_OPCODE(n)           n,
+#include "rpl-opcodes.tbl"
+        NUM_OPCODES
     };
 
     enum result
@@ -212,22 +212,22 @@ struct object
         return parse(source, size, rt);
     }
 
-    static intptr_t run(runtime &rt, id type, command cmd, void *arg = nullptr)
+    static intptr_t run(runtime &rt, id type, opcode op, void *arg = nullptr)
     // ------------------------------------------------------------------------
     //  Run a command without an object
     // ------------------------------------------------------------------------
     {
         if (type >= NUM_IDS)
         {
-            record(object_errors, "Static run cmd %+s with id %u, max %u",
-                   name(cmd), type, NUM_IDS);
+            record(object_errors, "Static run op %+s with id %u, max %u",
+                   name(op), type, NUM_IDS);
             return -1;
         }
-        record(run, "Static run %+s cmd %+s", name(type), name(cmd));
-        return handler[type](rt, cmd, arg, nullptr, nullptr);
+        record(run, "Static run %+s cmd %+s", name(type), name(op));
+        return handler[type](rt, op, arg, nullptr, nullptr);
     }
 
-    intptr_t run(runtime &rt, command cmd, void *arg = nullptr)
+    intptr_t run(runtime &rt, opcode op, void *arg = nullptr)
     // ------------------------------------------------------------------------
     //  Run an arbitrary command on the object
     // ------------------------------------------------------------------------
@@ -237,20 +237,20 @@ struct object
         if (type >= NUM_IDS)
         {
             record(object_errors,
-                   "Dynamic run cmd %+s at %p with id %u, max %u",
-                   name(cmd), this, type, NUM_IDS);
+                   "Dynamic run op %+s at %p with id %u, max %u",
+                   name(op), this, type, NUM_IDS);
             return -1;
         }
-        record(run, "Dynamic run %+s cmd %+s", name(type), name(cmd));
-        return handler[type](rt, cmd, arg, this, (object *) ptr);
+        record(run, "Dynamic run %+s op %+s", name(type), name(op));
+        return handler[type](rt, op, arg, this, (object *) ptr);
     }
 
-    static cstring name(command c)
+    static cstring name(opcode op)
     // ------------------------------------------------------------------------
     //   Return the name for a given ID
     // ------------------------------------------------------------------------
     {
-        return c < NUM_COMMANDS ? cmd_name[c] : "<invalid CMD>";
+        return op < NUM_OPCODES ? opcode_name[op] : "<invalid opcode>";
     }
 
 
@@ -312,7 +312,7 @@ protected:
     // The actual work is done here
 #define OBJECT_HANDLER_NO_ID(type)                              \
     static intptr_t object_handler(runtime & UNUSED rt,         \
-                                   command   UNUSED cmd,        \
+                                   opcode   UNUSED  op,         \
                                    void    * UNUSED arg,        \
                                    type    * UNUSED obj,        \
                                    object  * UNUSED payload)
@@ -323,7 +323,7 @@ protected:
 
 #define OBJECT_HANDLER_BODY(type)                               \
     intptr_t type::object_handler(runtime & UNUSED rt,          \
-                                  command   UNUSED cmd,         \
+                                  opcode    UNUSED op,          \
                                   void    * UNUSED arg,         \
                                   type  *   UNUSED obj,         \
                                   object  * UNUSED payload)
@@ -335,7 +335,7 @@ protected:
 
 
 #define DELEGATE(base)                                  \
-    base::object_handler(rt, cmd, arg, obj, payload)
+    base::object_handler(rt, op, arg, obj, payload)
 
     template <typename T, typename U>
     static intptr_t ptrdiff(T *t, U *u)
@@ -346,11 +346,11 @@ protected:
 
   protected:
     typedef intptr_t (*handler_fn)(runtime &rt,
-                                   command cmd, void *arg,
+                                   opcode op, void *arg,
                                    object *obj, object *payload);
     static const handler_fn handler[NUM_IDS];
     static const cstring    id_name[NUM_IDS];
-    static const cstring    cmd_name[NUM_COMMANDS];
+    static const cstring    opcode_name[NUM_OPCODES];
     static runtime         &RT;
 };
 

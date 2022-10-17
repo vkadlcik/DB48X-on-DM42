@@ -39,11 +39,11 @@ struct settings
     settings()
         : precision(32),
           displayed(12),
-
           decimalDot('.'),
           exponentChar(0x98),   // The special mini-'E'
           angle_mode(DEGREES),
-          base(10)
+          base(10),
+          command_fmt(LONG_FORM)
     {}
 
     enum angles
@@ -63,6 +63,17 @@ struct settings
     // ------------------------------------------------------------------------
     {
         NORMAL, SCI, FIX, ENG
+    };
+
+    enum commands
+    // ------------------------------------------------------------------------
+    //   Display of commands
+    // ------------------------------------------------------------------------
+    {
+        LOWERCASE,              // Display the short name in lowercase
+        UPPERCASE,              // Display the short name in uppercase
+        CAPITALIZED,            // Display the short name capitalized
+        LONG_FORM,              // Display the long form
     };
 
     angles nextAngleMode()
@@ -85,6 +96,7 @@ public:
     char     exponentChar; // The character used to represent exponents
     angles   angle_mode;   // Whether we compute in degrees, radians or grads
     uint8_t  base;         // The default base for #numbers
+    commands command_fmt;  // How we prefer to display commands
 };
 
 

@@ -6,9 +6,10 @@
 //
 //     List of all IDs for RPL opcodes
 //
-//
-//
-//
+//      ID(i)      defines an ID that is not parseable as a command, e.g. types
+//      CMD(i)     defines an ID that is parseable as a command, e.g. "drop"
+//      OP(i,n)    defines an operator ID, e.g. "+"
+//      NAMED(i,l) defines an ID with an alternate long spelling, e.g. dup
 //
 //
 //
@@ -27,6 +28,18 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
+#ifndef CMD
+#define CMD(id)                 ID(id)
+#endif
+
+#ifndef NAMED
+#define NAMED(id, longname)     CMD(id)
+#endif
+
+#ifndef OP
+#define OP(i, n)                CMD(i)
+#endif
+
 ID(object)                      // Value 0 is reserved for "not implemented"
 
 ID(string)
@@ -43,9 +56,9 @@ ID(decimal32)
 ID(decimal64)
 ID(decimal128)
 
-// ID(drop)
-// ID(dup)
-// ID(swap)
+CMD(drop)
+NAMED(dup, "Duplicate")
+CMD(swap)
 
 //ID(add)
 //ID(sub)
@@ -53,3 +66,6 @@ ID(decimal128)
 //ID(div)
 
 #undef ID
+#undef OP
+#undef CMD
+#undef NAMED

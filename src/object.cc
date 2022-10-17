@@ -36,6 +36,7 @@
 #include "parser.h"
 #include "renderer.h"
 #include "rplstring.h"
+#include "stack-cmds.h"
 #include "runtime.h"
 
 #include <stdio.h>
@@ -64,7 +65,7 @@ const object::handler_fn object::handler[NUM_IDS] =
 
 const cstring object::id_name[NUM_IDS] =
 // ----------------------------------------------------------------------------
-//   The name of all handlers
+//   The name of all objects and commands
 // ----------------------------------------------------------------------------
 {
 #define ID(id)  #id,
@@ -72,13 +73,13 @@ const cstring object::id_name[NUM_IDS] =
 };
 
 
-const cstring object::cmd_name[NUM_COMMANDS] =
+const cstring object::opcode_name[NUM_OPCODES] =
 // ----------------------------------------------------------------------------
 //   The name of all handlers
 // ----------------------------------------------------------------------------
 {
-#define COMMAND(cmd)  #cmd,
-#include <commands.tbl>
+#define RPL_OPCODE(cmd)  #cmd,
+#include <rpl-opcodes.tbl>
 };
 
 
@@ -152,7 +153,7 @@ OBJECT_HANDLER_BODY(object)
 //   Default handler for object
 // ----------------------------------------------------------------------------
 {
-    switch(cmd)
+    switch(op)
     {
     case EVAL:
         rt.error("Invalid object");

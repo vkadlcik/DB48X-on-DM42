@@ -40,7 +40,7 @@ OBJECT_HANDLER_BODY(string)
 //    Handle commands for strings
 // ----------------------------------------------------------------------------
 {
-    switch(cmd)
+    switch(op)
     {
     case EVAL:
         // String values evaluate as self

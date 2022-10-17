@@ -397,7 +397,12 @@ struct runtime
     //   Return the top of the runtime stack
     // ------------------------------------------------------------------------
     {
-        return StackTop < StackBottom ? *StackTop : nullptr;
+        if (StackTop >= StackBottom)
+        {
+            error("Stack is empty");
+            return nullptr;
+        }
+        return *StackTop;
     }
 
     void top(object *obj)
@@ -417,7 +422,10 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         if (StackTop >= StackBottom)
-            return error("Not enough arguments"), nullptr;
+        {
+            error("Stack is empty");
+            return nullptr;
+        }
         return *StackTop++;
     }
 
@@ -427,7 +435,7 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         if (idx >= depth())
-            return error("Insufficient stack depth"), nullptr;
+            return error("Not enough arguments"), nullptr;
         return StackTop[idx];
     }
 
@@ -440,6 +448,17 @@ struct runtime
             error("Insufficient stack depth");
         else
             StackTop[idx] = obj;
+    }
+
+    void drop(uint count = 1)
+    // ------------------------------------------------------------------------
+    //   Pop the top-level object from the stack, or return NULL
+    // ------------------------------------------------------------------------
+    {
+        if (count > depth())
+            error("Not enough arguments");
+        else
+            StackTop += count;
     }
 
     uint depth()

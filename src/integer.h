@@ -73,7 +73,7 @@ struct special_integer : integer
 
     OBJECT_HANDLER_NO_ID(special_integer)
     {
-        if (cmd == RENDER)
+        if (op == RENDER)
             return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
         return DELEGATE(integer);
     }

@@ -189,7 +189,7 @@ struct runtime
     }
 
 
-    void edit(cstring buffer, size_t len)
+    size_t edit(cstring buffer, size_t len)
     // ------------------------------------------------------------------------
     //   Open the editor with a known buffer
     // ------------------------------------------------------------------------
@@ -198,11 +198,13 @@ struct runtime
         {
             record(editor, "Insufficent memory for %u bytes", len);
             error("Out of memory", "Editor");
-            return;
+            Editing = 0;
+            return 0;
         }
 
         memcpy((byte *) Temporaries, buffer, len);
         Editing = len;
+        return len;
     }
 
 
@@ -230,9 +232,9 @@ struct runtime
     }
 
 
-    void insert(size_t offset, cstring data, size_t len)
+    size_t insert(size_t offset, cstring data, size_t len)
     // ------------------------------------------------------------------------
-    //   Insert data in the editor
+    //   Insert data in the editor, return size inserted
     // ------------------------------------------------------------------------
     {
         record(editor,
@@ -246,6 +248,7 @@ struct runtime
                 memmove(editor() + offset + len, editor() + offset, moved);
                 memcpy(editor() + offset, data, len);
                 Editing += len;
+                return len;
             }
         }
         else
@@ -254,15 +257,16 @@ struct runtime
                    "Invalid insert at %zu size=%zu len=%zu [%s]\n",
                    offset, Editing, len, data);
         }
+        return 0;
     }
 
 
-    void insert(size_t offset, char c)
+    size_t insert(size_t offset, char c)
     // ------------------------------------------------------------------------
     //   Insert a single character in the editor
     // ------------------------------------------------------------------------
     {
-        insert(offset, &c, 1);
+        return insert(offset, &c, 1);
     }
 
 

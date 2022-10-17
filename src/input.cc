@@ -606,7 +606,8 @@ bool input::handle_editing(int key)
                         cstring ed = editor;
                         if (pos >= editor && pos <= ed + edlen)
                             cursor = pos - ed;
-                        RT.edit(ed, edlen);
+                        if (!RT.edit(ed, edlen))
+                            cursor = 0;
                         beep(3300, 100);
                     }
                 }
@@ -796,8 +797,7 @@ bool input::handle_alpha(int key)
         shift     ? shifted[key]  :
         lowercase ? lower[key]    :
         upper[key];
-    RT.insert(cursor, c);
-    cursor++;
+    cursor += RT.insert(cursor, c);
 
     // Test delimiters
     int closing = 0;
@@ -858,8 +858,7 @@ bool input::handle_digits(int key)
         }
         else
         {
-            RT.insert(p - ed, '-');
-            cursor++;
+            cursor += RT.insert(p - ed, '-');
         }
     }
     else if (key > KEY_CHS)
@@ -868,8 +867,7 @@ bool input::handle_digits(int key)
         char c = numbers[key];
         if (c == '.')
             c = Settings.decimalDot;
-        RT.insert(cursor, c);
-        cursor++;
+        cursor += RT.insert(cursor, c);
         repeat = true;
         return true;
     }

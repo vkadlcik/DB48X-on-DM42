@@ -147,7 +147,7 @@ struct runtime
                "Initializing object %p type %d size %u",
                Temporaries, type, size);
 
-        // Check if we have room
+        // Check if we have room (may cause garbage collection)
         if (available(size) < size)
             return nullptr;    // Failed to allocate
         Obj *result = (Obj *) Temporaries;
@@ -169,17 +169,6 @@ struct runtime
         // Find the required type for this object
         typename Obj::id type = Obj::static_type();
         return make(type, args...);
-    }
-
-    void dispose(object *object)
-    // ------------------------------------------------------------------------
-    //   Dispose of a temporary (must not be referenced elsewhere)
-    // ------------------------------------------------------------------------
-    {
-        if (skip(object) == Temporaries)
-            Temporaries = object;
-        else
-            unused(object);
     }
 
 
@@ -420,14 +409,7 @@ struct runtime
     // ========================================================================
 
     size_t  gc();
-    void    unused(object *obj, object *next);
-    void    unused(object *obj)
-    // ------------------------------------------------------------------------
-    //   Mark an object unused knowing its end
-    // ------------------------------------------------------------------------
-    {
-        unused(obj, skip(obj));
-    }
+    void    move(object *first, object *last, object *to);
 
     size_t  size(object *obj);
     object *skip(object *obj)

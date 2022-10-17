@@ -78,17 +78,21 @@ size_t runtime::gc()
 // ----------------------------------------------------------------------------
 //   Temporaries can only be referenced from the stack
 //   Objects in the global area are copied there, so they need no recycling
+//   This algorithm is linear in number of objects and moves only live data
 {
     size_t  recycled = 0;
-    object *last = Temporaries;
+    object *first    = (object *) Globals;
+    object *last     = Temporaries;
+    object *free     = first;
     object *next;
+
     record(gc, "Garbage collection, available %u, range %p-%p",
-           available(), Globals, last);
+           available(), first, last);
     if (RECORDER_TRACE(gc) > 1)
         dump_object_list("Pre-collection",
-                         (object *) Globals, last, StackTop, StackBottom);
+                         first, last, StackTop, StackBottom);
 
-    for (object *obj = (object *) Globals; obj < last; obj = next)
+    for (object *obj = first; obj < last; obj = next)
     {
         bool found = false;
         next = skip(obj);
@@ -110,60 +114,83 @@ size_t runtime::gc()
                            obj, p->safe, p);
             }
         }
-        if (!found)
+        if (found)
+        {
+            // Move object to free space
+            record(gc_details, "Moving %p-%p to %p", obj, next, free);
+            move(obj, next, free);
+            free += next - obj;
+        }
+        else
         {
             recycled += next - obj;
-            last -= next - obj;
             record(gc_details, "Recycling %p size %u total %u",
                    obj, next - obj, recycled);
-            unused(obj, next);
-            next = obj;
         }
     }
+
+    // Move the command line
+    if (Editing)
+    {
+        object *edit = Temporaries;
+        move(edit, edit + Editing, edit - recycled);
+    }
+
+    // Adjust Temporaries
+    Temporaries -= recycled;
+
+
     if (RECORDER_TRACE(gc) > 1)
         dump_object_list("Post-collection",
-                         (object *) Globals, last, StackTop, StackBottom);
+                         (object *) Globals, Temporaries,
+                         StackTop, StackBottom);
     record(gc, "Garbage collection done, purged %u, available %u",
            recycled, available());
     return recycled;
 }
 
-void runtime::unused(object *obj, object *next)
+
+void runtime::move(object *first, object *last, object *to)
 // ----------------------------------------------------------------------------
-//   An object is unused, need to move temporaries below it and adjust stack
+//   Move objects in memory to a new location, adjusting pointers
 // ----------------------------------------------------------------------------
 {
-    size_t sz = next - obj;
-    object *last = Temporaries;
+    int delta = to - first;
+    if (!delta)
+        return;
+
+    int size  = last - first;
+    if (size <= 0)
+    {
+        if (size < 0)
+            record(runtime_error, "GC move with range %p-%p", first, last);
+        return;
+    }
+
+    // Move the object in memory
+    memmove((byte *) to, (byte *) first, size);
 
     // Adjust the stack pointers
     for (object **s = StackTop; s < StackBottom; s++)
     {
-        if (*s >= obj && *s < last)
+        if (*s >= first && *s < last)
         {
             record(gc_details, "Adjusting stack level %u from %p to %p",
-                   s - StackTop, *s, *s - sz);
-            *s -= sz;
+                   s - StackTop, *s, *s + delta);
+            *s += delta;
         }
     }
 
     // Adjust the protected pointers
-    last += Editing;            // GC-safe pointers can be in the editor
     for (gcptr *p = GCSafe; p; p = p->next)
     {
-        if (p->safe >= (byte *) obj && p->safe < (byte *) last)
+        if (p->safe >= (byte *) first && p->safe < (byte *) last)
         {
             record(gc_details, "Adjusting GC-safe %p from %p to %p",
-                   p, p->safe, p->safe - sz);
-            p->safe -= sz;
+                   p, p->safe, p->safe + delta);
+            p->safe += delta;
         }
     }
-
-    // Move the other temporaries down
-    memmove((byte *) obj, (byte *) next, (byte *) last - (byte *) next);
-
-    // Adjust the temporaries pointer
-    Temporaries -= sz;
 }
 
 

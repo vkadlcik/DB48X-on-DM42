@@ -290,15 +290,103 @@ struct runtime
 
     // ========================================================================
     //
+    //   Object management
+    //
+    // ========================================================================
+
+    size_t  gc();
+    void    move(object *first, object *last, object *to);
+
+    size_t  size(object *obj);
+    object *skip(object *obj)
+    // ------------------------------------------------------------------------
+    //   Skip an RPL object
+    // ------------------------------------------------------------------------
+    {
+        return (object *) ((byte *) obj + size(obj));
+    }
+
+
+    struct gcptr
+    // ------------------------------------------------------------------------
+    //   Protect a pointer against garbage collection
+    // ------------------------------------------------------------------------
+    {
+        gcptr(byte *ptr) : safe(ptr), next(RT.GCSafe)
+        {
+            RT.GCSafe = this;
+        }
+        gcptr(const gcptr &o): safe(o.safe), next(RT.GCSafe)
+        {
+            RT.GCSafe = this;
+        }
+        ~gcptr()
+        {
+            gcptr *last = nullptr;
+            for (gcptr *gc = RT.GCSafe; gc; gc = gc->next)
+            {
+                if (gc == this)
+                {
+                    if (last)
+                        last->next = gc->next;
+                    else
+                        RT.GCSafe = gc->next;
+                    break;
+                }
+                last = gc;
+            }
+        }
+
+        operator byte  *() const   { return safe; }
+        operator byte *&()         { return safe; }
+        operator bool()            { return safe != nullptr; }
+        gcptr &operator =(const gcptr &o)
+        {
+            safe = o.safe;
+            return *this;
+        }
+
+    private:
+        byte  *safe;
+        gcptr *next;
+
+        friend struct runtime;
+    };
+
+
+    template<typename Obj>
+    struct gcp : gcptr
+    // ------------------------------------------------------------------------
+    //   Protect a pointer against garbage collection
+    // ------------------------------------------------------------------------
+    {
+        gcp(Obj *obj): gcptr((byte *) obj) {}
+        ~gcp() {}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+        operator Obj *() const          { return (Obj *) safe; }
+        operator Obj *&()               { return (Obj *&) safe; }
+        Obj operator *() const          { return *((Obj *) safe); }
+        Obj &operator *()               { return *((Obj *) safe); }
+        Obj *operator ->() const        { return (Obj *) safe; }
+#pragma GCC diagnostic pop
+    };
+
+
+
+    // ========================================================================
+    //
     //   Stack
     //
     // ========================================================================
 
-    void push(object *obj)
+    void push(gcp<object> obj)
     // ------------------------------------------------------------------------
     //   Push an object on top of RPL stack
     // ------------------------------------------------------------------------
     {
+        // This may cause garbage collection, hence the need to adjust
         if (available(sizeof(obj)) < sizeof(obj))
             return;
         *(--StackTop) = obj;
@@ -404,93 +492,6 @@ struct runtime
         for (object **s = StackTop; s > StackTop; s--)
             s[0] = s[-1];
     }
-
-
-    // ========================================================================
-    //
-    //   Object management
-    //
-    // ========================================================================
-
-    size_t  gc();
-    void    move(object *first, object *last, object *to);
-
-    size_t  size(object *obj);
-    object *skip(object *obj)
-    // ------------------------------------------------------------------------
-    //   Skip an RPL object
-    // ------------------------------------------------------------------------
-    {
-        return (object *) ((byte *) obj + size(obj));
-    }
-
-
-    struct gcptr
-    // ------------------------------------------------------------------------
-    //   Protect a pointer against garbage collection
-    // ------------------------------------------------------------------------
-    {
-        gcptr(byte *ptr) : safe(ptr), next(RT.GCSafe)
-        {
-            RT.GCSafe = this;
-        }
-        gcptr(const gcptr &o): safe(o.safe), next(RT.GCSafe)
-        {
-            RT.GCSafe = this;
-        }
-        ~gcptr()
-        {
-            gcptr *last = nullptr;
-            for (gcptr *gc = RT.GCSafe; gc; gc = gc->next)
-            {
-                if (gc == this)
-                {
-                    if (last)
-                        last->next = gc->next;
-                    else
-                        RT.GCSafe = gc->next;
-                    break;
-                }
-                last = gc;
-            }
-        }
-
-        operator byte  *() const   { return safe; }
-        operator byte *&()         { return safe; }
-        operator bool()            { return safe != nullptr; }
-        gcptr &operator =(const gcptr &o)
-        {
-            safe = o.safe;
-            return *this;
-        }
-
-    private:
-        byte  *safe;
-        gcptr *next;
-
-        friend struct runtime;
-    };
-
-
-    template<typename Obj>
-    struct gcp : gcptr
-    // ------------------------------------------------------------------------
-    //   Protect a pointer against garbage collection
-    // ------------------------------------------------------------------------
-    {
-        gcp(Obj *obj): gcptr((byte *) obj) {}
-        ~gcp() {}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-        operator Obj *() const          { return (Obj *) safe; }
-        operator Obj *&()               { return (Obj *&) safe; }
-        Obj operator *() const          { return *((Obj *) safe); }
-        Obj &operator *()               { return *((Obj *) safe); }
-        Obj *operator ->() const        { return (Obj *) safe; }
-#pragma GCC diagnostic pop
-    };
-
 
 
     // ========================================================================

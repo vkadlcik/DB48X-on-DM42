@@ -29,6 +29,7 @@
 
 #include "input.h"
 
+#include "command.h"
 #include "display.h"
 #include "menu.h"
 #include "runtime.h"
@@ -40,6 +41,8 @@
 
 // The primary input of the calculator
 input    Input;
+
+RECORDER(input, 16, "Input processing");
 
 runtime &input::RT = runtime::RT;
 
@@ -87,6 +90,7 @@ bool input::key(int key)
 // ----------------------------------------------------------------------------
 {
     longpress = key && sys_timer_timeout(TIMER0);
+    record(input, "Key %d shifts %d longpress", key, shift_plane(), longpress);
     sys_timer_disable(TIMER0);
     repeat = false;
 
@@ -106,6 +110,7 @@ bool input::key(int key)
         handle_functions(key) ||
         handle_digits(key)    ||
         false;
+
 
     if (!key && last != KEY_SHIFT)
     {
@@ -547,6 +552,7 @@ bool input::handle_editing(int key)
 
     if (editing)
     {
+        record(input, "Editing key %d", key);
         switch (key)
         {
         case KEY_BSP:
@@ -675,32 +681,21 @@ bool input::handle_editing(int key)
     {
         switch(key)
         {
-        case KEY_BSP:
-            // RT.evaluate(ID_drop);
-            return true;
         case KEY_ENTER:
-            // RT.evaluate(ID_dup);
             if (shift)
             {
                 if (alpha)
                     lowercase = !lowercase;
                 else
                     alpha = true;
+                return true;
             }
-            return true;
+            break;
         case KEY_EXIT:
             if (shift)
                 SET_ST(STAT_PGM_END);
             alpha = false;
             return true;
-        case KEY_UP:
-            // RT.evaluate(ID_stack);
-            return false;
-        case KEY_DOWN:
-            // Bring the object to the editor
-            return false;
-        case 0:
-            return false;
         }
     }
 
@@ -826,14 +821,14 @@ bool input::handle_digits(int key)
         return false;
 
     static const char numbers[] =
-        "abcdef"
-        "ghijkl"
-        "_m-\x98_"
-        "_789\x80"
-        "_456\x81"
-        "_123-"
-        "_0. +"
-        ".....";
+        "______"
+        "______"
+        "__-\x98_"
+        "_789_"
+        "_456_"
+        "_123_"
+        "_0.__"
+        "_____";
 
     if (key == KEY_CHS)
     {
@@ -865,6 +860,8 @@ bool input::handle_digits(int key)
     {
         key--;
         char c = numbers[key];
+        if (c == '_')
+            return false;
         if (c == '.')
             c = Settings.decimalDot;
         cursor += RT.insert(cursor, c);
@@ -904,11 +901,11 @@ static const byte defaultUnshiftedCommand[2*input::NUM_KEYS] =
     OP2BYTES(KEY_SIN, 0),
     OP2BYTES(KEY_COS, 0),
     OP2BYTES(KEY_TAN, 0),
-    OP2BYTES(KEY_ENTER, 0),
-    OP2BYTES(KEY_SWAP, 0),
+    OP2BYTES(KEY_ENTER, command::ID_dup),
+    OP2BYTES(KEY_SWAP, command::ID_swap),
     OP2BYTES(KEY_CHS, 0),
     OP2BYTES(KEY_E, 0),
-    OP2BYTES(KEY_BSP, 0),
+    OP2BYTES(KEY_BSP, command::ID_drop),
     OP2BYTES(KEY_UP, 0),
     OP2BYTES(KEY_7, 0),
     OP2BYTES(KEY_8, 0),
@@ -1076,6 +1073,7 @@ bool input::handle_functions(int key)
     if (!key)
         return false;
 
+    record(input, "Handle function for key %d (plane %d) ", key, shift_plane());
     if (key == KEY_STO)
         RT.gc();
 
@@ -1089,7 +1087,6 @@ bool input::handle_functions(int key)
         return true;
     }
 
-
     int     plane = shift_plane();
     object *obj   = function[plane][key - 1];
     if (obj)
@@ -1097,7 +1094,7 @@ bool input::handle_functions(int key)
         obj->evaluate();
         return true;
     }
-    const byte *ptr = defaultCommand[plane] + key - 1;
+    const byte *ptr = defaultCommand[plane] + 2 * (key - 1);
     if (*ptr)
     {
         obj = (object *) ptr; // Uh oh! Evaluate bytecode in ROM

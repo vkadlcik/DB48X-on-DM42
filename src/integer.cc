@@ -199,7 +199,7 @@ OBJECT_PARSER_BODY(integer)
 
 
     // Check if we finish with something indicative of a real number
-    if (*p == Settings.decimalDot || *p == Settings.exponentChar)
+    if (*p == Settings.decimalDot || *p == (byte) Settings.exponentChar)
         return SKIP;
 
     if (end)

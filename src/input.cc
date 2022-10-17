@@ -1078,6 +1078,9 @@ bool input::handle_functions(int key)
     if (!key)
         return false;
 
+    if (key == KEY_STO)
+        RT.gc();
+
     // Hard-code system menu
     if (!alpha && shift && key == KEY_0)
     {

@@ -42,6 +42,7 @@
 
 ID(object)                      // Value 0 is reserved for "not implemented"
 
+ID(symbol)
 ID(string)
 
 ID(integer)
@@ -50,7 +51,6 @@ ID(hex_integer)
 ID(oct_integer)
 ID(bin_integer)
 ID(dec_integer)
-
 
 ID(decimal32)
 ID(decimal64)

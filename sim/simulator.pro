@@ -46,7 +46,8 @@ SOURCES += \
         ../src/decimal-64.cc \
         ../src/decimal-32.cc \
         ../src/runtime.cc \
-        ../src/rplstring.cc
+        ../src/rplstring.cc \
+        ../src/symbol.cc \
 
 HEADERS += \
 	sim-window.h \

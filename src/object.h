@@ -334,8 +334,8 @@ protected:
     OBJECT_HANDLER_NO_ID(object);
 
 
-#define DELEGATE(base)                                  \
-    base::object_handler(rt, op, arg, obj, payload)
+#define DELEGATE(base)                                          \
+    base::object_handler(rt, op, arg, (base *) obj, payload)
 
     template <typename T, typename U>
     static intptr_t ptrdiff(T *t, U *u)

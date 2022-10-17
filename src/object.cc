@@ -36,8 +36,9 @@
 #include "parser.h"
 #include "renderer.h"
 #include "rplstring.h"
-#include "stack-cmds.h"
 #include "runtime.h"
+#include "stack-cmds.h"
+#include "symbol.h"
 
 #include <stdio.h>
 

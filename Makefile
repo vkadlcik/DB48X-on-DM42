@@ -83,7 +83,8 @@ CXX_SOURCES +=				\
 	src/integer.cc			\
 	src/decimal128.cc		\
 	$(DECIMAL_SOURCES)		\
-	src/rplstring.cc
+	src/rplstring.cc		\
+	src/symbol.cc
 
 # Generate the sized variants of decimal128
 src/decimal-%.cc: src/decimal128.cc src/decimal-%.h

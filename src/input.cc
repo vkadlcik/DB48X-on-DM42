@@ -842,14 +842,18 @@ bool input::handle_digits(int key)
         char *p  = ed + cursor;
         while (p > ed)
         {
-            p--;
-            if ((*p < '0' || *p > '9') && *p != Settings.decimalDot)
+            char c = *--p;
+            if ((c < '0' || c > '9') && c != Settings.decimalDot)
                 break;
         }
 
-        if (*p == '-' || *p == '+')
+        char c = *p;
+        if (c == 'e' || c == 'E' || c == Settings.exponentChar)
+            c = *++p;
+
+        if (c == '-' || c == '+')
         {
-            *p = '+' + '-' - *p;
+            *p = '+' + '-' - c;
             return true;
         }
         else

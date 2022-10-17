@@ -58,7 +58,7 @@ const object::handler_fn object::handler[NUM_IDS] =
 // ----------------------------------------------------------------------------
 {
 #define ID(id)  [ID_##id] = (handler_fn) id::object_handler,
-#include <id.h>
+#include <id.tbl>
 };
 
 
@@ -68,7 +68,7 @@ const cstring object::id_name[NUM_IDS] =
 // ----------------------------------------------------------------------------
 {
 #define ID(id)  #id,
-#include <id.h>
+#include <id.tbl>
 };
 
 
@@ -78,7 +78,7 @@ const cstring object::cmd_name[NUM_COMMANDS] =
 // ----------------------------------------------------------------------------
 {
 #define COMMAND(cmd)  #cmd,
-#include <commands.h>
+#include <commands.tbl>
 };
 
 

@@ -74,7 +74,7 @@ struct object
     // ------------------------------------------------------------------------
     {
 #define ID(i)   ID_##i,
-#include <id.h>
+#include <id.tbl>
         NUM_IDS
     };
 
@@ -101,7 +101,7 @@ struct object
     // ------------------------------------------------------------------------
     {
 #define COMMAND(n)      n,
-#include "commands.h"
+#include "commands.tbl"
         NUM_COMMANDS
     };
 

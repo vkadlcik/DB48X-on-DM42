@@ -74,7 +74,7 @@ struct object
     // ------------------------------------------------------------------------
     {
 #define ID(i)   ID_##i,
-#include <id.tbl>
+#include "ids.tbl"
         NUM_IDS
     };
 

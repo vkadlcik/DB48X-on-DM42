@@ -738,7 +738,7 @@ bool input::handle_alpha(int key)
         "_PQRS"
         "_TUVW"
         "_XYZ_"
-        "_:.? "
+        "_:. ?"
         "......";
     static const char lower[] =
         "abcdef"
@@ -746,8 +746,8 @@ bool input::handle_alpha(int key)
         "_mno_"
         "_pqrs"
         "_tuvw"
-        "_xyz-"
-        "_:.? "
+        "_xyz_"
+        "_:. ?"
         "......";
 
 #define DIV        "\x80"  // ÷

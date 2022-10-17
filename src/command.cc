@@ -47,6 +47,7 @@ const cstring command::command_name[NUM_IDS] =
 {
 #define ID(id)                  nullptr,
 #define OP(id, name)            name,
+#define ALIASED_OP(id, n1, n2)  n2,
 #define CMD(id)                 #id,
 #include <ids.tbl>
 };
@@ -60,6 +61,7 @@ const cstring command::long_name[NUM_IDS] =
 #define ID(id)                  nullptr,
 #define CMD(id)                 #id,
 #define OP(id, name)            name,
+#define ALIASED_OP(id, n1, n2)  n1,
 #define NAMED(id, longname)     #longname,
 #include <ids.tbl>
 };

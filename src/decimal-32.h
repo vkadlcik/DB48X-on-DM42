@@ -41,17 +41,58 @@ struct decimal32 : object
 //    Floating-point numbers in 32-bit decimal32 representation
 // ----------------------------------------------------------------------------
 {
-    typedef BID_UINT32 bid32;
-
     decimal32(gcstring value, id type = ID_decimal32): object(type)
     {
         bid32 num;
-        bid32_from_string(&num, (cstring) value);
+        bid32_from_string(&num.value, (cstring) value);
         byte *p = payload();
         memcpy(p, &num, sizeof(num));
     }
 
-    static size_t required_memory(id i, gcstring UNUSED value)
+    decimal32(const bid32 &value, id type = ID_decimal32): object(type)
+    {
+        byte *p = payload();
+        memcpy(p, &value, sizeof(value));
+    }
+
+    decimal32(uint64_t value, id type = ID_decimal32): object(type)
+    {
+        bid32 num;
+        bid32_from_uint64(&num.value, &value);
+        byte *p = payload();
+        memcpy(p, &num, sizeof(num));
+    }
+
+    decimal32(int64_t value, id type = ID_decimal32): object(type)
+    {
+        bid32 num;
+        bid32_from_int64(&num.value, &value);
+        byte *p = payload();
+        memcpy(p, &num, sizeof(num));
+    }
+
+#if 32 > 64
+    decimal32(const bid64 &value, id type = ID_decimal32): object(type)
+    {
+        bid32 num;
+        bid64_to_bid32(&num.value, (BID_UINT64 *) &value.value);
+        byte *p = payload();
+        memcpy(p, &num, sizeof(num));
+    }
+#endif
+
+#if 32 > 32
+    decimal32(const bid32 &value, id type = ID_decimal32): object(type)
+    {
+        bid32 num;
+        bid32_to_bid32(&num.value, (BID_UINT32 *) &value.value);
+        byte *p = payload();
+        memcpy(p, &num, sizeof(num));
+    }
+#endif
+
+    template <typename Value>
+    static size_t required_memory(id i, Value UNUSED value)
     {
         return leb128size(i) + sizeof(bid32);
     }

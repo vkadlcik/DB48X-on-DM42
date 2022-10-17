@@ -57,26 +57,28 @@ struct algebraic : command
 };
 
 
-// Macro to defined an algebraic command
-#define ALGEBRAIC_DECLARE(derived, arit, prec)                  \
-    struct derived : algebraic                                  \
-    {                                                           \
-        derived(id i = ID_##derived) : algebraic(i) {}          \
-                                                                \
-        static uint arity()             { return arit; }        \
-        static uint precedence()        { return prec; }        \
-                                                                \
-        OBJECT_HANDLER(derived)                                 \
-        {                                                       \
-            if (op == EVAL)                                     \
-            {                                                   \
-                RT.algebraic(#derived);                         \
-                return ((derived *) obj)->evaluate();           \
-            }                                                   \
-            return DELEGATE(algebraic);                         \
-        }                                                       \
-        result evaluate();                                      \
-    }
+#define ALGEBRAIC_DECLARE(derived, arit, prec)                          \
+/* ----------------------------------------------------------------- */ \
+/*  Macro to define an algebraic command                             */ \
+/* ----------------------------------------------------------------- */ \
+struct derived : algebraic                                              \
+{                                                                       \
+    derived(id i = ID_##derived) : algebraic(i) {}                      \
+                                                                        \
+    static uint arity()             { return arit; }                    \
+    static uint precedence()        { return prec; }                    \
+                                                                        \
+    OBJECT_HANDLER(derived)                                             \
+    {                                                                   \
+        if (op == EVAL)                                                 \
+        {                                                               \
+            RT.command(#derived);                                       \
+            return ((derived *) obj)->evaluate();                       \
+        }                                                               \
+        return DELEGATE(command);                                       \
+    }                                                                   \
+    result evaluate();                                                  \
+}
 
 #define ALGEBRAIC_BODY(derived)                 \
     object::result derived::evaluate()

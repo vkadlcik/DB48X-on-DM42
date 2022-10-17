@@ -49,6 +49,7 @@ SOURCES += \
         ../src/rplstring.cc \
         ../src/symbol.cc \
         ../src/algebraic.cc \
+        ../src/arithmetic.cc \
 
 HEADERS += \
 	sim-window.h \

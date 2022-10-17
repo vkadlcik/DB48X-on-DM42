@@ -132,7 +132,6 @@ struct object
         return leb128size(i);
     }
 
-
     id type()
     // ------------------------------------------------------------------------
     //   Return the type of the object
@@ -153,7 +152,6 @@ struct object
         }
         return ty;
     }
-
 
     size_t size(runtime &rt = RT)
     // ------------------------------------------------------------------------
@@ -182,6 +180,13 @@ struct object
     }
 
 
+
+    // ========================================================================
+    //
+    //    High-level functions on objects
+    //
+    // ========================================================================
+
     void evaluate(runtime &rt = RT)
     // ------------------------------------------------------------------------
     //  Evaluate an object by calling the handler
@@ -196,12 +201,10 @@ struct object
     //   Render the object into a buffer
     // ------------------------------------------------------------------------
 
-
     static object *parse(cstring source, size_t &size, runtime &rt = RT);
     // ------------------------------------------------------------------------
     //  Try parsing the object as a top-level temporary
     // ------------------------------------------------------------------------
-
 
     static object *parse(cstring source, runtime &rt = RT)
     // ------------------------------------------------------------------------
@@ -210,39 +213,6 @@ struct object
     {
         size_t size = (size_t) -1;
         return parse(source, size, rt);
-    }
-
-    static intptr_t run(runtime &rt, id type, opcode op, void *arg = nullptr)
-    // ------------------------------------------------------------------------
-    //  Run a command without an object
-    // ------------------------------------------------------------------------
-    {
-        if (type >= NUM_IDS)
-        {
-            record(object_errors, "Static run op %+s with id %u, max %u",
-                   name(op), type, NUM_IDS);
-            return -1;
-        }
-        record(run, "Static run %+s cmd %+s", name(type), name(op));
-        return handler[type](rt, op, arg, nullptr, nullptr);
-    }
-
-    intptr_t run(runtime &rt, opcode op, void *arg = nullptr)
-    // ------------------------------------------------------------------------
-    //  Run an arbitrary command on the object
-    // ------------------------------------------------------------------------
-    {
-        byte *ptr = (byte *) this;
-        id type = (id) leb128(ptr); // Don't use type() to update payload
-        if (type >= NUM_IDS)
-        {
-            record(object_errors,
-                   "Dynamic run op %+s at %p with id %u, max %u",
-                   name(op), this, type, NUM_IDS);
-            return -1;
-        }
-        record(run, "Dynamic run %+s op %+s", name(type), name(op));
-        return handler[type](rt, op, arg, this, (object *) ptr);
     }
 
     static cstring name(opcode op)
@@ -290,6 +260,119 @@ struct object
 
     // Off-line so that we don't need to import runtime.h
     static void error(cstring err, cstring source = nullptr, runtime &rt = RT);
+
+
+
+    // ========================================================================
+    //
+    //    Attributes of objects
+    //
+    // ========================================================================
+
+    static bool is_integer(object::id ty)
+    // -------------------------------------------------------------------------
+    //   Check if a type is an integer
+    // -------------------------------------------------------------------------
+    {
+        return ty >= FIRST_INTEGER_TYPE && ty <= LAST_INTEGER_TYPE;
+    }
+
+
+    bool is_integer(object *obj)
+    // -------------------------------------------------------------------------
+    //   Check if an object is an integer
+    // -------------------------------------------------------------------------
+    {
+        return is_integer(obj->type());
+    }
+
+
+    static bool is_decimal(object::id ty)
+    // -------------------------------------------------------------------------
+    //   Check if a type is a decimal
+    // -------------------------------------------------------------------------
+    {
+        return ty >= FIRST_DECIMAL_TYPE && ty <= LAST_DECIMAL_TYPE;
+    }
+
+
+    bool is_decimal(object *obj)
+    // -------------------------------------------------------------------------
+    //   Check if an object is a decimal
+    // -------------------------------------------------------------------------
+    {
+        return is_decimal(obj->type());
+    }
+
+
+    static  bool is_real(object::id ty)
+    // -------------------------------------------------------------------------
+    //   Check if a type is a real number
+    // -------------------------------------------------------------------------
+    {
+        return ty >= FIRST_REAL_TYPE && ty <= LAST_REAL_TYPE;
+    }
+
+
+    bool is_real(object *obj)
+    // -------------------------------------------------------------------------
+    //   Check if an object is a real number
+    // -------------------------------------------------------------------------
+    {
+        return is_real(obj->type());
+    }
+
+
+    template<typename Obj> Obj *as()
+    // ------------------------------------------------------------------------
+    //   Type-safe cast (note: only for exact type match)
+    // ------------------------------------------------------------------------
+    {
+        if (type() == Obj::static_type())
+            return (Obj *) this;
+        return nullptr;
+    }
+
+
+
+    // ========================================================================
+    //
+    //    Low-level function dispatch
+    //
+    // ========================================================================
+
+    static intptr_t run(runtime &rt, id type, opcode op, void *arg = nullptr)
+    // ------------------------------------------------------------------------
+    //  Run a command without an object
+    // ------------------------------------------------------------------------
+    {
+        if (type >= NUM_IDS)
+        {
+            record(object_errors, "Static run op %+s with id %u, max %u",
+                   name(op), type, NUM_IDS);
+            return -1;
+        }
+        record(run, "Static run %+s cmd %+s", name(type), name(op));
+        return handler[type](rt, op, arg, nullptr, nullptr);
+    }
+
+    intptr_t run(runtime &rt, opcode op, void *arg = nullptr)
+    // ------------------------------------------------------------------------
+    //  Run an arbitrary command on the object
+    // ------------------------------------------------------------------------
+    {
+        byte *ptr = (byte *) this;
+        id type = (id) leb128(ptr); // Don't use type() to update payload
+        if (type >= NUM_IDS)
+        {
+            record(object_errors,
+                   "Dynamic run op %+s at %p with id %u, max %u",
+                   name(op), this, type, NUM_IDS);
+            return -1;
+        }
+        record(run, "Dynamic run %+s op %+s", name(type), name(op));
+        return handler[type](rt, op, arg, this, (object *) ptr);
+    }
 
 
 protected:
@@ -344,7 +427,7 @@ protected:
     }
 
 
-  protected:
+protected:
     typedef intptr_t (*handler_fn)(runtime &rt,
                                    opcode op, void *arg,
                                    object *obj, object *payload);

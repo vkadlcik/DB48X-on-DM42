@@ -30,6 +30,7 @@
 #include "object.h"
 
 #include "algebraic.h"
+#include "arithmetic.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"

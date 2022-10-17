@@ -31,7 +31,8 @@
 
 #include <cstdint>
 #include <cstddef>
-
+#include <bid_conf.h>
+#include <bid_functions.h>
 
 
 // ============================================================================
@@ -42,14 +43,19 @@
 
 typedef unsigned           uint;
 typedef uint8_t            byte;
-typedef const byte *       byte_p;
+typedef const byte        *byte_p;
 typedef unsigned long long ularge;
-typedef long long          ilarge;
+typedef long long          large;
 typedef const char        *cstring;
 typedef const char        *utf8;
 typedef unsigned           utf8code;
 
 // Indicate that an argument may be unused
 #define UNUSED          __attribute__((unused))
+
+// Why, oh why does the library represent FP types as integers?
+struct bid128  { BID_UINT128 value; };
+struct bid64   { BID_UINT64  value; };
+struct bid32   { BID_UINT32  value; };
 
 #endif // TYPES_H

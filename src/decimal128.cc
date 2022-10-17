@@ -389,7 +389,7 @@ OBJECT_RENDERER_BODY(decimal128)
 
     // Render in a separate buffer to avoid overflows
     char buffer[50];            // bid128 with 34 digits takes at most 42 chars
-    bid128_to_string(buffer, &num);
+    bid128_to_string(buffer, &num.value);
     decimal_format(buffer, min(sizeof(buffer), r.length));
 
     // Adjust special characters

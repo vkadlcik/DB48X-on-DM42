@@ -85,7 +85,8 @@ CXX_SOURCES +=				\
 	$(DECIMAL_SOURCES)		\
 	src/rplstring.cc		\
 	src/symbol.cc			\
-	src/algebraic.cc
+	src/algebraic.cc		\
+	src/arithmetic.cc
 
 # Generate the sized variants of decimal128
 src/decimal-%.cc: src/decimal128.cc src/decimal-%.h

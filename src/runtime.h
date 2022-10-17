@@ -448,7 +448,10 @@ struct runtime
         {
             RT.GCSafe = this;
         }
-        gcptr(const gcptr &o) = delete;
+        gcptr(const gcptr &o): safe(o.safe), next(RT.GCSafe)
+        {
+            RT.GCSafe = this;
+        }
         ~gcptr()
         {
             gcptr *last = nullptr;
@@ -469,6 +472,11 @@ struct runtime
         operator byte  *() const   { return safe; }
         operator byte *&()         { return safe; }
         operator bool()            { return safe != nullptr; }
+        gcptr &operator =(const gcptr &o)
+        {
+            safe = o.safe;
+            return *this;
+        }
 
     private:
         byte  *safe;
@@ -489,10 +497,11 @@ struct runtime
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
-        operator Obj *() const  { return (Obj *) safe; }
-        operator Obj *&()       { return (Obj *&) safe; }
-        Obj operator *() const  { return *((Obj *) safe); }
-        Obj &operator *()       { return *((Obj *) safe); }
+        operator Obj *() const          { return (Obj *) safe; }
+        operator Obj *&()               { return (Obj *&) safe; }
+        Obj operator *() const          { return *((Obj *) safe); }
+        Obj &operator *()               { return *((Obj *) safe); }
+        Obj *operator ->() const        { return (Obj *) safe; }
 #pragma GCC diagnostic pop
     };
 
@@ -586,8 +595,11 @@ public:
 template<typename T>
 using gcp = runtime::gcp<T>;
 
-using gcstring = gcp<const char>;
+using gcstring  = gcp<const char>;
 using gcmstring = gcp<char>;
+using gcbytes   = gcp<const byte>;
+using gcmbytes  = gcp<byte>;
+using gcobj     = gcp<object>;
 
 
 

@@ -592,7 +592,7 @@ bool input::handle_editing(int key)
                 gcp<char> editor = RT.close_editor();
                 if (editor)
                 {
-                    object *obj = object::parse(editor);
+                    gcobj obj = object::parse(editor);
                     if (obj)
                     {
                         // We successfully parsed the line
@@ -606,7 +606,7 @@ bool input::handle_editing(int key)
                         cstring ed = editor;
                         if (pos >= editor && pos <= ed + edlen)
                             cursor = pos - ed;
-                        RT.edit(editor, edlen);
+                        RT.edit(ed, edlen);
                         beep(3300, 100);
                     }
                 }

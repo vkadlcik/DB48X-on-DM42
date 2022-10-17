@@ -74,10 +74,7 @@ struct special_integer : integer
     OBJECT_HANDLER_NO_ID(special_integer)
     {
         if (cmd == RENDER)
-        {
-            renderer *r = (renderer *) arg;
-            return obj->special_integer::object_renderer(r->begin, r->end, rt);
-        }
+            return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
         return DELEGATE(integer);
     }
     OBJECT_RENDERER(special_integer);

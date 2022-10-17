@@ -1,15 +1,15 @@
-#ifndef DECIMAL128_H
-#define DECIMAL128_H
+#ifndef PARSER_H
+#define PARSER_H
 // ****************************************************************************
-//  decimal128.h                                                 DB48X project
+//  parser.h                                                      DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//      Real numbers in decimal128 representation
+//     RPL parser information
 //
-//
-//
+//     The parser turns text into RPL objects.
+//     It needs to operate on objects that can move due to garbage collection
 //
 //
 //
@@ -32,45 +32,22 @@
 #include "object.h"
 #include "runtime.h"
 
-#include <bid_conf.h>
-#include <bid_functions.h>
-#include <cstring>
-
-struct decimal128 : object
+struct parser
 // ----------------------------------------------------------------------------
-//    Floating-point numbers in 128-bit decimal128 representation
+//  Arguments to the PARSE command
 // ----------------------------------------------------------------------------
 {
-    typedef BID_UINT128 bid128;
+    typedef object::id id;
 
-    decimal128(gcstring value, id type = ID_decimal128): object(type)
-    {
-        bid128 num;
-        bid128_from_string(&num, (cstring) value);
-        byte *p = payload();
-        memcpy(p, &num, sizeof(num));
-    }
+    parser(cstring source, size_t length)
+        : candidate(), source(source), length(length), end(), out(nullptr) {}
 
-    static size_t required_memory(id i, gcstring UNUSED value)
-    {
-        return leb128size(i) + sizeof(bid128);
-    }
-
-    bid128 value()
-    {
-        bid128 result;
-        byte *p = payload();
-        memcpy(&result, p, sizeof(result));
-        return result;
-    }
-
-    OBJECT_HANDLER(decimal128);
-    OBJECT_PARSER(decimal128);
-    OBJECT_RENDERER(decimal128);
+public:
+    id          candidate;      // Candidate ID for lookup
+    gcstring    source;         // Text to parse
+    size_t      length;         // Length to parse
+    size_t      end;            // End position after parsing
+    gcobj       out;            // Output object if any
 };
 
-
-// Utlity common to all formats to format a number for display
-void decimal_format(char *out, size_t len);
-
-#endif // DECIMAL128_H
+#endif // PARSER_H

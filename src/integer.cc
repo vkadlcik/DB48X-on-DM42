@@ -29,6 +29,8 @@
 
 #include "integer.h"
 
+#include "parser.h"
+#include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
 
@@ -52,15 +54,9 @@ OBJECT_HANDLER_BODY(integer)
     case SIZE:
         return ptrdiff(payload, obj) + leb128size(payload);
     case PARSE:
-    {
-        parser *p = (parser *) arg;
-        return object_parser(p->begin, &p->end, &p->output, rt);
-    }
+        return object_parser(OBJECT_PARSER_ARG(), rt);
     case RENDER:
-    {
-        renderer *r = (renderer *) arg;
-        return obj->object_renderer(r->begin, r->end, rt);
-    }
+        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
 
     default:
         // Check if anyone else knows how to deal with it
@@ -81,7 +77,7 @@ OBJECT_PARSER_BODY(integer)
     id          type       = ID_integer;
     const byte  NODIGIT    = (byte) -1;
 
-    record(integer, "Parsing [%s]", begin);
+    record(integer, "Parsing [%s]", p.source);
 
     // Array of values for digits
     static byte value[256] = { 0 };
@@ -98,28 +94,28 @@ OBJECT_PARSER_BODY(integer)
             value[c] = c - 'a' + 10;
     }
 
-    byte_p p = (byte_p) begin;
+    byte_p s = (byte_p) p.source;
     byte_p endp = nullptr;
 
-    if (*p == '-')
+    if (*s == '-')
     {
         sign = -1;
         type = ID_neg_integer;
-        p++;
+        s++;
     }
-    else if (*p == '+')
+    else if (*s == '+')
     {
         sign = 1;
-        p++;
+        s++;
     }
-    else if (*p == '#')
+    else if (*s == '#')
     {
-        p++;
-        for (byte_p e = p; !endp; e++)
+        s++;
+        for (byte_p e = s; !endp; e++)
             if (value[*e] == NODIGIT)
                 endp = e;
 
-        if (endp > p)
+        if (endp > s)
         {
             switch(endp[-1])
             {
@@ -154,32 +150,32 @@ OBJECT_PARSER_BODY(integer)
                 break;
             }
             endp--;
-            if (p >= endp)
+            if (s >= endp)
             {
-                rt.error("Invalid based number", p);
+                rt.error("Invalid based number", s);
                 return ERROR;
             }
         }
     }
 
     // If this is a + or - operator, skip
-    if (*p && value[*p] >= base)
+    if (*s && value[*s] >= base)
         return SKIP;
 
     // Loop on digits
     ularge result = 0;
     uint shift = sign < 0 ? 1 : 0;
     byte v;
-    while ((!endp || p < endp) && (v = value[*p++]) != NODIGIT)
+    while ((!endp || s < endp) && (v = value[*s++]) != NODIGIT)
     {
         if (v >= base)
         {
-            rt.error("Invalid digit for base", p-1);
+            rt.error("Invalid digit for base", s-1);
             return ERROR;
         }
         ularge next = result * base + v;
         record(integer, "Digit %c value %u value=%llu next=%llu",
-               p[-1], v, result, next);
+               s[-1], v, result, next);
 
         // If the value does not fit in an integer, defer to bignum / real
         if ((next << shift) <  result)
@@ -192,30 +188,22 @@ OBJECT_PARSER_BODY(integer)
     }
 
     // Skip base if one was given, else point at char that got us out
-    if (endp && p == endp)
-        p++;
+    if (endp && s == endp)
+        s++;
     else
-        p--;
+        s--;
 
 
     // Check if we finish with something indicative of a real number
-    if (*p == Settings.decimalDot || *p == (byte) Settings.exponentChar)
+    if (*s == Settings.decimalDot || *s == (byte) Settings.exponentChar)
         return SKIP;
 
-    if (end)
-        *end = (cstring) p;
+    // Record output
+    p.end = (cstring) s - (cstring) p.source;
     if (sign < 0)
-    {
-        // Write negative integer
-        if (out)
-            *out = rt.make<neg_integer>(type, result);
-    }
+        p.out = rt.make<neg_integer>(type, result);
     else
-    {
-        // Write unsigned value
-        if (out)
-            *out = rt.make<integer>(type, result);
-    }
+        p.out = rt.make<integer>(type, result);
 
     return OK;
 }
@@ -227,8 +215,8 @@ OBJECT_RENDERER_BODY(integer)
 // ----------------------------------------------------------------------------
 {
     ularge v = value<ularge>();
-    size_t result = snprintf(begin, end - begin, "%llu", v);
-    record(integer, "Render %llu (0x%llX) as [%s]", v, v, begin);
+    size_t result = snprintf(r.target, r.length, "%llu", v);
+    record(integer, "Render %llu (0x%llX) as [%s]", v, v, (cstring) r.target);
     return result;
 }
 
@@ -239,7 +227,7 @@ OBJECT_RENDERER_BODY(neg_integer)
 //   Render the negative integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(begin, end - begin, "-%llu", value<ularge>());
+    return snprintf(r.target, r.length, "-%llu", value<ularge>());
 }
 
 
@@ -249,7 +237,7 @@ OBJECT_RENDERER_BODY(hex_integer)
 //   Render the hexadecimal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(begin, end - begin, "#%llXh", value<ularge>());
+    return snprintf(r.target, r.length, "#%llXh", value<ularge>());
 }
 
 template<>
@@ -258,7 +246,7 @@ OBJECT_RENDERER_BODY(oct_integer)
 //   Render the octal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(begin, end - begin, "#%lloo", value<ularge>());
+    return snprintf(r.target, r.length, "#%lloo", value<ularge>());
 }
 
 template<>
@@ -267,7 +255,7 @@ OBJECT_RENDERER_BODY(dec_integer)
 //   Render the negative integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(begin, end - begin, "#%llud", value<ularge>());
+    return snprintf(r.target, r.length, "#%llud", value<ularge>());
 }
 
 template<>
@@ -278,7 +266,8 @@ OBJECT_RENDERER_BODY(bin_integer)
 {
     // Why is there no printf format for binary?
     ularge num = value<ularge>();
-    char *p = begin;
+    char  *p   = r.target;
+    char  *end = p + r.length;
     if (p < end)
         *p = '#';
     ularge testbit = num;
@@ -289,7 +278,7 @@ OBJECT_RENDERER_BODY(bin_integer)
     } while (testbit);
     if (p < end)
         *p = 'b';
-    size_t result = p + 1 - begin;
+    size_t result = p + 1 - (char *) r.target;
     do
     {
         *(--p) = (num & 1) ? '1' : '0';

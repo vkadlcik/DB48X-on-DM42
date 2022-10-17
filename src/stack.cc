@@ -82,7 +82,7 @@ void stack::draw_stack()
         dstk.write("%d", level+1);
 
         object *obj = RT.stack(level);
-        size_t size = obj->render(buf, buf + sizeof(buf));
+        size_t size = obj->render(buf, sizeof(buf));
         if (size >= sizeof(buf))
             size = sizeof(buf) - 1;
         buf[size] = 0;

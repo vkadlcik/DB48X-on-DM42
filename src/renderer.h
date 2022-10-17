@@ -1,12 +1,12 @@
-#ifndef DECIMAL128_H
-#define DECIMAL128_H
+#ifndef RENDERER_H
+#define RENDERER_H
 // ****************************************************************************
-//  decimal128.h                                                 DB48X project
+//  renderer.h                                                    DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//      Real numbers in decimal128 representation
+//
 //
 //
 //
@@ -32,45 +32,18 @@
 #include "object.h"
 #include "runtime.h"
 
-#include <bid_conf.h>
-#include <bid_functions.h>
-#include <cstring>
-
-struct decimal128 : object
+struct renderer
 // ----------------------------------------------------------------------------
-//    Floating-point numbers in 128-bit decimal128 representation
+//  Arguments to the RENDER command
 // ----------------------------------------------------------------------------
 {
-    typedef BID_UINT128 bid128;
+    renderer(object *what, char *target, size_t length)
+        : what(what), target(target), length(length) {}
 
-    decimal128(gcstring value, id type = ID_decimal128): object(type)
-    {
-        bid128 num;
-        bid128_from_string(&num, (cstring) value);
-        byte *p = payload();
-        memcpy(p, &num, sizeof(num));
-    }
-
-    static size_t required_memory(id i, gcstring UNUSED value)
-    {
-        return leb128size(i) + sizeof(bid128);
-    }
-
-    bid128 value()
-    {
-        bid128 result;
-        byte *p = payload();
-        memcpy(&result, p, sizeof(result));
-        return result;
-    }
-
-    OBJECT_HANDLER(decimal128);
-    OBJECT_PARSER(decimal128);
-    OBJECT_RENDERER(decimal128);
+    gcp<object> what;           // Object being rendered
+    gcp<char>   target;         // Output where we render the object
+    size_t      length;         // Length of the target
 };
 
 
-// Utlity common to all formats to format a number for display
-void decimal_format(char *out, size_t len);
-
-#endif // DECIMAL128_H
+#endif // RENDERER_H

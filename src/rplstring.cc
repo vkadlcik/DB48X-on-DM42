@@ -28,6 +28,9 @@
 // ****************************************************************************
 
 #include "rplstring.h"
+#include "parser.h"
+#include "renderer.h"
+
 #include "runtime.h"
 #include <stdio.h>
 
@@ -51,15 +54,9 @@ OBJECT_HANDLER_BODY(string)
         return ptrdiff(p, obj);
     }
     case PARSE:
-    {
-        parser *p = (parser *) arg;
-        return object_parser(p->begin, &p->end, &p->output, rt);
-    }
+        return object_parser(OBJECT_PARSER_ARG(), rt);
     case RENDER:
-    {
-        renderer *r = (renderer *) arg;
-        return obj->object_renderer(r->begin, r->end, rt);
-    }
+        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
 
     default:
         // Check if anyone else knows how to deal with it
@@ -75,26 +72,25 @@ OBJECT_PARSER_BODY(string)
 // ----------------------------------------------------------------------------
 //    For simplicity, this deals with all kinds of strings
 {
-    cstring p = begin;
-    if (*p++ != '"')
+    cstring source = p.source;
+    cstring s      = source;
+    if (*s++ != '"')
         return SKIP;
 
-    while (*p && *p++ != '"');
+    while (*s && *s++ != '"');
 
-    if (p[-1] != '"')
+    if (s[-1] != '"')
     {
-        rt.error("Invalid string", p);
+        rt.error("Invalid string", s);
         return ERROR;
     }
 
-    if (end)
-        *end = p;
+    size_t    parsed = s - source;
+    size_t    slen   = parsed - 2;
+    gcstring  text   = source + 1;
+    p.end            = parsed;
+    p.out            = rt.make<string>(ID_string, text, slen);
 
-    if (out)
-    {
-        size_t len = p - begin - 2;
-        *out = rt.make<string>(ID_string, (utf8) (begin+1), len);
-    }
     return OK;
 }
 
@@ -106,5 +102,5 @@ OBJECT_RENDERER_BODY(string)
 {
     size_t  len = 0;
     cstring txt = text(&len);
-    return snprintf(begin, end - begin, "\"%.*s\"", (int) len, txt);
+    return snprintf(r.target, r.length, "\"%.*s\"", (int) len, txt);
 }

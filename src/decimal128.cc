@@ -31,6 +31,8 @@
 
 #include "runtime.h"
 #include "settings.h"
+#include "parser.h"
+#include "renderer.h"
 
 #include <bid_conf.h>
 #include <bid_functions.h>
@@ -58,15 +60,9 @@ OBJECT_HANDLER_BODY(decimal128)
     case SIZE:
         return ptrdiff(payload, obj) + sizeof(bid128);
     case PARSE:
-    {
-        parser *p = (parser *) arg;
-        return object_parser(p->begin, &p->end, &p->output, rt);
-    }
+        return object_parser(OBJECT_PARSER_ARG(), rt);
     case RENDER:
-    {
-        renderer *r = (renderer *) arg;
-        return obj->object_renderer(r->begin, r->end, rt);
-    }
+        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
 
     default:
         // Check if anyone else knows how to deal with it
@@ -81,39 +77,39 @@ OBJECT_PARSER_BODY(decimal128)
 //    Try to parse this as an decimal128
 // ----------------------------------------------------------------------------
 {
-    record(decimal128, "Parsing [%s]", begin);
+    record(decimal128, "Parsing [%s]", p.source);
 
-    cstring p = begin;
+    cstring s = p.source;
 
     // Skip leading sign
-    if (*p == '+' || *p == '-')
-        p++;
+    if (*s == '+' || *s == '-')
+        s++;
 
     // Skip digits
-    cstring digits = p;
-    while (*p >= '0' && *p <= '9')
-        p++;
+    cstring digits = s;
+    while (*s >= '0' && *s <= '9')
+        s++;
 
     // If we had no digits, check for special names or exit
-    if (p == digits)
+    if (s == digits)
     {
-        if (strncasecmp(p, "inf", sizeof("inf") - 1) != 0 &&
-            strncasecmp(p, "NaN", sizeof("NaN") - 1) != 0)
+        if (strncasecmp(s, "inf", sizeof("inf") - 1) != 0 &&
+            strncasecmp(s, "NaN", sizeof("NaN") - 1) != 0)
             return SKIP;
-        record(decimal128, "Recognized NaN or Inf", begin);
+        record(decimal128, "Recognized NaN or Inf", s);
     }
 
     // Check decimal dot
     gcp<char> decimal = nullptr;
-    if (*p == '.' || *p == ',')
+    if (*s == '.' || *s == ',')
     {
-        decimal = (char *) p++;
-        while (*p >= '0' && *p <= '9')
-            p++;
+        decimal = (char *) s++;
+        while (*s >= '0' && *s <= '9')
+            s++;
     }
 
     // Check how many digits were given
-    uint mantissa = p - digits;
+    uint mantissa = s - digits;
     record(decimal128, "Had %u digits, max %u", mantissa, BID128_MAXDIGITS);
     if (mantissa >= BID128_MAXDIGITS)
     {
@@ -123,15 +119,15 @@ OBJECT_PARSER_BODY(decimal128)
 
     // Check exponent
     gcp<char> exponent = nullptr;
-    if (*p == 'e' || *p == 'E' || *p == Settings.exponentChar)
+    if (*s == 'e' || *s == 'E' || *s == Settings.exponentChar)
     {
-        exponent = (char *) p++;
-        if (*p == '+' || *p == '-')
-            p++;
-        cstring expval = p;
-        while (*p >= '0' && *p <= '9')
-            p++;
-        if (p == expval)
+        exponent = (char *) s++;
+        if (*s == '+' || *s == '-')
+            s++;
+        cstring expval = s;
+        while (*s >= '0' && *s <= '9')
+            s++;
+        if (s == expval)
         {
             rt.error("Malformed exponent");
             return ERROR;
@@ -166,11 +162,9 @@ OBJECT_PARSER_BODY(decimal128)
         *exponent = 'e';
     }
 
-    // Parse the number
-    if (end)
-        *end = p;
-    if (out)
-        *out = rt.make<decimal128>(ID_decimal128, begin);
+    // Create the number (which may GC, hence the need for gcp)
+    p.end = s - (cstring) p.source;
+    p.out = rt.make<decimal128>(ID_decimal128, p.source);
 
     // Restore the patched input
     if (decimal)
@@ -396,7 +390,7 @@ OBJECT_RENDERER_BODY(decimal128)
     // Render in a separate buffer to avoid overflows
     char buffer[50];            // bid128 with 34 digits takes at most 42 chars
     bid128_to_string(buffer, &num);
-    decimal_format(buffer, sizeof(buffer));
+    decimal_format(buffer, min(sizeof(buffer), r.length));
 
     // Adjust special characters
     for (char *p = buffer; *p && p < buffer + sizeof(buffer); p++)
@@ -406,5 +400,5 @@ OBJECT_RENDERER_BODY(decimal128)
             *p = Settings.decimalDot;
 
     // And return it to the caller
-    return snprintf(begin, end - begin, "%s", buffer);
+    return snprintf(r.target, r.length, "%s", buffer);
 }

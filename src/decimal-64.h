@@ -30,6 +30,7 @@
 // ****************************************************************************
 
 #include "object.h"
+#include "runtime.h"
 
 #include <bid_conf.h>
 #include <bid_functions.h>
@@ -42,15 +43,15 @@ struct decimal64 : object
 {
     typedef BID_UINT64 bid64;
 
-    decimal64(cstring value, id type = ID_decimal64): object(type)
+    decimal64(gcstring value, id type = ID_decimal64): object(type)
     {
         bid64 num;
-        bid64_from_string(&num, value);
+        bid64_from_string(&num, (cstring) value);
         byte *p = payload();
         memcpy(p, &num, sizeof(num));
     }
 
-    static size_t required_memory(id i, cstring UNUSED value)
+    static size_t required_memory(id i, gcstring UNUSED value)
     {
         return leb128size(i) + sizeof(bid64);
     }

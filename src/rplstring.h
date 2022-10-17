@@ -30,21 +30,23 @@
 // ****************************************************************************
 
 #include "object.h"
+#include "runtime.h"
 
 struct string : object
 // ----------------------------------------------------------------------------
 //    Represent string objects
 // ----------------------------------------------------------------------------
 {
-    string(utf8 str, size_t len, id type = ID_string): object(type)
+    string(gcstring source, size_t len, id type = ID_string): object(type)
     {
-        byte *p = payload();
+        cstring s = (cstring) source;
+        char *p = (char *) payload();
         p = leb128(p, len);
         while (len--)
-            *p++ = *str++;
+            *p++ = *s++;
     }
 
-    static size_t required_memory(id i, utf8 UNUSED str, size_t len)
+    static size_t required_memory(id i, gcstring UNUSED str, size_t len)
     {
         return leb128size(i) + leb128size(len) + len;
     }

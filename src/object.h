@@ -51,6 +51,8 @@
 #include "recorder.h"
 
 struct runtime;
+struct parser;
+struct renderer;
 
 RECORDER_DECLARE(object);
 RECORDER_DECLARE(parse);
@@ -189,21 +191,26 @@ struct object
         run(rt, EVAL);
     }
 
-    size_t render(char *output, cstring end, runtime &rt = RT)
+    size_t render(char *output, size_t length, runtime &rt = RT);
     // ------------------------------------------------------------------------
-    //    Render the object according to its type
+    //   Render the object into a buffer
     // ------------------------------------------------------------------------
-    {
-        record(render, "Rendering %+s %p", name(), this);
-        renderer r = { .begin = output, .end = end };
-        return run(rt, RENDER, &r);
-    }
 
-    static object *parse(cstring beg, cstring *end = nullptr, runtime &rt = RT);
+
+    static object *parse(cstring source, size_t &size, runtime &rt = RT);
     // ------------------------------------------------------------------------
     //  Try parsing the object as a top-level temporary
     // ------------------------------------------------------------------------
 
+
+    static object *parse(cstring source, runtime &rt = RT)
+    // ------------------------------------------------------------------------
+    //  Try parsing an object without specifying input size
+    // ------------------------------------------------------------------------
+    {
+        size_t size = (size_t) -1;
+        return parse(source, size, rt);
+    }
 
     static intptr_t run(runtime &rt, id type, command cmd, void *arg = nullptr)
     // ------------------------------------------------------------------------
@@ -286,47 +293,21 @@ struct object
 
 
 protected:
-    struct parser
-    // ------------------------------------------------------------------------
-    //  Arguments to the PARSE command
-    // ------------------------------------------------------------------------
-    {
-        id      candidate; // Candidate ID for lookup
-        cstring begin;     // REVISIT: Should really be gcptr<char>
-        cstring end;       // REVISIT: gcptr<char>
-        object *output;
-    };
-
-    struct renderer
-    // ------------------------------------------------------------------------
-    //  Arguments to the RENDER command
-    // ------------------------------------------------------------------------
-    {
-        char   *begin;          // Buffer where we can write
-        cstring end;
-    };
-
-
-
 #define OBJECT_PARSER(type)                                             \
-    static result object_parser(cstring begin, cstring *end,            \
-                                object **out,                           \
-                                runtime & UNUSED rt = RT)
+    static result object_parser(parser &p, runtime & UNUSED rt = RT)
 
 #define OBJECT_PARSER_BODY(type)                            \
-  object::result type::object_parser(cstring         begin, \
-                                     cstring        *end,   \
-                                     object        **out,   \
-                                     runtime &UNUSED rt)
+    object::result type::object_parser(parser &p, runtime &UNUSED rt)
+
+#define OBJECT_PARSER_ARG()     (*((parser *) arg))
 
 #define OBJECT_RENDERER(type)                           \
-    intptr_t object_renderer(char *begin, cstring end,  \
-                             runtime &UNUSED rt = RT)
+    intptr_t object_renderer(renderer &r, runtime &UNUSED rt = RT)
 
 #define OBJECT_RENDERER_BODY(type)                              \
-    intptr_t type::object_renderer(char *begin, cstring end,    \
-                                   runtime &UNUSED rt)
+    intptr_t type::object_renderer(renderer &r, runtime &UNUSED rt)
 
+#define OBJECT_RENDERER_ARG()   (*((renderer *) arg))
 
     // The actual work is done here
 #define OBJECT_HANDLER_NO_ID(type)                              \

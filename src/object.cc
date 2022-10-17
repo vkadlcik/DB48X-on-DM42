@@ -29,10 +29,12 @@
 
 #include "object.h"
 
-#include "integer.h"
-#include "decimal128.h"
-#include "decimal-64.h"
 #include "decimal-32.h"
+#include "decimal-64.h"
+#include "decimal128.h"
+#include "integer.h"
+#include "parser.h"
+#include "renderer.h"
 #include "rplstring.h"
 #include "runtime.h"
 
@@ -90,13 +92,13 @@ void object::error(cstring message, cstring source, runtime &rt)
 }
 
 
-object *object::parse(cstring beg, cstring *end, runtime &rt)
+object *object::parse(cstring source, size_t &size, runtime &rt)
 // ----------------------------------------------------------------------------
 //  Try parsing the object as a top-level temporary
 // ----------------------------------------------------------------------------
 {
-    record(parse, ">Parsing [%s]", beg);
-    parser p = { .begin = beg, .end = beg, .output = nullptr };
+    record(parse, ">Parsing [%s]", source);
+    parser p(source, size);
     result r = SKIP;
     cstring err = nullptr;
     cstring src = nullptr;
@@ -105,12 +107,11 @@ object *object::parse(cstring beg, cstring *end, runtime &rt)
     for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
     {
         p.candidate = id(i);
-        record(parse_attempts, "Trying [%s] against %+s",
-               beg, name(id(i)));
+        record(parse_attempts, "Trying [%s] against %+s", src, name(id(i)));
         r = (result) handler[i](rt, PARSE, &p, nullptr, nullptr);
         if (r != SKIP)
             record(parse_attempts, "Result was %+s (%d) for [%s]",
-                   name(r), r, beg);
+                   name(r), r, source);
         if (r == WARN)
         {
             err = rt.error();
@@ -120,21 +121,30 @@ object *object::parse(cstring beg, cstring *end, runtime &rt)
         }
     }
 
-    record(parse, "<Done parsing [%s], end is at %d", beg, p.end - beg);
-    if (end)
-        *end = p.end;
+    record(parse, "<Done parsing [%s], end is at %d", source, p.end);
+    size = p.end;
 
     if (r == SKIP)
     {
         if (err)
             error(err, src);
         else
-            error("Syntax error", beg);
+            error("Syntax error", source);
     }
 
-    return r == OK ? p.output : nullptr;
+    return r == OK ? p.out : nullptr;
 }
 
+
+size_t object::render(char *output, size_t length, runtime &rt)
+// ----------------------------------------------------------------------------
+//   Render the object in a text buffer
+// ----------------------------------------------------------------------------
+{
+    record(render, "Rendering %+s %p into %p", name(), this, output);
+    renderer r(this, output, length);
+    return run(rt, RENDER, &r);
+}
 
 
 OBJECT_HANDLER_BODY(object)
@@ -152,26 +162,27 @@ OBJECT_HANDLER_BODY(object)
     case PARSE:
     {
         // Default is to identify an object by its name
-        parser *p = (parser *) arg;
-        if (p->candidate != ID_object)
+        parser &p = OBJECT_PARSER_ARG();
+        if (p.candidate != ID_object)
         {
-            cstring name = object::name(p->candidate);
+            cstring name = object::name(p.candidate);
             size_t len = strlen(name);
-            if (strncasecmp(name, p->begin, len) == 0 && !isalnum(p->begin[len]))
+            if (strncasecmp(name, p.source, len) == 0)
             {
-                p->end = p->begin + len;
-                p->output = obj;
-                return OK;
+                cstring src = p.source;
+                char last = src[len];
+                if (!last || isspace(last))
+                {
+                    p.end = len;
+                    p.out = obj;
+                    return OK;
+                }
             }
         }
         return SKIP;
     }
     case RENDER:
-    {
-        renderer *out = (renderer *) arg;
-        return snprintf(out->begin, out->end - out->begin,
-                        "<Unknown object %p>", obj);
-    }
+        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
     default:
         return SKIP;
     }
@@ -184,11 +195,9 @@ OBJECT_PARSER_BODY(object)
 // ----------------------------------------------------------------------------
 //   This would only be called if a derived class forgets to implement a parser
 {
-    if (out)
-        *out = nullptr;
-    if (end)
-        *end = begin;
-    rt.error("Default object parser called", begin);
+    p.out = nullptr;
+    p.end = 0;
+    rt.error("Default object parser called", (cstring) p.source);
     return ERROR;
 }
 
@@ -200,5 +209,5 @@ OBJECT_RENDERER_BODY(object)
 //   Returns number of bytes needed - If larger than end - begin, retry
 {
     rt.error("Rendering unimplemented object");
-    return snprintf(begin, end - begin, "<Unimplemented object renderer>");
+    return snprintf(r.target, r.length, "<Unknown %p>", this);
 }

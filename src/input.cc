@@ -558,6 +558,10 @@ bool input::handle_shifts(int key)
             xshift = true;
             shift  = false;
         }
+        else if (xshift)
+        {
+            xshift = false;
+        }
         else
         {
             xshift = false;

@@ -120,6 +120,10 @@ void tests::keyboard_entry()
     step("Separators");
     cstring seps = "[](){}\"Hello\"'Test'";
     test(CLEAR, seps).editor(seps).wait(500);
+
+    step("Key repeat");
+    test(CLEAR, SHIFT, SHIFT, LONGPRESS, A).wait(1000).test(RELEASE)
+        .check(Input.cursor > 4);
 }
 
 
@@ -131,8 +135,10 @@ void tests::data_types()
     begin("Data types");
 
     step("Integers");
-    test(CLEAR, "1", ENTER).type(object::ID_integer).expect("1");
-    test(CLEAR, "-1", ENTER).type(object::ID_neg_integer).expect("-1");
+    test(CLEAR, "1", ENTER)
+        .type(object::ID_integer).expect("1");
+    test(CLEAR, "-1", ENTER)
+        .type(object::ID_neg_integer).expect("-1");
 }
 
 
@@ -604,7 +610,6 @@ tests &tests::wait(uint ms)
 //   Force a delay after the calculator was ready
 // ----------------------------------------------------------------------------
 {
-    ready();
     sys_delay(ms);
     return *this;
 }

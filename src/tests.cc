@@ -42,7 +42,7 @@ void tests::run()
 //   Run all test categories
 // ----------------------------------------------------------------------------
 {
-    tindex = sindex = cindex = 0;
+    tindex = sindex = cindex = count = 0;
     failures.clear();
 
     shift_logic();
@@ -181,6 +181,7 @@ tests &tests::step(cstring name)
         fprintf(stderr, "[%s]\n", ok ? "PASS" : "FAIL");
     fprintf(stderr, "%3u:  %03u: %-64s", tindex, sindex, sname);
     cindex = 0;
+    count++;
     ok = true;
 
     return *this;
@@ -234,7 +235,7 @@ tests &tests::summary()
         }
     }
     fprintf(stderr, "Ran %u tests, %zu failures\n",
-            tindex, failures.size());
+            count, failures.size());
     return *this;
 }
 

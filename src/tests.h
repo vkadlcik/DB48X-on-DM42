@@ -41,7 +41,7 @@ struct tests
 // ----------------------------------------------------------------------------
 {
     tests()
-        : tname(), sname(), tindex(), sindex(), cindex(),
+        : tname(), sname(), tindex(), sindex(), cindex(), count(),
           ok(), longpress(), failures()
     { }
 
@@ -213,6 +213,7 @@ struct tests
     uint                 tindex;
     uint                 sindex;
     uint                 cindex;
+    uint                 count;
     int                  lcd_update;
     bool                 ok;
     bool                 longpress;

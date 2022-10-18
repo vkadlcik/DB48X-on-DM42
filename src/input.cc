@@ -104,6 +104,7 @@ bool input::end_edit()
             }
         }
     }
+    alpha = shift = xshift = false;
     return true;
 }
 
@@ -722,7 +723,7 @@ bool input::handle_alpha(int key)
 //    Handle alphabetic input
 // ----------------------------------------------------------------------------
 {
-    if (!alpha || !key)
+    if (!alpha || !key || key == KEY_ENTER || key == KEY_BSP)
         return false;
 
     static const char upper[] =

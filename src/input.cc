@@ -845,7 +845,7 @@ bool input::handle_digits(int key)
         "_0.__"
         "_____";
 
-    if (key == KEY_CHS)
+    if (key == KEY_CHS && RT.editing())
     {
         // Special case for change of sign
         char *ed = RT.editor();
@@ -879,6 +879,8 @@ bool input::handle_digits(int key)
             return false;
         if (c == '.')
             c = Settings.decimalDot;
+        if (c == '4' && shift)
+            c = '#';
         cursor += RT.insert(cursor, c);
         repeat = true;
         return true;

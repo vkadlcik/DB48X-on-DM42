@@ -29,6 +29,7 @@
 
 #include "algebraic.h"
 
+#include "integer.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -59,4 +60,34 @@ OBJECT_HANDLER_BODY(algebraic)
         // Check if anyone else knows how to deal with it
         return DELEGATE(command);
     }
+}
+
+
+// ============================================================================
+//
+//   Simple operators
+//
+// ============================================================================
+
+ALGEBRAIC_BODY(inv)
+// ----------------------------------------------------------------------------
+//   Invert is implemented as 1/x
+// ----------------------------------------------------------------------------
+{
+    RT.push(RT.make<integer>(ID_integer, 1));
+    run(ID_swap);
+    run(ID_div);
+    return OK;
+}
+
+
+ALGEBRAIC_BODY(neg)
+// ----------------------------------------------------------------------------
+//   Negate is implemented as 0-x
+// ----------------------------------------------------------------------------
+{
+    RT.push(RT.make<integer>(ID_integer, 0));
+    run(ID_swap);
+    run(ID_sub);
+    return OK;
 }

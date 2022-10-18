@@ -75,6 +75,8 @@ OP(add, "+")
 OP(sub, "-")
 ALIASED_OP(mul, "\x81", "*")     // ×
 ALIASED_OP(div, "\x80", "/")     // ÷
+NAMED(neg, "Negate")
+NAMED(inv, "Invert")
 
 #undef ID
 #undef OP

@@ -58,7 +58,7 @@ protected:
 };
 
 
-#define ARITHMETIC_DECLARE(derived, arit, prec)                         \
+#define ARITHMETIC_DECLARE(derived, Arity, Precedence)                  \
 /* ----------------------------------------------------------------- */ \
 /*  Macro to define an arithmetic command                            */ \
 /* ----------------------------------------------------------------- */ \
@@ -66,8 +66,8 @@ struct derived : arithmetic                                             \
 {                                                                       \
     derived(id i = ID_##derived) : arithmetic(i) {}                     \
                                                                         \
-    static uint arity()             { return arit; }                    \
-    static uint precedence()        { return prec; }                    \
+    static uint arity()             { return Arity; }                   \
+    static uint precedence()        { return Precedence; }              \
                                                                         \
     static bool integer_ok(id &xt, id &yt, ularge &xv, ularge &yv);     \
     static bool non_numeric(gcobj &x, gcobj &y, id &xt, id &yt);        \
@@ -80,7 +80,9 @@ struct derived : arithmetic                                             \
         if (op == EVAL)                                                 \
         {                                                               \
             RT.command(long_name[ID_##derived]);                        \
-            return ((derived *) obj)->evaluate();                       \
+            if (!Arity || RT.stack(Arity-1))                            \
+                return ((derived *) obj)->evaluate();                   \
+            return ERROR;                                               \
         }                                                               \
         return DELEGATE(arithmetic);                                    \
     }                                                                   \
@@ -94,6 +96,5 @@ ARITHMETIC_DECLARE(add, 2, 5);
 ARITHMETIC_DECLARE(sub, 2, 5);
 ARITHMETIC_DECLARE(mul, 2, 7);
 ARITHMETIC_DECLARE(div, 2, 7);
-
 
 #endif // ARITHMETIC

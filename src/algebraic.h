@@ -57,7 +57,7 @@ struct algebraic : command
 };
 
 
-#define ALGEBRAIC_DECLARE(derived, arit, prec)                          \
+#define ALGEBRAIC_DECLARE(derived, Arity, Precedence)                   \
 /* ----------------------------------------------------------------- */ \
 /*  Macro to define an algebraic command                             */ \
 /* ----------------------------------------------------------------- */ \
@@ -65,15 +65,17 @@ struct derived : algebraic                                              \
 {                                                                       \
     derived(id i = ID_##derived) : algebraic(i) {}                      \
                                                                         \
-    static uint arity()             { return arit; }                    \
-    static uint precedence()        { return prec; }                    \
+    static uint arity()             { return Arity; }                   \
+    static uint precedence()        { return Precedence; }              \
                                                                         \
     OBJECT_HANDLER(derived)                                             \
     {                                                                   \
         if (op == EVAL)                                                 \
         {                                                               \
             RT.command(#derived);                                       \
-            return ((derived *) obj)->evaluate();                       \
+            if (!Arity || RT.stack(Arity-1))                            \
+                return ((derived *) obj)->evaluate();                   \
+            return ERROR;                                               \
         }                                                               \
         return DELEGATE(command);                                       \
     }                                                                   \
@@ -86,5 +88,15 @@ struct derived : algebraic                                              \
 #define ALGEBRAIC(derived, arit, prec)          \
     ALGEBRAIC_DECLARE(derived, arit, prec);     \
     inline ALGEBRAIC_BODY(derived)
+
+
+// ============================================================================
+//
+//   Simple operations
+//
+// ============================================================================
+
+ALGEBRAIC_DECLARE(inv, 1, 3);
+ALGEBRAIC_DECLARE(neg, 1, 3);
 
 #endif // ALGEBRAIC_H

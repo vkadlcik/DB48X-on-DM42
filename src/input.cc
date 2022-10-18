@@ -907,7 +907,7 @@ static const byte defaultUnshiftedCommand[2*input::NUM_KEYS] =
     (id) < 0x80 ?   0  : ((id) >> 7)
 
     OP2BYTES(KEY_SIGMA, 0),
-    OP2BYTES(KEY_INV, 0),
+    OP2BYTES(KEY_INV, command::ID_inv),
     OP2BYTES(KEY_SQRT, 0),
     OP2BYTES(KEY_LOG, 0),
     OP2BYTES(KEY_LN, 0),
@@ -920,7 +920,7 @@ static const byte defaultUnshiftedCommand[2*input::NUM_KEYS] =
     OP2BYTES(KEY_TAN, 0),
     OP2BYTES(KEY_ENTER, command::ID_dup),
     OP2BYTES(KEY_SWAP, command::ID_swap),
-    OP2BYTES(KEY_CHS, 0),
+    OP2BYTES(KEY_CHS, command::ID_neg),
     OP2BYTES(KEY_E, 0),
     OP2BYTES(KEY_BSP, command::ID_drop),
     OP2BYTES(KEY_UP, 0),

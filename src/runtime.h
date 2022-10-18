@@ -399,7 +399,7 @@ struct runtime
     {
         if (StackTop >= StackBottom)
         {
-            error("Stack is empty");
+            error("Too few arguments");
             return nullptr;
         }
         return *StackTop;
@@ -411,7 +411,7 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         if (StackTop >= StackBottom)
-            error("Cannot replace empty stack");
+            error("Too few arguments");
         else
             *StackTop = obj;
     }
@@ -423,7 +423,7 @@ struct runtime
     {
         if (StackTop >= StackBottom)
         {
-            error("Stack is empty");
+            error("Too few arguments");
             return nullptr;
         }
         return *StackTop++;
@@ -435,7 +435,10 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         if (idx >= depth())
-            return error("Not enough arguments"), nullptr;
+        {
+            error("Too few arguments");
+            return nullptr;
+        }
         return StackTop[idx];
     }
 
@@ -445,7 +448,7 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         if (idx >= depth())
-            error("Insufficient stack depth");
+            error("Too few arguments");
         else
             StackTop[idx] = obj;
     }
@@ -456,7 +459,7 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         if (count > depth())
-            error("Not enough arguments");
+            error("Too few arguments");
         else
             StackTop += count;
     }
@@ -484,7 +487,7 @@ struct runtime
     {
         if (available(sizeof(callee)) < sizeof(callee))
         {
-            error("Too many recursive calls");
+            error("Too many calls");
             return;
         }
         StackTop--;
@@ -502,7 +505,7 @@ struct runtime
     {
         if ((byte *) Returns >= (byte *) HighMem)
         {
-            error("Cannot return without a caller");
+            error("Return without a caller");
             return;
         }
         Code = *Returns++;

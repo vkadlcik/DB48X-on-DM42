@@ -72,9 +72,45 @@ input::input()
 }
 
 
-void input::end_edit()
+bool input::end_edit()
 // ----------------------------------------------------------------------------
 //   Clear the editor
+// ----------------------------------------------------------------------------
+{
+    size_t edlen = RT.editing();
+    if (edlen)
+    {
+        gcp<char> editor = RT.close_editor();
+        if (editor)
+        {
+            gcobj obj = object::parse(editor);
+            if (obj)
+            {
+                // We successfully parsed the line
+                clear_editor();
+                obj->evaluate();
+            }
+            else
+            {
+                // Move cursor to error if there is one
+                cstring pos = RT.source();
+                cstring ed = editor;
+                if (pos >= editor && pos <= ed + edlen)
+                    cursor = pos - ed;
+                if (!RT.edit(ed, edlen))
+                    cursor = 0;
+                beep(3300, 100);
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+void input::clear_editor()
+// ----------------------------------------------------------------------------
+//   Clear the editor either after edit, or when pressing EXIT
 // ----------------------------------------------------------------------------
 {
     RT.clear();
@@ -594,29 +630,7 @@ bool input::handle_editing(int key)
             else
             {
                 // Finish editing and parse the result
-                size_t edlen = RT.editing();
-                gcp<char> editor = RT.close_editor();
-                if (editor)
-                {
-                    gcobj obj = object::parse(editor);
-                    if (obj)
-                    {
-                        // We successfully parsed the line
-                        end_edit();
-                        obj->evaluate();
-                    }
-                    else
-                    {
-                        // Move cursor to error if there is one
-                        cstring pos = RT.source();
-                        cstring ed = editor;
-                        if (pos >= editor && pos <= ed + edlen)
-                            cursor = pos - ed;
-                        if (!RT.edit(ed, edlen))
-                            cursor = 0;
-                        beep(3300, 100);
-                    }
-                }
+                end_edit();
             }
             return true;
         }
@@ -629,7 +643,7 @@ bool input::handle_editing(int key)
                 RT.error(nullptr);
             else
                 // Clear the editor
-                end_edit();
+                clear_editor();
             return true;
 
         case KEY_UP:
@@ -1097,8 +1111,12 @@ bool input::handle_functions(int key)
     const byte *ptr = defaultCommand[plane] + 2 * (key - 1);
     if (*ptr)
     {
-        obj = (object *) ptr; // Uh oh! Evaluate bytecode in ROM
-        obj->evaluate();
+        // If we have the editor open, need to close it
+        if (end_edit())
+        {
+            obj = (object *) ptr; // Uh oh! Evaluate bytecode in ROM
+            obj->evaluate();
+        }
         return true;
     }
 

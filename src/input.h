@@ -82,7 +82,8 @@ struct input
 
 
 protected:
-    void        end_edit();
+    bool        end_edit();
+    void        clear_editor();
 
     bool        handle_shifts(int key);
     bool        handle_editing(int key);

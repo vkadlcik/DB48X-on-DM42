@@ -594,6 +594,7 @@ void sys_sleep()
                 return;
         QThread::msleep(20);
     }
+    CLR_ST(STAT_SUSPENDED | STAT_OFF | STAT_PGM_END);
 }
 
 void sys_timer_disable(int timer_ix)

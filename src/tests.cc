@@ -134,10 +134,11 @@ void tests::data_types()
 {
     begin("Data types");
 
-    step("Integers");
+    step("Positive integer");
     test(CLEAR, "1", ENTER)
         .type(object::ID_integer).expect("1");
-    test(CLEAR, "-1", ENTER)
+    step("Negative integer");
+    test(CLEAR, "1", CHS, ENTER)
         .type(object::ID_neg_integer).expect("-1");
 }
 

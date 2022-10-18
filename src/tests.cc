@@ -140,6 +140,30 @@ void tests::data_types()
     step("Negative integer");
     test(CLEAR, "1", CHS, ENTER)
         .type(object::ID_neg_integer).expect("-1");
+
+    step("Binary based integer");
+    test(CLEAR, "#10010101b", ENTER)
+        .type(object::ID_bin_integer).expect("#10010101b");
+    test(CLEAR, "#101B", ENTER)
+        .type(object::ID_bin_integer).expect("#101b");
+
+    step("Decimal based integer");
+    test(CLEAR, "#12345d", ENTER)
+        .type(object::ID_dec_integer).expect("#12345d");
+    test(CLEAR, "#123D", ENTER)
+        .type(object::ID_dec_integer).expect("#123d");
+
+    step("Octal based integer");
+    test(CLEAR, "#12345o", ENTER)
+        .type(object::ID_oct_integer).expect("#12345o");
+    test(CLEAR, "#123O", ENTER)
+        .type(object::ID_oct_integer).expect("#123o");
+
+    step("Hexadecimal based integer");
+    test(CLEAR, "#1234ABCDH", ENTER)
+        .type(object::ID_hex_integer).expect("#1234ABCDh");
+    test(CLEAR, "#DEADBEEFH", ENTER)
+        .type(object::ID_hex_integer).expect("#DEADBEEFh");
 }
 
 
@@ -630,6 +654,7 @@ tests &tests::expect(cstring output)
         top->render(buffer, sizeof(buffer), rt);
         if (strcmp(output, buffer) == 0)
             return *this;
+        return fail();
     }
     return fail();
 }

@@ -268,7 +268,7 @@ OBJECT_RENDERER_BODY(bin_integer)
     char  *p   = r.target;
     char  *end = p + r.length;
     if (p < end)
-        *p = '#';
+        *p++ = '#';
     ularge testbit = num;
     do
     {
@@ -277,6 +277,8 @@ OBJECT_RENDERER_BODY(bin_integer)
     } while (testbit);
     if (p < end)
         *p = 'b';
+    if (p+1 < end)
+        p[1] = 0;
     size_t result = p + 1 - (char *) r.target;
     do
     {

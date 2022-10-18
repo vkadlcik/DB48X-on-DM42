@@ -158,7 +158,7 @@ struct object
     //  Compute the size of the object by calling the handler with SIZE
     // ------------------------------------------------------------------------
     {
-        return (size_t) run(rt, SIZE);
+        return (size_t) run(SIZE, rt);
     }
 
     object *skip(runtime &rt = RT)
@@ -193,7 +193,7 @@ struct object
     // ------------------------------------------------------------------------
     {
         record(eval, "Evaluating %+s %p", name(), this);
-        run(rt, EVAL);
+        run(EVAL, rt);
     }
 
     size_t render(char *output, size_t length, runtime &rt = RT);
@@ -341,7 +341,10 @@ struct object
     //
     // ========================================================================
 
-    static intptr_t run(runtime &rt, id type, opcode op, void *arg = nullptr)
+    static intptr_t run(id       type,
+                        opcode   op  = EVAL,
+                        runtime &rt  = RT,
+                        void    *arg = nullptr)
     // ------------------------------------------------------------------------
     //  Run a command without an object
     // ------------------------------------------------------------------------
@@ -356,7 +359,7 @@ struct object
         return handler[type](rt, op, arg, nullptr, nullptr);
     }
 
-    intptr_t run(runtime &rt, opcode op, void *arg = nullptr)
+    intptr_t run(opcode op, runtime &rt = RT, void *arg = nullptr)
     // ------------------------------------------------------------------------
     //  Run an arbitrary command on the object
     // ------------------------------------------------------------------------
@@ -373,6 +376,7 @@ struct object
         record(run, "Dynamic run %+s op %+s", name(type), name(op));
         return handler[type](rt, op, arg, this, (object *) ptr);
     }
+
 
 
 protected:

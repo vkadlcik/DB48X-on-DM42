@@ -147,7 +147,7 @@ size_t object::render(char *output, size_t length, runtime &rt)
 {
     record(render, "Rendering %+s %p into %p", name(), this, output);
     renderer r(this, output, length);
-    return run(rt, RENDER, &r);
+    return run(RENDER, rt, &r);
 }
 
 

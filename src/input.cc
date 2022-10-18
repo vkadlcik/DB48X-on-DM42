@@ -115,9 +115,14 @@ void input::clear_editor()
 // ----------------------------------------------------------------------------
 {
     RT.clear();
-    cursor  = 0;
-    xoffset = 0;
-    alpha   = false;
+    cursor    = 0;
+    xoffset   = 0;
+    alpha     = false;
+    shift     = false;
+    xshift    = false;
+    lowercase = false;
+    longpress = false;
+    repeat    = false;
 }
 
 

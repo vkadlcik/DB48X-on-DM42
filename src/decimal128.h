@@ -71,6 +71,24 @@ struct decimal128 : object
         memcpy(p, &num, sizeof(num));
     }
 
+    decimal128(uint32_t value, id type = ID_decimal128): object(type)
+    {
+        bid128 num;
+        // Bug in the BID library, which uses int and not int32_t
+        bid128_from_uint32(&num.value, (uint *) &value);
+        byte *p = payload();
+        memcpy(p, &num, sizeof(num));
+    }
+
+    decimal128(int32_t value, id type = ID_decimal128): object(type)
+    {
+        bid128 num;
+        // Bug in the BID library, which uses int and not int32_t
+        bid128_from_int32(&num.value, (int *) &value);
+        byte *p = payload();
+        memcpy(p, &num, sizeof(num));
+    }
+
 #if 128 > 64
     decimal128(const bid64 &value, id type = ID_decimal128): object(type)
     {

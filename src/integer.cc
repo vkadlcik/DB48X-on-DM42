@@ -214,7 +214,7 @@ OBJECT_RENDERER_BODY(integer)
 // ----------------------------------------------------------------------------
 {
     ularge v = value<ularge>();
-    size_t result = snprintf(r.target, r.length, "%llu", v);
+    size_t result = snprintf(r.target, r.length, "%lu", v);
     record(integer, "Render %llu (0x%llX) as [%s]", v, v, (cstring) r.target);
     return result;
 }
@@ -226,7 +226,7 @@ OBJECT_RENDERER_BODY(neg_integer)
 //   Render the negative integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(r.target, r.length, "-%llu", value<ularge>());
+    return snprintf(r.target, r.length, "-%lu", value<ularge>());
 }
 
 
@@ -236,7 +236,7 @@ OBJECT_RENDERER_BODY(hex_integer)
 //   Render the hexadecimal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(r.target, r.length, "#%llXh", value<ularge>());
+    return snprintf(r.target, r.length, "#%lXh", value<ularge>());
 }
 
 template<>
@@ -245,7 +245,7 @@ OBJECT_RENDERER_BODY(oct_integer)
 //   Render the octal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(r.target, r.length, "#%lloo", value<ularge>());
+    return snprintf(r.target, r.length, "#%loo", value<ularge>());
 }
 
 template<>
@@ -254,7 +254,7 @@ OBJECT_RENDERER_BODY(dec_integer)
 //   Render the negative integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(r.target, r.length, "#%llud", value<ularge>());
+    return snprintf(r.target, r.length, "#%lud", value<ularge>());
 }
 
 template<>

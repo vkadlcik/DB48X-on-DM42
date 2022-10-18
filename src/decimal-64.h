@@ -71,6 +71,24 @@ struct decimal64 : object
         memcpy(p, &num, sizeof(num));
     }
 
+    decimal64(uint32_t value, id type = ID_decimal64): object(type)
+    {
+        bid64 num;
+        // Bug in the BID library, which uses int and not int32_t
+        bid64_from_uint32(&num.value, (uint *) &value);
+        byte *p = payload();
+        memcpy(p, &num, sizeof(num));
+    }
+
+    decimal64(int32_t value, id type = ID_decimal64): object(type)
+    {
+        bid64 num;
+        // Bug in the BID library, which uses int and not int32_t
+        bid64_from_int32(&num.value, (int *) &value);
+        byte *p = payload();
+        memcpy(p, &num, sizeof(num));
+    }
+
 #if 64 > 64
     decimal64(const bid64 &value, id type = ID_decimal64): object(type)
     {

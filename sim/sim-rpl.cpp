@@ -55,8 +55,3 @@ void RPLThread::run()
 {
     program_main();
 }
-
-extern "C" void thread_yield()
-{
-    QThread::msleep(1);
-}

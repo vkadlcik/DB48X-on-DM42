@@ -742,7 +742,7 @@ bool input::handle_alpha(int key)
         "_PQRS"
         "_TUVW"
         "_XYZ_"
-        "_:. ?"
+        "_:, ;"
         "......";
     static const char lower[] =
         "abcdef"
@@ -751,7 +751,7 @@ bool input::handle_alpha(int key)
         "_pqrs"
         "_tuvw"
         "_xyz_"
-        "_:. ?"
+        "_:, ;"
         "......";
 
 #define DIV        "\x80"  // ÷
@@ -797,17 +797,17 @@ bool input::handle_alpha(int key)
         "_789" DIV
         "_456" MUL
         "_123" "-"
-        "_0,!" "+"
+        "_0.!" "+"
         "......";
 
     static const char xshifted[] =
         INTEG UPTRI DOWNTRI  MU   ANGLE DEG
         LEFT  RIGHT DOWN     LE   NE    GE
         "\n"        ETC      FILL POUND "_"
-        "_"   NTILD ANGST    FREE LF
-        "_"   AE    OUML     UUML ABAR
-        "_"   "&"   "@"      "#"  "$"
-        "_"   ";"   FREE     INVQ "\\"
+        "_"   NTILD ANGST    FREE "/"
+        "_"   "$"   OUML     UUML "*"
+        "_"   "&"   "@"      "#"  AE
+        "_"   ";"   INVQ     "?" "\\"
         "......";
 
     key--;

@@ -47,12 +47,13 @@
 
 RECORDER(sim_keys, 16, "Recorder keys from the simulator");
 
+extern bool run_tests;
 
 MainWindow::MainWindow(QWidget *parent)
 // ----------------------------------------------------------------------------
 //    The main window of the simulator
 // ----------------------------------------------------------------------------
-    : QMainWindow(parent), ui(), rpl(this)
+    : QMainWindow(parent), ui(), rpl(this), tests(this)
 {
     QCoreApplication::setOrganizationName("DB48X");
     QCoreApplication::setApplicationName("DB48X");
@@ -70,6 +71,9 @@ MainWindow::MainWindow(QWidget *parent)
     resize(210 * dpratio, 390 * dpratio);
 
     rpl.start();
+
+    if (run_tests)
+        tests.start();
 }
 
 MainWindow::~MainWindow()
@@ -270,6 +274,12 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
 
     int k = ev->key();
     record(sim_keys, "Key press %d", k);
+
+    if (k == Qt::Key_F12)
+    {
+        if (!tests.isRunning())
+            tests.start();
+    }
 
     for (int i = 0; keyMap[i] != 0; i += 2)
     {

@@ -36,6 +36,8 @@
 
 RECORDER(options, 32, "Information about command line options");
 
+bool run_tests = false;
+
 int main(int argc, char *argv[])
 // ----------------------------------------------------------------------------
 //   Main entry point for the simulator
@@ -53,6 +55,8 @@ int main(int argc, char *argv[])
         record(options, "  %u: %+s", a, argv[a]);
         if (argv[a][0] == '-' && argv[a][1] == 't')
             recorder_trace_set(argv[a]+2);
+        if (argv[a][0] == '-' && argv[a][1] == 'T')
+            run_tests = true;
     }
 
 #if QT_VERSION < 0x060000

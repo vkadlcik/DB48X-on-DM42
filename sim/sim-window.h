@@ -33,7 +33,23 @@
 #include <QFile>
 #include "sim-rpl.h"
 #include "ui_sim-window.h"
+#include "tests.h"
 
+
+class TestsThread : public QThread
+// ----------------------------------------------------------------------------
+//   A thread to run the automated tests
+// ----------------------------------------------------------------------------
+{
+public:
+    TestsThread(QObject *parent): QThread(parent) {}
+    ~TestsThread()     { while (!isFinished()) terminate(); }
+    void run()
+    {
+        tests TestSuite;
+        TestSuite.run();
+    }
+};
 
 
 class MainWindow : public QMainWindow
@@ -42,6 +58,7 @@ class MainWindow : public QMainWindow
 
     Ui::MainWindow ui;
     RPLThread      rpl;
+    TestsThread    tests;
 
   public:
     explicit MainWindow(QWidget *parent = 0);

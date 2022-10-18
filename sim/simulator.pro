@@ -50,6 +50,7 @@ SOURCES += \
         ../src/symbol.cc \
         ../src/algebraic.cc \
         ../src/arithmetic.cc \
+	../src/tests.cc
 
 HEADERS += \
 	sim-window.h \

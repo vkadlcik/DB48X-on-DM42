@@ -59,6 +59,8 @@ public:
     QGraphicsPixmapItem *mainScreen;
     QPixmap              mainPixmap;
 
+    int                  lcd_update;
+
   public:
     explicit Screen(QWidget *parent = 0);
     ~Screen();

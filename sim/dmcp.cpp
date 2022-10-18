@@ -54,7 +54,7 @@ RECORDER(lcd_warning,   64, "Warnings from lcd/display functions");
 
 #undef ppgm_fp
 
-volatile int lcd_needsupdate = 1;
+volatile int lcd_needsupdate = 0;
 int lcd_buf_cleared = 0;
 uint8_t lcd_buffer[LCD_SCANLINE * LCD_H / 8];
 
@@ -113,6 +113,12 @@ int key_empty()
 {
     return keyrd == keywr;
 }
+
+int key_remaining()
+{
+    return nkeys - (keywr - keyrd);
+}
+
 int key_pop()
 {
     if (keyrd != keywr)
@@ -332,27 +338,27 @@ void lcd_print(disp_stat_t * ds, const char* fmt, ...)
 void lcd_forced_refresh()
 {
     record(lcd, "Forced refresh");
-    lcd_needsupdate = 1;
+    lcd_needsupdate++;
 }
 void lcd_refresh()
 {
     record(lcd, "Refresh");
-    lcd_needsupdate = 1;
+    lcd_needsupdate++;
 }
 void lcd_refresh_dma()
 {
     record(lcd, "Refresh DMA");
-    lcd_needsupdate = 1;
+    lcd_needsupdate++;
 }
 void lcd_refresh_wait()
 {
     record(lcd, "Refresh Wait");
-    lcd_needsupdate = 1;
+    lcd_needsupdate++;
 }
 void lcd_refresh_lines(int ln, int cnt)
 {
     record(lcd, "Refresh lines (%d-%d) count %d", ln, ln+cnt-1, cnt);
-    lcd_needsupdate = ln >= 0 && cnt > 0;
+    lcd_needsupdate += (ln >= 0 && cnt > 0);
 }
 void lcd_setLine(disp_stat_t * ds, int ln_nr)
 {

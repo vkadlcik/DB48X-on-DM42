@@ -112,9 +112,9 @@ void Screen::update()
 //   Refresh the screen
 // ----------------------------------------------------------------------------
 {
-    if (lcd_needsupdate)
+    if (lcd_needsupdate != lcd_update)
     {
-        lcd_needsupdate = 0;
+        lcd_update = lcd_needsupdate;
     }
     else
     {
@@ -138,7 +138,6 @@ void Screen::update()
         }
     }
     pt.end();
-
 
     mainScreen->setPixmap(mainPixmap);
     QGraphicsView::update();

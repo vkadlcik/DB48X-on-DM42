@@ -601,7 +601,6 @@ tests &tests::refreshed()
 {
     while (lcd_needsupdate == lcd_update)
         sys_delay(20);
-    lcd_update = lcd_needsupdate;
     return *this;
 }
 

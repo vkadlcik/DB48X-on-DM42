@@ -476,7 +476,11 @@ tests &tests::test(char c)
     case '\'': k = CHS;         alpha = true;  shift = true;  bsp = true; break;
     case '&': k = KEY1;         alpha = true; xshift = true; break;
     case '@': k = KEY2;         alpha = true; xshift = true; break;
+#if 0
     case '#': k = KEY3;         alpha = true; xshift = true; break;
+#else
+    case '#': k = KEY4;         alpha = false; shift = true; break;
+#endif
     case '$': k = KEY4;         alpha = true; xshift = true; break;
     case '\\': k = ADD;         alpha = true; xshift = true; break;
     }

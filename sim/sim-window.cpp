@@ -48,13 +48,16 @@
 RECORDER(sim_keys, 16, "Recorder keys from the simulator");
 
 extern bool run_tests;
+MainWindow *MainWindow::mainWindow = nullptr;
 
 MainWindow::MainWindow(QWidget *parent)
 // ----------------------------------------------------------------------------
 //    The main window of the simulator
 // ----------------------------------------------------------------------------
-    : QMainWindow(parent), ui(), rpl(this), tests(this)
+    : QMainWindow(parent), ui(), rpl(this), tests(this), highlight()
 {
+    mainWindow = this;
+
     QCoreApplication::setOrganizationName("DB48X");
     QCoreApplication::setApplicationName("DB48X");
 
@@ -64,6 +67,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui.keyboard->installEventFilter(this);
     ui.screen->setAttribute(Qt::WA_AcceptTouchEvents);
     ui.screen->installEventFilter(this);
+
+    highlight = new Highlight(ui.keyboard);
+    highlight->setGeometry(0,0,0,0);
+    highlight->show();
 
     setWindowTitle("DB48X");
 
@@ -80,8 +87,7 @@ MainWindow::~MainWindow()
 // ----------------------------------------------------------------------------
 //  Destroy the main window
 // ----------------------------------------------------------------------------
-{
-}
+{}
 
 
 void MainWindow::resizeEvent(QResizeEvent * event)
@@ -206,59 +212,106 @@ struct mousemap
     qreal left, right, top, bot;
 } mouseMap[] = {
 
-    { Qt::Key_F1,        38, 0.04, 0.15, 0.03, 0.10 },
-    { Qt::Key_F2,        39, 0.20, 0.30, 0.03, 0.10 },
-    { Qt::Key_F3,        40, 0.34, 0.46, 0.03, 0.10 },
+    { Qt::Key_F1,        38, 0.03, 0.15, 0.03, 0.10 },
+    { Qt::Key_F2,        39, 0.20, 0.32, 0.03, 0.10 },
+    { Qt::Key_F3,        40, 0.345, 0.47, 0.03, 0.10 },
     { Qt::Key_F4,        41, 0.52, 0.63, 0.03, 0.10 },
-    { Qt::Key_F5,        42, 0.68, 0.79, 0.03, 0.10 },
-    { Qt::Key_F6,        43, 0.83, 0.94, 0.03, 0.10 },
+    { Qt::Key_F5,        42, 0.68, 0.80, 0.03, 0.10 },
+    { Qt::Key_F6,        43, 0.83, 0.95, 0.03, 0.10 },
 
-    { Qt::Key_A,          1, 0.04, 0.15, 0.15, 0.22 },
-    { Qt::Key_B,          2, 0.20, 0.30, 0.15, 0.22 },
-    { Qt::Key_C,          3, 0.34, 0.46, 0.15, 0.22 },
+    { Qt::Key_A,          1, 0.03, 0.15, 0.15, 0.22 },
+    { Qt::Key_B,          2, 0.20, 0.32, 0.15, 0.22 },
+    { Qt::Key_C,          3, 0.345, 0.47, 0.15, 0.22 },
     { Qt::Key_D,          4, 0.52, 0.63, 0.15, 0.22 },
-    { Qt::Key_E,          5, 0.68, 0.79, 0.15, 0.22 },
-    { Qt::Key_F,          6, 0.83, 0.94, 0.15, 0.22 },
+    { Qt::Key_E,          5, 0.68, 0.80, 0.15, 0.22 },
+    { Qt::Key_F,          6, 0.83, 0.95, 0.15, 0.22 },
 
-    { Qt::Key_G,          7, 0.04, 0.15, 0.28, 0.35 },
-    { Qt::Key_H,          8, 0.20, 0.30, 0.28, 0.35 },
-    { Qt::Key_I,          9, 0.34, 0.46, 0.28, 0.35 },
-    { Qt::Key_J,         10, 0.52, 0.63, 0.28, 0.35 },
-    { Qt::Key_K,         11, 0.68, 0.79, 0.28, 0.35 },
-    { Qt::Key_L,         12, 0.83, 0.94, 0.28, 0.35 },
+    { Qt::Key_G,          7, 0.03, 0.15, 0.275, 0.345 },
+    { Qt::Key_H,          8, 0.20, 0.32, 0.275, 0.345 },
+    { Qt::Key_I,          9, 0.345, 0.47, 0.275, 0.345 },
+    { Qt::Key_J,         10, 0.52, 0.63, 0.275, 0.345 },
+    { Qt::Key_K,         11, 0.68, 0.80, 0.275, 0.345 },
+    { Qt::Key_L,         12, 0.83, 0.95, 0.275, 0.345 },
 
-    { Qt::Key_Return,    13, 0.04, 0.30, 0.40, 0.48 },
-    { Qt::Key_M,         14, 0.34, 0.46, 0.40, 0.48 },
-    { Qt::Key_N,         15, 0.52, 0.63, 0.40, 0.48 },
-    { Qt::Key_O,         16, 0.68, 0.79, 0.40, 0.48 },
-    { Qt::Key_Backspace, 17, 0.83, 0.94, 0.40, 0.48 },
+    { Qt::Key_Return,    13, 0.03, 0.32, 0.40, 0.47 },
+    { Qt::Key_M,         14, 0.345, 0.47, 0.40, 0.47 },
+    { Qt::Key_N,         15, 0.51, 0.64, 0.40, 0.47 },
+    { Qt::Key_O,         16, 0.68, 0.80, 0.40, 0.47 },
+    { Qt::Key_Backspace, 17, 0.83, 0.95, 0.40, 0.47 },
 
-    { Qt::Key_Up,        18, 0.04, 0.15, 0.53, 0.59 },
-    { Qt::Key_7,         19, 0.23, 0.36, 0.53, 0.59 },
-    { Qt::Key_8,         20, 0.42, 0.55, 0.53, 0.59 },
-    { Qt::Key_9,         21, 0.62, 0.74, 0.53, 0.59 },
-    { Qt::Key_Slash,     22, 0.81, 0.94, 0.53, 0.59 },
+    { Qt::Key_Up,        18, 0.03, 0.15, 0.52, 0.59 },
+    { Qt::Key_7,         19, 0.23, 0.36, 0.52, 0.59 },
+    { Qt::Key_8,         20, 0.42, 0.56, 0.52, 0.59 },
+    { Qt::Key_9,         21, 0.62, 0.75, 0.52, 0.59 },
+    { Qt::Key_Slash,     22, 0.81, 0.95, 0.52, 0.59 },
 
-    { Qt::Key_Down,      23, 0.04, 0.15, 0.65, 0.72 },
-    { Qt::Key_4,         24, 0.23, 0.36, 0.65, 0.72 },
-    { Qt::Key_5,         25, 0.42, 0.55, 0.65, 0.72 },
-    { Qt::Key_6,         26, 0.62, 0.74, 0.65, 0.72 },
-    { Qt::Key_Asterisk,  27, 0.81, 0.94, 0.65, 0.72 },
+    { Qt::Key_Down,      23, 0.03, 0.15, 0.645, 0.715 },
+    { Qt::Key_4,         24, 0.23, 0.36, 0.645, 0.715 },
+    { Qt::Key_5,         25, 0.42, 0.56, 0.645, 0.715 },
+    { Qt::Key_6,         26, 0.62, 0.75, 0.645, 0.715 },
+    { Qt::Key_Asterisk,  27, 0.81, 0.95, 0.645, 0.715 },
 
-    { Qt::Key_Control,   28, 0.04, 0.15, 0.77, 0.84 },
+    { Qt::Key_Control,   28, 0.028, 0.145, 0.77, 0.84 },
     { Qt::Key_1,         29, 0.23, 0.36, 0.77, 0.84 },
-    { Qt::Key_2,         30, 0.42, 0.55, 0.77, 0.84 },
-    { Qt::Key_3,         31, 0.62, 0.74, 0.77, 0.84 },
-    { Qt::Key_Minus,     32, 0.81, 0.94, 0.77, 0.84 },
+    { Qt::Key_2,         30, 0.42, 0.56, 0.77, 0.84 },
+    { Qt::Key_3,         31, 0.62, 0.75, 0.77, 0.84 },
+    { Qt::Key_Minus,     32, 0.81, 0.95, 0.77, 0.84 },
 
-    { Qt::Key_Escape,    33, 0.04, 0.15, 0.89, 0.97 },
+    { Qt::Key_Escape,    33, 0.03, 0.15, 0.89, 0.97 },
     { Qt::Key_0,         34, 0.23, 0.36, 0.89, 0.97 },
     { Qt::Key_Period,    35, 0.42, 0.55, 0.89, 0.97 },
     { Qt::Key_Question,  36, 0.62, 0.74, 0.89, 0.97 },
-    { Qt::Key_Plus,      37, 0.81, 0.94, 0.89, 0.97 },
+    { Qt::Key_Plus,      37, 0.81, 0.95, 0.89, 0.97 },
 
     {                0,  0,      0.0,      0.0,      0.0,      0.0}
 };
+
+
+void MainWindow::pushKey(int key)
+// ----------------------------------------------------------------------------
+//   When pushing a key, update the highlight rectangle
+// ----------------------------------------------------------------------------
+{
+    QRect rect(0, 0, 0, 0);
+    for (mousemap *ptr = mouseMap; ptr->key; ptr++)
+    {
+        if (ptr->keynum == key)
+        {
+            int w = ui.keyboard->width();
+            int h = ui.keyboard->height();
+            rect.setCoords(ptr->left * w, ptr->top * h,
+                           ptr->right * w, ptr->bot * h);
+            break;
+        }
+    }
+    record(sim_keys,
+           "Key %d coords (%d, %d, %d, %d)",
+           key,
+           rect.x(),
+           rect.y(),
+           rect.width(),
+           rect.height());
+    highlight->setGeometry(rect);
+    update();
+}
+
+
+void Highlight::paintEvent(QPaintEvent *)
+// ----------------------------------------------------------------------------
+//   Repaing, showing the highlight
+// ----------------------------------------------------------------------------
+{
+    QRect geo = geometry();
+    record(sim_keys, "Repainting %d %d %d %d",
+           geo.x(), geo.y(), geo.width(), geo.height());
+    QRect local(3, 3, geo.width()-6, geo.height()-6);
+    QPainter p(this);
+    QPainterPath path;
+    path.addRoundedRect(local, 8, 8);
+    QPen pen(Qt::yellow, 4);
+    p.setPen(pen);
+    p.drawPath(path);
+}
 
 
 void MainWindow::keyPressEvent(QKeyEvent * ev)

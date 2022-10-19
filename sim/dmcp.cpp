@@ -32,6 +32,7 @@
 #include "dmcp_fonts.c"
 #include "sim-rpl.h"
 #include "sim-screen.h"
+#include "sim-window.h"
 #include "types.h"
 #include "recorder.h"
 
@@ -146,6 +147,7 @@ void key_pop_all()
 int key_push(int k)
 {
     record(keys, "Push key %d (wr %u rd %u)", k, keywr, keyrd);
+    MainWindow::theMainWindow()->pushKey(k);
     if (keywr - keyrd < nkeys)
         keys[keywr++ % nkeys] = k;
     else

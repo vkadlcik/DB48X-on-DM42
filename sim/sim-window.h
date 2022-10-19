@@ -52,6 +52,14 @@ public:
 };
 
 
+class Highlight : public QWidget
+{
+    Q_OBJECT;
+public:
+    Highlight(QWidget *parent): QWidget(parent) {}
+    void paintEvent(QPaintEvent *);
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT;
@@ -60,15 +68,22 @@ class MainWindow : public QMainWindow
     RPLThread      rpl;
     TestsThread    tests;
 
-  public:
+public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-  protected:
+    void pushKey(int key);
+    static MainWindow * theMainWindow() { return mainWindow; }
+
+protected:
     virtual void keyPressEvent(QKeyEvent *ev);
     virtual void keyReleaseEvent(QKeyEvent *ev);
     bool         eventFilter(QObject *obj, QEvent *ev);
     void         resizeEvent(QResizeEvent *event);
+
+protected:
+    static MainWindow *mainWindow;
+    Highlight *highlight;
 };
 
 #endif // SIM_WINDOW_H

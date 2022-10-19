@@ -637,6 +637,8 @@ tests &tests::clear()
     runtime &rt = runtime::RT;
     while (rt.depth())
         rt.pop();
+    rt.error(nullptr);
+    rt.command(nullptr);
     return *this;
 }
 

@@ -365,7 +365,8 @@ tests &tests::test(uint value)
 {
     char buffer[32];
     snprintf(buffer, sizeof(buffer), "%u", value);
-    return test(cstring(buffer));
+    test(cstring(buffer));
+    return shifts(false, false, false, false);
 }
 
 
@@ -376,7 +377,8 @@ tests &tests::test(int value)
 {
     char buffer[32];
     snprintf(buffer, sizeof(buffer), "%d", value);
-    return test(cstring(buffer));
+    test(cstring(buffer));
+    return shifts(false, false, false, false);
 }
 
 

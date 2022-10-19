@@ -164,6 +164,18 @@ void tests::data_types()
         .type(object::ID_hex_integer).expect("#1234ABCDh");
     test(CLEAR, "#DEADBEEFH", ENTER)
         .type(object::ID_hex_integer).expect("#DEADBEEFh");
+
+    step("Symbols");
+    cstring symbol = "ABC123Z";
+    test(CLEAR, symbol, ENTER)
+        .type(object::ID_symbol).expect(symbol);
+
+    step("Text");
+    cstring string = "\"Hello World\"";
+    test(CLEAR, string, ENTER)
+        .type(object::ID_string).expect(string);
+
+    clear();
 }
 
 

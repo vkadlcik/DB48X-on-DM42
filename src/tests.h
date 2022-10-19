@@ -54,7 +54,7 @@ struct tests
     void shift_logic();
     void keyboard_entry();
     void data_types();
-
+    void arithmetic();
 
     enum key
     {

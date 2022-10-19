@@ -48,6 +48,7 @@ void tests::run()
     shift_logic();
     keyboard_entry();
     data_types();
+    arithmetic();
 
     summary();
 }
@@ -176,6 +177,48 @@ void tests::data_types()
         .type(object::ID_string).expect(string);
 
     clear();
+}
+
+
+void tests::arithmetic()
+// ----------------------------------------------------------------------------
+//   Tests for basic arithmetic operations
+// ----------------------------------------------------------------------------
+{
+    begin("Arithmetic");
+
+    step("Integer addition");
+    test(CLEAR, 1, ENTER, 1, ADD)
+        .type(object::ID_integer).expect("2");
+    test(1, ADD)
+        .type(object::ID_integer).expect("3");
+    test(-1, ADD)
+        .type(object::ID_integer).expect("2");
+    test(-1, ADD)
+        .type(object::ID_integer).expect("1");
+    test(-1, ADD)
+        .type(object::ID_integer).expect("0");
+    test(-1, ADD)
+        .type(object::ID_neg_integer).expect("-1");
+    test(-1, ADD)
+        .type(object::ID_neg_integer).expect("-2");
+    test(-1, ADD)
+        .type(object::ID_neg_integer).expect("-3");
+    test(1, ADD)
+        .type(object::ID_neg_integer).expect("-2");
+    test(1, ADD)
+        .type(object::ID_neg_integer).expect("-1");
+    test(1, ADD)
+        .type(object::ID_integer).expect("0");
+
+    step("Ten small integers at random");
+    srand48(sys_current_ms());
+    for (int i = 0; i < 10; i++)
+    {
+        int x = (lrand48() & 0xFFFF) - 0x8000;
+        int y = (lrand48() & 0xFFFF) - 0x8000;
+        test(CLEAR, x, ENTER, y, ADD).expect(x + y);
+    }
 }
 
 

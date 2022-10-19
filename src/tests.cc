@@ -546,6 +546,16 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
     // Must wait for the calculator to process our keys for valid state
     nokeys();
 
+    // Check that we are not displaying an error message
+    runtime &rt = runtime::RT;
+    if (rt.error())
+    {
+        explain("Unexpected error message [", rt.error(), "] "
+                "during data entry, cleared");
+        rt.error(nullptr);
+        ok = false;
+    }
+
     // Check invalid input: can only have one shift
     if (shift && xshift)
         shift = false;

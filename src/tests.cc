@@ -174,13 +174,27 @@ void tests::data_types()
 //
 // ============================================================================
 
+static void passfail(bool ok)
+// ----------------------------------------------------------------------------
+//   Print a pass/fail message
+// ----------------------------------------------------------------------------
+{
+#define GREEN "\033[32m"
+#define RED   "\033[41;97m"
+#define RESET "\033[39;49;99;27m"
+    fprintf(stderr, "%s\n", ok ? GREEN "[PASS]" RESET : RED "[FAIL]" RESET);
+#undef GREEN
+#undef RED
+#undef RESET
+}
+
 tests &tests::begin(cstring name)
 // ----------------------------------------------------------------------------
 //   Beginning of a test
 // ----------------------------------------------------------------------------
 {
     if (sindex)
-        fprintf(stderr, "[%s]\n", ok ? "PASS" : "FAIL");
+        passfail(ok);
 
     tname = name;
     tindex++;
@@ -203,7 +217,7 @@ tests &tests::step(cstring name)
     lcd_update = lcd_needsupdate;
     sname = name;
     if (sindex++)
-        fprintf(stderr, "[%s]\n", ok ? "PASS" : "FAIL");
+        passfail(ok);
     fprintf(stderr, "%3u:  %03u: %-64s", tindex, sindex, sname);
     cindex = 0;
     count++;
@@ -243,7 +257,7 @@ tests &tests::summary()
 // ----------------------------------------------------------------------------
 {
     if (sindex)
-        fprintf(stderr, "[%s]\n", ok ? "PASS" : "FAIL");
+        passfail(ok);
 
     if (failures.size())
     {

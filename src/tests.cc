@@ -463,8 +463,8 @@ tests &tests::test(char c)
     case '7': k = KEY7;         shift = alpha; break;
     case '8': k = KEY8;         shift = alpha; break;
     case '9': k = KEY9;         shift = alpha; break;
-    case '+': k = ADD;          shift = alpha; break;
-    case '-': k = SUB;          shift = alpha; break;
+    case '+': k = ADD;          alpha = true;  shift = true; break;
+    case '-': k = SUB;          alpha = true;  shift = true; break;
     case '*': k = MUL;          alpha = true; xshift = true; break;
     case '/': k = DIV;          alpha = true; xshift = true; break;
     case '.': k = DOT;          shift = alpha; break;

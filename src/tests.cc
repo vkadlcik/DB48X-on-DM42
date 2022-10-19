@@ -211,13 +211,46 @@ void tests::arithmetic()
     test(1, ADD)
         .type(object::ID_integer).expect("0");
 
-    step("Ten small integers at random");
+    step("Adding ten small integers at random");
     srand48(sys_current_ms());
     for (int i = 0; i < 10; i++)
     {
         int x = (lrand48() & 0xFFFF) - 0x8000;
         int y = (lrand48() & 0xFFFF) - 0x8000;
         test(CLEAR, x, ENTER, y, ADD).expect(x + y);
+    }
+
+    step("Integer subtraction");
+    test(CLEAR, 1, ENTER, 1, SUB)
+        .type(object::ID_integer).expect("0");
+    test(1, SUB)
+        .type(object::ID_neg_integer).expect("-1");
+    test(-1, SUB)
+        .type(object::ID_integer).expect("0");
+    test(-1, SUB)
+        .type(object::ID_integer).expect("1");
+    test(-1, SUB)
+        .type(object::ID_integer).expect("2");
+    test(1, SUB)
+        .type(object::ID_integer).expect("1");
+    test(1, SUB)
+        .type(object::ID_integer).expect("0");
+    test(3, SUB)
+        .type(object::ID_neg_integer).expect("-3");
+    test(-1, SUB)
+        .type(object::ID_neg_integer).expect("-2");
+    test(1, SUB)
+        .type(object::ID_neg_integer).expect("-3");
+    test(-3, SUB)
+        .type(object::ID_integer).expect("0");
+
+    step("Subtracting ten small integers at randgyom");
+    srand48(sys_current_ms());
+    for (int i = 0; i < 10; i++)
+    {
+        int x = (lrand48() & 0xFFFF) - 0x8000;
+        int y = (lrand48() & 0xFFFF) - 0x8000;
+        test(CLEAR, x, ENTER, y, SUB).expect(x - y);
     }
 }
 

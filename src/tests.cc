@@ -244,13 +244,50 @@ void tests::arithmetic()
     test(-3, SUB)
         .type(object::ID_integer).expect("0");
 
-    step("Subtracting ten small integers at randgyom");
-    srand48(sys_current_ms());
+    step("Subtracting ten small integers at random");
     for (int i = 0; i < 10; i++)
     {
         int x = (lrand48() & 0xFFFF) - 0x8000;
         int y = (lrand48() & 0xFFFF) - 0x8000;
         test(CLEAR, x, ENTER, y, SUB).expect(x - y);
+    }
+
+    step("Integer multiplication");
+    test(CLEAR, 1, ENTER, 1, MUL)
+        .type(object::ID_integer).expect("1");
+    test(3, MUL)
+        .type(object::ID_integer).expect("3");
+    test(-3, MUL)
+        .type(object::ID_neg_integer).expect("-9");
+    test(2, MUL)
+        .type(object::ID_neg_integer).expect("-18");
+    test(-7, MUL)
+        .type(object::ID_integer).expect("126");
+
+    step("Multiplying ten small integers at random");
+    for (int i = 0; i < 10; i++)
+    {
+        int x = (lrand48() & 0xFFFF) - 0x8000;
+        int y = (lrand48() & 0xFFFF) - 0x8000;
+        test(CLEAR, x, ENTER, y, MUL).expect(x * y);
+    }
+
+    step("Integer division");
+    test(CLEAR, 210, ENTER, 2, DIV)
+        .type(object::ID_integer).expect("105");
+    test(5, DIV)
+        .type(object::ID_integer).expect("21");
+    test(-3, DIV)
+        .type(object::ID_neg_integer).expect("-7");
+    test(-7, DIV)
+        .type(object::ID_integer).expect("1");
+
+    step("Dividing ten small integers at random");
+    for (int i = 0; i < 10; i++)
+    {
+        int x = (lrand48() & 0x3FFF) - 0x4000;
+        int y = (lrand48() & 0x3FFF) - 0x4000;
+        test(CLEAR, x * y, ENTER, y, DIV).expect(x);
     }
 }
 

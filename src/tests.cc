@@ -230,7 +230,8 @@ tests &tests::fail()
 //   Report that a test failed
 // ----------------------------------------------------------------------------
 {
-    failures.push_back(failure(tname, sname, tindex, sindex, cindex));
+    failures.push_back(failure(tname, sname, explanation,
+                               tindex, sindex, cindex));
     ok = false;
     return *this;
 }
@@ -257,6 +258,7 @@ tests &tests::summary()
             }
             fprintf(stderr, "%3u:%03u.%03u: %s\n",
                     s.tindex, s.sindex, s.cindex, s.step);
+            fprintf(stderr, "==== %s\n", s.explanation.c_str());
         }
     }
     fprintf(stderr, "Ran %u tests, %zu failures\n",
@@ -654,8 +656,10 @@ tests &tests::expect(cstring output)
         top->render(buffer, sizeof(buffer), rt);
         if (strcmp(output, buffer) == 0)
             return *this;
+        explain("Expected output [", output, "], got [", buffer, "] instead");
         return fail();
     }
+    explain("Expected output [", output, "] but got no object");
     return fail();
 }
 
@@ -680,8 +684,16 @@ tests &tests::type(object::id ty)
     cindex++;
     runtime &rt = runtime::RT;
     if (object *top = rt.top())
-        if (top->type() == ty)
+    {
+        object::id tty = top->type();
+        if (tty == ty)
             return *this;
+        explain("Expected type ", object::name(ty), " (", int(ty), ")"
+                " but got ", object::name(tty), " (", int(tty), ")");
+        return fail();
+    }
+    explain("Expected type ", object::name(ty), " (", int(ty), ")"
+            " but got no object");
     return fail();
 }
 
@@ -692,7 +704,8 @@ tests &tests::shift(bool s)
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    return check(Input.shift == s);
+    return check(Input.shift == s,
+                 "Expected shift ", s, ", got ", Input.shift);
 }
 
 
@@ -702,7 +715,8 @@ tests &tests::xshift(bool x)
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    return check(Input.xshift == x);
+    return check(Input.xshift == x,
+                 "Expected xshift ", x, " got ", Input.xshift);
 }
 
 
@@ -712,7 +726,8 @@ tests &tests::alpha(bool a)
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    return check(Input.alpha == a);
+    return check(Input.alpha == a,
+                 "Expected alpha ", a, " got ", Input.alpha);
 }
 
 
@@ -722,7 +737,8 @@ tests &tests::lower(bool l)
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    return check(Input.lowercase == l);
+    return check(Input.lowercase == l,
+                 "Expected alpha ", l, " got ", Input.alpha);
 }
 
 
@@ -732,7 +748,8 @@ tests &tests::editing()
 // ----------------------------------------------------------------------------
 {
     ready();
-    return check(runtime::RT.editing());
+    return check(runtime::RT.editing(),
+                 "Expected to be editing, got length ", runtime::RT.editing());
 }
 
 
@@ -742,7 +759,9 @@ tests &tests::editing(size_t length)
 // ----------------------------------------------------------------------------
 {
     ready();
-    return check(runtime::RT.editing() == length);
+    return check(runtime::RT.editing() == length,
+                 "Expected editing length to be ", length,
+                 " got ", runtime::RT.editing());
 }
 
 
@@ -755,7 +774,23 @@ tests &tests::editor(cstring text)
     runtime    &rt = runtime::RT;
     const char *ed = rt.editor();
     size_t      sz = rt.editing();
-    return check(ed && sz == strlen(text) && memcmp(ed, text, sz) == 0);
+
+    if (!ed)
+        return explain("Expected editor to contain [", text, "], "
+                       "but it's empty")
+            .fail();
+    if (sz != strlen(text))
+        return explain("Expected ", strlen(text), " characters in editor"
+                       " [", text, "], "
+                       "but got ", sz, " characters "
+                       " [", std::string(ed, sz), "]")
+            .fail();
+    if (memcmp(ed, text, sz))
+        return explain("Expected editor to contain [", text, "], "
+                       "but it contains [", std::string(ed, sz), "]")
+            .fail();
+
+    return *this;
 }
 
 
@@ -765,7 +800,9 @@ tests &tests::cursor(size_t csr)
 // ----------------------------------------------------------------------------
 {
     ready();
-    return check(Input.cursor == csr);
+    return check(Input.cursor == csr,
+                 "Expected cursor to be at position ", csr,
+                 " but it's at position ", Input.cursor);
 }
 
 
@@ -777,7 +814,15 @@ tests &tests::error(cstring msg)
     ready();
     runtime    &rt = runtime::RT;
     cstring    err = rt.error();
-    return check(msg ? (err && strcmp(err, msg) == 0) : err == nullptr);
+
+    if (!msg && err)
+        return explain("Expected no error, got [", err, "]").fail();
+    if (msg && !err)
+        return explain("Expected error message [", msg, "], got none").fail();
+    if (msg && err && strcmp(err, msg) != 0)
+        return explain("Expected error message [", msg, "], "
+                       "got [", err, "]").fail();
+    return *this;
 }
 
 
@@ -789,7 +834,16 @@ tests &tests::command(cstring ref)
     ready();
     runtime    &rt = runtime::RT;
     cstring    cmd = rt.command();
-    return check(ref ? (cmd && strcmp(cmd, ref) == 0) : cmd == nullptr);
+
+    if (!ref && cmd)
+        return explain("Expected no command, got [", cmd, "]").fail();
+    if (ref && !cmd)
+        return explain("Expected command [", ref, "], got none").fail();
+    if (ref && cmd && strcmp(ref, cmd) != 0)
+        return explain("Expected command [", ref, "], "
+                       "got [", cmd, "]").fail();
+
+    return *this;
 }
 
 
@@ -801,5 +855,14 @@ tests &tests::source(cstring ref)
     ready();
     runtime &rt  = runtime::RT;
     cstring  src = rt.source();
-    return check(ref ? (src && strcmp(src, ref) == 0) : src == nullptr);
+
+    if (!ref && src)
+        return explain("Expected no source, got [", src, "]").fail();
+    if (ref && !src)
+        return explain("Expected source [", ref, "], got none").fail();
+    if (ref && src && strcmp(ref, src) != 0)
+        return explain("Expected source [", ref, "], "
+                       "got [", src, "]").fail();
+
+    return *this;
 }

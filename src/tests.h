@@ -34,6 +34,8 @@
 #include "runtime.h"
 
 #include <vector>
+#include <string>
+#include <sstream>
 
 struct tests
 // ----------------------------------------------------------------------------
@@ -195,17 +197,61 @@ struct tests
     tests &command(cstring msg);
     tests &source(cstring msg);
 
+    template<typename ...Args>
+    tests &explain(Args... args)
+    {
+        explanation = "";
+        return explain_more(args...);
+    }
+
+    template<typename T>
+    tests &explain_more(T t)
+    {
+        std::ostringstream out;
+        out << t;
+        explanation += out.str();
+        return *this;
+    }
+
+    template <typename T, typename ...Args>
+    tests &explain_more(T t, Args... args)
+    {
+        explain_more(t);
+        return explain_more(args...);
+    }
+
+    template<typename ...Args>
+    tests &check(bool test, Args... args)
+    {
+        if (!test)
+            explain(args...);
+        return check(test);
+    }
+
 
   protected:
     struct failure
     {
-        failure(cstring test, cstring step, uint ti, uint si, int ci)
-            : test(test), step(step), tindex(ti), sindex(si), cindex(ci) {}
-        cstring         test;
-        cstring         step;
-        uint            tindex;
-        uint            sindex;
-        uint            cindex;
+        failure(cstring     test,
+                cstring     step,
+                std::string explanation,
+                uint        ti,
+                uint        si,
+                int         ci)
+            : test(test),
+              step(step),
+              explanation(explanation),
+              tindex(ti),
+              sindex(si),
+              cindex(ci)
+        {
+        }
+        cstring     test;
+        cstring     step;
+        std::string explanation;
+        uint        tindex;
+        uint        sindex;
+        uint        cindex;
     };
 
     cstring              tname;
@@ -218,6 +264,7 @@ struct tests
     bool                 ok;
     bool                 longpress;
     std::vector<failure> failures;
+    std::string          explanation;
 };
 
 #endif // TESTS_H

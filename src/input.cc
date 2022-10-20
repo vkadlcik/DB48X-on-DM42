@@ -810,6 +810,13 @@ bool input::handle_alpha(int key)
         "_"   ";"   INVQ     "?" "\\"
         "......";
 
+    if (key == KEY_9 && xshift)
+    {
+        for (int i = 33; lcd_charWidth(fReg, i); i++)
+            RT.insert(cursor++, i);
+        return true;
+    }
+
     key--;
     char c =
         xshift    ? xshifted[key] :
@@ -832,7 +839,7 @@ bool input::handle_alpha(int key)
     if (closing)
         RT.insert(cursor, closing);
     repeat = true;
-    return 1;
+    return true;
 }
 
 

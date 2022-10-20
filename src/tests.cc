@@ -217,7 +217,9 @@ void tests::arithmetic()
     {
         int x = (lrand48() & 0xFFFF) - 0x8000;
         int y = (lrand48() & 0xFFFF) - 0x8000;
-        test(CLEAR, x, ENTER, y, ADD).expect(x + y);
+        test(CLEAR, x, ENTER, y, ADD)
+            .explain("Computing ", x, " + ", y, ", ")
+            .expect(x + y);
     }
 
     step("Integer subtraction");
@@ -249,7 +251,9 @@ void tests::arithmetic()
     {
         int x = (lrand48() & 0xFFFF) - 0x8000;
         int y = (lrand48() & 0xFFFF) - 0x8000;
-        test(CLEAR, x, ENTER, y, SUB).expect(x - y);
+        test(CLEAR, x, ENTER, y, SUB)
+            .explain("Computing ", x, " - ", y, ", ")
+            .expect(x - y);
     }
 
     step("Integer multiplication");
@@ -269,7 +273,9 @@ void tests::arithmetic()
     {
         int x = (lrand48() & 0xFFFF) - 0x8000;
         int y = (lrand48() & 0xFFFF) - 0x8000;
-        test(CLEAR, x, ENTER, y, MUL).expect(x * y);
+        test(CLEAR, x, ENTER, y, MUL)
+            .explain("Computing ", x, " * ", y, ", ")
+            .expect(x * y);
     }
 
     step("Integer division");
@@ -287,7 +293,9 @@ void tests::arithmetic()
     {
         int x = (lrand48() & 0x3FFF) - 0x4000;
         int y = (lrand48() & 0x3FFF) - 0x4000;
-        test(CLEAR, x * y, ENTER, y, DIV).expect(x);
+        test(CLEAR, x * y, ENTER, y, DIV)
+            .explain("Computing ", x * y, " / ", y, ", ")
+            .expect(x);
     }
 }
 
@@ -326,6 +334,7 @@ tests &tests::begin(cstring name)
     fprintf(stderr, "%3u: %s\n", tindex, tname);
     sindex = 0;
     ok = true;
+    explanation = "";
 
     // Start with a clean state
     clear();
@@ -347,6 +356,7 @@ tests &tests::step(cstring name)
     cindex = 0;
     count++;
     ok = true;
+    explanation = "";
 
     return *this;
 }
@@ -752,6 +762,8 @@ tests &tests::clear()
         rt.pop();
     rt.error(nullptr);
     rt.command(nullptr);
+    if (explanation.length())
+        explanation += "\n";
     return *this;
 }
 

@@ -197,15 +197,8 @@ struct tests
     tests &command(cstring msg);
     tests &source(cstring msg);
 
-    template<typename ...Args>
-    tests &explain(Args... args)
-    {
-        explanation = "";
-        return explain_more(args...);
-    }
-
     template<typename T>
-    tests &explain_more(T t)
+    tests &explain(T t)
     {
         std::ostringstream out;
         out << t;
@@ -214,10 +207,10 @@ struct tests
     }
 
     template <typename T, typename ...Args>
-    tests &explain_more(T t, Args... args)
+    tests &explain(T t, Args... args)
     {
-        explain_more(t);
-        return explain_more(args...);
+        explain(t);
+        return explain(args...);
     }
 
     template<typename ...Args>

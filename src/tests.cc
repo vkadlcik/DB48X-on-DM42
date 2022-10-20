@@ -33,6 +33,7 @@
 #include "input.h"
 
 #include <stdio.h>
+#include <regex.h>
 
 
 extern volatile int lcd_needsupdate;
@@ -297,6 +298,12 @@ void tests::arithmetic()
             .explain("Computing ", x * y, " / ", y, ", ")
             .expect(x);
     }
+
+    step("Division with real promotion");
+    test(CLEAR, 1, ENTER, 3, DIV)
+        .match("0.333*");
+    test(CLEAR, 2, ENTER, 3, DIV)
+        .match("0.66*7");
 }
 
 
@@ -841,6 +848,38 @@ tests &tests::expect(int output)
     char num[32];
     snprintf(num, sizeof(num), "%d", output);
     return expect(num);
+}
+
+
+tests &tests::match(cstring restr)
+// ----------------------------------------------------------------------------
+//   Check that the output at first level of stack matches the string
+// ----------------------------------------------------------------------------
+{
+    ready();
+    cindex++;
+    runtime &rt = runtime::RT;
+    if (object *top = rt.top())
+    {
+        regex_t    re;
+        regmatch_t rm;
+        char       buffer[256];
+
+        regcomp(&re, restr, REG_EXTENDED | REG_ICASE);
+        top->render(buffer, sizeof(buffer), rt);
+        bool ok =
+            regexec(&re, buffer, 1, &rm, 0) == 0 &&
+            rm.rm_so == 0 &&
+            buffer[rm.rm_eo] == 0;
+        regfree(&re);
+        if (ok)
+            return *this;
+        explain("Expected output matching [", restr, "], "
+                "got [", buffer, "]");
+        return fail();
+    }
+    explain("Expected output matching [", restr, "] but got no object");
+    return fail();
 }
 
 

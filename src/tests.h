@@ -183,6 +183,7 @@ struct tests
     tests &wait(uint ms);
     tests &expect(cstring output);
     tests &expect(int output);
+    tests &match(cstring regexp);
     tests &type(object::id ty);
     tests &shift(bool s);
     tests &xshift(bool x);

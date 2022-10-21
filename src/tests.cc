@@ -31,6 +31,7 @@
 
 #include "dmcp.h"
 #include "input.h"
+#include "settings.h"
 
 #include <stdio.h>
 #include <regex.h>
@@ -46,10 +47,54 @@ void tests::run()
     tindex = sindex = cindex = count = 0;
     failures.clear();
 
+    bool verbose = false;
+    if (verbose)
+        fprintf(stderr,
+                "Initial settings:\n"
+                "  Precision:       %u\n"
+                "  Displayed:       %u\n"
+                "  Display mode:    %u\n"
+                "  Decimal dot:     %c\n"
+                "  Exponent:        %c\n"
+                "  Angle mode:      %u\n"
+                "  Base:            %u\n"
+                "  Command format:  %u\n",
+                Settings.precision,
+                Settings.displayed,
+                Settings.display_mode,
+                Settings.decimalDot,
+                Settings.exponentChar,
+                Settings.angle_mode,
+                Settings.base,
+                Settings.command_fmt);
+
+    Settings = settings();       // Reset to default settings
+    Settings.exponentChar = 'E'; // Standard E is easier for us to match
+
+    if (verbose)
+        fprintf(stderr,
+                "Updated settings:\n"
+                "  Precision:       %u\n"
+                "  Displayed:       %u\n"
+                "  Display mode:    %u\n"
+                "  Decimal dot:     %c\n"
+                "  Exponent:        %c\n"
+                "  Angle mode:      %u\n"
+                "  Base:            %u\n"
+                "  Command format:  %u\n",
+                Settings.precision,
+                Settings.displayed,
+                Settings.display_mode,
+                Settings.decimalDot,
+                Settings.exponentChar,
+                Settings.angle_mode,
+                Settings.base,
+                Settings.command_fmt);
+
+    arithmetic();
     shift_logic();
     keyboard_entry();
     data_types();
-    arithmetic();
 
     summary();
 }

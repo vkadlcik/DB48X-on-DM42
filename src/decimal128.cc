@@ -246,7 +246,7 @@ void decimal_format(char *str, size_t len)
         {
         case settings::display::FIX:
             if (exp <= 0 && Settings.displayed <= -exp)
-                break;           // Zero fill bigger then mode digits
+                break;           // Zero fill bigger than mode digits
 
         case settings::display::NORMAL:
         {
@@ -319,6 +319,7 @@ void decimal_format(char *str, size_t len)
         // Add trailing zeros in integer part
         for (int z = 0; z < -frac; z++)
             *p++ = '0';
+        *p = 0;
 
         // Available space for fraction
         int avail = len - strlen(str) - elen;
@@ -390,7 +391,9 @@ OBJECT_RENDERER_BODY(decimal128)
     // Render in a separate buffer to avoid overflows
     char buffer[50];            // bid128 with 34 digits takes at most 42 chars
     bid128_to_string(buffer, &num.value);
+    record(decimal128, "Render raw output [%s]", buffer);
     decimal_format(buffer, min(sizeof(buffer), r.length));
+    record(decimal128, "Render formatted output [%s]", buffer);
 
     // Adjust special characters
     for (char *p = buffer; *p && p < buffer + sizeof(buffer); p++)

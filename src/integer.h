@@ -71,6 +71,7 @@ struct special_integer : integer
     template <typename Int>
     special_integer(Int value, id type = Type): integer(value, type) {}
 
+    static id static_type() { return Type; }
     OBJECT_HANDLER_NO_ID(special_integer)
     {
         if (op == RENDER)

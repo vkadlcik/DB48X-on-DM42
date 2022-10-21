@@ -28,11 +28,13 @@
 // ****************************************************************************
 
 #include "arithmetic.h"
-#include "integer.h"
+
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
+#include "integer.h"
 #include "runtime.h"
+#include "settings.h"
 
 
 RECORDER(arithmetic,            16, "Arithmetic");
@@ -164,8 +166,12 @@ bool arithmetic::real_promotion(gcobj &x, gcobj &y)
         if (is_integer(xt))
         {
             // If we got here, we failed an integer op, e.g. 2/3
-            real_promotion(x, ID_decimal64);
-            real_promotion(y, ID_decimal64);
+            uint16_t prec = Settings.precision;
+            id       target = prec > BID64_MAXDIGITS ? ID_decimal128
+                            : prec > BID32_MAXDIGITS ? ID_decimal64
+                                                     : ID_decimal32;
+            real_promotion(x, target);
+            real_promotion(y, target);
         }
         return true;
     }

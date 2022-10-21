@@ -100,7 +100,7 @@
 - [ ] Detection of precise vs. imprecise results, like newRPL
 - [x] Automatic integer to floating-point promotion
 - [x] Automatic selection of entered floating-point size based on user input
-- [ ] Automatic selection of computed floating-point size based on `Precision`
+- [x] Automatic selection of computed floating-point size based on `Precision`
 - [ ] Fraction arithmetic
 - [ ] Automatic fraction promotion
 - [ ] Correct rounding (a la [crlibm](https://github.com/taschini/crlibm))

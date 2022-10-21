@@ -193,6 +193,8 @@ protected:
     tests &test(key k, bool release = true);
     tests &test(uint value);
     tests &test(int value);
+    tests &test(ularge value);
+    tests &test(large value);
     tests &test(char c);
     tests &test(cstring alpha);
     tests &test(WAIT delay);
@@ -211,6 +213,9 @@ protected:
     tests &wait(uint ms);
     tests &expect(cstring output);
     tests &expect(int output);
+    tests &expect(uint output);
+    tests &expect(large output);
+    tests &expect(ularge output);
     tests &match(cstring regexp);
     tests &type(object::id ty);
     tests &shift(bool s);

@@ -257,6 +257,17 @@ void tests::arithmetic()
     test(1, ADD)
         .type(object::ID_integer).expect("0");
 
+    step("Integer addition overflow");
+    test(CLEAR, ~0ULL-1, ENTER, 1, ADD)
+        .type(object::ID_integer).expect("18446744073709551615");
+    test(CLEAR, ~0ULL-3, CHS, ENTER, -2, ADD)
+        .type(object::ID_neg_integer).expect("-18446744073709551614");
+
+    test(CLEAR, ~0ULL, ENTER, 1, ADD)
+        .type(object::ID_decimal128).expect("1.8446744073709551616E19");
+    test(CLEAR, ~0ULL, CHS, ENTER, -2, ADD)
+        .type(object::ID_decimal128).expect("-1.8446744073709551617E19");
+
     step("Adding ten small integers at random");
     srand48(sys_current_ms());
     for (int i = 0; i < 10; i++)
@@ -291,6 +302,12 @@ void tests::arithmetic()
         .type(object::ID_neg_integer).expect("-3");
     test(-3, SUB)
         .type(object::ID_integer).expect("0");
+
+    step("Integer subtraction overflow");
+    test(CLEAR, 0xFFFFFFFFu, CHS, ENTER, 1, SUB)
+        .type(object::ID_decimal128).expect("-4294967296");
+    test(CLEAR, -3, ENTER, 0xFFFFFFFFu, SUB)
+        .type(object::ID_decimal128).expect("-4294967298");
 
     step("Subtracting ten small integers at random");
     for (int i = 0; i < 10; i++)
@@ -581,6 +598,30 @@ tests &tests::test(int value)
         return test(uint(-value), CHS);
     else
         return test(uint(value));
+}
+
+
+tests &tests::test(ularge value)
+// ----------------------------------------------------------------------------
+//    Test a numerical value
+// ----------------------------------------------------------------------------
+{
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "%llu", (unsigned long long) value);
+    test(cstring(buffer));
+    return shifts(false, false, false, false);
+}
+
+
+tests &tests::test(large value)
+// ----------------------------------------------------------------------------
+//   Test a signed numerical value
+// ----------------------------------------------------------------------------
+{
+    if (value < 0)
+        return test(ularge(-value), CHS);
+    else
+        return test(ularge(value));
 }
 
 

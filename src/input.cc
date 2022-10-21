@@ -310,7 +310,7 @@ void input::draw_editor()
     if (!len)
     {
         // Editor is not open, compute stack bottom
-        stack = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES - 4);
+        stack = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES);
         return;
     }
 
@@ -382,7 +382,7 @@ void input::draw_editor()
     // Draw the area that fits on the screen
     int   lineHeight      = dtxt.lineHeight();
     int   top             = lcd_lineHeight(t20) + 2;
-    int   bottom          = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES - 4);
+    int   bottom          = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES);
     int   availableHeight = bottom - top;
     int   availableRows   = availableHeight / lineHeight;
     char *display         = ed;
@@ -861,6 +861,16 @@ bool input::handle_digits(int key)
         "_0.__"
         "_____";
 
+    // Hard-code system menu
+    if (!alpha && shift && key == KEY_0)
+    {
+        SET_ST(STAT_MENU);
+        handle_menu(&application_menu, MENU_RESET, 0);
+        CLR_ST(STAT_MENU);
+        wait_for_key_release(-1);
+        return true;
+    }
+
     if (key == KEY_CHS && RT.editing())
     {
         // Special case for change of sign
@@ -1105,16 +1115,6 @@ bool input::handle_functions(int key)
     record(input, "Handle function for key %d (plane %d) ", key, shift_plane());
     if (key == KEY_STO)
         RT.gc();
-
-    // Hard-code system menu
-    if (!alpha && shift && key == KEY_0)
-    {
-        SET_ST(STAT_MENU);
-        handle_menu(&application_menu, MENU_RESET, 0);
-        CLR_ST(STAT_MENU);
-        wait_for_key_release(-1);
-        return true;
-    }
 
     int     plane = shift_plane();
     object *obj   = function[plane][key - 1];

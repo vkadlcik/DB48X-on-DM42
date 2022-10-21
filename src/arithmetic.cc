@@ -161,18 +161,15 @@ bool arithmetic::real_promotion(gcobj &x, gcobj &y)
 {
     id xt = x->type();
     id yt = y->type();
-    if (xt == yt)
+    if (is_integer(xt) && is_integer(yt))
     {
-        if (is_integer(xt))
-        {
-            // If we got here, we failed an integer op, e.g. 2/3
-            uint16_t prec = Settings.precision;
-            id       target = prec > BID64_MAXDIGITS ? ID_decimal128
-                            : prec > BID32_MAXDIGITS ? ID_decimal64
-                                                     : ID_decimal32;
-            real_promotion(x, target);
-            real_promotion(y, target);
-        }
+        // If we got here, we failed an integer op, e.g. 2/3
+        uint16_t prec = Settings.precision;
+        id       target = prec > BID64_MAXDIGITS ? ID_decimal128
+            : prec > BID32_MAXDIGITS ? ID_decimal64
+            : ID_decimal32;
+        real_promotion(x, target);
+        real_promotion(y, target);
         return true;
     }
 

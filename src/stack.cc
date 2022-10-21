@@ -78,8 +78,7 @@ void stack::draw_stack()
         if (y <= top)
             break;
 
-        dstk.xy(0, y);
-        dstk.write("%d", level+1);
+        dstk.xy(0, y).clearing(false).write("%d", level+1);
 
         object *obj = RT.stack(level);
         size_t size = obj->render(buf, sizeof(buf));

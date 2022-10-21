@@ -379,7 +379,11 @@ tests &tests::begin(cstring name)
 // ----------------------------------------------------------------------------
 {
     if (sindex)
+    {
         passfail(ok);
+        if (!ok)
+            show(failures.back());
+    }
 
     tname = name;
     tindex++;
@@ -403,7 +407,11 @@ tests &tests::step(cstring name)
     lcd_update = lcd_needsupdate;
     sname = name;
     if (sindex++)
+    {
         passfail(ok);
+        if (!ok)
+            show(failures.back());
+    }
     fprintf(stderr, "%3u:  %03u: %-64s", tindex, sindex, sname);
     cindex = 0;
     count++;
@@ -450,22 +458,41 @@ tests &tests::summary()
     {
         fprintf(stderr, "Summary of %zu failures:\n", failures.size());\
         cstring last = nullptr;
-        for (auto s : failures)
-        {
-            if (s.test != last)
-            {
-                fprintf(stderr, "%3u: %s\n", s.tindex, s.test);
-                last = s.test;
-            }
-            fprintf(stderr, "%3u:%03u.%03u: %s\n",
-                    s.tindex, s.sindex, s.cindex, s.step);
-            fprintf(stderr, "==== %s\n", s.explanation.c_str());
-        }
+        for (auto f : failures)
+            show(f, last);
     }
     fprintf(stderr, "Ran %u tests, %zu failures\n",
             count, failures.size());
     return *this;
 }
+
+
+tests &tests::show(tests::failure &f)
+// ----------------------------------------------------------------------------
+//   Show a single failure
+// ----------------------------------------------------------------------------
+{
+    cstring last = nullptr;
+    return show(f, last);
+}
+
+
+tests &tests::show(tests::failure &f, cstring &last)
+// ----------------------------------------------------------------------------
+//   Show an individual failure
+// ----------------------------------------------------------------------------
+{
+    if (f.test != last)
+    {
+        fprintf(stderr, "%3u: %s\n", f.tindex, f.test);
+        last = f.test;
+    }
+    fprintf(stderr, "%3u:%03u.%03u: %s\n",
+            f.tindex, f.sindex, f.cindex, f.step);
+    fprintf(stderr, "==== %s\n", f.explanation.c_str());
+    return *this;
+}
+
 
 
 

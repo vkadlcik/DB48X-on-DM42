@@ -148,6 +148,32 @@ struct tests
         REFRESH,                // Wait until there is a screen refresh
     };
 
+  protected:
+    struct failure
+    {
+        failure(cstring     test,
+                cstring     step,
+                std::string explanation,
+                uint        ti,
+                uint        si,
+                int         ci)
+            : test(test),
+              step(step),
+              explanation(explanation),
+              tindex(ti),
+              sindex(si),
+              cindex(ci)
+        {
+        }
+        cstring     test;
+        cstring     step;
+        std::string explanation;
+        uint        tindex;
+        uint        sindex;
+        uint        cindex;
+    };
+
+protected:
     struct wait
     {
         wait(uint ms): delay(ms) {}
@@ -160,6 +186,8 @@ struct tests
     tests &check(bool test);
     tests &fail();
     tests &summary();
+    tests &show(failure &f, cstring &last);
+    tests &show(failure &f);
 
     // Used to build the tests
     tests &test(key k, bool release = true);
@@ -223,31 +251,7 @@ struct tests
     }
 
 
-  protected:
-    struct failure
-    {
-        failure(cstring     test,
-                cstring     step,
-                std::string explanation,
-                uint        ti,
-                uint        si,
-                int         ci)
-            : test(test),
-              step(step),
-              explanation(explanation),
-              tindex(ti),
-              sindex(si),
-              cindex(ci)
-        {
-        }
-        cstring     test;
-        cstring     step;
-        std::string explanation;
-        uint        tindex;
-        uint        sindex;
-        uint        cindex;
-    };
-
+protected:
     cstring              tname;
     cstring              sname;
     uint                 tindex;

@@ -208,13 +208,68 @@ OBJECT_PARSER_BODY(integer)
 }
 
 
+static size_t render_num(char   *dest,
+                         size_t  size,
+                         ularge  num,
+                         uint    base,
+                         cstring fmt)
+// ----------------------------------------------------------------------------
+//   Convert an integer value to the proper format
+// ----------------------------------------------------------------------------
+//   This is necessary because the arm-none-eabi-gcc printf can't do 64-bit
+//   I'm getting non-sensible output
+{
+    char *p = dest;
+    char *end = p + size;
+
+    // copy the '#' or '-' sign
+    if (*fmt)
+    {
+        if (p < end)
+            *p = *fmt;
+        p++;
+        fmt++;
+    }
+
+    // count digits to display
+    ularge testdigits = num;
+    do
+    {
+        p++;
+        testdigits /= base;
+    } while (testdigits);
+
+    // add suffix
+    char *tail = p;
+    if (*fmt)
+    {
+        if (tail < end)
+            *tail = *fmt;
+        tail++;
+    }
+    if (tail < end)
+        *tail = 0;
+
+    size_t result = tail - (char *) dest;
+    do
+    {
+        uint digit = num % base;
+        digit = (digit < 10) ? digit + '0' : digit + ('A' - 10);
+        *(--p) = digit;
+        num /= base;
+    } while (num);
+
+    return result;
+}
+
+
 OBJECT_RENDERER_BODY(integer)
 // ----------------------------------------------------------------------------
 //   Render the integer into the given string buffer
 // ----------------------------------------------------------------------------
 {
     ularge v = value<ularge>();
-    size_t result = snprintf(r.target, r.length, "%lu", v);
+    size_t result = render_num(r.target, r.length, v, 10, "");
     record(integer, "Render %llu (0x%llX) as [%s]", v, v, (cstring) r.target);
     return result;
 }
@@ -226,7 +281,8 @@ OBJECT_RENDERER_BODY(neg_integer)
 //   Render the negative integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(r.target, r.length, "-%lu", value<ularge>());
+    ularge v = value<ularge>();
+    return render_num(r.target, r.length, v, 10, "-");
 }
 
 
@@ -236,7 +292,18 @@ OBJECT_RENDERER_BODY(hex_integer)
 //   Render the hexadecimal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(r.target, r.length, "#%lXh", value<ularge>());
+    ularge v = value<ularge>();
+    return render_num(r.target, r.length, v, 16, "#h");
+}
+
+template<>
+OBJECT_RENDERER_BODY(dec_integer)
+// ----------------------------------------------------------------------------
+//   Render the decimal based number
+// ----------------------------------------------------------------------------
+{
+    ularge v = value<ularge>();
+    return render_num(r.target, r.length, v, 10, "#d");
 }
 
 template<>
@@ -245,16 +312,8 @@ OBJECT_RENDERER_BODY(oct_integer)
 //   Render the octal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(r.target, r.length, "#%loo", value<ularge>());
-}
-
-template<>
-OBJECT_RENDERER_BODY(dec_integer)
-// ----------------------------------------------------------------------------
-//   Render the negative integer value into the given string buffer
-// ----------------------------------------------------------------------------
-{
-    return snprintf(r.target, r.length, "#%lud", value<ularge>());
+    ularge v = value<ularge>();
+    return render_num(r.target, r.length, v, 8, "#o");
 }
 
 template<>
@@ -263,27 +322,6 @@ OBJECT_RENDERER_BODY(bin_integer)
 //   Render the binary integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    // Why is there no printf format for binary?
-    ularge num = value<ularge>();
-    char  *p   = r.target;
-    char  *end = p + r.length;
-    if (p < end)
-        *p++ = '#';
-    ularge testbit = num;
-    do
-    {
-        p++;
-        testbit >>= 1;
-    } while (testbit);
-    if (p < end)
-        *p = 'b';
-    if (p+1 < end)
-        p[1] = 0;
-    size_t result = p + 1 - (char *) r.target;
-    do
-    {
-        *(--p) = (num & 1) ? '1' : '0';
-        num >>= 1;
-    } while (num);
-    return result;
+    ularge v = value<ularge>();
+    return render_num(r.target, r.length, v, 2, "#b");
 }

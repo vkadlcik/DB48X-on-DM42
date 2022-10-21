@@ -505,10 +505,10 @@ tests &tests::test(int value)
 //   Test a signed numerical value
 // ----------------------------------------------------------------------------
 {
-    char buffer[32];
-    snprintf(buffer, sizeof(buffer), "%d", value);
-    test(cstring(buffer));
-    return shifts(false, false, false, false);
+    if (value < 0)
+        return test(uint(-value), CHS);
+    else
+        return test(uint(value));
 }
 
 

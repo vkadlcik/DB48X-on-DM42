@@ -149,8 +149,8 @@ bool input::key(int key)
         handle_shifts(key)    ||
         handle_editing(key)   ||
         handle_alpha(key)     ||
-        handle_functions(key) ||
         handle_digits(key)    ||
+        handle_functions(key) ||
         false;
 
 
@@ -878,14 +878,10 @@ bool input::handle_digits(int key)
             c = *++p;
 
         if (c == '-' || c == '+')
-        {
             *p = '+' + '-' - c;
-            return true;
-        }
         else
-        {
             cursor += RT.insert(p - ed, '-');
-        }
+        return true;
     }
     else if (key > KEY_CHS)
     {

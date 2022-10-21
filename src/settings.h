@@ -39,6 +39,7 @@ struct settings
     settings()
         : precision(32),
           displayed(12),
+          display_mode(NORMAL),
           decimalDot('.'),
           exponentChar(0x98),   // The special mini-'E'
           angle_mode(DEGREES),

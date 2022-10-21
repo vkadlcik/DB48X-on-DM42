@@ -226,8 +226,16 @@ protected:
     tests &command(cstring msg);
     tests &source(cstring msg);
 
+    template<typename ...Args>
+    tests &explain(Args... args)
+    {
+        if (explanation.length())
+            explanation += "\n---- ";
+        return explain_more(args...);
+    }
+
     template<typename T>
-    tests &explain(T t)
+    tests &explain_more(T t)
     {
         std::ostringstream out;
         out << t;
@@ -236,10 +244,10 @@ protected:
     }
 
     template <typename T, typename ...Args>
-    tests &explain(T t, Args... args)
+    tests &explain_more(T t, Args... args)
     {
-        explain(t);
-        return explain(args...);
+        explain_more(t);
+        return explain_more(args...);
     }
 
     template<typename ...Args>

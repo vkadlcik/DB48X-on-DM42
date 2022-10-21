@@ -841,8 +841,6 @@ tests &tests::clear()
         rt.pop();
     rt.error(nullptr);
     rt.command(nullptr);
-    if (explanation.length())
-        explanation += "\n";
     return *this;
 }
 

@@ -6,7 +6,7 @@
 //
 //   File Description:
 //
-//     Some utilities for display
+//     Some utilities to manipulate the display
 //
 //
 //
@@ -28,6 +28,8 @@
 //   but WITHOUT ANY WARRANTY; without even the implied warranty of
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
+
+#include "graphics.h"
 
 #include <types.h>
 #include <dmcp.h>

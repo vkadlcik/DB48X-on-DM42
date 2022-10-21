@@ -12,3 +12,7 @@
 /sim/moc_sim-screen.cpp
 /sim/moc_sim-window.cpp
 /sim/qrc_sim.cpp
+/tools/ttf2font/.build/
+/tools/ttf2font/.logs/
+/tools/ttf2font/config.h
+/tools/ttf2font/ttf2font

@@ -812,7 +812,7 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
 }
 
 
-tests &tests::test(struct wait delay)
+tests &tests::test(tests::WAIT delay)
 // ----------------------------------------------------------------------------
 //   Wait for a given delay
 // ----------------------------------------------------------------------------

@@ -174,9 +174,9 @@ struct tests
     };
 
 protected:
-    struct wait
+    struct WAIT
     {
-        wait(uint ms): delay(ms) {}
+        WAIT(uint ms): delay(ms) {}
         uint delay;
     };
 
@@ -195,7 +195,7 @@ protected:
     tests &test(int value);
     tests &test(char c);
     tests &test(cstring alpha);
-    tests &test(wait delay);
+    tests &test(WAIT delay);
 
     template <typename First, typename... Args>
     tests &test(First first, Args... args)

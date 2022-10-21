@@ -91,7 +91,7 @@ struct settings
 
 public:
     uint16_t precision;    // Internal precision for numbers
-    uint8_t  displayed;    // Number of displayed digits
+    uint16_t displayed;    // Number of displayed digits
     display  display_mode; // Display mode
     char     decimalDot;   // Character used for decimal separator
     char     exponentChar; // The character used to represent exponents

@@ -51,6 +51,7 @@ SOURCES +=                                      \
         ../src/symbol.cc                        \
         ../src/algebraic.cc                     \
         ../src/arithmetic.cc                    \
+	../src/font.cc				\
 	../src/tests.cc
 
 HEADERS +=                                      \

@@ -80,8 +80,10 @@ NAMED(inv, "Invert")
 
 
 // Special objects
+ID(font)
 ID(dense_font)
 ID(sparse_font)
+ID(dmcp_font)
 
 #undef ID
 #undef OP

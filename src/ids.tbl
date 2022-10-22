@@ -78,6 +78,11 @@ ALIASED_OP(div, "\x80", "/")     // ÷
 NAMED(neg, "Negate")
 NAMED(inv, "Invert")
 
+
+// Special objects
+ID(dense_font)
+ID(sparse_font)
+
 #undef ID
 #undef OP
 #undef CMD

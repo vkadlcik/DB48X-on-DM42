@@ -34,6 +34,7 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
+#include "font.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"

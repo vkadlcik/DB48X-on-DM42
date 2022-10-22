@@ -27,10 +27,12 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #******************************************************************************
 
-SOURCES=ttf2font.c
+SOURCES=ttf2font.cpp
 PRODUCTS=ttf2font.exe
 
 PKGCONFIGS=freetype2
+
+INCLUDES=../../src
 
 MIQ=../../recorder/make-it-quick/
 include $(MIQ)rules.mk

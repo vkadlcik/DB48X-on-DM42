@@ -53,13 +53,13 @@ struct symbol : object
     size_t length()
     {
         byte *p = payload();
-        return leb128<byte, size_t>(p);
+        return leb128<size_t>(p);
     }
 
     utf8 text(size_t *size = nullptr)
     {
         byte  *p   = payload();
-        size_t len = leb128<byte, size_t>(p);
+        size_t len = leb128<size_t>(p);
         if (size)
             *size = len;
         return (utf8) p;

@@ -31,7 +31,7 @@
 
 #include <cstdint>
 
-template <typename Data, typename Int = uint>
+template <typename Int = uint, typename Data>
 inline Int leb128(Data *&p)
 // ----------------------------------------------------------------------------
 //   Return the leb128 value at pointer

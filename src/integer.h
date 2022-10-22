@@ -53,7 +53,7 @@ struct integer : object
     Int value()
     {
         byte *p = payload();
-        return leb128<byte, Int>(p);
+        return leb128<Int>(p);
     }
 
     OBJECT_HANDLER(integer);

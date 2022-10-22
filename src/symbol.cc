@@ -52,7 +52,7 @@ OBJECT_HANDLER_BODY(symbol)
     case SIZE:
     {
         byte *p = (byte *) payload;
-        size_t len = leb128<byte, size_t>(p);
+        size_t len = leb128<size_t>(p);
         p += len;
         return ptrdiff(p, obj);
     }

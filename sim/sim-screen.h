@@ -37,7 +37,7 @@
 extern volatile int lcd_needsupdate;
 extern uint8_t lcd_buffer[];
 
-class Screen : public QGraphicsView
+class SimScreen : public QGraphicsView
 // ----------------------------------------------------------------------------
 //    Screen emulation
 // ----------------------------------------------------------------------------
@@ -62,8 +62,8 @@ public:
     int                  lcd_update;
 
   public:
-    explicit Screen(QWidget *parent = 0);
-    ~Screen();
+    explicit SimScreen(QWidget *parent = 0);
+    ~SimScreen();
 
 public:
     void                 setPixel(int x, int y, int on);

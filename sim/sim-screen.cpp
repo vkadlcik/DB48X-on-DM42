@@ -36,7 +36,7 @@
 #include <target.h>
 
 
-Screen::Screen(QWidget *parent)
+SimScreen::SimScreen(QWidget *parent)
 // ----------------------------------------------------------------------------
 //   Initialize the screen
 // ----------------------------------------------------------------------------
@@ -71,15 +71,15 @@ Screen::Screen(QWidget *parent)
 }
 
 
-Screen::~Screen()
+SimScreen::~SimScreen()
 // ----------------------------------------------------------------------------
-//   Screen destructor
+//   SimScreen destructor
 // ----------------------------------------------------------------------------
 {
 }
 
 
-void Screen::setPixel(int x, int y, int on)
+void SimScreen::setPixel(int x, int y, int on)
 // ----------------------------------------------------------------------------
 //    Set the given screen
 // ----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ void Screen::setPixel(int x, int y, int on)
 }
 
 
-void Screen::setScale(qreal sf)
+void SimScreen::setScale(qreal sf)
 // ----------------------------------------------------------------------------
 //   Adjust the scaling factor
 // ----------------------------------------------------------------------------
@@ -107,7 +107,7 @@ void Screen::setScale(qreal sf)
 }
 
 
-void Screen::update()
+void SimScreen::update()
 // ----------------------------------------------------------------------------
 //   Refresh the screen
 // ----------------------------------------------------------------------------

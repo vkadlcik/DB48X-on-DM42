@@ -30,12 +30,14 @@
 
 #include "main.h"
 
+#include "graphics.h"
 #include "input.h"
 #include "menu.h"
 #include "num.h"
 #include "rpl.h"
 #include "settings.h"
 #include "stack.h"
+#include "target.h"
 #include "util.h"
 
 #include <algorithm>
@@ -55,7 +57,7 @@ static void redraw_lcd()
 // ----------------------------------------------------------------------------
 {
     // Write the header
-    lcd_clear_buf();
+    Screen.fill(pattern::gray50);
     lcd_writeClr(t20);
     t20->newln = 0; // No skip to next line
     lcd_putsR(t20, "DB48X");

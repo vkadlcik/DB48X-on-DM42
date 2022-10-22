@@ -42,7 +42,7 @@
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="Screen" name="screen">
+         <widget class="SimScreen" name="screen">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -156,7 +156,7 @@ border-width: 0px;</string>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>Screen</class>
+   <class>SimScreen</class>
    <extends>QGraphicsView</extends>
    <header>sim-screen.h</header>
    <slots>

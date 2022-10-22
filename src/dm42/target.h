@@ -1,12 +1,12 @@
 #ifndef TARGET_DM42_H
 #define TARGET_DM42_H
 // ****************************************************************************
-//  target.h                                                      BD48X project
+//  target.h                                                      DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     DM42 parameters
+//    Description of the DM42 platform
 //
 //
 //
@@ -17,18 +17,42 @@
 //
 // ****************************************************************************
 //   (C) 2022 Christophe de Dinechin <christophe@dinechin.org>
-//   (C) 2014-2020 Claudio Lapilli and the newRPL Team
 //   This software is licensed under the terms outlined in LICENSE.txt
 // ****************************************************************************
+//   This file is part of DB48X.
+//
+//   DB48X is free software: you can redistribute it and/or modify
+//   it under the terms outlined in the LICENSE.txt file
+//
+//   DB48X is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// ****************************************************************************
 
-#include <stdint.h>
+#include "graphics.h"
+#include <dmcp.h>
 
-// Screen size
-#define LCD_W 400
-#define LCD_H 240
-#define LCD_SCANLINE 416
-#define LCD_H 240
-#define SCREEN_BUFFERS 2
+enum target
+// ----------------------------------------------------------------------------
+//   Constants for a given target
+// ----------------------------------------------------------------------------
+{
+    BITS_PER_PIXEL = 1,
+    LCD_W          = 400,
+    LCD_H          = 240,
+    LCD_SCANLINE   = 416,
+};
+
+using surface = graphics::surface<BITS_PER_PIXEL>;
+using color   = graphics::color  <BITS_PER_PIXEL>;
+using pattern = graphics::pattern<BITS_PER_PIXEL>;
+using coord   = graphics::coord;
+using size    = graphics::size;
+using rect    = graphics::rect;
+using point   = graphics::point;
+using pixword = graphics::pixword;
+
+extern surface Screen;
 
 // Soft menu tab size
 #define MENU_TAB_SPACE      1

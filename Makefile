@@ -60,7 +60,7 @@ ASM_SOURCES = dmcp/startup_pgm.s
 #######################################
 
 # Includes
-C_INCLUDES += -Isrc -Iinc
+C_INCLUDES += -Isrc/dm42 -Isrc -Iinc
 
 # C sources
 C_SOURCES +=
@@ -71,6 +71,7 @@ DECIMAL_SOURCES=$(DECIMAL_SIZES:%=src/decimal-%.cc)
 
 # C++ sources
 CXX_SOURCES +=				\
+	src/dm42/target.cc		\
 	src/main.cc			\
 	src/input.cc			\
 	src/stack.cc			\

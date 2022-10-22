@@ -25,36 +25,37 @@ TEMPLATE = app
 CONFIG += debug
 
 # Qt support code
-SOURCES += \
-	../recorder/recorder.c \
-	../recorder/recorder_ring.c \
-        sim-main.cpp \
-        sim-window.cpp \
-	sim-screen.cpp \
-	sim-rpl.cpp \
-	dmcp.cpp \
-        ../src/menu.cc \
-        ../src/main.cc \
-	../src/util.cc \
-	../src/input.cc \
-	../src/stack.cc \
-	../src/settings.cc \
-        ../src/object.cc \
-        ../src/command.cc \
-        ../src/integer.cc \
-        ../src/decimal128.cc \
-        ../src/decimal-64.cc \
-        ../src/decimal-32.cc \
-        ../src/runtime.cc \
-        ../src/rplstring.cc \
-        ../src/symbol.cc \
-        ../src/algebraic.cc \
-        ../src/arithmetic.cc \
+SOURCES +=                                      \
+	../recorder/recorder.c                  \
+	../recorder/recorder_ring.c             \
+        sim-main.cpp                            \
+        sim-window.cpp                          \
+	sim-screen.cpp                          \
+	sim-rpl.cpp                             \
+	dmcp.cpp                                \
+	../src/dm42/target.cc                   \
+        ../src/menu.cc                          \
+        ../src/main.cc                          \
+	../src/util.cc                          \
+	../src/input.cc                         \
+	../src/stack.cc                         \
+	../src/settings.cc                      \
+        ../src/object.cc                        \
+        ../src/command.cc                       \
+        ../src/integer.cc                       \
+        ../src/decimal128.cc                    \
+        ../src/decimal-64.cc                    \
+        ../src/decimal-32.cc                    \
+        ../src/runtime.cc                       \
+        ../src/rplstring.cc                     \
+        ../src/symbol.cc                        \
+        ../src/algebraic.cc                     \
+        ../src/arithmetic.cc                    \
 	../src/tests.cc
 
-HEADERS += \
-	sim-window.h \
-	sim-screen.h \
+HEADERS +=                                      \
+	sim-window.h                            \
+	sim-screen.h                            \
 	sim-rpl.h
 
 
@@ -72,14 +73,14 @@ debug:DEFINES += DEBUG
 DEFINES += __packed= _WCHAR_T_DEFINED
 
 # COnfigure Intel Decimal Floating Point Library
-DEFINES += 	DECIMAL_CALL_BY_REFERENCE \
-		DECIMAL_GLOBAL_ROUNDING \
-		DECIMAL_GLOBAL_ROUNDING_ACCESS_FUNCTIONS \
-		DECIMAL_GLOBAL_EXCEPTION_FLAGS \
+DEFINES += 	DECIMAL_CALL_BY_REFERENCE                       \
+		DECIMAL_GLOBAL_ROUNDING                         \
+		DECIMAL_GLOBAL_ROUNDING_ACCESS_FUNCTIONS        \
+		DECIMAL_GLOBAL_EXCEPTION_FLAGS                  \
 		DECIMAL_GLOBAL_EXCEPTION_FLAGS_ACCESS_FUNCTIONS
 
 # Additional external library HIDAPI linked statically into the code
-INCLUDEPATH += ../src ../inc
+INCLUDEPATH += ../src/dm42 ../src ../inc
 
 LIBS += gcc111libbid.a
 

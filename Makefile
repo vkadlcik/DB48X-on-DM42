@@ -189,7 +189,7 @@ vpath %.cc $(sort $(dir $(CXX_SOURCES)))
 OBJECTS += $(addprefix $(BUILD)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
-CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti -Wno-packed-bitfield-compat
 
 $(BUILD)/%.o: %.c Makefile | $(BUILD)
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD)/$(notdir $(<:.c=.lst)) $< -o $@

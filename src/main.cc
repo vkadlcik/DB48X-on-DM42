@@ -58,6 +58,8 @@ static void redraw_lcd()
 {
     // Write the header
     Screen.fill(pattern::gray50);
+    Screen.fill(20, 30, 60, 40, pattern::gray25);
+    Screen.fill(22, 38, 64, 56, pattern::gray75);
     lcd_writeClr(t20);
     t20->newln = 0; // No skip to next line
     lcd_putsR(t20, "DB48X");

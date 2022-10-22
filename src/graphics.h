@@ -347,6 +347,17 @@ struct graphics
         if (x1 > x2 || y1 > y2)
             return;
 
+        coord      sl     = x;
+        coord      sr     = sl + x2 - x1;
+        coord      st     = y;
+        coord      sb     = st + y2 - y1;
+
+        // Some platforms have the weird idea of flipping left and right
+        dst.horizontal_adjust(x1, x2);
+        dst.vertical_adjust(y1, y2);
+        src.horizontal_adjust(sl, sr);
+        src.vertical_adjust(st, sb);
+
         // Check whether we need to go forward or backward along X or Y
         int        xback  = x < x1;
         int        yback  = y < y1;
@@ -355,10 +366,6 @@ struct graphics
         coord      dx1    = xback ? x2 : x1;
         coord      dx2    = xback ? x1 : x2;
         coord      dy1    = yback ? y2 : y1;
-        coord      sl     = x;
-        coord      sr     = sl + x2 - x1;
-        coord      st     = y;
-        coord      sb     = st + y2 - y1;
         coord      sx1    = xback ? sr : sl;
         coord      sy1    = yback ? sb : st;
         coord      ycount = y2 - y1;
@@ -528,6 +535,9 @@ struct graphics
               drawable(w, h) {}
         surface(pixword *p, size w, size h) : surface(p, w, h, w) {}
         surface(const surface &o) = default;
+
+        void horizontal_adjust(coord UNUSED &x1, coord UNUSED &x2) const {}
+        void vertical_adjust  (coord UNUSED &x1, coord UNUSED &x2) const {}
 
         // Operations used by the blitting routine
         using color   = graphics::color<Mode>;
@@ -990,13 +1000,30 @@ public:
 };
 
 
+// ============================================================================
+//
+//   Template specialization for horizontal adjustment
+//
+// ============================================================================
+
+template<>
+inline void graphics::surface<graphics::MONOCHROME>::
+horizontal_adjust(coord &x1, coord &x2) const
+// ----------------------------------------------------------------------------
+//   On the DM42, we need horizontal adjustment for coordinates
+// ----------------------------------------------------------------------------
+{
+    coord ox1 = width - x2;
+    x2 = width - x1;
+    x1 = ox1;
+}
+
 
 // ============================================================================
 //
 //   Template specializations for blitops
 //
 // ============================================================================
-
 
 template <>
 inline graphics::pixword

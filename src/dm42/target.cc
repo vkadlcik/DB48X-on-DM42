@@ -32,7 +32,7 @@
 // Initialize the screen
 surface Screen((pixword *) lcd_line_addr(0), LCD_W, LCD_H, LCD_SCANLINE);
 
-#define GPAT      graphics::pattern<1>
+#define GPAT      graphics::pattern<graphics::mode::MONOCHROME>
  const GPAT GPAT::black  = GPAT(  0,   0,   0);
  const GPAT GPAT::gray25 = GPAT( 64,  64,  64);
  const GPAT GPAT::gray50 = GPAT(128, 128, 128);

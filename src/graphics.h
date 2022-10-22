@@ -57,7 +57,21 @@ struct graphics
     typedef uint16_t palette_index;
     typedef uint64_t pattern_bits;
 
-    enum { BPW = 8 * sizeof(pixword) }; // Bits per pixword
+    enum
+    {
+        BPW = 8 * sizeof(pixword) // Bits per pixword
+    };
+
+
+    enum mode
+    // ------------------------------------------------------------------------
+    //   Graphics mode (including bits per pixel info)
+    // ------------------------------------------------------------------------
+    {
+        MONOCHROME,             // Monochrome bitmap (DM42)
+        GRAY_4BPP,              // Gray, 4 bits per pixel (HP50G and related)
+        RGB_16BPP,              // RGB16 (HP Prime)
+    };
 
 
     // ========================================================================
@@ -67,10 +81,8 @@ struct graphics
     // ========================================================================
     //  Colors have a generic RGB-based interface, even on monochrome systems
     //  like the DM42, or on grayscale systems like the HP50G.
-    //  The code presently supports 1BPP, 4BPP and 16BPP colors
-    //  32BPP would be trivial to add.
 
-    template <uint BPP> union color
+    template <mode Mode> union color
     // ------------------------------------------------------------------------
     //   The generic color representation
     // ------------------------------------------------------------------------
@@ -82,6 +94,8 @@ struct graphics
         uint8_t red();
         uint8_t green();
         uint8_t blue();
+
+        enum { BPP = 1 };
     };
 
 
@@ -103,16 +117,18 @@ struct graphics
     //   A pattern can be built from RGB values, which will build a pattern
     //   with the corresponding pixel density on a monochrome system.
 
-    template <uint BPP> union pattern
+    template <mode Mode> union pattern
     // ------------------------------------------------------------------------
     //   Pattern representation for fills
     // ------------------------------------------------------------------------
     {
-        uint64_t  bits;              // All patterns are represented as 64 bit
+        uint64_t  bits;
 
-        enum { SIZE=1 };             // Size of the pattern
-        enum:uint64_t { SOLID = 1 }; // Multiplier for solids
-        using color = graphics::color<BPP>;
+        enum { SIZE=1 };                        // Size of the pattern
+        enum:uint64_t { SOLID = 1 };            // Multiplier for solids
+        enum { BPP = color<Mode>::BPP };        // Bit per pixels for pattern
+        using color = graphics::color<Mode>;
+
     public:
         // Build a solid pattern from a single color
         pattern(color c);
@@ -240,13 +256,13 @@ struct graphics
     // blitop: a blitting operation
     typedef pixword (*blitop)(pixword dst, pixword src, pixword arg);
 
-    template <clipping Clip, typename Dst, typename Src, uint CBPP>
-    static void blit(Dst          &dst,
-                     const Src    &src,
-                     const rect   &drect,
-                     const point  &spos,
-                     blitop        op,
-                     pattern<CBPP> colors)
+    template <clipping Clip, typename Dst, typename Src, mode CMode>
+    static void blit(Dst           &dst,
+                     const Src     &src,
+                     const rect    &drect,
+                     const point   &spos,
+                     blitop         op,
+                     pattern<CMode> colors)
     // -------------------------------------------------------------------------
     //   Generalized multi-bpp blitting routine
     // -------------------------------------------------------------------------
@@ -288,6 +304,7 @@ struct graphics
 
         const uint SBPP     = Src::BPP;
         const uint DBPP     = Dst::BPP;
+        const uint CBPP     = color<CMode>::BPP;
 
         if (clip_src)
         {
@@ -366,26 +383,26 @@ struct graphics
         unsigned   sls    = src.pixel_shift(sl, sy1);
         unsigned   srs    = src.pixel_shift(sr, sy1);
         unsigned   sws    = xback ? srs : sls;
-        unsigned   cshift  = (CBPP == 16  ? 48
-                              : CBPP == 4 ? 20
-                              : CBPP == 1 ? 9
-                              : 0);
-        unsigned   cys    = ydir * (int) cshift;
-        unsigned   cxs    = xdir * BPW * CBPP / DBPP;
+        unsigned   cshift  = surface<CMode>::BPP == 16 ? 48
+                           : surface<CMode>::BPP ==  4 ? 20
+                           : surface<CMode>::BPP ==  1 ? 9
+                                                       : 0;
+        unsigned   cys     = ydir * (int) cshift;
+        unsigned cxs     = xdir * BPW * CBPP / DBPP;
 
         // Shift adjustment from source to destinaation
-        unsigned   sadj   = (int) (sws * DBPP - dws * SBPP) / (int) DBPP;
-        unsigned   sxadj  = xdir * (int) (SBPP * BPW / DBPP);
+        unsigned sadj    = (int) (sws * DBPP - dws * SBPP) / (int) DBPP;
+        unsigned sxadj   = xdir * (int) (SBPP * BPW / DBPP);
 
         // X1 and x2 masks
-        pixword    ones   = ~0U;
-        pixword    lmask  = ones << dls;
-        pixword    rmask  = shrc(ones, drs + DBPP);
-        pixword    dmask1 = xback ? rmask : lmask;
-        pixword    dmask2 = xback ? lmask : rmask;
+        pixword  ones    = ~0U;
+        pixword  lmask   = ones << dls;
+        pixword  rmask   = shrc(ones, drs + DBPP);
+        pixword  dmask1  = xback ? rmask : lmask;
+        pixword  dmask2  = xback ? lmask : rmask;
 
         // Adjust the color pattern based on starting point
-        uint64_t   cdata64 = colors.bits;
+        uint64_t cdata64 = colors.bits;
         if (!skip_col)
             cdata64 = rotate(cdata64, dx1 * CBPP + dy1 * cshift - dws);
 
@@ -499,7 +516,7 @@ struct graphics
     //
     // ========================================================================
 
-    template<uint BITS_PER_PIXEL>
+    template<mode Mode>
     struct surface
     // -------------------------------------------------------------------------
     //   Structure representing a surface on screen
@@ -513,10 +530,9 @@ struct graphics
         surface(const surface &o) = default;
 
         // Operations used by the blitting routine
-        enum { BPP = BITS_PER_PIXEL };
-
-        using color   = graphics::color<BPP>;
-        using pattern = graphics::pattern<BPP>;
+        using color   = graphics::color<Mode>;
+        using pattern = graphics::pattern<Mode>;
+        enum { BPP = color::BPP };
 
     public:
         void clip(const rect &r)
@@ -737,7 +753,7 @@ protected:
 //
 // ============================================================================
 
-template<> union graphics::color<1>
+template<> union graphics::color<graphics::mode::MONOCHROME>
 // ------------------------------------------------------------------------
 //  Color representation (1-bit, e.g. DM42)
 // ------------------------------------------------------------------------
@@ -750,12 +766,14 @@ template<> union graphics::color<1>
     uint8_t green()        { return !value * 255; }
     uint8_t blue()         { return !value * 255; }
 
+    enum { BPP = 1 };
+
 public:
     bool value : 1;         // The color value is 0 or 1
 };
 
 
-template<> union graphics::color<4>
+template<> union graphics::color<graphics::mode::GRAY_4BPP>
 // ------------------------------------------------------------------------
 //  Color representation (4-bit, e.g. HP50G)
 // ------------------------------------------------------------------------
@@ -768,12 +786,14 @@ template<> union graphics::color<4>
     uint8_t  green()            { return red(); }
     uint8_t  blue()             { return red(); }
 
+    enum { BPP = 4 };
+
 public:
     uint8_t value : 4;
 };
 
 
-template<> union graphics::color<16>
+template<> union graphics::color<graphics::mode::RGB_16BPP>
 // ------------------------------------------------------------------------
 //  Color representation (16-bit, e.g. HP Prime)
 // ------------------------------------------------------------------------
@@ -787,6 +807,8 @@ template<> union graphics::color<16>
         uint8_t red   : 5;
     } PACKED rgb16;
     uint16_t value    : 16;
+
+    enum { BPP = 16 };
 
 public:
     // Build a color from normalized RGB values
@@ -805,12 +827,13 @@ public:
 //
 // ============================================================================
 
-template<uint BPP> template<uint N>
-inline graphics::pattern<BPP>::pattern(graphics::color<BPP> colors[N])
+template<graphics::mode Mode> template<uint N>
+inline graphics::pattern<Mode>::pattern(graphics::color<Mode> colors[N])
 // ------------------------------------------------------------------------
 //  Build a checkerboard from 2 or 4 colors in an array
 // ------------------------------------------------------------------------
 {
+    enum { BPP = graphics::color<Mode>::BPP };
     for (uint shift = 0; shift < 64 / BPP; shift++)
     {
         uint index = (shift + ((shift / SIZE) % N)) % N;
@@ -818,8 +841,8 @@ inline graphics::pattern<BPP>::pattern(graphics::color<BPP> colors[N])
     }
 }
 
-template<uint BPP>
-inline graphics::pattern<BPP>::pattern(color a, color b)
+template<graphics::mode Mode>
+inline graphics::pattern<Mode>::pattern(color a, color b)
 // ------------------------------------------------------------------------
 //   Build a pattern from two colors
 // ------------------------------------------------------------------------
@@ -829,8 +852,8 @@ inline graphics::pattern<BPP>::pattern(color a, color b)
     *this = pattern(colors);
 }
 
-template<uint BPP>
-inline graphics::pattern<BPP>::pattern(color a, color b, color c, color d)
+template<graphics::mode Mode>
+inline graphics::pattern<Mode>::pattern(color a, color b, color c, color d)
 // ------------------------------------------------------------------------
 //   Build a pattern from four colors
 // ------------------------------------------------------------------------
@@ -840,16 +863,18 @@ inline graphics::pattern<BPP>::pattern(color a, color b, color c, color d)
 }
 
 // Pre-built patterns for five shades of grey
-#define GPAT      graphics::pattern<BPP>
-template<uint BPP> const GPAT GPAT::black  = GPAT(  0,   0,   0);
-template<uint BPP> const GPAT GPAT::gray25 = GPAT( 64,  64,  64);
-template<uint BPP> const GPAT GPAT::gray50 = GPAT(128, 128, 128);
-template<uint BPP> const GPAT GPAT::gray75 = GPAT(192, 192, 192);
-template<uint BPP> const GPAT GPAT::white  = GPAT(255, 255, 255);
+#define GPAT      graphics::pattern<Mode>
+#define TGPAT     template<graphics::mode Mode> const GPAT
+TGPAT GPAT::black  = GPAT(  0,   0,   0);
+TGPAT GPAT::gray25 = GPAT( 64,  64,  64);
+TGPAT GPAT::gray50 = GPAT(128, 128, 128);
+TGPAT GPAT::gray75 = GPAT(192, 192, 192);
+TGPAT GPAT::white  = GPAT(255, 255, 255);
+#undef TGPAT
 #undef GPAT
 
 
-template <> union graphics::pattern<1>
+template <> union graphics::pattern<graphics::mode::MONOCHROME>
 // ------------------------------------------------------------------------
 //   Pattern for 1-bit screens (DM42)
 // ------------------------------------------------------------------------
@@ -858,7 +883,7 @@ template <> union graphics::pattern<1>
 
     enum              { BPP = 1, SIZE = 8 }; // 64-bit = 8x8 1-bit pattern
     enum:uint64_t     { SOLID = 0xFFFFFFFFFFFFFFFFull };
-    using color = graphics::color<1>;
+    using color = graphics::color<MONOCHROME>;
 
 public:
     // Build a solid pattern from a single color
@@ -891,7 +916,7 @@ public:
 };
 
 
-template <> union graphics::pattern<4>
+template <> union graphics::pattern<graphics::mode::GRAY_4BPP>
 // ------------------------------------------------------------------------
 //   Pattern for 4-bit screens (HP50G)
 // ------------------------------------------------------------------------
@@ -900,7 +925,7 @@ template <> union graphics::pattern<4>
 
     enum              { BPP = 4, SIZE = 4 }; // 64-bit = 4x4 4-bit pattern
     enum:uint64_t     { SOLID = 0x1111111111111111ull };
-    using color = graphics::color<4>;
+    using color = graphics::color<GRAY_4BPP>;
 
   public:
     // Build a solid pattern from a single color
@@ -928,7 +953,7 @@ template <> union graphics::pattern<4>
 };
 
 
-template <> union graphics::pattern<16>
+template <> union graphics::pattern<graphics::mode::RGB_16BPP>
 // ------------------------------------------------------------------------
 //   Pattern for 16-bit screens (HP Prime)
 // ------------------------------------------------------------------------
@@ -937,7 +962,7 @@ template <> union graphics::pattern<16>
 
     enum              { BPP = 16, SIZE = 2 }; // 64-bit = 4x4 4-bit pattern
     enum:uint64_t     { SOLID = 0x0001000100010001ull };
-    using color = graphics::color<16>;
+    using color = graphics::color<RGB_16BPP>;
 
 public:
     // Build a solid pattern from a single color
@@ -974,7 +999,8 @@ public:
 
 
 template <>
-inline graphics::pixword graphics::blitop_mono_fg<1>(graphics::pixword dst,
+inline graphics::pixword
+graphics::blitop_mono_fg<graphics::mode::MONOCHROME>(graphics::pixword dst,
                                                      graphics::pixword src,
                                                      graphics::pixword arg)
 // -------------------------------------------------------------------------
@@ -986,9 +1012,10 @@ inline graphics::pixword graphics::blitop_mono_fg<1>(graphics::pixword dst,
 }
 
 template <>
-inline graphics::pixword graphics::blitop_mono_fg<4>(graphics::pixword dst,
-                                                     graphics::pixword src,
-                                                     graphics::pixword arg)
+inline graphics::pixword
+graphics::blitop_mono_fg<graphics::mode::GRAY_4BPP>(graphics::pixword dst,
+                                                    graphics::pixword src,
+                                                    graphics::pixword arg)
 // -------------------------------------------------------------------------
 //   Bitmap foreground colorization (4bpp destination)
 // -------------------------------------------------------------------------
@@ -1002,9 +1029,10 @@ inline graphics::pixword graphics::blitop_mono_fg<4>(graphics::pixword dst,
 }
 
 template <>
-inline graphics::pixword graphics::blitop_mono_fg<16>(graphics::pixword dst,
-                                                      graphics::pixword src,
-                                                      graphics::pixword arg)
+inline graphics::pixword
+graphics::blitop_mono_fg<graphics::mode::RGB_16BPP>(graphics::pixword dst,
+                                                    graphics::pixword src,
+                                                    graphics::pixword arg)
 // -------------------------------------------------------------------------
 //   Bitmap foreground colorization (16bpp destination)
 // -------------------------------------------------------------------------

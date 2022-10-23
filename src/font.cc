@@ -490,7 +490,7 @@ bool dmcp_font::glyph(utf8code codepoint, glyph_info &g)
     g.bitmap = dp;
     g.bx = 0;
     g.by = 0;
-    g.bw = cols;
+    g.bw = (cols + 7) / 8 * 8;
     g.bh = rows;
     g.x = cx;
     g.y = cy;

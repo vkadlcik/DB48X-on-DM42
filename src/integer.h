@@ -30,6 +30,7 @@
 // ****************************************************************************
 
 #include "object.h"
+#include "runtime.h"
 
 struct integer : object
 // ----------------------------------------------------------------------------
@@ -55,6 +56,9 @@ struct integer : object
         byte *p = payload();
         return leb128<Int>(p);
     }
+
+    template <typename Int>
+    static integer *make(Int value);
 
     OBJECT_HANDLER(integer);
     OBJECT_PARSER(integer);
@@ -86,5 +90,14 @@ using hex_integer = special_integer<object::ID_hex_integer>;
 using oct_integer = special_integer<object::ID_oct_integer>;
 using bin_integer = special_integer<object::ID_bin_integer>;
 using dec_integer = special_integer<object::ID_dec_integer>;
+
+template <typename Int>
+integer *integer::make(Int value)
+// ----------------------------------------------------------------------------
+//   Make an integer with the correct sign
+// ----------------------------------------------------------------------------
+{
+    return value < 0 ? RT.make<neg_integer>(-value) : RT.make<integer>(value);
+}
 
 #endif // INTEGER_H

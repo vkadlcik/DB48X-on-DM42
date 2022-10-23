@@ -168,7 +168,7 @@ struct runtime
     {
         // Find the required type for this object
         typename Obj::id type = Obj::static_type();
-        return make(type, args...);
+        return make<Obj>(type, args...);
     }
 
 

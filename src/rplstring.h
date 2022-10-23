@@ -51,6 +51,17 @@ struct string : object
         return leb128size(i) + leb128size(len) + len;
     }
 
+    static string *make(cstring str, size_t len)
+    {
+        gcstring gcstr = str;
+        return RT.make<string>(gcstr, len);
+    }
+
+    static string *make(cstring str)
+    {
+        return make(str, strlen(str));
+    }
+
     size_t length()
     {
         byte *p = payload();

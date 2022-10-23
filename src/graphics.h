@@ -251,6 +251,7 @@ struct graphics
         CLIP_ALL    = 3,
         SKIP_SOURCE = 4,
         SKIP_COLOR  = 8,
+        OVERLAP     = 16,                       // Set if src and dest overlap
         FILL_QUICK  = SKIP_SOURCE,
         FILL_SAFE   = SKIP_SOURCE | CLIP_DST,
         COPY        = CLIP_ALL | SKIP_COLOR,
@@ -297,6 +298,7 @@ struct graphics
         bool       clip_dst = Clip & CLIP_DST;
         bool       skip_src = Clip & SKIP_SOURCE;
         bool       skip_col = Clip & SKIP_COLOR;
+        bool       overlap  = Clip & OVERLAP;
 
         coord      x1       = drect.x1;
         coord      y1       = drect.y1;
@@ -350,6 +352,7 @@ struct graphics
         if (x1 > x2 || y1 > y2)
             return;
 
+        // Source coordinates
         coord      sl     = x;
         coord      sr     = sl + x2 - x1;
         coord      st     = y;
@@ -362,8 +365,8 @@ struct graphics
         src.vertical_adjust(st, sb);
 
         // Check whether we need to go forward or backward along X or Y
-        int        xback  = x < x1;
-        int        yback  = y < y1;
+        bool       xback  = overlap && x < x1;
+        bool       yback  = overlap && y < y1;
         int        xdir   = xback ? -1 : 1;
         int        ydir   = yback ? -1 : 1;
         coord      dx1    = xback ? x2 : x1;
@@ -372,14 +375,6 @@ struct graphics
         coord      sx1    = xback ? sr : sl;
         coord      sy1    = yback ? sb : st;
         coord      ycount = y2 - y1;
-
-        // Offset in words for a displacement along Y
-        offset     dyoff  = dst.pixel_offset(0, ydir);
-        offset     syoff  = skip_src ? 0 : src.pixel_offset(0, ydir);
-        size       swidth = src.width;
-        unsigned   sslant = skip_src ? 0 : src.pixel_shift(swidth, 0);
-        size       dwidth = dst.width;
-        unsigned   dslant = dst.pixel_shift(dwidth, 0);
 
         // Pointers to word containing start and end pixel
         pixword   *dp1    = dst.pixel_address(dx1, dy1);
@@ -390,14 +385,13 @@ struct graphics
         unsigned   dls    = dst.pixel_shift(x1, dy1);
         unsigned   drs    = dst.pixel_shift(x2, dy1);
         unsigned   dws    = xback ? drs : dls;
-        unsigned   sls    = src.pixel_shift(sl, sy1);
-        unsigned   srs    = src.pixel_shift(sr, sy1);
+        unsigned   sls    = skip_src ? 0 : src.pixel_shift(sl, sy1);
+        unsigned   srs    = skip_src ? 0 : src.pixel_shift(sr, sy1);
         unsigned   sws    = xback ? srs : sls;
-        unsigned   cshift  = surface<CMode>::BPP == 16 ? 48
-                           : surface<CMode>::BPP ==  4 ? 20
-                           : surface<CMode>::BPP ==  1 ? 9
-                                                       : 0;
-        unsigned cys     = ydir * (int) cshift;
+        unsigned   cshift = surface<CMode>::BPP == 16 ? 48
+                          : surface<CMode>::BPP ==  4 ? 20
+                          : surface<CMode>::BPP ==  1 ? 9
+                                                      : 0;
         unsigned cxs     = xdir * BPW * CBPP / DBPP;
 
         // Shift adjustment from source to destinaation
@@ -418,9 +412,6 @@ struct graphics
 
         while (ycount-- >= 0)
         {
-            uint64_t csave    = cdata64;
-            unsigned sadjsave = sadj;
-            pixword *ssave    = sp;
             pixword *dp       = dp1;
             pixword  dmask    = dmask1;
             int      xdone    = 0;
@@ -479,43 +470,25 @@ struct graphics
             } while (!xdone);
 
             // Move to next line
-            if (dslant)
-            {
-                dy1 += ydir;
-                dp1     = dst.pixel_address(dx1, dy1);
-                dp2     = dst.pixel_address(dx2, dy1);
-                dls     = dst.pixel_shift(x1, dy1);
-                drs     = dst.pixel_shift(x2, dy1);
-                dws     = xback ? drs : dls;
-                lmask   = ones << dls;
-                rmask   = shrc(ones, drs + DBPP);
-                dmask1  = xback ? rmask : lmask;
-                dmask2  = xback ? lmask : rmask;
-                cdata64 = rotate(cdata64, dx1 * CBPP + dy1 * cshift - dws);
-            }
-            else
-            {
-                dp1 += dyoff;
-                dp2 += dyoff;
-                if (!skip_col)
-                    cdata64 = rotate(csave, cys);
-            }
+            dy1 += ydir;
+            dp1     = dst.pixel_address(dx1, dy1);
+            dp2     = dst.pixel_address(dx2, dy1);
+            dls     = dst.pixel_shift(x1, dy1);
+            drs     = dst.pixel_shift(x2, dy1);
+            dws     = xback ? drs : dls;
+            lmask   = ones << dls;
+            rmask   = shrc(ones, drs + DBPP);
+            dmask1  = xback ? rmask : lmask;
+            dmask2  = xback ? lmask : rmask;
+            cdata64 = rotate(cdata64, dx1 * CBPP + dy1 * cshift - dws);
 
             // Check if we can directly move to next line
-            if (sslant || dslant)
-            {
-                sy1 += ydir;
-                sp   = src.pixel_address(sx1, sy1);
-                sls  = src.pixel_shift(sl, sy1);
-                srs  = src.pixel_shift(sr, sy1);
-                sws  = xback ? srs : sls;
-                sadj = (int) (sws * DBPP - dws * SBPP) / (int) DBPP;
-            }
-            else
-            {
-                sp   = ssave + syoff;
-                sadj = sadjsave;
-            }
+            sy1 += ydir;
+            sp   = src.pixel_address(sx1, sy1);
+            sls  = src.pixel_shift(sl, sy1);
+            srs  = src.pixel_shift(sr, sy1);
+            sws  = xback ? srs : sls;
+            sadj = (int) (sws * DBPP - dws * SBPP) / (int) DBPP;
         }
     }
 
@@ -648,7 +621,7 @@ struct graphics
         //   Offset in words in a given surface for the given coordinates
         // ---------------------------------------------------------------------
         {
-            return ((offset) scanline * y + x) * (offset) BPP / BPW;
+            return ((offset) scanline * y + x) * (offset) BPP;
         }
 
         offset pixel_shift(coord x, coord y) const
@@ -656,7 +629,7 @@ struct graphics
         //   Shift in bits in the word for the given coordinates
         // ---------------------------------------------------------------------
         {
-            return ((offset) scanline * y + x) * (offset) BPP % BPW;
+            return pixel_offset(x, y) % BPW;
         }
 
         pixword *pixel_address(coord x, coord y) const
@@ -664,7 +637,7 @@ struct graphics
         //   Get the address of a word representing the pixel in a surface
         // ---------------------------------------------------------------------
         {
-            return pixels + pixel_offset(x, y);
+            return pixels + pixel_offset(x, y) / BPW;
         }
 
     protected:

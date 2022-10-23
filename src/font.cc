@@ -336,19 +336,6 @@ bool dense_font::glyph(utf8code codepoint, glyph_info &g)
 }
 
 
-struct binary_constructor
-// ----------------------------------------------------------------------------
-//   Silly way to write binary litterals for bitmaps
-// ----------------------------------------------------------------------------
-{
-    binary_constructor(byte b = 0): b(b) {};
-    operator byte() { return b; }
-    unsigned b;
-    binary_constructor operator *() const    { return (b>>1) | 0x80; }
-    binary_constructor operator -() const    { return (b>>1) | 0x00; }
-} _;
-
-
 bool dmcp_font::glyph(utf8code codepoint, glyph_info &g)
 // ----------------------------------------------------------------------------
 //   Return the bitmap address and update coordinate info for a DMCP font
@@ -427,14 +414,14 @@ bool dmcp_font::glyph(utf8code codepoint, glyph_info &g)
     {
         // Invent this character for the font
         static const byte bitmap[] = {
-            - - - - * - * - _,
-            - - - * - * - - _,
-            - - * - * - - - _,
-            - * - * - - - - _,
-            - - * - * - - - _,
-            - - - * - * - - _,
-            - - - - * - * - _,
-            - - - - - - - - _,
+            0x05,               // ----*-*-
+            0x0A,               // ---*-*--
+            0x14,               // --*-*---
+            0x28,               // -*-*----
+            0x14,               // --*-*---
+            0x0A,               // ---*-*--
+            0x05,               // ----*-*-
+            0x00,               // --------
         };
         synthesized = bitmap;
         break;
@@ -443,14 +430,14 @@ bool dmcp_font::glyph(utf8code codepoint, glyph_info &g)
     {
         // Invent this character for the font
         static const byte bitmap[] = {
-            - * - * - - - - _,
-            - - * - * - - - _,
-            - - - * - * - - _,
-            - - - - * - * - _,
-            - - - * - * - - _,
-            - - * - * - - - _,
-            - * - * - - - - _,
-            - - - - - - - - _,
+            0x50,               // -*-*----
+            0x28,               // --*-*---
+            0x14,               // ---*-*--
+            0x0A,               // ----*-*-
+            0x14,               // ---*-*--
+            0x28,               // --*-*---
+            0x50,               // -*-*----
+            0x00,               // --------
         };
         synthesized = bitmap;
         break;

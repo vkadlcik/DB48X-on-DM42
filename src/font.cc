@@ -261,7 +261,7 @@ bool sparse_font::glyph(utf8code codepoint, glyph_info &g)
     g.y       = data->y;
     g.w       = data->x + data->w;
     g.h       = height;
-    g.advance = g.w + 1;
+    g.advance = g.w;
     return true;
 }
 
@@ -331,7 +331,7 @@ bool dense_font::glyph(utf8code codepoint, glyph_info &g)
     g.y       = 0;
     g.w       = data->w;
     g.h       = height;
-    g.advance = g.w + 1;
+    g.advance = g.w;
     return true;
 }
 
@@ -483,8 +483,8 @@ bool dmcp_font::glyph(utf8code codepoint, glyph_info &g)
             g.x =  0;
             g.y =  (f->height - 8) / 2;
             g.w =  8;
-            g.h =  f->height;
-            g.advance = g.w + 1;
+            g.h =  8;
+            g.advance = g.w;
             return true;
         }
         return false;
@@ -507,9 +507,9 @@ bool dmcp_font::glyph(utf8code codepoint, glyph_info &g)
     g.bh = rows;
     g.x = cx;
     g.y = cy;
-    g.w = cx + cols;
-    g.h = height;
-    g.advance = g.w + 1;
+    g.w = cols;
+    g.h = rows;
+    g.advance = cx + cols;
 
     return true;
 }

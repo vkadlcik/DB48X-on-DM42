@@ -34,6 +34,8 @@
 //
 
 #include "types.h"
+#include "utf8.h"
+#include "font.h"
 
 #define PACKED  __attribute__((packed))
 
@@ -394,7 +396,7 @@ struct graphics
                            : surface<CMode>::BPP ==  4 ? 20
                            : surface<CMode>::BPP ==  1 ? 9
                                                        : 0;
-        unsigned   cys     = ydir * (int) cshift;
+        unsigned cys     = ydir * (int) cshift;
         unsigned cxs     = xdir * BPW * CBPP / DBPP;
 
         // Shift adjustment from source to destinaation
@@ -609,6 +611,35 @@ struct graphics
             blit<Clip>(*this, src, r, spos, blitop_source, clear);
         }
 
+        template<clipping Clip = CLIP_DST>
+        coord glyph(coord x, coord y, utf8code codepoint, font *f,
+                    pattern colors = pattern::black,
+                    blitop op = blitop_mono_fg<Mode>);
+        // --------------------------------------------------------------------
+        //   Draw a glyph with the given operation and colors
+        // --------------------------------------------------------------------
+
+        template<clipping Clip = CLIP_DST>
+        coord glyph(coord x, coord y, utf8code codepoint, font *f,
+                    pattern fg, pattern bg);
+        // --------------------------------------------------------------------
+        //   Draw a glyph with a foreground and background
+        // --------------------------------------------------------------------
+
+        template<clipping Clip = CLIP_DST>
+        coord text(coord x, coord y, utf8 text, font *f,
+                   pattern colors = pattern::black,
+                   blitop op = blitop_mono_fg<Mode>);
+        // --------------------------------------------------------------------
+        //   Draw a text with the given operation and colors
+        // --------------------------------------------------------------------
+
+        template<clipping Clip = CLIP_DST>
+        coord text(coord x, coord y, utf8 text, font *f,
+                   pattern fg, pattern bg);
+        // --------------------------------------------------------------------
+        //   Draw a text with a foreground and background
+        // --------------------------------------------------------------------
 
     protected:
         offset pixel_offset(coord x, coord y) const
@@ -707,7 +738,7 @@ protected:
     //   Operators for blit
     //
     // =========================================================================
-
+public:
     static pixword blitop_set(pixword UNUSED dst,
                               pixword UNUSED src,
                               pixword        arg)
@@ -728,7 +759,7 @@ protected:
         return src;
     }
 
-    template<uint BPP>
+    template<mode Mode>
     static pixword blitop_mono_fg(pixword dst, pixword src, pixword arg);
     // ------------------------------------------------------------------------
     //   1-BPP to N-BPP foreground color conversion (used for text drawing)
@@ -736,13 +767,13 @@ protected:
 
 
 
-    template<uint BPP>
+    template<mode Mode>
     static pixword blitop_mono_bg(pixword dst, pixword src, pixword arg)
     // -------------------------------------------------------------------------
     //   Bitmap baground colorization (1bpp destination)
     // -------------------------------------------------------------------------
     {
-        return blitop_mono_fg<BPP>(dst, ~src, arg);
+        return blitop_mono_fg<Mode>(dst, ~src, arg);
     }
 
 
@@ -752,6 +783,15 @@ protected:
     // -------------------------------------------------------------------------
     {
         dst = src ^ arg;
+        return dst;
+    }
+
+
+    static pixword blitop_nop(pixword dst, pixword UNUSED s, pixword UNUSED a)
+    // ------------------------------------------------------------------------
+    //   No graphical operation
+    // ------------------------------------------------------------------------
+    {
         return dst;
     }
 };
@@ -1070,6 +1110,116 @@ graphics::blitop_mono_fg<graphics::mode::RGB_16BPP>(graphics::pixword dst,
         if (src & (1 << shift))
             mask |= 0xFFFF << (16 * shift);
     return (dst & ~mask) | (arg & mask);
+}
+
+
+
+// ============================================================================
+//
+//    Text rendering operations
+//
+// ============================================================================
+
+template <graphics::mode Mode>
+template <graphics::clipping Clip>
+graphics::coord graphics::surface<Mode>::glyph(coord    x,
+                                               coord    y,
+                                               utf8code codepoint,
+                                               font    *f,
+                                               pattern  colors,
+                                               blitop   op)
+// ----------------------------------------------------------------------------
+//   Render a glyph on the given surface
+// ----------------------------------------------------------------------------
+{
+    font::glyph_info g;
+    if (f->glyph(codepoint, g))
+    {
+        // Bitmap may be misaligned, if so, fixup
+        uintptr_t bma = (uintptr_t) g.bitmap;
+        g.bx += 8 * (bma & 3);
+        bma &= ~3;
+        surface<MONOCHROME> source((pixword *) bma, g.bw, g.bh);
+        rect  dest(x + g.x, y + g.y, x + g.x + g.w - 1, y + g.y + g.h - 1);
+        point spos(g.bx, g.by);
+        blit<Clip>(*this, source, dest, spos, op, colors);
+        x += g.advance;
+    }
+    return x;
+}
+
+
+template <graphics::mode Mode>
+template <graphics::clipping Clip>
+graphics::coord graphics::surface<Mode>::glyph(coord    x,
+                                               coord    y,
+                                               utf8code codepoint,
+                                               font    *f,
+                                               pattern  fg,
+                                               pattern  bg)
+// ----------------------------------------------------------------------------
+//   Render a glyph with a foreground and background
+// ----------------------------------------------------------------------------
+{
+    font::glyph_info g;
+    if (f->glyph(codepoint, g))
+    {
+        // Bitmap may be misaligned, if so, fixup
+        uintptr_t bma = (uintptr_t) g.bitmap;
+        g.bx += 8 * (bma & 3);
+        bma &= ~3;
+        surface<MONOCHROME> source((pixword *) bma, g.bw, g.bh);
+        fill<Clip>(x, y, x + g.advance - 1, y + g.h - 1, bg);
+        rect  dest(x + g.x, y + g.y, x + g.x + g.w - 1, y + g.y + g.h - 1);
+        point spos(g.bx, g.by);
+        blit<Clip>(*this, source, dest, spos, blitop_mono_fg<Mode>, fg);
+        x += g.advance;
+    }
+    return x;
+}
+
+
+template <graphics::mode Mode>
+template <graphics::clipping Clip>
+graphics::coord graphics::surface<Mode>::text(coord   x,
+                                              coord   y,
+                                              utf8    text,
+                                              font   *f,
+                                              pattern colors,
+                                              blitop  op)
+// ----------------------------------------------------------------------------
+//   Render a glyph on the given surface
+// ----------------------------------------------------------------------------
+{
+    while (*text)
+    {
+        utf8code cp = utf8_codepoint(text);
+        text = utf8_next(text);
+        x = glyph<Clip>(x, y, cp, f, colors, op);
+    }
+    return x;
+}
+
+
+template <graphics::mode Mode>
+template <graphics::clipping Clip>
+graphics::coord graphics::surface<Mode>::text(coord   x,
+                                              coord   y,
+                                              utf8    text,
+                                              font   *f,
+                                              pattern fg,
+                                              pattern bg)
+// ----------------------------------------------------------------------------
+//   Render a text with a foreground and background
+// ----------------------------------------------------------------------------
+{
+    while (*text)
+    {
+        utf8code cp = utf8_codepoint(text);
+        text = utf8_next(text);
+        x = glyph<Clip>(x, y, cp, f, fg, bg);
+    }
+    return x;
 }
 
 #endif // GRAPHICS_H

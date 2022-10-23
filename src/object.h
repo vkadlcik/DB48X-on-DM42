@@ -381,10 +381,10 @@ struct object
 
 protected:
 #define OBJECT_PARSER(type)                                             \
-    static result object_parser(parser &p, runtime & UNUSED rt = RT)
+    static result object_parser(parser UNUSED &p, runtime & UNUSED rt = RT)
 
 #define OBJECT_PARSER_BODY(type)                            \
-    object::result type::object_parser(parser &p, runtime &UNUSED rt)
+    object::result type::object_parser(parser UNUSED &p, runtime &UNUSED rt)
 
 #define OBJECT_PARSER_ARG()     (*((parser *) arg))
 

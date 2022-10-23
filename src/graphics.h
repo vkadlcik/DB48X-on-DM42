@@ -70,7 +70,8 @@ struct graphics
     //   Graphics mode (including bits per pixel info)
     // ------------------------------------------------------------------------
     {
-        MONOCHROME,             // Monochrome bitmap (DM42)
+        MONOCHROME,             // Monochrome bitmap, e.g. fonts
+        MONOCHROME_REVERSE,     // Monochrome bitmap, reverse X axis (DM42)
         GRAY_4BPP,              // Gray, 4 bits per pixel (HP50G and related)
         RGB_16BPP,              // RGB16 (HP Prime)
     };
@@ -807,6 +808,25 @@ template<> union graphics::color<graphics::mode::MONOCHROME>
 // ------------------------------------------------------------------------
 //  Color representation (1-bit, e.g. DM42)
 // ------------------------------------------------------------------------
+{
+    color(uint8_t red, uint8_t green, uint8_t blue):
+        value((red + green + green + blue) / 4 >= 128) {}
+
+    uint8_t red()          { return value * 255; }
+    uint8_t green()        { return value * 255; }
+    uint8_t blue()         { return value * 255; }
+
+    enum { BPP = 1 };
+
+public:
+    bool value : 1;         // The color value is 0 or 1
+};
+
+
+template<> union graphics::color<graphics::mode::MONOCHROME_REVERSE>
+// ------------------------------------------------------------------------
+//  Color representation (1-bit, e.g. DM42)
+// ------------------------------------------------------------------------
 //  On the DM42. white is 0 and black is 1
 {
     color(uint8_t red, uint8_t green, uint8_t blue):
@@ -925,6 +945,48 @@ TGPAT GPAT::white  = GPAT(255, 255, 255);
 
 
 template <> union graphics::pattern<graphics::mode::MONOCHROME>
+// ------------------------------------------------------------------------
+//   Pattern for 1-bit bitmaps (e.g. fonts)
+// ------------------------------------------------------------------------
+{
+    uint64_t  bits;
+
+    enum              { BPP = 1, SIZE = 8 }; // 64-bit = 8x8 1-bit pattern
+    enum:uint64_t     { SOLID = 0xFFFFFFFFFFFFFFFFull };
+    using color = graphics::color<MONOCHROME>;
+
+public:
+    // Build a solid pattern from a single color
+    pattern(color c) : bits(c.value * SOLID) {}
+
+    // Build a checkered pattern for a given RGB level
+    pattern(uint8_t  red, uint8_t  green, uint8_t  blue ) : bits(0)
+    {
+        // Compute a gray value beteen 0 and 64, number of pixels to fill
+        uint16_t gray = (red + green + green + blue + 4) / 16;
+        if (gray == 32)             // Hand tweak 50% gray
+            bits = 0xAAAAAAAAAAAAAAAAull;
+        else
+            // Generate a pattern with "gray" bits lit "at random"
+            for (int bit = 0; bit < 64 && gray; bit++, gray--)
+                bits |= 1ULL << (79 * bit % 64);
+    }
+
+    // Shared constructors
+    template<uint N> pattern(color colors[N]);
+    pattern(color a, color b);
+    pattern(color a, color b, color c, color d);
+
+    // Some pre-defined shades of gray
+    static const pattern black;
+    static const pattern gray25;
+    static const pattern gray50;
+    static const pattern gray75;
+    static const pattern white;
+};
+
+
+template <> union graphics::pattern<graphics::mode::MONOCHROME_REVERSE>
 // ------------------------------------------------------------------------
 //   Pattern for 1-bit screens (DM42)
 // ------------------------------------------------------------------------
@@ -1047,7 +1109,7 @@ public:
 // ============================================================================
 
 template<>
-inline void graphics::surface<graphics::MONOCHROME>::
+inline void graphics::surface<graphics::MONOCHROME_REVERSE>::
 horizontal_adjust(coord &x1, coord &x2) const
 // ----------------------------------------------------------------------------
 //   On the DM42, we need horizontal adjustment for coordinates
@@ -1064,6 +1126,20 @@ horizontal_adjust(coord &x1, coord &x2) const
 //   Template specializations for blitops
 //
 // ============================================================================
+
+template <>
+inline graphics::pixword
+graphics::blitop_mono_fg<graphics::mode::MONOCHROME_REVERSE>
+        (graphics::pixword dst,
+         graphics::pixword src,
+         graphics::pixword arg)
+// -------------------------------------------------------------------------
+//   Bitmap foreground colorization (1bpp destination)
+// -------------------------------------------------------------------------
+{
+    // For 1bpp, 'arg' is simply a bit mask from the source
+    return (dst & ~src) | (arg & src);
+}
 
 template <>
 inline graphics::pixword

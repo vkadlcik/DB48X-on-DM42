@@ -43,9 +43,9 @@ enum target
     LCD_SCANLINE   = 416,
 };
 
-using surface = graphics::surface<graphics::mode::MONOCHROME>;
-using color   = graphics::color  <graphics::mode::MONOCHROME>;
-using pattern = graphics::pattern<graphics::mode::MONOCHROME>;
+using surface = graphics::surface<graphics::mode::MONOCHROME_REVERSE>;
+using color   = graphics::color  <graphics::mode::MONOCHROME_REVERSE>;
+using pattern = graphics::pattern<graphics::mode::MONOCHROME_REVERSE>;
 using coord   = graphics::coord;
 using size    = graphics::size;
 using rect    = graphics::rect;

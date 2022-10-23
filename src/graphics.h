@@ -933,7 +933,7 @@ public:
     pattern(color c) : bits(c.value * SOLID) {}
 
     // Build a checkered pattern for a given RGB level
-    pattern(uint8_t  red, uint8_t  green, uint8_t  blue ) : bits(0)
+    pattern(uint8_t red, uint8_t green, uint8_t blue ) : bits(0)
     {
         // Compute a gray value beteen 0 and 64, number of pixels to fill
         uint16_t gray = (red + green + green + blue + 4) / 16;
@@ -975,7 +975,7 @@ public:
     pattern(color c) : bits(c.value * SOLID) {}
 
     // Build a checkered pattern for a given RGB level
-    pattern(uint8_t  red, uint8_t  green, uint8_t  blue ) : bits(0)
+    pattern(uint8_t red, uint8_t green, uint8_t blue ) : bits(0)
     {
         // Compute a gray value beteen 0 and 64, number of pixels to fill
         uint16_t gray = (red + green + green + blue + 4) / 16;

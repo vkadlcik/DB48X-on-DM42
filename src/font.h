@@ -31,14 +31,33 @@
 
 #include "object.h"
 
+
+RECORDER_DECLARE(fonts);
+RECORDER_DECLARE(fonts_error);
+
 struct font : object
 // ----------------------------------------------------------------------------
 //   Shared by all font objects
 // ----------------------------------------------------------------------------
 {
+    typedef uint16_t fint;
+
     font(id type): object(type) { }
 
-    byte *bitmap(uint codepoint, uint *x, uint *y, uint *w, uint *h, uint *adv);
+    struct glyph_info
+    {
+        byte_p bitmap;          // Bitmap we get the glyph from
+        fint   bx;              // X position in bitmap
+        fint   by;              // Y position in bitmap (always 0 today?)
+        fint   bw;              // Width of bitmap
+        fint   bh;              // Height of bitmap
+        fint   x;               // X position of glyph when drawing
+        fint   y;               // Y position of glyph when drawing
+        fint   w;               // Width of glyph
+        fint   h;               // Height of glyph
+        fint   advance;         // X advance to next character
+    };
+    bool glyph(utf8code codepoint, glyph_info &g);
 
     OBJECT_HANDLER(font);
     OBJECT_PARSER(font);
@@ -52,7 +71,8 @@ struct sparse_font : font
 // ----------------------------------------------------------------------------
 {
     sparse_font(id type = ID_sparse_font): font(type) {}
-    byte *bitmap(uint codepoint, uint *x, uint *y, uint *w, uint *h, uint *adv);
+    static id static_type() { return ID_sparse_font; }
+    bool glyph(utf8code codepoint, glyph_info &g);
 };
 
 
@@ -62,7 +82,8 @@ struct dense_font : font
 // ----------------------------------------------------------------------------
 {
     dense_font(id type = ID_dense_font): font(type) {}
-    byte *bitmap(uint codepoint, uint *x, uint *y, uint *w, uint *h, uint *adv);
+    static id static_type() { return ID_dense_font; }
+    bool glyph(utf8code codepoint, glyph_info &g);
 };
 
 
@@ -71,8 +92,38 @@ struct dmcp_font : font
 //   An object accessing the DMCP built-in fonts (and remapping to Unicode)
 // ----------------------------------------------------------------------------
 {
-    dmcp_font(id type = ID_dense_font): font(type) {}
-    byte *bitmap(uint codepoint, uint *x, uint *y, uint *w, uint *h, uint *adv);
+    dmcp_font(fint index, id type = ID_dense_font): font(type)
+    {
+        byte *p = payload();
+        leb128(p, index);
+    }
+    static size_t required_memory(id i, fint index)
+    {
+        return leb128size(i) + leb128size(index);
+    }
+
+    static id static_type() { return ID_dmcp_font; }
+    fint index()            { byte *p = payload(); return leb128<fint>(p); }
+
+    bool glyph(utf8code codepoint, glyph_info &g);
 };
+
+
+inline bool font::glyph(utf8code codepoint, glyph_info &g)
+// ----------------------------------------------------------------------------
+//   Dynamic dispatch to the available font classes
+// ----------------------------------------------------------------------------
+{
+    switch(type())
+    {
+    case ID_sparse_font: return ((sparse_font *)this)->glyph(codepoint, g);
+    case ID_dense_font:  return ((dense_font *)this)->glyph(codepoint, g);
+    case ID_dmcp_font:   return ((dmcp_font *)this)->glyph(codepoint, g);
+    default:
+        record(font_error, "Unexpectd font type %d", type());
+    }
+    return false;
+}
+
 
 #endif // FONT_H

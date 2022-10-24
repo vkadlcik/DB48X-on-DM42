@@ -40,7 +40,8 @@ struct font : object
 //   Shared by all font objects
 // ----------------------------------------------------------------------------
 {
-    typedef uint16_t fint;
+    typedef int16_t  fint;
+    typedef uint16_t fuint;
 
     font(id type): object(type) { }
 
@@ -49,14 +50,14 @@ struct font : object
         byte_p bitmap;          // Bitmap we get the glyph from
         fint   bx;              // X position in bitmap
         fint   by;              // Y position in bitmap (always 0 today?)
-        fint   bw;              // Width of bitmap
-        fint   bh;              // Height of bitmap
+        fuint  bw;              // Width of bitmap
+        fuint  bh;              // Height of bitmap
         fint   x;               // X position of glyph when drawing
         fint   y;               // Y position of glyph when drawing
-        fint   w;               // Width of glyph
-        fint   h;               // Height of glyph
-        fint   advance;         // X advance to next character
-        fint   height;          // Y advance to next line
+        fuint  w;               // Width of glyph
+        fuint  h;               // Height of glyph
+        fuint  advance;         // X advance to next character
+        fuint  height;          // Y advance to next line
     };
     bool glyph(utf8code codepoint, glyph_info &g) const;
 

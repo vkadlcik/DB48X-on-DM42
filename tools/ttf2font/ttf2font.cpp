@@ -593,7 +593,7 @@ void processFont(cstring fontName,
                         sparse[b]);
             fprintf(output, "\n};\n");
             fprintf(output,
-                    "const sparse_font *%s = (sparse_font *) %s_dense_data;\n",
+                    "const sparse_font *%s = (sparse_font *) %s_sparse_data;\n",
                     fontName, fontName);
     }
 

@@ -56,6 +56,7 @@ struct font : object
         fint   w;               // Width of glyph
         fint   h;               // Height of glyph
         fint   advance;         // X advance to next character
+        fint   height;          // Y advance to next line
     };
     bool glyph(utf8code codepoint, glyph_info &g);
 

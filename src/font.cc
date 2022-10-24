@@ -39,6 +39,9 @@
 #include <stdlib.h>
 
 RECORDER(fonts,         16, "Information about fonts");
+RECORDER(sparse_fonts,  16, "Information about sparse fonts");
+RECORDER(dense_fonts,   16, "Information about dense fonts");
+RECORDER(dmcp_fonts,    16, "Information about DMCP fonts");
 RECORDER(fonts_error,   16, "Information about fonts");
 
 
@@ -215,11 +218,15 @@ bool sparse_font::glyph(utf8code codepoint, glyph_info &g)
         ? FontCache.get(codepoint)
         : nullptr;
 
+    record(sparse_fonts, "Looking up %u, got cache %p", codepoint, data);
     while (!data)
     {
         // Check code point range
         fint firstCP = leb128<fint>(p);
         fint numCPs = leb128<fint>(p);
+        record(sparse_fonts,
+               "  Range %u-%u (%u codepoints)",
+               firstCP, firstCP + numCPs, numCPs);
 
         // Check end of font ranges
         if (!firstCP && !numCPs)
@@ -236,6 +243,8 @@ bool sparse_font::glyph(utf8code codepoint, glyph_info &g)
         font_cache::data *cache = in
             ? FontCache.range(this, firstCP, lastCP)
             : nullptr;
+        if (cache)
+            record(sparse_fonts, "Caching in %p", cache);
         for (fint cp = firstCP; cp < lastCP; cp++)
         {
             fint x = leb128<fint>(p);
@@ -247,8 +256,17 @@ bool sparse_font::glyph(utf8code codepoint, glyph_info &g)
                 cache->set(p, x, y, w, h);
                 cache++;
                 if (cp == codepoint)
+                {
+                    record(sparse_fonts, "Cache data is at %p", cache);
                     data = cache;
+                }
             }
+            int sparseBitmapBits = w * h;
+            int sparseBitmapBytes = (sparseBitmapBits + 7) / 8;
+            p += sparseBitmapBytes;
+            record(sparse_fonts,
+                   "  cp %u x=%u y=%u w=%u h=%u bitmap=%p %u bytes",
+                   cp, x, y, w, h, p - sparseBitmapBytes, sparseBitmapBytes);
         }
     }
 
@@ -259,9 +277,13 @@ bool sparse_font::glyph(utf8code codepoint, glyph_info &g)
     g.bh      = data->h;
     g.x       = data->x;
     g.y       = data->y;
-    g.w       = data->x + data->w;
-    g.h       = height;
-    g.advance = g.w;
+    g.w       = data->w;
+    g.h       = data->h;
+    g.advance = data->x + data->w;
+    g.height  = height;
+    record(sparse_fonts,
+           "For glyph %u, x=%u y=%u w=%u h=%u bw=%u bh=%u adv=%u hgh=%u",
+           codepoint, g.x, g.y, g.w, g.h, g.bw, g.bh, g.advance, g.height);
     return true;
 }
 
@@ -332,6 +354,7 @@ bool dense_font::glyph(utf8code codepoint, glyph_info &g)
     g.w       = data->w;
     g.h       = height;
     g.advance = g.w;
+    g.height  = height;
     return true;
 }
 
@@ -497,6 +520,7 @@ bool dmcp_font::glyph(utf8code codepoint, glyph_info &g)
     g.w = cols;
     g.h = rows;
     g.advance = cx + cols;
+    g.height = height;
 
     return true;
 }

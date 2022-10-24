@@ -19,12 +19,12 @@
 - [ ] RPL program evaluattion
 - [ ] RPL program single-stepping / debugging
 - [ ] Stack undo / redo
-- [ ] Accelerated [blitter code with 8x8 patterns](https://github.com/c3d/db48x/blob/dm42/firmware/include/ggl.h)
-- [ ] Unicode-capable [text drawing replacement](https://github.com/c3d/db48x/blob/dm42/firmware/sys/graphics.c)
-- [ ] Unicode / UTF-8 support
-- [ ] [Unicode fonts](https://github.com/c3d/db48x/blob/dm42/firmware/include/unifont.h)
+- [X] Accelerated [blitter code with 8x8 patterns](https://github.com/c3d/db48x/blob/dm42/firmware/include/ggl.h)
+- [X] Unicode-capable [text drawing replacement](https://github.com/c3d/db48x/blob/dm42/firmware/sys/graphics.c)
+- [X] Unicode / UTF-8 support
+- [X] [Unicode fonts](https://github.com/c3d/db48x/blob/dm42/firmware/include/unifont.h)
       (e.g. derived from [WP43S](https://gitlab.com/wpcalculators/wp43) project)
-- [ ] Larger font for editor (old geezer mode)
+- [X] Larger font for editor (old geezer mode)
 - [ ] Objects in USB-accessible flash storage
 - [ ] Calculator state load/save
 - [ ] Global help from [HTML help file](help/db48x.html)

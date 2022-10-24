@@ -420,6 +420,7 @@ void input::draw_editor()
         if (c == '\n')
         {
             y += lineHeight;
+            x = 0;
             r++;
             continue;
         }

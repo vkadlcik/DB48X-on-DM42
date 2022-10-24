@@ -52,7 +52,8 @@ SOURCES +=                                      \
         ../src/algebraic.cc                     \
         ../src/arithmetic.cc                    \
 	../src/font.cc				\
-	../fonts/C43SFont.cc			\
+	../fonts/EditorFont.cc	                \
+	../fonts/StackFont.cc			\
 	../src/tests.cc
 
 HEADERS +=                                      \

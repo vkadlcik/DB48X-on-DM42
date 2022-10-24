@@ -36,8 +36,10 @@ tools/ttf2fonts/ttf2fonts: tools/ttf2font/ttf2font.cpp tools/ttf2font/Makefile
 	cd tools/ttf2font; $(MAKE)
 
 C43S_FONT=fonts/C43StandardFont.ttf
-fonts/C43SFont.cc: ttf2font $(C43S_FONT)
-	tools/ttf2font/ttf2font -s 32 C43SFont $(C43S_FONT) $@
+fonts/EditorFont.cc: ttf2font $(C43S_FONT)
+	tools/ttf2font/ttf2font -s 60 EditorFont $(C43S_FONT) $@
+fonts/StackFont.cc: ttf2font $(C43S_FONT)
+	tools/ttf2font/ttf2font -s 40 StackFont $(C43S_FONT) $@
 
 debug-%:
 	$(MAKE) $* OPT=debug
@@ -96,7 +98,9 @@ CXX_SOURCES +=				\
 	src/algebraic.cc		\
 	src/arithmetic.cc		\
 	src/font.cc			\
-	fonts/C43SFont.cc
+	fonts/EditorFont.cc		\
+	fonts/StackFont.cc
+
 
 
 # Generate the sized variants of decimal128

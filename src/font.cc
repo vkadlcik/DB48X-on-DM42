@@ -206,6 +206,19 @@ private:
 } FontCache;
 
 
+font::fuint sparse_font::height()
+// ----------------------------------------------------------------------------
+//   Return the font height from its data
+// ----------------------------------------------------------------------------
+{
+    // Scan the font data
+    byte         *p      = payload();
+    size_t UNUSED size   = leb128<size_t>(p);
+    fuint         height = leb128<fuint>(p);
+    return height;
+}
+
+
 bool sparse_font::glyph(utf8code codepoint, glyph_info &g) const
 // ----------------------------------------------------------------------------
 //   Return the bitmap address and update coordinate info for a sparse font
@@ -231,13 +244,12 @@ bool sparse_font::glyph(utf8code codepoint, glyph_info &g) const
                "  Range %u-%u (%u codepoints)",
                firstCP, firstCP + numCPs, numCPs);
 
-        // Check end of font ranges
-        if (!firstCP && !numCPs)
+        // Check end of font ranges, or if past current codepoint
+        if ((!firstCP && !numCPs) || firstCP > codepoint)
+        {
+            record(sparse_fonts, "Code point %u not found", codepoint);
             return false;
-
-        // Check if we are past the current code point
-        if (firstCP > codepoint)
-            return false;
+        }
 
         fuint lastCP = firstCP + numCPs;
         bool  in = codepoint >= firstCP && codepoint < lastCP;
@@ -292,6 +304,19 @@ bool sparse_font::glyph(utf8code codepoint, glyph_info &g) const
 }
 
 
+font::fuint dense_font::height()
+// ----------------------------------------------------------------------------
+//   Return the font height from its data
+// ----------------------------------------------------------------------------
+{
+    // Scan the font data
+    byte         *p      = payload();
+    size_t UNUSED size   = leb128<size_t>(p);
+    fuint         height = leb128<fuint>(p);
+    return height;
+}
+
+
 bool dense_font::glyph(utf8code codepoint, glyph_info &g) const
 // ----------------------------------------------------------------------------
 //   Return the bitmap address and update coordinate info for a dense font
@@ -320,13 +345,12 @@ bool dense_font::glyph(utf8code codepoint, glyph_info &g) const
         fuint firstCP = leb128<fuint>(p);
         fuint numCPs  = leb128<fuint>(p);
 
-        // Check end of font ranges
-        if (!firstCP && !numCPs)
-            return false;
-
-        // Check if we are past the current code point
-        if (firstCP > codepoint)
-            return false;
+        // Check end of font ranges, or if past current codepoint
+        if ((!firstCP && !numCPs) || firstCP > codepoint)
+        {
+            record(dense_fonts, "Code point %u not found", codepoint);
+             return false;
+        }
 
         fuint lastCP = firstCP + numCPs;
         bool in = codepoint >= firstCP && codepoint < lastCP;
@@ -363,7 +387,59 @@ bool dense_font::glyph(utf8code codepoint, glyph_info &g) const
 }
 
 
-bool dmcp_font::glyph(utf8code codepoint, glyph_info &g) const
+static const byte dmcpFontRPL[]
+// ----------------------------------------------------------------------------
+//   RPL object representing the various DMCP fonts
+// ----------------------------------------------------------------------------
+{
+    object::ID_dmcp_font, 0,            // lib_mono
+    object::ID_dmcp_font, 1,
+    object::ID_dmcp_font, 2,
+    object::ID_dmcp_font, 3,
+    object::ID_dmcp_font, 4,
+    object::ID_dmcp_font, 5,
+
+    object::ID_dmcp_font, 10,           // Free42 (fixed size, very small)
+
+    object::ID_dmcp_font, 18,           // skr_mono
+    object::ID_dmcp_font, 21,           // skr_mono
+
+};
+
+
+// In the DM42 DMCP - Not fully Unicode capable
+const dmcp_font_p LibMonoFont10x17 = (dmcp_font_p) (dmcpFontRPL +  0);
+const dmcp_font_p LibMonoFont11x18 = (dmcp_font_p) (dmcpFontRPL +  2);
+const dmcp_font_p LibMonoFont12x20 = (dmcp_font_p) (dmcpFontRPL +  4);
+const dmcp_font_p LibMonoFont14x22 = (dmcp_font_p) (dmcpFontRPL +  6);
+const dmcp_font_p LibMonoFont17x25 = (dmcp_font_p) (dmcpFontRPL +  8);
+const dmcp_font_p LibMonoFont17x28 = (dmcp_font_p) (dmcpFontRPL + 10);
+const dmcp_font_p Free42Font       = (dmcp_font_p) (dmcpFontRPL + 12);
+const dmcp_font_p SkrMono13x18     = (dmcp_font_p) (dmcpFontRPL + 14);
+const dmcp_font_p SkrMono18x24     = (dmcp_font_p) (dmcpFontRPL + 16);
+
+const font_p HeaderFont = LibMonoFont10x17;
+const font_p CursorFont = LibMonoFont17x25;
+const font_p ErrorFont  = LibMonoFont14x22;
+
+font::fuint dmcp_font::height()
+// ----------------------------------------------------------------------------
+//   Return the font height from its data
+// ----------------------------------------------------------------------------
+{
+    // Switch to the correct DMCP font
+    int fontnr = index();
+    if (fontnr >= 11 && fontnr <= 16) // Use special DMCP index for Free42 fonts
+        fontnr = -(fontnr - 10);
+    lcd_switchFont(fReg, fontnr);
+
+    // Check if codepoint is within font range
+    const line_font_t *f        = fReg->f;
+    return f->height;
+}
+
+
+bool dmcp_font::glyph(utf8code utf8cp, glyph_info &g) const
 // ----------------------------------------------------------------------------
 //   Return the bitmap address and update coordinate info for a DMCP font
 // ----------------------------------------------------------------------------
@@ -401,6 +477,7 @@ bool dmcp_font::glyph(utf8code codepoint, glyph_info &g) const
 {
     // Map Unicode code points to corresonding entry in DMCP charset
     byte_p synthesized = nullptr;
+    utf8code codepoint = utf8cp;
     switch(codepoint)
     {
     case L'÷': codepoint = 0x80; break;
@@ -501,6 +578,9 @@ bool dmcp_font::glyph(utf8code codepoint, glyph_info &g) const
             g.advance = g.w;
             return true;
         }
+
+        record(dmcp_fonts, "Code point %u not found (utf8 %u)",
+               codepoint, utf8cp);
         return false;
     }
 

@@ -30,6 +30,7 @@
 // ****************************************************************************
 
 #include "object.h"
+#include "utf8.h"
 
 
 RECORDER_DECLARE(fonts);
@@ -59,7 +60,30 @@ struct font : object
         fuint  advance;         // X advance to next character
         fuint  height;          // Y advance to next line
     };
-    bool glyph(utf8code codepoint, glyph_info &g) const;
+    bool  glyph(utf8code codepoint, glyph_info &g) const;
+    fuint width(utf8code codepoint) const
+    {
+        glyph_info g;
+        if (glyph(codepoint, g))
+            return g.advance;
+        return 0;
+    }
+    fuint width(utf8 text) const
+    {
+        fuint result = 0;
+        for (utf8 p = text; *p; p = utf8_next(p))
+            result += width(utf8_codepoint(p));
+        return result;
+    }
+    fuint height(utf8code codepoint) const
+    {
+        glyph_info g;
+        if (glyph(codepoint, g))
+            return g.advance;
+        return 0;
+    }
+    fuint height() const;
+
 
     OBJECT_HANDLER(font);
     OBJECT_PARSER(font);
@@ -76,6 +100,7 @@ struct sparse_font : font
     sparse_font(id type = ID_sparse_font): font(type) {}
     static id static_type() { return ID_sparse_font; }
     bool glyph(utf8code codepoint, glyph_info &g) const;
+    fuint height();
 };
 typedef const sparse_font *sparse_font_p;
 
@@ -88,6 +113,7 @@ struct dense_font : font
     dense_font(id type = ID_dense_font): font(type) {}
     static id static_type() { return ID_dense_font; }
     bool glyph(utf8code codepoint, glyph_info &g) const;
+    fuint height();
 };
 typedef const dense_font *dense_font_p;
 
@@ -111,6 +137,7 @@ struct dmcp_font : font
     fint index() const      { byte *p = payload(); return leb128<fint>(p); }
 
     bool glyph(utf8code codepoint, glyph_info &g) const;
+    fuint height();
 };
 typedef const dmcp_font *dmcp_font_p;
 
@@ -131,5 +158,41 @@ inline bool font::glyph(utf8code codepoint, glyph_info &g) const
     return false;
 }
 
+inline font::fuint font::height() const
+// ----------------------------------------------------------------------------
+//   Dynamic dispatch to the available font classes
+// ----------------------------------------------------------------------------
+{
+    switch(type())
+    {
+    case ID_sparse_font: return ((sparse_font *)this)->height();
+    case ID_dense_font:  return ((dense_font *)this)->height();
+    case ID_dmcp_font:   return ((dmcp_font *)this)->height();
+    default:
+        record(fonts_error, "Unexpectd font type %d", type());
+    }
+    return false;
+}
+
+
+// Generated during the build process
+extern const font_p EditorFont;
+extern const font_p StackFont;
+
+// Fonts for various parts of the user interface
+extern const font_p HeaderFont;
+extern const font_p CursorFont;
+extern const font_p ErrorFont;
+
+// In the DM42 DMCP - Not fully Unicode capable
+extern const dmcp_font_p LibMonoFont10x17;
+extern const dmcp_font_p LibMonoFont11x18;
+extern const dmcp_font_p LibMonoFont12x20;
+extern const dmcp_font_p LibMonoFont14x22;
+extern const dmcp_font_p LibMonoFont17x25;
+extern const dmcp_font_p LibMonoFont17x28;
+extern const dmcp_font_p SkrMono13x18;
+extern const dmcp_font_p SkrMono18x24;
+extern const dmcp_font_p Free42Font;
 
 #endif // FONT_H

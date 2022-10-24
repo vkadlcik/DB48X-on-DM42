@@ -723,7 +723,7 @@ bool input::handle_alpha(int key)
 //    Handle alphabetic input
 // ----------------------------------------------------------------------------
 {
-    if (!alpha || !key || key == KEY_ENTER || key == KEY_BSP)
+    if (!alpha || !key || (key == KEY_ENTER && !xshift) || key == KEY_BSP)
         return false;
 
     static const char upper[] =

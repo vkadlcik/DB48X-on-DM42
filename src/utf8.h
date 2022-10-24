@@ -82,8 +82,9 @@ inline utf8 utf8_previous(utf8 text)
 //   Finds the previous position in the text, assumed to be UTF-8
 // ----------------------------------------------------------------------------
 {
-    while (is_utf8_next(*text))
+    do
         text--;
+    while (is_utf8_next(*text));
     return text;
 }
 

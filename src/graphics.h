@@ -281,12 +281,12 @@ struct graphics
     typedef pixword (*blitop)(pixword dst, pixword src, pixword arg);
 
     template <clipping Clip, typename Dst, typename Src, mode CMode>
-    static inline void blit(Dst           &dst,
-                            const Src     &src,
-                            const rect    &drect,
-                            const point   &spos,
-                            blitop         op,
-                            pattern<CMode> colors);
+    static void blit(Dst           &dst,
+                     const Src     &src,
+                     const rect    &drect,
+                     const point   &spos,
+                     blitop         op,
+                     pattern<CMode> colors);
 
 
     // ========================================================================

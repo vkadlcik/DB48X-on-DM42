@@ -31,6 +31,13 @@ sim: sim/simulator.mak recorder/config.h .ALWAYS
 	cd sim; make -f $(<F)
 sim/simulator.mak: sim/simulator.pro
 	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(OPT)
+ttf2font: tools/ttf2fonts/ttf2fonts
+tools/ttf2fonts/ttf2fonts: tools/ttf2font/ttf2font.cpp tools/ttf2font/Makefile
+	cd tools/ttf2font; $(MAKE)
+
+C43S_FONT=fonts/C43StandardFont.ttf
+fonts/C43SFont.cc: ttf2font $(C43S_FONT)
+	tools/ttf2font/ttf2font -s 32 C43SFont $(C43S_FONT) $@
 
 debug-%:
 	$(MAKE) $* OPT=debug
@@ -88,7 +95,9 @@ CXX_SOURCES +=				\
 	src/symbol.cc			\
 	src/algebraic.cc		\
 	src/arithmetic.cc		\
-	src/font.cc
+	src/font.cc			\
+	fonts/C43SFont.cc
+
 
 # Generate the sized variants of decimal128
 src/decimal-%.cc: src/decimal128.cc src/decimal-%.h

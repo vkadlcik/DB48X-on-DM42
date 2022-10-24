@@ -937,7 +937,7 @@ tests &tests::expect(cstring output)
     ready();
     cindex++;
     runtime &rt = runtime::RT;
-    if (object *top = rt.top())
+    if (object_p top = rt.top())
     {
         char buffer[256];
         top->render(buffer, sizeof(buffer), rt);
@@ -970,7 +970,7 @@ tests &tests::match(cstring restr)
     ready();
     cindex++;
     runtime &rt = runtime::RT;
-    if (object *top = rt.top())
+    if (object_p top = rt.top())
     {
         regex_t    re;
         regmatch_t rm;
@@ -1002,7 +1002,7 @@ tests &tests::type(object::id ty)
     ready();
     cindex++;
     runtime &rt = runtime::RT;
-    if (object *top = rt.top())
+    if (object_p top = rt.top())
     {
         object::id tty = top->type();
         if (tty == ty)

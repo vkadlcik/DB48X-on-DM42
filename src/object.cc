@@ -97,7 +97,7 @@ void object::error(cstring message, cstring source, runtime &rt)
 }
 
 
-object *object::parse(cstring source, size_t &size, runtime &rt)
+object_p object::parse(cstring source, size_t &size, runtime &rt)
 // ----------------------------------------------------------------------------
 //  Try parsing the object as a top-level temporary
 // ----------------------------------------------------------------------------
@@ -141,7 +141,7 @@ object *object::parse(cstring source, size_t &size, runtime &rt)
 }
 
 
-size_t object::render(char *output, size_t length, runtime &rt)
+size_t object::render(char *output, size_t length, runtime &rt) const
 // ----------------------------------------------------------------------------
 //   Render the object in a text buffer
 // ----------------------------------------------------------------------------

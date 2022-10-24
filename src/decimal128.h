@@ -115,7 +115,7 @@ struct decimal128 : object
         return leb128size(i) + sizeof(bid128);
     }
 
-    bid128 value()
+    bid128 value() const
     {
         bid128 result;
         byte *p = payload();
@@ -127,6 +127,8 @@ struct decimal128 : object
     OBJECT_PARSER(decimal128);
     OBJECT_RENDERER(decimal128);
 };
+
+typedef const decimal128 *decimal128_p;
 
 
 // Utlity common to all formats to format a number for display

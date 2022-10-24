@@ -125,7 +125,7 @@ struct font_cache
 
     font_cache(): fobj(), first(0), last(0), cache() {}
 
-    font *cachedFont()
+    font_p cachedFont()
     // ------------------------------------------------------------------------
     //   Return the currently cached font
     // ------------------------------------------------------------------------
@@ -151,7 +151,7 @@ struct font_cache
     }
 
 
-    data *range(font *f, fint firstCP, fint lastCP)
+    data *range(font_p f, fint firstCP, fint lastCP)
     // ------------------------------------------------------------------------
     //   Set the currently cached range in the font
     // ------------------------------------------------------------------------
@@ -170,7 +170,7 @@ struct font_cache
         return cache;
     }
 
-    data *get(fint glyph)
+    data *get(fint glyph) const
     // ------------------------------------------------------------------------
     //  Return cached data
     // ------------------------------------------------------------------------
@@ -196,14 +196,14 @@ struct font_cache
     }
 
 private:
-    font *fobj;
-    fint  first;
-    fint  last;
-    data *cache;
+  font_p fobj;
+  fint   first;
+  fint   last;
+  data  *cache;
 } FontCache;
 
 
-bool sparse_font::glyph(utf8code codepoint, glyph_info &g)
+bool sparse_font::glyph(utf8code codepoint, glyph_info &g) const
 // ----------------------------------------------------------------------------
 //   Return the bitmap address and update coordinate info for a sparse font
 // ----------------------------------------------------------------------------
@@ -288,7 +288,7 @@ bool sparse_font::glyph(utf8code codepoint, glyph_info &g)
 }
 
 
-bool dense_font::glyph(utf8code codepoint, glyph_info &g)
+bool dense_font::glyph(utf8code codepoint, glyph_info &g) const
 // ----------------------------------------------------------------------------
 //   Return the bitmap address and update coordinate info for a dense font
 // ----------------------------------------------------------------------------
@@ -359,7 +359,7 @@ bool dense_font::glyph(utf8code codepoint, glyph_info &g)
 }
 
 
-bool dmcp_font::glyph(utf8code codepoint, glyph_info &g)
+bool dmcp_font::glyph(utf8code codepoint, glyph_info &g) const
 // ----------------------------------------------------------------------------
 //   Return the bitmap address and update coordinate info for a DMCP font
 // ----------------------------------------------------------------------------

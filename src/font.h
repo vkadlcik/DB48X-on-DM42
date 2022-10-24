@@ -58,12 +58,13 @@ struct font : object
         fint   advance;         // X advance to next character
         fint   height;          // Y advance to next line
     };
-    bool glyph(utf8code codepoint, glyph_info &g);
+    bool glyph(utf8code codepoint, glyph_info &g) const;
 
     OBJECT_HANDLER(font);
     OBJECT_PARSER(font);
     OBJECT_RENDERER(font);
 };
+typedef const font *font_p;
 
 
 struct sparse_font : font
@@ -73,8 +74,9 @@ struct sparse_font : font
 {
     sparse_font(id type = ID_sparse_font): font(type) {}
     static id static_type() { return ID_sparse_font; }
-    bool glyph(utf8code codepoint, glyph_info &g);
+    bool glyph(utf8code codepoint, glyph_info &g) const;
 };
+typedef const sparse_font *sparse_font_p;
 
 
 struct dense_font : font
@@ -84,8 +86,9 @@ struct dense_font : font
 {
     dense_font(id type = ID_dense_font): font(type) {}
     static id static_type() { return ID_dense_font; }
-    bool glyph(utf8code codepoint, glyph_info &g);
+    bool glyph(utf8code codepoint, glyph_info &g) const;
 };
+typedef const dense_font *dense_font_p;
 
 
 struct dmcp_font : font
@@ -104,13 +107,14 @@ struct dmcp_font : font
     }
 
     static id static_type() { return ID_dmcp_font; }
-    fint index()            { byte *p = payload(); return leb128<fint>(p); }
+    fint index() const      { byte *p = payload(); return leb128<fint>(p); }
 
-    bool glyph(utf8code codepoint, glyph_info &g);
+    bool glyph(utf8code codepoint, glyph_info &g) const;
 };
+typedef const dmcp_font *dmcp_font_p;
 
 
-inline bool font::glyph(utf8code codepoint, glyph_info &g)
+inline bool font::glyph(utf8code codepoint, glyph_info &g) const
 // ----------------------------------------------------------------------------
 //   Dynamic dispatch to the available font classes
 // ----------------------------------------------------------------------------

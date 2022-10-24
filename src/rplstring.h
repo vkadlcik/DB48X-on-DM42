@@ -62,13 +62,13 @@ struct string : object
         return make(str, strlen(str));
     }
 
-    size_t length()
+    size_t length() const
     {
         byte *p = payload();
         return leb128<size_t>(p);
     }
 
-    utf8 text(size_t *size = nullptr)
+    utf8 text(size_t *size = nullptr) const
     {
         byte  *p   = payload();
         size_t len = leb128<size_t>(p);
@@ -81,5 +81,7 @@ struct string : object
     OBJECT_PARSER(string);
     OBJECT_RENDERER(string);
 };
+
+typedef const string *string_p;
 
 #endif // STRING_H

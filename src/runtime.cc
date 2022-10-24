@@ -43,20 +43,20 @@ RECORDER(gc_details,    32, "Details about garbage collection (noisy)");
 
 
 static void dump_object_list(cstring  message,
-                             object  *first,
-                             object  *last,
-                             object **stack,
-                             object **stackEnd)
+                             object_p first,
+                             object_p last,
+                             object_p *stack,
+                             object_p *stackEnd)
 // ----------------------------------------------------------------------------
 //   Dump all objects in a given range
 // ----------------------------------------------------------------------------
 {
     uint count = 0;
     size_t sz = 0;
-    object *next;
+    object_p next;
 
     record(gc, "%+s object list", message);
-    for (object *obj = first; obj < last; obj = next)
+    for (object_p obj = first; obj < last; obj = next)
     {
         next = obj->skip();
         object::id i = obj->type();
@@ -66,7 +66,7 @@ static void dump_object_list(cstring  message,
         count++;
     }
     record(gc, "%+s stack", message);
-    for (object **s = stack; s < stackEnd; s++)
+    for (object_p *s = stack; s < stackEnd; s++)
         record(gc, " %u: %p (%+s)", s - stack, *s, object::name((*s)->type()));
     record(gc, "%+s: %u objects using %u bytes", message, count, sz);
 }
@@ -80,11 +80,11 @@ size_t runtime::gc()
 //   Objects in the global area are copied there, so they need no recycling
 //   This algorithm is linear in number of objects and moves only live data
 {
-    size_t  recycled = 0;
-    object *first    = (object *) Globals;
-    object *last     = Temporaries;
-    object *free     = first;
-    object *next;
+    size_t   recycled = 0;
+    object_p first    = (object_p) Globals;
+    object_p last     = Temporaries;
+    object_p free     = first;
+    object_p next;
 
     record(gc, "Garbage collection, available %u, range %p-%p",
            available(), first, last);
@@ -92,12 +92,12 @@ size_t runtime::gc()
         dump_object_list("Pre-collection",
                          first, last, StackTop, StackBottom);
 
-    for (object *obj = first; obj < last; obj = next)
+    for (object_p obj = first; obj < last; obj = next)
     {
         bool found = false;
         next = skip(obj);
         record(gc_details, "Scanning object %p (ends at %p)", obj, next);
-        for (object **s = StackTop; s < StackBottom && !found; s++)
+        for (object_p *s = StackTop; s < StackBottom && !found; s++)
         {
             found = *s >= obj && *s < next;
             if (found)
@@ -132,7 +132,7 @@ size_t runtime::gc()
     // Move the command line
     if (Editing)
     {
-        object *edit = Temporaries;
+        object_p edit = Temporaries;
         move(edit, edit + Editing, edit - recycled);
     }
 
@@ -142,7 +142,7 @@ size_t runtime::gc()
 
     if (RECORDER_TRACE(gc) > 1)
         dump_object_list("Post-collection",
-                         (object *) Globals, Temporaries,
+                         (object_p) Globals, Temporaries,
                          StackTop, StackBottom);
     record(gc, "Garbage collection done, purged %u, available %u",
            recycled, available());
@@ -150,7 +150,7 @@ size_t runtime::gc()
 }
 
 
-void runtime::move(object *first, object *last, object *to)
+void runtime::move(object_p first, object_p last, object_p to)
 // ----------------------------------------------------------------------------
 //   Move objects in memory to a new location, adjusting pointers
 // ----------------------------------------------------------------------------
@@ -171,7 +171,7 @@ void runtime::move(object *first, object *last, object *to)
     memmove((byte *) to, (byte *) first, size);
 
     // Adjust the stack pointers
-    for (object **s = StackTop; s < StackBottom; s++)
+    for (object_p *s = StackTop; s < StackBottom; s++)
     {
         if (*s >= first && *s < last)
         {
@@ -194,7 +194,7 @@ void runtime::move(object *first, object *last, object *to)
 }
 
 
-size_t runtime::size(object *obj)
+size_t runtime::size(object_p obj)
 // ----------------------------------------------------------------------------
 //   Delegate the size to the object
 // ----------------------------------------------------------------------------
@@ -230,7 +230,7 @@ char *runtime::close_editor()
     ed = leb128(ed, Editing + 1);
 
     // Move Temporaries past that newly created string
-    Temporaries = (object *) str + Editing + 1;
+    Temporaries = (object_p) str + Editing + 1;
 
     // We are no longer editing
     Editing = 0;

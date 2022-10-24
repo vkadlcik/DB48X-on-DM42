@@ -38,6 +38,8 @@
 
 struct object;                  // RPL object
 struct global;                  // RPL global variable
+typedef const object *object_p;
+typedef const global *global_p;
 
 RECORDER_DECLARE(runtime);
 RECORDER_DECLARE(runtime_error);
@@ -88,20 +90,20 @@ struct runtime
 
     void memory(byte *memory, size_t size)
     {
-        LowMem = (object *) memory;
-        HighMem = (object *) (memory + size);
-        Returns = (object **) HighMem;
-        StackBottom = (object **) Returns;
-        StackTop = (object **) StackBottom;
+        LowMem = (object_p) memory;
+        HighMem = (object_p) (memory + size);
+        Returns = (object_p*) HighMem;
+        StackBottom = (object_p*) Returns;
+        StackTop = (object_p*) StackBottom;
         Editing = 0;
-        Temporaries = (object *) LowMem;
-        Globals = (global *) Temporaries;
+        Temporaries = (object_p) LowMem;
+        Globals = (global_p) Temporaries;
         record(runtime, "Memory %p-%p size %u (%uK)",
                LowMem, HighMem, size, size>>10);
     }
 
     // Amount of space we want to keep between stack top and temporaries
-    const uint redzone = 2*sizeof(object *);;
+    const uint redzone = 2*sizeof(object_p);;
 
 
 
@@ -294,16 +296,16 @@ struct runtime
     //
     // ========================================================================
 
-    size_t  gc();
-    void    move(object *first, object *last, object *to);
+    size_t   gc();
+    void     move(object_p first, object_p last, object_p to);
 
-    size_t  size(object *obj);
-    object *skip(object *obj)
+    size_t   size(object_p obj);
+    object_p skip(object_p obj)
     // ------------------------------------------------------------------------
     //   Skip an RPL object
     // ------------------------------------------------------------------------
     {
-        return (object *) ((byte *) obj + size(obj));
+        return (object_p ) ((byte *) obj + size(obj));
     }
 
 
@@ -381,7 +383,7 @@ struct runtime
     //
     // ========================================================================
 
-    void push(gcp<object> obj)
+    void push(gcp<const object> obj)
     // ------------------------------------------------------------------------
     //   Push an object on top of RPL stack
     // ------------------------------------------------------------------------
@@ -392,7 +394,7 @@ struct runtime
         *(--StackTop) = obj;
     }
 
-    object *top()
+    object_p top()
     // ------------------------------------------------------------------------
     //   Return the top of the runtime stack
     // ------------------------------------------------------------------------
@@ -405,7 +407,7 @@ struct runtime
         return *StackTop;
     }
 
-    void top(object *obj)
+    void top(object_p obj)
     // ------------------------------------------------------------------------
     //   Set the top of the runtime stack
     // ------------------------------------------------------------------------
@@ -416,7 +418,7 @@ struct runtime
             *StackTop = obj;
     }
 
-    object *pop()
+    object_p pop()
     // ------------------------------------------------------------------------
     //   Pop the top-level object from the stack, or return NULL
     // ------------------------------------------------------------------------
@@ -429,7 +431,7 @@ struct runtime
         return *StackTop++;
     }
 
-    object *stack(uint idx)
+    object_p stack(uint idx)
     // ------------------------------------------------------------------------
     //    Get the object at a given position in the stack
     // ------------------------------------------------------------------------
@@ -442,7 +444,7 @@ struct runtime
         return StackTop[idx];
     }
 
-    void stack(uint idx, object *obj)
+    void stack(uint idx, object_p obj)
     // ------------------------------------------------------------------------
     //    Get the object at a given position in the stack
     // ------------------------------------------------------------------------
@@ -480,7 +482,7 @@ struct runtime
     //
     // ========================================================================
 
-    void call(object *callee)
+    void call(gcp<const object> callee)
     // ------------------------------------------------------------------------
     //   Push the current object on the RPL stack
     // ------------------------------------------------------------------------
@@ -492,7 +494,7 @@ struct runtime
         }
         StackTop--;
         StackBottom--;
-        for (object **s = StackBottom; s < StackTop; s++)
+        for (object_p *s = StackBottom; s < StackTop; s++)
             s[0] = s[1];
         *(--Returns) = Code;
         Code = callee;
@@ -511,7 +513,7 @@ struct runtime
         Code = *Returns++;
         StackTop++;
         StackBottom++;
-        for (object **s = StackTop; s > StackTop; s--)
+        for (object_p *s = StackTop; s > StackTop; s--)
             s[0] = s[-1];
     }
 
@@ -579,21 +581,21 @@ struct runtime
 
 
 protected:
-    cstring  Error;             // Error message if any
-    cstring  ErrorSource;       // Source of the error if known
-    cstring  ErrorCommand;      // Source of the error if known
-    object  *Code;              // Currently executing code
-    object  *LowMem;
-    global  *Globals;
-    object  *Temporaries;
-    size_t   Editing;
-    object **StackTop;
-    object **StackBottom;
-    object **Returns;
-    object  *HighMem;
+    cstring   Error;        // Error message if any
+    cstring   ErrorSource;  // Source of the error if known
+    cstring   ErrorCommand; // Source of the error if known
+    object_p  Code;         // Currently executing code
+    object_p  LowMem;
+    global_p  Globals;
+    object_p  Temporaries;
+    size_t    Editing;
+    object_p *StackTop;
+    object_p *StackBottom;
+    object_p *Returns;
+    object_p  HighMem;
 
     // Pointers that are GC-adjusted
-    gcptr   *GCSafe;
+    gcptr    *GCSafe;
 
 public:
     // The one and only runtime
@@ -608,7 +610,7 @@ using gcstring  = gcp<const char>;
 using gcmstring = gcp<char>;
 using gcbytes   = gcp<const byte>;
 using gcmbytes  = gcp<byte>;
-using gcobj     = gcp<object>;
+using gcobj     = gcp<const object>;
 
 
 

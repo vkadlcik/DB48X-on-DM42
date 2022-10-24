@@ -37,11 +37,11 @@ struct renderer
 //  Arguments to the RENDER command
 // ----------------------------------------------------------------------------
 {
-    renderer(object *what, char *target, size_t length)
+    renderer(object_p what, char *target, size_t length)
         : what(what), target(target), length(length) {}
 
-    gcp<object> what;           // Object being rendered
-    gcp<char>   target;         // Output where we render the object
+    gcobj       what;           // Object being rendered
+    gcmstring   target;         // Output where we render the object
     size_t      length;         // Length of the target
 };
 

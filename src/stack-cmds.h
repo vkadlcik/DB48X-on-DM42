@@ -36,7 +36,7 @@ COMMAND(dup)
 //   Implement the RPL "dup" command, duplicate top of stack
 // ----------------------------------------------------------------------------
 {
-    if (object *top = RT.top())
+    if (object_p top = RT.top())
     {
         RT.push(top);
         return OK;
@@ -59,8 +59,8 @@ COMMAND(swap)
 //   Implement the RPL "swap" command, swap the two top elements
 // ----------------------------------------------------------------------------
 {
-    object *x = RT.stack(0);
-    object *y = RT.stack(1);
+    object_p x = RT.stack(0);
+    object_p y = RT.stack(1);
     if (x && y)
     {
         RT.stack(0, y);

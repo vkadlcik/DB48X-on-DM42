@@ -586,7 +586,7 @@ struct graphics
         }
 
         template<clipping Clip = CLIP_DST>
-        coord glyph(coord x, coord y, utf8code codepoint, font *f,
+        coord glyph(coord x, coord y, utf8code codepoint, const font *f,
                     pattern colors = pattern::black,
                     blitop op = blitop_mono_fg<Mode>);
         // --------------------------------------------------------------------
@@ -594,14 +594,14 @@ struct graphics
         // --------------------------------------------------------------------
 
         template<clipping Clip = CLIP_DST>
-        coord glyph(coord x, coord y, utf8code codepoint, font *f,
+        coord glyph(coord x, coord y, utf8code codepoint, const font *f,
                     pattern fg, pattern bg);
         // --------------------------------------------------------------------
         //   Draw a glyph with a foreground and background
         // --------------------------------------------------------------------
 
         template<clipping Clip = CLIP_DST>
-        coord text(coord x, coord y, utf8 text, font *f,
+        coord text(coord x, coord y, utf8 text, const font *f,
                    pattern colors = pattern::black,
                    blitop op = blitop_mono_fg<Mode>);
         // --------------------------------------------------------------------
@@ -609,7 +609,7 @@ struct graphics
         // --------------------------------------------------------------------
 
         template<clipping Clip = CLIP_DST>
-        coord text(coord x, coord y, utf8 text, font *f,
+        coord text(coord x, coord y, utf8 text, const font *f,
                    pattern fg, pattern bg);
         // --------------------------------------------------------------------
         //   Draw a text with a foreground and background
@@ -1171,12 +1171,12 @@ graphics::blitop_mono_fg<graphics::mode::RGB_16BPP>(graphics::pixword dst,
 
 template <graphics::mode Mode>
 template <graphics::clipping Clip>
-graphics::coord graphics::surface<Mode>::glyph(coord    x,
-                                               coord    y,
-                                               utf8code codepoint,
-                                               font    *f,
-                                               pattern  colors,
-                                               blitop   op)
+graphics::coord graphics::surface<Mode>::glyph(coord       x,
+                                               coord       y,
+                                               utf8code    codepoint,
+                                               const font *f,
+                                               pattern     colors,
+                                               blitop      op)
 // ----------------------------------------------------------------------------
 //   Render a glyph on the given surface
 // ----------------------------------------------------------------------------
@@ -1200,12 +1200,12 @@ graphics::coord graphics::surface<Mode>::glyph(coord    x,
 
 template <graphics::mode Mode>
 template <graphics::clipping Clip>
-graphics::coord graphics::surface<Mode>::glyph(coord    x,
-                                               coord    y,
-                                               utf8code codepoint,
-                                               font    *f,
-                                               pattern  fg,
-                                               pattern  bg)
+graphics::coord graphics::surface<Mode>::glyph(coord       x,
+                                               coord       y,
+                                               utf8code    codepoint,
+                                               const font *f,
+                                               pattern     fg,
+                                               pattern     bg)
 // ----------------------------------------------------------------------------
 //   Render a glyph with a foreground and background
 // ----------------------------------------------------------------------------
@@ -1230,12 +1230,12 @@ graphics::coord graphics::surface<Mode>::glyph(coord    x,
 
 template <graphics::mode Mode>
 template <graphics::clipping Clip>
-graphics::coord graphics::surface<Mode>::text(coord   x,
-                                              coord   y,
-                                              utf8    text,
-                                              font   *f,
-                                              pattern colors,
-                                              blitop  op)
+graphics::coord graphics::surface<Mode>::text(coord       x,
+                                              coord       y,
+                                              utf8        text,
+                                              const font *f,
+                                              pattern     colors,
+                                              blitop      op)
 // ----------------------------------------------------------------------------
 //   Render a glyph on the given surface
 // ----------------------------------------------------------------------------
@@ -1252,12 +1252,12 @@ graphics::coord graphics::surface<Mode>::text(coord   x,
 
 template <graphics::mode Mode>
 template <graphics::clipping Clip>
-graphics::coord graphics::surface<Mode>::text(coord   x,
-                                              coord   y,
-                                              utf8    text,
-                                              font   *f,
-                                              pattern fg,
-                                              pattern bg)
+graphics::coord graphics::surface<Mode>::text(coord       x,
+                                              coord       y,
+                                              utf8        text,
+                                              const font *f,
+                                              pattern     fg,
+                                              pattern     bg)
 // ----------------------------------------------------------------------------
 //   Render a text with a foreground and background
 // ----------------------------------------------------------------------------

@@ -115,7 +115,7 @@ struct decimal32 : object
         return leb128size(i) + sizeof(bid32);
     }
 
-    bid32 value()
+    bid32 value() const
     {
         bid32 result;
         byte *p = payload();
@@ -127,6 +127,8 @@ struct decimal32 : object
     OBJECT_PARSER(decimal32);
     OBJECT_RENDERER(decimal32);
 };
+
+typedef const decimal32 *decimal32_p;
 
 
 // Utlity common to all formats to format a number for display

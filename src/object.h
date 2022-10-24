@@ -53,6 +53,7 @@
 struct runtime;
 struct parser;
 struct renderer;
+struct object;
 
 RECORDER_DECLARE(object);
 RECORDER_DECLARE(parse);
@@ -61,6 +62,8 @@ RECORDER_DECLARE(render);
 RECORDER_DECLARE(eval);
 RECORDER_DECLARE(run);
 RECORDER_DECLARE(object_errors);
+
+typedef const object *object_p;
 
 
 struct object
@@ -132,7 +135,7 @@ struct object
         return leb128size(i);
     }
 
-    id type()
+    id type() const
     // ------------------------------------------------------------------------
     //   Return the type of the object
     // ------------------------------------------------------------------------
@@ -153,7 +156,7 @@ struct object
         return ty;
     }
 
-    size_t size(runtime &rt = RT)
+    size_t size(runtime &rt = RT) const
     // ------------------------------------------------------------------------
     //  Compute the size of the object by calling the handler with SIZE
     // ------------------------------------------------------------------------
@@ -161,7 +164,7 @@ struct object
         return (size_t) run(SIZE, rt);
     }
 
-    object *skip(runtime &rt = RT)
+    object_p skip(runtime &rt = RT) const
     // ------------------------------------------------------------------------
     //  Return the pointer to the next object in memory by skipping its size
     // ------------------------------------------------------------------------
@@ -169,7 +172,7 @@ struct object
         return this + size(rt);
     }
 
-    byte * payload()
+    byte * payload() const
     // ------------------------------------------------------------------------
     //  Return the object's payload, i.e. first byte after ID
     // ------------------------------------------------------------------------
@@ -187,7 +190,7 @@ struct object
     //
     // ========================================================================
 
-    void evaluate(runtime &rt = RT)
+    void evaluate(runtime &rt = RT) const
     // ------------------------------------------------------------------------
     //  Evaluate an object by calling the handler
     // ------------------------------------------------------------------------
@@ -196,17 +199,17 @@ struct object
         run(EVAL, rt);
     }
 
-    size_t render(char *output, size_t length, runtime &rt = RT);
+    size_t render(char *output, size_t length, runtime &rt = RT) const;
     // ------------------------------------------------------------------------
     //   Render the object into a buffer
     // ------------------------------------------------------------------------
 
-    static object *parse(cstring source, size_t &size, runtime &rt = RT);
+    static object_p parse(cstring source, size_t &size, runtime &rt = RT);
     // ------------------------------------------------------------------------
     //  Try parsing the object as a top-level temporary
     // ------------------------------------------------------------------------
 
-    static object *parse(cstring source, runtime &rt = RT)
+    static object_p parse(cstring source, runtime &rt = RT)
     // ------------------------------------------------------------------------
     //  Try parsing an object without specifying input size
     // ------------------------------------------------------------------------
@@ -249,7 +252,7 @@ struct object
     }
 
 
-    cstring name()
+    cstring name() const
     // ------------------------------------------------------------------------
     //   Return the name for the current object
     // ------------------------------------------------------------------------
@@ -278,7 +281,7 @@ struct object
     }
 
 
-    bool is_integer(object *obj)
+    bool is_integer(object *obj) const
     // -------------------------------------------------------------------------
     //   Check if an object is an integer
     // -------------------------------------------------------------------------
@@ -296,7 +299,7 @@ struct object
     }
 
 
-    bool is_decimal(object *obj)
+    bool is_decimal(object *obj) const
     // -------------------------------------------------------------------------
     //   Check if an object is a decimal
     // -------------------------------------------------------------------------
@@ -314,7 +317,7 @@ struct object
     }
 
 
-    bool is_real(object *obj)
+    bool is_real(object *obj) const
     // -------------------------------------------------------------------------
     //   Check if an object is a real number
     // -------------------------------------------------------------------------
@@ -323,13 +326,13 @@ struct object
     }
 
 
-    template<typename Obj> Obj *as()
+    template<typename Obj> const Obj *as() const
     // ------------------------------------------------------------------------
     //   Type-safe cast (note: only for exact type match)
     // ------------------------------------------------------------------------
     {
         if (type() == Obj::static_type())
-            return (Obj *) this;
+            return (const Obj *) this;
         return nullptr;
     }
 
@@ -359,7 +362,7 @@ struct object
         return handler[type](rt, op, arg, nullptr, nullptr);
     }
 
-    intptr_t run(opcode op, runtime &rt = RT, void *arg = nullptr)
+    intptr_t run(opcode op, runtime &rt = RT, void *arg = nullptr) const
     // ------------------------------------------------------------------------
     //  Run an arbitrary command on the object
     // ------------------------------------------------------------------------
@@ -374,7 +377,7 @@ struct object
             return -1;
         }
         record(run, "Dynamic run %+s op %+s", name(type), name(op));
-        return handler[type](rt, op, arg, this, (object *) ptr);
+        return handler[type](rt, op, arg, this, (object_p ) ptr);
     }
 
 
@@ -389,36 +392,36 @@ protected:
 #define OBJECT_PARSER_ARG()     (*((parser *) arg))
 
 #define OBJECT_RENDERER(type)                           \
-    intptr_t object_renderer(renderer &r, runtime &UNUSED rt = RT)
+    intptr_t object_renderer(renderer &r, runtime &UNUSED rt = RT) const
 
 #define OBJECT_RENDERER_BODY(type)                              \
-    intptr_t type::object_renderer(renderer &r, runtime &UNUSED rt)
+    intptr_t type::object_renderer(renderer &r, runtime &UNUSED rt) const
 
 #define OBJECT_RENDERER_ARG()   (*((renderer *) arg))
 
     // The actual work is done here
-#define OBJECT_HANDLER_NO_ID(type)                              \
-    static intptr_t object_handler(runtime & UNUSED rt,         \
-                                   opcode   UNUSED  op,         \
-                                   void    * UNUSED arg,        \
-                                   type    * UNUSED obj,        \
-                                   object  * UNUSED payload)
+#define OBJECT_HANDLER_NO_ID(type)                                    \
+    static intptr_t object_handler(runtime    &UNUSED rt,             \
+                                   opcode      UNUSED op,             \
+                                   void       *UNUSED arg,            \
+                                   const type *UNUSED obj,            \
+                                   object_p    UNUSED payload)
 
 #define OBJECT_HANDLER(type)                            \
     static id static_type() { return ID_##type; }       \
     OBJECT_HANDLER_NO_ID(type)
 
-#define OBJECT_HANDLER_BODY(type)                               \
-    intptr_t type::object_handler(runtime & UNUSED rt,          \
-                                  opcode    UNUSED op,          \
-                                  void    * UNUSED arg,         \
-                                  type  *   UNUSED obj,         \
-                                  object  * UNUSED payload)
+#define OBJECT_HANDLER_BODY(type)                                       \
+    intptr_t type::object_handler(runtime      &UNUSED rt,              \
+                                  opcode        UNUSED op,              \
+                                  void         *UNUSED arg,             \
+                                  const type   *UNUSED obj,             \
+                                  object_p      UNUSED payload)
 
-    // The default object handlers
-    OBJECT_PARSER(object);
-    OBJECT_RENDERER(object);
-    OBJECT_HANDLER_NO_ID(object);
+  // The default object handlers
+  OBJECT_PARSER(object);
+  OBJECT_RENDERER(object);
+  OBJECT_HANDLER_NO_ID(object);
 
 
 #define DELEGATE(base)                                          \
@@ -434,7 +437,7 @@ protected:
 protected:
     typedef intptr_t (*handler_fn)(runtime &rt,
                                    opcode op, void *arg,
-                                   object *obj, object *payload);
+                                   object_p obj, object_p payload);
     static const handler_fn handler[NUM_IDS];
     static const cstring    id_name[NUM_IDS];
     static const cstring    opcode_name[NUM_OPCODES];

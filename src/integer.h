@@ -51,7 +51,7 @@ struct integer : object
     }
 
     template <typename Int>
-    Int value()
+    Int value() const
     {
         byte *p = payload();
         return leb128<Int>(p);
@@ -65,6 +65,7 @@ struct integer : object
     OBJECT_RENDERER(integer);
 };
 
+typedef const integer *integer_p;
 
 template <object::id Type>
 struct special_integer : integer

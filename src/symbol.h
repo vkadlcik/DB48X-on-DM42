@@ -50,13 +50,13 @@ struct symbol : object
         return leb128size(i) + leb128size(len) + len;
     }
 
-    size_t length()
+    size_t length() const
     {
         byte *p = payload();
         return leb128<size_t>(p);
     }
 
-    utf8 text(size_t *size = nullptr)
+    utf8 text(size_t *size = nullptr) const
     {
         byte  *p   = payload();
         size_t len = leb128<size_t>(p);
@@ -69,5 +69,7 @@ struct symbol : object
     OBJECT_PARSER(symbol);
     OBJECT_RENDERER(symbol);
 };
+
+typedef const symbol *symbol_p;
 
 #endif // SYMBOL_H

@@ -50,14 +50,14 @@ bool arithmetic::real_promotion(gcobj &x, object::id type)
         return true;
 
     record(arithmetic, "Real promotion of %p from %+s to %+s",
-           (object *) x, object::name(xt), object::name(type));
+           (object_p) x, object::name(xt), object::name(type));
     runtime &rt = runtime::RT;
     switch(xt)
     {
     case ID_integer:
     {
-        integer *i    = x->as<integer>();
-        ularge   ival = i->value<ularge>();
+        integer_p i    = x->as<integer>();
+        ularge    ival = i->value<ularge>();
         switch (type)
         {
         case ID_decimal32:
@@ -80,8 +80,8 @@ bool arithmetic::real_promotion(gcobj &x, object::id type)
     }
     case ID_neg_integer:
     {
-        integer *i    = x->as<neg_integer>();
-        large    ival = -i->value<large>();
+        integer_p i    = x->as<neg_integer>();
+        large     ival = -i->value<large>();
         switch (type)
         {
         case ID_decimal32:
@@ -105,8 +105,8 @@ bool arithmetic::real_promotion(gcobj &x, object::id type)
 
     case ID_decimal32:
     {
-        decimal32 *d = x->as<decimal32>();
-        bid32 dval = d->value();
+        decimal32_p d = x->as<decimal32>();
+        bid32       dval = d->value();
         switch (type)
         {
         case ID_decimal64:
@@ -127,8 +127,8 @@ bool arithmetic::real_promotion(gcobj &x, object::id type)
 
     case ID_decimal64:
     {
-        decimal64 *d = x->as<decimal64>();
-        bid64 dval = d->value();
+        decimal64_p d = x->as<decimal64>();
+        bid64       dval = d->value();
         switch (type)
         {
         case ID_decimal64:
@@ -394,8 +394,8 @@ object::result arithmetic::evaluate()
     if (is_integer(xt) && is_integer(yt))
     {
         /* Perform conversion of integer values to the same base */
-        integer *xi = (integer *) (object *) x;
-        integer *yi = (integer *) (object *) y;
+        integer *xi = (integer *) (object_p) x;
+        integer *yi = (integer *) (object_p) y;
         ularge xv = xi->value<ularge>();
         ularge yv = yi->value<ularge>();
         if (Op::integer_ok(xt, yt, xv, yv))

@@ -48,12 +48,12 @@ struct command : object
     command(id i): object(i) {}
 
     template<typename Obj>
-    Obj *arg(uint level = 0, Obj *def = nullptr)
+    const Obj *arg(uint level = 0, Obj *def = nullptr)
     // ------------------------------------------------------------------------
     //   Return the arg at a given level on the stack, or default value
     // ------------------------------------------------------------------------
     {
-        object *obj = RT.stack(level);
+        const Obj *obj = RT.stack(level);
         if (obj && obj->type() == Obj::static_type())
             return (Obj *) obj;
         return def;

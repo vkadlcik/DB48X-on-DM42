@@ -115,7 +115,7 @@ struct decimal64 : object
         return leb128size(i) + sizeof(bid64);
     }
 
-    bid64 value()
+    bid64 value() const
     {
         bid64 result;
         byte *p = payload();
@@ -127,6 +127,8 @@ struct decimal64 : object
     OBJECT_PARSER(decimal64);
     OBJECT_RENDERER(decimal64);
 };
+
+typedef const decimal64 *decimal64_p;
 
 
 // Utlity common to all formats to format a number for display

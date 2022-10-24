@@ -29,23 +29,40 @@
 
 #include "stack.h"
 
-#include "display.h"
+#include "graphics.h"
+#include "input.h"
 #include "object.h"
 #include "runtime.h"
-#include "input.h"
+#include "target.h"
 
 #include <dmcp.h>
 
 
-stack Stack;
+stack    Stack;
 runtime &stack::RT = runtime::RT;
+
+using coord        = graphics::coord;
+using size         = graphics::size;
 
 
 stack::stack()
 // ----------------------------------------------------------------------------
 //   Constructor does nothing at the moment
 // ----------------------------------------------------------------------------
-{}
+{
+}
+
+
+static inline uint countDigits(uint value)
+// ----------------------------------------------------------------------------
+//   Count how many digits we need to display a value
+// ----------------------------------------------------------------------------
+{
+    uint result = 1;
+    while (value /= 10)
+        result++;
+    return result;
+}
 
 
 void stack::draw_stack()
@@ -53,43 +70,95 @@ void stack::draw_stack()
 //   Draw the stack on screen
 // ----------------------------------------------------------------------------
 {
-    display dstk(fReg);
-    dstk.font(3);
+    size  lineHeight = StackFont->height();
+    coord top        = HeaderFont->height() + 2;
+    coord bottom     = Input.stack_screen_bottom() - 1;
+    uint  depth      = RT.depth();
+    uint  digits     = countDigits(depth);
+    coord hdrx       = StackFont->width('0') * digits + 2;
+    size  avail      = LCD_W - hdrx - 10;
 
-    int lineHeight = dstk.lineHeight();
-    int top        = lcd_lineHeight(t20) + 2;
-    int bottom     = Input.stack_screen_bottom() - 1;
-    int depth      = RT.depth();
-    int hdrx       = dstk.width('0') + 2;
-
+    Screen.fill(0, top, LCD_W, bottom - 1, pattern::white);
     if (!depth)
         return;
 
-    cstring saveError = RT.error();
+    utf8 saveError = RT.error();
+    utf8 saveCmd   = RT.command();
 
-    lcd_fill_rect(hdrx, top, 1, bottom - top, 1);
+    Screen.fill(hdrx, top, hdrx, bottom, pattern::gray50);
     if (RT.editing())
-        lcd_fill_rect(0, bottom, LCD_W, 1, 1);
+        Screen.fill(0, bottom, LCD_W, bottom, pattern::gray50);
 
     char buf[80];
-    for (int level = 0; level < depth; level++)
+    for (uint level = 0; level < depth; level++)
     {
-        int y = bottom - (level + 1) * lineHeight;
+        coord y = bottom - (level + 1) * lineHeight;
         if (y <= top)
             break;
 
-        dstk.xy(0, y).clearing(false).write("%d", level+1);
+        snprintf(buf, sizeof(buf), "%d", level + 1);
+        size w = StackFont->width(utf8(buf));
+        Screen.text(hdrx - w, y, utf8(buf), StackFont);
 
-        object_p obj = RT.stack(level);
-        size_t size = obj->render(buf, sizeof(buf));
-        if (size >= sizeof(buf))
-            size = sizeof(buf) - 1;
-        buf[size] = 0;
+        gcobj  obj  = RT.stack(level);
+        size_t len = obj->render(buf, sizeof(buf));
+        if (len >= sizeof(buf))
+            len = sizeof(buf) - 1;
+        buf[len]  = 0;
 
-        int width = dstk.width(buf);
-        dstk.xy(LCD_W - width - 2, y).write(buf);
+        w = StackFont->width(utf8(buf));
+        if (w > avail)
+        {
+            utf8code sep   = L'…';
+            coord    skip  = StackFont->width(sep) + w - avail;
+            coord    sskip = skip;
+            coord    x     = LCD_W - avail;
+            coord    split = 200;
+            utf8     p     = utf8(buf);
+
+            while (*p && x < split)
+            {
+                x += StackFont->width(utf8_codepoint(p));
+                p = utf8_next(p);
+            }
+            x += StackFont->width(sep);
+            while (*p && skip >= 0)
+            {
+                skip -= StackFont->width(utf8_codepoint(p));
+                p = utf8_next(p);
+            }
+            while (*p)
+            {
+                x += StackFont->width(utf8_codepoint(p));
+                p = utf8_next(p);
+            }
+            x = 2 * LCD_W - avail - x;
+            p = utf8(buf);
+            skip = sskip;
+
+            while (*p && x < split)
+            {
+                x = Screen.glyph(x, y, utf8_codepoint(p), StackFont);
+                p = utf8_next(p);
+            }
+            x = Screen.glyph(x, y, sep, StackFont, pattern::gray50);
+            while (*p && skip >= 0)
+            {
+                skip -= StackFont->width(utf8_codepoint(p));
+                p = utf8_next(p);
+            }
+            while (*p)
+            {
+                x = Screen.glyph(x, y, utf8_codepoint(p), StackFont);
+                p = utf8_next(p);
+            }
+        }
+        else
+        {
+            Screen.text(LCD_W - w, y, utf8(buf), StackFont);
+        }
     }
 
     // Clear any error raised during rendering
-    RT.error(saveError);
+    RT.error(saveError, saveCmd);
 }

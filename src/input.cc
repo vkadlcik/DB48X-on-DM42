@@ -30,10 +30,11 @@
 #include "input.h"
 
 #include "command.h"
-#include "display.h"
+#include "graphics.h"
 #include "menu.h"
 #include "runtime.h"
 #include "settings.h"
+#include "target.h"
 #include "util.h"
 
 #include <dmcp.h>
@@ -80,7 +81,7 @@ bool input::end_edit()
     size_t edlen = RT.editing();
     if (edlen)
     {
-        gcp<char> editor = RT.close_editor();
+        gcutf8 editor = RT.close_editor();
         if (editor)
         {
             gcobj obj = object::parse(editor);
@@ -93,8 +94,8 @@ bool input::end_edit()
             else
             {
                 // Move cursor to error if there is one
-                cstring pos = RT.source();
-                cstring ed = editor;
+                utf8 pos = RT.source();
+                utf8 ed = editor;
                 if (pos >= editor && pos <= ed + edlen)
                     cursor = pos - ed;
                 if (!RT.edit(ed, edlen))
@@ -167,7 +168,7 @@ bool input::key(int key)
             sys_timer_start(TIMER0, longpress ? 80 : 500);
         blink = true; // Show cursor if things changed
         sys_timer_disable(TIMER1);
-        sys_timer_start(TIMER1, 500);
+        sys_timer_start(TIMER1, 300);
     }
 
     return result;
@@ -196,7 +197,7 @@ object *input::assigned(int key, uint plane)
 
 
 void input::menus(cstring labels[input::NUM_MENUS],
-                  object *function[input::NUM_MENUS])
+                   object *function[input::NUM_MENUS])
 // ----------------------------------------------------------------------------
 //   Assign all menus at once
 // ----------------------------------------------------------------------------
@@ -243,18 +244,13 @@ void input::draw_annunciators()
     // Don't clear line (we expect dark background already drawn)
     if (alpha)
     {
-        cstring label = lowercase ? "abc" : "ABC";
-        display dann(t20);
-        int     w = dann.width(label);
-        int     h = dann.lineHeight();
-        dann.clearing(false)
-            .x(LCD_W - w - 3)
-            .y(h + 2)
-            .write(label);
+        utf8 label = utf8(lowercase ? "abc" : "ABC");
+        Screen.text(360, 1, label, HeaderFont, pattern::white);
     }
 
-    const uint ann_height = 12;
-    const byte *source = nullptr;
+    const uint  ann_width  = 15;
+    const uint  ann_height = 12;
+    const byte *source     = nullptr;
     if (xshift)
     {
         static const byte ann_right[] =
@@ -279,21 +275,17 @@ void input::draw_annunciators()
     }
     if (source)
     {
-        int top = lcd_lineHeight(t20) + 2;
-        for (uint r = 0; r < ann_height; r++)
-        {
-            byte *dest = lcd_line_addr(r + top) + 48;
-            dest[0]    = ~*source++;
-            dest[1]    = ~*source++;
-        }
+        pixword *sw = (pixword *) source;
+        surface s(sw, ann_width, ann_height, 16);
+        Screen.copy(s, 340, (HeaderFont->height() - ann_height) / 2);
     }
 
     // Temporary - Display some internal information
     char            buffer[64];
     static unsigned counter = 0;
-    snprintf(buffer, sizeof(buffer), "%c %u", longpress ? 'L' : ' ', counter++);
-    display tmp(t20);
-    tmp.x(120).y(0).clearing(false).inverted(true).write(buffer);
+    snprintf(buffer, sizeof(buffer), "%c %u", longpress ? 'L' : ' ',
+             counter++);
+    Screen.text(120, 0, utf8(buffer), HeaderFont, pattern::white);
 }
 
 
@@ -303,9 +295,10 @@ void input::draw_editor()
 // ----------------------------------------------------------------------------
 {
     // Get the editor area
-    char  *ed   = RT.editor();
+    utf8   ed   = RT.editor();
     size_t len  = RT.editing();
-    char  *last = ed + len;
+    utf8   last = ed + len;
+    font_p font = EditorFont;
 
     if (!len)
     {
@@ -321,12 +314,8 @@ void input::draw_editor()
     int     edrow  = 0; // Row number of line being edited
     int     edcol  = 0; // Column of line being edited
     int     cursx  = 0; // Cursor X position
-    display dtxt(fReg);
 
-    // Chose the largest font for editing
-    dtxt.font(5);
-
-    for (char *p = ed; p <= last; p++)
+    for (utf8 p = ed; p <= last; p = utf8_next(p))
     {
         if (p - ed == (int) cursor)
         {
@@ -346,7 +335,8 @@ void input::draw_editor()
         else
         {
             column++;
-            cwidth += dtxt.width((byte) *p);
+            utf8code cp = utf8_codepoint(p);
+            cwidth += font->width(cp);
         }
     }
 
@@ -357,7 +347,7 @@ void input::draw_editor()
         int  c    = 0;
         int  tgt  = edrow - up + down;
         bool done = false;
-        for (char *p = ed; p < last && !done; p++)
+        for (utf8 p = ed; p < last && !done; p = utf8_next(p))
         {
             if (*p == '\n')
             {
@@ -380,13 +370,16 @@ void input::draw_editor()
     }
 
     // Draw the area that fits on the screen
-    int   lineHeight      = dtxt.lineHeight();
-    int   top             = lcd_lineHeight(t20) + 2;
+    int   lineHeight      = font->height();
+    int   top             = HeaderFont->height() + 2;
     int   bottom          = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES);
     int   availableHeight = bottom - top;
     int   availableRows   = availableHeight / lineHeight;
-    char *display         = ed;
+    utf8  display         = ed;
 
+    graphics::rect clip = Screen.clip();
+    Screen.clip(0, top, LCD_W, bottom);
+    Screen.fill(pattern::white);
     if (rows > availableRows)
     {
         // Skip rows to show the cursor
@@ -395,21 +388,20 @@ void input::draw_editor()
                                                  : edrow - availableRows / 2;
         for (int r = 0; r < skip; r++)
             while (*display != '\n')
-                display++;
+                display = utf8_next(display);
         rows = availableRows;
     }
 
     // Draw the editor rows
     int skip  = 64;
-    int cursw = t20->f->width;
+    size cursw = EditorFont->width('M');
     if (xoffset > cursx)
         xoffset = (cursx > skip) ? cursx - skip : 0;
     else if (xoffset + LCD_W - cursw < cursx)
         xoffset = cursx - LCD_W + cursw + skip;
 
-    int y = bottom - rows * lineHeight;
-    int x = -xoffset;
-    dtxt.xy(x, y).clearing(false).background(false);
+    coord y = bottom - rows * lineHeight;
+    coord x = -xoffset;
     stack = y;
 
     cchar = 0;
@@ -417,81 +409,75 @@ void input::draw_editor()
     while (r < rows && display <= last)
     {
         bool atCursor = display == ed + cursor;
-        char c        = *display++;
+        utf8code c = utf8_codepoint(display);
+        display = utf8_next(display);
         if (atCursor)
         {
-            cx    = dtxt.x();
-            cy    = dtxt.y();
+            cx    = x;
+            cy    = y;
             cchar = display <= last ? c : ' ';
         }
         if (c == '\n')
         {
-            dtxt.xy(x, dtxt.y() + lineHeight);
+            y += lineHeight;
             r++;
             continue;
         }
         if (display > last)
             break;
 
-        int cw = dtxt.width(c);
-        if (dtxt.x() >= 0 && dtxt.x() + cw < LCD_W)
-        {
-            const char buf[2] = { c, 0 };
-            dtxt.write(buf);
-        }
+        int cw = font->width(c);
+        if (x +cw >= 0 && x < LCD_W)
+            x = Screen.glyph(x, y, c, font);
         else
-        {
-            dtxt.x(dtxt.x() + cw);
-        }
+            x += cw;
     }
     if (!cchar)
     {
-        cx    = dtxt.x();
-        cy    = dtxt.y();
+        cx    = x;
+        cy    = y;
         cchar = ' ';
     }
+
+    Screen.clip(clip);
 }
 
 
-void input::draw_cursor()
+int input::draw_cursor()
 // ----------------------------------------------------------------------------
 //   Draw the cursor at the location
 // ----------------------------------------------------------------------------
+//   This function returns the cursor vertical position for screen refresh
 {
     // Do not draw
     if (!RT.editing())
     {
         sys_timer_disable(TIMER1);
-        return;
+        return -1;
     }
 
-    display dtxt(fReg);
-    int     lineHeight  = dtxt.font(5).lineHeight();
+    size ch = EditorFont->height();
+    size cw = EditorFont->width(cchar);
+    Screen.fill(cx, cy, cx + cw - 1, cy + ch - 1, pattern::gray75);
 
     // Write the character under the cursor
-    char    buf[2] = { cchar, 0 };
-    int     cw = dtxt.width(cchar);
-    lcd_fill_rect(cx, cy, cw, lineHeight, 0);
-    dtxt.xy(cx, cy)
-        .background(false).clearing(false).newlines(false)
-        .write(buf);
+    Screen.glyph(cx, cy, cchar, EditorFont);
 
     if (blink)
     {
-        display dcsr(t20);
-        int     lineHeight  = dtxt.font(5).lineHeight();
-        int     smallHeight = dcsr.font(0).lineHeight();
-        dcsr.clearing(false).background(true).inverted(true);
-
-        char cursorChar = mode == DIRECT    ? 'd'
-                        : mode == TEXT      ? (lowercase ? 'l' : 'c')
-                        : mode == PROGRAM   ? 'p'
-                        : mode == ALGEBRAIC ? 'a'
-                        : mode == MATRIX    ? 'm'
-                                            : 'x';
-        char buf[2]     = { cursorChar, 0 };
-        lcd_fill_rect(cx, cy, 2, lineHeight, 1);
-        dcsr.xy(cx + 1, cy + (lineHeight - smallHeight) / 2 + 1).write(buf);
+        utf8code cursorChar = mode == DIRECT    ? 'd'
+                            : mode == TEXT      ? (lowercase ? 'l' : 'c')
+                            : mode == PROGRAM   ? 'p'
+                            : mode == ALGEBRAIC ? 'a'
+                            : mode == MATRIX    ? 'm'
+                                                : 'x';
+        size     csrh       = CursorFont->height();
+        size csrw = CursorFont->width(cursorChar);
+        coord csrx = cx;
+        coord csry = cy + (ch - csrh)/2;
+        Screen.fill(csrx, cy, csrx+1, cy + ch - 1, pattern::black);
+        Screen.fill(csrx, csry, csrx + csrw-1, csry + csrh-1, pattern::black);
+        Screen.glyph(csrx, csry, cursorChar, CursorFont, pattern::white);
     }
 
     if (sys_timer_timeout(TIMER1) || !sys_timer_active(TIMER1))
@@ -502,7 +488,7 @@ void input::draw_cursor()
         blink = !blink;
     }
 
-    lcd_refresh();
+    return cy;
 }
 
 
@@ -511,36 +497,35 @@ void input::draw_error()
 //   Draw the error message if there is one
 // ----------------------------------------------------------------------------
 {
-    if (cstring err = RT.error())
+    if (utf8 err = RT.error())
     {
         const int border = 4;
-        display   derr(fReg);
-        display   dhdr(t20);
+        coord top    = HeaderFont->height() + 10;
+        coord height = LCD_H / 3;
+        coord width  = LCD_W - 8;
+        coord x      = LCD_W / 2 - width / 2;
+        coord y      = top;
 
-        derr.font(2);
+        graphics::rect clip = Screen.clip();
+        graphics::rect rect(x, y, x + width - 1, y + height - 1);
+        Screen.fill(rect, pattern::gray50);
+        rect.inset(border);
+        Screen.fill(rect, pattern::white);
+        rect.inset(2);
 
-        int top    = dhdr.lineHeight() + 10;
-        int height = LCD_H / 3;
-        int width  = LCD_W - 8;
-        int x      = LCD_W / 2 - width / 2;
-        int y      = top;
-
-        lcd_fill_rect(x, y, width, height, 1);
-        lcd_fill_rect(x + border,
-                      y + border,
-                      width - 2 * border,
-                      height - 2 * border,
-                      0);
-
-        x += 2 * border + 1;
-        y += 2 * border + 1;
-        derr.xy(x, y).clearing(false).background(false).xoffset(x);
-        if (cstring cmd = RT.command())
-            derr.write("%s error:", cmd).newline();
+        Screen.clip(rect);
+        if (utf8 cmd = RT.command())
+        {
+            coord x = Screen.text(rect.x1, rect.y1, cmd, ErrorFont);
+            Screen.text(x, rect.y1, utf8(" error:"), ErrorFont);
+        }
         else
-            derr.write("Error:").newline();
-
-        derr.write(err);
+        {
+            Screen.text(rect.x1, rect.y1, utf8("Error:"), ErrorFont);
+        }
+        rect.y1 += ErrorFont->height();
+        Screen.text(rect.x1, rect.y1, err, ErrorFont);
+        Screen.clip(clip);
     }
 }
 
@@ -606,13 +591,17 @@ bool input::handle_editing(int key)
             if (shift && cursor < editing)
             {
                 // Shift + Backspace = Delete to right of cursor
-                RT.remove(cursor, 1);
+                utf8 ed = RT.editor();
+                uint after = utf8_next(ed, cursor, editing);
+                RT.remove(cursor, after - cursor);
             }
             else if (!shift && cursor > 0)
             {
                 // Backspace = Erase on left of cursor
-                cursor--;
-                RT.remove(cursor, 1);
+                utf8 ed = RT.editor();
+                uint before = cursor;
+                cursor = utf8_previous(ed, cursor);
+                RT.remove(cursor, before - cursor);
             }
             else
             {
@@ -668,7 +657,8 @@ bool input::handle_editing(int key)
             }
             else if (cursor > 0)
             {
-                cursor--;
+                utf8 ed = RT.editor();
+                cursor = utf8_previous(ed, cursor);
             }
             else
             {
@@ -688,7 +678,8 @@ bool input::handle_editing(int key)
             }
             else if (cursor < editing)
             {
-                cursor++;
+                utf8 ed = RT.editor();
+                cursor = utf8_next(ed, cursor, editing);
             }
             else
             {
@@ -790,43 +781,45 @@ bool input::handle_alpha(int key)
 #define UPTRI      "\xA1"  // Up triangle
 #define FREE       "@"
 
-    static const char shifted[] =
-        SIGMA "^" SQRT "([{"
-        STO   "%" PI   "<=>"
-        "_"  "\"" "'"  EXP "_"
-        "_789" DIV
-        "_456" MUL
-        "_123" "-"
-        "_0.!" "+"
-        "......";
-
-    static const char xshifted[] =
-        INTEG UPTRI DOWNTRI  MU   ANGLE DEG
-        LEFT  RIGHT DOWN     LE   NE    GE
-        "\n"        ETC      FILL POUND "_"
-        "_"   NTILD ANGST    FREE "/"
-        "_"   "$"   OUML     UUML "*"
-        "_"   "&"   "@"      "#"  AE
-        "_"   ";"   INVQ     "?" "\\"
-        "......";
-
-    if (key == KEY_9 && xshift)
+    static const utf8code shifted[] =
     {
-        for (int i = 33; lcd_charWidth(fReg, i); i++)
-            RT.insert(cursor++, i);
-        return true;
-    }
+        L'Σ', '^', L'√', '(', '[', '{',
+        L'▶', '%', L'π', '<', '=', '>',
+        '_',  '"', '\'', L'⁳', '_',
+        '_', '7', '8', '9', L'÷',
+        '_', '4', '5', '6', L'×',
+        '_', '1', '2', '3', '-',
+        '_', '0', '.',  L'«', '+',
+        '.', '.', '.', '.', '.', '.'
+    };
+
+    static const  utf8code xshifted[] =
+    {
+        L'∫', L'↑', L'∜', L'μ', L'∡', L'°',
+        L'←', L'→', L'↓', L'≤', L'≠', L'≥',
+        '\n', L'⇄', L'…', L'£', '_',
+        '_',  '~', '\\', L'∏',  '/',
+        '_',  '$',  L'∞', '|' , '*',
+        '_',  '&',   '@', '#',  '_',
+        '_',  ';',  L'·', '?',  '!',
+        '.', '.', '.', '.', '.', '.'
+    };
 
     key--;
-    char c =
+    utf8code c =
         xshift    ? xshifted[key] :
         shift     ? shifted[key]  :
         lowercase ? lower[key]    :
         upper[key];
-    cursor += RT.insert(cursor, c);
+    byte utf8buf[4];
+    size_t len = utf8_encode(c, utf8buf);
+    record(input, "Codepoint %u reads as %u, length %u: %02X %02X %02X %02X",
+           c, utf8_codepoint(utf8buf), len,
+           utf8buf[0], utf8buf[1], utf8buf[2], utf8buf[3]);
+    cursor += RT.insert(cursor, utf8buf, len);
 
     // Test delimiters
-    int closing = 0;
+    utf8code closing = 0;
     switch(c)
     {
     case '(':  closing = ')'; break;
@@ -835,9 +828,13 @@ bool input::handle_alpha(int key)
     case ':':  closing = ':'; break;
     case '"':  closing = '"'; break;
     case '\'': closing = '\''; break;
+    case L'«': closing = L'»'; break;
     }
     if (closing)
-        RT.insert(cursor, closing);
+    {
+        len = utf8_encode(closing, utf8buf);
+        RT.insert(cursor, utf8buf, len);
+    }
     repeat = true;
     return true;
 }
@@ -854,7 +851,7 @@ bool input::handle_digits(int key)
     static const char numbers[] =
         "______"
         "______"
-        "__-\x98_"
+        "__-__"
         "_789_"
         "_456_"
         "_123_"
@@ -874,23 +871,34 @@ bool input::handle_digits(int key)
     if (key == KEY_CHS && RT.editing())
     {
         // Special case for change of sign
-        char *ed = RT.editor();
-        char *p  = ed + cursor;
+        byte *ed = RT.editor();
+        utf8 p  = ed + cursor;
         while (p > ed)
         {
-            char c = *--p;
+            p = utf8_previous(p);
+            utf8code c = utf8_codepoint(p);
             if ((c < '0' || c > '9') && c != Settings.decimalDot)
                 break;
         }
 
-        char c = *p;
+        utf8code c = utf8_codepoint(p);
         if (c == 'e' || c == 'E' || c == Settings.exponentChar)
-            c = *++p;
+        {
+            p = utf8_next(p);
+            c = utf8_codepoint(p);
+        }
 
         if (c == '-' || c == '+')
-            *p = '+' + '-' - c;
+            *((byte *) p) = '+' + '-' - c;
         else
             cursor += RT.insert(p - ed, '-');
+        return true;
+    }
+    else if (key == KEY_E && RT.editing())
+    {
+        byte buf[4];
+        size_t sz = utf8_encode(Settings.exponentChar, buf);
+        cursor += RT.insert(cursor, buf, sz);
         return true;
     }
     else if (key > KEY_CHS)

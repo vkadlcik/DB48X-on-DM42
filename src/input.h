@@ -29,8 +29,9 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <types.h>
-#include <object.h>
+#include "types.h"
+#include "object.h"
+#include "graphics.h"
 
 struct runtime;
 
@@ -76,7 +77,7 @@ struct input
     void        draw_menus();
     void        draw_annunciators();
     void        draw_editor();
-    void        draw_cursor();
+    int         draw_cursor();
     void        draw_error();
     int         stack_screen_bottom() { return stack; }
 
@@ -98,13 +99,16 @@ protected:
 
 
 protected:
+    typedef graphics::coord coord;
+    typedef graphics::size  size;
+
     uint        cursor;         // Cursor position in buffer
-    int         xoffset;        // Offset of the cursor
+    coord       xoffset;        // Offset of the cursor
     modes       mode;           // Current editing mode
     int         last;           // Last key
     int         stack;          // Vertical bottom of the stack
-    int         cx, cy;         // Cursor position on screen
-    char        cchar;          // Character under the cursor
+    coord       cx, cy;         // Cursor position on screen
+    utf8code    cchar;          // Character under the cursor
     bool        shift     : 1;  // Normal shift active
     bool        xshift    : 1;  // Extended shift active (simulate Right)
     bool        alpha     : 1;  // Alpha mode active

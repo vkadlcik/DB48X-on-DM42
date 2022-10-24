@@ -73,7 +73,18 @@ static void redraw_lcd()
     Input.draw_error();
 
     // Refres the screen
-    lcd_refresh();
+    lcd_refresh_lines(0, LCD_H);
+}
+
+
+static void redraw_cursor()
+// ----------------------------------------------------------------------------
+//   Redraw only the cursor line
+// ----------------------------------------------------------------------------
+{
+    int cy = Input.draw_cursor();
+    if (cy >= 0)
+        lcd_refresh_lines(cy, EditorFont->height());
 }
 
 
@@ -102,7 +113,7 @@ void program_init()
     size_t size = 64 * 1024;
 #else
     // Give 256 bytes to the runtime to stress-test the GC
-    size_t size = 256;
+    size_t size = 2048;
 #endif
     byte *memory = (byte *) malloc(size);
     runtime::RT.memory(memory, size);
@@ -225,7 +236,7 @@ extern "C" void program_main()
         else
         {
             // Blink the cursor
-            Input.draw_cursor();
+            redraw_cursor();
         }
     }
 }

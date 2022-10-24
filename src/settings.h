@@ -41,7 +41,7 @@ struct settings
           displayed(12),
           display_mode(NORMAL),
           decimalDot('.'),
-          exponentChar(0x98),   // The special mini-'E'
+          exponentChar(L'⁳'),
           angle_mode(DEGREES),
           base(10),
           command_fmt(LONG_FORM)
@@ -94,7 +94,7 @@ public:
     uint16_t displayed;    // Number of displayed digits
     display  display_mode; // Display mode
     char     decimalDot;   // Character used for decimal separator
-    char     exponentChar; // The character used to represent exponents
+    utf8code exponentChar; // The character used to represent exponents
     angles   angle_mode;   // Whether we compute in degrees, radians or grads
     uint8_t  base;         // The default base for #numbers
     commands command_fmt;  // How we prefer to display commands

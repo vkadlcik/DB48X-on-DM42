@@ -33,6 +33,7 @@
 #include "settings.h"
 #include "parser.h"
 #include "renderer.h"
+#include "utf8.h"
 
 #include <bid_conf.h>
 #include <bid_functions.h>
@@ -77,33 +78,33 @@ OBJECT_PARSER_BODY(decimal32)
 //    Try to parse this as an decimal32
 // ----------------------------------------------------------------------------
 {
-    record(decimal32, "Parsing [%s]", p.source);
+    record(decimal32, "Parsing [%s]", (utf8) p.source);
 
-    cstring s = p.source;
+    utf8 source = p.source;
+    utf8 s = source;
 
     // Skip leading sign
     if (*s == '+' || *s == '-')
         s++;
 
     // Skip digits
-    cstring digits = s;
+    utf8 digits = s;
     while (*s >= '0' && *s <= '9')
         s++;
 
     // If we had no digits, check for special names or exit
     if (s == digits)
     {
-        if (strncasecmp(s, "inf", sizeof("inf") - 1) != 0 &&
-            strncasecmp(s, "NaN", sizeof("NaN") - 1) != 0)
+        if (strncasecmp(cstring(s), "inf", sizeof("inf") - 1) != 0 &&
+            strncasecmp(cstring(s), "NaN", sizeof("NaN") - 1) != 0)
             return SKIP;
         record(decimal32, "Recognized NaN or Inf", s);
     }
 
     // Check decimal dot
-    gcp<char> decimal = nullptr;
-    if (*s == '.' || *s == ',')
+    if (*s == Settings.decimalDot)
     {
-        decimal = (char *) s++;
+        s++;
         while (*s >= '0' && *s <= '9')
             s++;
     }
@@ -118,13 +119,14 @@ OBJECT_PARSER_BODY(decimal32)
     }
 
     // Check exponent
-    gcp<char> exponent = nullptr;
-    if (*s == 'e' || *s == 'E' || *s == Settings.exponentChar)
+    utf8 exponent = nullptr;
+    if (*s == 'e' || *s == 'E' || utf8_codepoint(s) == Settings.exponentChar)
     {
-        exponent = (char *) s++;
+        s = utf8_next(s);
+        exponent = s;
         if (*s == '+' || *s == '-')
             s++;
-        cstring expval = s;
+        utf8 expval = s;
         while (*s >= '0' && *s <= '9')
             s++;
         if (s == expval)
@@ -137,7 +139,7 @@ OBJECT_PARSER_BODY(decimal32)
     // Check if exponent is withing range, if not skip to wider format
     if (exponent)
     {
-        int expval = atoi(cstring(exponent)+1);
+        int expval = atoi(cstring(exponent));
         int maxexp = 32 == 127+1 ? 6144 : 32 == 63+1 ? 384 : 96;
         record(decimal32, "Exponent is %d, max is %d", expval, maxexp);
         if (expval < -(maxexp-1) || expval > maxexp)
@@ -148,29 +150,30 @@ OBJECT_PARSER_BODY(decimal32)
     }
 
     // Patch the input to the BID library
-    char dot = '.';
-    if (decimal)
+    char buf[50];
+    char *b = buf;
+    for (utf8 u = source; *u && b < buf+sizeof(buf) - 1; u++)
     {
-        dot = *decimal;
-        *decimal = '.';
+        if (*u == Settings.decimalDot)
+        {
+            *b++ = '.';
+        }
+        else if (utf8_codepoint(u) == Settings.exponentChar)
+        {
+            *b++ = 'E';
+            u = utf8_next(u) - 1;
+        }
+        else
+        {
+            *b++ = *u;
+        }
     }
+    *b++ = 0;
+    printf("Decimal from %s\n", buf);
 
-    char exp = 'e';
-    if (exponent)
-    {
-        exp = *exponent;
-        *exponent = 'e';
-    }
-
-    // Create the number (which may GC, hence the need for gcp)
-    p.end = s - (cstring) p.source;
-    p.out = rt.make<decimal32>(ID_decimal32, p.source);
-
-    // Restore the patched input
-    if (decimal)
-        *decimal = dot;
-    if (exponent)
-        *exponent = exp;
+    // Create the number
+    p.end = s - source;
+    p.out = rt.make<decimal32>(ID_decimal32, buf);
 
     return OK;
 }
@@ -390,18 +393,33 @@ OBJECT_RENDERER_BODY(decimal32)
 
     // Render in a separate buffer to avoid overflows
     char buffer[50];            // bid32 with 34 digits takes at most 42 chars
+    byte expbuf[4];
     bid32_to_string(buffer, &num.value);
     record(decimal32, "Render raw output [%s]", buffer);
     decimal_format(buffer, min(sizeof(buffer), r.length));
     record(decimal32, "Render formatted output [%s]", buffer);
 
     // Adjust special characters
+    char *ep = nullptr;
     for (char *p = buffer; *p && p < buffer + sizeof(buffer); p++)
+    {
         if (*p == 'e' || *p == 'E')
-            *p = Settings.exponentChar;
+            ep = p;
         else if (*p == '.')
             *p = Settings.decimalDot;
+    }
+
+    if (ep)
+    {
+        *ep++ = 0;
+        utf8_encode(Settings.exponentChar, expbuf);
+    }
+    else
+    {
+        expbuf[0] = 0;
+        ep = (char *) "";
+    }
 
     // And return it to the caller
-    return snprintf(r.target, r.length, "%s", buffer);
+    return snprintf(r.target, r.length, "%s%s%s", buffer, expbuf, ep);
 }

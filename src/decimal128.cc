@@ -169,7 +169,6 @@ OBJECT_PARSER_BODY(decimal128)
         }
     }
     *b++ = 0;
-    printf("Decimal from %s\n", buf);
 
     // Create the number
     p.end = s - source;

@@ -72,8 +72,8 @@ OBJECT_PARSER_BODY(string)
 // ----------------------------------------------------------------------------
 //    For simplicity, this deals with all kinds of strings
 {
-    cstring source = p.source;
-    cstring s      = source;
+    utf8 source = p.source;
+    utf8 s      = source;
     if (*s++ != '"')
         return SKIP;
 
@@ -85,11 +85,11 @@ OBJECT_PARSER_BODY(string)
         return ERROR;
     }
 
-    size_t    parsed = s - source;
-    size_t    slen   = parsed - 2;
-    gcstring  text   = source + 1;
-    p.end            = parsed;
-    p.out            = rt.make<string>(ID_string, text, slen);
+    size_t parsed = s - source;
+    size_t slen   = parsed - 2;
+    gcutf8 text   = source + 1;
+    p.end         = parsed;
+    p.out         = rt.make<string>(ID_string, text, slen);
 
     return OK;
 }
@@ -101,6 +101,6 @@ OBJECT_RENDERER_BODY(string)
 // ----------------------------------------------------------------------------
 {
     size_t  len = 0;
-    cstring txt = text(&len);
+    utf8 txt = text(&len);
     return snprintf(r.target, r.length, "\"%.*s\"", (int) len, txt);
 }

@@ -101,16 +101,16 @@ OBJECT_PARSER_BODY(command)
 {
     record(command, "Parsing [%s]", p.source);
 
-    id      found = id(0);
-    cstring name  = p.source;
-    size_t  len   = p.length;
+    id     found = id(0);
+    utf8   name  = p.source;
+    size_t len   = p.length;
 
     // Loop on all IDs, skipping object
     for (int i = 1; i < NUM_IDS && !found; i++)
     {
         if (cstring cmd = command_name[i])
         {
-            if (strncasecmp(name, cmd, len) == 0)
+            if (strncasecmp(cstring(name), cmd, len) == 0)
             {
                 found = id(i);
                 len = strlen(cmd);
@@ -118,7 +118,7 @@ OBJECT_PARSER_BODY(command)
         }
         if (cstring cmd = long_name[i])
         {
-            if (strncasecmp(name, cmd, len) == 0)
+            if (strncasecmp(cstring(name), cmd, len) == 0)
             {
                 found = id(i);
                 len = strlen(cmd);

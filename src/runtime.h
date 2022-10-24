@@ -180,18 +180,18 @@ struct runtime
     //
     // ========================================================================
 
-    char *editor()
+    byte *editor()
     // ------------------------------------------------------------------------
     //   Return the buffer for the editor
     // ------------------------------------------------------------------------
     //   This must be called each time a GC could have happened
     {
-        char *ed = (char *) Temporaries;
+        byte *ed = (byte *) Temporaries;
         return ed;
     }
 
 
-    size_t edit(cstring buffer, size_t len)
+    size_t edit(utf8 buffer, size_t len)
     // ------------------------------------------------------------------------
     //   Open the editor with a known buffer
     // ------------------------------------------------------------------------
@@ -210,7 +210,7 @@ struct runtime
     }
 
 
-    char *close_editor();
+    utf8 close_editor();
     // ------------------------------------------------------------------------
     //   Close the editor and encapsulate its content in a temporary string
     // ------------------------------------------------------------------------
@@ -234,7 +234,7 @@ struct runtime
     }
 
 
-    size_t insert(size_t offset, cstring data, size_t len)
+    size_t insert(size_t offset, utf8 data, size_t len)
     // ------------------------------------------------------------------------
     //   Insert data in the editor, return size inserted
     // ------------------------------------------------------------------------
@@ -263,7 +263,7 @@ struct runtime
     }
 
 
-    size_t insert(size_t offset, char c)
+    size_t insert(size_t offset, byte c)
     // ------------------------------------------------------------------------
     //   Insert a single character in the editor
     // ------------------------------------------------------------------------
@@ -524,7 +524,7 @@ struct runtime
     //
     // ========================================================================
 
-    runtime &error(cstring message, cstring source = nullptr)
+    runtime &error(utf8 message, utf8 source)
     // ------------------------------------------------------------------------
     //   Set the error message
     // ------------------------------------------------------------------------
@@ -538,15 +538,23 @@ struct runtime
         return *this;
     }
 
-    runtime &error(cstring message, byte_p source)
+    runtime &error(cstring message, cstring source = nullptr)
     // ------------------------------------------------------------------------
     //   Set the error message
     // ------------------------------------------------------------------------
     {
-        return error(message, (cstring) source);
+        return error(utf8(message), utf8(source));
     }
 
-    cstring error()
+    runtime &error(cstring message, utf8 source)
+    // ------------------------------------------------------------------------
+    //   Set the error message
+    // ------------------------------------------------------------------------
+    {
+        return error(utf8(message), source);
+    }
+
+    utf8 error()
     // ------------------------------------------------------------------------
     //   Get the error message
     // ------------------------------------------------------------------------
@@ -554,7 +562,7 @@ struct runtime
         return Error;
     }
 
-    cstring source()
+    utf8 source()
     // ------------------------------------------------------------------------
     //   Get the pointer to the problem
     // ------------------------------------------------------------------------
@@ -562,7 +570,7 @@ struct runtime
         return ErrorSource;
     }
 
-    runtime &command(cstring cmd)
+    runtime &command(utf8 cmd)
     // ------------------------------------------------------------------------
     //   Set the faulting command
     // ------------------------------------------------------------------------
@@ -571,7 +579,15 @@ struct runtime
         return *this;
     }
 
-    cstring command()
+    runtime &command(cstring cmd)
+    // ------------------------------------------------------------------------
+    //   Set the faulting command
+    // ------------------------------------------------------------------------
+    {
+        return command(utf8(cmd));
+    }
+
+    utf8 command()
     // ------------------------------------------------------------------------
     //   Get the faulting command if there is one
     // ------------------------------------------------------------------------
@@ -581,9 +597,9 @@ struct runtime
 
 
 protected:
-    cstring   Error;        // Error message if any
-    cstring   ErrorSource;  // Source of the error if known
-    cstring   ErrorCommand; // Source of the error if known
+    utf8      Error;        // Error message if any
+    utf8      ErrorSource;  // Source of the error if known
+    utf8      ErrorCommand; // Source of the error if known
     object_p  Code;         // Currently executing code
     object_p  LowMem;
     global_p  Globals;
@@ -594,8 +610,8 @@ protected:
     object_p *Returns;
     object_p  HighMem;
 
-    // Pointers that are GC-adjusted
-    gcptr    *GCSafe;
+  // Pointers that are GC-adjusted
+  gcptr    *GCSafe;
 
 public:
     // The one and only runtime
@@ -610,6 +626,8 @@ using gcstring  = gcp<const char>;
 using gcmstring = gcp<char>;
 using gcbytes   = gcp<const byte>;
 using gcmbytes  = gcp<byte>;
+using gcutf8    = gcp<const byte>;
+using gcmutf8   = gcp<byte>;
 using gcobj     = gcp<const object>;
 
 

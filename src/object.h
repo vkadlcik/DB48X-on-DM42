@@ -204,12 +204,12 @@ struct object
     //   Render the object into a buffer
     // ------------------------------------------------------------------------
 
-    static object_p parse(cstring source, size_t &size, runtime &rt = RT);
+    static object_p parse(utf8 source, size_t &size, runtime &rt = RT);
     // ------------------------------------------------------------------------
     //  Try parsing the object as a top-level temporary
     // ------------------------------------------------------------------------
 
-    static object_p parse(cstring source, runtime &rt = RT)
+    static object_p parse(utf8 source, runtime &rt = RT)
     // ------------------------------------------------------------------------
     //  Try parsing an object without specifying input size
     // ------------------------------------------------------------------------
@@ -243,16 +243,16 @@ struct object
     }
 
 
-    static cstring name(id i)
+    static utf8 name(id i)
     // ------------------------------------------------------------------------
     //   Return the name for a given ID
     // ------------------------------------------------------------------------
     {
-        return i < NUM_IDS ? id_name[i] : "<invalid ID>";
+        return utf8(i < NUM_IDS ? id_name[i] : "<invalid ID>");
     }
 
 
-    cstring name() const
+    utf8 name() const
     // ------------------------------------------------------------------------
     //   Return the name for the current object
     // ------------------------------------------------------------------------
@@ -262,7 +262,11 @@ struct object
 
 
     // Off-line so that we don't need to import runtime.h
-    static void error(cstring err, cstring source = nullptr, runtime &rt = RT);
+    static void error(utf8 err, utf8 source = nullptr, runtime &rt = RT);
+    static void error(cstring err, utf8 source, runtime &rt = RT)
+    {
+        return error(utf8(err), source, rt);
+    }
 
 
 

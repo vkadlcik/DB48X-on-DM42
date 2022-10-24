@@ -36,16 +36,16 @@ struct symbol : object
 //    Represent symbol objects
 // ----------------------------------------------------------------------------
 {
-    symbol(gcstring source, size_t len, id type = ID_symbol): object(type)
+    symbol(gcutf8 source, size_t len, id type = ID_symbol): object(type)
     {
-        cstring s = (cstring) source;
-        char *p = (char *) payload();
+        utf8 s = (utf8) source;
+        byte *p = (byte *) payload();
         p = leb128(p, len);
         while (len--)
             *p++ = *s++;
     }
 
-    static size_t required_memory(id i, gcstring UNUSED str, size_t len)
+    static size_t required_memory(id i, gcutf8 UNUSED str, size_t len)
     {
         return leb128size(i) + leb128size(len) + len;
     }

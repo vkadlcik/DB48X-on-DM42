@@ -203,7 +203,7 @@ size_t runtime::size(object_p obj)
 }
 
 
-char *runtime::close_editor()
+utf8 runtime::close_editor()
 // ----------------------------------------------------------------------------
 //   Close the editor and encapsulate its content into a string
 // ----------------------------------------------------------------------------
@@ -236,5 +236,5 @@ char *runtime::close_editor()
     Editing = 0;
 
     // Return a pointer to a valid C string safely wrapped in a RPL string
-    return str;
+    return utf8(str);
 }

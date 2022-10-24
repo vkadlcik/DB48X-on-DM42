@@ -77,13 +77,24 @@ inline uint utf8_previous(utf8 text, uint position)
 }
 
 
+inline utf8 utf8_previous(utf8 text)
+// ----------------------------------------------------------------------------
+//   Finds the previous position in the text, assumed to be UTF-8
+// ----------------------------------------------------------------------------
+{
+    while (is_utf8_next(*text))
+        text--;
+    return text;
+}
+
+
 inline uint utf8_next(utf8 text, uint position, size_t len = 0)
 // ----------------------------------------------------------------------------
 //   Find the next position in the text, assumed to be UTF-8
 // ----------------------------------------------------------------------------
 {
     if (!len && text[len])
-        len = strlen(text);
+        len = strlen(cstring(text));
 
     if (position < len)
     {
@@ -113,7 +124,7 @@ inline utf8code utf8_codepoint(utf8 text, uint position, size_t len = 0)
 // ----------------------------------------------------------------------------
 {
     if (!len && text[len])
-        len = strlen(text);
+        len = strlen(cstring(text));
 
     utf8code code = 0;
     if (position < len)
@@ -145,28 +156,58 @@ inline utf8code utf8_codepoint(utf8 text)
 //   Return the Unicode value for the character at the given position
 // ----------------------------------------------------------------------------
 {
-    utf8code code = 0;
-    if (*text)
+    utf8code code = *text;
+    if (code & 0x80)
     {
-        code = *text;
-        if (code & 0x80)
-        {
-            // Reference: Wikipedia UTF-8 description
-            if ((code & 0xE0) == 0xC0 && text[1])
-                code = ((code & 0x1F)    << 6)
-                    |  (text[1] & 0x3F);
-            else if ((code & 0xF0) == 0xE0 && text[1] && text[2])
-                code = ((code & 0xF)     << 12)
-                    |  ((text[1] & 0x3F) << 6)
-                    |   (text[2] & 0x3F);
-            else if ((code & 0xF8) == 0xF0 && text[1] && text[2] && text[3])
-                code = ((code & 0xF)     << 18)
-                    |  ((text[1] & 0x3F) << 12)
-                    |  ((text[2] & 0x3F) << 6)
-                    |   (text[3] & 0x3F);
-        }
+        // Reference: Wikipedia UTF-8 description
+        if ((code & 0xE0) == 0xC0 && text[1])
+            code = ((code & 0x1F)    << 6)
+                |  (text[1] & 0x3F);
+        else if ((code & 0xF0) == 0xE0 && text[1] && text[2])
+            code = ((code & 0xF)     << 12)
+                |  ((text[1] & 0x3F) << 6)
+                |   (text[2] & 0x3F);
+        else if ((code & 0xF8) == 0xF0 && text[1] && text[2] && text[3])
+            code = ((code & 0xF)     << 18)
+                |  ((text[1] & 0x3F) << 12)
+                |  ((text[2] & 0x3F) << 6)
+                |   (text[3] & 0x3F);
     }
     return code;
+}
+
+
+inline size_t utf8_encode(utf8code cp, byte buffer[4])
+// ----------------------------------------------------------------------------
+//   Encode the code point into the buffer, return number of bytes needed
+// ----------------------------------------------------------------------------
+{
+    if (cp < 0x80)
+    {
+        buffer[0] = cp;
+        return 1;
+    }
+    else if (cp <  0x800)
+    {
+        buffer[0] = (cp >> 6)         | 0xC0;
+        buffer[1] = (cp & 0x3F)       | 0x80;
+        return 2;
+    }
+    else if (cp <  0x10000)
+    {
+        buffer[0] =  (cp >> 12)         | 0xE0;
+        buffer[1] = ((cp >>  6) & 0x3F) | 0x80;
+        buffer[2] = ((cp >>  0) & 0x3F) | 0x80;
+        return 3;
+    }
+    else
+    {
+        buffer[0] = ((cp >> 18) & 0x07) | 0xF0;
+        buffer[1] = ((cp >> 12) & 0x3F) | 0x80;
+        buffer[2] = ((cp >>  6) & 0x3F) | 0x80;
+        buffer[3] = ((cp >>  0) & 0x3F) | 0x80;
+        return 4;
+    }
 }
 
 

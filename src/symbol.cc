@@ -80,8 +80,8 @@ OBJECT_PARSER_BODY(symbol)
 //    Try to parse this as a symbol
 // ----------------------------------------------------------------------------
 {
-    cstring source = p.source;
-    cstring s      = source;
+    utf8 source = p.source;
+    utf8 s      = source;
 
     // First character must be alphabetic (TODO: Special HP alpha chars, e.g Σ
     if (!isalpha(*s++))
@@ -98,10 +98,10 @@ OBJECT_PARSER_BODY(symbol)
         return ERROR;
     }
 
-    size_t    parsed = s - source;
-    gcstring  text   = source;
-    p.end            = parsed;
-    p.out            = rt.make<symbol>(ID_symbol, text, parsed);
+    size_t parsed = s - source;
+    gcutf8 text   = source;
+    p.end         = parsed;
+    p.out         = rt.make<symbol>(ID_symbol, text, parsed);
 
     return OK;
 }
@@ -112,7 +112,7 @@ OBJECT_RENDERER_BODY(symbol)
 //   Render the symbol into the given symbol buffer
 // ----------------------------------------------------------------------------
 {
-    size_t  len = 0;
-    cstring txt = text(&len);
+    size_t len = 0;
+    utf8   txt = text(&len);
     return snprintf(r.target, r.length, "%.*s", (int) len, txt);
 }

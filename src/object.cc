@@ -87,7 +87,7 @@ const cstring object::opcode_name[NUM_OPCODES] =
 };
 
 
-void object::error(cstring message, cstring source, runtime &rt)
+void object::error(utf8 message, utf8 source, runtime &rt)
 // ----------------------------------------------------------------------------
 //    Send the error to the runtime
 // ----------------------------------------------------------------------------
@@ -97,16 +97,16 @@ void object::error(cstring message, cstring source, runtime &rt)
 }
 
 
-object_p object::parse(cstring source, size_t &size, runtime &rt)
+object_p object::parse(utf8 source, size_t &size, runtime &rt)
 // ----------------------------------------------------------------------------
 //  Try parsing the object as a top-level temporary
 // ----------------------------------------------------------------------------
 {
     record(parse, ">Parsing [%s]", source);
     parser p(source, size);
-    result r = SKIP;
-    cstring err = nullptr;
-    cstring src = nullptr;
+    result r   = SKIP;
+    utf8   err = nullptr;
+    utf8   src = nullptr;
 
     // Try parsing with the various handlers
     for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
@@ -170,12 +170,12 @@ OBJECT_HANDLER_BODY(object)
         parser &p = OBJECT_PARSER_ARG();
         if (p.candidate != ID_object)
         {
-            cstring name = object::name(p.candidate);
+            cstring name = (cstring) object::name(p.candidate);
             size_t len = strlen(name);
-            if (strncasecmp(name, p.source, len) == 0)
+            cstring source = cstring(utf8(p.source));
+            if (strncasecmp(name, source, len) == 0)
             {
-                cstring src = p.source;
-                char last = src[len];
+                char last = source[len];
                 if (!last || isspace(last))
                 {
                     p.end = len;
@@ -202,7 +202,7 @@ OBJECT_PARSER_BODY(object)
 {
     p.out = nullptr;
     p.end = 0;
-    rt.error("Default object parser called", (cstring) p.source);
+    rt.error("Default object parser called", p.source);
     return ERROR;
 }
 

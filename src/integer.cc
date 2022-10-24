@@ -33,6 +33,7 @@
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
+#include "utf8.h"
 
 #include <stdio.h>
 
@@ -76,7 +77,7 @@ OBJECT_PARSER_BODY(integer)
     id          type       = ID_integer;
     const byte  NODIGIT    = (byte) -1;
 
-    record(integer, "Parsing [%s]", p.source);
+    record(integer, "Parsing [%s]", (utf8) p.source);
 
     // Array of values for digits
     static byte value[256] = { 0 };
@@ -194,11 +195,11 @@ OBJECT_PARSER_BODY(integer)
 
 
     // Check if we finish with something indicative of a real number
-    if (*s == Settings.decimalDot || *s == (byte) Settings.exponentChar)
+    if (*s == Settings.decimalDot || utf8_codepoint(s) == Settings.exponentChar)
         return SKIP;
 
     // Record output
-    p.end = (cstring) s - (cstring) p.source;
+    p.end = (utf8) s - (utf8) p.source;
     if (sign < 0)
         p.out = rt.make<neg_integer>(type, result);
     else

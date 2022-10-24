@@ -47,7 +47,7 @@ typedef const byte        *byte_p;
 typedef uint64_t           ularge;
 typedef int64_t            large;
 typedef const char        *cstring;
-typedef const char        *utf8;
+typedef const byte        *utf8;
 typedef unsigned           utf8code;
 
 // Indicate that an argument may be unused

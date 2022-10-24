@@ -39,12 +39,12 @@ struct parser
 {
     typedef object::id id;
 
-    parser(cstring source, size_t length)
+    parser(utf8 source, size_t length)
         : candidate(), source(source), length(length), end(), out(nullptr) {}
 
 public:
     id          candidate;      // Candidate ID for lookup
-    gcstring    source;         // Text to parse
+    gcutf8      source;         // Text to parse
     size_t      length;         // Length to parse
     size_t      end;            // End position after parsing
     gcobj       out;            // Output object if any

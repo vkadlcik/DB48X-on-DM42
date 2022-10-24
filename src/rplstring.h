@@ -37,29 +37,29 @@ struct string : object
 //    Represent string objects
 // ----------------------------------------------------------------------------
 {
-    string(gcstring source, size_t len, id type = ID_string): object(type)
+    string(gcutf8 source, size_t len, id type = ID_string): object(type)
     {
-        cstring s = (cstring) source;
-        char *p = (char *) payload();
+        utf8 s = (utf8) source;
+        byte *p = (byte *) payload();
         p = leb128(p, len);
         while (len--)
             *p++ = *s++;
     }
 
-    static size_t required_memory(id i, gcstring UNUSED str, size_t len)
+    static size_t required_memory(id i, gcutf8 UNUSED str, size_t len)
     {
         return leb128size(i) + leb128size(len) + len;
     }
 
-    static string *make(cstring str, size_t len)
+    static string *make(utf8 str, size_t len)
     {
-        gcstring gcstr = str;
+        gcutf8 gcstr = str;
         return RT.make<string>(gcstr, len);
     }
 
-    static string *make(cstring str)
+    static string *make(utf8 str)
     {
-        return make(str, strlen(str));
+        return make(str, strlen(cstring(str)));
     }
 
     size_t length() const

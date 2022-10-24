@@ -32,6 +32,8 @@
 
 #include "graphics.h"
 #include "input.h"
+#include "integer.h"
+#include "rplstring.h"
 #include "menu.h"
 #include "num.h"
 #include "rpl.h"
@@ -51,18 +53,17 @@
 using std::min;
 using std::max;
 
+static int fontnr = 0;
+
+
 static void redraw_lcd()
 // ----------------------------------------------------------------------------
 //   Redraw the whole LCD
 // ----------------------------------------------------------------------------
 {
-    // Write the header
-    Screen.fill(pattern::gray50);
-    Screen.fill(20, 30, 60, 40, pattern::gray25);
-    Screen.fill(22, 38, 64, 56, pattern::gray75);
-    lcd_writeClr(t20);
-    t20->newln = 0; // No skip to next line
-    lcd_putsR(t20, "DB48X");
+    // Draw the header
+    Screen.fill(0, 0, LCD_W, HeaderFont->height() + 1, pattern::black);
+    Screen.text(4, 0, utf8(PROGRAM_NAME), HeaderFont, pattern::white);
 
     // Draw the various components handled by input
     Input.draw_annunciators();
@@ -228,6 +229,56 @@ extern "C" void program_main()
         // Fetch the key (<0: no key event, >0: key pressed, 0: key released)
         if (key >= 0 && hadKey)
         {
+            // Hack: Show the fonts
+            if (key == KEY_F6)
+                fontnr = lcd_nextFontNr(fontnr);
+            if (key == KEY_F5)
+                fontnr = lcd_prevFontNr(fontnr);
+            if (key == KEY_F4)
+                fontnr = lcd_toggleFontT(fontnr);
+            if (key >= KEY_F4 && key <= KEY_F6)
+            {
+                runtime &rt = runtime::RT;
+                lcd_switchFont(fReg, fontnr);
+                rt.push(integer::make(fontnr));
+                rt.push(rt.make<string>(object::ID_string,
+                                        utf8(fReg->f->name), strlen(fReg->f->name)));
+                key = 0;
+            }
+            if (key == KEY_F3)
+            {
+                byte fnr = fontnr < 0 ? byte(10 - fontnr) : byte(fontnr);
+                byte fontRPL[] = { object::ID_dmcp_font, fnr };
+                dmcp_font *font = (dmcp_font *) fontRPL;
+
+                uint32_t start = sys_current_ms();
+                for (uint i = 0; i < 100; i++)
+                    Screen.text(30 + i % 20, 50 + i % 23, utf8("Hello World"), font);
+                uint32_t end = sys_current_ms();
+                runtime &rt = runtime::RT;
+                rt.push(integer::make(end - start));
+                lcd_refresh_lines(50, 100);
+                continue;
+            }
+            if (key == KEY_F2)
+            {
+                uint32_t start = sys_current_ms();
+                lcd_switchFont(fReg, fontnr);
+                fReg->bgfill = 0;
+                fReg->lnfill = 0;
+                for (uint i = 0; i < 100; i++)
+                {
+                    fReg->x = 30 + i % 20;
+                    fReg->y = 50 + i % 23;
+                    lcd_writeText(fReg, "Hello World");
+                }
+                uint32_t end = sys_current_ms();
+                runtime &rt = runtime::RT;
+                rt.push(integer::make(end - start));
+                lcd_refresh();
+                continue;
+            }
+
             handle_key(key);
 
             // Redraw the LCD

@@ -714,7 +714,7 @@ tests &tests::test(char c)
     case ',': k = DOT;          shift = !alpha; break;
     case ' ': k = RUNSTOP;      alpha = true;  break;
     case '?': k = RUNSTOP;      alpha = true;  xshift = true; break;
-    case '!': k = RUNSTOP;      alpha = true;  shift  = true; break;
+    case '!': k = ADD;          alpha = true;  xshift  = true; break;
     case '_': k = SUB;          alpha = true;  break;
     case '%': k = RCL;          alpha = true;  break;
     case ':': k = KEY0;         alpha = true;  del = true; break;
@@ -881,7 +881,7 @@ tests &tests::clear()
     while (rt.depth())
         rt.pop();
     rt.error(nullptr);
-    rt.command(nullptr);
+    rt.command(utf8());
     return *this;
 }
 
@@ -1090,9 +1090,9 @@ tests &tests::editor(cstring text)
 // ----------------------------------------------------------------------------
 {
     ready();
-    runtime    &rt = runtime::RT;
-    const char *ed = rt.editor();
-    size_t      sz = rt.editing();
+    runtime &rt = runtime::RT;
+    byte_p   ed = rt.editor();
+    size_t   sz = rt.editing();
 
     if (!ed)
         return explain("Expected editor to contain [", text, "], "
@@ -1102,11 +1102,11 @@ tests &tests::editor(cstring text)
         return explain("Expected ", strlen(text), " characters in editor"
                        " [", text, "], "
                        "but got ", sz, " characters "
-                       " [", std::string(ed, sz), "]")
+                       " [", std::string(cstring(ed), sz), "]")
             .fail();
     if (memcmp(ed, text, sz))
         return explain("Expected editor to contain [", text, "], "
-                       "but it contains [", std::string(ed, sz), "]")
+                       "but it contains [", std::string(cstring(ed), sz), "]")
             .fail();
 
     return *this;
@@ -1131,14 +1131,14 @@ tests &tests::error(cstring msg)
 // ----------------------------------------------------------------------------
 {
     ready();
-    runtime    &rt = runtime::RT;
-    cstring    err = rt.error();
+    runtime &rt  = runtime::RT;
+    utf8     err = rt.error();
 
     if (!msg && err)
         return explain("Expected no error, got [", err, "]").fail();
     if (msg && !err)
         return explain("Expected error message [", msg, "], got none").fail();
-    if (msg && err && strcmp(err, msg) != 0)
+    if (msg && err && strcmp(cstring(err), msg) != 0)
         return explain("Expected error message [", msg, "], "
                        "got [", err, "]").fail();
     return *this;
@@ -1151,14 +1151,14 @@ tests &tests::command(cstring ref)
 // ----------------------------------------------------------------------------
 {
     ready();
-    runtime    &rt = runtime::RT;
-    cstring    cmd = rt.command();
+    runtime &rt  = runtime::RT;
+    utf8     cmd = rt.command();
 
     if (!ref && cmd)
         return explain("Expected no command, got [", cmd, "]").fail();
     if (ref && !cmd)
         return explain("Expected command [", ref, "], got none").fail();
-    if (ref && cmd && strcmp(ref, cmd) != 0)
+    if (ref && cmd && strcmp(ref, cstring(cmd)) != 0)
         return explain("Expected command [", ref, "], "
                        "got [", cmd, "]").fail();
 
@@ -1173,13 +1173,13 @@ tests &tests::source(cstring ref)
 {
     ready();
     runtime &rt  = runtime::RT;
-    cstring  src = rt.source();
+    utf8     src = rt.source();
 
     if (!ref && src)
         return explain("Expected no source, got [", src, "]").fail();
     if (ref && !src)
         return explain("Expected source [", ref, "], got none").fail();
-    if (ref && src && strcmp(ref, src) != 0)
+    if (ref && src && strcmp(ref, cstring(src)) != 0)
         return explain("Expected source [", ref, "], "
                        "got [", src, "]").fail();
 

@@ -306,6 +306,10 @@ uint8_t * lcd_line_addr(int y)
     unsigned offset = y * LCD_SCANLINE / 8;
     return lcd_buffer + offset;
 }
+int lcd_toggleFontT(int nr)
+{
+    return nr;
+}
 int lcd_nextFontNr(int nr)
 {
     if (nr < (int) dmcp_fonts_count - 1)

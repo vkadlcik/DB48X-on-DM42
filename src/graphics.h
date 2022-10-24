@@ -184,6 +184,7 @@ struct graphics
             : x1(x1), y1(y1), x2(x2), y2(y2) {}
         rect(size w, size h): rect(0, 0, w-1, h-1) {}
         rect(const rect &o) = default;
+        rect &operator=(const rect &o) = default;
 
         rect &operator &=(const rect &o)
         // --------------------------------------------------------------------
@@ -227,6 +228,25 @@ struct graphics
             rect r(a);
             r |= b;
             return r;
+        }
+
+        void inset(size dw, size dh)
+        // --------------------------------------------------------------------
+        //   Inset the rectangle by the given amount
+        // --------------------------------------------------------------------
+        {
+            x1 += dw;
+            y1 += dh;
+            x2 -= dw;
+            y2 -= dh;
+        }
+
+        void inset(size d)
+        // --------------------------------------------------------------------
+        //   Inset the rectangle by the given amount
+        // --------------------------------------------------------------------
+        {
+            inset(d, d);
         }
 
     public:
@@ -546,6 +566,7 @@ struct graphics
             return drawable;
         }
 
+
         template<clipping Clip = FILL_SAFE>
         void fill(const rect &r, pattern colors = pattern::black)
         // --------------------------------------------------------------------
@@ -583,6 +604,28 @@ struct graphics
         // --------------------------------------------------------------------
         {
             blit<Clip>(*this, src, r, spos, blitop_source, clear);
+        }
+
+        template<clipping Clip = COPY>
+        void copy(surface &src, const point &pos = point(0,0),
+                  pattern clear = pattern::black)
+        // --------------------------------------------------------------------
+        //   Copy a rectangular area from the source
+        // --------------------------------------------------------------------
+        {
+            return copy(src, pos.x, pos.y, clear);
+        }
+
+        template<clipping Clip = COPY>
+        void copy(surface &src, coord x, coord y, pattern clr = pattern::black)
+        // --------------------------------------------------------------------
+        //   Copy a rectangular area from the source
+        // --------------------------------------------------------------------
+        {
+            size  w = src.width;
+            size  h = src.height;
+            rect  dest(x, y, x + w - 1, y + h - 1);
+            blit<Clip>(*this, src, dest, point(), blitop_source, clr);
         }
 
         template<clipping Clip = CLIP_DST>

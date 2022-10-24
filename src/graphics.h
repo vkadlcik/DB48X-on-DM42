@@ -286,231 +286,7 @@ struct graphics
                             const rect    &drect,
                             const point   &spos,
                             blitop         op,
-                            pattern<CMode> colors)
-    // -------------------------------------------------------------------------
-    //   Generalized multi-bpp blitting routine
-    // -------------------------------------------------------------------------
-    //   This transfers pixels from 'src' to 'dst' (which can be equal)
-    //   - targeting a rectangle defined by (x1, x2, y1, y2)
-    //   - fetching pixels from (x,y) in the source
-    //   - applying the given operation in 'op'
-    //
-    //   Everything is so that the compiler can optimize code away
-    //
-    //   The code selects the correct direction for copies within the same
-    //   surface, so it is safe to use for operations like scrolling.
-    //
-    //   We pass the bits-per-pixel as arguments to make it easier for the
-    //   optimizer to replace multiplications with shifts when we pass a
-    //   constant. Additional flags can be used to statically disable sections
-    //   of the code.
-    //
-    //   An arbitrary blitop is passed, which can be used to process each set of
-    //   pixels in turn. That operation is dependent on the respective bits per
-    //   pixelss, and can be used e.g. to do bit-plane conversions. See how this
-    //   is used in DrawText to colorize 1bpp bitplanes. The source and color
-    //   pattern are both aligned to match the destination before the operator
-    //   is called. So if the source is 1bpp and the destination is 4bpp, you
-    //   might end up with the 8 low bits of the source being the bit pattern
-    //   that applies to the 8 nibbles in the destination word.
-    {
-        bool       clip_src = Clip & CLIP_SRC;
-        bool       clip_dst = Clip & CLIP_DST;
-        bool       skip_src = Clip & SKIP_SOURCE;
-        bool       skip_col = Clip & SKIP_COLOR;
-        bool       overlap  = Clip & OVERLAP;
-
-        coord      x1       = drect.x1;
-        coord      y1       = drect.y1;
-        coord      x2       = drect.x2;
-        coord      y2       = drect.y2;
-        coord      x        = spos.x;
-        coord      y        = spos.y;
-
-        const uint SBPP     = Src::BPP;
-        const uint DBPP     = Dst::BPP;
-        const uint CBPP     = color<CMode>::BPP;
-
-        if (clip_src)
-        {
-            if (x < src.drawable.x1)
-            {
-                x1 += src.drawable.x1 - x;
-                x = src.drawable.x1;
-            }
-            if (x + x2 - x1 > src.drawable.x2)
-                x2 = src.drawable.x2 - x + x1;
-            if (y < src.drawable.y1)
-            {
-                y1 += src.drawable.y1 - y;
-                y = src.drawable.y1;
-            }
-            if (y + y2 - y1 > src.drawable.y2)
-                y2 = src.drawable.y2 - y + y1;
-        }
-
-        if (clip_dst)
-        {
-            // Clipping based on target
-            if (x1 < dst.drawable.x1)
-            {
-                x += dst.drawable.x1 - x1;
-                x1 = dst.drawable.x1;
-            }
-            if (x2 > dst.drawable.x2)
-                x2 = dst.drawable.x2;
-            if (y1 < dst.drawable.y1)
-            {
-                y += dst.drawable.y1 - y1;
-                y1 = dst.drawable.y1;
-            }
-            if (y2 > dst.drawable.y2)
-                y2 = dst.drawable.y2;
-        }
-
-        // Bail out if there is no effect
-        if (x1 > x2 || y1 > y2)
-            return;
-
-        // Source coordinates
-        coord      sl     = x;
-        coord      sr     = sl + x2 - x1;
-        coord      st     = y;
-        coord      sb     = st + y2 - y1;
-
-        // Some platforms have the weird idea of flipping left and right
-        dst.horizontal_adjust(x1, x2);
-        dst.vertical_adjust(y1, y2);
-        src.horizontal_adjust(sl, sr);
-        src.vertical_adjust(st, sb);
-
-        // Check whether we need to go forward or backward along X or Y
-        bool     xback   = overlap && x < x1;
-        bool     yback   = overlap && y < y1;
-        int      xdir    = xback ? -1 : 1;
-        int      ydir    = yback ? -1 : 1;
-        coord    dx1     = xback ? x2 : x1;
-        coord    dx2     = xback ? x1 : x2;
-        coord    dy1     = yback ? y2 : y1;
-        coord    sx1     = xback ? sr : sl;
-        coord    sy1     = yback ? sb : st;
-        coord    ycount  = y2 - y1;
-
-        // Pointers to word containing start and end pixel
-        offset   do1     = dst.pixel_offset(dx1, dy1);
-        offset   do2     = dst.pixel_offset(dx2, dy1);
-        offset   so      = skip_src ? 0 : src.pixel_offset(sx1, sy1);
-        offset   dod     = dst.pixel_offset(0, ydir);
-        offset   sod     = src.pixel_offset(0, ydir);
-
-        // X1 and x2 pixel shift
-        unsigned cshift  = surface<CMode>::BPP == 16 ? 48
-                         : surface<CMode>::BPP ==  4 ? 20
-                         : surface<CMode>::BPP ==  1 ?  9
-                                                     :  0;
-        unsigned cxs     = xdir * BPW * CBPP / DBPP;
-
-        // Shift adjustment from source to destination
-        unsigned dls     = dst.pixel_shift(do1);
-        unsigned drs     = dst.pixel_shift(do2);
-        unsigned dws     = xback ? drs : dls;
-        unsigned sws     = skip_src ? 0 : src.pixel_shift(so);
-        unsigned sadj    = (int) (sws * DBPP - dws * SBPP) / (int) DBPP;
-        unsigned sxadj   = xdir * (int) (SBPP * BPW / DBPP);
-
-        // X1 and x2 masks
-        pixword  ones    = ~0U;
-        pixword  lmask   = ones << dls;
-        pixword  rmask   = shrc(ones, drs + DBPP);
-        pixword  dmask1  = xback ? rmask : lmask;
-        pixword  dmask2  = xback ? lmask : rmask;
-
-        // Adjust the color pattern based on starting point
-        uint64_t cdata64 = skip_col
-            ? 0
-            : rotate(colors.bits, dx1 * CBPP + dy1 * cshift - dws);
-
-        // Loop on all lines
-        while (ycount-- >= 0)
-        {
-            pixword  dmask = dmask1;
-            bool     xdone = false;
-            pixword  sdata = 0;
-            pixword  cdata = 0;
-            pixword *dp1   = dst.pixel_address(do1);
-            pixword *dp2   = dst.pixel_address(do2);
-            pixword *sp    = skip_src ? dp1 : src.pixel_address(so);
-            pixword *dp    = dp1;
-            pixword  smem  = sp[0];
-            pixword  snew  = smem;
-
-            if (xback)
-                sadj -= sxadj;
-
-            do
-            {
-                xdone = dp == dp2;
-                if (xdone)
-                    dmask &= dmask2;
-
-                if (!skip_src)
-                {
-                    unsigned nextsadj = sadj + sxadj;
-
-                    // Check if we change source word
-                    int skip = nextsadj >= BPW;
-                    if (skip)
-                    {
-                        sp += xdir;
-                        smem = snew;
-                        snew = sp[0];
-                    }
-
-                    nextsadj %= BPW;
-                    sadj %= BPW;
-                    if (sadj)
-                        if (xback)
-                            sdata = shlc(smem, nextsadj) | shr(snew, nextsadj);
-                        else
-                            sdata = shlc(snew, sadj) | shr(smem, sadj);
-                    else
-                        sdata = xback ? snew : smem;
-
-                    sadj = nextsadj;
-                }
-                if (!skip_col)
-                {
-                    cdata   = cdata64;
-                    cdata64 = rotate(cdata64, cxs);
-                }
-
-                pixword ddata = dp[0];
-                pixword tdata = op(ddata, sdata, cdata);
-                *dp           = (tdata & dmask) | (ddata & ~dmask);
-
-                dp += xdir;
-                dmask = ~0U;
-                smem = snew;
-            } while (!xdone);
-
-            // Move to next line
-            dy1    += ydir;
-            do1    += dod;
-            do2    += dod;
-            so     += sod;
-            sws     = skip_src ? 0 : src.pixel_shift(so);
-            dls     = dst.pixel_shift(do1);
-            drs     = dst.pixel_shift(do2);
-            dws     = xback ? drs : dls;
-            lmask   = ones << dls;
-            rmask   = shrc(ones, drs + DBPP);
-            dmask1  = xback ? rmask : lmask;
-            dmask2  = xback ? lmask : rmask;
-            cdata64 = rotate(cdata64, dx1 * CBPP + dy1 * cshift - dws);
-            sws     = src.pixel_shift(so);
-            sadj    = (int) (sws * DBPP - dws * SBPP) / (int) DBPP;
-        }
-    }
+                            pattern<CMode> colors);
 
 
     // ========================================================================
@@ -812,6 +588,7 @@ public:
         return dst;
     }
 };
+
 
 
 // ============================================================================
@@ -1116,6 +893,242 @@ public:
     static const pattern gray75;
     static const pattern white;
 };
+
+
+template <graphics::clipping Clip,
+          typename Dst,
+          typename Src,
+          graphics::mode CMode>
+void graphics::blit(Dst           &dst,
+                    const Src     &src,
+                    const rect    &drect,
+                    const point   &spos,
+                    blitop         op,
+                    pattern<CMode> colors)
+// ----------------------------------------------------------------------------
+//   Generalized multi-bpp blitting routine
+// ----------------------------------------------------------------------------
+//   This transfers pixels from 'src' to 'dst' (which can be equal)
+//   - targeting a rectangle defined by (x1, x2, y1, y2)
+//   - fetching pixels from (x,y) in the source
+//   - applying the given operation in 'op'
+//
+//   Everything is so that the compiler can optimize code away
+//
+//   The code selects the correct direction for copies within the same
+//   surface, so it is safe to use for operations like scrolling.
+//
+//   We pass the bits-per-pixel as arguments to make it easier for the
+//   optimizer to replace multiplications with shifts when we pass a
+//   constant. Additional flags can be used to statically disable sections
+//   of the code.
+//
+//   An arbitrary blitop is passed, which can be used to process each set of
+//   pixels in turn. That operation is dependent on the respective bits per
+//   pixelss, and can be used e.g. to do bit-plane conversions. See how this
+//   is used in DrawText to colorize 1bpp bitplanes. The source and color
+//   pattern are both aligned to match the destination before the operator
+//   is called. So if the source is 1bpp and the destination is 4bpp, you
+//   might end up with the 8 low bits of the source being the bit pattern
+//   that applies to the 8 nibbles in the destination word.
+{
+    bool       clip_src = Clip & CLIP_SRC;
+    bool       clip_dst = Clip & CLIP_DST;
+    bool       skip_src = Clip & SKIP_SOURCE;
+    bool       skip_col = Clip & SKIP_COLOR;
+    bool       overlap  = Clip & OVERLAP;
+
+    coord      x1       = drect.x1;
+    coord      y1       = drect.y1;
+    coord      x2       = drect.x2;
+    coord      y2       = drect.y2;
+    coord      x        = spos.x;
+    coord      y        = spos.y;
+
+    const uint SBPP     = Src::BPP;
+    const uint DBPP     = Dst::BPP;
+    const uint CBPP     = color<CMode>::BPP;
+
+    if (clip_src)
+    {
+        if (x < src.drawable.x1)
+        {
+            x1 += src.drawable.x1 - x;
+            x = src.drawable.x1;
+        }
+        if (x + x2 - x1 > src.drawable.x2)
+            x2 = src.drawable.x2 - x + x1;
+        if (y < src.drawable.y1)
+        {
+            y1 += src.drawable.y1 - y;
+            y = src.drawable.y1;
+        }
+        if (y + y2 - y1 > src.drawable.y2)
+            y2 = src.drawable.y2 - y + y1;
+    }
+
+    if (clip_dst)
+    {
+        // Clipping based on target
+        if (x1 < dst.drawable.x1)
+        {
+            x += dst.drawable.x1 - x1;
+            x1 = dst.drawable.x1;
+        }
+        if (x2 > dst.drawable.x2)
+            x2 = dst.drawable.x2;
+        if (y1 < dst.drawable.y1)
+        {
+            y += dst.drawable.y1 - y1;
+            y1 = dst.drawable.y1;
+        }
+        if (y2 > dst.drawable.y2)
+            y2 = dst.drawable.y2;
+    }
+
+    // Bail out if there is no effect
+    if (x1 > x2 || y1 > y2)
+        return;
+
+    // Source coordinates
+    coord      sl     = x;
+    coord      sr     = sl + x2 - x1;
+    coord      st     = y;
+    coord      sb     = st + y2 - y1;
+
+    // Some platforms have the weird idea of flipping left and right
+    dst.horizontal_adjust(x1, x2);
+    dst.vertical_adjust(y1, y2);
+    src.horizontal_adjust(sl, sr);
+    src.vertical_adjust(st, sb);
+
+    // Check whether we need to go forward or backward along X or Y
+    bool     xback   = overlap && x < x1;
+    bool     yback   = overlap && y < y1;
+    int      xdir    = xback ? -1 : 1;
+    int      ydir    = yback ? -1 : 1;
+    coord    dx1     = xback ? x2 : x1;
+    coord    dx2     = xback ? x1 : x2;
+    coord    dy1     = yback ? y2 : y1;
+    coord    sx1     = xback ? sr : sl;
+    coord    sy1     = yback ? sb : st;
+    coord    ycount  = y2 - y1;
+
+    // Pointers to word containing start and end pixel
+    offset   do1     = dst.pixel_offset(dx1, dy1);
+    offset   do2     = dst.pixel_offset(dx2, dy1);
+    offset   so      = skip_src ? 0 : src.pixel_offset(sx1, sy1);
+    offset   dod     = dst.pixel_offset(0, ydir);
+    offset   sod     = src.pixel_offset(0, ydir);
+
+    // X1 and x2 pixel shift
+    unsigned cshift  = surface<CMode>::BPP == 16 ? 48
+        : surface<CMode>::BPP ==  4 ? 20
+        : surface<CMode>::BPP ==  1 ?  9
+        :  0;
+    unsigned cxs     = xdir * BPW * CBPP / DBPP;
+
+    // Shift adjustment from source to destination
+    unsigned dls     = dst.pixel_shift(do1);
+    unsigned drs     = dst.pixel_shift(do2);
+    unsigned dws     = xback ? drs : dls;
+    unsigned sws     = skip_src ? 0 : src.pixel_shift(so);
+    unsigned sadj    = (int) (sws * DBPP - dws * SBPP) / (int) DBPP;
+    unsigned sxadj   = xdir * (int) (SBPP * BPW / DBPP);
+
+    // X1 and x2 masks
+    pixword  ones    = ~0U;
+    pixword  lmask   = ones << dls;
+    pixword  rmask   = shrc(ones, drs + DBPP);
+    pixword  dmask1  = xback ? rmask : lmask;
+    pixword  dmask2  = xback ? lmask : rmask;
+
+    // Adjust the color pattern based on starting point
+    uint64_t cdata64 = skip_col
+        ? 0
+        : rotate(colors.bits, dx1 * CBPP + dy1 * cshift - dws);
+
+    // Loop on all lines
+    while (ycount-- >= 0)
+    {
+        pixword  dmask = dmask1;
+        bool     xdone = false;
+        pixword  sdata = 0;
+        pixword  cdata = 0;
+        pixword *dp1   = dst.pixel_address(do1);
+        pixword *dp2   = dst.pixel_address(do2);
+        pixword *sp    = skip_src ? dp1 : src.pixel_address(so);
+        pixword *dp    = dp1;
+        pixword  smem  = sp[0];
+        pixword  snew  = smem;
+
+        if (xback)
+            sadj -= sxadj;
+
+        do
+        {
+            xdone = dp == dp2;
+            if (xdone)
+                dmask &= dmask2;
+
+            if (!skip_src)
+            {
+                unsigned nextsadj = sadj + sxadj;
+
+                // Check if we change source word
+                int skip = nextsadj >= BPW;
+                if (skip)
+                {
+                    sp += xdir;
+                    smem = snew;
+                    snew = sp[0];
+                }
+
+                nextsadj %= BPW;
+                sadj %= BPW;
+                if (sadj)
+                    if (xback)
+                        sdata = shlc(smem, nextsadj) | shr(snew, nextsadj);
+                    else
+                        sdata = shlc(snew, sadj) | shr(smem, sadj);
+                else
+                    sdata = xback ? snew : smem;
+
+                sadj = nextsadj;
+            }
+            if (!skip_col)
+            {
+                cdata   = cdata64;
+                cdata64 = rotate(cdata64, cxs);
+            }
+
+            pixword ddata = dp[0];
+            pixword tdata = op(ddata, sdata, cdata);
+            *dp           = (tdata & dmask) | (ddata & ~dmask);
+
+            dp += xdir;
+            dmask = ~0U;
+            smem = snew;
+        } while (!xdone);
+
+        // Move to next line
+        dy1    += ydir;
+        do1    += dod;
+        do2    += dod;
+        so     += sod;
+        sws     = skip_src ? 0 : src.pixel_shift(so);
+        dls     = dst.pixel_shift(do1);
+        drs     = dst.pixel_shift(do2);
+        dws     = xback ? drs : dls;
+        lmask   = ones << dls;
+        rmask   = shrc(ones, drs + DBPP);
+        dmask1  = xback ? rmask : lmask;
+        dmask2  = xback ? lmask : rmask;
+        cdata64 = rotate(cdata64, dx1 * CBPP + dy1 * cshift - dws);
+        sws     = src.pixel_shift(so);
+        sadj    = (int) (sws * DBPP - dws * SBPP) / (int) DBPP;
+    }
+}
 
 
 // ============================================================================

@@ -29,6 +29,7 @@
 
 #include "runtime.h"
 #include "object.h"
+#include "input.h"
 #include <cstring>
 
 // The one and only runtime
@@ -114,6 +115,19 @@ size_t runtime::gc()
                            obj, p->safe, p);
             }
         }
+        if (!found)
+        {
+            object_p *functions = &Input.function[0][0];
+            size_t count = input::NUM_PLANES * input::NUM_KEYS;
+            object_p *lastf = functions + count;
+            for (object_p *p = functions; p < lastf && !found; p++)
+            {
+                found = *p >= obj && *p <= next;
+                if (found)
+                    record(gc_details, "Found %p in input function table %u",
+                           obj, p - functions);
+            }
+        }
         if (found)
         {
             // Move object to free space
@@ -189,6 +203,20 @@ void runtime::move(object_p first, object_p last, object_p to)
             record(gc_details, "Adjusting GC-safe %p from %p to %p",
                    p, p->safe, p->safe + delta);
             p->safe += delta;
+        }
+    }
+
+    // Adjust the input function pointers
+    object_p *functions = &Input.function[0][0];
+    size_t count = input::NUM_PLANES * input::NUM_KEYS;
+    object_p *lastf = functions + count;
+    for (object_p *p = functions; p < lastf; p++)
+    {
+        if (*p >= first && *p <= last)
+        {
+            record(gc_details, "Adjusting input function %u from %p to %p",
+                   p - functions, *p, *p + delta);
+            *p += delta;
         }
     }
 }

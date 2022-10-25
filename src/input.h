@@ -122,10 +122,11 @@ protected:
 
 protected:
     // Key mappings
-    object         *function[NUM_PLANES][NUM_KEYS];
+    object_p        function[NUM_PLANES][NUM_KEYS];
     char            menu_label[NUM_PLANES][NUM_SOFTKEYS][NUM_LABEL_CHARS];
     static runtime &RT;
     friend struct tests;
+    friend struct runtime;
 };
 
 

@@ -390,7 +390,8 @@ void input::draw_editor()
 
     // Draw the area that fits on the screen
     int   lineHeight      = font->height();
-    int   top             = HeaderFont->height() + 2;
+    int   errorHeight     = RT.error() ? LCD_H / 3 : 0;
+    int   top             = HeaderFont->height() + errorHeight + 2;
     int   bottom          = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES);
     int   availableHeight = bottom - top;
     int   availableRows   = availableHeight / lineHeight;

@@ -314,17 +314,17 @@ void input::draw_editor()
     int     edrow  = 0; // Row number of line being edited
     int     edcol  = 0; // Column of line being edited
     int     cursx  = 0; // Cursor X position
+    bool    found  = false;
 
-    for (utf8 p = ed; p <= last; p = utf8_next(p))
+    for (utf8 p = ed; p < last; p = utf8_next(p))
     {
         if (p - ed == (int) cursor)
         {
             edrow = rows - 1;
             edcol = column;
             cursx = cwidth;
+            found = true;
         }
-        if (p == last)
-            break;
 
         if (*p == '\n')
         {
@@ -339,13 +339,19 @@ void input::draw_editor()
             cwidth += font->width(cp);
         }
     }
+    if (!found)
+    {
+        edrow = rows - 1;
+        edcol = column;
+        cursx = cwidth;
+    }
 
     // Check if we want to move the cursor up or down
     if (up || down)
     {
         int  r    = 0;
         int  c    = 0;
-        int  tgt  = edrow - up + down;
+        int  tgt  = edrow - (up && edrow > 0) + down;
         bool done = false;
         for (utf8 p = ed; p < last && !done; p = utf8_next(p))
         {
@@ -363,6 +369,19 @@ void input::draw_editor()
                 cursor = p - ed;
                 edrow  = r;
                 done   = true;
+            }
+        }
+        if (!done)
+        {
+            if (down)
+            {
+                cursor = len;
+                edrow = rows - 1;
+            }
+            else if (up)
+            {
+                cursor = 0;
+                edrow = 0;
             }
         }
         up   = false;
@@ -387,8 +406,12 @@ void input::draw_editor()
                  : edrow >= rows - availableRows ? rows - availableRows
                                                  : edrow - availableRows / 2;
         for (int r = 0; r < skip; r++)
-            while (*display != '\n')
+        {
+            do
                 display = utf8_next(display);
+            while (*display != '\n');
+            display = utf8_next(display);
+        }
         rows = availableRows;
     }
 
@@ -420,7 +443,7 @@ void input::draw_editor()
         if (c == '\n')
         {
             y += lineHeight;
-            x = 0;
+            x = -xoffset;
             r++;
             continue;
         }
@@ -433,7 +456,11 @@ void input::draw_editor()
         else
             x += cw;
     }
-    if (!cchar)
+    if (cchar == '\n')
+    {
+        cchar = ' ';
+    }
+    else if (!cchar)
     {
         cx    = x;
         cy    = y;

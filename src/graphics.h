@@ -949,6 +949,10 @@ void graphics::blit(Dst           &dst,
     const uint DBPP     = Dst::BPP;
     const uint CBPP     = color<CMode>::BPP;
 
+    // Some platforms have the weird idea of flipping left and right
+    dst.horizontal_adjust(x1, x2);
+    dst.vertical_adjust(y1, y2);
+
     if (clip_src)
     {
         if (x < src.drawable.x1)
@@ -996,9 +1000,6 @@ void graphics::blit(Dst           &dst,
     coord      st     = y;
     coord      sb     = st + y2 - y1;
 
-    // Some platforms have the weird idea of flipping left and right
-    dst.horizontal_adjust(x1, x2);
-    dst.vertical_adjust(y1, y2);
     src.horizontal_adjust(sl, sr);
     src.vertical_adjust(st, sb);
 

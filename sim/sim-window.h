@@ -43,7 +43,12 @@ class TestsThread : public QThread
 {
 public:
     TestsThread(QObject *parent): QThread(parent) {}
-    ~TestsThread()     { while (!isFinished()) terminate(); }
+    ~TestsThread()
+    {
+        if (isRunning())
+            while (isFinished())
+                terminate();
+    }
     void run()
     {
         tests TestSuite;

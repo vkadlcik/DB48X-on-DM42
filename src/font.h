@@ -75,6 +75,14 @@ struct font : object
             result += width(utf8_codepoint(p));
         return result;
     }
+    fuint width(utf8 text, size_t len) const
+    {
+        fuint result = 0;
+        utf8 last = text + len;
+        for (utf8 p = text; p < last; p = utf8_next(p))
+            result += width(utf8_codepoint(p));
+        return result;
+    }
     fuint height(utf8code codepoint) const
     {
         glyph_info g;
@@ -184,6 +192,12 @@ extern const font_p HeaderFont;
 extern const font_p CursorFont;
 extern const font_p ErrorFont;
 extern const font_p MenuFont;
+extern const font_p HelpFont;
+extern const font_p HelpBoldFont;
+extern const font_p HelpItalicFont;
+extern const font_p HelpCodeFont;
+extern const font_p HelpTitleFont;
+extern const font_p HelpSubTitleFont;
 
 // In the DM42 DMCP - Not fully Unicode capable
 extern const dmcp_font_p LibMonoFont10x17;

@@ -418,10 +418,17 @@ const dmcp_font_p Free42Font       = (dmcp_font_p) (dmcpFontRPL + 12);
 const dmcp_font_p SkrMono13x18     = (dmcp_font_p) (dmcpFontRPL + 14);
 const dmcp_font_p SkrMono18x24     = (dmcp_font_p) (dmcpFontRPL + 16);
 
-const font_p HeaderFont = LibMonoFont10x17;
-const font_p CursorFont = LibMonoFont17x25;
-const font_p ErrorFont  = SkrMono13x18;
-const font_p MenuFont   = LibMonoFont10x17;
+const font_p HeaderFont         = LibMonoFont10x17;
+const font_p CursorFont         = LibMonoFont17x25;
+const font_p ErrorFont          = SkrMono13x18;
+const font_p MenuFont           = LibMonoFont10x17;
+const font_p HelpFont           = LibMonoFont11x18;
+const font_p HelpBoldFont       = LibMonoFont11x18;
+const font_p HelpItalicFont     = LibMonoFont11x18;
+const font_p HelpCodeFont       = LibMonoFont11x18;;
+const font_p HelpTitleFont      = SkrMono18x24;
+const font_p HelpSubTitleFont   = SkrMono13x18;
+
 
 font::fuint dmcp_font::height()
 // ----------------------------------------------------------------------------

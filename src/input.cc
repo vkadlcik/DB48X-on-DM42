@@ -175,7 +175,7 @@ bool input::key(int key)
 }
 
 
-void input::assign(int key, uint plane, object *code)
+void input::assign(int key, uint plane, object_p code)
 // ----------------------------------------------------------------------------
 //   Assign an object to a given key
 // ----------------------------------------------------------------------------
@@ -185,7 +185,7 @@ void input::assign(int key, uint plane, object *code)
 }
 
 
-object *input::assigned(int key, uint plane)
+object_p input::assigned(int key, uint plane)
 // ----------------------------------------------------------------------------
 //   Assign an object to a given key
 // ----------------------------------------------------------------------------
@@ -197,7 +197,7 @@ object *input::assigned(int key, uint plane)
 
 
 void input::menus(cstring labels[input::NUM_MENUS],
-                   object *function[input::NUM_MENUS])
+                  object_p function[input::NUM_MENUS])
 // ----------------------------------------------------------------------------
 //   Assign all menus at once
 // ----------------------------------------------------------------------------
@@ -207,7 +207,7 @@ void input::menus(cstring labels[input::NUM_MENUS],
 }
 
 
-void input::menu(uint menu_id, cstring label, object *fn)
+void input::menu(uint menu_id, cstring label, object_p fn)
 // ----------------------------------------------------------------------------
 //   Assign one menu item
 // ----------------------------------------------------------------------------
@@ -219,6 +219,7 @@ void input::menu(uint menu_id, cstring label, object *fn)
         int plane            = menu_id / NUM_SOFTKEYS;
         function[plane][key] = fn;
         strncpy(menu_label[plane][softkey_id], label, NUM_LABEL_CHARS);
+        menu_label[plane][softkey_id][NUM_LABEL_CHARS-1] = 0;
     }
 }
 
@@ -228,11 +229,38 @@ void input::draw_menus()
 //   Draw the softkey menus
 // ----------------------------------------------------------------------------
 {
-    int     plane = shift_plane();
-    cstring labels[NUM_SOFTKEYS];
-    for (int k = 0; k < NUM_SOFTKEYS; k++)
-        labels[k] = menu_label[plane][k];
-    lcd_draw_menu_keys(labels);
+    font_p font  = MenuFont;
+    int    plane = shift_plane();
+    int    fh    = font->height();
+    int    mh    = fh + 4;
+    int    my    = LCD_H - mh;
+    int    mw    = (LCD_W - 10) / 6;
+    int    sp    = (LCD_W - 5) - 6 * mw;
+    rect   clip  = Screen.clip();
+
+    for (int m = 0; m < NUM_SOFTKEYS; m++)
+    {
+        int x = (2 * m + 1) * mw / 2 + (m * sp) / 5 + 2;
+        rect mrect(x - mw/2-1, my, x + mw/2, my+mh-1);
+        Screen.fill(mrect, pattern::white);
+
+        mrect.inset(3,  1);
+        Screen.fill(mrect, pattern::black);
+        mrect.inset(-1, 1);
+        Screen.fill(mrect, pattern::black);
+        mrect.inset(-1, 1);
+        Screen.fill(mrect, pattern::black);
+
+        mrect.inset(2, 0);
+        // Screen.clip(mrect);
+
+        utf8 label = utf8(menu_label[plane][m]);
+        size tw = font->width(label);
+        x = (tw > mw) ? x - mw/2 : x - tw/2;
+        Screen.text(x, mrect.y1, label, font, pattern::white);
+    }
+
+    Screen.clip(clip);
 }
 
 
@@ -299,11 +327,12 @@ void input::draw_editor()
     size_t len  = RT.editing();
     utf8   last = ed + len;
     font_p font = EditorFont;
+    uint   mh   = MenuFont->height() + 4;
 
     if (!len)
     {
         // Editor is not open, compute stack bottom
-        stack = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES);
+        stack = LCD_H - (hideMenu ? 0 : mh);
         return;
     }
 
@@ -392,7 +421,7 @@ void input::draw_editor()
     int   lineHeight      = font->height();
     int   errorHeight     = RT.error() ? LCD_H / 3 : 0;
     int   top             = HeaderFont->height() + errorHeight + 2;
-    int   bottom          = LCD_H - (hideMenu ? 0 : LCD_MENU_LINES);
+    int   bottom          = LCD_H - (hideMenu ? 0 : mh);
     int   availableHeight = bottom - top;
     int   availableRows   = availableHeight / lineHeight;
     utf8  display         = ed;
@@ -1153,8 +1182,8 @@ bool input::handle_functions(int key)
     if (key == KEY_STO)
         RT.gc();
 
-    int     plane = shift_plane();
-    object *obj   = function[plane][key - 1];
+    int      plane = shift_plane();
+    object_p obj   = function[plane][key - 1];
     if (obj)
     {
         obj->evaluate();

@@ -420,7 +420,8 @@ const dmcp_font_p SkrMono18x24     = (dmcp_font_p) (dmcpFontRPL + 16);
 
 const font_p HeaderFont = LibMonoFont10x17;
 const font_p CursorFont = LibMonoFont17x25;
-const font_p ErrorFont  = LibMonoFont14x22;
+const font_p ErrorFont  = SkrMono13x18;
+const font_p MenuFont   = LibMonoFont10x17;
 
 font::fuint dmcp_font::height()
 // ----------------------------------------------------------------------------

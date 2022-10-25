@@ -183,6 +183,7 @@ extern const font_p StackFont;
 extern const font_p HeaderFont;
 extern const font_p CursorFont;
 extern const font_p ErrorFont;
+extern const font_p MenuFont;
 
 // In the DM42 DMCP - Not fully Unicode capable
 extern const dmcp_font_p LibMonoFont10x17;

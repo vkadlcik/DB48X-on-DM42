@@ -60,20 +60,20 @@ struct input
     //   Dimensioning constants
     // ------------------------------------------------------------------------
     {
-        NUM_PLANES = 3,         // NONE, Shift and "extended" shift
-        NUM_KEYS = 46,          // Including SCREENSHOT, SH_UP and SH_DN
-        NUM_SOFTKEYS = 6,       // Number of softkeys
-        NUM_LABEL_CHARS = 10,   // Number of characters per menu label
+        NUM_PLANES      = 3,    // NONE, Shift and "extended" shift
+        NUM_KEYS        = 46,   // Including SCREENSHOT, SH_UP and SH_DN
+        NUM_SOFTKEYS    = 6,    // Number of softkeys
+        NUM_LABEL_CHARS = 12,   // Number of characters per menu label
         NUM_MENUS = NUM_PLANES * NUM_SOFTKEYS,
     };
 
 
     bool        key(int key);
     bool        repeating()     { return repeat; }
-    void        assign(int key, uint plane, object *code);
-    object *    assigned(int key, uint plane);
-    void        menus(cstring labels[NUM_MENUS], object *function[NUM_MENUS]);
-    void        menu(uint index, cstring labels, object *function);
+    void        assign(int key, uint plane, object_p code);
+    object_p    assigned(int key, uint plane);
+    void        menus(cstring labels[NUM_MENUS], object_p function[NUM_MENUS]);
+    void        menu(uint index, cstring labels, object_p function);
     void        draw_menus();
     void        draw_annunciators();
     void        draw_editor();

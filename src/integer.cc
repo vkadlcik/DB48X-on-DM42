@@ -58,6 +58,8 @@ OBJECT_HANDLER_BODY(integer)
         return object_parser(OBJECT_PARSER_ARG(), rt);
     case RENDER:
         return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+    case HELP:
+        return (intptr_t) "integer";
 
     default:
         // Check if anyone else knows how to deal with it

@@ -28,20 +28,24 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
+// Commands, e.g. "swap"
 #ifndef CMD
 #define CMD(id)                 ID(id)
 #endif
 
+// Commands with a long name, e.g. "neg" can be called "Negate"
 #ifndef NAMED
 #define NAMED(id, longname)     CMD(id)
 #endif
 
+// Operators, e.g. "+"
 #ifndef OP
-#define OP(i, n)                CMD(i)
+#define OP(i, n)                NAMED(i, n)
 #endif
 
-#ifndef ALIASED_OP
-#define ALIASED_OP(i, n1, n2)   CMD(i)
+// Aliases for commands with multiple spelling
+#ifndef ALIAS
+#define ALIAS(op, name)
 #endif
 
 ID(object)                      // Value 0 is reserved for "not implemented"
@@ -73,11 +77,13 @@ CMD(swap)
 
 OP(add, "+")
 OP(sub, "-")
-ALIASED_OP(mul, "\x81", "*")     // ×
-ALIASED_OP(div, "\x80", "/")     // ÷
+OP(mul, "×")
+OP(div, "÷")
+ALIAS(mul, "*")
+ALIAS(div, "/")
+
 NAMED(neg, "Negate")
 NAMED(inv, "Invert")
-
 
 // Special objects
 ID(font)
@@ -89,4 +95,4 @@ ID(dmcp_font)
 #undef OP
 #undef CMD
 #undef NAMED
-#undef ALIASED_OP
+#undef ALIAS

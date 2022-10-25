@@ -66,11 +66,6 @@ struct command : object
     OBJECT_PARSER(command);
     OBJECT_RENDERER(command);
     OBJECT_HANDLER_NO_ID(command);
-
-
-protected:
-    static const cstring    command_name[NUM_IDS];
-    static const cstring    long_name[NUM_IDS];
 };
 
 
@@ -84,7 +79,7 @@ protected:
         {                                                       \
             if (op == EVAL)                                     \
             {                                                   \
-                RT.command(#derived);                           \
+                RT.command(fancy(ID_##derived));                \
                 return ((derived *) obj)->evaluate();           \
             }                                                   \
             return DELEGATE(command);                           \

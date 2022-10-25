@@ -40,32 +40,6 @@ RECORDER(command,       16, "RPL Commands");
 RECORDER(command_error, 16, "Errors processing a command");
 
 
-const cstring command::command_name[NUM_IDS] =
-// ----------------------------------------------------------------------------
-//   The long name of all objects or commands
-// ----------------------------------------------------------------------------
-{
-#define ID(id)                  nullptr,
-#define OP(id, name)            name,
-#define ALIASED_OP(id, n1, n2)  n2,
-#define CMD(id)                 #id,
-#include <ids.tbl>
-};
-
-
-const cstring command::long_name[NUM_IDS] =
-// ----------------------------------------------------------------------------
-//   The long name of all objects or commands
-// ----------------------------------------------------------------------------
-{
-#define ID(id)                  nullptr,
-#define CMD(id)                 #id,
-#define OP(id, name)            name,
-#define ALIASED_OP(id, n1, n2)  n1,
-#define NAMED(id, longname)     #longname,
-#include <ids.tbl>
-};
-
 
 OBJECT_HANDLER_BODY(command)
 // ----------------------------------------------------------------------------
@@ -86,6 +60,8 @@ OBJECT_HANDLER_BODY(command)
         return object_parser(OBJECT_PARSER_ARG(), rt);
     case RENDER:
         return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+    case HELP:
+        return (intptr_t) obj->fancy();
 
     default:
         // Check if anyone else knows how to deal with it
@@ -104,11 +80,17 @@ OBJECT_PARSER_BODY(command)
     id     found = id(0);
     utf8   name  = p.source;
     size_t len   = p.length;
+    static id     commands[] =
+    {
+#define ID(id)
+#define CMD(id) id,
+    };
 
     // Loop on all IDs, skipping object
-    for (int i = 1; i < NUM_IDS && !found; i++)
+    for (uint c = 0; c < sizeof(commands) / sizeof(commands[0]) && !found; c++)
     {
-        if (cstring cmd = command_name[i])
+        id i = commands[c];
+        if (cstring cmd = fancy_name[i])
         {
             if (strncasecmp(cstring(name), cmd, len) == 0)
             {
@@ -116,7 +98,7 @@ OBJECT_PARSER_BODY(command)
                 len = strlen(cmd);
             }
         }
-        if (cstring cmd = long_name[i])
+        if (cstring cmd = id_name[i])
         {
             if (strncasecmp(cstring(name), cmd, len) == 0)
             {
@@ -152,8 +134,8 @@ OBJECT_RENDERER_BODY(command)
         settings::commands fmt    = Settings.command_fmt;
         result = snprintf(target, len, "%s",
                           fmt == settings::commands::LONG_FORM
-                          ? long_name[ty]
-                          : command_name[ty]);
+                          ? fancy_name[ty]
+                          : id_name[ty]);
         switch(Settings.command_fmt)
         {
         case settings::commands::LOWERCASE:

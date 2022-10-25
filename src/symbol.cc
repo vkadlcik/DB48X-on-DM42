@@ -66,6 +66,8 @@ OBJECT_HANDLER_BODY(symbol)
     }
     case RENDER:
         return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+    case HELP:
+        return (intptr_t) "symbols";
 
     default:
         // Check if anyone else knows how to deal with it

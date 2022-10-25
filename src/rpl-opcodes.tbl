@@ -31,5 +31,6 @@ RPL_OPCODE(EVAL)               // Evaluate the object (e.g. push on stack)
 RPL_OPCODE(SIZE)               // Compute the size of the object
 RPL_OPCODE(PARSE)              // Parse the object
 RPL_OPCODE(RENDER)             // Render the object
+RPL_OPCODE(HELP)               // Return the help topic for an object
 
 #undef RPL_OPCODE

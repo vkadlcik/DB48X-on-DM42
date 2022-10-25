@@ -79,7 +79,7 @@ struct derived : arithmetic                                             \
     {                                                                   \
         if (op == EVAL)                                                 \
         {                                                               \
-            RT.command(long_name[ID_##derived]);                        \
+            RT.command(fancy(ID_##derived));                            \
             if (!Arity || RT.stack(Arity-1))                            \
                 return ((derived *) obj)->evaluate();                   \
             return ERROR;                                               \

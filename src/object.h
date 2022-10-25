@@ -218,6 +218,14 @@ struct object
         return parse(source, size, rt);
     }
 
+    utf8 help(runtime &rt = RT) const
+    // ------------------------------------------------------------------------
+    //   Return the help topic for the given object
+    // ------------------------------------------------------------------------
+    {
+        return (utf8) run(HELP, rt);
+    }
+
     static cstring name(opcode op)
     // ------------------------------------------------------------------------
     //   Return the name for a given ID
@@ -225,7 +233,6 @@ struct object
     {
         return op < NUM_OPCODES ? opcode_name[op] : "<invalid opcode>";
     }
-
 
     static cstring name(result r)
     // ------------------------------------------------------------------------
@@ -252,12 +259,30 @@ struct object
     }
 
 
+    static utf8 fancy(id i)
+    // ------------------------------------------------------------------------
+    //   Return the fancy name for a given ID
+    // ------------------------------------------------------------------------
+    {
+        return utf8(i < NUM_IDS ? fancy_name[i] : "<Invalid ID>");
+    }
+
+
     utf8 name() const
     // ------------------------------------------------------------------------
     //   Return the name for the current object
     // ------------------------------------------------------------------------
     {
         return name(type());
+    }
+
+
+    utf8 fancy() const
+    // ------------------------------------------------------------------------
+    //   Return the fancy name for the current object
+    // ------------------------------------------------------------------------
+    {
+        return fancy(type());
     }
 
 
@@ -444,6 +469,7 @@ protected:
                                    object_p obj, object_p payload);
     static const handler_fn handler[NUM_IDS];
     static const cstring    id_name[NUM_IDS];
+    static const cstring    fancy_name[NUM_IDS];
     static const cstring    opcode_name[NUM_OPCODES];
     static runtime         &RT;
 };

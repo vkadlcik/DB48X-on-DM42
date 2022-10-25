@@ -69,10 +69,22 @@ const object::handler_fn object::handler[NUM_IDS] =
 
 const cstring object::id_name[NUM_IDS] =
 // ----------------------------------------------------------------------------
-//   The name of all objects and commands
+//   The long name of all objects or commands
 // ----------------------------------------------------------------------------
 {
-#define ID(id)  #id,
+#define ID(id)                  #id,
+#include <ids.tbl>
+};
+
+
+const cstring object::fancy_name[NUM_IDS] =
+// ----------------------------------------------------------------------------
+//   The long name of all objects or commands
+// ----------------------------------------------------------------------------
+{
+#define ID(id)                  #id,
+#define CMD(id)                 #id,
+#define NAMED(id, name)         name,
 #include <ids.tbl>
 };
 
@@ -188,6 +200,8 @@ OBJECT_HANDLER_BODY(object)
     }
     case RENDER:
         return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+    case HELP:
+        return (intptr_t) "Unknown";
     default:
         return SKIP;
     }

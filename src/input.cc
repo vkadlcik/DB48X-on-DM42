@@ -1414,10 +1414,11 @@ bool input::handle_help(int &key)
     if (!showingHelp())
     {
         // Exit if we are editing or entering digits
-        if (last == KEY_SHIFT || alpha || RT.editing())
+        if (last == KEY_SHIFT || alpha || RT.editing() ||
+            (shift && (key == KEY_ENTER || key == KEY_4)))
             return false;
 
-        // Check if we have a long press, if so load corresponding help
+            // Check if we have a long press, if so load corresponding help
         if (key)
         {
             record(help, "Looking for help topic for key %d, long=%d shift=%d\n",

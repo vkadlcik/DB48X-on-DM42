@@ -99,7 +99,7 @@ static void handle_key(int key)
 // ----------------------------------------------------------------------------
 {
     bool consumed = Input.key(key);
-    if (!consumed && key != 0)
+    if (!consumed)
         beep(1835, 125);
 }
 

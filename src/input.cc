@@ -185,6 +185,24 @@ bool input::key(int key)
         return true;
     }
 
+    // Hard-code OFF
+    if (shift && key == KEY_EXIT)
+    {
+        // Power off
+        SET_ST(STAT_PGM_END);
+        return true;
+    }
+
+    // Hard-code system menu
+    if (!alpha && shift && key == KEY_0)
+    {
+        SET_ST(STAT_MENU);
+        handle_menu(&application_menu, MENU_RESET, 0);
+        CLR_ST(STAT_MENU);
+        wait_for_key_release(-1);
+        return true;
+    }
+
     bool result =
         handle_shifts(key)    ||
         handle_help(key)      ||
@@ -192,7 +210,7 @@ bool input::key(int key)
         handle_alpha(key)     ||
         handle_digits(key)    ||
         handle_functions(key) ||
-        false;
+        key == 0;
 
 
     if (!key && last != KEY_SHIFT)
@@ -865,7 +883,7 @@ void input::load_help(utf8 topic)
         {
             // Overflow, keep the last topics
             for (uint i = 1; i < NUM_TOPICS; i++)
-                topics[i-1] = topics[i];
+                topics[i - 1] = topics[i];
             topics[history - 1] = help;
         }
         else
@@ -1278,6 +1296,7 @@ bool input::draw_help()
         topic = lastTopic;
 
     Screen.clip(clip);
+    follow = false;
     return true;
 }
 
@@ -1508,10 +1527,7 @@ bool input::handle_editing(int key)
             return true;
         }
         case KEY_EXIT:
-            if (shift)
-                // Power off
-                SET_ST(STAT_PGM_END);
-            else if (RT.error())
+            if (RT.error())
                 // Clear error
                 RT.error(nullptr);
             else
@@ -1731,16 +1747,6 @@ bool input::handle_digits(int key)
         "_123_"
         "_0.__"
         "_____";
-
-    // Hard-code system menu
-    if (!alpha && shift && key == KEY_0)
-    {
-        SET_ST(STAT_MENU);
-        handle_menu(&application_menu, MENU_RESET, 0);
-        CLR_ST(STAT_MENU);
-        wait_for_key_release(-1);
-        return true;
-    }
 
     if (RT.editing())
     {

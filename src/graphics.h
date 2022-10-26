@@ -974,20 +974,26 @@ void graphics::blit(Dst           &dst,
     if (clip_dst)
     {
         // Clipping based on target
-        if (x1 < dst.drawable.x1)
+        coord dx1 = dst.drawable.x1;
+        coord dx2 = dst.drawable.x2;
+        coord dy1 = dst.drawable.y1;
+        coord dy2 = dst.drawable.y2;
+        dst.horizontal_adjust(dx1, dx2);
+        dst.vertical_adjust(dy1, dy2);
+        if (x1 < dx1)
         {
-            x += dst.drawable.x1 - x1;
-            x1 = dst.drawable.x1;
+            x += dx1 - x1;
+            x1 = dx1;
         }
-        if (x2 > dst.drawable.x2)
-            x2 = dst.drawable.x2;
-        if (y1 < dst.drawable.y1)
+        if (x2 > dx2)
+            x2 = dx2;
+        if (y1 < dy1)
         {
-            y += dst.drawable.y1 - y1;
-            y1 = dst.drawable.y1;
+            y += dy1 - y1;
+            y1 = dy1;
         }
-        if (y2 > dst.drawable.y2)
-            y2 = dst.drawable.y2;
+        if (y2 > dy2)
+            y2 = dy2;
     }
 
     // Bail out if there is no effect

@@ -1,5 +1,9 @@
 # Negate
 
+This is a proxy for the `NEG` function. We are simply testing that we can
+display help correctly. This is _italics_. This is *italics too*. This is
+**bold**. This is __bold too__. Here is a backtick: ``. Does that work?
+
 ## Main menus in DB48X
 
 Here are the main menus in DB48X, in alphabetical order.
@@ -11,7 +15,7 @@ The *Main menu* gives access to _all_ the functions in your calculator, sorted
 by cathegory. It includes the following submenus:
 
 * Math: Mathematical operations
-* Symb: Symbolc operations
+* Symb: Symbolic operations
 * Units: Unit conversions
 * System: System configuration
 * Prog: Programming
@@ -20,7 +24,7 @@ by cathegory. It includes the following submenus:
 The [Math menu](#math-menu) is the most useful one.
 Another [good menu](#arithmetic-menu).
 
-If you are looking for [Swap](#swap), click [Here](#stkdrop)
+If you are looking for [Swap](#swap), click [Here for STKDROP](#stkdrop)
 
 
 ## Math menu

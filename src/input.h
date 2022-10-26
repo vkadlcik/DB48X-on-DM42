@@ -72,19 +72,23 @@ struct input
     };
 
 
-    bool        key(int key);
+    bool        key(int key, bool repeating);
     bool        repeating()     { return repeat; }
     void        assign(int key, uint plane, object_p code);
     object_p    assigned(int key, uint plane);
-    void        menus(cstring labels[NUM_MENUS], object_p function[NUM_MENUS]);
+    void        menus(uint count, cstring labels[], object_p function[]);
     void        menu(uint index, cstring labels, object_p function);
-    void        draw_menus();
+
     void        draw_annunciators();
     void        draw_editor();
-    int         draw_cursor();
     void        draw_error();
     bool        draw_help();
     void        draw_command();
+
+    int         draw_menus(uint time, uint &period);
+    int         draw_battery(uint time, uint &period);
+    int         draw_cursor(uint time, uint &period);
+
     int         stack_screen_bottom()   { return stack; }
     bool        showingHelp()           { return help + 1 != 0; }
 
@@ -136,11 +140,12 @@ protected:
     bool     longpress : 1; // We had a long press of the key
     bool     blink     : 1; // Cursor blink indicator
     bool     follow    : 1; // Follow a help topic
+    bool     dirtyMenu : 1; // Menu label needs redraw
 
 protected:
     // Key mappings
     object_p function[NUM_PLANES][NUM_KEYS];
-    char     menu_label[NUM_PLANES][NUM_SOFTKEYS][NUM_LABEL_CHARS];
+    cstring  menu_label[NUM_PLANES][NUM_SOFTKEYS];
     static runtime &RT;
     friend struct tests;
     friend struct runtime;

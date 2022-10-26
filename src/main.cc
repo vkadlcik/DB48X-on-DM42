@@ -61,17 +61,21 @@ static void redraw_lcd()
 //   Redraw the whole LCD
 // ----------------------------------------------------------------------------
 {
+    uint period = 60000;
+    uint now = sys_current_ms();
+
     // Draw the header
     Screen.fill(0, 0, LCD_W, HeaderFont->height() + 1, pattern::black);
     Screen.text(4, 0, utf8(PROGRAM_NAME), HeaderFont, pattern::white);
 
     // Draw the various components handled by input
     Input.draw_annunciators();
-    Input.draw_menus();
+    Input.draw_battery(now - period, period);
+    Input.draw_menus(now - period, period);
     if (!Input.draw_help())
     {
         Input.draw_editor();
-        Input.draw_cursor();
+        Input.draw_cursor(now - period, period);
         Stack.draw_stack();
         Input.draw_command();
         Input.draw_error();
@@ -79,28 +83,54 @@ static void redraw_lcd()
 
     // Refres the screen
     lcd_refresh_lines(0, LCD_H);
+
+    // Refresh screen moving elements after 0.1s
+    sys_timer_disable(TIMER1);
+    sys_timer_start(TIMER1, period);
 }
 
 
-static void redraw_cursor()
+static void redraw_periodics()
 // ----------------------------------------------------------------------------
-//   Redraw only the cursor line
+//   Redraw the elements that move
 // ----------------------------------------------------------------------------
 {
-    int cy = Input.draw_cursor();
+    uint period = 60000;         // Default refresh is one minute
+    uint now = sys_current_ms();
+
+    int cy = Input.draw_cursor(now, period);
     if (cy >= 0)
         lcd_refresh_lines(cy, EditorFont->height());
+    cy = Input.draw_battery(now, period);
+    if (cy >= 0)
+        lcd_refresh_lines(cy, HeaderFont->height());
+    cy = Input.draw_menus(now, period);
+    if (cy >= 0)
+        lcd_refresh_lines(cy, LCD_H - cy);
+
+    // Refresh screen moving elements after 0.1s
+    sys_timer_disable(TIMER1);
+    sys_timer_start(TIMER1, period);
 }
 
 
-static void handle_key(int key)
+static void handle_key(int key, bool repeating)
 // ----------------------------------------------------------------------------
 //   Handle all input keys
 // ----------------------------------------------------------------------------
 {
-    bool consumed = Input.key(key);
+    sys_timer_disable(TIMER0);
+    bool consumed = Input.key(key, repeating);
     if (!consumed)
         beep(1835, 125);
+
+    // Key repeat timer
+    if (Input.repeating())
+        sys_timer_start(TIMER0, repeating ? 80 : 500);
+
+    // Refresh screen moving elements after 0.1s
+    sys_timer_disable(TIMER1);
+    sys_timer_start(TIMER1, 100);
 }
 
 
@@ -132,7 +162,7 @@ void program_init()
         "Previous Font",     "Next Font",
     };
     object_p functions[input::NUM_MENUS] = { MenuFont };
-    Input.menus(labels, functions);
+    Input.menus(input::NUM_MENUS, labels, functions);
 
     // The following is just to link the same set of functions as DM42
     if (memory == (byte *) program_init)
@@ -238,7 +268,8 @@ extern "C" void program_main()
             key    = key_pop();
             hadKey = true;
         }
-        if (sys_timer_timeout(TIMER0))
+        bool repeating = sys_timer_timeout(TIMER0);
+        if (repeating)
             hadKey = true;
 
         // Fetch the key (<0: no key event, >0: key pressed, 0: key released)
@@ -301,7 +332,7 @@ extern "C" void program_main()
                 }
             }
 
-            handle_key(key);
+            handle_key(key, repeating);
 
             // Redraw the LCD
             redraw_lcd();
@@ -309,7 +340,8 @@ extern "C" void program_main()
         else
         {
             // Blink the cursor
-            redraw_cursor();
+            if (sys_timer_timeout(TIMER1))
+                redraw_periodics();
         }
     }
 }

@@ -87,6 +87,7 @@ input::input()
       longpress(false),
       blink(false),
       follow(false),
+      dirtyMenu(false),
       helpfile()
 {}
 
@@ -167,14 +168,13 @@ void input::clear_help()
 }
 
 
-bool input::key(int key)
+bool input::key(int key, bool repeating)
 // ----------------------------------------------------------------------------
 //   Process an input key
 // ----------------------------------------------------------------------------
 {
-    longpress = key && sys_timer_timeout(TIMER0);
+    longpress = key && repeating;
     record(input, "Key %d shifts %d longpress", key, shift_plane(), longpress);
-    sys_timer_disable(TIMER0);
     repeat = false;
 
     if (RT.error())
@@ -224,14 +224,7 @@ bool input::key(int key)
     }
 
     if (key && result)
-    {
-        // Initiate key repeat
-        if (repeat)
-            sys_timer_start(TIMER0, longpress ? 80 : 500);
         blink = true; // Show cursor if things changed
-        sys_timer_disable(TIMER1);
-        sys_timer_start(TIMER1, 300);
-    }
 
     return result;
 }
@@ -258,14 +251,18 @@ object_p input::assigned(int key, uint plane)
 }
 
 
-void input::menus(cstring labels[input::NUM_MENUS],
-                  object_p function[input::NUM_MENUS])
+void input::menus(uint count, cstring labels[], object_p function[])
 // ----------------------------------------------------------------------------
 //   Assign all menus at once
 // ----------------------------------------------------------------------------
 {
-    for (int m = 0; m < NUM_MENUS; m++)
-        menu(m, labels[m], function[m]);
+    for (uint m = 0; m < NUM_MENUS; m++)
+    {
+        if (m < count)
+            menu(m, labels[m], function[m]);
+        else
+            menu(m, nullptr, nullptr);
+    }
 }
 
 
@@ -280,25 +277,41 @@ void input::menu(uint menu_id, cstring label, object_p fn)
         int key              = KEY_F1 + softkey_id;
         int plane            = menu_id / NUM_SOFTKEYS;
         function[plane][key] = fn;
-        strncpy(menu_label[plane][softkey_id], label, NUM_LABEL_CHARS);
-        menu_label[plane][softkey_id][NUM_LABEL_CHARS-1] = 0;
+        menu_label[plane][softkey_id] = label;
+        dirtyMenu = true;       // Redraw menu
     }
 }
 
 
-void input::draw_menus()
+int input::draw_menus(uint time, uint &period)
 // ----------------------------------------------------------------------------
 //   Draw the softkey menus
 // ----------------------------------------------------------------------------
 {
+    static int  lastp   = 0;
+    static uint lastt   = 0;
+    int         plane   = shift_plane();
+    const uint  refresh = 200;
+
+    bool redraw = dirtyMenu || plane != lastp || time - lastt > refresh;
+    if (!redraw)
+        return -1;
+
+    lastt = time;
+    lastp = plane;
+    dirtyMenu = false;
+
+
     font_p font  = MenuFont;
-    int    plane = shift_plane();
     int    fh    = font->height();
     int    mh    = fh + 4;
     int    my    = LCD_H - mh;
     int    mw    = (LCD_W - 10) / 6;
     int    sp    = (LCD_W - 5) - 6 * mw;
     rect   clip  = Screen.clip();
+
+    static unsigned menuShift = 0;
+    menuShift++;
 
     for (int m = 0; m < NUM_SOFTKEYS; m++)
     {
@@ -314,15 +327,29 @@ void input::draw_menus()
         Screen.fill(mrect, pattern::black);
 
         mrect.inset(2, 0);
-        // Screen.clip(mrect);
-
         utf8 label = utf8(menu_label[plane][m]);
-        size tw = font->width(label);
-        x = (tw > mw) ? x - mw/2 : x - tw/2;
-        Screen.text(x, mrect.y1, label, font, pattern::white);
+        if (label)
+        {
+            Screen.clip(mrect);
+            size tw = font->width(label);
+            if (tw > mw)
+            {
+                dirtyMenu = true;
+                x -= mw/2 - 5 + menuShift % (tw - mw + 10);
+            }
+            else
+            {
+                x = x - tw / 2;
+            }
+            Screen.text(x, mrect.y1, label, font, pattern::white);
+            Screen.clip(clip);
+        }
     }
 
-    Screen.clip(clip);
+    if (dirtyMenu && period > refresh)
+        period = refresh;
+
+    return my;
 }
 
 
@@ -370,15 +397,38 @@ void input::draw_annunciators()
         surface s(sw, ann_width, ann_height, 16);
         Screen.copy(s, 260, ann_y);
     }
+}
+
+
+int input::draw_battery(uint time, uint &period)
+// ----------------------------------------------------------------------------
+//    Draw the battery information
+// ----------------------------------------------------------------------------
+{
+    static uint last = 0;
+    if (period > 2000)
+        period = 2000;
+
+    const uint  ann_height = 12;
+    coord       ann_y      = (HeaderFont->height() - ann_height) / 2;
 
     // Print battery voltage
-    char buffer[64];
-    int  vdd = (int) read_power_voltage();
-    bool low = get_lowbat_state();
-    bool usb = usb_powered();
+    static int vdd = 3000;
+    static bool low = false;
+    static bool usb = false;
 
+    if (time - last > 2000)
+    {
+        vdd = (int) read_power_voltage();
+        low = get_lowbat_state();
+        usb = usb_powered();
+        last = time;
+    }
+
+    char buffer[64];
     snprintf(buffer, sizeof(buffer), "%d.%03dV", vdd / 1000, vdd % 1000);
 
+    Screen.fill(310, 0, LCD_W, HeaderFont->height() + 1, pattern::black);
     Screen.text(340, 1, utf8(buffer), HeaderFont,
                 low ? pattern::gray50 : pattern::white);
     Screen.fill(314, ann_y + 1, 336, ann_y + ann_height - 0, pattern::white);
@@ -393,11 +443,16 @@ void input::draw_annunciators()
     Screen.fill(334 - w, ann_y + 2, 334, ann_y + ann_height - 1,
                 usb ? pattern::gray50 : pattern::black);
 
+#if 1
     // Temporary - Display some internal information
     static unsigned counter = 0;
     snprintf(buffer, sizeof(buffer), "%c %u", longpress ? 'L' : ' ',
              counter++);
+    Screen.fill(120, 0, 200, HeaderFont->height() + 1, pattern::black);
     Screen.text(120, 1, utf8(buffer), HeaderFont, pattern::white);
+#endif
+
+    return ann_y;
 }
 
 
@@ -585,7 +640,7 @@ void input::draw_editor()
 }
 
 
-int input::draw_cursor()
+int input::draw_cursor(uint time, uint &period)
 // ----------------------------------------------------------------------------
 //   Draw the cursor at the location
 // ----------------------------------------------------------------------------
@@ -593,11 +648,14 @@ int input::draw_cursor()
 {
     // Do not draw if not editing or if help is being displayed
     if (!RT.editing() || showingHelp())
-    {
-        sys_timer_disable(TIMER1);
         return -1;
-    }
 
+    static uint last = 0;
+    if (period > 500)
+        period = 500;
+    if (time - last < 500)
+        return -1;
+    last = time;
 
     size ch = EditorFont->height();
     size cw = EditorFont->width(cchar);
@@ -623,14 +681,7 @@ int input::draw_cursor()
         Screen.glyph(csrx, csry, cursorChar, CursorFont, pattern::white);
     }
 
-    if (sys_timer_timeout(TIMER1) || !sys_timer_active(TIMER1))
-    {
-        // Refresh the cursor after 500ms
-        sys_timer_disable(TIMER1);
-        sys_timer_start(TIMER1, 500);
-        blink = !blink;
-    }
-
+    blink = !blink;
     return cy;
 }
 

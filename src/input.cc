@@ -313,6 +313,16 @@ int input::draw_menus(uint time, uint &period)
     static unsigned menuShift = 0;
     menuShift++;
 
+    cstring *labels = menu_label[plane];
+    if (showingHelp())
+    {
+        static cstring helpMenu[] =
+        {
+            "Home", "Page▲", "Page▼", "Link▲", "Link▼", "← Menu"
+        };
+        labels = helpMenu;
+    }
+
     for (int m = 0; m < NUM_SOFTKEYS; m++)
     {
         int x = (2 * m + 1) * mw / 2 + (m * sp) / 5 + 2;
@@ -327,7 +337,7 @@ int input::draw_menus(uint time, uint &period)
         Screen.fill(mrect, pattern::black);
 
         mrect.inset(2, 0);
-        utf8 label = utf8(menu_label[plane][m]);
+        utf8 label = utf8(labels[m]);
         if (label)
         {
             Screen.clip(mrect);
@@ -1447,6 +1457,12 @@ bool input::handle_help(int &key)
     uint     count = shift ? 8 : 1;
     switch (key)
     {
+    case KEY_F1:
+        load_help(utf8("Overview"));
+        break;
+    case KEY_F2:
+        count = 8;
+        // Fallthrough
     case KEY_UP:
     case KEY_8:
     case KEY_SUB:
@@ -1471,6 +1487,9 @@ bool input::handle_help(int &key)
         repeat = true;
         break;
 
+    case KEY_F3:
+        count = 8;
+        // Fall through
     case KEY_DOWN:
     case KEY_2:
     case KEY_ADD:
@@ -1478,6 +1497,7 @@ bool input::handle_help(int &key)
         repeat = true;
         break;
 
+    case KEY_F4:
     case KEY_9:
     case KEY_DIV:
         ++count;
@@ -1489,6 +1509,7 @@ bool input::handle_help(int &key)
         topic = helpfile.position();
         repeat = true;
         break;
+    case KEY_F5:
     case KEY_3:
     case KEY_MUL:
         helpfile.seek(topic);
@@ -1502,6 +1523,7 @@ bool input::handle_help(int &key)
         follow = true;
         break;
 
+    case KEY_F6:
     case KEY_BSP:
         if (history)
         {

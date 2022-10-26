@@ -84,6 +84,20 @@ void LCD_power_on()
     record(dmcp, "LCD_power_on");
 }
 
+uint32_t read_power_voltage()
+{
+    return 2000 + sys_current_ms() % 1500;
+}
+
+int get_lowbat_state()
+{
+    return read_power_voltage() < 2300;
+}
+
+int usb_powered()
+{
+    return sys_current_ms() / 1000 % 3;
+}
 
 int create_screenshot(int report_error)
 {

@@ -333,11 +333,12 @@ void input::draw_annunciators()
     if (alpha)
     {
         utf8 label = utf8(lowercase ? "abc" : "ABC");
-        Screen.text(360, 1, label, HeaderFont, pattern::white);
+        Screen.text(280, 1, label, HeaderFont, pattern::white);
     }
 
     const uint  ann_width  = 15;
     const uint  ann_height = 12;
+    coord       ann_y      = (HeaderFont->height() - ann_height) / 2;
     const byte *source     = nullptr;
     if (xshift)
     {
@@ -365,15 +366,36 @@ void input::draw_annunciators()
     {
         pixword *sw = (pixword *) source;
         surface s(sw, ann_width, ann_height, 16);
-        Screen.copy(s, 340, (HeaderFont->height() - ann_height) / 2);
+        Screen.copy(s, 260, ann_y);
     }
 
+    // Print battery voltage
+    char buffer[64];
+    int  vdd = (int) read_power_voltage();
+    bool low = get_lowbat_state();
+    bool usb = usb_powered();
+
+    snprintf(buffer, sizeof(buffer), "%d.%03dV", vdd / 1000, vdd % 1000);
+
+    Screen.text(340, 1, utf8(buffer), HeaderFont,
+                low ? pattern::gray50 : pattern::white);
+    Screen.fill(314, ann_y + 1, 336, ann_y + ann_height - 0, pattern::white);
+    Screen.fill(310, ann_y + 3, 336, ann_y + ann_height - 3, pattern::white);
+
+    const int batw = 334 - 315;
+    int w = (vdd - 2000) * batw / (3090 - 2000);
+    if (w > batw)
+        w = 334 - 315;
+    else if (w < 1)
+        w = 1;
+    Screen.fill(334 - w, ann_y + 2, 334, ann_y + ann_height - 1,
+                usb ? pattern::gray50 : pattern::black);
+
     // Temporary - Display some internal information
-    char            buffer[64];
     static unsigned counter = 0;
     snprintf(buffer, sizeof(buffer), "%c %u", longpress ? 'L' : ' ',
              counter++);
-    Screen.text(120, 0, utf8(buffer), HeaderFont, pattern::white);
+    Screen.text(120, 1, utf8(buffer), HeaderFont, pattern::white);
 }
 
 

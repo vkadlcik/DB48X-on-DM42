@@ -53,8 +53,8 @@
 using std::max;
 using std::min;
 
-static int  fontnr = 0;
 
+uint last_keystroke_time = 0;
 
 static void redraw_lcd()
 // ----------------------------------------------------------------------------
@@ -107,6 +107,14 @@ static void redraw_periodics()
     cy = Input.draw_menus(now, period);
     if (cy >= 0)
         lcd_refresh_lines(cy, LCD_H - cy);
+
+    uint dawdle_time = sys_current_ms() - last_keystroke_time;
+    if (dawdle_time > 180000)           // If inactive for 3 minutes
+        period = 60000;                 // Only upate screen every minute
+    else if (dawdle_time > 60000)       // If inactive for 1 minute
+        period = 10000;                 // Onlyi update screen every 10s
+    if (dawdle_time > 10000)            // If inactive for 10 seconds
+        period = 3000;                  // Only upate screen every 3 second
 
     // Refresh screen moving elements after 0.1s
     sys_timer_disable(TIMER1);
@@ -209,6 +217,7 @@ extern "C" void program_main()
     // Initialization
     program_init();
     redraw_lcd();
+    last_keystroke_time = sys_current_ms();
 
     // Main loop
     while (true)
@@ -275,67 +284,13 @@ extern "C" void program_main()
         // Fetch the key (<0: no key event, >0: key pressed, 0: key released)
         if (key >= 0 && hadKey)
         {
-            // Hack: Show the fonts
-            if (Input.shift_plane() == 2)
-            {
-                if (key == KEY_F6)
-                    fontnr = lcd_nextFontNr(fontnr);
-                if (key == KEY_F5)
-                    fontnr = lcd_prevFontNr(fontnr);
-                if (key == KEY_F4)
-                    fontnr = lcd_toggleFontT(fontnr);
-                if (key >= KEY_F4 && key <= KEY_F6)
-                {
-                    runtime &rt = runtime::RT;
-                    lcd_switchFont(fReg, fontnr);
-                    rt.push(integer::make(fontnr));
-                    rt.push(rt.make<string>(object::ID_string,
-                                            utf8(fReg->f->name),
-                                            strlen(fReg->f->name)));
-                    key = 0;
-                }
-                if (key == KEY_F3)
-                {
-                    byte       fnr = fontnr < 0 ? byte(10 - fontnr) : byte(fontnr);
-                    byte       fontRPL[] = { object::ID_dmcp_font, fnr };
-                    dmcp_font *font      = (dmcp_font *) fontRPL;
-
-                    uint32_t   start     = sys_current_ms();
-                    for (uint i = 0; i < 100; i++)
-                        Screen.text(30 + i % 20,
-                                    50 + i % 23,
-                                    utf8("Hello World"),
-                                    font);
-                    uint32_t end = sys_current_ms();
-                    runtime &rt  = runtime::RT;
-                    rt.push(integer::make(end - start));
-                    lcd_refresh_lines(50, 100);
-                    continue;
-                }
-                if (key == KEY_F2)
-                {
-                    uint32_t start = sys_current_ms();
-                    lcd_switchFont(fReg, fontnr);
-                    fReg->bgfill = 0;
-                    fReg->lnfill = 0;
-                    for (uint i = 0; i < 100; i++)
-                    {
-                        fReg->x = 30 + i % 20;
-                        fReg->y = 50 + i % 23;
-                        lcd_writeText(fReg, "Hello World");
-                    }
-                    uint32_t end = sys_current_ms();
-                    runtime &rt  = runtime::RT;
-                    rt.push(integer::make(end - start));
-                    lcd_refresh();
-                    continue;
-                }
-            }
-
             handle_key(key, repeating);
 
             // Redraw the LCD
             redraw_lcd();
+
+            // Record the last keystroke
+            last_keystroke_time = sys_current_ms();
         }
         else
         {

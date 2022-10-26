@@ -33,10 +33,10 @@
 #include "graphics.h"
 #include "input.h"
 #include "integer.h"
-#include "rplstring.h"
 #include "menu.h"
 #include "num.h"
 #include "rpl.h"
+#include "rplstring.h"
 #include "settings.h"
 #include "stack.h"
 #include "target.h"
@@ -50,10 +50,10 @@
 #include <cstring>
 #include <dmcp.h>
 
-using std::min;
 using std::max;
+using std::min;
 
-static int fontnr = 0;
+static int  fontnr = 0;
 
 
 static void redraw_lcd()
@@ -68,10 +68,14 @@ static void redraw_lcd()
     // Draw the various components handled by input
     Input.draw_annunciators();
     Input.draw_menus();
-    Input.draw_editor();
-    Input.draw_cursor();
-    Stack.draw_stack();
-    Input.draw_error();
+    if (!Input.draw_help())
+    {
+        Input.draw_editor();
+        Input.draw_cursor();
+        Stack.draw_stack();
+        Input.draw_command();
+        Input.draw_error();
+    }
 
     // Refres the screen
     lcd_refresh_lines(0, LCD_H);
@@ -119,11 +123,22 @@ void program_init()
     byte *memory = (byte *) malloc(size);
     runtime::RT.memory(memory, size);
 
+    // Fake test menu
+    cstring labels[input::NUM_MENUS] = {
+        "Short", "A bit long", "Very long", "Super Duper long",
+        "X1",    "X2",         "A",         "B",
+        "C",     "D",          "E",         "F",
+        "X",     "Y",          "Z",         "T",
+        "U",     "V",
+    };
+    object_p functions[input::NUM_MENUS] = { MenuFont };
+    Input.menus(labels, functions);
+
     // The following is just to link the same set of functions as DM42
     if (memory == (byte *) program_init)
     {
-        double     d = *memory;
-        BID_UINT64 a;
+        double      d = *memory;
+        BID_UINT64  a;
         BID_UINT128 res;
         binary64_to_bid64(&a, &d);
         bid64_to_bid128(&res, &a);
@@ -166,7 +181,7 @@ extern "C" void program_main()
     redraw_lcd();
 
     // Main loop
-    while(true)
+    while (true)
     {
         // Already in off mode and suspended
         if ((ST(STAT_PGM_END) && ST(STAT_SUSPENDED)) ||
@@ -220,7 +235,7 @@ extern "C" void program_main()
         if (!key_empty())
         {
             reset_auto_off();
-            key = key_pop();
+            key    = key_pop();
             hadKey = true;
         }
         if (sys_timer_timeout(TIMER0))
@@ -242,20 +257,24 @@ extern "C" void program_main()
                 lcd_switchFont(fReg, fontnr);
                 rt.push(integer::make(fontnr));
                 rt.push(rt.make<string>(object::ID_string,
-                                        utf8(fReg->f->name), strlen(fReg->f->name)));
+                                        utf8(fReg->f->name),
+                                        strlen(fReg->f->name)));
                 key = 0;
             }
             if (key == KEY_F3)
             {
-                byte fnr = fontnr < 0 ? byte(10 - fontnr) : byte(fontnr);
-                byte fontRPL[] = { object::ID_dmcp_font, fnr };
-                dmcp_font *font = (dmcp_font *) fontRPL;
+                byte       fnr = fontnr < 0 ? byte(10 - fontnr) : byte(fontnr);
+                byte       fontRPL[] = { object::ID_dmcp_font, fnr };
+                dmcp_font *font      = (dmcp_font *) fontRPL;
 
-                uint32_t start = sys_current_ms();
+                uint32_t   start     = sys_current_ms();
                 for (uint i = 0; i < 100; i++)
-                    Screen.text(30 + i % 20, 50 + i % 23, utf8("Hello World"), font);
+                    Screen.text(30 + i % 20,
+                                50 + i % 23,
+                                utf8("Hello World"),
+                                font);
                 uint32_t end = sys_current_ms();
-                runtime &rt = runtime::RT;
+                runtime &rt  = runtime::RT;
                 rt.push(integer::make(end - start));
                 lcd_refresh_lines(50, 100);
                 continue;
@@ -273,7 +292,7 @@ extern "C" void program_main()
                     lcd_writeText(fReg, "Hello World");
                 }
                 uint32_t end = sys_current_ms();
-                runtime &rt = runtime::RT;
+                runtime &rt  = runtime::RT;
                 rt.push(integer::make(end - start));
                 lcd_refresh();
                 continue;

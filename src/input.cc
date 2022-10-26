@@ -39,11 +39,22 @@
 
 #include <dmcp.h>
 #include <stdio.h>
+#include <ctype.h>
+#include <unistd.h>
 
 // The primary input of the calculator
 input    Input;
 
 RECORDER(input, 16, "Input processing");
+RECORDER(help,  16, "On-line help");
+
+#if SIMULATOR
+#define HELPFILE_NAME   "help/db48x.md"
+#else
+#define HELPFILE_NAME   "/HELP/DB48X.md"
+#endif // SIMULATOR
+
+#define NUM_TOPICS      (sizeof(topics) / sizeof(topics[0]))
 
 runtime &input::RT = runtime::RT;
 
@@ -51,7 +62,13 @@ input::input()
 // ----------------------------------------------------------------------------
 //   Initialize the input
 // ----------------------------------------------------------------------------
-    : cursor(0),
+    : command(),
+      help(-1u),
+      line(0),
+      topic(0),
+      history(0),
+      topics(),
+      cursor(0),
       xoffset(0),
       mode(STACK),
       last(0),
@@ -68,9 +85,10 @@ input::input()
       up(false),
       repeat(false),
       longpress(false),
-      blink(false)
-{
-}
+      blink(false),
+      follow(false),
+      helpfile(HELPFILE_NAME)
+{}
 
 
 bool input::end_edit()
@@ -105,7 +123,11 @@ bool input::end_edit()
             }
         }
     }
-    alpha = shift = xshift = false;
+    alpha   = false;
+    shift   = false;
+    xshift  = false;
+    clear_help();
+
     return true;
 }
 
@@ -122,6 +144,23 @@ void input::clear_editor()
     shift     = false;
     xshift    = false;
     lowercase = false;
+    longpress = false;
+    repeat    = false;
+    clear_help();
+}
+
+
+void input::clear_help()
+// ----------------------------------------------------------------------------
+//   Clear help data
+// ----------------------------------------------------------------------------
+{
+    command   = nullptr;
+    help      = -1u;
+    line      = 0;
+    topic     = 0;
+    follow    = false;
+    last      = 0;
     longpress = false;
     repeat    = false;
 }
@@ -148,6 +187,7 @@ bool input::key(int key)
 
     bool result =
         handle_shifts(key)    ||
+        handle_help(key)      ||
         handle_editing(key)   ||
         handle_alpha(key)     ||
         handle_digits(key)    ||
@@ -507,12 +547,13 @@ int input::draw_cursor()
 // ----------------------------------------------------------------------------
 //   This function returns the cursor vertical position for screen refresh
 {
-    // Do not draw
-    if (!RT.editing())
+    // Do not draw if not editing or if help is being displayed
+    if (!RT.editing() || showingHelp())
     {
         sys_timer_disable(TIMER1);
         return -1;
     }
+
 
     size ch = EditorFont->height();
     size cw = EditorFont->width(cchar);
@@ -547,6 +588,23 @@ int input::draw_cursor()
     }
 
     return cy;
+}
+
+
+void input::draw_command()
+// ----------------------------------------------------------------------------
+//   Draw the current command
+// ----------------------------------------------------------------------------
+{
+    if (command && !RT.error())
+    {
+        size  w = HelpFont->width(command);
+        size  h = HelpFont->height();
+        coord x = LCD_W - w - 10;
+        coord y = HeaderFont->height() + 6;
+        Screen.fill(x-2, y, x + w + 1, y + h, pattern::black);
+        Screen.text(x, y, command, HelpFont, pattern::white);
+    }
 }
 
 
@@ -585,6 +643,764 @@ void input::draw_error()
         Screen.text(rect.x1, rect.y1, err, ErrorFont);
         Screen.clip(clip);
     }
+}
+
+
+input::file::file(cstring path)
+// ----------------------------------------------------------------------------
+//   Construct a file object
+// ----------------------------------------------------------------------------
+{
+#if SIMULATOR
+    data = fopen(path, "r");
+    if (!data)
+    {
+        record(help, "Error %s opening %s", strerror(errno), path);
+        return;
+    }
+#else
+    FRESULT ok = f_open(&data, path, FA_READ);
+    if (ok != FR_OK)
+    {
+        data.obj.objsize = 0;
+        return;
+    }
+#define ftell(f)        f_tell(&f)
+#define fseek(f,o,w)    f_lseek(&f,o)
+#define fclose(f)       f_close(&f)
+#endif // SIMULATOR
+}
+
+
+input::file::~file()
+// ----------------------------------------------------------------------------
+//   Close the help file
+// ----------------------------------------------------------------------------
+{
+    fclose(data);
+}
+
+
+inline bool input::file::valid()
+// ----------------------------------------------------------------------------
+//    Return true if the input file is OK
+// ----------------------------------------------------------------------------
+{
+#if SIMULATOR
+    return data != 0;
+#else
+    return f_size(&data) != 0;
+#endif
+}
+
+
+#ifndef SIMULATOR
+static inline int fgetc(FIL &f)
+// ----------------------------------------------------------------------------
+//   Read one character from a file - Wrapper for DMCP filesystem
+// ----------------------------------------------------------------------------
+{
+    UINT br = 0;
+    char c = 0;
+    if (f_read(&f, &c, 1, &br) != FR_OK || br != 1)
+        return EOF;
+    return c;
+}
+#endif // SIMULATOR
+
+
+utf8code input::file::get()
+// ----------------------------------------------------------------------------
+//   Read UTF8 code at offset
+// ----------------------------------------------------------------------------
+{
+    utf8code code = valid() ? fgetc(data) : utf8code(EOF);
+    if (code == utf8code(EOF))
+        return 0;
+
+    if (code & 0x80)
+    {
+        // Reference: Wikipedia UTF-8 description
+        if ((code & 0xE0) == 0xC0)
+            code = ((code & 0x1F)        <<  6)
+                |  (fgetc(data) & 0x3F);
+        else if ((code & 0xF0) == 0xE0)
+            code = ((code & 0xF)         << 12)
+                |  ((fgetc(data) & 0x3F) <<  6)
+                |   (fgetc(data) & 0x3F);
+        else if ((code & 0xF8) == 0xF0)
+            code = ((code & 0xF)         << 18)
+                |  ((fgetc(data) & 0x3F) << 12)
+                |  ((fgetc(data) & 0x3F) << 6)
+                |   (fgetc(data) & 0x3F);
+    }
+    return code;
+}
+
+
+inline void input::file::seek(uint off)
+// ----------------------------------------------------------------------------
+//    Move the read position in the data file
+// ----------------------------------------------------------------------------
+{
+    fseek(data, off, SEEK_SET);
+}
+
+
+inline utf8code input::file::peek()
+// ----------------------------------------------------------------------------
+//    Look at what is as current position without moving it
+// ----------------------------------------------------------------------------
+{
+    uint off = ftell(data);
+    utf8code result = get();
+    seek(off);
+    return result;
+}
+
+
+inline utf8code input::file::get(uint off)
+// ----------------------------------------------------------------------------
+//    Get code point at given offset
+// ----------------------------------------------------------------------------
+{
+    seek(off);
+    return get();
+}
+
+
+inline uint input::file::position()
+// ----------------------------------------------------------------------------
+//   Return current position in help file
+// ----------------------------------------------------------------------------
+{
+    return ftell(data);
+}
+
+
+inline uint input::file::find(utf8code cp)
+// ----------------------------------------------------------------------------
+//    Find a given code point in file looking forward
+// ----------------------------------------------------------------------------
+//    Return position right before code point, position file right after it
+{
+    utf8code c;
+    uint off;
+    do
+    {
+        off = ftell(data);
+        c = get();
+    } while (c && c != cp);
+    return off;
+}
+
+
+inline uint input::file::rfind(utf8code cp)
+// ----------------------------------------------------------------------------
+//    Find a given code point in file looking backward
+// ----------------------------------------------------------------------------
+//    Return position right before code point, position file right after it
+{
+    uint     off = ftell(data);
+    utf8code c;
+    do
+    {
+        if (off == 0)
+            break;
+        fseek(data, --off, SEEK_SET);
+        c = get();
+    }
+    while (c != cp);
+    return off;
+}
+
+
+void input::load_help(utf8 topic)
+// ----------------------------------------------------------------------------
+//   Find the help message associated with the topic
+// ----------------------------------------------------------------------------
+{
+    record(help, "Loading help topic %s", topic);
+
+    size_t len    = strlen(cstring(topic));
+    help          = -1u;
+    command       = nullptr;
+    follow        = false;
+    line          = 0;
+
+    // Look for the topic in the file
+    uint matching = 0;
+    uint level    = 0;
+    bool hadcr    = true;
+    helpfile.seek(0);
+    for (utf8code c = helpfile.get(); c; c = helpfile.get())
+    {
+        if (((hadcr || matching) && c == '#') || (c == ' ' && matching == 1))
+        {
+            level += c == '#';
+            matching = 1;
+        }
+        else if (matching)
+        {
+            // Matching is case-independent, and matches markdown hyperlinks
+            if (tolower(c) == tolower(topic[matching-1]) ||
+                (c == ' ' && topic[matching-1] == '-'))
+                matching++;
+            else
+                matching = level = 0;
+            if (matching == len)
+                break;
+        }
+        hadcr = c == '\n';
+    }
+
+    // Check if we found the topic
+    if (matching == len)
+    {
+        help = helpfile.position() - len - level;
+        record(help, "Found topic %s at position %u level %u",
+               topic, helpfile.position(), level);
+
+        if (history >= NUM_TOPICS)
+        {
+            // Overflow, keep the last topics
+            for (uint i = 1; i < NUM_TOPICS; i++)
+                topics[i-1] = topics[i];
+            topics[history - 1] = help;
+        }
+        else
+        {
+            // New topic, store it
+            topics[history++] = help;
+        }
+    }
+    else
+    {
+        static char buffer[50];
+        snprintf(buffer, sizeof(buffer), "No help for %s", topic);
+        RT.error(buffer);
+    }
+}
+
+
+struct style_description
+// ----------------------------------------------------------------------------
+//   A small struct recording style
+// ----------------------------------------------------------------------------
+{
+    font_p  font;
+    pattern color;
+    pattern background;
+    bool    bold      : 1;
+    bool    italic    : 1;
+    bool    underline : 1;
+    bool    box       : 1;
+};
+
+
+enum style_name
+// ----------------------------------------------------------------------------
+//   Style index
+// ----------------------------------------------------------------------------
+{
+    TITLE,
+    SUBTITLE,
+    NORMAL,
+    BULLETS,
+    BOLD,
+    ITALIC,
+    CODE,
+    TOPIC,
+    HIGHLIGHTED_TOPIC,
+    NUM_STYLES
+};
+
+
+using p = pattern;
+static const style_description styles[NUM_STYLES] =
+// ----------------------------------------------------------------------------
+//  Table of styles
+// ----------------------------------------------------------------------------
+{
+    {  HelpTitleFont,     p::black,  p::white,  false, false, false, false },
+    {  HelpSubTitleFont,  p::black,  p::gray50, false, false, true,  false },
+    {  HelpFont,          p::black,  p::white,  false, false, false, false },
+    {  HelpBoldFont,      p::black,  p::white,  true,  true,  false, false },
+    {  HelpBoldFont,      p::black,  p::white,  true,  false, false, false },
+    {  HelpItalicFont,    p::black,  p::white,  false, true,  false, false },
+    {  HelpCodeFont,      p::black,  p::gray50, false, false, false, true  },
+    {  HelpFont,          p::black,  p::gray75, false, false, false, false },
+    {  HelpFont,          p::white,  p::black,  false, false, false, false },
+};
+
+
+static coord draw_word(coord    x,
+                       coord    y,
+                       size_t   sz,
+                       utf8code word[],
+                       font_p   font,
+                       pattern  color)
+// ----------------------------------------------------------------------------
+//   Helper to draw a particular glyph
+// ----------------------------------------------------------------------------
+{
+    for (uint g = 0; g < sz; g++)
+        x = Screen.glyph(x, y, word[g], font, color);
+    return x;
+}
+
+
+bool input::draw_help()
+// ----------------------------------------------------------------------------
+//    Draw the help content
+// ----------------------------------------------------------------------------
+{
+    if (!showingHelp())
+        return false;
+
+
+    // Compute the size for the help display
+    coord      ytop   = HeaderFont->height() + 2;
+    coord      ybot   = LCD_H - (MenuFont->height() + 4);
+    coord      xleft  = 0;
+    coord      xright = LCD_W;
+    style_name style  = NORMAL;
+
+
+    // Clear help area and add some decorative elements
+    rect clip = Screen.clip();
+    rect r(xleft, ytop, xright, ybot);
+    Screen.fill(r, pattern::gray25);
+    r.inset(2);
+    Screen.fill(r, pattern::black);
+    r.inset(2);
+    Screen.fill(r, pattern::white);
+
+    // Clip drawing area in case some text does not really fit
+    r.inset(1);
+    Screen.clip(r);
+
+    // Update drawing area
+    ytop = r.y1;
+    ybot = r.y2;
+    xleft = r.x1 + 2;
+    xright = r.x2;
+
+
+    // Select initial state
+    font_p   font      = styles[style].font;
+    coord    height    = font->height();
+    coord    x         = xleft;
+    coord    y         = ytop + 2 - line * height;
+    utf8code last      = '\n';
+    uint     lastTopic = 0;
+    uint     shown     = 0;
+
+    // Pun not intended
+    helpfile.seek(help);
+
+    // Display until end of help
+    while (y < ybot)
+    {
+        utf8code   word[60];
+        uint       widx    = 0;
+        bool       emit    = false;
+        bool       newline = false;
+        style_name restyle = style;
+
+        if (last == '\n' && !shown && y >= ytop)
+            shown = helpfile.position();
+
+        while (!emit)
+        {
+            utf8code ch      = helpfile.get();
+            bool     skip    = false;
+
+            switch (ch)
+            {
+            case ' ':
+                if (style <= SUBTITLE)
+                {
+                    skip = last == '#';
+                    break;
+                }
+                emit = true;
+                break;
+
+            case '\n':
+
+                if (last == '\n' || last == ' ' || style <= SUBTITLE)
+                {
+                    emit = true;
+                    skip = true;
+                    newline = last != '\n' || helpfile.peek() != '\n';
+                    while (helpfile.peek() == '\n')
+                        helpfile.get();
+                    restyle = NORMAL;
+                }
+                else
+                {
+                    uint off = helpfile.position();
+                    utf8code nx = helpfile.get();
+                    utf8code nnx = helpfile.get();
+                    if (nx == '#' || (nx == '*' && nnx == ' '))
+                    {
+                        newline = true;
+                        emit = true;
+                    }
+                    else
+                    {
+                        ch = ' ';
+                        emit = true;
+                    }
+                    helpfile.seek(off);
+                }
+                break;
+
+            case '#':
+                if (last == '#' || last == '\n')
+                {
+                    if (restyle == TITLE)
+                        restyle = SUBTITLE;
+                    else
+                        restyle = TITLE;
+                    skip = true;
+                    emit = true;
+                    newline = restyle == TITLE && last != '\n';
+                }
+                break;
+
+            case '*':
+                if (last == '\n' && helpfile.peek() == ' ')
+                {
+                    restyle = BULLETS;
+                    ch = L'■'; // L'•';
+                    break;
+                }
+                // Fall-through
+            case '_':
+                if (style != CODE)
+                {
+                    //   **Hello** *World*
+                    //   IB.....BN I.....N
+                    if (last == ch)
+                    {
+                        if (style == BOLD)
+                            restyle = NORMAL;
+                        else
+                            restyle = BOLD;
+                    }
+                    else
+                    {
+                        if (style == BOLD)
+                            restyle = BOLD;
+                        else if (style == ITALIC)
+                            restyle = NORMAL;
+                        else
+                            restyle = ITALIC;
+                    }
+                    skip = true;
+                    emit = true;
+                }
+                break;
+            case ':':
+                if (style == BULLETS)
+                {
+                    restyle = NORMAL;
+                    emit = true;
+                    skip = true;
+                    helpfile.seek(helpfile.position() - 1);
+                }
+                break;
+
+            case '`':
+                if (last != '`' && helpfile.peek() != '`')
+                {
+                    if (style == CODE)
+                        restyle = NORMAL;
+                    else
+                        restyle = CODE;
+                    skip = true;
+                    emit = true;
+                }
+                else
+                {
+                    if (last == '`')
+                        skip = true;
+                }
+                break;
+
+            case '[':
+                if (style == NORMAL)
+                {
+                    lastTopic = helpfile.position();
+                    if (topic < shown)
+                        topic = lastTopic;
+                    if (lastTopic == topic)
+                        restyle = HIGHLIGHTED_TOPIC;
+                    else
+                        restyle = TOPIC;
+                    skip = true;
+                    emit = true;
+                }
+                break;
+            case ']':
+                if (style == TOPIC || style == HIGHLIGHTED_TOPIC)
+                {
+                    utf8code n = helpfile.get();
+                    if (n != '(')
+                    {
+                        ch = n;
+                        restyle = NORMAL;
+                        emit = true;
+                        break;
+                    }
+
+                    static char link[60];
+                    char *p = link;
+                    while (n != ')')
+                    {
+                        n = helpfile.get();
+                        if (n != '#')
+                            if (p < link + sizeof(link))
+                                *p++ = n;
+                    }
+                    if (p < link + sizeof(link))
+                    {
+                        *p++ = 0;
+                        if (follow && style == HIGHLIGHTED_TOPIC)
+                        {
+                            if (history)
+                                topics[history-1] = shown;
+                            load_help(utf8(link));
+                        }
+                    }
+                    restyle = NORMAL;
+                    emit = true;
+                    skip = true;
+                }
+                break;
+            default:
+                break;
+            }
+
+            if (!skip)
+                word[widx++] = ch;
+            if (widx >= sizeof(word) / sizeof(word[0]))
+                emit = true;
+            last = ch;
+        }
+
+        // Select font and color based on style
+        pattern color     = styles[style].color;
+        pattern bg        = styles[style].background;
+        bool    bold      = styles[style].bold;
+        bool    italic    = styles[style].italic;
+        bool    underline = styles[style].underline;
+        bool    box       = styles[style].box;
+        font              = styles[style].font;
+        height            = font->height();
+
+        // Compute width of word (or words in the case of titles)
+        coord width   = 0;
+        for (uint i = 0; i < widx; i++)
+            width += font->width(word[i]);
+
+        if (style <= SUBTITLE)
+        {
+            // Center titles
+            x = (LCD_W - width) / 2;
+            y += 3 * height / 4;
+        }
+        else
+        {
+            // Go to new line if this does not fit
+            coord right   = x + width;
+            if (right >= xright - 1)
+            {
+                x = xleft;
+                y += height;
+            }
+        }
+
+        // Draw a decoration
+        coord yf = y + height;
+        coord xl = x;
+        coord xr = x + width;
+        if (box || underline)
+        {
+            xl -= 2;
+            xr += 2;
+            Screen.fill(xl, yf, xr, yf, bg);
+            if (box)
+            {
+                Screen.fill(xl, y, xl, yf, bg);
+                Screen.fill(xr, y, xr, yf, bg);
+                Screen.fill(xl, y, xr, y, bg);
+            }
+            xl += 2;
+            xr -= 2;
+        }
+        else if (bg.bits != pattern::white.bits)
+        {
+            Screen.fill(xl, y, xr, yf, bg);
+        }
+
+        // Draw next word
+        for (int i = 0; i < 1 + 3 * italic; i++)
+        {
+            x = xl;
+            if (italic)
+            {
+                coord yt = y + (3-i) * height / 4;
+                coord yb = y + (4-i) * height / 4;
+                x += i;
+                Screen.clip(x, yt, xr + i, yb);
+            }
+            coord x0 = x;
+            for (int b = 0; b <= bold; b++)
+                x = draw_word(x0 + b, y, widx, word, font, color);
+        }
+        if (italic)
+            Screen.clip(r);
+
+        // Select style for next round
+        style = restyle;
+
+        if (newline)
+        {
+            x = xleft;
+            y += height * 5 / 4;
+        }
+    }
+
+    if (helpfile.position() < topic)
+        topic = lastTopic;
+
+    Screen.clip(clip);
+    return true;
+}
+
+
+bool input::handle_help(int &key)
+// ----------------------------------------------------------------------------
+//   Handle help keys when showing help
+// ----------------------------------------------------------------------------
+{
+    if (!showingHelp())
+    {
+        // Exit if we are editing or entering digits
+        if (last == KEY_SHIFT || alpha || RT.editing())
+            return false;
+
+        // Check if we have a long press, if so load corresponding help
+        if (key)
+        {
+            record(help, "Looking for help topic for key %d, long=%d shift=%d\n",
+                   key, longpress, shift_plane());
+            if (object_p obj = object_for_key(key))
+            {
+                record(help, "Looking for help topic for key %d\n", key);
+                if (utf8 htopic = obj->help())
+                {
+                    record(help, "Found help topic %s\n", htopic);
+                    command = htopic;
+                    if (longpress)
+                        load_help(htopic);
+                    else
+                        repeat = true;
+                    return true;
+                }
+            }
+            key = 0;
+        }
+        else
+        {
+            key = last;
+            last = 0;
+        }
+
+        // Help keyboard movements only applies when help is shown
+        return false;
+    }
+
+    // Help is being shown - Special keyboard mappings
+    uint     count = shift ? 8 : 1;
+    switch (key)
+    {
+    case KEY_UP:
+    case KEY_8:
+    case KEY_SUB:
+        if (line > count)
+        {
+            line -= count;
+        }
+        else
+        {
+            line = 0;
+            count++;
+            while(count--)
+            {
+                helpfile.seek(help);
+                help = helpfile.rfind('\n');
+                if (!help)
+                    break;
+            }
+            if (help)
+                help = helpfile.position();
+        }
+        repeat = true;
+        break;
+
+    case KEY_DOWN:
+    case KEY_2:
+    case KEY_ADD:
+        line += count;
+        repeat = true;
+        break;
+
+    case KEY_9:
+    case KEY_DIV:
+        ++count;
+        while(count--)
+        {
+            helpfile.seek(topic);
+            topic = helpfile.rfind('[');
+        }
+        topic = helpfile.position();
+        repeat = true;
+        break;
+    case KEY_3:
+    case KEY_MUL:
+        helpfile.seek(topic);
+        while (count--)
+            helpfile.find('[');
+        topic = helpfile.position();
+        repeat = true;
+        break;
+
+    case KEY_ENTER:
+        follow = true;
+        break;
+
+    case KEY_BSP:
+        if (history)
+        {
+            --history;
+            if (history)
+            {
+                help = topics[history-1];
+                line = 0;
+                break;
+            }
+        }
+        // Otherwise fall-through and exit
+
+    case KEY_EXIT:
+        clear_help();
+        break;
+    }
+    return true;
 }
 
 
@@ -926,43 +1742,46 @@ bool input::handle_digits(int key)
         return true;
     }
 
-    if (key == KEY_CHS && RT.editing())
+    if (RT.editing())
     {
-        // Special case for change of sign
-        byte *ed = RT.editor();
-        utf8 p  = ed + cursor;
-        while (p > ed)
+        if (key == KEY_CHS)
         {
-            p = utf8_previous(p);
-            utf8code c = utf8_codepoint(p);
-            if ((c < '0' || c > '9') && c != Settings.decimalDot)
-                break;
-        }
+            // Special case for change of sign
+            byte *ed = RT.editor();
+            utf8 p  = ed + cursor;
+            utf8code c = 0;
+            while (p > ed)
+            {
+                p = utf8_previous(p);
+                c = utf8_codepoint(p);
+                if ((c < '0' || c > '9') && c != (utf8code) Settings.decimalDot)
+                    break;
+            }
 
-        utf8code c = utf8_codepoint(p);
-        if (c == 'e' || c == 'E' || c == Settings.exponentChar)
+            if (p > ed)
+                p = utf8_next(p);
+            if (c == 'e' || c == 'E' || c == Settings.exponentChar)
+                c = utf8_codepoint(p);
+
+            if (c == '-' || c == '+')
+                *((byte *) p) = '+' + '-' - c;
+            else
+                cursor += RT.insert(p - ed, '-');
+            last = 0;
+            return true;
+        }
+        else if (key == KEY_E)
         {
-            p = utf8_next(p);
-            c = utf8_codepoint(p);
+            byte buf[4];
+            size_t sz = utf8_encode(Settings.exponentChar, buf);
+            cursor += RT.insert(cursor, buf, sz);
+            last = 0;
+            return true;
         }
-
-        if (c == '-' || c == '+')
-            *((byte *) p) = '+' + '-' - c;
-        else
-            cursor += RT.insert(p - ed, '-');
-        return true;
     }
-    else if (key == KEY_E && RT.editing())
+    if (key > KEY_CHS)
     {
-        byte buf[4];
-        size_t sz = utf8_encode(Settings.exponentChar, buf);
-        cursor += RT.insert(cursor, buf, sz);
-        return true;
-    }
-    else if (key > KEY_CHS)
-    {
-        key--;
-        char c = numbers[key];
+        char c = numbers[key-1];
         if (c == '_')
             return false;
         if (c == '.')
@@ -1170,6 +1989,23 @@ static const byte *const defaultCommand[input::NUM_PLANES] =
 };
 
 
+object_p input::object_for_key(int key)
+// ----------------------------------------------------------------------------
+//    Return the object for a given key
+// ----------------------------------------------------------------------------
+{
+    int      plane = shift_plane();
+    object_p obj   = function[plane][key - 1];
+    if (!obj)
+    {
+        const byte *ptr = defaultCommand[plane] + 2 * (key - 1);
+        if (*ptr)
+            obj = (object_p) ptr;
+    }
+    return obj;
+}
+
+
 bool input::handle_functions(int key)
 // ----------------------------------------------------------------------------
 //   Check if we have one of the soft menu functions
@@ -1182,25 +2018,15 @@ bool input::handle_functions(int key)
     if (key == KEY_STO)
         RT.gc();
 
-    int      plane = shift_plane();
-    object_p obj   = function[plane][key - 1];
-    if (obj)
-    {
-        obj->evaluate();
-        return true;
-    }
-    const byte *ptr = defaultCommand[plane] + 2 * (key - 1);
-    if (*ptr)
+    if (object_p obj = object_for_key(key))
     {
         // If we have the editor open, need to close it
         if (end_edit())
         {
-            obj = (object *) ptr; // Uh oh! Evaluate bytecode in ROM
             obj->evaluate();
+            return true;
         }
-        return true;
     }
-
 
     return false;
 }

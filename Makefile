@@ -25,9 +25,10 @@ EJECT=hdiutil eject $(MOUNTPOINT)
 
 # default action: build all
 all: $(TARGET).pgm help/$(TARGET).html
-install: all
-	(tar cf - $(TARGET).pgm help/$(TARGET).html | (cd $(MOUNTPOINT) && tar xvf -)) && $(EJECT)
-sim: sim/simulator.mak recorder/config.h .ALWAYS
+install: all help/$(TARGET).md
+	(tar cf - $(TARGET).pgm help/$(TARGET).html help/$(TARGET).md | \
+	(cd $(MOUNTPOINT) && tar xvf -)) && $(EJECT)
+sim: sim/simulator.mak recorder/config.h help/$(TARGET).md .ALWAYS
 	cd sim; make -f $(<F)
 sim/simulator.mak: sim/simulator.pro
 	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(OPT)
@@ -40,6 +41,8 @@ fonts/EditorFont.cc: ttf2font $(C43S_FONT)
 	tools/ttf2font/ttf2font -s 60 EditorFont $(C43S_FONT) $@
 fonts/StackFont.cc: ttf2font $(C43S_FONT)
 	tools/ttf2font/ttf2font -s 40 StackFont $(C43S_FONT) $@
+help/$(TARGET).md: $(wildcard doc/calc-help/*.md doc/commands/*.md)
+	cat $^ > $@
 
 debug-%:
 	$(MAKE) $* OPT=debug

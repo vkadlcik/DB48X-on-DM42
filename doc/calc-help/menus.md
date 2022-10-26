@@ -1,6 +1,8 @@
-s# Main menus in newRPL
+# Negate
 
-Here are the main menus in newRPL, in alphabetical order.
+## Main menus in DB48X
+
+Here are the main menus in DB48X, in alphabetical order.
 
 
 ## Main menu
@@ -14,6 +16,11 @@ by cathegory. It includes the following submenus:
 * System: System configuration
 * Prog: Programming
 * Vars: User variables
+
+The [Math menu](#math-menu) is the most useful one.
+Another [good menu](#arithmetic-menu).
+
+If you are looking for [Swap](#swap), click [Here](#stkdrop)
 
 
 ## Math menu
@@ -31,7 +38,7 @@ calculator. It includes the following submenus:
 
 ## Arithmetic menu
 
-THe *Arithmetic menu* gives access to arithmetic functions in your
+The *Arithmetic menu* gives access to arithmetic functions in your
 calculator. It includes the following submenus:
 
 * Real: Operations on real numbers

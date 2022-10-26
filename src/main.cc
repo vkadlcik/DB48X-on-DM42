@@ -128,8 +128,8 @@ void program_init()
         "Short", "A bit long", "Very long", "Super Duper long",
         "X1",    "X2",         "A",         "B",
         "C",     "D",          "E",         "F",
-        "X",     "Y",          "Z",         "T",
-        "U",     "V",
+        "Tests",     "Benchmark DMCP",          "Benchark My Code",         "Toggle Font",
+        "Previous Font",     "Next Font",
     };
     object_p functions[input::NUM_MENUS] = { MenuFont };
     Input.menus(labels, functions);
@@ -245,57 +245,60 @@ extern "C" void program_main()
         if (key >= 0 && hadKey)
         {
             // Hack: Show the fonts
-            if (key == KEY_F6)
-                fontnr = lcd_nextFontNr(fontnr);
-            if (key == KEY_F5)
-                fontnr = lcd_prevFontNr(fontnr);
-            if (key == KEY_F4)
-                fontnr = lcd_toggleFontT(fontnr);
-            if (key >= KEY_F4 && key <= KEY_F6)
+            if (Input.shift_plane() == 2)
             {
-                runtime &rt = runtime::RT;
-                lcd_switchFont(fReg, fontnr);
-                rt.push(integer::make(fontnr));
-                rt.push(rt.make<string>(object::ID_string,
-                                        utf8(fReg->f->name),
-                                        strlen(fReg->f->name)));
-                key = 0;
-            }
-            if (key == KEY_F3)
-            {
-                byte       fnr = fontnr < 0 ? byte(10 - fontnr) : byte(fontnr);
-                byte       fontRPL[] = { object::ID_dmcp_font, fnr };
-                dmcp_font *font      = (dmcp_font *) fontRPL;
-
-                uint32_t   start     = sys_current_ms();
-                for (uint i = 0; i < 100; i++)
-                    Screen.text(30 + i % 20,
-                                50 + i % 23,
-                                utf8("Hello World"),
-                                font);
-                uint32_t end = sys_current_ms();
-                runtime &rt  = runtime::RT;
-                rt.push(integer::make(end - start));
-                lcd_refresh_lines(50, 100);
-                continue;
-            }
-            if (key == KEY_F2)
-            {
-                uint32_t start = sys_current_ms();
-                lcd_switchFont(fReg, fontnr);
-                fReg->bgfill = 0;
-                fReg->lnfill = 0;
-                for (uint i = 0; i < 100; i++)
+                if (key == KEY_F6)
+                    fontnr = lcd_nextFontNr(fontnr);
+                if (key == KEY_F5)
+                    fontnr = lcd_prevFontNr(fontnr);
+                if (key == KEY_F4)
+                    fontnr = lcd_toggleFontT(fontnr);
+                if (key >= KEY_F4 && key <= KEY_F6)
                 {
-                    fReg->x = 30 + i % 20;
-                    fReg->y = 50 + i % 23;
-                    lcd_writeText(fReg, "Hello World");
+                    runtime &rt = runtime::RT;
+                    lcd_switchFont(fReg, fontnr);
+                    rt.push(integer::make(fontnr));
+                    rt.push(rt.make<string>(object::ID_string,
+                                            utf8(fReg->f->name),
+                                            strlen(fReg->f->name)));
+                    key = 0;
                 }
-                uint32_t end = sys_current_ms();
-                runtime &rt  = runtime::RT;
-                rt.push(integer::make(end - start));
-                lcd_refresh();
-                continue;
+                if (key == KEY_F3)
+                {
+                    byte       fnr = fontnr < 0 ? byte(10 - fontnr) : byte(fontnr);
+                    byte       fontRPL[] = { object::ID_dmcp_font, fnr };
+                    dmcp_font *font      = (dmcp_font *) fontRPL;
+
+                    uint32_t   start     = sys_current_ms();
+                    for (uint i = 0; i < 100; i++)
+                        Screen.text(30 + i % 20,
+                                    50 + i % 23,
+                                    utf8("Hello World"),
+                                    font);
+                    uint32_t end = sys_current_ms();
+                    runtime &rt  = runtime::RT;
+                    rt.push(integer::make(end - start));
+                    lcd_refresh_lines(50, 100);
+                    continue;
+                }
+                if (key == KEY_F2)
+                {
+                    uint32_t start = sys_current_ms();
+                    lcd_switchFont(fReg, fontnr);
+                    fReg->bgfill = 0;
+                    fReg->lnfill = 0;
+                    for (uint i = 0; i < 100; i++)
+                    {
+                        fReg->x = 30 + i % 20;
+                        fReg->y = 50 + i % 23;
+                        lcd_writeText(fReg, "Hello World");
+                    }
+                    uint32_t end = sys_current_ms();
+                    runtime &rt  = runtime::RT;
+                    rt.push(integer::make(end - start));
+                    lcd_refresh();
+                    continue;
+                }
             }
 
             handle_key(key);

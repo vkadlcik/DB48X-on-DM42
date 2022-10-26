@@ -190,6 +190,8 @@ bool input::key(int key)
     {
         // Power off
         SET_ST(STAT_PGM_END);
+        shift = false;          // Make sure we don't have shift when waking up
+        last = 0;
         return true;
     }
 

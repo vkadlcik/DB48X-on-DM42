@@ -87,7 +87,7 @@ input::input()
       longpress(false),
       blink(false),
       follow(false),
-      helpfile(HELPFILE_NAME)
+      helpfile()
 {}
 
 
@@ -163,6 +163,7 @@ void input::clear_help()
     last      = 0;
     longpress = false;
     repeat    = false;
+    helpfile.close();
 }
 
 
@@ -192,6 +193,7 @@ bool input::key(int key)
         SET_ST(STAT_PGM_END);
         shift = false;          // Make sure we don't have shift when waking up
         last = 0;
+        clear_help();           // Otherwise shutdown images don't work
         return true;
     }
 
@@ -688,9 +690,26 @@ void input::draw_error()
 }
 
 
-input::file::file(cstring path)
+input::file::file()
 // ----------------------------------------------------------------------------
 //   Construct a file object
+// ----------------------------------------------------------------------------
+    : data()
+{}
+
+
+input::file::~file()
+// ----------------------------------------------------------------------------
+//   Close the help file
+// ----------------------------------------------------------------------------
+{
+    close();
+}
+
+
+void input::file::open(cstring path)
+// ----------------------------------------------------------------------------
+//    Open a help file
 // ----------------------------------------------------------------------------
 {
 #if SIMULATOR
@@ -714,12 +733,13 @@ input::file::file(cstring path)
 }
 
 
-input::file::~file()
+void input::file::close()
 // ----------------------------------------------------------------------------
-//   Close the help file
+//    Close the help file
 // ----------------------------------------------------------------------------
 {
-    fclose(data);
+    if (valid())
+        fclose(data);
 }
 
 
@@ -1349,9 +1369,14 @@ bool input::handle_help(int &key)
                     record(help, "Found help topic %s\n", htopic);
                     command = htopic;
                     if (longpress)
+                    {
+                        helpfile.open(HELPFILE_NAME);
                         load_help(htopic);
+                    }
                     else
+                    {
                         repeat = true;
+                    }
                     return true;
                 }
             }

@@ -88,11 +88,14 @@ struct input
     int         stack_screen_bottom()   { return stack; }
     bool        showingHelp()           { return help + 1 != 0; }
 
-protected:
+    uint        shift_plane()   { return xshift ? 2 : shift ? 1 : 0; }
+    void        clear_help();
+    object_p    object_for_key(int key);
     bool        end_edit();
     void        clear_editor();
     void        load_help(utf8 topic);
 
+protected:
     bool        handle_shifts(int key);
     bool        handle_help(int &key);
     bool        handle_editing(int key);
@@ -103,10 +106,6 @@ protected:
     bool        handle_enter(int key);
     bool        handle_backspace(int key);
 
-    uint        shift_plane()   { return xshift ? 2 : shift ? 1 : 0; }
-
-    void        clear_help();
-    object_p    object_for_key(int key);
 
 protected:
     typedef graphics::coord     coord;
@@ -152,10 +151,12 @@ protected:
     //   Direct access to the help file
     // ------------------------------------------------------------------------
     {
-        file(cstring path);
+        file();
         ~file();
 
+        void     open(cstring path);
         bool     valid();
+        void     close();
         utf8code get();
         utf8code get(uint offset);
         void     seek(uint offset);

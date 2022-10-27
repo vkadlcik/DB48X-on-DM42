@@ -554,6 +554,22 @@ bool dmcp_font::glyph(utf8code utf8cp, glyph_info &g) const
         synthesized = bitmap;
         break;
     }
+    case L'⇆':
+    {
+        // Invent this character for the font
+        static const byte bitmap[] = {
+            0x40,               // -*------
+            0x70,               // -***----
+            0x7C,               // -*****--
+            0x71,               // -***---*
+            0x43,               // -*---***
+            0x1F,               // ---*****
+            0x03,               // -----***
+            0x01,               // -------*
+        };
+        synthesized = bitmap;
+        break;
+    }
     default:
         break;
     }

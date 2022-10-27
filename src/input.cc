@@ -1058,31 +1058,13 @@ enum style_name
     TITLE,
     SUBTITLE,
     NORMAL,
-    BULLETS,
     BOLD,
     ITALIC,
     CODE,
+    KEY,
     TOPIC,
     HIGHLIGHTED_TOPIC,
     NUM_STYLES
-};
-
-
-using p = pattern;
-static const style_description styles[NUM_STYLES] =
-// ----------------------------------------------------------------------------
-//  Table of styles
-// ----------------------------------------------------------------------------
-{
-    {  HelpTitleFont,     p::black,  p::white,  false, false, false, false },
-    {  HelpSubTitleFont,  p::black,  p::gray50, false, false, true,  false },
-    {  HelpFont,          p::black,  p::white,  false, false, false, false },
-    {  HelpBoldFont,      p::black,  p::white,  true,  true,  false, false },
-    {  HelpBoldFont,      p::black,  p::white,  true,  false, false, false },
-    {  HelpItalicFont,    p::black,  p::white,  false, true,  false, false },
-    {  HelpCodeFont,      p::black,  p::gray50, false, false, false, true  },
-    {  HelpFont,          p::black,  p::gray75, false, false, false, false },
-    {  HelpFont,          p::white,  p::black,  false, false, false, false },
 };
 
 
@@ -1109,6 +1091,23 @@ bool input::draw_help()
 {
     if (!showingHelp())
         return false;
+
+    using p = pattern;
+    const style_description styles[NUM_STYLES] =
+    // -------------------------------------------------------------------------
+    //  Table of styles
+    // -------------------------------------------------------------------------
+    {
+        { HelpTitleFont,    p::black,  p::white,  false, false, false, false },
+        { HelpSubTitleFont, p::black,  p::gray50,  true, false, true,  false },
+        { HelpFont,         p::black,  p::white,  false, false, false, false },
+        { HelpBoldFont,     p::black,  p::white,  true,  false, false, false },
+        { HelpItalicFont,   p::black,  p::white,  false, true,  false, false },
+        { HelpCodeFont,     p::black,  p::gray50, false, false, false, true  },
+        { HelpCodeFont,     p::white,  p::black,  false, false, false, false },
+        { HelpFont,         p::black,  p::gray50, false, false, true,  false },
+        { HelpFont,         p::white,  p::gray10, false, false, false, false },
+    };
 
 
     // Compute the size for the help display
@@ -1176,7 +1175,8 @@ bool input::draw_help()
                     skip = last == '#';
                     break;
                 }
-                emit = true;
+                skip = last == ' ';
+                emit = style != KEY;
                 break;
 
             case '\n':
@@ -1225,8 +1225,9 @@ bool input::draw_help()
             case '*':
                 if (last == '\n' && helpfile.peek() == ' ')
                 {
-                    restyle = BULLETS;
+                    restyle = NORMAL;
                     ch = L'■'; // L'•';
+                    xleft = r.x1 + 2 + font->width(utf8("■ "));
                     break;
                 }
                 // Fall-through
@@ -1244,24 +1245,16 @@ bool input::draw_help()
                     }
                     else
                     {
+                        style_name disp = ch == '_' ? KEY : ITALIC;
                         if (style == BOLD)
                             restyle = BOLD;
-                        else if (style == ITALIC)
+                        else if (style == disp)
                             restyle = NORMAL;
                         else
-                            restyle = ITALIC;
+                            restyle = disp;
                     }
                     skip = true;
                     emit = true;
-                }
-                break;
-            case ':':
-                if (style == BULLETS)
-                {
-                    restyle = NORMAL;
-                    emit = true;
-                    skip = true;
-                    helpfile.seek(helpfile.position() - 1);
                 }
                 break;
 
@@ -1283,7 +1276,7 @@ bool input::draw_help()
                 break;
 
             case '[':
-                if (style == NORMAL)
+                if (style != CODE)
                 {
                     lastTopic = helpfile.position();
                     if (topic < shown)
@@ -1423,6 +1416,7 @@ bool input::draw_help()
 
         if (newline)
         {
+            xleft = r.x1 + 2;
             x = xleft;
             y += height * 5 / 4;
         }

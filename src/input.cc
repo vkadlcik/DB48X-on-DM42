@@ -1026,9 +1026,11 @@ void input::load_help(utf8 topic)
     }
     else
     {
+        clear_help();
         static char buffer[50];
         snprintf(buffer, sizeof(buffer), "No help for %s", topic);
         RT.error(buffer);
+
     }
 }
 

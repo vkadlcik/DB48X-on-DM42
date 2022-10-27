@@ -952,14 +952,16 @@ void input::load_help(utf8 topic)
     record(help, "Loading help topic %s", topic);
 
     size_t len    = strlen(cstring(topic));
-    help          = -1u;
     command       = nullptr;
     follow        = false;
-    line          = 0;
 
     // Need to have the help file open here
     if (!helpfile.valid())
+    {
+        help          = -1u;
+        line          = 0;
         return;
+    }
 
     // Look for the topic in the file
     uint matching = 0;
@@ -1008,6 +1010,7 @@ void input::load_help(utf8 topic)
     if (matching == len + 1)
     {
         help = helpfile.position() - (len+1) - level;
+        line = 0;
         record(help, "Found topic %s at position %u level %u",
                topic, helpfile.position(), level);
 
@@ -1026,11 +1029,9 @@ void input::load_help(utf8 topic)
     }
     else
     {
-        clear_help();
         static char buffer[50];
         snprintf(buffer, sizeof(buffer), "No help for %s", topic);
         RT.error(buffer);
-
     }
 }
 

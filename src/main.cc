@@ -79,8 +79,8 @@ static void redraw_lcd()
         Input.draw_cursor(now - period, period);
         Stack.draw_stack();
         Input.draw_command();
-        Input.draw_error();
     }
+    Input.draw_error();
 
     // Refres the screen
     lcd_refresh_lines(0, LCD_H);

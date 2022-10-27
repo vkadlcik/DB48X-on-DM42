@@ -30,6 +30,7 @@
 
 #include "main.h"
 
+#include "font.h"
 #include "graphics.h"
 #include "input.h"
 #include "integer.h"
@@ -150,6 +151,9 @@ void program_init()
     // Setup application menu callbacks
     run_menu_item_app = menu_item_run;
     menu_line_str_app = menu_item_description;
+
+    // Setup default fonts
+    font_defaults();
 
 #ifndef DEBUG
     // Give 64K to the runtime

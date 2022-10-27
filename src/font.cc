@@ -94,6 +94,77 @@ OBJECT_RENDERER_BODY(font)
 }
 
 
+static const byte dmcpFontRPL[]
+// ----------------------------------------------------------------------------
+//   RPL object representing the various DMCP fonts
+// ----------------------------------------------------------------------------
+{
+    object::ID_dmcp_font, 0,            // lib_mono
+    object::ID_dmcp_font, 1,
+    object::ID_dmcp_font, 2,
+    object::ID_dmcp_font, 3,
+    object::ID_dmcp_font, 4,
+    object::ID_dmcp_font, 5,
+
+    object::ID_dmcp_font, 10,           // Free42 (fixed size, very small)
+
+    object::ID_dmcp_font, 18,           // skr_mono
+    object::ID_dmcp_font, 21,           // skr_mono
+
+};
+
+// In the DM42 DMCP - Not fully Unicode capable
+const dmcp_font_p LibMonoFont10x17 = (dmcp_font_p) (dmcpFontRPL +  0);
+const dmcp_font_p LibMonoFont11x18 = (dmcp_font_p) (dmcpFontRPL +  2);
+const dmcp_font_p LibMonoFont12x20 = (dmcp_font_p) (dmcpFontRPL +  4);
+const dmcp_font_p LibMonoFont14x22 = (dmcp_font_p) (dmcpFontRPL +  6);
+const dmcp_font_p LibMonoFont17x25 = (dmcp_font_p) (dmcpFontRPL +  8);
+const dmcp_font_p LibMonoFont17x28 = (dmcp_font_p) (dmcpFontRPL + 10);
+const dmcp_font_p Free42Font       = (dmcp_font_p) (dmcpFontRPL + 12);
+const dmcp_font_p SkrMono13x18     = (dmcp_font_p) (dmcpFontRPL + 14);
+const dmcp_font_p SkrMono18x24     = (dmcp_font_p) (dmcpFontRPL + 16);
+
+
+font_p EditorFont;
+font_p StackFont;
+font_p HeaderFont;
+font_p CursorFont;
+font_p ErrorFont;
+font_p MenuFont;
+font_p HelpFont;
+font_p HelpBoldFont;
+font_p HelpItalicFont;
+font_p HelpCodeFont;
+font_p HelpTitleFont;
+font_p HelpSubTitleFont;
+
+
+void font_defaults()
+// ----------------------------------------------------------------------------
+//    Initialize the fonts for the user interface
+// ----------------------------------------------------------------------------
+{
+#define GENERATED_FONT(name)                    \
+    extern byte name##_sparse_font_data[];      \
+    name = (font_p) name##_sparse_font_data;
+
+    GENERATED_FONT(EditorFont);
+    GENERATED_FONT(HelpFont);
+    GENERATED_FONT(StackFont);
+
+    HeaderFont       = LibMonoFont10x17;
+    CursorFont       = LibMonoFont17x25;
+    ErrorFont        = SkrMono13x18;
+    MenuFont         = LibMonoFont10x17;
+
+    HelpBoldFont     = HelpFont;
+    HelpItalicFont   = HelpFont;
+    HelpCodeFont     = LibMonoFont11x18;
+    HelpTitleFont    = StackFont;
+    HelpSubTitleFont = HelpFont;
+}
+
+
 struct font_cache
 // ----------------------------------------------------------------------------
 //   A data structure to accelerate access to font offsets for a given font
@@ -385,49 +456,6 @@ bool dense_font::glyph(utf8code codepoint, glyph_info &g) const
     g.height  = height;
     return true;
 }
-
-
-static const byte dmcpFontRPL[]
-// ----------------------------------------------------------------------------
-//   RPL object representing the various DMCP fonts
-// ----------------------------------------------------------------------------
-{
-    object::ID_dmcp_font, 0,            // lib_mono
-    object::ID_dmcp_font, 1,
-    object::ID_dmcp_font, 2,
-    object::ID_dmcp_font, 3,
-    object::ID_dmcp_font, 4,
-    object::ID_dmcp_font, 5,
-
-    object::ID_dmcp_font, 10,           // Free42 (fixed size, very small)
-
-    object::ID_dmcp_font, 18,           // skr_mono
-    object::ID_dmcp_font, 21,           // skr_mono
-
-};
-
-
-// In the DM42 DMCP - Not fully Unicode capable
-const dmcp_font_p LibMonoFont10x17 = (dmcp_font_p) (dmcpFontRPL +  0);
-const dmcp_font_p LibMonoFont11x18 = (dmcp_font_p) (dmcpFontRPL +  2);
-const dmcp_font_p LibMonoFont12x20 = (dmcp_font_p) (dmcpFontRPL +  4);
-const dmcp_font_p LibMonoFont14x22 = (dmcp_font_p) (dmcpFontRPL +  6);
-const dmcp_font_p LibMonoFont17x25 = (dmcp_font_p) (dmcpFontRPL +  8);
-const dmcp_font_p LibMonoFont17x28 = (dmcp_font_p) (dmcpFontRPL + 10);
-const dmcp_font_p Free42Font       = (dmcp_font_p) (dmcpFontRPL + 12);
-const dmcp_font_p SkrMono13x18     = (dmcp_font_p) (dmcpFontRPL + 14);
-const dmcp_font_p SkrMono18x24     = (dmcp_font_p) (dmcpFontRPL + 16);
-
-const font_p HeaderFont         = LibMonoFont10x17;
-const font_p CursorFont         = LibMonoFont17x25;
-const font_p ErrorFont          = SkrMono13x18;
-const font_p MenuFont           = LibMonoFont10x17;
-const font_p HelpFont           = LibMonoFont11x18;
-const font_p HelpBoldFont       = LibMonoFont11x18;
-const font_p HelpItalicFont     = LibMonoFont11x18;
-const font_p HelpCodeFont       = LibMonoFont11x18;;
-const font_p HelpTitleFont      = SkrMono18x24;
-const font_p HelpSubTitleFont   = SkrMono13x18;
 
 
 font::fuint dmcp_font::height()

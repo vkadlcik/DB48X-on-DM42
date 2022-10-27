@@ -182,22 +182,21 @@ inline font::fuint font::height() const
     return false;
 }
 
-
-// Generated during the build process
-extern const font_p EditorFont;
-extern const font_p StackFont;
-
 // Fonts for various parts of the user interface
-extern const font_p HeaderFont;
-extern const font_p CursorFont;
-extern const font_p ErrorFont;
-extern const font_p MenuFont;
-extern const font_p HelpFont;
-extern const font_p HelpBoldFont;
-extern const font_p HelpItalicFont;
-extern const font_p HelpCodeFont;
-extern const font_p HelpTitleFont;
-extern const font_p HelpSubTitleFont;
+extern font_p EditorFont;
+extern font_p StackFont;
+extern font_p HeaderFont;
+extern font_p CursorFont;
+extern font_p ErrorFont;
+extern font_p MenuFont;
+extern font_p HelpFont;
+extern font_p HelpBoldFont;
+extern font_p HelpItalicFont;
+extern font_p HelpCodeFont;
+extern font_p HelpTitleFont;
+extern font_p HelpSubTitleFont;
+
+void font_defaults();
 
 // In the DM42 DMCP - Not fully Unicode capable
 extern const dmcp_font_p LibMonoFont10x17;

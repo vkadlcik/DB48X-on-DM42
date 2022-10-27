@@ -1,74 +1,62 @@
 # Variables and directories
 
-## STO
+## Store (STO)
 Store an object into a variable
 
 
-## RCL
+## Recall (RCL)
 Recall the contents of a variable
 
 
-## STOADD
+## StoreAdd (STO+)
 Add to the content of a variable
 
 
-## STOSUB
+## StoreSubtract (STO-)
 Subtract from the contents of a variable
 
 
-## STOMUL
+## StoreMultiply (STO×)
 Multiply contents of a variable
 
 
-## STODIV
+## StoreDivide (STO÷)
 Divide the content of a variable
 
 
-## SINV
-Invert the content of a variable
-
-
-## SNEG
-Change sign (negate) the content of a variable
-
-
-## SCONJ
-Complex conjugate the contents of a variable
-
-
-## INCR
+## Increment (INCR)
 Add one to the content of a variable
 
 
-## DECR
+## Decrement (DECR)
 Subtract one from content of a variable
 
 
-## PURGE
+## Purge
 Delete a variable
 
 
-## CRDIR
+## CreateDirectory (CRDIR)
 Create new directory
 
 
-## PGDIR
+## PurgeDirectory (PGDIR)
 Purge entire directory tree
 
 
-## UPDIR
+## UpDirectory (UPDIR)
 Change current directory to its parent
 
 
-## HOME
+## HomeDirectory (HOME)
 Change current directory to HOME
 
 
-## PATH
+## DirectoryPath (PATH)
 Get a path to the current directory
 
 
-## VARS
+## Variables (VARS)
 List all visible variables in a directory
 
 
@@ -134,4 +122,3 @@ Recall a property of a variable
 
 ## PACKDIR
 Pack a directory in an editable object
-

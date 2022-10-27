@@ -1,39 +1,39 @@
 # Stack manipulation
 
-## CLEAR
+## Clear
 Remove all objects from the stack
 
 
-## DEPTH
+## Depth
 Get the current stack depth
 
 
-## DROP
+## Drop
 Remove an object from the stack
 
 
-## DROP2
+## Drop2
 Remove two objects form the stack
 
 
-## DROPN
-Remove N objects from the stack
+## DropN
+Remove N objects from the stack, N being given in level 1.
 
 
-## DUP
+## Duplicate (DUP)
 Duplicate an object on the stack
 
 
-## DUP2
+## Duplicate2 (DUP2)
 Duplicate two objects on the stack
 
 
-## DUPDUP
+## DuplicateTwice (DUPDUP)
 Duplicate the same object twice on the stack
 
 
-## DUPN
-Duplicate a group of N objects
+## DuplicateN (DUPN)
+Duplicate a group of N objects, N being given in stack level 1
 
 
 ## NDUPN
@@ -44,7 +44,7 @@ Replicate one object N times and return N
 Remove object at level 2 on the stack
 
 
-## OVER
+## Over
 Duplicate object at level 2 on the stack
 
 
@@ -70,6 +70,10 @@ Move object from level 3 to level 1
 
 ## SWAP
 Exchange objects in levels 1 and 2
+
+Mapped to _X⇆Y_ key
+
+`Y` `X` ▶ `X` `Y`
 
 
 ## UNPICK
@@ -110,4 +114,3 @@ Get the depth of the undo stack
 
 ## STKNEW
 Push a snapshot of the current stack on the undo stack and clears the current stack
-

@@ -34,8 +34,10 @@ surface Screen((pixword *) lcd_line_addr(0), LCD_W, LCD_H, LCD_SCANLINE);
 
 #define GPAT      graphics::pattern<graphics::mode::MONOCHROME_REVERSE>
  const GPAT GPAT::black  = GPAT(  0,   0,   0);
+ const GPAT GPAT::gray10 = GPAT( 32,  32,  32);
  const GPAT GPAT::gray25 = GPAT( 64,  64,  64);
  const GPAT GPAT::gray50 = GPAT(128, 128, 128);
  const GPAT GPAT::gray75 = GPAT(192, 192, 192);
+ const GPAT GPAT::gray90 = GPAT(224, 224, 224);
  const GPAT GPAT::white  = GPAT(255, 255, 255);
 #undef GPAT

@@ -149,12 +149,13 @@ struct graphics
 
         // Some pre-defined shades of gray
         static const pattern black;
+        static const pattern gray10;
         static const pattern gray25;
         static const pattern gray50;
         static const pattern gray75;
+        static const pattern gray90;
         static const pattern white;
     };
-
 
 
 
@@ -729,9 +730,11 @@ inline graphics::pattern<Mode>::pattern(color a, color b, color c, color d)
 #define GPAT      graphics::pattern<Mode>
 #define TGPAT     template<graphics::mode Mode> const GPAT
 TGPAT GPAT::black  = GPAT(  0,   0,   0);
+TGPAT GPAT::gray10 = GPAT( 32,  32,  32);
 TGPAT GPAT::gray25 = GPAT( 64,  64,  64);
 TGPAT GPAT::gray50 = GPAT(128, 128, 128);
 TGPAT GPAT::gray75 = GPAT(192, 192, 192);
+TGPAT GPAT::gray90 = GPAT(224, 224, 224);
 TGPAT GPAT::white  = GPAT(255, 255, 255);
 #undef TGPAT
 #undef GPAT
@@ -772,9 +775,11 @@ public:
 
     // Some pre-defined shades of gray
     static const pattern black;
+    static const pattern gray10;
     static const pattern gray25;
     static const pattern gray50;
     static const pattern gray75;
+    static const pattern gray90;
     static const pattern white;
 };
 
@@ -814,9 +819,11 @@ public:
 
     // Some pre-defined shades of gray
     static const pattern black;
+    static const pattern gray10;
     static const pattern gray25;
     static const pattern gray50;
     static const pattern gray75;
+    static const pattern gray90;
     static const pattern white;
 };
 
@@ -851,9 +858,11 @@ template <> union graphics::pattern<graphics::mode::GRAY_4BPP>
 
     // Some pre-defined shades of gray
     static const pattern black;
+    static const pattern gray10;
     static const pattern gray25;
     static const pattern gray50;
     static const pattern gray75;
+    static const pattern gray90;
     static const pattern white;
 };
 
@@ -888,9 +897,11 @@ public:
 
     // Some pre-defined shades of gray
     static const pattern black;
+    static const pattern gray10;
     static const pattern gray25;
     static const pattern gray50;
     static const pattern gray75;
+    static const pattern gray90;
     static const pattern white;
 };
 

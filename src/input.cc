@@ -1319,12 +1319,14 @@ bool input::draw_help()
                     }
                     if (p < link + sizeof(link))
                     {
-                        *p++ = 0;
+                        p[-1] = 0;
                         if (follow && style == HIGHLIGHTED_TOPIC)
                         {
                             if (history)
                                 topics[history-1] = shown;
                             load_help(utf8(link));
+                            Screen.clip(clip);
+                            return draw_help();
                         }
                     }
                     restyle = NORMAL;

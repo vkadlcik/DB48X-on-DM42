@@ -51,9 +51,10 @@ SOURCES +=                                      \
         ../src/symbol.cc                        \
         ../src/algebraic.cc                     \
         ../src/arithmetic.cc                    \
-	../src/font.cc				\
 	../fonts/EditorFont.cc	                \
+	../fonts/HelpFont.cc	                \
 	../fonts/StackFont.cc			\
+	../src/font.cc				\
 	../src/tests.cc
 
 HEADERS +=                                      \

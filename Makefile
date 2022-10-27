@@ -36,12 +36,15 @@ ttf2font: tools/ttf2fonts/ttf2fonts
 tools/ttf2fonts/ttf2fonts: tools/ttf2font/ttf2font.cpp tools/ttf2font/Makefile
 	cd tools/ttf2font; $(MAKE)
 
-C43S_FONT=fonts/C43StandardFont.ttf
-fonts/EditorFont.cc: ttf2font $(C43S_FONT)
-	tools/ttf2font/ttf2font -s 60 EditorFont $(C43S_FONT) $@
-fonts/StackFont.cc: ttf2font $(C43S_FONT)
-	tools/ttf2font/ttf2font -s 40 StackFont $(C43S_FONT) $@
-help/$(TARGET).md: $(wildcard doc/calc-help/*.md doc/commands/*.md)
+#BASE_FONT=fonts/C43StandardFont.ttf
+BASE_FONT=fonts/FogSans-ddd.ttf
+fonts/EditorFont.cc: ttf2font $(BASE_FONT)
+	tools/ttf2font/ttf2font -s 48 EditorFont $(BASE_FONT) $@
+fonts/StackFont.cc: ttf2font $(BASE_FONT)
+	tools/ttf2font/ttf2font -s 32 StackFont $(BASE_FONT) $@
+fonts/HelpFont.cc: ttf2font $(BASE_FONT)
+	tools/ttf2font/ttf2font -s 18 HelpFont $(BASE_FONT) $@
+help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md)
 	cat $^ > $@
 
 debug-%:
@@ -101,6 +104,7 @@ CXX_SOURCES +=				\
 	src/algebraic.cc		\
 	src/arithmetic.cc		\
 	src/font.cc			\
+	fonts/HelpFont.cc		\
 	fonts/EditorFont.cc		\
 	fonts/StackFont.cc
 

@@ -247,12 +247,13 @@ There are a number of intentional differences in design compared to the HP48:
   using. Information for that help system is stored using a regular *markdown*
   file named `/HELP/DB48X.md`, stored in the calculator's flash storage.
 
-* DB48X will feature command auto-completion while typing, available through
-  the  _Catalog_ key.
+* DB48X will feature auto-completion for commands while typing, through
+  the  _Catalog_ key ([CatalogMenu](#CatalogMenu)).
 
 * Many RPL words exist in short and long form, and a user preference selects how
-  a program shows. For example, what the HP48 calls `NEG` can display, based on
-  user preferences, as `NEG`, `neg`, `Neg` or `Negate`.
+  a program shows. For example, the [Negate](#negate) command, which the HP48
+  calls `NEG` can display, based on user preferences, as `NEG`, `neg`, `Neg` or
+  `Negate`. In the help, it will be shown as **Negate (NEG)**.
 
 * The DB48X dialect of RPL is not case sensitive, but it is case-respecting.
   For example, if your preference is to display built-in functions in long form,

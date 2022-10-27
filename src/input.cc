@@ -957,6 +957,10 @@ void input::load_help(utf8 topic)
     follow        = false;
     line          = 0;
 
+    // Need to have the help file open here
+    if (!helpfile.valid())
+        return;
+
     // Look for the topic in the file
     uint matching = 0;
     uint level    = 0;

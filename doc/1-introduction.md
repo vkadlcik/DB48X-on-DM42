@@ -1,4 +1,4 @@
-# A brief introduction to RPL
+# Introduction to RPL
 
 The original RPL (*Reverse Polish Lisp*) programming language was designed and
 implemented by Hewlett Packard for their calculators from the mid-1980s until

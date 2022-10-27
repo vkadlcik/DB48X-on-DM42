@@ -164,6 +164,7 @@ void input::clear_help()
     last      = 0;
     longpress = false;
     repeat    = false;
+    dirtyMenu = true;
     helpfile.close();
 }
 

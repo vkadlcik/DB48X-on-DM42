@@ -65,6 +65,128 @@ OBJECT_HANDLER_BODY(algebraic)
 }
 
 
+bool algebraic::real_promotion(gcobj &x, object::id type)
+// ----------------------------------------------------------------------------
+//   Promote the value x to the given type
+// ----------------------------------------------------------------------------
+{
+    object::id xt = x->type();
+    if (xt == type)
+        return true;
+
+    record(algebraic, "Real promotion of %p from %+s to %+s",
+           (object_p) x, object::name(xt), object::name(type));
+    runtime &rt = runtime::RT;
+    switch(xt)
+    {
+    case ID_integer:
+    {
+        integer_p i    = x->as<integer>();
+        ularge    ival = i->value<ularge>();
+        switch (type)
+        {
+        case ID_decimal32:
+            x = rt.make<decimal32>(ID_decimal32, ival);
+            return true;
+        case ID_decimal64:
+            x = rt.make<decimal64>(ID_decimal64, ival);
+            return true;
+        case ID_decimal128:
+            x = rt.make<decimal128>(ID_decimal128, ival);
+            return true;
+        default:
+            break;
+        }
+        record(algebraic_error,
+               "Cannot promote integer %p (%llu) from %+s to %+s",
+               i, ival, object::name(xt), object::name(type));
+    }
+    case ID_neg_integer:
+    {
+        integer_p i    = x->as<neg_integer>();
+        large     ival = -i->value<large>();
+        switch (type)
+        {
+        case ID_decimal32:
+            x = rt.make<decimal32>(ID_decimal32, ival);
+            return true;
+        case ID_decimal64:
+            x = rt.make<decimal64>(ID_decimal64, ival);
+            return true;
+        case ID_decimal128:
+            x = rt.make<decimal128>(ID_decimal128, ival);
+            return true;
+        default:
+            break;
+        }
+        record(algebraic_error,
+               "Cannot promote neg_integer %p (%lld) from %+s to %+s",
+               i, ival, object::name(xt), object::name(type));
+    }
+
+    case ID_decimal32:
+    {
+        decimal32_p d = x->as<decimal32>();
+        bid32       dval = d->value();
+        switch (type)
+        {
+        case ID_decimal64:
+            x = rt.make<decimal64>(ID_decimal64, dval);
+            return true;
+        case ID_decimal128:
+            x = rt.make<decimal128>(ID_decimal128, dval);
+            return true;
+        default:
+            break;
+        }
+        record(algebraic_error,
+               "Cannot promote decimal32 %p from %+s to %+s",
+               d, object::name(xt), object::name(type));
+    }
+
+    case ID_decimal64:
+    {
+        decimal64_p d = x->as<decimal64>();
+        bid64       dval = d->value();
+        switch (type)
+        {
+        case ID_decimal64:
+            x = rt.make<decimal64>(ID_decimal64, dval);
+            return true;
+        case ID_decimal128:
+            x = rt.make<decimal128>(ID_decimal128, dval);
+            return true;
+        default:
+            break;
+        }
+        record(algebraic_error,
+               "Cannot promote decimal64 %p from %+s to %+s",
+               d, object::name(xt), object::name(type));
+    }
+    default:
+        break;
+    }
+
+    rt.error("Invalid real conversion");
+    return false;
+}
+
+
+object::id algebraic::real_promotion(gcobj &x)
+// ----------------------------------------------------------------------------
+//   Promote the value x to a type selected based on preferences
+// ----------------------------------------------------------------------------
+{
+    // Auto-selection of type
+    uint16_t prec = Settings.precision;
+    id       type = prec > BID64_MAXDIGITS ? ID_decimal128
+                  : prec > BID32_MAXDIGITS ? ID_decimal64
+                                           : ID_decimal32;
+    return real_promotion(x, type) ? type : ID_object;
+}
+
+
+
 // ============================================================================
 //
 //   Simple operators
@@ -76,6 +198,7 @@ ALGEBRAIC_BODY(inv)
 //   Invert is implemented as 1/x
 // ----------------------------------------------------------------------------
 {
+    // Apparently there is a div function getting in the way, see man div(3)
     using div = struct div;
     RT.push(RT.make<integer>(ID_integer, 1));
     run<swap>();
@@ -92,5 +215,29 @@ ALGEBRAIC_BODY(neg)
     RT.push(RT.make<integer>(ID_integer, 0));
     run<swap>();
     run<sub>();
+    return OK;
+}
+
+
+ALGEBRAIC_BODY(sq)
+// ----------------------------------------------------------------------------
+//   Square is implemented as "dup mul"
+// ----------------------------------------------------------------------------
+{
+    run<dup>();
+    run<mul>();
+    return OK;
+}
+
+
+ALGEBRAIC_BODY(cubed)
+// ----------------------------------------------------------------------------
+//   Cubed is implemented as "dup dup mul mul"
+// ----------------------------------------------------------------------------
+{
+    run<dup>();
+    run<dup>();
+    run<mul>();
+    run<mul>();
     return OK;
 }

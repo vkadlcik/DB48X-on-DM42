@@ -89,6 +89,7 @@ struct decimal128 : object
         memcpy(p, &num, sizeof(num));
     }
 
+
 #if 128 > 64
     decimal128(const bid64 &value, id type = ID_decimal128): object(type)
     {
@@ -123,6 +124,59 @@ struct decimal128 : object
         return result;
     }
 
+    enum class_type
+    // ------------------------------------------------------------------------
+    //   Class type for bid128 numbers
+    // ------------------------------------------------------------------------
+    //   This should really be exported in the header, since it's the result of
+    //   the bid128_class function. Lifted from Inte's source code
+    {
+        signalingNaN,
+        quietNaN,
+        negativeInfinity,
+        negativeNormal,
+        negativeSubnormal,
+        negativeZero,
+        positiveZero,
+        positiveSubnormal,
+        positiveNormal,
+        positiveInfinity
+    };
+
+    static class_type fpclass(BID_UINT128 *b)
+    {
+        int c = 0;
+        bid128_class(&c, b);
+        return (class_type) c;
+    }
+
+    static class_type fpclass(bid128 &x)
+    {
+        return fpclass(&x.value);
+    }
+
+    static bool is_negative(BID_UINT128 *x)
+    {
+        class_type c = fpclass(x);
+        return c >= negativeInfinity && c <= negativeZero;
+    }
+
+    static bool is_negative(bid128 &x)
+    {
+        return is_negative(&x.value);
+    }
+
+    static bool is_negative_or_zero(BID_UINT128 *x)
+    {
+        class_type c = fpclass(x);
+        return c >= negativeInfinity && c <= positiveZero;
+    }
+
+    static bool is_negative_or_zero(bid128 &x)
+    {
+        return is_negative_or_zero(&x.value);
+    }
+
     OBJECT_HANDLER(decimal128);
     OBJECT_PARSER(decimal128);
     OBJECT_RENDERER(decimal128);
@@ -130,6 +184,9 @@ struct decimal128 : object
 
 typedef const decimal128 *decimal128_p;
 
+// Functions used by arithmetic.h
+void bid128_mod(BID_UINT128 *pres, BID_UINT128 *px, BID_UINT128 *py);
+void bid128_rem(BID_UINT128 *pres, BID_UINT128 *px, BID_UINT128 *py);
 
 // Utlity common to all formats to format a number for display
 void decimal_format(char *out, size_t len);

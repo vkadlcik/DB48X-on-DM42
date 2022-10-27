@@ -103,6 +103,7 @@ CXX_SOURCES +=				\
 	src/symbol.cc			\
 	src/algebraic.cc		\
 	src/arithmetic.cc		\
+	src/functions.cc		\
 	src/font.cc			\
 	fonts/HelpFont.cc		\
 	fonts/EditorFont.cc		\

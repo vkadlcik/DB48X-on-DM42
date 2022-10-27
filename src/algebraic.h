@@ -52,7 +52,16 @@ struct algebraic : command
     // Precedence is the precedence when rendering as equations
     static uint precedence()            { return 1; }
 
-    // Standard object interface
+    // Promotion of integer / fractions to real
+    static bool real_promotion(gcobj &x, object::id type);
+    static id   real_promotion(gcobj &x);
+
+    // Function pointers used by generic evaluation code
+    typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x);
+    typedef void (*bid64_fn) (BID_UINT64  *res, BID_UINT64  *x);
+    typedef void (*bid32_fn) (BID_UINT32  *res, BID_UINT32  *x);
+
+// Standard object interface
     OBJECT_HANDLER_NO_ID(algebraic);
 };
 
@@ -96,7 +105,9 @@ struct derived : algebraic                                              \
 //
 // ============================================================================
 
-ALGEBRAIC_DECLARE(inv, 1, 3);
-ALGEBRAIC_DECLARE(neg, 1, 3);
+ALGEBRAIC_DECLARE(inv,   1, 3);
+ALGEBRAIC_DECLARE(neg,   1, 3);
+ALGEBRAIC_DECLARE(sq,    1, 3);
+ALGEBRAIC_DECLARE(cubed, 1, 3);
 
 #endif // ALGEBRAIC_H

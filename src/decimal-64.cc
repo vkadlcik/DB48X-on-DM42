@@ -424,3 +424,41 @@ OBJECT_RENDERER_BODY(decimal64)
     // And return it to the caller
     return snprintf(r.target, r.length, "%s%s%s", buffer, expbuf, ep);
 }
+
+
+
+// ============================================================================
+//
+//   Arithmetic wrappers
+//
+// ============================================================================
+//   Define mod and rem in a way that matches mathematical definition
+
+void bid64_mod(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py)
+// ----------------------------------------------------------------------------
+//   The fmod function is really a remainder, adjust it for negative input
+// ----------------------------------------------------------------------------
+{
+    int zero = 0;
+    bid64_fmod(pres, px, py);
+    bid64_isZero(&zero, pres);
+    if (!zero)
+    {
+        bool xneg = decimal64::is_negative(px);
+        bool yneg = decimal64::is_negative(py);
+        if (xneg != yneg)
+        {
+            BID_UINT64 tmp = *pres;
+            bid64_add(pres, &tmp, py);
+        }
+    }
+}
+
+
+void bid64_rem(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py)
+// ----------------------------------------------------------------------------
+//   The fmod function is really a remainder, use it as is
+// ----------------------------------------------------------------------------
+{
+    bid64_fmod(pres, px, py);
+}

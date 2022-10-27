@@ -51,6 +51,7 @@ SOURCES +=                                      \
         ../src/symbol.cc                        \
         ../src/algebraic.cc                     \
         ../src/arithmetic.cc                    \
+        ../src/functions.cc                     \
 	../fonts/EditorFont.cc	                \
 	../fonts/HelpFont.cc	                \
 	../fonts/StackFont.cc			\

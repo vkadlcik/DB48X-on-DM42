@@ -981,16 +981,33 @@ void input::load_help(utf8 topic)
                 matching++;
             else
                 matching = level = 0;
-            if (matching == len)
-                break;
+            if (matching == len + 1)
+            {
+                utf8code next = helpfile.peek();
+                if (next == '\n')
+                    break;
+                if (next == ' ')
+                {
+                    // Case of something like ## Evaluate (EVAL)
+                    // We accept to match 'evaluate'
+                    uint pos = helpfile.position();
+                    helpfile.get();
+                    if (helpfile.peek() == '(')
+                    {
+                        helpfile.seek(pos);
+                        break;
+                    }
+                }
+                matching = 0;
+            }
         }
         hadcr = c == '\n';
     }
 
     // Check if we found the topic
-    if (matching == len)
+    if (matching == len + 1)
     {
-        help = helpfile.position() - len - level;
+        help = helpfile.position() - (len+1) - level;
         record(help, "Found topic %s at position %u level %u",
                topic, helpfile.position(), level);
 

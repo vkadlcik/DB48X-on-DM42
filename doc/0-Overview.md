@@ -66,7 +66,9 @@ calculator compared to the HP48:
 * The less-frequently used *Right Shift* functions can be accessed with a
   long-press on _Shift_.
 
-* The _ ▲ _ and _ ▼ _ keys move the cursor left and right while editing.
+* The _ ▲ _ and _ ▼ _ keys move the cursor _left_ and _right_ while editing
+  instead of _up_ and _down_. These cursor movements are much more useful for a
+  text-based program editing as found in RPL.
   Using _Shift_ _ ▲ _ and _Shift_ _ ▼ _ moves the cursor up and down.
   When not editing, _ ▲ _ and _ ▼ _  behave like on the HP48, i.e. _ ▲ _
   enters the *interactive stack* and _ ▼ _ edits the object on the first level

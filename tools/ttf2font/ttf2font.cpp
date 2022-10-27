@@ -566,7 +566,10 @@ void processFont(cstring fontName,
     if (denseSize < sparseSize || verbose)
     {
         fprintf(output,
-                "static const unsigned char %s_dense_data[%zu] =\n"
+                "extern const unsigned char %s_dense_font_data[];\n",
+                fontName);
+        fprintf(output,
+                "const unsigned char %s_dense_font_data[%zu] =\n"
                 "{\n",
                 fontName, denseSize);
 
@@ -575,15 +578,15 @@ void processFont(cstring fontName,
                         b % 16 == 0 ? "\n    " : " ",
                         dense[b]);
             fprintf(output, "\n};\n");
-            fprintf(output,
-                    "const font_p %s = (dense_font_p) %s_dense_data;\n",
-                    fontName, fontName);
     }
 
     if (sparseSize <= denseSize || verbose)
     {
         fprintf(output,
-                "static const unsigned char %s_sparse_data[%zu] =\n"
+                "extern const unsigned char %s_sparse_font_data[];\n",
+                fontName);
+        fprintf(output,
+                "const unsigned char %s_sparse_font_data[%zu] =\n"
                 "{\n",
                 fontName, sparseSize);
 
@@ -592,9 +595,6 @@ void processFont(cstring fontName,
                         b % 16 == 0 ? "\n    " : " ",
                         sparse[b]);
             fprintf(output, "\n};\n");
-            fprintf(output,
-                    "const font_p %s = (sparse_font_p) %s_sparse_data;\n",
-                    fontName, fontName);
     }
 
     fclose(output);

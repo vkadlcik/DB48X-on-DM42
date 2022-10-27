@@ -181,9 +181,14 @@ bool input::key(int key, bool repeating)
     if (RT.error())
     {
         if (key == KEY_EXIT || key == KEY_ENTER || key == KEY_BSP)
+        {
             RT.error(nullptr);
+            RT.command(utf8(nullptr));
+        }
         else if (key)
+        {
             beep(2200, 75);
+        }
         return true;
     }
 

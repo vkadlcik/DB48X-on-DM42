@@ -1432,6 +1432,21 @@ bool input::draw_help()
 }
 
 
+static bool immediate_key(int key)
+// ----------------------------------------------------------------------------
+//   Return true if the key requires immediate action
+// ----------------------------------------------------------------------------
+{
+    return (key < KEY_ENTER ||
+            key == KEY_ADD  ||
+            key == KEY_SUB  ||
+            key == KEY_MUL  ||
+            key == KEY_DIV  ||
+            key == KEY_RUN);
+}
+
+
+
 bool input::handle_help(int &key)
 // ----------------------------------------------------------------------------
 //   Handle help keys when showing help
@@ -1440,7 +1455,9 @@ bool input::handle_help(int &key)
     if (!showingHelp())
     {
         // Exit if we are editing or entering digits
-        if (last == KEY_SHIFT || alpha || RT.editing() ||
+        bool editing = RT.editing();
+        if (last == KEY_SHIFT || alpha ||
+            (editing && !immediate_key(key)) ||
             (shift && (key == KEY_ENTER || key == KEY_4)))
             return false;
 
@@ -1473,12 +1490,15 @@ bool input::handle_help(int &key)
                     return true;
                 }
             }
-            key = 0;
+            if (!editing)
+                key = 0;
         }
         else
         {
-            key = last;
+            if (!editing || immediate_key(last))
+                key = last;
             last = 0;
+            command = nullptr;
         }
 
         // Help keyboard movements only applies when help is shown

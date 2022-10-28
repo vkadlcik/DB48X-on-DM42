@@ -1460,6 +1460,11 @@ bool input::handle_help(int &key)
                     {
                         helpfile.open(HELPFILE_NAME);
                         load_help(htopic);
+                        if (RT.error())
+                        {
+                            key = 0; // Do not execute a function if no help
+                            last = 0;
+                        }
                     }
                     else
                     {

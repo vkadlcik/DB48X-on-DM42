@@ -84,7 +84,7 @@ struct command : object
             }                                                   \
             return DELEGATE(command);                           \
         }                                                       \
-        result evaluate();                                      \
+        static result evaluate();                               \
     }
 
 #define COMMAND_BODY(derived)                   \

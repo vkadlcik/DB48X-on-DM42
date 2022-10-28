@@ -409,7 +409,29 @@ struct object
         return handler[type](rt, op, arg, this, (object_p ) ptr);
     }
 
+    template <typename Obj>
+    static intptr_t run(opcode     op,
+                        void      *arg     = nullptr,
+                        const Obj *obj     = nullptr,
+                        object_p   payload = nullptr,
+                        runtime   &rt      = Obj::RT)
+    // -------------------------------------------------------------------------
+    //   Directly call the object handler for a type (no indirection)
+    // -------------------------------------------------------------------------
+    {
+        record(run, "Direct %+s op %+s", name(Obj::static_type()), name(op));
+        return Obj::object_handler(rt, op, arg, obj, payload);
+    }
 
+    template <typename Obj>
+    static intptr_t run()
+    // -------------------------------------------------------------------------
+    //   Directly call the object evaluate (no indirection)
+    // -------------------------------------------------------------------------
+    {
+        record(run, "Evaluate %+s", name(Obj::static_type()));
+        return Obj::evaluate();
+    }
 
 protected:
 #define OBJECT_PARSER(type)                                             \
@@ -473,6 +495,5 @@ protected:
     static const cstring    opcode_name[NUM_OPCODES];
     static runtime         &RT;
 };
-
 
 #endif // OBJECT_H

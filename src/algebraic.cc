@@ -29,11 +29,13 @@
 
 #include "algebraic.h"
 
+#include "arithmetic.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
+#include "stack-cmds.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -74,9 +76,10 @@ ALGEBRAIC_BODY(inv)
 //   Invert is implemented as 1/x
 // ----------------------------------------------------------------------------
 {
+    using div = struct div;
     RT.push(RT.make<integer>(ID_integer, 1));
-    run(ID_swap);
-    run(ID_div);
+    run<swap>();
+    run<div>();
     return OK;
 }
 
@@ -87,7 +90,7 @@ ALGEBRAIC_BODY(neg)
 // ----------------------------------------------------------------------------
 {
     RT.push(RT.make<integer>(ID_integer, 0));
-    run(ID_swap);
-    run(ID_sub);
+    run<swap>();
+    run<sub>();
     return OK;
 }

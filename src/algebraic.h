@@ -79,7 +79,7 @@ struct derived : algebraic                                              \
         }                                                               \
         return DELEGATE(command);                                       \
     }                                                                   \
-    result evaluate();                                                  \
+    static result evaluate();                                           \
 }
 
 #define ALGEBRAIC_BODY(derived)                 \

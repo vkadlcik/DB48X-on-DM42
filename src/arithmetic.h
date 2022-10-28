@@ -51,7 +51,7 @@ struct arithmetic : algebraic
 
 
 protected:
-    template <typename Op> result evaluate();
+    template <typename Op> static result evaluate();
     // ------------------------------------------------------------------------
     //   The actual evaluation for all binary operators
     // ------------------------------------------------------------------------
@@ -86,7 +86,7 @@ struct derived : arithmetic                                             \
         }                                                               \
         return DELEGATE(arithmetic);                                    \
     }                                                                   \
-    result evaluate()                                                   \
+    static result evaluate()                                            \
     {                                                                   \
         return arithmetic::evaluate<derived>();                         \
     }                                                                   \

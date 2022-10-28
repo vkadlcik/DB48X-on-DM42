@@ -176,7 +176,7 @@ CFLAGS += -Wno-misleading-indentation
 DBGFLAGS = -g
 
 CFLAGS_debug += -O0 -DDEBUG
-CFLAGS_release += -O3
+CFLAGS_release += -O4 -Os
 
 CFLAGS  += $(DBGFLAGS)
 LDFLAGS += $(DBGFLAGS)

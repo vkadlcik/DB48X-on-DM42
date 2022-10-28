@@ -78,6 +78,7 @@ struct runtime
           Globals(),
           Temporaries(),
           Editing(),
+          Scratch(),
           StackTop(),
           StackBottom(),
           Returns(),
@@ -118,7 +119,8 @@ struct runtime
     //   Return the size available for temporaries
     // ------------------------------------------------------------------------
     {
-        return (byte *) StackTop - (byte *) Temporaries - Editing - redzone;
+        size_t aboveTemps = Editing + Scratch + redzone;
+        return (byte *) StackTop - (byte *) Temporaries - aboveTemps;
     }
 
     size_t available(size_t size)
@@ -155,6 +157,10 @@ struct runtime
         Obj *result = (Obj *) Temporaries;
         Temporaries = (object *) ((byte *) Temporaries + size);
 
+        // Move the editor up (available() checked we have room)
+        if (Editing + Scratch)
+            memmove((char *) Temporaries, result, Editing + Scratch);
+
         // Initialize the object in place
         new(result) Obj(args..., type);
 
@@ -176,7 +182,7 @@ struct runtime
 
     // ========================================================================
     //
-    //    Command-line editor (and buffer for renderer)x
+    //    Command-line editor (and buffer for renderer)
     //
     // ========================================================================
 
@@ -203,6 +209,10 @@ struct runtime
             Editing = 0;
             return 0;
         }
+
+        // Copy the scratchpad up (available() ensured we have room)
+        if (Scratch)
+            memmove((char *) Temporaries + len, Temporaries, Scratch);
 
         memcpy((byte *) Temporaries, buffer, len);
         Editing = len;
@@ -246,7 +256,7 @@ struct runtime
         {
             if (available(len) >= len)
             {
-                size_t moved = Editing - offset;
+                size_t moved = Scratch + Editing - offset;
                 memmove(editor() + offset + len, editor() + offset, moved);
                 memcpy(editor() + offset, data, len);
                 Editing += len;
@@ -284,9 +294,123 @@ struct runtime
         if (offset > end)
             offset = end;
         len = end - offset;
-        memmove(editor() + offset, editor() + offset + len, Editing - end);
+        size_t moving = Scratch + Editing - end;
+        byte *ed = editor();
+        memmove(ed + offset, ed + offset + len, moving);
         Editing -= len;
     }
+
+
+
+    // ========================================================================
+    //
+    //   Scratchpad
+    //
+    // ========================================================================
+    //   The scratchpad is a temporary area to store binary data
+    //   It is used for example while building complex or composite objects
+
+    size_t scratchpad()
+    // ------------------------------------------------------------------------
+    //   Return the size of the temporary scratchpad
+    // ------------------------------------------------------------------------
+    {
+        return Scratch;
+    }
+
+    byte *allocate(size_t sz)
+    // ------------------------------------------------------------------------
+    //   Allocate additional bytes at end of scratchpad
+    // ------------------------------------------------------------------------
+    {
+        if (available(sz) >= sz)
+        {
+            byte *scratch = editor() + Editing + Scratch;
+            Scratch += sz;
+            return scratch;
+        }
+
+        // Ran out of memory despite garbage collection
+        return nullptr;
+    }
+
+
+    byte *append(size_t sz, byte *bytes)
+    // ------------------------------------------------------------------------
+    //   Append some bytes at end of scratch pad
+    // ------------------------------------------------------------------------
+    {
+        byte *ptr = allocate(sz);
+        if (ptr)
+            memcpy(ptr, bytes, sz);
+        return ptr;
+    }
+
+
+    template<typename T>
+    byte *append(const T& t)
+    // ------------------------------------------------------------------------
+    //   Append an object to the scratchpad
+    // ------------------------------------------------------------------------
+    {
+        return append(sizeof(t), &t);
+    }
+
+
+    template<typename T, typename ...Args>
+    byte *append(const T& t, Args... args)
+    // ------------------------------------------------------------------------
+    //   Append multiple objects to the scratchpad
+    // ------------------------------------------------------------------------
+    {
+        byte *first = append(t);
+        if (first && append(args...))
+            return first;
+        return nullptr;         // One of the allocations failed
+    }
+
+
+    template <typename Int>
+    byte *encode(Int value)
+    // ------------------------------------------------------------------------
+    //   Add an LEB128-encoded value to the scratchpad
+    // ------------------------------------------------------------------------
+    {
+        size_t sz = leb128size(value);
+        byte *ptr = allocate(sz);
+        if (ptr)
+            leb128(ptr, value);
+        return ptr;
+    }
+
+
+    template <typename Int, typename ...Args>
+    byte *encode(Int value, Args... args)
+    // ------------------------------------------------------------------------
+    //   Add an LEB128-encoded value to the scratchpad
+    // ------------------------------------------------------------------------
+    {
+        size_t sz = leb128size(value);
+        byte *ptr = allocate(sz);
+        if (ptr)
+        {
+            leb128(ptr, value);
+            if (!encode(args...))
+                return nullptr;
+        }
+        return ptr;
+    }
+
+
+    void free()
+    // ------------------------------------------------------------------------
+    //   Free the whole scratchpad
+    // ------------------------------------------------------------------------
+    {
+        Scratch = 0;
+    }
+
+
 
 
 
@@ -601,14 +725,15 @@ protected:
     utf8      ErrorSource;  // Source of the error if known
     utf8      ErrorCommand; // Source of the error if known
     object_p  Code;         // Currently executing code
-    object_p  LowMem;
-    global_p  Globals;
-    object_p  Temporaries;
-    size_t    Editing;
-    object_p *StackTop;
-    object_p *StackBottom;
-    object_p *Returns;
-    object_p  HighMem;
+    object_p  LowMem;       // Bottom of available memory
+    global_p  Globals;      // Global objects
+    object_p  Temporaries;  // Temporaries (must be valid objects)
+    size_t    Editing;      // Text editor (utf8 encoded)
+    size_t    Scratch;      // Scratch pad (may be invalid objects)
+    object_p *StackTop;     // Top of user stack
+    object_p *StackBottom;  // Bottom of user stack
+    object_p *Returns;      // Return stack
+    object_p  HighMem;      // Top of available memory
 
   // Pointers that are GC-adjusted
   gcptr    *GCSafe;

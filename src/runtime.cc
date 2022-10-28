@@ -143,11 +143,11 @@ size_t runtime::gc()
         }
     }
 
-    // Move the command line
-    if (Editing)
+    // Move the command line and scratch buffer
+    if (Editing + Scratch)
     {
         object_p edit = Temporaries;
-        move(edit, edit + Editing, edit - recycled);
+        move(edit, edit + Editing + Scratch, edit - recycled);
     }
 
     // Adjust Temporaries

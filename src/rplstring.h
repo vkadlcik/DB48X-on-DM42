@@ -99,6 +99,12 @@ struct string : object
     OBJECT_RENDERER(string);
 };
 
-typedef const string *string_p;
+typedef const string     *string_p;
+typedef gcp<const string> string_g;
+
+// Some operators on strings
+
+string_g operator+(string_g x, string_g y);
+string_g operator*(string_g x, uint y);
 
 #endif // STRING_H

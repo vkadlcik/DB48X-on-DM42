@@ -105,3 +105,43 @@ OBJECT_RENDERER_BODY(string)
     utf8 txt = text(&len);
     return snprintf(r.target, r.length, "\"%.*s\"", (int) len, txt);
 }
+
+
+string_g operator+(string_g x, string_g y)
+// ----------------------------------------------------------------------------
+//   Concatenate two strings
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = runtime::RT;
+    size_t sx = 0, sy = 0;
+    utf8 tx = x->text(&sx);
+    utf8 ty = y->text(&sy);
+    string_g concat = rt.make<string>(string::ID_string, tx, sx + sy);
+    if (concat)
+    {
+        utf8 tc = concat->text();
+        memcpy((byte *) tc + sx, (byte *) ty, sy);
+    }
+    return concat;
+}
+
+
+string_g operator*(string_g x, uint y)
+// ----------------------------------------------------------------------------
+//    Repeat the string a given number of times
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = runtime::RT;
+    string_g result = rt.make<string>(string::ID_string, x->text(), 0);
+    while (y)
+    {
+        if (y & 1)
+            result = result + x;
+        if (!result)
+            break;
+        y /= 2;
+        if (y)
+            x = x + x;
+    }
+    return result;
+}

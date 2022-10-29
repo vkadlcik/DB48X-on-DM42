@@ -34,6 +34,7 @@
 #include "decimal128.h"
 #include "integer.h"
 #include "runtime.h"
+#include "rplstring.h"
 #include "settings.h"
 
 
@@ -56,8 +57,8 @@ bool arithmetic::real_promotion(gcobj &x, gcobj &y)
 
 
 template<>
-inline bool non_numeric<add>(gcobj &UNUSED x, gcobj &UNUSED y,
-                             object::id &UNUSED xt, object::id &UNUSED yt)
+inline bool non_numeric<add>(gcobj &x, gcobj & y,
+                             object::id &xt, object::id &yt)
 // ----------------------------------------------------------------------------
 //   Deal with non-numerical data types for addition
 // ----------------------------------------------------------------------------
@@ -66,6 +67,14 @@ inline bool non_numeric<add>(gcobj &UNUSED x, gcobj &UNUSED y,
 //   - String + object: Concatenation of string + object text
 //   - Object + string: Concatenation of object text + string
 {
+    if (xt == object::ID_string && yt == object::ID_string)
+    {
+        string_g xs = x->as<string>();
+        string_g ys = y->as<string>();
+        x = object_p(ys + xs);
+        return true;
+    }
+
     // Not yet implemented
     return false;
 }
@@ -172,6 +181,27 @@ inline bool non_numeric<mul>(gcobj &UNUSED x, gcobj &UNUSED y,
 //   - String * integer: Repeat the string
 //   - Integer * string: Repeat the string
 {
+    if (xt == object::ID_string && yt == object::ID_integer)
+    {
+        string_g xs = x->as<string>();
+        integer_p ys = y->as<integer>();
+        uint yn = ys->value<uint>();
+        x = object_p(xs * yn);
+        xt = string::ID_string;
+        return true;
+    }
+
+    if (xt == object::ID_integer && yt == object::ID_string)
+    {
+        integer_p xs = x->as<integer>();
+        uint xn = xs->value<uint>();
+        string_g ys = y->as<string>();
+        x = object_p(ys * xn);
+        xt = string::ID_string;
+        return true;
+    }
+
+
     // Not yet implemented
     return false;
 }
@@ -369,8 +399,9 @@ object::result arithmetic::evaluate(bid128_fn op128,
     runtime &rt = runtime::RT;
 
     /* Integer types */
-    bool ok = false;
-    if (is_integer(xt) && is_integer(yt))
+    bool ok = non_numeric(x, y, xt, yt);
+
+    if (!ok && is_integer(xt) && is_integer(yt))
     {
         /* Perform conversion of integer values to the same base */
         integer *xi = (integer *) (object_p) x;
@@ -425,8 +456,6 @@ object::result arithmetic::evaluate(bid128_fn op128,
             break;
         }
     }
-    if (!ok)
-        ok = non_numeric(x, y, xt, yt);
 
     if (ok)
     {

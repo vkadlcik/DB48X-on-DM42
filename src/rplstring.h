@@ -28,6 +28,15 @@
 //   but WITHOUT ANY WARRANTY; without even the implied warranty of
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
+//
+// Payload format:
+//
+//   The string object is a sequence of bytes containing:
+//   - The type ID (one byte)
+//   - The LEB128-encoded length of the string (one byte in most cases)
+//   - The characters of the string, not null-terminated
+//
+//   On most strings, this format uses 3 bytes less than on the HP48.
 
 #include "object.h"
 #include "runtime.h"

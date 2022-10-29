@@ -94,6 +94,41 @@ input::input()
 {}
 
 
+void input::edit(unicode c, modes m)
+// ----------------------------------------------------------------------------
+//   Begin editing with a given character
+// ----------------------------------------------------------------------------
+{
+    // If already editing, keep current mode
+    if (RT.editing())
+        m = mode;
+
+    byte utf8buf[4];
+    size_t len = utf8_encode(c, utf8buf);
+    cursor += RT.insert(cursor, utf8buf, len);
+
+    // Test delimiters
+    unicode closing = 0;
+    switch(c)
+    {
+    case '(':  closing = ')';  m = ALGEBRAIC; break;
+    case '[':  closing = ']';  m = MATRIX;    break;
+    case '{':  closing = '}';  m = PROGRAM;   break;
+    case ':':  closing = ':';  m = DIRECT;    break;
+    case '"':  closing = '"';  m = TEXT;      break;
+    case '\'': closing = '\''; m = ALGEBRAIC; break;
+    case L'«': closing = L'»'; m = PROGRAM;   break;
+    }
+    if (closing)
+    {
+        len = utf8_encode(closing, utf8buf);
+        RT.insert(cursor, utf8buf, len);
+    }
+
+    mode = m;
+}
+
+
 bool input::end_edit()
 // ----------------------------------------------------------------------------
 //   Clear the editor
@@ -176,6 +211,8 @@ bool input::key(int key, bool repeating)
 //   Process an input key
 // ----------------------------------------------------------------------------
 {
+    int skey = key;
+
     longpress = key && repeating;
     record(input, "Key %d shifts %d longpress", key, shift_plane(), longpress);
     repeat = false;
@@ -225,7 +262,7 @@ bool input::key(int key, bool repeating)
         key == 0;
 
 
-    if (!key && last != KEY_SHIFT)
+    if (!skey && last != KEY_SHIFT)
     {
         shift = false;
         xshift = false;
@@ -684,11 +721,11 @@ int input::draw_cursor(uint time, uint &period)
 
     if (blink)
     {
-        unicode cursorChar = mode == DIRECT    ? 'd'
-                            : mode == TEXT      ? (lowercase ? 'l' : 'c')
-                            : mode == PROGRAM   ? 'p'
-                            : mode == ALGEBRAIC ? 'a'
-                            : mode == MATRIX    ? 'm'
+        unicode cursorChar = mode == DIRECT    ? 'D'
+                            : mode == TEXT      ? (lowercase ? 'L' : 'C')
+                            : mode == PROGRAM   ? 'P'
+                            : mode == ALGEBRAIC ? 'A'
+                            : mode == MATRIX    ? 'M'
                                                 : 'x';
         size     csrh       = CursorFont->height();
         size csrw = CursorFont->width(cursorChar);
@@ -1650,6 +1687,35 @@ bool input::handle_editing(int key)
     bool   consumed = false;
     size_t editing  = RT.editing();
 
+    // Some editing keys that do not depend on data entry mode
+    if (!alpha)
+    {
+        switch(key)
+        {
+        case KEY_XEQ:
+            if (!shift && !xshift)
+            {
+                edit('\'', ALGEBRAIC);
+                alpha = true;
+                return true;
+            }
+            else if (xshift)
+            {
+                edit('{', PROGRAM);
+                return true;
+            }
+            break;
+        case KEY_RUN:
+            if (shift)
+            {
+                edit(L'«', PROGRAM);
+                alpha = true;
+                return true;
+            }
+            break;
+        }
+    }
+
     if (editing)
     {
         record(input, "Editing key %d", key);
@@ -1780,9 +1846,16 @@ bool input::handle_editing(int key)
         case KEY_DOWN:
             // Key down to edit last object on stack
             if (!shift && !xshift && !alpha)
+            {
                 if (RT.depth())
+                {
                     if (object_p obj = RT.pop())
+                    {
                         obj->edit();
+                        return true;
+                    }
+                }
+            }
             break;
         }
     }
@@ -1885,30 +1958,7 @@ bool input::handle_alpha(int key)
         shift     ? shifted[key]  :
         lowercase ? lower[key]    :
         upper[key];
-    byte utf8buf[4];
-    size_t len = utf8_encode(c, utf8buf);
-    record(input, "Codepoint %u reads as %u, length %u: %02X %02X %02X %02X",
-           c, utf8_codepoint(utf8buf), len,
-           utf8buf[0], utf8buf[1], utf8buf[2], utf8buf[3]);
-    cursor += RT.insert(cursor, utf8buf, len);
-
-    // Test delimiters
-    unicode closing = 0;
-    switch(c)
-    {
-    case '(':  closing = ')'; break;
-    case '[':  closing = ']'; break;
-    case '{':  closing = '}'; break;
-    case ':':  closing = ':'; break;
-    case '"':  closing = '"'; break;
-    case '\'': closing = '\''; break;
-    case L'«': closing = L'»'; break;
-    }
-    if (closing)
-    {
-        len = utf8_encode(closing, utf8buf);
-        RT.insert(cursor, utf8buf, len);
-    }
+    edit(c, TEXT);
     repeat = true;
     return true;
 }
@@ -1978,7 +2028,7 @@ bool input::handle_digits(int key)
             c = Settings.decimalDot;
         if (c == '4' && shift)
             c = '#';
-        cursor += RT.insert(cursor, c);
+        edit(c, DIRECT);
         repeat = true;
         return true;
     }

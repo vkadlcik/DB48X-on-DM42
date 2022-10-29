@@ -95,6 +95,7 @@ struct input
     uint        shift_plane()   { return xshift ? 2 : shift ? 1 : 0; }
     void        clear_help();
     object_p    object_for_key(int key);
+    void        edit(unicode c, modes m);
     bool        end_edit();
     void        clear_editor();
     void        load_help(utf8 topic);
@@ -106,10 +107,6 @@ protected:
     bool        handle_alpha(int key);
     bool        handle_functions(int key);
     bool        handle_digits(int key);
-
-    bool        handle_enter(int key);
-    bool        handle_backspace(int key);
-
 
 protected:
     typedef graphics::coord     coord;

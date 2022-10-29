@@ -119,7 +119,7 @@ inline utf8 utf8_next(utf8 text)
 }
 
 
-inline utf8code utf8_codepoint(utf8 text, uint position, size_t len = 0)
+inline unicode utf8_codepoint(utf8 text, uint position, size_t len = 0)
 // ----------------------------------------------------------------------------
 //   Return the Unicode value for the character at the given position
 // ----------------------------------------------------------------------------
@@ -127,7 +127,7 @@ inline utf8code utf8_codepoint(utf8 text, uint position, size_t len = 0)
     if (!len && text[len])
         len = strlen(cstring(text));
 
-    utf8code code = 0;
+    unicode code = 0;
     if (position < len)
     {
         code = text[position];
@@ -152,12 +152,12 @@ inline utf8code utf8_codepoint(utf8 text, uint position, size_t len = 0)
 }
 
 
-inline utf8code utf8_codepoint(utf8 text)
+inline unicode utf8_codepoint(utf8 text)
 // ----------------------------------------------------------------------------
 //   Return the Unicode value for the character at the given position
 // ----------------------------------------------------------------------------
 {
-    utf8code code = *text;
+    unicode code = *text;
     if (code & 0x80)
     {
         // Reference: Wikipedia UTF-8 description
@@ -178,7 +178,7 @@ inline utf8code utf8_codepoint(utf8 text)
 }
 
 
-inline size_t utf8_encode(utf8code cp, byte buffer[4])
+inline size_t utf8_encode(unicode cp, byte buffer[4])
 // ----------------------------------------------------------------------------
 //   Encode the code point into the buffer, return number of bytes needed
 // ----------------------------------------------------------------------------

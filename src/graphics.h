@@ -406,7 +406,7 @@ struct graphics
         }
 
         template<clipping Clip = CLIP_DST>
-        coord glyph(coord x, coord y, utf8code codepoint, const font *f,
+        coord glyph(coord x, coord y, unicode codepoint, const font *f,
                     pattern colors = pattern::black,
                     blitop op = blitop_mono_fg<Mode>);
         // --------------------------------------------------------------------
@@ -414,7 +414,7 @@ struct graphics
         // --------------------------------------------------------------------
 
         template<clipping Clip = CLIP_DST>
-        coord glyph(coord x, coord y, utf8code codepoint, const font *f,
+        coord glyph(coord x, coord y, unicode codepoint, const font *f,
                     pattern fg, pattern bg);
         // --------------------------------------------------------------------
         //   Draw a glyph with a foreground and background
@@ -1247,7 +1247,7 @@ template <graphics::mode Mode>
 template <graphics::clipping Clip>
 graphics::coord graphics::surface<Mode>::glyph(coord       x,
                                                coord       y,
-                                               utf8code    codepoint,
+                                               unicode    codepoint,
                                                const font *f,
                                                pattern     colors,
                                                blitop      op)
@@ -1276,7 +1276,7 @@ template <graphics::mode Mode>
 template <graphics::clipping Clip>
 graphics::coord graphics::surface<Mode>::glyph(coord       x,
                                                coord       y,
-                                               utf8code    codepoint,
+                                               unicode    codepoint,
                                                const font *f,
                                                pattern     fg,
                                                pattern     bg)
@@ -1316,7 +1316,7 @@ graphics::coord graphics::surface<Mode>::text(coord       x,
 {
     while (*text)
     {
-        utf8code cp = utf8_codepoint(text);
+        unicode cp = utf8_codepoint(text);
         text = utf8_next(text);
         x = glyph<Clip>(x, y, cp, f, colors, op);
     }
@@ -1338,7 +1338,7 @@ graphics::coord graphics::surface<Mode>::text(coord       x,
 {
     while (*text)
     {
-        utf8code cp = utf8_codepoint(text);
+        unicode cp = utf8_codepoint(text);
         text = utf8_next(text);
         x = glyph<Clip>(x, y, cp, f, fg, bg);
     }

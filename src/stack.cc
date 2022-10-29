@@ -109,7 +109,7 @@ void stack::draw_stack()
         w = StackFont->width(utf8(buf));
         if (w > avail)
         {
-            utf8code sep   = L'…';
+            unicode sep   = L'…';
             coord    skip  = StackFont->width(sep) + w - avail;
             coord    sskip = skip;
             coord    x     = LCD_W - avail;

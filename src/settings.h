@@ -94,7 +94,7 @@ public:
     uint16_t displayed;    // Number of displayed digits
     display  display_mode; // Display mode
     char     decimalDot;   // Character used for decimal separator
-    utf8code exponentChar; // The character used to represent exponents
+    unicode exponentChar; // The character used to represent exponents
     angles   angle_mode;   // Whether we compute in degrees, radians or grads
     uint8_t  base;         // The default base for #numbers
     commands command_fmt;  // How we prefer to display commands

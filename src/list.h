@@ -67,9 +67,9 @@ struct list : string
 protected:
     // Shared code for parsing and rendering, taking delimiters as input
     intptr_t object_renderer(renderer &r, runtime &rt,
-                             utf8code open, utf8code close) const;
+                             unicode open, unicode close) const;
     static result object_parser(parser UNUSED &p, runtime &rt,
-                                utf8code open, utf8code close);
+                                unicode open, unicode close);
 
 };
 

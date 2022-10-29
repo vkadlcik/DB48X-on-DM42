@@ -76,8 +76,8 @@ OBJECT_HANDLER_BODY(list)
 
 object::result list::object_parser(parser  &p,
                                    runtime &rt,
-                                   utf8code open,
-                                   utf8code close)
+                                   unicode open,
+                                   unicode close)
 // ----------------------------------------------------------------------------
 //   Generic parser for sequences (list, program, etc)
 // ----------------------------------------------------------------------------
@@ -90,7 +90,7 @@ object::result list::object_parser(parser  &p,
     gcutf8 s = p.source;
 
     // Check if we have the opening marker
-    utf8code cp = utf8_codepoint(s);
+    unicode cp = utf8_codepoint(s);
     if (cp != open)
         return SKIP;
     s = utf8_next(s);
@@ -158,7 +158,7 @@ OBJECT_PARSER_BODY(list)
 
 
 intptr_t list::object_renderer(renderer &r, runtime &rt,
-                               utf8code open, utf8code close) const
+                               unicode open, unicode close) const
 // ----------------------------------------------------------------------------
 //   Render the list into the given buffer
 // ----------------------------------------------------------------------------

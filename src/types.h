@@ -48,7 +48,7 @@ typedef uint64_t           ularge;
 typedef int64_t            large;
 typedef const char        *cstring;
 typedef const byte        *utf8;
-typedef unsigned           utf8code;
+typedef unsigned           unicode;
 
 // Indicate that an argument may be unused
 #define UNUSED          __attribute__((unused))

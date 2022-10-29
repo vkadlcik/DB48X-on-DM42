@@ -290,7 +290,7 @@ font::fuint sparse_font::height()
 }
 
 
-bool sparse_font::glyph(utf8code codepoint, glyph_info &g) const
+bool sparse_font::glyph(unicode codepoint, glyph_info &g) const
 // ----------------------------------------------------------------------------
 //   Return the bitmap address and update coordinate info for a sparse font
 // ----------------------------------------------------------------------------
@@ -388,7 +388,7 @@ font::fuint dense_font::height()
 }
 
 
-bool dense_font::glyph(utf8code codepoint, glyph_info &g) const
+bool dense_font::glyph(unicode codepoint, glyph_info &g) const
 // ----------------------------------------------------------------------------
 //   Return the bitmap address and update coordinate info for a dense font
 // ----------------------------------------------------------------------------
@@ -475,7 +475,7 @@ font::fuint dmcp_font::height()
 }
 
 
-bool dmcp_font::glyph(utf8code utf8cp, glyph_info &g) const
+bool dmcp_font::glyph(unicode utf8cp, glyph_info &g) const
 // ----------------------------------------------------------------------------
 //   Return the bitmap address and update coordinate info for a DMCP font
 // ----------------------------------------------------------------------------
@@ -513,7 +513,7 @@ bool dmcp_font::glyph(utf8code utf8cp, glyph_info &g) const
 {
     // Map Unicode code points to corresonding entry in DMCP charset
     byte_p synthesized = nullptr;
-    utf8code codepoint = utf8cp;
+    unicode codepoint = utf8cp;
     switch(codepoint)
     {
     case L'÷': codepoint = 0x80; break;

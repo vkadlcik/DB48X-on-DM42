@@ -128,7 +128,7 @@ protected:
     int      last;          // Last key
     int      stack;         // Vertical bottom of the stack
     coord    cx, cy;        // Cursor position on screen
-    utf8code cchar;         // Character under the cursor
+    unicode cchar;         // Character under the cursor
     bool     shift     : 1; // Normal shift active
     bool     xshift    : 1; // Extended shift active (simulate Right)
     bool     alpha     : 1; // Alpha mode active
@@ -162,13 +162,13 @@ protected:
         void     open(cstring path);
         bool     valid();
         void     close();
-        utf8code get();
-        utf8code get(uint offset);
+        unicode get();
+        unicode get(uint offset);
         void     seek(uint offset);
-        utf8code peek();
+        unicode peek();
         uint     position();
-        uint     find(utf8code cp);
-        uint     rfind(utf8code cp);
+        uint     find(unicode cp);
+        uint     rfind(unicode cp);
 
     protected:
 #ifdef SIMULATOR

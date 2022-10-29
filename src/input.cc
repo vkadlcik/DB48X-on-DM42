@@ -521,7 +521,7 @@ void input::draw_editor()
         else
         {
             column++;
-            utf8code cp = utf8_codepoint(p);
+            unicode cp = utf8_codepoint(p);
             cwidth += font->width(cp);
         }
     }
@@ -619,7 +619,7 @@ void input::draw_editor()
     while (r < rows && display <= last)
     {
         bool atCursor = display == ed + cursor;
-        utf8code c = utf8_codepoint(display);
+        unicode c = utf8_codepoint(display);
         display = utf8_next(display);
         if (atCursor)
         {
@@ -684,7 +684,7 @@ int input::draw_cursor(uint time, uint &period)
 
     if (blink)
     {
-        utf8code cursorChar = mode == DIRECT    ? 'd'
+        unicode cursorChar = mode == DIRECT    ? 'd'
                             : mode == TEXT      ? (lowercase ? 'l' : 'c')
                             : mode == PROGRAM   ? 'p'
                             : mode == ALGEBRAIC ? 'a'
@@ -840,13 +840,13 @@ static inline int fgetc(FIL &f)
 #endif // SIMULATOR
 
 
-utf8code input::file::get()
+unicode input::file::get()
 // ----------------------------------------------------------------------------
 //   Read UTF8 code at offset
 // ----------------------------------------------------------------------------
 {
-    utf8code code = valid() ? fgetc(data) : utf8code(EOF);
-    if (code == utf8code(EOF))
+    unicode code = valid() ? fgetc(data) : unicode(EOF);
+    if (code == unicode(EOF))
         return 0;
 
     if (code & 0x80)
@@ -878,19 +878,19 @@ inline void input::file::seek(uint off)
 }
 
 
-inline utf8code input::file::peek()
+inline unicode input::file::peek()
 // ----------------------------------------------------------------------------
 //    Look at what is as current position without moving it
 // ----------------------------------------------------------------------------
 {
     uint off = ftell(data);
-    utf8code result = get();
+    unicode result = get();
     seek(off);
     return result;
 }
 
 
-inline utf8code input::file::get(uint off)
+inline unicode input::file::get(uint off)
 // ----------------------------------------------------------------------------
 //    Get code point at given offset
 // ----------------------------------------------------------------------------
@@ -909,13 +909,13 @@ inline uint input::file::position()
 }
 
 
-inline uint input::file::find(utf8code cp)
+inline uint input::file::find(unicode cp)
 // ----------------------------------------------------------------------------
 //    Find a given code point in file looking forward
 // ----------------------------------------------------------------------------
 //    Return position right before code point, position file right after it
 {
-    utf8code c;
+    unicode c;
     uint off;
     do
     {
@@ -926,14 +926,14 @@ inline uint input::file::find(utf8code cp)
 }
 
 
-inline uint input::file::rfind(utf8code cp)
+inline uint input::file::rfind(unicode cp)
 // ----------------------------------------------------------------------------
 //    Find a given code point in file looking backward
 // ----------------------------------------------------------------------------
 //    Return position right before code point, position file right after it
 {
     uint     off = ftell(data);
-    utf8code c;
+    unicode c;
     do
     {
         if (off == 0)
@@ -970,7 +970,7 @@ void input::load_help(utf8 topic)
     uint level    = 0;
     bool hadcr    = true;
     helpfile.seek(0);
-    for (utf8code c = helpfile.get(); c; c = helpfile.get())
+    for (unicode c = helpfile.get(); c; c = helpfile.get())
     {
         if (((hadcr || matching) && c == '#') || (c == ' ' && matching == 1))
         {
@@ -987,7 +987,7 @@ void input::load_help(utf8 topic)
                 matching = level = 0;
             if (matching == len + 1)
             {
-                utf8code next = helpfile.peek();
+                unicode next = helpfile.peek();
                 if (next == '\n')
                     break;
                 if (next == ' ')
@@ -1074,7 +1074,7 @@ enum style_name
 static coord draw_word(coord    x,
                        coord    y,
                        size_t   sz,
-                       utf8code word[],
+                       unicode word[],
                        font_p   font,
                        pattern  color)
 // ----------------------------------------------------------------------------
@@ -1146,7 +1146,7 @@ bool input::draw_help()
     coord    height    = font->height();
     coord    x         = xleft;
     coord    y         = ytop + 2 - line * height;
-    utf8code last      = '\n';
+    unicode last      = '\n';
     uint     lastTopic = 0;
     uint     shown     = 0;
 
@@ -1156,7 +1156,7 @@ bool input::draw_help()
     // Display until end of help
     while (y < ybot)
     {
-        utf8code   word[60];
+        unicode   word[60];
         uint       widx    = 0;
         bool       emit    = false;
         bool       newline = false;
@@ -1167,7 +1167,7 @@ bool input::draw_help()
 
         while (!emit)
         {
-            utf8code ch      = helpfile.get();
+            unicode ch      = helpfile.get();
             bool     skip    = false;
 
             switch (ch)
@@ -1196,8 +1196,8 @@ bool input::draw_help()
                 else
                 {
                     uint off = helpfile.position();
-                    utf8code nx = helpfile.get();
-                    utf8code nnx = helpfile.get();
+                    unicode nx = helpfile.get();
+                    unicode nnx = helpfile.get();
                     if (nx == '#' || (nx == '*' && nnx == ' '))
                     {
                         newline = true;
@@ -1295,7 +1295,7 @@ bool input::draw_help()
             case ']':
                 if (style == TOPIC || style == HIGHLIGHTED_TOPIC)
                 {
-                    utf8code n = helpfile.get();
+                    unicode n = helpfile.get();
                     if (n != '(')
                     {
                         ch = n;
@@ -1855,7 +1855,7 @@ bool input::handle_alpha(int key)
 #define UPTRI      "\xA1"  // Up triangle
 #define FREE       "@"
 
-    static const utf8code shifted[] =
+    static const unicode shifted[] =
     {
         L'Σ', '^', L'√', '(', '[', '{',
         L'▶', '%', L'π', '<', '=', '>',
@@ -1867,7 +1867,7 @@ bool input::handle_alpha(int key)
         '.', '.', '.', '.', '.', '.'
     };
 
-    static const  utf8code xshifted[] =
+    static const  unicode xshifted[] =
     {
         L'∫', L'↑', L'∜', L'μ', L'∡', L'°',
         L'←', L'→', L'↓', L'≤', L'≠', L'≥',
@@ -1880,7 +1880,7 @@ bool input::handle_alpha(int key)
     };
 
     key--;
-    utf8code c =
+    unicode c =
         xshift    ? xshifted[key] :
         shift     ? shifted[key]  :
         lowercase ? lower[key]    :
@@ -1893,7 +1893,7 @@ bool input::handle_alpha(int key)
     cursor += RT.insert(cursor, utf8buf, len);
 
     // Test delimiters
-    utf8code closing = 0;
+    unicode closing = 0;
     switch(c)
     {
     case '(':  closing = ')'; break;
@@ -1939,12 +1939,12 @@ bool input::handle_digits(int key)
             // Special case for change of sign
             byte *ed = RT.editor();
             utf8 p  = ed + cursor;
-            utf8code c = 0;
+            unicode c = 0;
             while (p > ed)
             {
                 p = utf8_previous(p);
                 c = utf8_codepoint(p);
-                if ((c < '0' || c > '9') && c != (utf8code) Settings.decimalDot)
+                if ((c < '0' || c > '9') && c != (unicode) Settings.decimalDot)
                     break;
             }
 

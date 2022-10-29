@@ -27,6 +27,18 @@
 //   but WITHOUT ANY WARRANTY; without even the implied warranty of
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
+//
+// Payload format:
+//
+//   The symbol object is a sequence of bytes containing:
+//   - The type ID (one byte)
+//   - The LEB128-encoded length of the name (one byte in most cases)
+//   - The characters of the name, not null-terminated
+//
+//   On most strings, this format uses 3 bytes less than on the HP48.
+//   This representation allows arbitrary symbol names, including names with
+//   weird UTF-8 symbols in them, such as ΣDATA or ∱√π²≄∞
+//
 
 #include "object.h"
 #include "runtime.h"

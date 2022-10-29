@@ -29,21 +29,68 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 //
-//  RPL objects are encoded using sequence of LEB128 values
-//  An LEB128 value is a variable-length encoding with 7 bits per byte,
-//  the last byte having its high bit clear. This, values 0-127 are coded
-//  as 0-127, values up to 16384 are coded on two bytes, and so on.
+// Object encoding:
 //
-//  The reason for this encoding is that the DM42 is very memory-starved
-//  (~70K available to DMCP programs), so chances of a size exceeding 2 bytes
-//  are exceedingly rare. We can also use the lowest opcodes for the most
-//  frequently used features, ensuring that 128 of them can be encoded on one
-//  byte only. Similarly, all constants less than 128 can be encoded in two
-//  bytes only (one for the opcode, one for the value), and all constants less
-//  than 16384 are encoded on three bytes.
+//    RPL objects are encoded using sequence of LEB128 values
+//    An LEB128 value is a variable-length encoding with 7 bits per byte,
+//    the last byte having its high bit clear. This, values 0-127 are coded
+//    as 0-127, values up to 16384 are coded on two bytes, and so on.
 //
-//  The opcode is an index in an object-handler table, so they act either as
-//  commands or as types
+//    All objects begin with an "identifier" (the type is called id in the code)
+//    which uniquely defines the type of the object. Identifiers are defined in
+//    the source file called ids.tbl.
+//
+//    For commands, the object type is all there is to the object. Therefore,
+//    most RPL commands consume only one byte in memory. For other objects,
+//    there is a "payload" following that identifier. The format of the paylaod
+//    is described in the source file for the corresponding object type, but a
+//    general guiding principle is that the payload must make it easy to skip
+//    the object in memory, notably during garbage collection.
+//
+// Object handler:
+//
+//    The type of the object is an index in an object-handler table, so they act
+//    either as commands (performing an action when evaluated) or as data types
+//    (putting themselves on the runtime stack when evaluated).
+//
+//    All handlers must respond to a fixed number of "opcodes", whcih are
+//    defined in rpl-opcodes.tbl. Key opcodes include:
+//
+//    - EVAL:   Evaluates the object
+//    - SIZE:   Compute the size of the object
+//    - PARSE:  Try to parse an object of the type (see note)
+//    - RENDER: Render an object as text
+//    - HELP:   Return the name of the help topic associated to the object
+//
+//    Note: PARSE is the only opcode that does not take an object as input
+//
+//
+// Rationale:
+//
+//    The reason for this design is that the DM42 is very memory-starved
+//    (~70K available to DMCP programs), so the focus is on a format for objects
+//    that is extremely compact.
+//
+//    Notably, for size encoding, with only 70K available, the chances of a size
+//    exceeding 2 bytes (16384) are exceedingly rare.
+//
+//    We can also use the lowest opcodes for the most frequently used features,
+//    ensuring that 128 of them can be encoded on one byte only. Similarly, all
+//    constants less than 128 can be encoded in two bytes only (one for the
+//    opcode, one for the value), and all constants less than 16384 are encoded
+//    on three bytes.
+//
+//    Similarly, the design of RPL calls for a garbage collector.
+//    The format of objects defined above ensures that all objects are moveable.
+//    The garbage collector can therefore be "compacting", moving all live
+//    objects at the beginning of memory. This in turns means that each garbage
+//    collection cycle gives us a large amount of contiguous memory, but more
+//    importantly, that the allocation of new objects is extremely simple, and
+//    therefore quite fast.
+//
+//    The downside is that we can't really use the C++ built-in dyanmic dispatch
+//    mechanism (virtual functions), as having a pointer to a vtable would
+//    increase the size of the object too much.
 
 
 #include "types.h"

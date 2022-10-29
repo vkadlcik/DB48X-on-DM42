@@ -76,7 +76,7 @@ void stack::draw_stack()
     uint  depth      = RT.depth();
     uint  digits     = countDigits(depth);
     coord hdrx       = StackFont->width('0') * digits + 2;
-    size  avail      = LCD_W - hdrx - 10;
+    size  avail      = LCD_W - hdrx - 5;
 
     Screen.fill(0, top, LCD_W, bottom - 1, pattern::white);
     if (!depth)
@@ -110,48 +110,19 @@ void stack::draw_stack()
         if (w > avail)
         {
             unicode sep   = L'…';
-            coord    skip  = StackFont->width(sep) + w - avail;
-            coord    sskip = skip;
-            coord    x     = LCD_W - avail;
-            coord    split = 200;
-            utf8     p     = utf8(buf);
+            coord   x     = hdrx + 5;
+            coord   yb    = y + lineHeight;
+            coord   split = 200;
+            coord   skip  = StackFont->width(sep);
+            rect    clip  = Screen.clip();
 
-            while (*p && x < split)
-            {
-                x += StackFont->width(utf8_codepoint(p));
-                p = utf8_next(p);
-            }
-            x += StackFont->width(sep);
-            while (*p && skip >= 0)
-            {
-                skip -= StackFont->width(utf8_codepoint(p));
-                p = utf8_next(p);
-            }
-            while (*p)
-            {
-                x += StackFont->width(utf8_codepoint(p));
-                p = utf8_next(p);
-            }
-            x = 2 * LCD_W - avail - x;
-            p = utf8(buf);
-            skip = sskip;
-
-            while (*p && x < split)
-            {
-                x = Screen.glyph(x, y, utf8_codepoint(p), StackFont);
-                p = utf8_next(p);
-            }
-            x = Screen.glyph(x, y, sep, StackFont, pattern::gray50);
-            while (*p && skip >= 0)
-            {
-                skip -= StackFont->width(utf8_codepoint(p));
-                p = utf8_next(p);
-            }
-            while (*p)
-            {
-                x = Screen.glyph(x, y, utf8_codepoint(p), StackFont);
-                p = utf8_next(p);
-            }
+            Screen.clip(x, y, split, yb);
+            Screen.text(x, y, utf8(buf), StackFont);
+            Screen.clip(split, y, split + skip, yb);
+            Screen.glyph(split, y, sep, StackFont, pattern::gray50);
+            Screen.clip(split+skip, y, LCD_W, yb);
+            Screen.text(LCD_W - w, y, utf8(buf), StackFont);
+            Screen.clip(clip);
         }
         else
         {

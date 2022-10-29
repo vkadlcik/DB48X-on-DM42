@@ -87,16 +87,20 @@ OBJECT_PARSER_BODY(command)
         if (len <= maxlen && strncasecmp(ref, cmd, len) == 0)
             found = id(i);
     }
-    if (cstring cmd = (cstring) object::name(i))
+    if (!found)
     {
-        len = strlen(cmd);
+        if (cstring cmd = (cstring) object::name(i))
+        {
+            len = strlen(cmd);
         if (len <= maxlen && strncasecmp(ref, cmd, len) == 0)
             found = id(i);
+        }
+
     }
 
     record(command,
-           "Parsing [%s] with id %u %+s (%+s), found %u",
-           ref, i, object::name(i), object::fancy(i), found);
+           "Parsing [%s] with id %u %+s (%+s), found %u len %u",
+           ref, i, object::name(i), object::fancy(i), found, len);
 
     if (!found)
         return SKIP;

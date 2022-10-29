@@ -57,7 +57,7 @@ OBJECT_HANDLER_BODY(decimal128)
     case EVAL:
         // Decimal128 values evaluate as self
         rt.push(obj);
-        return 0;
+        return OK;
     case SIZE:
         return ptrdiff(payload, obj) + sizeof(bid128);
     case PARSE:

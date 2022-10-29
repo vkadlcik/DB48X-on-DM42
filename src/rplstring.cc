@@ -28,10 +28,11 @@
 // ****************************************************************************
 
 #include "rplstring.h"
+
 #include "parser.h"
 #include "renderer.h"
-
 #include "runtime.h"
+
 #include <stdio.h>
 
 
@@ -45,7 +46,7 @@ OBJECT_HANDLER_BODY(string)
     case EVAL:
         // String values evaluate as self
         rt.push(obj);
-        return 0;
+        return OK;
     case SIZE:
     {
         byte *p = (byte *) payload;
@@ -79,9 +80,11 @@ OBJECT_PARSER_BODY(string)
     if (*s++ != '"')
         return SKIP;
 
-    while (*s && *s++ != '"');
+    utf8 end = source + p.length;
+    while (s < end && *s != '"')
+        s++;
 
-    if (s[-1] != '"')
+    if (*s != '"')
     {
         rt.error("Invalid string", s);
         return ERROR;

@@ -401,12 +401,15 @@ struct runtime
     }
 
 
-    void free()
+    void free(size_t size)
     // ------------------------------------------------------------------------
     //   Free the whole scratchpad
     // ------------------------------------------------------------------------
     {
-        Scratch = 0;
+        if (Scratch >= size)
+            Scratch -= size;
+        else
+            Scratch = 0;
     }
 
 

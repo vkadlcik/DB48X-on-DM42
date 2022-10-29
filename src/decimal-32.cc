@@ -57,7 +57,7 @@ OBJECT_HANDLER_BODY(decimal32)
     case EVAL:
         // Decimal32 values evaluate as self
         rt.push(obj);
-        return 0;
+        return OK;
     case SIZE:
         return ptrdiff(payload, obj) + sizeof(bid32);
     case PARSE:

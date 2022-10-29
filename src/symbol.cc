@@ -48,7 +48,7 @@ OBJECT_HANDLER_BODY(symbol)
     case EVAL:
         // TODO: Symbols are looked up, and if not found, evaluate as self
         rt.push(obj);
-        return 0;
+        return OK;
     case SIZE:
     {
         byte *p = (byte *) payload;
@@ -89,16 +89,9 @@ OBJECT_PARSER_BODY(symbol)
     if (!isalpha(*s++))
         return SKIP;
 
-    // Other characters must be
+    // Other characters must be alphabetic
     while (*s && isalnum(*s))
         s++;
-
-    // This must end with a space or end of command
-    if (*s && !isspace(*s))
-    {
-        rt.error("Name syntax error", s);
-        return ERROR;
-    }
 
     size_t parsed = s - source;
     gcutf8 text   = source;

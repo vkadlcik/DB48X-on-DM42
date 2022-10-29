@@ -52,6 +52,7 @@ SOURCES +=                                      \
         ../src/algebraic.cc                     \
         ../src/arithmetic.cc                    \
         ../src/functions.cc                     \
+        ../src/list.cc                          \
 	../fonts/EditorFont.cc	                \
 	../fonts/HelpFont.cc	                \
 	../fonts/StackFont.cc			\

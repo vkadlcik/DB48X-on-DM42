@@ -37,6 +37,7 @@
 #include "font.h"
 #include "functions.h"
 #include "integer.h"
+#include "list.h"
 #include "parser.h"
 #include "renderer.h"
 #include "rplstring.h"
@@ -115,7 +116,16 @@ object_p object::parse(utf8 source, size_t &size, runtime &rt)
 //  Try parsing the object as a top-level temporary
 // ----------------------------------------------------------------------------
 {
-    record(parse, ">Parsing [%s]", source);
+    record(parse, ">Parsing [%s] %u IDs to try", source, NUM_IDS);
+
+    // Skip spaces and newlines
+    size_t skipped = 0;
+    while (*source == ' ' || *source == '\n')
+    {
+        source++;
+        skipped++;
+    }
+
     parser p(source, size);
     result r   = SKIP;
     utf8   err = nullptr;
@@ -140,7 +150,7 @@ object_p object::parse(utf8 source, size_t &size, runtime &rt)
     }
 
     record(parse, "<Done parsing [%s], end is at %d", source, p.end);
-    size = p.end;
+    size = p.end + skipped;
 
     if (r == SKIP)
     {
@@ -186,6 +196,7 @@ cstring object::render(bool editing, runtime &rt) const
     return allocated;
 }
 
+
 cstring object::edit(runtime &rt) const
 // ----------------------------------------------------------------------------
 //   Render an object into the scratchpad, then move it into editor
@@ -209,7 +220,7 @@ OBJECT_HANDLER_BODY(object)
     {
     case EVAL:
         rt.error("Invalid object");
-        return -1;
+        return ERROR;
     case SIZE:
         return payload - obj;
     case PARSE:

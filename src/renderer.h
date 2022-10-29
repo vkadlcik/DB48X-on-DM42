@@ -41,8 +41,8 @@ struct renderer
         : what(what), target(target), length(length) {}
 
     gcobj       what;           // Object being rendered
-    gcmstring   target;         // Output where we render the object
-    size_t      length;         // Length of the target
+    gcmstring   target;         // Buffer where we render the object
+    size_t      length;         // Available space
 };
 
 

@@ -165,6 +165,41 @@ size_t object::render(char *output, size_t length, runtime &rt) const
 }
 
 
+cstring object::render(runtime &rt) const
+// ----------------------------------------------------------------------------
+//   Render the object into the scratchpad
+// ----------------------------------------------------------------------------
+{
+    record(render, "Rendering %+s %p into scratchpad", name(), this);
+    size_t available = rt.available();
+    gcmstring buffer = (char *) rt.scratchpad();
+    renderer r(this, buffer, available);
+    size_t actual = run(RENDER, rt, &r);
+    record(render, "Rendered %+s as size %u [%s]",
+           name(), actual, (char *) buffer);
+    if (actual + 1 > available)
+        return nullptr;
+
+    // Allocate in the scratchpad, and null-terminate
+    char *allocated = (char *) rt.allocate(actual + 1);
+    allocated[actual] = 0;
+    return allocated;
+}
+
+cstring object::edit(runtime &rt) const
+// ----------------------------------------------------------------------------
+//   Render an object into the scratchpad, then move it into editor
+// ----------------------------------------------------------------------------
+//   Note that it is still null-terminated, but will no longer be as soon as
+//   it is being edited
+{
+    cstring result = render(rt);
+    if (result)
+        rt.edit();
+    return result;
+}
+
+
 OBJECT_HANDLER_BODY(object)
 // ----------------------------------------------------------------------------
 //   Default handler for object

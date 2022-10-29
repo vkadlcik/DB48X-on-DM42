@@ -197,27 +197,15 @@ struct runtime
     }
 
 
-    size_t edit(utf8 buffer, size_t len)
+    size_t edit(utf8 buffer, size_t len);
     // ------------------------------------------------------------------------
     //   Open the editor with a known buffer
     // ------------------------------------------------------------------------
-    {
-        if (available(len) < len)
-        {
-            record(editor, "Insufficent memory for %u bytes", len);
-            error("Out of memory", "Editor");
-            Editing = 0;
-            return 0;
-        }
 
-        // Copy the scratchpad up (available() ensured we have room)
-        if (Scratch)
-            memmove((char *) Temporaries + len, Temporaries, Scratch);
-
-        memcpy((byte *) Temporaries, buffer, len);
-        Editing = len;
-        return len;
-    }
+    size_t edit();
+    // ------------------------------------------------------------------------
+    //   Append the scratch pad into the editor
+    // ------------------------------------------------------------------------
 
 
     utf8 close_editor();
@@ -310,7 +298,18 @@ struct runtime
     //   The scratchpad is a temporary area to store binary data
     //   It is used for example while building complex or composite objects
 
-    size_t scratchpad()
+    byte *scratchpad()
+    // ------------------------------------------------------------------------
+    //   Return the buffer for the scratchpad
+    // ------------------------------------------------------------------------
+    //   This must be called each time a GC could have happened
+    {
+        byte *scratch = (byte *) Temporaries + Editing;
+        return scratch;
+    }
+
+
+    size_t allocated()
     // ------------------------------------------------------------------------
     //   Return the size of the temporary scratchpad
     // ------------------------------------------------------------------------

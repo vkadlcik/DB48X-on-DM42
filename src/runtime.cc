@@ -266,3 +266,48 @@ utf8 runtime::close_editor()
     // Return a pointer to a valid C string safely wrapped in a RPL string
     return utf8(str);
 }
+
+
+size_t runtime::edit(utf8 buf, size_t len)
+// ----------------------------------------------------------------------------
+//   Open the editor with a known buffer
+// ----------------------------------------------------------------------------
+{
+    gcutf8 buffer = buf;        // Need to keep track of GC movements
+
+    if (available(len) < len)
+    {
+        record(editor, "Insufficent memory for %u bytes", len);
+        error("Out of memory", "Editor");
+        Editing = 0;
+        return 0;
+    }
+
+    // Copy the scratchpad up (available() ensured we have room)
+    if (Scratch)
+        memmove((char *) Temporaries + len, Temporaries, Scratch);
+
+    memcpy((byte *) Temporaries, (byte *) buffer, len);
+    Editing = len;
+    return len;
+}
+
+
+size_t runtime::edit()
+// ----------------------------------------------------------------------------
+//   Append the scratchpad to the editor
+// ----------------------------------------------------------------------------
+{
+    record(editor, "Editing scratch pad size %u, editor was %u",
+           Scratch, Editing);
+    Editing += Scratch;
+    Scratch = 0;
+
+    // Remove trailing 0
+    byte *ed = editor();
+    if (Editing && ed[Editing] == 0)
+        Editing--;
+
+    record(editor, "Editor size now %u", Editing);
+    return Editing;
+}

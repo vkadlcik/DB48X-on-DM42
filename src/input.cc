@@ -1777,8 +1777,16 @@ bool input::handle_editing(int key)
                 SET_ST(STAT_PGM_END);
             alpha = false;
             return true;
+        case KEY_DOWN:
+            // Key down to edit last object on stack
+            if (!shift && !xshift && !alpha)
+                if (RT.depth())
+                    if (object_p obj = RT.pop())
+                        obj->edit();
+            break;
         }
     }
+
 
     return consumed;
 }

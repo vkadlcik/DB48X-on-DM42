@@ -204,6 +204,17 @@ struct object
     //   Render the object into a buffer
     // ------------------------------------------------------------------------
 
+    cstring render(runtime &rt = RT) const;
+    // ------------------------------------------------------------------------
+    //   Render the object into the scratchpad
+    // ------------------------------------------------------------------------
+
+    cstring edit(runtime &rt = RT) const;
+    // ------------------------------------------------------------------------
+    //   Render the object into the scratchpad, then move into the editor
+    // ------------------------------------------------------------------------
+
+
     static object_p parse(utf8 source, size_t &size, runtime &rt = RT);
     // ------------------------------------------------------------------------
     //  Try parsing the object as a top-level temporary

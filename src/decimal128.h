@@ -28,6 +28,15 @@
 //   but WITHOUT ANY WARRANTY; without even the implied warranty of
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
+//
+// Payload format:
+//
+//   A copy of the 128-bit representation of the object follows the type
+//
+//   Since it is unclear that Intel's library is robust to misaligned data,
+//   We presently copy that payload when operating on objects. This may be
+//   unnecessary.
+
 
 #include "object.h"
 #include "runtime.h"

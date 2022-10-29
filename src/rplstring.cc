@@ -84,6 +84,7 @@ OBJECT_PARSER_BODY(string)
         rt.error("Invalid string", s);
         return ERROR;
     }
+    s++;
 
     size_t parsed = s - source;
     size_t slen   = parsed - 2;

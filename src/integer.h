@@ -28,6 +28,20 @@
 //   but WITHOUT ANY WARRANTY; without even the implied warranty of
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
+//
+// Payload format:
+//
+//   Integer types are disstinguished by their type ID.
+//   Negative integers are represented by ID_neg_integer.
+//   They store their magnitude in LEB128 format.
+//
+//   The present implementation limits itself to values that fit in 64 bit,
+//   and uses native CPU operations to do that (or at least, a fixed number
+//   of CPU operations on 32-bit CPUs like on the DM42).
+//
+//   However, the design allows computations with unlimited precision to be
+//   implemented without changing the number storage format. Such
+//   variable-precision arithmetic is likely to be implemented some day.
 
 #include "object.h"
 #include "runtime.h"

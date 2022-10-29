@@ -112,7 +112,8 @@ object::result list::object_parser(parser  &p,
         }
 
         // Parse an object
-        size_t length = 0;
+        size_t done = (byte *) s - (byte *) p.source;
+        size_t length = p.length > done ? p.length - done : 0;
         gcobj obj = object::parse(s, length);
         if (!obj)
             return ERROR;

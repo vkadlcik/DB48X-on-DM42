@@ -140,7 +140,7 @@ bool input::end_edit()
         gcutf8 editor = RT.close_editor();
         if (editor)
         {
-            gcobj obj = object::parse(editor);
+            gcobj obj = object::parse(editor, edlen);
             if (obj)
             {
                 // We successfully parsed the line

@@ -267,14 +267,6 @@ struct object
     //  Try parsing the object as a top-level temporary
     // ------------------------------------------------------------------------
 
-    static object_p parse(utf8 source, runtime &rt = RT)
-    // ------------------------------------------------------------------------
-    //  Try parsing an object without specifying input size
-    // ------------------------------------------------------------------------
-    {
-        size_t size = (size_t) -1;
-        return parse(source, size, rt);
-    }
 
     utf8 help(runtime &rt = RT) const
     // ------------------------------------------------------------------------

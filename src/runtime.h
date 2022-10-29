@@ -159,7 +159,7 @@ struct runtime
 
         // Move the editor up (available() checked we have room)
         if (Editing + Scratch)
-            memmove((char *) Temporaries, result, Editing + Scratch);
+            move(Temporaries, (object_p) result, Editing + Scratch);
 
         // Initialize the object in place
         new(result) Obj(args..., type);
@@ -245,7 +245,8 @@ struct runtime
             if (available(len) >= len)
             {
                 size_t moved = Scratch + Editing - offset;
-                memmove(editor() + offset + len, editor() + offset, moved);
+                byte_p edr = (byte_p) editor() + offset;
+                move(object_p(edr + len), object_p(edr), moved);
                 memcpy(editor() + offset, data, len);
                 Editing += len;
                 return len;
@@ -283,8 +284,8 @@ struct runtime
             offset = end;
         len = end - offset;
         size_t moving = Scratch + Editing - end;
-        byte *ed = editor();
-        memmove(ed + offset, ed + offset + len, moving);
+        byte_p edr = (byte_p) editor() + offset;
+        move(object_p(edr), object_p(edr + len), moving);
         Editing -= len;
     }
 
@@ -423,7 +424,7 @@ struct runtime
     // ========================================================================
 
     size_t   gc();
-    void     move(object_p first, object_p last, object_p to);
+    void     move(object_p to, object_p from, size_t length);
 
     size_t   size(object_p obj);
     object_p skip(object_p obj)

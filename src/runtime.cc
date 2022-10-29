@@ -132,7 +132,7 @@ size_t runtime::gc()
         {
             // Move object to free space
             record(gc_details, "Moving %p-%p to %p", obj, next, free);
-            move(obj, next, free);
+            move(free, obj, next - obj);
             free += next - obj;
         }
         else
@@ -147,7 +147,7 @@ size_t runtime::gc()
     if (Editing + Scratch)
     {
         object_p edit = Temporaries;
-        move(edit, edit + Editing + Scratch, edit - recycled);
+        move(edit - recycled, edit, Editing + Scratch);
     }
 
     // Adjust Temporaries
@@ -164,30 +164,23 @@ size_t runtime::gc()
 }
 
 
-void runtime::move(object_p first, object_p last, object_p to)
+void runtime::move(object_p to, object_p from, size_t size)
 // ----------------------------------------------------------------------------
 //   Move objects in memory to a new location, adjusting pointers
 // ----------------------------------------------------------------------------
 {
-    int delta = to - first;
+    int delta = to - from;
     if (!delta)
         return;
 
-    int size  = last - first;
-    if (size <= 0)
-    {
-        if (size < 0)
-            record(runtime_error, "GC move with range %p-%p", first, last);
-        return;
-    }
-
     // Move the object in memory
-    memmove((byte *) to, (byte *) first, size);
+    memmove((byte *) to, (byte *) from, size);
 
     // Adjust the stack pointers
+    object_p last = from + size;
     for (object_p *s = StackTop; s < StackBottom; s++)
     {
-        if (*s >= first && *s < last)
+        if (*s >= from && *s < last)
         {
             record(gc_details, "Adjusting stack level %u from %p to %p",
                    s - StackTop, *s, *s + delta);
@@ -198,7 +191,7 @@ void runtime::move(object_p first, object_p last, object_p to)
     // Adjust the protected pointers
     for (gcptr *p = GCSafe; p; p = p->next)
     {
-        if (p->safe >= (byte *) first && p->safe < (byte *) last)
+        if (p->safe >= (byte *) from && p->safe < (byte *) last)
         {
             record(gc_details, "Adjusting GC-safe %p from %p to %p",
                    p, p->safe, p->safe + delta);
@@ -212,7 +205,7 @@ void runtime::move(object_p first, object_p last, object_p to)
     object_p *lastf = functions + count;
     for (object_p *p = functions; p < lastf; p++)
     {
-        if (*p >= first && *p <= last)
+        if (*p >= from && *p <= last)
         {
             record(gc_details, "Adjusting input function %u from %p to %p",
                    p - functions, *p, *p + delta);

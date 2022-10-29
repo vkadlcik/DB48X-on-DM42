@@ -189,6 +189,6 @@ void bid32_mod(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
 void bid32_rem(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
 
 // Utlity common to all formats to format a number for display
-void decimal_format(char *out, size_t len);
+void decimal_format(char *out, size_t len, int digits);
 
 #endif // DECIMAL32_H

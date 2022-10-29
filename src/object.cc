@@ -165,7 +165,7 @@ size_t object::render(char *output, size_t length, runtime &rt) const
 }
 
 
-cstring object::render(runtime &rt) const
+cstring object::render(bool editing, runtime &rt) const
 // ----------------------------------------------------------------------------
 //   Render the object into the scratchpad
 // ----------------------------------------------------------------------------
@@ -173,7 +173,7 @@ cstring object::render(runtime &rt) const
     record(render, "Rendering %+s %p into scratchpad", name(), this);
     size_t available = rt.available();
     gcmstring buffer = (char *) rt.scratchpad();
-    renderer r(this, buffer, available);
+    renderer r(this, buffer, available, editing);
     size_t actual = run(RENDER, rt, &r);
     record(render, "Rendered %+s as size %u [%s]",
            name(), actual, (char *) buffer);
@@ -193,7 +193,7 @@ cstring object::edit(runtime &rt) const
 //   Note that it is still null-terminated, but will no longer be as soon as
 //   it is being edited
 {
-    cstring result = render(rt);
+    cstring result = render(true, rt);
     if (result)
         rt.edit();
     return result;

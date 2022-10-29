@@ -189,6 +189,6 @@ void bid128_mod(BID_UINT128 *pres, BID_UINT128 *px, BID_UINT128 *py);
 void bid128_rem(BID_UINT128 *pres, BID_UINT128 *px, BID_UINT128 *py);
 
 // Utlity common to all formats to format a number for display
-void decimal_format(char *out, size_t len);
+void decimal_format(char *out, size_t len, int digits);
 
 #endif // DECIMAL128_H

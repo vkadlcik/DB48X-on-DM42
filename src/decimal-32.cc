@@ -208,7 +208,7 @@ static bool round_string(char *s, int digit, char rounding_digit)
 }
 
 
-void decimal_format(char *str, size_t len)
+void decimal_format(char *str, size_t len, int digits)
 // ----------------------------------------------------------------------------
 //   Format the number according to our preferences
 // ----------------------------------------------------------------------------
@@ -218,7 +218,6 @@ void decimal_format(char *str, size_t len)
     char s[50];                 // Enough even for bid32
     strcpy(s, str);             // Make a local copy first
 
-    int digits = Settings.displayed;
     settings::display mode = Settings.display_mode;
     for (;;)
     {
@@ -263,7 +262,7 @@ void decimal_format(char *str, size_t len)
                     sz += 2 - exp + 1;
                 if (ms)
                     sz++;                // One place for sign
-                hasexp = sz > (int) Settings.displayed + 2;
+                hasexp = sz > digits + 2;
             }
             break;
         }
@@ -329,9 +328,7 @@ void decimal_format(char *str, size_t len)
         int avail = len - strlen(str) - elen;
 
         // Add fractional part
-        digits = min(mode == settings::display::NORMAL ? frac : digits,
-                     avail - 1 - (digitsBeforePoint > 0 ? 0 : 1));
-
+        digits = min(min(digits, frac), avail - 1 - (digitsBeforePoint > 0 ? 0 : 1));
         if (digits > 0)
         {
             // We have digits and have room for at least one frac digit
@@ -397,7 +394,9 @@ OBJECT_RENDERER_BODY(decimal32)
     byte expbuf[4];
     bid32_to_string(buffer, &num.value);
     record(decimal32, "Render raw output [%s]", buffer);
-    decimal_format(buffer, min(sizeof(buffer), r.length));
+
+    int digits = r.editing ? BID32_MAXDIGITS : Settings.displayed;
+    decimal_format(buffer, min(sizeof(buffer), r.length), digits);
     record(decimal32, "Render formatted output [%s]", buffer);
 
     // Adjust special characters

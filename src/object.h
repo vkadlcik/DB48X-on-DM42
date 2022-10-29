@@ -204,7 +204,7 @@ struct object
     //   Render the object into a buffer
     // ------------------------------------------------------------------------
 
-    cstring render(runtime &rt = RT) const;
+    cstring render(bool editing = false, runtime &rt = RT) const;
     // ------------------------------------------------------------------------
     //   Render the object into the scratchpad
     // ------------------------------------------------------------------------

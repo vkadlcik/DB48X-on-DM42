@@ -464,10 +464,10 @@ int input::draw_battery(uint time, uint &period)
 #if 1
     // Temporary - Display some internal information
     static unsigned counter = 0;
-    snprintf(buffer, sizeof(buffer), "%c %uR %uB", longpress ? 'L' : ' ',
+    snprintf(buffer, sizeof(buffer), "%c %uR %zuB", longpress ? 'L' : ' ',
              counter++, RT.available());
-    Screen.fill(150, 0, 200, HeaderFont->height() + 1, pattern::black);
-    Screen.text(150, 1, utf8(buffer), HeaderFont, pattern::white);
+    Screen.fill(80, 0, 200, HeaderFont->height() + 1, pattern::black);
+    Screen.text(80, 1, utf8(buffer), HeaderFont, pattern::white);
 #endif
 
     return ann_y;

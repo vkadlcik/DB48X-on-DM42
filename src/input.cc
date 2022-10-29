@@ -1708,8 +1708,7 @@ bool input::handle_editing(int key)
             if (shift)
             {
                 edit(L'«', PROGRAM);
-                alpha = true;
-                return true;
+                 return true;
             }
             else if (editing)
             {
@@ -2265,12 +2264,30 @@ bool input::handle_functions(int key)
 
     if (object_p obj = object_for_key(key))
     {
-        // If we have the editor open, need to close it
-        if (end_edit())
+        if (RT.editing())
         {
-            obj->evaluate();
-            return true;
+            if (key == KEY_ENTER || key == KEY_BSP)
+                return false;
+
+            switch (mode)
+            {
+            case PROGRAM:
+                cursor += RT.insert(cursor, obj->fancy());
+                cursor += RT.insert(cursor, ' ');
+                return true;
+
+            case ALGEBRAIC:
+                cursor += RT.insert(cursor, obj->fancy());
+                return true;
+
+            default:
+                // If we have the editor open, need to close it
+                if (!end_edit())
+                    return false;
+            }
         }
+        obj->evaluate();
+        return true;
     }
 
     return false;

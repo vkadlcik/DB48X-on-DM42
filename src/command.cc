@@ -75,42 +75,31 @@ OBJECT_PARSER_BODY(command)
 //    Try to parse this as a command, using either short or long name
 // ----------------------------------------------------------------------------
 {
-    record(command, "Parsing [%s]", p.source);
+    id      i      = p.candidate;
+    id      found  = id(0);
+    cstring ref    = cstring(utf8(p.source));
+    size_t  maxlen = p.length;
+    size_t  len    = maxlen;
 
-    id     found = id(0);
-    utf8   name  = p.source;
-    size_t len   = p.length;
-    static id     commands[] =
+    if (cstring cmd = (cstring) object::fancy(i))
     {
-#define ID(id)
-#define CMD(id) id,
-    };
-
-    // Loop on all IDs, skipping object
-    for (uint c = 0; c < sizeof(commands) / sizeof(commands[0]) && !found; c++)
-    {
-        id i = commands[c];
-        if (cstring cmd = fancy_name[i])
-        {
-            if (strncasecmp(cstring(name), cmd, len) == 0)
-            {
-                found = id(i);
-                len = strlen(cmd);
-            }
-        }
-        if (cstring cmd = id_name[i])
-        {
-            if (strncasecmp(cstring(name), cmd, len) == 0)
-            {
-                found = id(i);
-                len = strlen(cmd);
-            }
-        }
+        len = strlen(cmd);
+        if (len <= maxlen && strncasecmp(ref, cmd, len) == 0)
+            found = id(i);
     }
+    if (cstring cmd = (cstring) object::name(i))
+    {
+        len = strlen(cmd);
+        if (len <= maxlen && strncasecmp(ref, cmd, len) == 0)
+            found = id(i);
+    }
+
+    record(command,
+           "Parsing [%s] with id %u %+s (%+s), found %u",
+           ref, i, object::name(i), object::fancy(i), found);
 
     if (!found)
         return SKIP;
-
 
     // Record output - Dynamically generate ID for use in programs
     p.end = len;

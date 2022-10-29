@@ -220,27 +220,8 @@ OBJECT_HANDLER_BODY(object)
     case SIZE:
         return payload - obj;
     case PARSE:
-    {
-        // Default is to identify an object by its name
-        parser &p = OBJECT_PARSER_ARG();
-        if (p.candidate != ID_object)
-        {
-            cstring name = (cstring) object::name(p.candidate);
-            size_t len = strlen(name);
-            cstring source = cstring(utf8(p.source));
-            if (strncasecmp(name, source, len) == 0)
-            {
-                char last = source[len];
-                if (!last || isspace(last))
-                {
-                    p.end = len;
-                    p.out = obj;
-                    return OK;
-                }
-            }
-        }
+        // Default is to not be parseable
         return SKIP;
-    }
     case RENDER:
         return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
     case HELP:

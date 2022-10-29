@@ -270,6 +270,15 @@ struct runtime
     }
 
 
+    size_t insert(size_t offset, utf8 data)
+    // ------------------------------------------------------------------------
+    //   Insert a null-terminated command name
+    // ------------------------------------------------------------------------
+    {
+        return insert(offset, data, strlen(cstring(data)));
+    }
+
+
     void remove(size_t offset, size_t len)
     // ------------------------------------------------------------------------
     //   Remove characers from the editor

@@ -82,6 +82,7 @@ ID(decimal128)
 CMD(drop)
 NAMED(dup, "Duplicate")
 CMD(swap)
+NAMED(eval, "Evaluate")
 
 OP(add, "+")
 OP(sub, "-")

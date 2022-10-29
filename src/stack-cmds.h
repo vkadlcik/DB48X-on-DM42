@@ -70,5 +70,16 @@ COMMAND(swap)
     return ERROR;
 }
 
+COMMAND(eval)
+// ----------------------------------------------------------------------------
+//   Evaluate an object
+// ----------------------------------------------------------------------------
+{
+    object_p x = RT.pop();
+    if (x)
+        return x->evaluate();
+    return ERROR;
+}
+
 
 #endif // STACK_CMDS_H

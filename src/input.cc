@@ -145,7 +145,7 @@ bool input::end_edit()
             {
                 // We successfully parsed the line
                 clear_editor();
-                obj->evaluate();
+                RT.push(obj);
             }
             else
             {
@@ -2093,7 +2093,7 @@ static const byte defaultUnshiftedCommand[2*input::NUM_KEYS] =
     OP2BYTES(KEY_EXIT,  0),
     OP2BYTES(KEY_0,     0),
     OP2BYTES(KEY_DOT,   0),
-    OP2BYTES(KEY_RUN,   0),
+    OP2BYTES(KEY_RUN,   command::ID_eval),
     OP2BYTES(KEY_ADD,   command::ID_add),
 
     OP2BYTES(KEY_F1,    0),

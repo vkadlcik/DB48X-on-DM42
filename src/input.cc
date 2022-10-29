@@ -1480,8 +1480,7 @@ static bool immediate_key(int key)
             key == KEY_ADD  ||
             key == KEY_SUB  ||
             key == KEY_MUL  ||
-            key == KEY_DIV  ||
-            key == KEY_RUN);
+            key == KEY_DIV);
 }
 
 
@@ -1710,6 +1709,12 @@ bool input::handle_editing(int key)
             {
                 edit(L'«', PROGRAM);
                 alpha = true;
+                return true;
+            }
+            else if (editing)
+            {
+                // Stick to space role while editing, do not EVAL
+                edit(' ', PROGRAM);
                 return true;
             }
             break;

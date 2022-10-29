@@ -39,6 +39,7 @@
 
 RECORDER(list, 16, "Lists");
 RECORDER(list_errors, 16, "Errors processing lists");
+RECORDER(program, 16, "Program evaluation");
 
 
 OBJECT_HANDLER_BODY(list)
@@ -284,14 +285,17 @@ object::result program::evaluate(runtime &rt) const
 //   We evaluate a program by evaluating all the objects in it
 // ----------------------------------------------------------------------------
 {
-    byte    *p     = (byte *) payload();
-    size_t   len   = leb128<size_t>(p);
-    object_p first = (object_p) p;
-    object_p last  = first + len;
-    result   r     = OK;
+    byte  *p     = (byte *) payload();
+    size_t len   = leb128<size_t>(p);
+    gcobj  first = (object_p) p;
+    result r     = OK;
 
-    for (object_p obj = first; obj < last; obj = obj->skip())
+    for (gcobj obj = first;
+         size_t(object_p(obj) - object_p(first)) < len;
+         obj = obj->skip())
     {
+        record(program, "Evaluating %+s at %p\n",
+               obj->fancy(), (object_p) obj);
         if (interrupted() || r != OK)
             break;
         r = obj->evaluate(rt);

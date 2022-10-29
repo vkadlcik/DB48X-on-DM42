@@ -38,7 +38,7 @@ struct settings
 {
     settings()
         : precision(32),
-          displayed(12),
+          displayed(20),
           display_mode(NORMAL),
           decimalDot('.'),
           exponentChar(L'⁳'),

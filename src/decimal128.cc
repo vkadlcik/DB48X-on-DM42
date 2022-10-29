@@ -84,6 +84,7 @@ OBJECT_PARSER_BODY(decimal128)
 
     utf8 source = p.source;
     utf8 s = source;
+    utf8 last = source + p.length;
 
     // Skip leading sign
     if (*s == '+' || *s == '-')
@@ -91,7 +92,7 @@ OBJECT_PARSER_BODY(decimal128)
 
     // Skip digits
     utf8 digits = s;
-    while (*s >= '0' && *s <= '9')
+    while (s < last && (*s >= '0' && *s <= '9'))
         s++;
 
     // If we had no digits, check for special names or exit
@@ -104,15 +105,16 @@ OBJECT_PARSER_BODY(decimal128)
     }
 
     // Check decimal dot
-    if (*s == Settings.decimalDot)
+    bool hadDecimalDot = *s == Settings.decimalDot;
+    if (hadDecimalDot)
     {
         s++;
-        while (*s >= '0' && *s <= '9')
+        while (s < last && (*s >= '0' && *s <= '9'))
             s++;
     }
 
     // Check how many digits were given
-    uint mantissa = s - digits;
+    uint mantissa = s - digits - hadDecimalDot;
     record(decimal128, "Had %u digits, max %u", mantissa, BID128_MAXDIGITS);
     if (mantissa >= BID128_MAXDIGITS)
     {
@@ -129,7 +131,7 @@ OBJECT_PARSER_BODY(decimal128)
         if (*s == '+' || *s == '-')
             s++;
         utf8 expval = s;
-        while (*s >= '0' && *s <= '9')
+        while (s < last && (*s >= '0' && *s <= '9'))
             s++;
         if (s == expval)
         {
@@ -154,7 +156,7 @@ OBJECT_PARSER_BODY(decimal128)
     // Patch the input to the BID library
     char buf[50];
     char *b = buf;
-    for (utf8 u = source; *u && b < buf+sizeof(buf) - 1; u++)
+    for (utf8 u = source; u < s && b < buf+sizeof(buf) - 1; u++)
     {
         if (*u == Settings.decimalDot)
         {

@@ -53,18 +53,13 @@ OBJECT_HANDLER_BODY(list)
         rt.push(obj);
         return 0;
     case SIZE:
-    {
-        byte *p = (byte *) payload;
-        size_t len = leb128<size_t>(p);
-        p += len;
-        return ptrdiff(p, obj);
-    }
+        return size(obj, payload);
     case PARSE:
         return object_parser(OBJECT_PARSER_ARG(), rt);
     case RENDER:
         return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
     case HELP:
-        return (intptr_t) "text";
+        return (intptr_t) "list";
 
     default:
         // Check if anyone else knows how to deal with it
@@ -74,7 +69,8 @@ OBJECT_HANDLER_BODY(list)
 }
 
 
-object::result list::object_parser(parser  &p,
+object::result list::object_parser(id type,
+                                   parser  &p,
                                    runtime &rt,
                                    unicode open,
                                    unicode close)
@@ -140,21 +136,11 @@ object::result list::object_parser(parser  &p,
     size_t alloc  = rt.allocated() - prealloc;
     size_t parsed = (byte_p) s - (byte_p) p.source;
     p.end         = parsed;
-    p.out         = rt.make<list>(ID_list, scratch, alloc);
+    p.out         = rt.make<list>(type, scratch, alloc);
 
     // Restore the scratchpad
     rt.free(alloc);
     return OK;
-}
-
-
-OBJECT_PARSER_BODY(list)
-// ----------------------------------------------------------------------------
-//    Try to parse this as an list
-// ----------------------------------------------------------------------------
-//    For simplicity, this deals with all kinds of lists
-{
-    return object_parser(p, rt, '{', '}');
 }
 
 
@@ -224,10 +210,195 @@ intptr_t list::object_renderer(renderer &r, runtime &rt,
 }
 
 
+OBJECT_PARSER_BODY(list)
+// ----------------------------------------------------------------------------
+//    Try to parse this as an list
+// ----------------------------------------------------------------------------
+{
+    return object_parser(ID_list, p, rt, '{', '}');
+}
+
+
 OBJECT_RENDERER_BODY(list)
 // ----------------------------------------------------------------------------
 //   Render the list into the given list buffer
 // ----------------------------------------------------------------------------
 {
     return object_renderer(r, rt, '{', '}');
+}
+
+
+
+// ============================================================================
+//
+//    Program
+//
+// ============================================================================
+
+OBJECT_HANDLER_BODY(program)
+// ----------------------------------------------------------------------------
+//    Handle commands for programs
+// ----------------------------------------------------------------------------
+{
+    switch(op)
+    {
+    case EVAL:
+        // Programs evaluate by evaluating all elements in sequence
+        return obj->evaluate(rt);
+    case SIZE:
+        return size(obj, payload);
+    case PARSE:
+        return object_parser(OBJECT_PARSER_ARG(), rt);
+    case RENDER:
+        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+    case HELP:
+        return (intptr_t) "program";
+
+    default:
+        // Check if anyone else knows how to deal with it
+        return DELEGATE(list);
+    }
+}
+
+
+OBJECT_PARSER_BODY(program)
+// ----------------------------------------------------------------------------
+//    Try to parse this as a program
+// ----------------------------------------------------------------------------
+{
+    return list::object_parser(ID_program, p, rt, L'«', L'»');
+}
+
+
+OBJECT_RENDERER_BODY(program)
+// ----------------------------------------------------------------------------
+//   Render the program into the given program buffer
+// ----------------------------------------------------------------------------
+{
+    return list::object_renderer(r, rt, L'«', L'»');
+}
+
+
+object::result program::evaluate(runtime &rt) const
+// ----------------------------------------------------------------------------
+//   We evaluate a program by evaluating all the objects in it
+// ----------------------------------------------------------------------------
+{
+    byte    *p     = (byte *) payload();
+    size_t   len   = leb128<size_t>(p);
+    object_p first = (object_p) p;
+    object_p last  = first + len;
+    result   r     = OK;
+
+    for (object_p obj = first; obj < last; obj = obj->skip())
+    {
+        if (interrupted() || r != OK)
+            break;
+        r = obj->evaluate(rt);
+    }
+
+    return r;
+}
+
+
+
+// ============================================================================
+//
+//    Equation
+//
+// ============================================================================
+
+OBJECT_HANDLER_BODY(equation)
+// ----------------------------------------------------------------------------
+//    Handle commands for equations
+// ----------------------------------------------------------------------------
+{
+    switch(op)
+    {
+    case EVAL:
+        // Equations evaluate like programs
+        return obj->evaluate(rt);
+    case SIZE:
+        return size(obj, payload);
+    case PARSE:
+        return object_parser(OBJECT_PARSER_ARG(), rt);
+    case RENDER:
+        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+    case HELP:
+        return (intptr_t) "program";
+
+    default:
+        // Check if anyone else knows how to deal with it
+        return DELEGATE(program);
+    }
+}
+
+
+OBJECT_PARSER_BODY(equation)
+// ----------------------------------------------------------------------------
+//    Try to parse this as a program
+// ----------------------------------------------------------------------------
+{
+    return list::object_parser(ID_equation, p, rt, '\'', '\'');
+}
+
+
+OBJECT_RENDERER_BODY(equation)
+// ----------------------------------------------------------------------------
+//   Render the program into the given program buffer
+// ----------------------------------------------------------------------------
+{
+    return list::object_renderer(r, rt, '\'', '\'');
+}
+
+
+
+// ============================================================================
+//
+//    Array
+//
+// ============================================================================
+
+OBJECT_HANDLER_BODY(array)
+// ----------------------------------------------------------------------------
+//    Handle commands for arrays
+// ----------------------------------------------------------------------------
+{
+    switch(op)
+    {
+    case EVAL:
+        // Programs evaluate by evaluating all elements in sequence
+        rt.push(obj);
+        return 0;
+    case SIZE:
+        return size(obj, payload);
+    case PARSE:
+        return object_parser(OBJECT_PARSER_ARG(), rt);
+    case RENDER:
+        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+    case HELP:
+        return (intptr_t) "program";
+
+    default:
+        // Check if anyone else knows how to deal with it
+        return DELEGATE(program);
+    }
+}
+
+
+OBJECT_PARSER_BODY(array)
+// ----------------------------------------------------------------------------
+//    Try to parse this as a program
+// ----------------------------------------------------------------------------
+{
+    return list::object_parser(ID_array, p, rt, '[', ']');
+}
+
+
+OBJECT_RENDERER_BODY(array)
+// ----------------------------------------------------------------------------
+//   Render the program into the given program buffer
+// ----------------------------------------------------------------------------
+{
+    return list::object_renderer(r, rt, '[', ']');
 }

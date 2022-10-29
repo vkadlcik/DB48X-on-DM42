@@ -48,12 +48,7 @@ OBJECT_HANDLER_BODY(string)
         rt.push(obj);
         return OK;
     case SIZE:
-    {
-        byte *p = (byte *) payload;
-        size_t len = leb128<size_t>(p);
-        p += len;
-        return ptrdiff(p, obj);
-    }
+        return size(obj, payload);
     case PARSE:
         return object_parser(OBJECT_PARSER_ARG(), rt);
     case RENDER:

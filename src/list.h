@@ -63,15 +63,58 @@ struct list : string
     OBJECT_PARSER(list);
     OBJECT_RENDERER(list);
 
-
 protected:
     // Shared code for parsing and rendering, taking delimiters as input
     intptr_t object_renderer(renderer &r, runtime &rt,
                              unicode open, unicode close) const;
-    static result object_parser(parser UNUSED &p, runtime &rt,
+    static result object_parser(id type, parser UNUSED &p, runtime &rt,
                                 unicode open, unicode close);
-
 };
 
+
+struct program : list
+// ----------------------------------------------------------------------------
+//   A program is a list with « and » as delimiters
+// ----------------------------------------------------------------------------
+{
+    program(gcbytes bytes, size_t len, id type = ID_program)
+        : list(bytes, len, type) {}
+
+    result evaluate(runtime &rt) const;
+    static bool   interrupted(); // Program interrupted e.g. by EXIT key
+
+    OBJECT_HANDLER(program);
+    OBJECT_PARSER(program);
+    OBJECT_RENDERER(program);
+};
+
+
+struct equation : program
+// ----------------------------------------------------------------------------
+//   An equation is a program with ' and ' as delimiters
+// ----------------------------------------------------------------------------
+//   We also need special parsing and rendering of algebraic objects
+{
+    equation(gcbytes bytes, size_t len, id type = ID_equation)
+        : program(bytes, len, type) {}
+
+    OBJECT_HANDLER(equation);
+    OBJECT_PARSER(equation);
+    OBJECT_RENDERER(equation);
+};
+
+
+struct array : list
+// ----------------------------------------------------------------------------
+//   An array is a list with [ and ] as delimiters
+// ----------------------------------------------------------------------------
+{
+    array(gcbytes bytes, size_t len, id type = ID_array)
+        : list(bytes, len, type) {}
+
+    OBJECT_HANDLER(array);
+    OBJECT_PARSER(array);
+    OBJECT_RENDERER(array);
+};
 
 #endif // LIST_H

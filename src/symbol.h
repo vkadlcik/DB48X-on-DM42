@@ -41,41 +41,16 @@
 //
 
 #include "object.h"
-#include "runtime.h"
+#include "rplstring.h"
 
-struct symbol : object
+struct symbol : string
 // ----------------------------------------------------------------------------
 //    Represent symbol objects
 // ----------------------------------------------------------------------------
 {
-    symbol(gcutf8 source, size_t len, id type = ID_symbol): object(type)
-    {
-        utf8 s = (utf8) source;
-        byte *p = (byte *) payload();
-        p = leb128(p, len);
-        while (len--)
-            *p++ = *s++;
-    }
-
-    static size_t required_memory(id i, gcutf8 UNUSED str, size_t len)
-    {
-        return leb128size(i) + leb128size(len) + len;
-    }
-
-    size_t length() const
-    {
-        byte *p = payload();
-        return leb128<size_t>(p);
-    }
-
-    utf8 text(size_t *size = nullptr) const
-    {
-        byte  *p   = payload();
-        size_t len = leb128<size_t>(p);
-        if (size)
-            *size = len;
-        return (utf8) p;
-    }
+    symbol(gcutf8 source, size_t len, id type = ID_symbol):
+        string(source, len, type)
+    { }
 
     OBJECT_HANDLER(symbol);
     OBJECT_PARSER(symbol);

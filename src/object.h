@@ -237,13 +237,13 @@ struct object
     //
     // ========================================================================
 
-    void evaluate(runtime &rt = RT) const
+    result evaluate(runtime &rt = RT) const
     // ------------------------------------------------------------------------
     //  Evaluate an object by calling the handler
     // ------------------------------------------------------------------------
     {
         record(eval, "Evaluating %+s %p", name(), this);
-        run(EVAL, rt);
+        return (result) run(EVAL, rt);
     }
 
     size_t render(char *output, size_t length, runtime &rt = RT) const;

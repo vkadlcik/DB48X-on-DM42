@@ -50,12 +50,7 @@ OBJECT_HANDLER_BODY(symbol)
         rt.push(obj);
         return OK;
     case SIZE:
-    {
-        byte *p = (byte *) payload;
-        size_t len = leb128<size_t>(p);
-        p += len;
-        return ptrdiff(p, obj);
-    }
+        return size(obj, payload);
     case PARSE:
     {
         // Make sure we check commands first

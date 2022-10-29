@@ -144,6 +144,13 @@ int key_pop()
     return -1;
 }
 
+int key_tail()
+{
+    if (keyrd != keywr)
+        return keys[keyrd % nkeys];
+    return -1;
+}
+
 int key_pop_last()
 {
     if (keywr - keyrd > 1)

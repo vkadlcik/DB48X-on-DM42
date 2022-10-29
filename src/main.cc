@@ -34,6 +34,7 @@
 #include "graphics.h"
 #include "input.h"
 #include "integer.h"
+#include "list.h"
 #include "menu.h"
 #include "num.h"
 #include "rpl.h"
@@ -303,4 +304,15 @@ extern "C" void program_main()
                 redraw_periodics();
         }
     }
+}
+
+
+bool program::interrupted()
+// ----------------------------------------------------------------------------
+//   Return true if the current program must be interrupted
+// ----------------------------------------------------------------------------
+{
+    if (!key_empty())
+        return key_tail() == KEY_EXIT;
+    return false;
 }

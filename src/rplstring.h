@@ -77,6 +77,14 @@ struct string : object
         return leb128<size_t>(p);
     }
 
+    static intptr_t size(object_p obj, object_p payload)
+    {
+        byte *p = (byte *) payload;
+        size_t len = leb128<size_t>(p);
+        p += len;
+        return ptrdiff(p, obj);
+    }
+
     utf8 text(size_t *size = nullptr) const
     {
         byte  *p   = payload();

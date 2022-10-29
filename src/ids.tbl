@@ -53,6 +53,9 @@ ID(object)                      // Value 0 is reserved for "not implemented"
 ID(symbol)
 ID(string)
 ID(list)
+ID(program)
+ID(equation)
+ID(array)
 
 #define FIRST_INTEGER_TYPE      ID_hex_integer
 ID(hex_integer)

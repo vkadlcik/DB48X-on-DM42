@@ -59,13 +59,19 @@ RECORDER(run,            16, "Running commands on objects");
 RECORDER(object_errors,  16, "Runtime errors on objects");
 
 
+// Define dummy opcode classes
+#define OPCODE(n)       struct n : object {};
+#define ID(n)
+#include "ids.tbl"
+
+
 const object::handler_fn object::handler[NUM_IDS] =
 // ----------------------------------------------------------------------------
 //   The list of all possible handler
 // ----------------------------------------------------------------------------
 {
 #define ID(id)  [ID_##id] = (handler_fn) id::object_handler,
-#include <ids.tbl>
+#include "ids.tbl"
 };
 
 
@@ -75,7 +81,7 @@ const cstring object::id_name[NUM_IDS] =
 // ----------------------------------------------------------------------------
 {
 #define ID(id)                  #id,
-#include <ids.tbl>
+#include "ids.tbl"
 };
 
 
@@ -87,17 +93,7 @@ const cstring object::fancy_name[NUM_IDS] =
 #define ID(id)                  #id,
 #define CMD(id)                 #id,
 #define NAMED(id, name)         name,
-#include <ids.tbl>
-};
-
-
-const cstring object::opcode_name[NUM_OPCODES] =
-// ----------------------------------------------------------------------------
-//   The name of all handlers
-// ----------------------------------------------------------------------------
-{
-#define RPL_OPCODE(cmd)  #cmd,
-#include <rpl-opcodes.tbl>
+#include "ids.tbl"
 };
 
 

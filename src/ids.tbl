@@ -48,6 +48,10 @@
 #define ALIAS(op, name)
 #endif
 
+#ifndef OPCODE
+#define OPCODE(id)              ID(id)
+#endif
+
 ID(object)                      // Value 0 is reserved for "not implemented"
 
 ID(symbol)
@@ -131,8 +135,22 @@ ID(dense_font)
 ID(sparse_font)
 ID(dmcp_font)
 
+
+// ============================================================================
+//
+//    Internal IDs used as opcode for the handler
+//
+// ============================================================================
+
+OPCODE(EVAL)
+OPCODE(SIZE)
+OPCODE(PARSE)
+OPCODE(RENDER)
+OPCODE(HELP)
+
 #undef ID
 #undef OP
 #undef CMD
 #undef NAMED
 #undef ALIAS
+#undef OPCODE

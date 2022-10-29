@@ -53,8 +53,9 @@
 //    either as commands (performing an action when evaluated) or as data types
 //    (putting themselves on the runtime stack when evaluated).
 //
-//    All handlers must respond to a fixed number of "opcodes", whcih are
-//    defined in rpl-opcodes.tbl. Key opcodes include:
+//    All handlers must respond to a fixed number of "opcodes", which are
+//    reserved identifiers in ids.tbl. These opcodes also correspond do
+//    user-accessible commands that apply to objects. They include:
 //
 //    - EVAL:   Evaluates the object
 //    - SIZE:   Compute the size of the object
@@ -64,6 +65,11 @@
 //
 //    Note: PARSE is the only opcode that does not take an object as input
 //
+//    The handler is not exactly equivalent to the user command.
+//    It may present an internal interface that is more convenient for C code.
+//    This approach makes it possible to pass other IDs to an object, for
+//    example the "add" operator can delegate the addition of complex numbers
+//    to the complex handler by calling the complex handler with 'add'.
 //
 // Rationale:
 //
@@ -150,9 +156,9 @@ struct object
     //  The commands that all handlers must deal with
     // ------------------------------------------------------------------------
     {
-#define RPL_OPCODE(n)           n,
-#include "rpl-opcodes.tbl"
-        NUM_OPCODES
+#define OPCODE(n)       n = ID_##n,
+#define ID(n)
+#include "ids.tbl"
     };
 
     enum result
@@ -281,7 +287,7 @@ struct object
     //   Return the name for a given ID
     // ------------------------------------------------------------------------
     {
-        return op < NUM_OPCODES ? opcode_name[op] : "<invalid opcode>";
+        return cstring(name(id(op)));
     }
 
     static cstring name(result r)
@@ -542,8 +548,8 @@ protected:
     static const handler_fn handler[NUM_IDS];
     static const cstring    id_name[NUM_IDS];
     static const cstring    fancy_name[NUM_IDS];
-    static const cstring    opcode_name[NUM_OPCODES];
     static runtime         &RT;
 };
+
 
 #endif // OBJECT_H

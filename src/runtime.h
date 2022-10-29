@@ -158,8 +158,7 @@ struct runtime
         Temporaries = (object *) ((byte *) Temporaries + size);
 
         // Move the editor up (available() checked we have room)
-        if (Editing + Scratch)
-            move(Temporaries, (object_p) result, Editing + Scratch);
+        move(Temporaries, (object_p) result, Editing + Scratch, true);
 
         // Initialize the object in place
         new(result) Obj(args..., type);
@@ -424,7 +423,7 @@ struct runtime
     // ========================================================================
 
     size_t   gc();
-    void     move(object_p to, object_p from, size_t length);
+    void     move(object_p to, object_p from, size_t sz, bool scratch=false);
 
     size_t   size(object_p obj);
     object_p skip(object_p obj)

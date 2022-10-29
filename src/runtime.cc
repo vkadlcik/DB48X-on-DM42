@@ -164,10 +164,14 @@ size_t runtime::gc()
 }
 
 
-void runtime::move(object_p to, object_p from, size_t size)
+void runtime::move(object_p to, object_p from, size_t size, bool scratch)
 // ----------------------------------------------------------------------------
 //   Move objects in memory to a new location, adjusting pointers
 // ----------------------------------------------------------------------------
+//   The scratch flag indicates that we move the scratch area. In that case,
+//   we don't need to adjust stack or function pointers, only gc-safe pointers.
+//   Furthermore, scratch pointers may (temporarily) be above the scratch area.
+//   See list parser for an example.
 {
     int delta = to - from;
     if (!delta)
@@ -176,19 +180,8 @@ void runtime::move(object_p to, object_p from, size_t size)
     // Move the object in memory
     memmove((byte *) to, (byte *) from, size);
 
-    // Adjust the stack pointers
-    object_p last = from + size;
-    for (object_p *s = StackTop; s < StackBottom; s++)
-    {
-        if (*s >= from && *s < last)
-        {
-            record(gc_details, "Adjusting stack level %u from %p to %p",
-                   s - StackTop, *s, *s + delta);
-            *s += delta;
-        }
-    }
-
     // Adjust the protected pointers
+    object_p last = scratch ? (object_p) StackTop : from + size;
     for (gcptr *p = GCSafe; p; p = p->next)
     {
         if (p->safe >= (byte *) from && p->safe < (byte *) last)
@@ -196,6 +189,21 @@ void runtime::move(object_p to, object_p from, size_t size)
             record(gc_details, "Adjusting GC-safe %p from %p to %p",
                    p, p->safe, p->safe + delta);
             p->safe += delta;
+        }
+    }
+
+    // No need to walk the stack pointers and function pointers
+    if (scratch)
+        return;
+
+    // Adjust the stack pointers
+    for (object_p *s = StackTop; s < StackBottom; s++)
+    {
+        if (*s >= from && *s < last)
+        {
+            record(gc_details, "Adjusting stack level %u from %p to %p",
+                   s - StackTop, *s, *s + delta);
+            *s += delta;
         }
     }
 

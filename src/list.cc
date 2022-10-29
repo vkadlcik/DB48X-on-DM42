@@ -121,7 +121,7 @@ object::result list::object_parser(parser  &p,
         // Copy the parsed object to the scratch pad (may GC)
         size_t objsize = obj->size();
         byte *objcopy = rt.allocate(objsize);
-        memcpy(objcopy, (byte *) obj, objsize);
+        memmove(objcopy, (byte *) obj, objsize);
 
         // Jump past what we parsed
         s = (byte_p) s + length;

@@ -43,7 +43,7 @@ struct settings
           decimalDot('.'),
           exponentChar(L'⁳'),
           angle_mode(DEGREES),
-          base(10),
+          base(16),
           command_fmt(LONG_FORM)
     {}
 

@@ -149,6 +149,14 @@ OBJECT_PARSER_BODY(integer)
                     rt.error("Invalid base", endp-1);
                     return ERROR;
                 }
+                switch(base)
+                {
+                case  2: type = ID_bin_integer; break;
+                case  8: type = ID_oct_integer; break;
+                case 10: type = ID_dec_integer; break;
+                case 16: type = ID_hex_integer; break;
+                }
+                endp++;
                 break;
             }
             endp--;

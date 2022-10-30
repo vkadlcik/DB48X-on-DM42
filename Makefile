@@ -99,7 +99,7 @@ CXX_SOURCES +=				\
 	src/integer.cc			\
 	src/decimal128.cc		\
 	$(DECIMAL_SOURCES)		\
-	src/rplstring.cc		\
+	src/text.cc		        \
 	src/symbol.cc			\
 	src/algebraic.cc		\
 	src/arithmetic.cc		\

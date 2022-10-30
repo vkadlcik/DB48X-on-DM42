@@ -41,15 +41,15 @@
 //
 
 #include "object.h"
-#include "rplstring.h"
+#include "text.h"
 
-struct symbol : string
+struct symbol : text
 // ----------------------------------------------------------------------------
 //    Represent symbol objects
 // ----------------------------------------------------------------------------
 {
     symbol(gcutf8 source, size_t len, id type = ID_symbol):
-        string(source, len, type)
+        text(source, len, type)
     { }
 
     OBJECT_HANDLER(symbol);

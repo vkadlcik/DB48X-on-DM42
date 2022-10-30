@@ -47,7 +47,7 @@ SOURCES +=                                      \
         ../src/decimal-64.cc                    \
         ../src/decimal-32.cc                    \
         ../src/runtime.cc                       \
-        ../src/rplstring.cc                     \
+        ../src/text.cc                          \
         ../src/symbol.cc                        \
         ../src/algebraic.cc                     \
         ../src/arithmetic.cc                    \

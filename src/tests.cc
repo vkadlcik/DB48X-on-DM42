@@ -220,7 +220,7 @@ void tests::data_types()
     step("Text");
     cstring string = "\"Hello World\"";
     test(CLEAR, string, ENTER)
-        .type(object::ID_string).expect(string);
+        .type(object::ID_text).expect(string);
 
     clear();
 }

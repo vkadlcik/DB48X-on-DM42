@@ -103,6 +103,6 @@ OBJECT_RENDERER_BODY(symbol)
 // ----------------------------------------------------------------------------
 {
     size_t len = 0;
-    utf8   txt = text(&len);
+    utf8   txt = value(&len);
     return snprintf(r.target, r.length, "%.*s", (int) len, txt);
 }

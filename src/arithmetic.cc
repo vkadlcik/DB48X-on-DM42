@@ -34,7 +34,7 @@
 #include "decimal128.h"
 #include "integer.h"
 #include "runtime.h"
-#include "rplstring.h"
+#include "text.h"
 #include "settings.h"
 
 
@@ -63,14 +63,14 @@ inline bool non_numeric<add>(gcobj &x, gcobj & y,
 //   Deal with non-numerical data types for addition
 // ----------------------------------------------------------------------------
 //   This deals with:
-//   - String + string: Concatenation of string
-//   - String + object: Concatenation of string + object text
-//   - Object + string: Concatenation of object text + string
+//   - Text + text: Concatenation of text
+//   - Text + object: Concatenation of text + object text
+//   - Object + text: Concatenation of object text + text
 {
-    if (xt == object::ID_string && yt == object::ID_string)
+    if (xt == object::ID_text && yt == object::ID_text)
     {
-        string_g xs = x->as<string>();
-        string_g ys = y->as<string>();
+        text_g xs = x->as<text>();
+        text_g ys = y->as<text>();
         x = object_p(ys + xs);
         return true;
     }
@@ -178,26 +178,26 @@ inline bool non_numeric<mul>(gcobj &UNUSED x, gcobj &UNUSED y,
 //   Deal with non-numerical data types for multiplication
 // ----------------------------------------------------------------------------
 //   This deals with:
-//   - String * integer: Repeat the string
-//   - Integer * string: Repeat the string
+//   - Text * integer: Repeat the text
+//   - Integer * text: Repeat the text
 {
-    if (xt == object::ID_string && yt == object::ID_integer)
+    if (xt == object::ID_text && yt == object::ID_integer)
     {
-        string_g xs = x->as<string>();
+        text_g xs = x->as<text>();
         integer_p ys = y->as<integer>();
         uint yn = ys->value<uint>();
         x = object_p(xs * yn);
-        xt = string::ID_string;
+        xt = text::ID_text;
         return true;
     }
 
-    if (xt == object::ID_integer && yt == object::ID_string)
+    if (xt == object::ID_integer && yt == object::ID_text)
     {
         integer_p xs = x->as<integer>();
         uint xn = xs->value<uint>();
-        string_g ys = y->as<string>();
+        text_g ys = y->as<text>();
         x = object_p(ys * xn);
-        xt = string::ID_string;
+        xt = text::ID_text;
         return true;
     }
 

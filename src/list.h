@@ -39,24 +39,24 @@
 //   To save space, there is no explicit marker for the end of list
 
 #include "object.h"
-#include "rplstring.h"
+#include "text.h"
 
-struct list : string
+struct list : text
 // ----------------------------------------------------------------------------
 //   RPL list type
 // ----------------------------------------------------------------------------
 {
-    list(gcbytes bytes, size_t len, id type = ID_list): string(bytes, len, type)
+    list(gcbytes bytes, size_t len, id type = ID_list): text(bytes, len, type)
     { }
 
     static size_t required_memory(id i, gcbytes UNUSED bytes, size_t len)
     {
-        return string::required_memory(i, bytes, len);
+        return text::required_memory(i, bytes, len);
     }
 
     static list *make(byte_p bytes, size_t len)
     {
-        return (list *) string::make(bytes, len);
+        return (list *) text::make(bytes, len);
     }
 
     OBJECT_HANDLER(list);

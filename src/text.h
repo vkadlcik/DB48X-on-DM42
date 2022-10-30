@@ -1,14 +1,14 @@
-#ifndef RPLSTRING_H
-#define RPLSTRING_H
+#ifndef TEXT_H
+#define TEXT_H
 // ****************************************************************************
-//  rplstring.h                                                  DB48X project
+//  text.h                                                  DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//      The RPL string object type
+//      The RPL text object type
 //
-//      Operations on rplstring values
+//      Operations on text values
 //
 //
 //
@@ -31,22 +31,22 @@
 //
 // Payload format:
 //
-//   The string object is a sequence of bytes containing:
+//   The text object is a sequence of bytes containing:
 //   - The type ID (one byte)
-//   - The LEB128-encoded length of the string (one byte in most cases)
-//   - The characters of the string, not null-terminated
+//   - The LEB128-encoded length of the text (one byte in most cases)
+//   - The characters of the text, not null-terminated
 //
-//   On most strings, this format uses 3 bytes less than on the HP48.
+//   On most texts, this format uses 3 bytes less than on the HP48.
 
 #include "object.h"
 #include "runtime.h"
 
-struct string : object
+struct text : object
 // ----------------------------------------------------------------------------
-//    Represent string objects
+//    Represent text objects
 // ----------------------------------------------------------------------------
 {
-    string(gcutf8 source, size_t len, id type = ID_string): object(type)
+    text(gcutf8 source, size_t len, id type = ID_text): object(type)
     {
         utf8 s = (utf8) source;
         byte *p = (byte *) payload();
@@ -60,13 +60,13 @@ struct string : object
         return leb128size(i) + leb128size(len) + len;
     }
 
-    static string *make(utf8 str, size_t len)
+    static text *make(utf8 str, size_t len)
     {
         gcutf8 gcstr = str;
-        return RT.make<string>(gcstr, len);
+        return RT.make<text>(gcstr, len);
     }
 
-    static string *make(utf8 str)
+    static text *make(utf8 str)
     {
         return make(str, strlen(cstring(str)));
     }
@@ -85,7 +85,7 @@ struct string : object
         return ptrdiff(p, obj);
     }
 
-    utf8 text(size_t *size = nullptr) const
+    utf8 value(size_t *size = nullptr) const
     {
         byte  *p   = payload();
         size_t len = leb128<size_t>(p);
@@ -94,17 +94,17 @@ struct string : object
         return (utf8) p;
     }
 
-    OBJECT_HANDLER(string);
-    OBJECT_PARSER(string);
-    OBJECT_RENDERER(string);
+    OBJECT_HANDLER(text);
+    OBJECT_PARSER(text);
+    OBJECT_RENDERER(text);
 };
 
-typedef const string     *string_p;
-typedef gcp<const string> string_g;
+typedef const text     *text_p;
+typedef gcp<const text> text_g;
 
-// Some operators on strings
+// Some operators on texts
 
-string_g operator+(string_g x, string_g y);
-string_g operator*(string_g x, uint y);
+text_g operator+(text_g x, text_g y);
+text_g operator*(text_g x, uint y);
 
-#endif // STRING_H
+#endif // TEXT_H

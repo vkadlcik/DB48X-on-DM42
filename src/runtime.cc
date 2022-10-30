@@ -241,7 +241,7 @@ utf8 runtime::close_editor()
 //   overwriting the editor
 {
     // Compute the extra size we need for a string header
-    size_t hdrsize = leb128size(object::ID_string) + leb128size(Editing + 1);
+    size_t hdrsize = leb128size(object::ID_text) + leb128size(Editing + 1);
     if (available(hdrsize) < hdrsize)
         return nullptr;
 
@@ -255,7 +255,7 @@ utf8 runtime::close_editor()
     record(editor, "Closing editor size %u at %p [%s]", Editing, ed, str);
 
     // Write the string header
-    ed = leb128(ed, object::ID_string);
+    ed = leb128(ed, object::ID_text);
     ed = leb128(ed, Editing + 1);
 
     // Move Temporaries past that newly created string

@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  rplstring.cc                                                    DB48X project
+//  text.cc                                                    DB48X project
 // ****************************************************************************
 //
 //   File Description:
@@ -27,7 +27,7 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include "rplstring.h"
+#include "text.h"
 
 #include "parser.h"
 #include "renderer.h"
@@ -36,15 +36,15 @@
 #include <stdio.h>
 
 
-OBJECT_HANDLER_BODY(string)
+OBJECT_HANDLER_BODY(text)
 // ----------------------------------------------------------------------------
-//    Handle commands for strings
+//    Handle commands for texts
 // ----------------------------------------------------------------------------
 {
     switch(op)
     {
     case EVAL:
-        // String values evaluate as self
+        // Text values evaluate as self
         rt.push(obj);
         return OK;
     case SIZE:
@@ -64,11 +64,11 @@ OBJECT_HANDLER_BODY(string)
 }
 
 
-OBJECT_PARSER_BODY(string)
+OBJECT_PARSER_BODY(text)
 // ----------------------------------------------------------------------------
-//    Try to parse this as an string
+//    Try to parse this as an text
 // ----------------------------------------------------------------------------
-//    For simplicity, this deals with all kinds of strings
+//    For simplicity, this deals with all kinds of texts
 {
     utf8 source = p.source;
     utf8 s      = source;
@@ -81,58 +81,58 @@ OBJECT_PARSER_BODY(string)
 
     if (*s != '"')
     {
-        rt.error("Invalid string", s);
+        rt.error("Invalid text", s);
         return ERROR;
     }
     s++;
 
     size_t parsed = s - source;
     size_t slen   = parsed - 2;
-    gcutf8 text   = source + 1;
+    gcutf8 txt    = source + 1;
     p.end         = parsed;
-    p.out         = rt.make<string>(ID_string, text, slen);
+    p.out         = rt.make<text>(ID_text, txt, slen);
 
     return OK;
 }
 
 
-OBJECT_RENDERER_BODY(string)
+OBJECT_RENDERER_BODY(text)
 // ----------------------------------------------------------------------------
-//   Render the string into the given string buffer
+//   Render the text into the given text buffer
 // ----------------------------------------------------------------------------
 {
     size_t  len = 0;
-    utf8 txt = text(&len);
+    utf8 txt = value(&len);
     return snprintf(r.target, r.length, "\"%.*s\"", (int) len, txt);
 }
 
 
-string_g operator+(string_g x, string_g y)
+text_g operator+(text_g x, text_g y)
 // ----------------------------------------------------------------------------
-//   Concatenate two strings
+//   Concatenate two texts
 // ----------------------------------------------------------------------------
 {
     runtime &rt = runtime::RT;
     size_t sx = 0, sy = 0;
-    utf8 tx = x->text(&sx);
-    utf8 ty = y->text(&sy);
-    string_g concat = rt.make<string>(string::ID_string, tx, sx + sy);
+    utf8 tx = x->value(&sx);
+    utf8 ty = y->value(&sy);
+    text_g concat = rt.make<text>(text::ID_text, tx, sx + sy);
     if (concat)
     {
-        utf8 tc = concat->text();
+        utf8 tc = concat->value();
         memcpy((byte *) tc + sx, (byte *) ty, sy);
     }
     return concat;
 }
 
 
-string_g operator*(string_g x, uint y)
+text_g operator*(text_g x, uint y)
 // ----------------------------------------------------------------------------
-//    Repeat the string a given number of times
+//    Repeat the text a given number of times
 // ----------------------------------------------------------------------------
 {
     runtime &rt = runtime::RT;
-    string_g result = rt.make<string>(string::ID_string, x->text(), 0);
+    text_g result = rt.make<text>(text::ID_text, x->value(), 0);
     while (y)
     {
         if (y & 1)

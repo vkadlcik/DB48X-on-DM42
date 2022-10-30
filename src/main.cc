@@ -38,7 +38,7 @@
 #include "menu.h"
 #include "num.h"
 #include "rpl.h"
-#include "rplstring.h"
+#include "text.h"
 #include "settings.h"
 #include "stack.h"
 #include "target.h"

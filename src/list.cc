@@ -64,7 +64,7 @@ OBJECT_HANDLER_BODY(list)
 
     default:
         // Check if anyone else knows how to deal with it
-        return DELEGATE(string);
+        return DELEGATE(text);
     }
 
 }

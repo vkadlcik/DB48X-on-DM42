@@ -40,7 +40,7 @@
 #include "list.h"
 #include "parser.h"
 #include "renderer.h"
-#include "rplstring.h"
+#include "text.h"
 #include "runtime.h"
 #include "stack-cmds.h"
 #include "symbol.h"

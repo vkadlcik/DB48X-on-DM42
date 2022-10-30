@@ -223,6 +223,26 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
 }
 
 
+void runtime::move_globals(object_p to, object_p from)
+// ----------------------------------------------------------------------------
+//    Move data in the globals area
+// ----------------------------------------------------------------------------
+//    In that case, we need to move everything up to the scratchpad
+{
+    object_p last = (object_p) scratchpad() + allocated();
+    object_p first = to < from ? to : from;
+    size_t moving = last - first;
+    move(to, from, moving);
+
+    // Adjust Globals and Temporaries
+    int delta = to - from;
+    if (Globals >= first && Globals < last)             // Probably never
+        Globals += delta;
+    if (Temporaries >= first && Temporaries < last)     // Probably always
+        Temporaries += delta;
+}
+
+
 size_t runtime::size(object_p obj)
 // ----------------------------------------------------------------------------
 //   Delegate the size to the object

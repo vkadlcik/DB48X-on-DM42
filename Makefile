@@ -104,6 +104,7 @@ CXX_SOURCES +=				\
 	src/algebraic.cc		\
 	src/arithmetic.cc		\
 	src/functions.cc		\
+	src/variables.cc		\
 	src/list.cc			\
 	src/font.cc			\
 	fonts/HelpFont.cc		\

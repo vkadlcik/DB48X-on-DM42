@@ -37,9 +37,7 @@
 
 
 struct object;                  // RPL object
-struct global;                  // RPL global variable
 typedef const object *object_p;
-typedef const global *global_p;
 
 RECORDER_DECLARE(runtime);
 RECORDER_DECLARE(runtime_error);
@@ -54,13 +52,29 @@ struct runtime
 //   Layout in memory is as follows
 //
 //      HighMem         End of usable memory
+//        [Pointer to object in local variable N in outermost program]
+//        [ ... ]
+//        [Pointer to object in local variable 1 in outermost program]
+//        [Number of local variables above, may be 0]
+//        [Pointer to next object to evaluate in outermost program]
+//        [... the same as the above for inner objects being evaluated ...]
+//        [Number of local variables in currently evaluating program, may be 0]
 //      Returns         Top of return stack
+//        [Pointer to outermost catalog in path]
+//        [ ... intermediate catalog pointers ...]
+//        [Pointer to innermost catalog in path]
 //      StackBottom     Bottom of stack
+//        [User stack]
 //      StackTop        Top of stack
-//        ...
+//        [Free, may be temporarily written prior to being put in scratch]
+//      +Scratch        Binary scratch pad (to assemble objects like lists)
+//        [Scratchpad allocated area]
 //      Editor          The text editor
-//      Temporaries     Temporaries, allocated down
+//        [Text editor contents]
+//      Temporaries     Temporaries, allocated up
+//        [Previously allocated temporary objects, can be garbage collected]
 //      Globals         Global named RPL objects
+//        [Top-level catalog of global objects]
 //      LowMem          Bottom of memory
 //
 //   When allocating a temporary, we move 'Temporaries' up
@@ -98,7 +112,7 @@ struct runtime
         StackTop = (object_p*) StackBottom;
         Editing = 0;
         Temporaries = (object_p) LowMem;
-        Globals = (global_p) Temporaries;
+        Globals = Temporaries;
         record(runtime, "Memory %p-%p size %u (%uK)",
                LowMem, HighMem, size, size>>10);
     }
@@ -317,7 +331,6 @@ struct runtime
         return scratch;
     }
 
-
     size_t allocated()
     // ------------------------------------------------------------------------
     //   Return the size of the temporary scratchpad
@@ -423,18 +436,36 @@ struct runtime
 
 
 
-
-
     // ========================================================================
     //
     //   Object management
     //
     // ========================================================================
 
-    size_t   gc();
-    void     move(object_p to, object_p from, size_t sz, bool scratch=false);
+    size_t gc();
+    // ------------------------------------------------------------------------
+    //   Garbage collector (purge unused objects from memory to make space)
+    // ------------------------------------------------------------------------
 
-    size_t   size(object_p obj);
+
+    void move(object_p to, object_p from, size_t sz, bool scratch=false);
+    // ------------------------------------------------------------------------
+    //    Like memmove, but update pointers to objects
+    // ------------------------------------------------------------------------
+
+
+    void move_globals(object_p to, object_p from);
+    // ------------------------------------------------------------------------
+    //    Move data in the globals area (move everything up to end of scratch)
+    // ------------------------------------------------------------------------
+
+
+    size_t size(object_p obj);
+    // ------------------------------------------------------------------------
+    //   Query the size of an RPL object
+    // ------------------------------------------------------------------------
+
+
     object_p skip(object_p obj)
     // ------------------------------------------------------------------------
     //   Skip an RPL object
@@ -734,7 +765,7 @@ protected:
     utf8      ErrorCommand; // Source of the error if known
     object_p  Code;         // Currently executing code
     object_p  LowMem;       // Bottom of available memory
-    global_p  Globals;      // Global objects
+    object_p  Globals;      // Global objects
     object_p  Temporaries;  // Temporaries (must be valid objects)
     size_t    Editing;      // Text editor (utf8 encoded)
     size_t    Scratch;      // Scratch pad (may be invalid objects)

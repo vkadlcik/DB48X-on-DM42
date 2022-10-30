@@ -52,7 +52,7 @@ OBJECT_HANDLER_BODY(list)
     case EVAL:
         // List values evaluate as self
         rt.push(obj);
-        return 0;
+        return OK;
     case SIZE:
         return size(obj, payload);
     case PARSE:

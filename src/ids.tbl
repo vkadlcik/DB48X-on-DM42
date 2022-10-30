@@ -55,6 +55,7 @@
 ID(object)                      // Value 0 is reserved for "not implemented"
 
 ID(symbol)
+ID(catalog)
 ID(text)
 ID(list)
 ID(program)

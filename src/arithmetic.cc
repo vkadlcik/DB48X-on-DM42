@@ -399,7 +399,7 @@ object::result arithmetic::evaluate(bid128_fn op128,
     runtime &rt = runtime::RT;
 
     /* Integer types */
-    bool ok = non_numeric(x, y, xt, yt);
+    bool ok = false;
 
     if (!ok && is_integer(xt) && is_integer(yt))
     {
@@ -456,6 +456,9 @@ object::result arithmetic::evaluate(bid128_fn op128,
             break;
         }
     }
+
+    if (!ok)
+        ok = non_numeric(x, y, xt, yt);
 
     if (ok)
     {

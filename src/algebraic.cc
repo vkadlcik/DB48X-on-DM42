@@ -167,7 +167,6 @@ bool algebraic::real_promotion(gcobj &x, object::id type)
         break;
     }
 
-    rt.error("Invalid real conversion");
     return false;
 }
 

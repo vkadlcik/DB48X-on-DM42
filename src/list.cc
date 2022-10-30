@@ -285,17 +285,17 @@ object::result program::evaluate(runtime &rt) const
 //   We evaluate a program by evaluating all the objects in it
 // ----------------------------------------------------------------------------
 {
-    byte  *p     = (byte *) payload();
-    size_t len   = leb128<size_t>(p);
-    gcobj  first = (object_p) p;
-    result r     = OK;
+    byte  *p       = (byte *) payload();
+    size_t len     = leb128<size_t>(p);
+    gcobj  first   = (object_p) p;
+    result r       = OK;
+    size_t objsize = 0;
 
-    for (gcobj obj = first;
-         size_t(object_p(obj) - object_p(first)) < len;
-         obj = obj->skip())
+    for (gcobj obj = first; len > 0; obj += objsize, len -= objsize)
     {
-        record(program, "Evaluating %+s at %p\n",
-               obj->fancy(), (object_p) obj);
+        objsize = obj->size();
+        record(program, "Evaluating %+s at %p, size %u, %u remaining\n",
+               obj->fancy(), (object_p) obj, objsize, len);
         if (interrupted() || r != OK)
             break;
         r = obj->evaluate(rt);

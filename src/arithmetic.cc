@@ -461,6 +461,7 @@ object::result arithmetic::evaluate(bid128_fn op128,
     {
         rt.drop();
         rt.top(x);
+        return OK;
     }
     else
     {

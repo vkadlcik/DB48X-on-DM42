@@ -474,14 +474,11 @@ struct runtime
             }
         }
 
-        operator byte  *() const   { return safe; }
-        operator byte *&()         { return safe; }
-        operator bool()            { return safe != nullptr; }
-        gcptr &operator =(const gcptr &o)
-        {
-            safe = o.safe;
-            return *this;
-        }
+        operator byte  *() const                { return safe; }
+        operator byte *&()                      { return safe; }
+        operator bool()                         { return safe != nullptr; }
+        gcptr &operator =(const gcptr &o)       { safe = o.safe; return *this; }
+        gcptr &operator+=(size_t sz)            { safe += sz; return *this; }
 
     private:
         byte  *safe;

@@ -77,7 +77,6 @@ input::input()
       stack(LCD_H),
       cx(0),
       cy(0),
-      cchar(' '),
       shift(false),
       xshift(false),
       alpha(false),
@@ -651,7 +650,6 @@ void input::draw_editor()
     coord x = -xoffset;
     stack = y;
 
-    cchar = 0;
     int r = 0;
     while (r < rows && display <= last)
     {
@@ -662,7 +660,6 @@ void input::draw_editor()
         {
             cx    = x;
             cy    = y;
-            cchar = display <= last ? c : ' ';
         }
         if (c == '\n')
         {
@@ -680,15 +677,10 @@ void input::draw_editor()
         else
             x += cw;
     }
-    if (cchar == '\n')
-    {
-        cchar = ' ';
-    }
-    else if (!cchar)
+    if (cursor >= len)
     {
         cx    = x;
         cy    = y;
-        cchar = ' ';
     }
 
     Screen.clip(clip);
@@ -705,30 +697,46 @@ int input::draw_cursor(uint time, uint &period)
     if (!RT.editing() || showingHelp())
         return -1;
 
-    static uint last = 0;
+    static uint lastT = 0;
     if (period > 500)
         period = 500;
-    if (time - last < 500)
+    if (time - lastT < 500)
         return -1;
-    last = time;
+    lastT = time;
 
-    size ch = EditorFont->height();
-    size cw = EditorFont->width(cchar);
-    Screen.fill(cx, cy, cx + cw - 1, cy + ch - 1, pattern::gray75);
+    // Select cursor character
+    unicode cursorChar = mode == DIRECT    ? 'D'
+                       : mode == TEXT      ? (lowercase ? 'L' : 'C')
+                       : mode == PROGRAM   ? 'P'
+                       : mode == ALGEBRAIC ? 'A'
+                       : mode == MATRIX    ? 'M'
+                                           : 'X';
+    size    csrh       = CursorFont->height();
+    size    csrw       = CursorFont->width(cursorChar);
+    size    ch         = EditorFont->height();
 
-    // Write the character under the cursor
-    Screen.glyph(cx, cy, cchar, EditorFont);
+    coord   x          = cx;
+    utf8    ed         = RT.editor();
+    size_t  len        = RT.editing();
+    utf8    last       = ed + len;
+    utf8    p          = ed + cursor;
+    while (x < cx + csrw)
+    {
+        unicode cchar = p < last ? utf8_codepoint(p) : ' ';
+        if (cchar == '\n')
+            cchar = ' ';
+        size cw = EditorFont->width(cchar);
+        Screen.fill(x, cy, x + cw - 1, cy + ch - 1,
+                    x == cx ? pattern::gray75 : pattern::white);
+
+        // Write the character under the cursor
+        x = Screen.glyph(x, cy, cchar, EditorFont);
+        if (p < last)
+            p = utf8_next(p);
+    }
 
     if (blink)
     {
-        unicode cursorChar = mode == DIRECT    ? 'D'
-                            : mode == TEXT      ? (lowercase ? 'L' : 'C')
-                            : mode == PROGRAM   ? 'P'
-                            : mode == ALGEBRAIC ? 'A'
-                            : mode == MATRIX    ? 'M'
-                                                : 'x';
-        size     csrh       = CursorFont->height();
-        size csrw = CursorFont->width(cursorChar);
         coord csrx = cx;
         coord csry = cy + (ch - csrh)/2;
         Screen.fill(csrx, cy, csrx+1, cy + ch - 1, pattern::black);
@@ -1183,7 +1191,7 @@ bool input::draw_help()
     coord    height    = font->height();
     coord    x         = xleft;
     coord    y         = ytop + 2 - line * height;
-    unicode last      = '\n';
+    unicode  last      = '\n';
     uint     lastTopic = 0;
     uint     shown     = 0;
 

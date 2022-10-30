@@ -125,7 +125,6 @@ protected:
     int      last;          // Last key
     int      stack;         // Vertical bottom of the stack
     coord    cx, cy;        // Cursor position on screen
-    unicode cchar;         // Character under the cursor
     bool     shift     : 1; // Normal shift active
     bool     xshift    : 1; // Extended shift active (simulate Right)
     bool     alpha     : 1; // Alpha mode active

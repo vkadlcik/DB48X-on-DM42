@@ -131,12 +131,14 @@ object_p object::parse(utf8 source, size_t &size, runtime &rt)
     // Try parsing with the various handlers
     for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
     {
-        p.candidate = id(i);
+        // Parse ID_symbol last, we need to check commands first
+        uint candidate = (i + ID_symbol + 1) % NUM_IDS;
+        p.candidate = id(candidate);
         record(parse_attempts, "Trying [%s] against %+s", src, name(id(i)));
-        r = (result) handler[i](rt, PARSE, &p, nullptr, nullptr);
+        r = (result) handler[candidate](rt, PARSE, &p, nullptr, nullptr);
         if (r != SKIP)
-            record(parse_attempts, "Result was %+s (%d) for [%s]",
-                   name(r), r, source);
+            record(parse_attempts, "Result for ID %+s was %+s (%d) for [%s]",
+                   name(p.candidate), name(r), r, source);
         if (r == WARN)
         {
             err = rt.error();

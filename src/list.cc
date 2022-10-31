@@ -87,10 +87,14 @@ object::result list::object_parser(id type,
     gcutf8 s = p.source;
 
     // Check if we have the opening marker
-    unicode cp = utf8_codepoint(s);
-    if (cp != open)
-        return SKIP;
-    s = utf8_next(s);
+    unicode cp = 0;
+    if (open)
+    {
+        cp = utf8_codepoint(s);
+        if (cp != open)
+            return SKIP;
+        s = utf8_next(s);
+    }
 
     size_t  prealloc = rt.allocated();
     gcbytes scratch = rt.scratchpad() + prealloc;
@@ -125,7 +129,7 @@ object::result list::object_parser(id type,
     }
 
     // Check that we have a matching closing character
-    if (cp != close)
+    if (close && cp != close)
     {
         record(list_errors, "Missing terminator, got %u (%c) at %s",
                cp, cp, (byte *) s);
@@ -244,8 +248,10 @@ OBJECT_HANDLER_BODY(program)
     switch(op)
     {
     case EVAL:
-        // Programs evaluate by evaluating all elements in sequence
-        return obj->evaluate(rt);
+        // A normal evaluation (not from ID_eval) just places program on stack
+        // e.g.: from command line, or « « 1 + 2 » »
+        rt.push(obj);
+        return OK;
     case SIZE:
         return size(obj, payload);
     case PARSE:
@@ -284,6 +290,7 @@ object::result program::evaluate(runtime &rt) const
 // ----------------------------------------------------------------------------
 //   We evaluate a program by evaluating all the objects in it
 // ----------------------------------------------------------------------------
+//   This is called directly from the 'eval' command
 {
     byte  *p       = (byte *) payload();
     size_t len     = leb128<size_t>(p);
@@ -302,6 +309,22 @@ object::result program::evaluate(runtime &rt) const
     }
 
     return r;
+}
+
+
+program_p program::parse(utf8 source, size_t size)
+// ----------------------------------------------------------------------------
+//   Parse a program without delimiters (e.g. command line)
+// ----------------------------------------------------------------------------
+{
+    record(program, ">Parsing command line [%s]", source);
+    parser p(source, size);
+    result r = list::object_parser(ID_program, p, RT, 0, 0);
+    record(program, "<Command line [%s], end at %u, result %p",
+           source, p.end, (object_p) p.out);
+    object_p  obj  = p.out;
+    program_p prog = obj->as<program>();
+    return r == OK ? prog : nullptr;
 }
 
 

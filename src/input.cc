@@ -33,6 +33,7 @@
 #include "command.h"
 #include "functions.h"
 #include "graphics.h"
+#include "list.h"
 #include "menu.h"
 #include "runtime.h"
 #include "settings.h"
@@ -139,12 +140,12 @@ bool input::end_edit()
         gcutf8 editor = RT.close_editor();
         if (editor)
         {
-            gcobj obj = object::parse(editor, edlen);
-            if (obj)
+            gcp<const program> cmds = program::parse(editor, edlen);
+            if (cmds)
             {
                 // We successfully parsed the line
                 clear_editor();
-                RT.push(obj);
+                cmds->evaluate();
             }
             else
             {
@@ -156,7 +157,7 @@ bool input::end_edit()
                 if (!RT.edit(ed, edlen))
                     cursor = 0;
                 beep(3300, 100);
-                return false;
+                return true;
             }
         }
     }
@@ -227,6 +228,15 @@ bool input::key(int key, bool repeating)
         {
             beep(2200, 75);
         }
+        return true;
+    }
+
+    if (shift && key == KEY_E)
+    {
+        printf("Editor content is [%.*s] (%u bytes)\n",
+               (int) RT.editing(),
+               RT.editor(),
+               (uint) RT.editing());
         return true;
     }
 

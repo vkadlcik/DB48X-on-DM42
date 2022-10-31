@@ -108,6 +108,7 @@ struct parser;
 struct renderer;
 struct object;
 struct symbol;
+struct program;
 
 RECORDER_DECLARE(object);
 RECORDER_DECLARE(parse);
@@ -117,8 +118,9 @@ RECORDER_DECLARE(eval);
 RECORDER_DECLARE(run);
 RECORDER_DECLARE(object_errors);
 
-typedef const object *object_p;
-typedef const symbol *symbol_p;
+typedef const object  *object_p;
+typedef const symbol  *symbol_p;
+typedef const program *program_p;
 
 
 struct object

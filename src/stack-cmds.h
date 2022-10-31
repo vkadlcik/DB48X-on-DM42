@@ -30,6 +30,7 @@
 // ****************************************************************************
 
 #include "command.h"
+#include "list.h"
 
 COMMAND(dup)
 // ----------------------------------------------------------------------------
@@ -76,7 +77,9 @@ COMMAND(eval)
 // ----------------------------------------------------------------------------
 {
     object_p x = RT.pop();
-    if (x)
+    if (program_p prog = x->as<program>())
+        return prog->evaluate();
+    else
         return x->evaluate();
     return ERROR;
 }

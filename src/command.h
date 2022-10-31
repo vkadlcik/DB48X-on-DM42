@@ -62,10 +62,14 @@ struct command : object
     // Overload command to adjust based on settings
     cstring name();
 
+    // Get a static command pointer for a given command
+    static object_p static_object(id i);
+
     // Standard object interface
     OBJECT_PARSER(command);
     OBJECT_RENDERER(command);
     OBJECT_HANDLER_NO_ID(command);
+
 };
 
 
@@ -93,5 +97,22 @@ struct command : object
 #define COMMAND(derived)                        \
     COMMAND_DECLARE(derived);                   \
     inline COMMAND_BODY(derived)
+
+
+
+// ============================================================================
+//
+//    Some basic commands
+//
+// ============================================================================
+
+COMMAND(unimplemented)
+// ----------------------------------------------------------------------------
+//   Used for unimplemented commands, e.g. in menus
+// ----------------------------------------------------------------------------
+{
+    RT.error("Not yet implemented");
+    return ERROR;
+}
 
 #endif // COMMAND_H

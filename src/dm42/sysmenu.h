@@ -1,5 +1,5 @@
-#ifndef MENU_H
-#define MENU_H
+#ifndef SYSMENU_H
+#define SYSMENU_H
 // ****************************************************************************
 //  menu.h                                                        DB48X project
 // ****************************************************************************
@@ -50,4 +50,4 @@ extern const smenu_t  settings_menu;
 int                   menu_item_run(uint8_t mid);
 cstring               menu_item_description(uint8_t mid, char *, const int);
 
-#endif // MENU_H
+#endif // SYSMENU_H

@@ -38,6 +38,8 @@
 #include <vector>
 
 struct runtime;
+struct menu;
+typedef const menu *menu_p;
 
 struct input
 // ----------------------------------------------------------------------------
@@ -76,6 +78,12 @@ struct input
     bool        repeating()     { return repeat; }
     void        assign(int key, uint plane, object_p code);
     object_p    assigned(int key, uint plane);
+
+    void        menu(menu_p menu, uint page = 0);
+    menu_p      menu();
+    uint        page();
+    void        page(uint p);
+    uint        pages();
     void        menus(uint count, cstring labels[], object_p function[]);
     void        menu(uint index, cstring label, object_p function);
     void        menu(uint index, symbol_p label, object_p function);
@@ -126,6 +134,9 @@ protected:
     int      last;          // Last key
     int      stack;         // Vertical bottom of the stack
     coord    cx, cy;        // Cursor position on screen
+    menu_p   menuObject;    // Current menu being shown
+    uint     menuPage;      // Current menu page
+    uint     menuPages;     // Number of menu pages
     bool     shift     : 1; // Normal shift active
     bool     xshift    : 1; // Extended shift active (simulate Right)
     bool     alpha     : 1; // Alpha mode active
@@ -156,18 +167,18 @@ protected:
         file();
         ~file();
 
-        void     open(cstring path);
-        bool     valid();
-        void     close();
+        void    open(cstring path);
+        bool    valid();
+        void    close();
         unicode get();
         unicode get(uint offset);
-        void     seek(uint offset);
+        void    seek(uint offset);
         unicode peek();
-        uint     position();
-        uint     find(unicode cp);
-        uint     rfind(unicode cp);
+        uint    position();
+        uint    find(unicode cp);
+        uint    rfind(unicode cp);
 
-    protected:
+      protected:
 #ifdef SIMULATOR
         FILE    *data;
 #else

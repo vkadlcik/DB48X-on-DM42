@@ -35,6 +35,7 @@
 #include "functions.h"
 #include "graphics.h"
 #include "list.h"
+#include "menu.h"
 #include "runtime.h"
 #include "settings.h"
 #include "target.h"
@@ -78,6 +79,9 @@ input::input()
       stack(LCD_H),
       cx(0),
       cy(0),
+      menuObject(),
+      menuPage(),
+      menuPages(),
       shift(false),
       xshift(false),
       alpha(false),
@@ -305,6 +309,55 @@ object_p input::assigned(int key, uint plane)
 }
 
 
+void input::menu(menu_p menu, uint page)
+// ----------------------------------------------------------------------------
+//   Set menu and page
+// ----------------------------------------------------------------------------
+{
+    menuObject = menu;
+    menuPage = page;
+    if (menu)
+        menu->update(page);
+    dirtyMenu = true;
+}
+
+
+menu_p input::menu()
+// ----------------------------------------------------------------------------
+//   Return the current menu
+// ----------------------------------------------------------------------------
+{
+    return menuObject;
+}
+
+
+uint input::page()
+// ----------------------------------------------------------------------------
+//   Return the currently displayed page
+// ----------------------------------------------------------------------------
+{
+    return menuPage;
+}
+
+
+void input::page(uint p)
+// ----------------------------------------------------------------------------
+//   Set the menu page to display
+// ----------------------------------------------------------------------------
+{
+    menuPage = p % pages();
+}
+
+
+uint input::pages()
+// ----------------------------------------------------------------------------
+//   Return number of menu pages
+// ----------------------------------------------------------------------------
+{
+    return menuPages;
+}
+
+
 void input::menus(uint count, cstring labels[], object_p function[])
 // ----------------------------------------------------------------------------
 //   Assign all menus at once
@@ -330,7 +383,7 @@ void input::menu(uint menu_id, cstring label, object_p fn)
         int softkey_id       = menu_id % NUM_SOFTKEYS;
         int key              = KEY_F1 + softkey_id;
         int plane            = menu_id / NUM_SOFTKEYS;
-        function[plane][key] = fn;
+        function[plane][key-1] = fn;
         menu_label[plane][softkey_id] = label;
         dirtyMenu = true;       // Redraw menu
     }

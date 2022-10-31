@@ -550,6 +550,22 @@ bool dmcp_font::glyph(unicode utf8cp, glyph_info &g) const
     case L'■': codepoint = 0x9F; break;
     case L'▼': codepoint = 0xA0; break;
     case L'▲': codepoint = 0xA1; break;
+    case L'◀':
+    {
+        // Invent this character for the font
+        static const byte bitmap[] = {
+            0x02,               // ------*-
+            0x0E,               // ----***-
+            0x3E,               // --*****-
+            0xFE,               // *******-
+            0x3E,               // --*****-
+            0x0E,               // ----***-
+            0x02,               // ------*-
+            0x00,               // --------
+        };
+        synthesized = bitmap;
+        break;
+    }
     case L'«':
     {
         // Invent this character for the font

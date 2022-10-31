@@ -31,83 +31,182 @@
 
 #include "variables.h"
 #include "symbol.h"
+#include "input.h"
 
 
-struct menu : catalog
+struct menu : command
 // ----------------------------------------------------------------------------
-//   An RPL menu defines a bunch of commands with associated labels
+//   An RPL menu object, can define menu keys
 // ----------------------------------------------------------------------------
 {
-    // Construction of menu objects
-    menu(id type = ID_menu) : catalog(type) {}
+    // Constructor
+    menu(id type = ID_menu) : command(type) {}
 
-    template<typename ...Args>
-    menu(Args... args, id type = ID_menu) : catalog(type)
+    // Info returned from the MENU opcode
+    struct info
     {
-        byte *p = payload();
-        size_t sz = items_size(args...);
-        p = leb128(p, sz);
-        p = items(p, args...);
+        uint    page;                           // In:  Page index
+        uint    skip;                           // Int: Items to skip
+        uint    pages;                          // Out: Total number of pages
+        uint    index;                          // Out: Last index written
+        uint    plane;                          // Out: Last plane filled
+        uint    planes;                         // Out: Planes the menu wants
+    };
+
+    result update(uint page = 0) const
+    {
+        info mi = { .page = page };
+        return (result) run(MENU, RT, &mi);
     }
 
-    static size_t required_memory(id i) { return catalog::required_memory(i); }
-    template<typename ...Args>
-    static size_t required_memory(id i, Args... args)
-    {
-        size_t size = items_size(args...);
-        return leb128size(i) + leb128size(size) + size;
-    }
+    static void items_init(info &mi, uint nitems, uint planes = 2);
+    static void items(info &UNUSED mi) { }
+    static void items(info &mi, cstring label, id action);
+    template <typename ... Args>
+    static void items(info &mi, cstring label, id action, Args ...args);
 
-public:
-    result  evaluate(runtime &rt = RT) const;
-
-
-protected:
-    static size_t items_size() { return 0; }
-    static size_t items_size(cstring lbl, object_p obj)
+    static uint count()         { return 0; }
+    template<typename ... Args>
+    static uint count(cstring UNUSED label, id UNUSED action, Args ... args)
     {
-        size_t len = strlen(lbl);
-        return leb128size(ID_symbol) + leb128size(len) + len + obj->size();
-    }
-    static size_t items_size(symbol_p lbl, object_p obj)
-    {
-        return lbl->object::size() + obj->size();
-    }
-
-    template<typename Label, typename ...Args>
-    static size_t items_size(Label lbl, object_p obj, Args... args)
-    {
-        return items_size(lbl, obj) + items_size(args...);
-    }
-
-    static byte *items(byte *p, cstring label, object_p obj)
-    {
-        size_t len = strlen(label);
-        p = leb128(p, ID_symbol);
-        p = leb128(p, len);
-        memmove(p, label, len);
-        p += len;
-        size_t objsize = obj->size();
-        memmove(p, obj, objsize);
-        p += objsize;
-        return p;
-    }
-    static byte *items(byte *p, symbol_p label, object_p obj)
-    {
-        size_t lblsize = label->object::size();
-        memmove(p, label, lblsize);
-        p += lblsize;
-        size_t objsize = obj->size();
-        memmove(p, obj, objsize);
-        p += objsize;
-        return p;
+        return 1 + count(args...);
     }
 
 public:
     OBJECT_HANDLER(menu);
-    OBJECT_PARSER(menu);
-    OBJECT_RENDERER(menu);
 };
 
+
+template <typename ... Args>
+void menu::items(info &mi, cstring label, id type, Args... args)
+// ----------------------------------------------------------------------------
+//   Update menu items
+// ----------------------------------------------------------------------------
+{
+    items(mi, label, type);
+    items(mi, args...);
+}
+
+
+// ============================================================================
+//
+//   Commands inserted in menus
+//
+// ============================================================================
+
+COMMAND(MenuNextPage)
+// ----------------------------------------------------------------------------
+//   Select the next page in the menu
+// ----------------------------------------------------------------------------
+{
+    Input.page(Input.page() + 1);
+    return OK;
+}
+
+
+COMMAND(MenuPreviousPage)
+// ----------------------------------------------------------------------------
+//   Select the previous page in the menu
+// ----------------------------------------------------------------------------
+{
+    Input.page((Input.page() - 1) % Input.pages());
+    return OK;
+}
+
+
+COMMAND(MenuFirstPage)
+// ----------------------------------------------------------------------------
+//   Select the previous page in the menu
+// ----------------------------------------------------------------------------
+{
+    Input.page(0);
+    return OK;
+}
+
+
+
+// ============================================================================
+//
+//   Creation of a menu
+//
+// ============================================================================
+
+#define MENU(SysMenu, ...)                                              \
+struct SysMenu : menu                                                   \
+/* ------------------------------------------------------------ */      \
+/*   Create a system menu                                       */      \
+/* ------------------------------------------------------------ */      \
+{                                                                       \
+    SysMenu(id type = ID_##SysMenu) : menu(type) {}                     \
+                                                                        \
+    OBJECT_HANDLER(SysMenu)                                             \
+    {                                                                   \
+        switch(op)                                                      \
+        {                                                               \
+        case MENU:                                                      \
+        {                                                               \
+            info &mi   = *((info *) arg);                               \
+            uint nitems = count(__VA_ARGS__);                           \
+            items_init(mi, nitems, 2);                                  \
+            items(mi, ## __VA_ARGS__);                                  \
+            return OK;                                                  \
+        }                                                               \
+        default:                                                        \
+            return DELEGATE(menu);                                      \
+        }                                                               \
+    }                                                                   \
+}
+
+
+
+// ============================================================================
+//
+//    Menu hierarchy
+//
+// ============================================================================
+
+MENU(MainMenu,
+     "Math",            ID_MathMenu,
+     "Program",         ID_ProgramMenu);
+
+MENU(MathMenu,
+     "Real",            ID_RealMenu,
+     "Complex",         ID_ComplexMenu,
+     "Bases",           ID_BasesMenu,
+     "Vector",          ID_VectorMenu,
+     "Matrix",          ID_MatrixMenu,
+     "Constants",       ID_ConstantsMenu,
+
+     "Hyperbolic",      ID_HyperbolicMenu,
+     "Probabilities",   ID_ProbabilitiesMenu,
+     "Statistics",      ID_StatisticsMenu,
+     "Fourier",         ID_FourierMenu,
+     "Symbolic",        ID_SymbolicMenu);
+
+MENU(RealMenu,
+     "Circular",        ID_CircularMenu,
+     "Hyperbolic",      ID_HyperbolicMenu);
+
+MENU(ComplexMenu,
+     "→ℂ",              ID_unimplemented,
+     "𝒊",               ID_unimplemented,
+     "𝒋",               ID_unimplemented,
+     "𝒌",               ID_unimplemented);
+
+MENU(VectorMenu);
+MENU(MatrixMenu);
+MENU(HyperbolicMenu);
+MENU(CircularMenu);
+MENU(BasesMenu);
+MENU(ProbabilitiesMenu);
+MENU(StatisticsMenu);
+MENU(FourierMenu);
+MENU(ConstantsMenu);
+MENU(SymbolicMenu);
+
+MENU(ProgramMenu);
+MENU(TestsMenu);
+MENU(LoopsMenu);
+MENU(ListMenu);
 
 #endif // MENU_H

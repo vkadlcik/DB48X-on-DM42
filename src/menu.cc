@@ -37,6 +37,8 @@
 #include "parser.h"
 #include "renderer.h"
 
+RECORDER(menu,          16, "RPL menu class");
+RECORDER(menu_error,    16, "Errors handling menus");
 
 OBJECT_HANDLER_BODY(menu)
 // ----------------------------------------------------------------------------
@@ -46,65 +48,75 @@ OBJECT_HANDLER_BODY(menu)
     switch(op)
     {
     case EVAL:
-        return obj->evaluate(rt);
+        Input.menu(obj);
+        return OK;
     case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "menu";
+        return leb128size(obj->type());
+    case MENU:
+        record(menu_error, "Invalid menu %u", obj->type());
+        return ERROR;
 
     default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(list);
+        return DELEGATE(command);
     }
 }
 
 
-OBJECT_PARSER_BODY(menu)
+void menu::items_init(info &mi, uint nitems, uint planes)
 // ----------------------------------------------------------------------------
-//    Try to parse this as a menu
-// ----------------------------------------------------------------------------
-{
-    return SKIP;
-}
-
-
-OBJECT_RENDERER_BODY(menu)
-// ----------------------------------------------------------------------------
-//   Render the menu into the given menu buffer
+//   Initialize the info structure
 // ----------------------------------------------------------------------------
 {
-    return snprintf(r.target, r.length, "Menu (internal)");
-}
-
-
-object::result menu::evaluate(runtime & UNUSED rt) const
-// ----------------------------------------------------------------------------
-//   Evaluate by showing menu entries in the soft menu keys
-// ----------------------------------------------------------------------------
-{
-    byte_p p     = payload();
-    size_t size  = leb128<size_t>(p);
-    uint   index = 0;
-
-    while (size)
+    uint page0 = planes * input::NUM_SOFTKEYS;
+    mi.planes  = planes;
+    mi.plane   = 0;
+    mi.index   = 0;
+    if (nitems <= page0)
     {
-        symbol_p symbol = (symbol_p) p;
-        size_t ssize = symbol->object::size();
-        p += ssize;
-        object_p value = (object_p) p;
-        size_t osize = value->size();
-        p += osize;
-        size -= ssize + osize;
-
-        Input.menu(index++, symbol, value);
+        mi.page = 0;
+        mi.skip = 0;
+        mi.pages = 1;
     }
+    else
+    {
+        uint perpage = planes * (input::NUM_SOFTKEYS - 1);
+        mi.skip = mi.page * perpage;
+        mi.pages = nitems / perpage;
+    }
+    Input.menus(0, nullptr, nullptr);
+}
 
-    while (index < input::NUM_MENUS)
-        Input.menu(index++, cstring(nullptr), nullptr);
 
-    return OK;
+void menu::items(info &mi, cstring label, id type)
+// ----------------------------------------------------------------------------
+//   Add a menu item
+// ----------------------------------------------------------------------------
+{
+    if (mi.skip > 0)
+    {
+        mi.skip--;
+    }
+    else
+    {
+        uint idx = mi.index++;
+        if (mi.pages > 1 && mi.plane < mi.planes)
+        {
+            if ((idx + 1) % input::NUM_SOFTKEYS == 0)
+            {
+                // Insert next and previous keys in menu
+                static cstring labels[input::NUM_PLANES] = { "▶", "◀︎", "◀︎◀︎" };
+                static id functions[input::NUM_PLANES] =
+                {
+                    ID_MenuNextPage, ID_MenuPreviousPage, ID_MenuFirstPage
+                };
+                uint plane = mi.plane++;
+                object_p function = command::static_object(functions[plane]);
+                cstring label = labels[plane];
+                Input.menu(idx, label, function);
+                idx = mi.index++;
+            }
+        }
+        if (idx < input::NUM_SOFTKEYS * mi.planes)
+            Input.menu(idx, label, command::static_object(type));
+    }
 }

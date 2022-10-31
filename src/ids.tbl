@@ -137,14 +137,47 @@ CMD(tgamma)
 CMD(lgamma)
 #define LAST_ALGEBRAIC          ID_lgamma
 
-
-
 CMD(purge)
 CMD(PurgeAll)
 NAMED(mem, "AvailableMemory")
 CMD(FreeMemory)
 CMD(GarbageCollect)
-#define LAST_COMMAND            ID_gc
+
+
+// ============================================================================
+//
+//   Menus
+//
+// ============================================================================
+
+CMD(MainMenu)
+
+CMD(MathMenu)
+CMD(RealMenu)
+CMD(ComplexMenu)
+CMD(VectorMenu)
+CMD(MatrixMenu)
+CMD(HyperbolicMenu)
+CMD(CircularMenu)
+CMD(BasesMenu)
+CMD(ProbabilitiesMenu)
+CMD(StatisticsMenu)
+CMD(FourierMenu)
+CMD(ConstantsMenu)
+CMD(SymbolicMenu)
+
+CMD(ProgramMenu)
+CMD(TestsMenu)
+CMD(LoopsMenu)
+CMD(ListMenu)
+
+
+CMD(MenuNextPage)
+CMD(MenuPreviousPage)
+CMD(MenuFirstPage)
+
+CMD(unimplemented)
+#define LAST_COMMAND            ID_unimplemented
 
 
 
@@ -171,6 +204,7 @@ OPCODE(SIZE)
 OPCODE(PARSE)
 OPCODE(RENDER)
 OPCODE(HELP)
+OPCODE(MENU)
 
 #undef ID
 #undef OP

@@ -92,10 +92,27 @@ OBJECT_PARSER_BODY(command)
         if (cstring cmd = (cstring) object::name(i))
         {
             len = strlen(cmd);
-        if (len <= maxlen && strncasecmp(ref, cmd, len) == 0)
-            found = id(i);
+            if (len <= maxlen && strncasecmp(ref, cmd, len) == 0)
+                found = id(i);
         }
 
+    }
+
+    if (!found)
+    {
+        switch (i)
+        {
+#define ALIAS(base, name)                                               \
+            case ID_##base:                                             \
+                len = strlen(name);                                     \
+                if (len <= maxlen && strncasecmp(ref, name, len) == 0)  \
+                    found = id(i);                                      \
+                break;
+#define ID(i)
+#include "ids.tbl"
+        default:
+            break;
+        }
     }
 
     record(command,

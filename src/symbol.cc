@@ -33,6 +33,7 @@
 #include "renderer.h"
 #include "runtime.h"
 #include "command.h"
+#include "variables.h"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -46,7 +47,9 @@ OBJECT_HANDLER_BODY(symbol)
     switch(op)
     {
     case EVAL:
-        // TODO: Symbols are looked up, and if not found, evaluate as self
+        if (catalog_p cat = rt.variables(0))
+            if (object_p found = cat->recall(obj))
+                return found->evaluate();
         rt.push(obj);
         return OK;
     case SIZE:

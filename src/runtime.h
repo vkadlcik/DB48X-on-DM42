@@ -28,27 +28,6 @@
 //   but WITHOUT ANY WARRANTY; without even the implied warranty of
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
-
-#include "recorder.h"
-#include "types.h"
-
-#include <cstdio>
-#include <cstring>
-
-
-struct object;                  // RPL object
-typedef const object *object_p;
-
-RECORDER_DECLARE(runtime);
-RECORDER_DECLARE(runtime_error);
-RECORDER_DECLARE(errors);
-RECORDER_DECLARE(gc);
-RECORDER_DECLARE(editor);
-
-struct runtime
-// ----------------------------------------------------------------------------
-//   The RPL runtime information
-// ----------------------------------------------------------------------------
 //   Layout in memory is as follows
 //
 //      HighMem         End of usable memory
@@ -82,40 +61,38 @@ struct runtime
 //   Everything above StackTop is word-aligned
 //   Everything below Temporaries is byte-aligned
 //   Stack elements point to temporaries, globals or robjects (read-only)
+
+#include "recorder.h"
+#include "types.h"
+
+#include <cstdio>
+#include <cstring>
+
+
+struct object;                  // RPL object
+struct catalog;
+typedef const object *object_p;
+typedef const catalog *catalog_p;
+
+RECORDER_DECLARE(runtime);
+RECORDER_DECLARE(runtime_error);
+RECORDER_DECLARE(errors);
+RECORDER_DECLARE(gc);
+RECORDER_DECLARE(editor);
+
+struct runtime
+// ----------------------------------------------------------------------------
+//   The RPL runtime information
+// ----------------------------------------------------------------------------
 {
-    runtime(byte *mem = nullptr, size_t size = 0)
-        : Error(nullptr),
-          ErrorSource(nullptr),
-          ErrorCommand(nullptr),
-          Code(nullptr),
-          LowMem(),
-          Globals(),
-          Temporaries(),
-          Editing(),
-          Scratch(),
-          StackTop(),
-          StackBottom(),
-          Returns(),
-          HighMem(),
-          GCSafe(nullptr)
-    {
-        memory(mem, size);
-    }
+    runtime(byte *mem = nullptr, size_t size = 0);
     ~runtime() {}
 
-    void memory(byte *memory, size_t size)
-    {
-        LowMem = (object_p) memory;
-        HighMem = (object_p) (memory + size);
-        Returns = (object_p*) HighMem;
-        StackBottom = (object_p*) Returns;
-        StackTop = (object_p*) StackBottom;
-        Editing = 0;
-        Temporaries = (object_p) LowMem;
-        Globals = Temporaries;
-        record(runtime, "Memory %p-%p size %u (%uK)",
-               LowMem, HighMem, size, size>>10);
-    }
+    void memory(byte *memory, size_t size);
+    // ------------------------------------------------------------------------
+    //   Assign the given memory range to the runtime
+    // ------------------------------------------------------------------------
+
 
     // Amount of space we want to keep between stack top and temporaries
     const uint redzone = 2*sizeof(object_p);;
@@ -637,6 +614,23 @@ struct runtime
         return StackBottom - StackTop;
     }
 
+
+
+    // ========================================================================
+    //
+    //   Global catalogs
+    //
+    // ========================================================================
+
+    catalog *variables(uint depth)
+    // ------------------------------------------------------------------------
+    //   Current catalog for global variables
+    // ------------------------------------------------------------------------
+    {
+        if (depth >= (uint) (Returns - StackBottom))
+            return nullptr;
+        return (catalog *) StackBottom[depth];
+    }
 
 
     // ========================================================================

@@ -255,3 +255,16 @@ OBJECT_RENDERER_BODY(object)
     rt.error("Rendering unimplemented object");
     return snprintf(r.target, r.length, "<Unknown %p>", this);
 }
+
+
+symbol_p object::as_name() const
+// ----------------------------------------------------------------------------
+//   Check if something is a valid name
+// ----------------------------------------------------------------------------
+{
+    if (type() == ID_symbol)
+        return (symbol_p) this;
+    if (equation_p eq = as<equation>())
+        return eq->symbol();
+    return nullptr;
+}

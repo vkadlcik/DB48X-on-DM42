@@ -40,6 +40,7 @@
 
 #include "object.h"
 #include "text.h"
+#include "symbol.h"
 
 struct list : text
 // ----------------------------------------------------------------------------
@@ -70,6 +71,7 @@ protected:
     static result object_parser(id type, parser UNUSED &p, runtime &rt,
                                 unicode open, unicode close);
 };
+typedef const list *list_p;
 
 
 struct program : list
@@ -87,6 +89,7 @@ struct program : list
     OBJECT_PARSER(program);
     OBJECT_RENDERER(program);
 };
+typedef const program *program_p;
 
 
 struct equation : program
@@ -98,10 +101,13 @@ struct equation : program
     equation(gcbytes bytes, size_t len, id type = ID_equation)
         : program(bytes, len, type) {}
 
+    symbol_p symbol() const;
+
     OBJECT_HANDLER(equation);
     OBJECT_PARSER(equation);
     OBJECT_RENDERER(equation);
 };
+typedef const equation *equation_p;
 
 
 struct array : list
@@ -116,5 +122,6 @@ struct array : list
     OBJECT_PARSER(array);
     OBJECT_RENDERER(array);
 };
+typedef const array *array_p;
 
 #endif // LIST_H

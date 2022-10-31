@@ -2071,8 +2071,8 @@ static const byte defaultUnshiftedCommand[2*input::NUM_KEYS] =
     OP2BYTES(KEY_LOG,   function::ID_log10),
     OP2BYTES(KEY_LN,    function::ID_log),
     OP2BYTES(KEY_XEQ,   0),
-    OP2BYTES(KEY_STO,   0),
-    OP2BYTES(KEY_RCL,   0),
+    OP2BYTES(KEY_STO,   command::ID_sto),
+    OP2BYTES(KEY_RCL,   command::ID_rcl),
     OP2BYTES(KEY_RDN,   0),
     OP2BYTES(KEY_SIN,   function::ID_sin),
     OP2BYTES(KEY_COS,   function::ID_cos),
@@ -2185,8 +2185,8 @@ static const byte defaultLongShiftedCommand[2*input::NUM_KEYS] =
     OP2BYTES(KEY_LOG,   function::ID_expm1),
     OP2BYTES(KEY_LN,    function::ID_log1p),
     OP2BYTES(KEY_XEQ,   0),
-    OP2BYTES(KEY_STO,   0),
-    OP2BYTES(KEY_RCL,   0),
+    OP2BYTES(KEY_STO,   command::ID_GarbageCollect),
+    OP2BYTES(KEY_RCL,   command::ID_FreeMemory),
     OP2BYTES(KEY_RDN,   0),
     OP2BYTES(KEY_SIN,   function::ID_sinh),
     OP2BYTES(KEY_COS,   function::ID_cosh),
@@ -2267,9 +2267,6 @@ bool input::handle_functions(int key)
         return false;
 
     record(input, "Handle function for key %d (plane %d) ", key, shift_plane());
-    if (key == KEY_STO)
-        RT.gc();
-
     if (object_p obj = object_for_key(key))
     {
         if (RT.editing())

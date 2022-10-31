@@ -356,6 +356,20 @@ OBJECT_RENDERER_BODY(equation)
 }
 
 
+symbol_p equation::symbol() const
+// ----------------------------------------------------------------------------
+//   If an equation contains a single symbol, return that
+// ----------------------------------------------------------------------------
+{
+    byte  *p       = (byte *) payload();
+    size_t size    = leb128<size_t>(p);
+    object_p first = (object_p) p;
+    if (first->type() == ID_symbol && first->size() == size)
+        return (symbol_p) first;
+    return nullptr;
+}
+
+
 
 // ============================================================================
 //

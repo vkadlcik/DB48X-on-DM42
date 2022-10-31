@@ -107,6 +107,7 @@ struct runtime;
 struct parser;
 struct renderer;
 struct object;
+struct symbol;
 
 RECORDER_DECLARE(object);
 RECORDER_DECLARE(parse);
@@ -117,6 +118,7 @@ RECORDER_DECLARE(run);
 RECORDER_DECLARE(object_errors);
 
 typedef const object *object_p;
+typedef const symbol *symbol_p;
 
 
 struct object
@@ -420,6 +422,12 @@ struct object
             return (const Obj *) this;
         return nullptr;
     }
+
+
+    symbol_p as_name() const;
+    // ------------------------------------------------------------------------
+    //    Return object as a name
+    // ------------------------------------------------------------------------
 
 
 

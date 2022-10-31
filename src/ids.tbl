@@ -80,11 +80,15 @@ ID(decimal128)
 #define LAST_DECIMAL_TYPE       ID_decimal128
 #define LAST_REAL_TYPE          ID_decimal128
 
+#define FIRST_COMMAND           ID_drop
 CMD(drop)
 NAMED(dup, "Duplicate")
 CMD(swap)
 NAMED(eval, "Evaluate")
+NAMED(sto, "Store")
+NAMED(rcl, "Recall")
 
+#define FIRST_ALGEBRAIC         ID_add
 OP(add, "+")
 OP(sub, "-")
 OP(mul, "×")
@@ -130,8 +134,25 @@ CMD(erf)
 CMD(erfc)
 CMD(tgamma)
 CMD(lgamma)
+#define LAST_ALGEBRAIC          ID_lgamma
 
-// Special objects
+
+
+CMD(purge)
+CMD(PurgeAll)
+NAMED(mem, "AvailableMemory")
+CMD(FreeMemory)
+CMD(GarbageCollect)
+#define LAST_COMMAND            ID_gc
+
+
+
+// ============================================================================
+//
+//   Special objects
+//
+// ============================================================================
+
 ID(font)
 ID(dense_font)
 ID(sparse_font)

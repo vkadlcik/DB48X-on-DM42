@@ -28,6 +28,9 @@
 // ****************************************************************************
 
 #include "variables.h"
+
+#include "integer.h"
+#include "list.h"
 #include "parser.h"
 #include "renderer.h"
 
@@ -143,7 +146,7 @@ bool catalog::store(gcobj name, gcobj value)
     if (nowh != oldh)
         // Header size changed, move the catalog contents and rest of globals
         rt.move_globals(header + nowh, header + oldh);
-    leb128(header, nowh);
+    leb128(header, now);
 
     return true;
 }
@@ -233,11 +236,176 @@ size_t catalog::purge(object_p ref)
         if (nowh < oldh)
             // Rare case where the catalog size itself uses less bytes
             rt.move_globals(header + nowh, header + oldh);
-        leb128(header, nowh);
+        leb128(header, now);
 
         return purged;
     }
 
     // If nothing purged, return 0
     return 0;
+}
+
+
+
+// ============================================================================
+//
+//    Variable-related commands
+//
+// ============================================================================
+
+COMMAND_BODY(sto)
+// ----------------------------------------------------------------------------
+//   Store a global variable into current directory
+// ----------------------------------------------------------------------------
+{
+    catalog *cat = RT.variables(0);
+    if (!cat)
+    {
+        RT.error("No current directory");
+        return ERROR;
+    }
+
+    // Check that we have two objects in the stack
+    object_p x = RT.stack(0);
+    object_p y = RT.stack(1);
+    if (x && y)
+    {
+        symbol_p name = x->as_name();
+        if (!name)
+        {
+            RT.error("Invalid name");
+            return ERROR;
+        }
+
+        if (cat->store(name, y))
+        {
+            RT.drop();
+            RT.drop();
+            return OK;
+        }
+    }
+
+    // Otherwise, return an error
+    return ERROR;
+}
+
+
+COMMAND_BODY(rcl)
+// ----------------------------------------------------------------------------
+//   Recall a global variable from current directory
+// ----------------------------------------------------------------------------
+{
+    object_p x = RT.stack(0);
+    if (!x)
+        return ERROR;
+    symbol_p name = x->as_name();
+    if (!name)
+    {
+        RT.error("Invalid name");
+        return ERROR;
+    }
+
+    // Lookup all catalogs, starting with innermost one
+    catalog *cat = nullptr;
+    for (uint depth = 0; (cat = RT.variables(depth)); depth++)
+    {
+        if (object_p value = cat->recall(name))
+        {
+            RT.top(value);
+            return OK;
+        }
+    }
+
+    // Otherwise, return an error
+    RT.error("Undefined name");
+    return ERROR;
+}
+
+
+COMMAND_BODY(purge)
+// ----------------------------------------------------------------------------
+//   Purge a global variable from current directory
+// ----------------------------------------------------------------------------
+{
+    object_p x = RT.stack(0);
+    if (!x)
+        return ERROR;
+    symbol_p name = x->as_name();
+    if (name)
+    {
+        RT.error("Invalid name");
+        return ERROR;
+    }
+
+    // Lookup all catalogs, starting with innermost one
+    catalog *cat = RT.variables(0);
+    if (!cat)
+    {
+        RT.error("No current directory");
+        return ERROR;
+    }
+
+    // Purge the object (HP48 doesn't error out if name does not exist)
+    cat->purge(name);
+    return OK;
+}
+
+
+COMMAND_BODY(PurgeAll)
+// ----------------------------------------------------------------------------
+//   Purge a global variable from current directory and enclosing directories
+// ----------------------------------------------------------------------------
+{
+    object_p x = RT.stack(0);
+    if (!x)
+        return ERROR;
+    symbol_p name = x->as_name();
+    if (name)
+    {
+        RT.error("Invalid name");
+        return ERROR;
+    }
+
+    // Lookup all catalogs, starting with innermost one, and purge there
+    catalog *cat = nullptr;
+    for (uint depth = 0; (cat = RT.variables(depth)); depth++)
+        cat->purge(name);
+
+    return OK;
+}
+
+
+COMMAND_BODY(mem)
+// ----------------------------------------------------------------------------
+//    Return amount of available memory
+// ----------------------------------------------------------------------------
+//    The HP48 manual specifies that mem performs garbage collection
+{
+    RT.gc();
+    run<FreeMemory>();
+    return OK;
+}
+
+
+COMMAND_BODY(GarbageCollect)
+// ----------------------------------------------------------------------------
+//   Run the garbage collector
+// ----------------------------------------------------------------------------
+{
+    size_t saved = RT.gc();
+    integer_p result = RT.make<integer>(ID_integer, saved);
+    RT.push(result);
+    return OK;
+}
+
+
+COMMAND_BODY(FreeMemory)
+// ----------------------------------------------------------------------------
+//   Return amount of free memory (available without garbage collection)
+// ----------------------------------------------------------------------------
+{
+    size_t available = RT.available();
+    integer_p result = RT.make<integer>(ID_integer, available);
+    RT.push(result);
+    return OK;
 }

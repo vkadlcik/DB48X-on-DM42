@@ -54,6 +54,7 @@
 
 #include "list.h"
 #include "runtime.h"
+#include "command.h"
 
 struct catalog : list
 // ----------------------------------------------------------------------------
@@ -95,6 +96,15 @@ struct catalog : list
 };
 
 typedef const catalog *catalog_p;
+
+
+COMMAND_DECLARE(sto);
+COMMAND_DECLARE(rcl);
+COMMAND_DECLARE(purge);
+COMMAND_DECLARE(PurgeAll);
+COMMAND_DECLARE(mem);
+COMMAND_DECLARE(FreeMemory);
+COMMAND_DECLARE(GarbageCollect);
 
 
 #endif // VARIABLES_H

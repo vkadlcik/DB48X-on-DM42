@@ -6,7 +6,7 @@
 //
 //     Implementation of the RPL runtime
 //
-//
+//     See memory layout in header file
 //
 //
 //
@@ -28,8 +28,11 @@
 // ****************************************************************************
 
 #include "runtime.h"
-#include "object.h"
+
 #include "input.h"
+#include "object.h"
+#include "variables.h"
+
 #include <cstring>
 
 // The one and only runtime
@@ -41,6 +44,57 @@ RECORDER(editor,        16, "Text editor (command line)");
 RECORDER(errors,        16, "Runtime errors)");
 RECORDER(gc,            16, "Garbage collection events");
 RECORDER(gc_details,    32, "Details about garbage collection (noisy)");
+
+
+runtime::runtime(byte *mem, size_t size)
+// ----------------------------------------------------------------------------
+//   Runtime constructor
+// ----------------------------------------------------------------------------
+    : Error(nullptr),
+      ErrorSource(nullptr),
+      ErrorCommand(nullptr),
+      Code(nullptr),
+      LowMem(),
+      Globals(),
+      Temporaries(),
+      Editing(),
+      Scratch(),
+      StackTop(),
+      StackBottom(),
+      Returns(),
+      HighMem(),
+      GCSafe(nullptr)
+{
+    if (mem)
+        memory(mem, size);
+}
+
+
+void runtime::memory(byte *memory, size_t size)
+// ----------------------------------------------------------------------------
+//   Assign the given memory range to the runtime
+// ----------------------------------------------------------------------------
+{
+    LowMem = (object_p) memory;
+    HighMem = (object_p) (memory + size);
+
+    // Stuff at top of memory
+    Returns = (object_p*) HighMem - 1;                  // Locals for top level
+    *Returns = (object_p) 0;                            // 0 local variables
+    StackBottom = (object_p*) Returns - 1;
+    StackTop = (object_p*) StackBottom;                 // Empty stack
+
+    // Stuff at bottom of memory
+    Globals = LowMem;
+    catalog_p home = new((void *) Globals) catalog();   // Home directory
+    *StackBottom = (object_p) home;                     // Current search path
+    Temporaries = home->skip();                         // Area for temporaries
+    Editing = 0;                                        // No editor
+    Scratch = 0;                                        // No scratchpad
+
+    record(runtime, "Memory %p-%p size %u (%uK)",
+           LowMem, HighMem, size, size>>10);
+}
 
 
 static void dump_object_list(cstring  message,

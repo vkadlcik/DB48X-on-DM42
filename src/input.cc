@@ -2149,7 +2149,7 @@ static const byte defaultUnshiftedCommand[2*input::NUM_KEYS] =
     (id) < 0x80 ? (id) : ((id) & 0x7F) | 0x80,  \
     (id) < 0x80 ?   0  : ((id) >> 7)
 
-    OP2BYTES(KEY_SIGMA, 0),
+    OP2BYTES(KEY_SIGMA, menu::ID_MathMenu),
     OP2BYTES(KEY_INV,   function::ID_inv),
     OP2BYTES(KEY_SQRT,  function::ID_sqrt),
     OP2BYTES(KEY_LOG,   function::ID_log10),
@@ -2206,7 +2206,7 @@ static const byte defaultShiftedCommand[2*input::NUM_KEYS] =
 // ----------------------------------------------------------------------------
 //   All the default assigned commands fit in one or two bytes
 {
-    OP2BYTES(KEY_SIGMA, 0),
+    OP2BYTES(KEY_SIGMA, menu::ID_MainMenu),
     OP2BYTES(KEY_INV,   arithmetic::ID_pow),
     OP2BYTES(KEY_SQRT,  arithmetic::ID_sq),
     OP2BYTES(KEY_LOG,   function::ID_exp10),

@@ -31,10 +31,10 @@
 
 #include "arithmetic.h"
 #include "command.h"
+#include "dm42/sysmenu.h"
 #include "functions.h"
 #include "graphics.h"
 #include "list.h"
-#include "menu.h"
 #include "runtime.h"
 #include "settings.h"
 #include "target.h"

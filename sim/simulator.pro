@@ -34,8 +34,8 @@ SOURCES +=                                      \
 	sim-rpl.cpp                             \
 	dmcp.cpp                                \
 	../src/dm42/target.cc                   \
-        ../src/menu.cc                          \
-        ../src/main.cc                          \
+        ../src/dm42/sysmenu.cc                  \
+        ../src/dm42/main.cc                     \
 	../src/util.cc                          \
 	../src/input.cc                         \
 	../src/stack.cc                         \

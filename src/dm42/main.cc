@@ -28,20 +28,20 @@
 //
 // This code is distantly derived from the SwissMicro SDKDemo calculator
 
-#include "main.h"
+#include "dm42/main.h"
 
+#include "dm42/sysmenu.h"
 #include "font.h"
 #include "graphics.h"
 #include "input.h"
 #include "integer.h"
 #include "list.h"
-#include "menu.h"
 #include "num.h"
 #include "rpl.h"
-#include "text.h"
 #include "settings.h"
 #include "stack.h"
 #include "target.h"
+#include "text.h"
 #include "util.h"
 
 #include <algorithm>

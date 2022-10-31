@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  menu.cc                                                       DB48X project
+//  sysmenu.cc                                                   DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Handles the application menus
+//     Handles the DMCP application menus on the DM42
 //
 //
 //
@@ -27,7 +27,7 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include "menu.h"
+#include "sysmenu.h"
 
 #include "main.h"
 #include "types.h"

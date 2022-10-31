@@ -61,6 +61,7 @@ ID(list)
 ID(program)
 ID(equation)
 ID(array)
+ID(menu)
 
 #define FIRST_INTEGER_TYPE      ID_hex_integer
 ID(hex_integer)

@@ -77,7 +77,8 @@ struct input
     void        assign(int key, uint plane, object_p code);
     object_p    assigned(int key, uint plane);
     void        menus(uint count, cstring labels[], object_p function[]);
-    void        menu(uint index, cstring labels, object_p function);
+    void        menu(uint index, cstring label, object_p function);
+    void        menu(uint index, symbol_p label, object_p function);
 
     void        draw_annunciators();
     void        draw_editor();

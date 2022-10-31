@@ -435,6 +435,20 @@ struct graphics
         //   Draw a text with a foreground and background
         // --------------------------------------------------------------------
 
+        template<clipping Clip = CLIP_DST>
+        coord text(coord x, coord y, utf8 text, size_t len, const font *f,
+                   pattern colors = pattern::black,
+                   blitop op = blitop_mono_fg<Mode>);
+        // --------------------------------------------------------------------
+        //   Draw a text with the given operation and colors
+        // --------------------------------------------------------------------
+
+        template<clipping Clip = CLIP_DST>
+        coord text(coord x, coord y, utf8 text, size_t len, const font *f,
+                   pattern fg, pattern bg);
+        // --------------------------------------------------------------------
+        //   Draw a text with a foreground and background
+        // --------------------------------------------------------------------
     protected:
         offset pixel_offset(coord x, coord y) const
         // ---------------------------------------------------------------------
@@ -1341,6 +1355,55 @@ graphics::coord graphics::surface<Mode>::text(coord       x,
         unicode cp = utf8_codepoint(text);
         text = utf8_next(text);
         x = glyph<Clip>(x, y, cp, f, fg, bg);
+    }
+    return x;
+}
+
+template <graphics::mode Mode>
+template <graphics::clipping Clip>
+graphics::coord graphics::surface<Mode>::text(coord       x,
+                                              coord       y,
+                                              utf8        text,
+                                              size_t      len,
+                                              const font *f,
+                                              pattern     colors,
+                                              blitop      op)
+// ----------------------------------------------------------------------------
+//   Render a glyph on the given surface
+// ----------------------------------------------------------------------------
+{
+    while (len)
+    {
+        unicode cp = utf8_codepoint(text);
+        utf8 next = utf8_next(text);
+        len -= (next - text);
+        x = glyph<Clip>(x, y, cp, f, colors, op);
+        text = next;
+    }
+    return x;
+}
+
+
+template <graphics::mode Mode>
+template <graphics::clipping Clip>
+graphics::coord graphics::surface<Mode>::text(coord       x,
+                                              coord       y,
+                                              utf8        text,
+                                              size_t      len,
+                                              const font *f,
+                                              pattern     fg,
+                                              pattern     bg)
+// ----------------------------------------------------------------------------
+//   Render a text with a foreground and background
+// ----------------------------------------------------------------------------
+{
+    while (len)
+    {
+        unicode cp = utf8_codepoint(text);
+        utf8 next = utf8_next(text);
+        len -= (next - text);
+        x = glyph<Clip>(x, y, cp, f, fg, bg);
+        text = next;
     }
     return x;
 }

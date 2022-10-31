@@ -105,6 +105,7 @@ CXX_SOURCES +=				\
 	src/arithmetic.cc		\
 	src/functions.cc		\
 	src/variables.cc		\
+	src/menu.cc			\
 	src/list.cc			\
 	src/font.cc			\
 	fonts/HelpFont.cc		\

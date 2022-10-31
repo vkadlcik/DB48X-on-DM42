@@ -315,7 +315,7 @@ void input::menus(uint count, cstring labels[], object_p function[])
         if (m < count)
             menu(m, labels[m], function[m]);
         else
-            menu(m, nullptr, nullptr);
+            menu(m, cstring(nullptr), nullptr);
     }
 }
 
@@ -334,6 +334,15 @@ void input::menu(uint menu_id, cstring label, object_p fn)
         menu_label[plane][softkey_id] = label;
         dirtyMenu = true;       // Redraw menu
     }
+}
+
+
+void input::menu(uint id, symbol_p label, object_p fn)
+// ----------------------------------------------------------------------------
+//   The drawing of menus recognizes symbols
+// ----------------------------------------------------------------------------
+{
+    menu(id, (cstring) label, fn);
 }
 
 
@@ -395,7 +404,19 @@ int input::draw_menus(uint time, uint &period)
         if (label)
         {
             Screen.clip(mrect);
-            size tw = font->width(label);
+            size_t len = 0;
+            if (*label == object::ID_symbol)
+            {
+                // If we are given a symbol, use its length
+                label++;
+                len = leb128<size_t>(label);
+            }
+            else
+            {
+                // Regular C string
+                len = strlen(cstring(label));
+            }
+            size tw = font->width(label, len);
             if (tw > mw)
             {
                 dirtyMenu = true;
@@ -405,7 +426,7 @@ int input::draw_menus(uint time, uint &period)
             {
                 x = x - tw / 2;
             }
-            Screen.text(x, mrect.y1, label, font, pattern::white);
+            Screen.text(x, mrect.y1, label, len, font, pattern::white);
             Screen.clip(clip);
         }
     }

@@ -53,6 +53,7 @@ SOURCES +=                                      \
         ../src/arithmetic.cc                    \
         ../src/functions.cc                     \
         ../src/variables.cc                     \
+        ../src/menu.cc                          \
         ../src/list.cc                          \
 	../fonts/EditorFont.cc	                \
 	../fonts/HelpFont.cc	                \

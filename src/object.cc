@@ -38,6 +38,7 @@
 #include "functions.h"
 #include "integer.h"
 #include "list.h"
+#include "menu.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"

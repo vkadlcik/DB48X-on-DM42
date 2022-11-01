@@ -275,9 +275,9 @@ void tests::arithmetic()
         .type(object::ID_neg_integer).expect("-18446744073709551614");
 
     test(CLEAR, ~0ULL, ENTER, 1, ADD)
-        .type(object::ID_decimal128).expect("1.8446744073709551616E19");
+        .type(object::ID_decimal128).expect("18446744073709551616");
     test(CLEAR, ~0ULL, CHS, ENTER, -2, ADD)
-        .type(object::ID_decimal128).expect("-1.8446744073709551617E19");
+        .type(object::ID_decimal128).expect("-18446744073709551616");
 
     step("Adding ten small integers at random");
     srand48(sys_current_ms());
@@ -315,10 +315,10 @@ void tests::arithmetic()
         .type(object::ID_integer).expect("0");
 
     step("Integer subtraction overflow");
-    test(CLEAR, 0xFFFFFFFFu, CHS, ENTER, 1, SUB)
-        .type(object::ID_decimal128).expect("-4294967296");
-    test(CLEAR, -3, ENTER, 0xFFFFFFFFu, SUB)
-        .type(object::ID_decimal128).expect("-4294967298");
+    test(CLEAR, 0xFFFFFFFFFFFFFFFFull, CHS, ENTER, 1, SUB)
+        .type(object::ID_decimal128).expect("-18446744073709551616");
+    test(CLEAR, -3, ENTER, 0xFFFFFFFFFFFFFFFFull, SUB)
+        .type(object::ID_decimal128).expect("-18446744073709551618");
 
     step("Subtracting ten small integers at random");
     for (int i = 0; i < 10; i++)

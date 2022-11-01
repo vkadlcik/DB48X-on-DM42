@@ -344,7 +344,8 @@ OBJECT_HANDLER_BODY(equation)
     {
     case EVAL:
         // Equations evaluate like programs
-        return obj->evaluate(rt);
+        rt.push(obj);
+        return OK;
     case SIZE:
         return size(obj, payload);
     case PARSE:

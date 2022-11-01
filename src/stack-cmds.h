@@ -71,18 +71,5 @@ COMMAND(swap)
     return ERROR;
 }
 
-COMMAND(eval)
-// ----------------------------------------------------------------------------
-//   Evaluate an object
-// ----------------------------------------------------------------------------
-{
-    object_p x = RT.pop();
-    if (program_p prog = x->as<program>())
-        return prog->evaluate();
-    else
-        return x->evaluate();
-    return ERROR;
-}
-
 
 #endif // STACK_CMDS_H

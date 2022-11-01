@@ -426,6 +426,18 @@ struct object
     }
 
 
+    template<typename Obj, typename Derived> const Obj *as() const
+    // ------------------------------------------------------------------------
+    //   Type-safe cast (note: only for exact type match)
+    // ------------------------------------------------------------------------
+    {
+        id t = type();
+        if (t >= Obj::static_type() && t <= Derived::static_type())
+            return (const Obj *) this;
+        return nullptr;
+    }
+
+
     symbol_p as_name() const;
     // ------------------------------------------------------------------------
     //    Return object as a name

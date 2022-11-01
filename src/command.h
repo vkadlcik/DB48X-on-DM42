@@ -39,6 +39,7 @@
 
 #include "object.h"
 #include "runtime.h"
+#include "list.h"
 
 struct command : object
 // ----------------------------------------------------------------------------
@@ -114,5 +115,19 @@ COMMAND(unimplemented)
     RT.error("Not yet implemented");
     return ERROR;
 }
+
+COMMAND(eval)
+// ----------------------------------------------------------------------------
+//   Evaluate an object
+// ----------------------------------------------------------------------------
+{
+    object_p x = RT.pop();
+    if (program_p prog = x->as<program, equation>())
+        return prog->evaluate();
+    else
+        return x->evaluate();
+    return ERROR;
+}
+
 
 #endif // COMMAND_H

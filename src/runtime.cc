@@ -307,7 +307,9 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
     memmove((byte *) to, (byte *) from, size);
 
     // Adjust the protected pointers
-    object_p last = scratch ? (object_p) StackTop : from + size;
+    object_p last = (scratch || from + size >= Temporaries)
+        ? (object_p) StackTop
+        : from + size;
     for (gcptr *p = GCSafe; p; p = p->next)
     {
         if (p->safe >= (byte *) from && p->safe < (byte *) last)

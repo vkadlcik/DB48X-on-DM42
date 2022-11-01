@@ -55,6 +55,8 @@
 #include "list.h"
 #include "runtime.h"
 #include "command.h"
+#include "menu.h"
+
 
 struct catalog : list
 // ----------------------------------------------------------------------------
@@ -89,6 +91,21 @@ struct catalog : list
     //   Purge an entry from the catalog, return purged size
     // ------------------------------------------------------------------------
 
+    size_t count()
+    // ------------------------------------------------------------------------
+    //   Return the number of variables in the catalog
+    // ------------------------------------------------------------------------
+    {
+        return enumerate(nullptr, nullptr);
+    }
+
+
+    typedef bool (*enumeration_fn)(symbol_p name, object_p obj, void *arg);
+    size_t enumerate(enumeration_fn callback, void *arg);
+    // ------------------------------------------------------------------------
+    //   Enumerate all the variables in the catalog, return count of true
+    // ------------------------------------------------------------------------
+
 
     OBJECT_HANDLER(catalog);
     OBJECT_PARSER(catalog);
@@ -106,5 +123,25 @@ COMMAND_DECLARE(Mem);
 COMMAND_DECLARE(FreeMemory);
 COMMAND_DECLARE(GarbageCollect);
 
+struct VariablesMenu : menu
+// ----------------------------------------------------------------------------
+//   The variables menu is a bit special
+// ----------------------------------------------------------------------------
+//   The VariablesMenu is shows variables in the current menu
+//   For each variable, the function key evaluates it, shift recalls it,
+//   and xshift stores it. In program mode, the function key shows the name
+//   for evaluation purpose, and shifted, shows it between quotes
+{
+    VariablesMenu(id type = ID_VariablesMenu) : menu(type) {}
+
+    static uint count_variables();
+    static void list_variables(info &mi);
+
+public:
+    OBJECT_HANDLER(VariablesMenu);
+};
+
+COMMAND_DECLARE(VariablesMenuRecall);
+COMMAND_DECLARE(VariablesMenuStore);
 
 #endif // VARIABLES_H

@@ -87,6 +87,7 @@ struct input
     void        menus(uint count, cstring labels[], object_p function[]);
     void        menu(uint index, cstring label, object_p function);
     void        menu(uint index, symbol_p label, object_p function);
+    symbol_p    label(uint index);
 
     void        draw_annunciators();
     void        draw_editor();
@@ -120,6 +121,9 @@ protected:
 protected:
     typedef graphics::coord     coord;
     typedef graphics::size      size;
+
+public:
+    int      evaluating;    // Key being evaluated
 
 protected:
     utf8     command;       // Command being executed

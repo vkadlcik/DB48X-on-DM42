@@ -29,9 +29,9 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include "variables.h"
-#include "symbol.h"
+#include "command.h"
 #include "input.h"
+#include "symbol.h"
 
 
 struct menu : command
@@ -40,17 +40,19 @@ struct menu : command
 // ----------------------------------------------------------------------------
 {
     // Constructor
-    menu(id type = ID_menu) : command(type) {}
+    menu(id type = ID_menu) : command(type)
+    {
+    }
 
     // Info returned from the MENU opcode
     struct info
     {
-        uint    page;                           // In:  Page index
-        uint    skip;                           // Int: Items to skip
-        uint    pages;                          // Out: Total number of pages
-        uint    index;                          // Out: Last index written
-        uint    plane;                          // Out: Last plane filled
-        uint    planes;                         // Out: Planes the menu wants
+        uint page;   // In:  Page index
+        uint skip;   // Int: Items to skip
+        uint pages;  // Out: Total number of pages
+        uint index;  // Out: Last index written
+        uint plane;  // Out: Last plane filled
+        uint planes; // Out: Planes the menu wants
     };
 
     result update(uint page = 0) const
@@ -61,23 +63,39 @@ struct menu : command
 
     static void items_init(info &mi, uint nitems, uint planes = 2);
     static void items(info &UNUSED mi) { }
-    static void items(info &mi, cstring label, id action);
-    template <typename ... Args>
-    static void items(info &mi, cstring label, id action, Args ...args);
+    static void items(info &mi, cstring label, object_p action);
+    static void items(info &mi, cstring label, id action)
+    {
+        return items(mi, label, command::static_object(action));
+    }
+    static void items(info &mi, symbol_p label, object_p action)
+    {
+        return items(mi, cstring(label), action);
+    }
+    static void items(info &mi, symbol_p label, id action)
+    {
+        return items(mi, cstring(label), action);
+    }
 
-    static uint count()         { return 0; }
-    template<typename ... Args>
-    static uint count(cstring UNUSED label, id UNUSED action, Args ... args)
+    template <typename... Args>
+    static void items(info &mi, cstring label, id action, Args... args);
+
+    static uint count()
+    {
+        return 0;
+    }
+    template <typename... Args>
+    static uint count(cstring UNUSED label, id UNUSED action, Args... args)
     {
         return 1 + count(args...);
     }
 
-public:
+  public:
     OBJECT_HANDLER(menu);
 };
 
 
-template <typename ... Args>
+template <typename... Args>
 void menu::items(info &mi, cstring label, id type, Args... args)
 // ----------------------------------------------------------------------------
 //   Update menu items
@@ -124,39 +142,38 @@ COMMAND(MenuFirstPage)
 }
 
 
-
 // ============================================================================
 //
 //   Creation of a menu
 //
 // ============================================================================
 
-#define MENU(SysMenu, ...)                                              \
-struct SysMenu : menu                                                   \
-/* ------------------------------------------------------------ */      \
-/*   Create a system menu                                       */      \
-/* ------------------------------------------------------------ */      \
-{                                                                       \
-    SysMenu(id type = ID_##SysMenu) : menu(type) {}                     \
-                                                                        \
-    OBJECT_HANDLER(SysMenu)                                             \
-    {                                                                   \
-        switch(op)                                                      \
-        {                                                               \
-        case MENU:                                                      \
-        {                                                               \
-            info &mi   = *((info *) arg);                               \
-            uint nitems = count(__VA_ARGS__);                           \
-            items_init(mi, nitems, 2);                                  \
-            items(mi, ## __VA_ARGS__);                                  \
-            return OK;                                                  \
-        }                                                               \
-        default:                                                        \
-            return DELEGATE(menu);                                      \
-        }                                                               \
-    }                                                                   \
-}
-
+#define MENU(SysMenu, ...)                                           \
+  struct SysMenu : menu                                              \
+  /* ------------------------------------------------------------ */ \
+  /*   Create a system menu                                       */ \
+  /* ------------------------------------------------------------ */ \
+  {                                                                  \
+      SysMenu(id type = ID_##SysMenu) : menu(type)                   \
+      { }                                                            \
+                                                                     \
+      OBJECT_HANDLER(SysMenu)                                        \
+      {                                                              \
+          switch (op)                                                \
+          {                                                          \
+          case MENU:                                                 \
+          {                                                          \
+              info &mi     = *((info *) arg);                        \
+              uint  nitems = count(__VA_ARGS__);                     \
+              items_init(mi, nitems, 2);                             \
+              items(mi, ##__VA_ARGS__);                              \
+              return OK;                                             \
+          }                                                          \
+          default:                                                   \
+              return DELEGATE(menu);                                 \
+          }                                                          \
+      }                                                              \
+  }
 
 
 // ============================================================================
@@ -165,33 +182,44 @@ struct SysMenu : menu                                                   \
 //
 // ============================================================================
 
-MENU(MainMenu,
-     "Math",            ID_MathMenu,
-     "Program",         ID_ProgramMenu);
+MENU(MainMenu, "Math", ID_MathMenu, "Program", ID_ProgramMenu);
 
 MENU(MathMenu,
-     "Real",            ID_RealMenu,
-     "Complex",         ID_ComplexMenu,
-     "Bases",           ID_BasesMenu,
-     "Vector",          ID_VectorMenu,
-     "Matrix",          ID_MatrixMenu,
-     "Constants",       ID_ConstantsMenu,
+     "Real",
+     ID_RealMenu,
+     "Complex",
+     ID_ComplexMenu,
+     "Bases",
+     ID_BasesMenu,
+     "Vector",
+     ID_VectorMenu,
+     "Matrix",
+     ID_MatrixMenu,
+     "Constants",
+     ID_ConstantsMenu,
 
-     "Hyperbolic",      ID_HyperbolicMenu,
-     "Probabilities",   ID_ProbabilitiesMenu,
-     "Statistics",      ID_StatisticsMenu,
-     "Fourier",         ID_FourierMenu,
-     "Symbolic",        ID_SymbolicMenu);
+     "Hyperbolic",
+     ID_HyperbolicMenu,
+     "Probabilities",
+     ID_ProbabilitiesMenu,
+     "Statistics",
+     ID_StatisticsMenu,
+     "Fourier",
+     ID_FourierMenu,
+     "Symbolic",
+     ID_SymbolicMenu);
 
-MENU(RealMenu,
-     "Circular",        ID_CircularMenu,
-     "Hyperbolic",      ID_HyperbolicMenu);
+MENU(RealMenu, "Circular", ID_CircularMenu, "Hyperbolic", ID_HyperbolicMenu);
 
 MENU(ComplexMenu,
-     "→ℂ",              ID_Unimplemented,
-     "𝒊",               ID_Unimplemented,
-     "𝒋",               ID_Unimplemented,
-     "𝒌",               ID_Unimplemented);
+     "→ℂ",
+     ID_Unimplemented,
+     "𝒊",
+     ID_Unimplemented,
+     "𝒋",
+     ID_Unimplemented,
+     "𝒌",
+     ID_Unimplemented);
 
 MENU(VectorMenu);
 MENU(MatrixMenu);

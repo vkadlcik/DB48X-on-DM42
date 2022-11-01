@@ -284,6 +284,10 @@ bool input::key(int key, bool repeating)
     if (key && result)
         blink = true; // Show cursor if things changed
 
+    // Refresh the variables menu
+    if (menuObject && menuObject->type() == object::ID_VariablesMenu)
+        menuObject->update(menuPage);
+
     return result;
 }
 
@@ -396,6 +400,20 @@ void input::menu(uint id, symbol_p label, object_p fn)
 // ----------------------------------------------------------------------------
 {
     menu(id, (cstring) label, fn);
+}
+
+
+symbol_p input::label(uint menu_id)
+// ----------------------------------------------------------------------------
+//   Return the label for a given menu ID
+// ----------------------------------------------------------------------------
+{
+    int     softkey_id = menu_id % NUM_SOFTKEYS;
+    int     plane      = menu_id / NUM_SOFTKEYS;
+    cstring lbl        = menu_label[plane][softkey_id];
+    if (*lbl == object::ID_symbol)
+        return (symbol_p) lbl;
+    return nullptr;
 }
 
 
@@ -2156,7 +2174,7 @@ static const byte defaultUnshiftedCommand[2*input::NUM_KEYS] =
     OP2BYTES(KEY_LN,    function::ID_log),
     OP2BYTES(KEY_XEQ,   0),
     OP2BYTES(KEY_STO,   command::ID_Sto),
-    OP2BYTES(KEY_RCL,   command::ID_Rcl),
+    OP2BYTES(KEY_RCL,   command::ID_VariablesMenu),
     OP2BYTES(KEY_RDN,   0),
     OP2BYTES(KEY_SIN,   function::ID_sin),
     OP2BYTES(KEY_COS,   function::ID_cos),
@@ -2353,6 +2371,7 @@ bool input::handle_functions(int key)
     record(input, "Handle function for key %d (plane %d) ", key, shift_plane());
     if (object_p obj = object_for_key(key))
     {
+        evaluating = key;
         if (RT.editing())
         {
             if (key == KEY_ENTER || key == KEY_BSP)

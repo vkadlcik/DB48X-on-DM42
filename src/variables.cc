@@ -247,6 +247,42 @@ size_t catalog::purge(object_p ref)
 }
 
 
+size_t catalog::enumerate(enumeration_fn callback, void *arg)
+// ----------------------------------------------------------------------------
+//   Process all the variables in turn, return number of true values
+// ----------------------------------------------------------------------------
+{
+    byte_p p     = payload();
+    size_t size  = leb128<size_t>(p);
+    size_t count = 0;
+
+    while (size)
+    {
+        symbol_p name = (symbol_p) p;
+        size_t   ns   = name->object::size();
+        p += ns;
+        object_p value = (object_p) p;
+        size_t   vs    = value->size();
+        p += vs;
+
+        // Defensive coding against malformed catalogs
+        if (ns + vs > size)
+        {
+            record(catalog_error,
+                   "Malformed catalog (ns=%u vs=%u size=%u)", ns, vs, size);
+            return 0;     // Malformed catalog, quick exit
+        }
+
+        if (!callback || callback(name, value, arg))
+            count++;
+
+        size -= (ns + vs);
+    }
+
+    return count;
+}
+
+
 
 // ============================================================================
 //
@@ -409,4 +445,145 @@ COMMAND_BODY(FreeMemory)
     integer_p result = RT.make<integer>(ID_integer, available);
     RT.push(result);
     return OK;
+}
+
+
+
+// ============================================================================
+//
+//    Variables menu
+//
+// ============================================================================
+
+OBJECT_HANDLER_BODY(VariablesMenu)
+// ----------------------------------------------------------------------------
+//   Process the MENU command for VariablesMenu
+// ----------------------------------------------------------------------------
+{
+    switch(op)
+    {
+    case MENU:
+    {
+        info &mi     = *((info *) arg);
+        uint  nitems = count_variables();
+        items_init(mi, nitems, 3);
+        list_variables(mi);
+        return OK;
+    }
+    default:
+        return DELEGATE(menu);
+
+    }
+}
+
+
+uint VariablesMenu::count_variables()
+// ----------------------------------------------------------------------------
+//    Count the variables in the current directory
+// ----------------------------------------------------------------------------
+{
+    catalog *cat = RT.variables(0);
+    if (!cat)
+    {
+        RT.error("No current directory");
+        return 0;
+    }
+    return cat->count();
+}
+
+
+static bool evaluate_variable(symbol_p name, object_p value, void *arg)
+// ----------------------------------------------------------------------------
+//   Add a variable to evaluate in the menu
+// ----------------------------------------------------------------------------
+{
+    menu::info &mi = *((menu::info *) arg);
+    menu::items(mi, name, value);
+    return true;
+}
+
+
+static bool recall_variable(symbol_p name, object_p UNUSED value, void *arg)
+// ----------------------------------------------------------------------------
+//   Add a variable to evaluate in the menu
+// ----------------------------------------------------------------------------
+//   For a name X, we create an object « 'Name' RCL »
+{
+    menu::info &mi = *((menu::info *) arg);
+    menu::items(mi, name, menu::ID_VariablesMenuRecall);
+    return true;
+}
+
+
+static bool store_variable(symbol_p name, object_p UNUSED value, void *arg)
+// ----------------------------------------------------------------------------
+//   Add a variable to evaluate in the menu
+// ----------------------------------------------------------------------------
+{
+    menu::info &mi = *((menu::info *) arg);
+    menu::items(mi, name, menu::ID_VariablesMenuStore);
+    return true;
+}
+
+
+
+void VariablesMenu::list_variables(info &mi)
+// ----------------------------------------------------------------------------
+//   Fill the menu with variable names
+// ----------------------------------------------------------------------------
+{
+    catalog *cat = RT.variables(0);
+    if (!cat)
+    {
+        RT.error("No current directory");
+        return;
+    }
+
+    uint skip = mi.skip;
+    mi.plane  = 0;
+    mi.planes = 1;
+    cat->enumerate(evaluate_variable, &mi);
+    mi.plane  = 1;
+    mi.planes = 2;
+    mi.skip   = skip;
+    mi.index  = mi.plane * input::NUM_SOFTKEYS;
+    cat->enumerate(recall_variable, &mi);
+    mi.plane  = 2;
+    mi.planes = 3;
+    mi.index  = mi.plane * input::NUM_SOFTKEYS;
+    mi.skip   = skip;
+    cat->enumerate(store_variable, &mi);
+}
+
+
+COMMAND_BODY(VariablesMenuRecall)
+// ----------------------------------------------------------------------------
+//   Recall a variable from the VariablesMenu
+// ----------------------------------------------------------------------------
+{
+    int key = Input.evaluating;
+    if (key >= KEY_F1 && key <= KEY_F6)
+        if (symbol_p name = Input.label(key - KEY_F1))
+            if (catalog *cat = RT.variables(0))
+                if (object_p value = cat->recall(name))
+                    return value->execute();
+
+    return ERROR;
+}
+
+
+COMMAND_BODY(VariablesMenuStore)
+// ----------------------------------------------------------------------------
+//   Store a variable from the VariablesMenu
+// ----------------------------------------------------------------------------
+{
+    int key = Input.evaluating;
+    if (key >= KEY_F1 && key <= KEY_F6)
+        if (symbol_p name = Input.label(key - KEY_F1))
+            if (catalog *cat = RT.variables(0))
+                if (object_p value = RT.pop())
+                    if (cat->store(name, value))
+                        return OK;
+
+    return ERROR;
 }

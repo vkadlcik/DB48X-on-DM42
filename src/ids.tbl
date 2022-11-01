@@ -171,6 +171,9 @@ CMD(TestsMenu)
 CMD(LoopsMenu)
 CMD(ListMenu)
 
+CMD(VariablesMenu)
+CMD(VariablesMenuRecall)
+CMD(VariablesMenuStore)
 
 CMD(MenuNextPage)
 CMD(MenuPreviousPage)

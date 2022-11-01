@@ -412,6 +412,22 @@ struct runtime
     }
 
 
+    object_p temporary()
+    // ------------------------------------------------------------------------
+    //   Make a temporary from the scratchpad
+    // ------------------------------------------------------------------------
+    {
+        if (Editing == 0)
+        {
+            object_p result = Temporaries;
+            Temporaries = (object_p) ((byte *) Temporaries + Scratch);
+            Scratch = 0;
+            return result;
+        }
+        return nullptr;
+    }
+
+
 
     // ========================================================================
     //

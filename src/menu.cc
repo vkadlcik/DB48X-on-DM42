@@ -88,7 +88,7 @@ void menu::items_init(info &mi, uint nitems, uint planes)
 }
 
 
-void menu::items(info &mi, cstring label, id type)
+void menu::items(info &mi, cstring label, object_p action)
 // ----------------------------------------------------------------------------
 //   Add a menu item
 // ----------------------------------------------------------------------------
@@ -118,6 +118,6 @@ void menu::items(info &mi, cstring label, id type)
             }
         }
         if (idx < input::NUM_SOFTKEYS * mi.planes)
-            Input.menu(idx, label, command::static_object(type));
+            Input.menu(idx, label, action);
     }
 }

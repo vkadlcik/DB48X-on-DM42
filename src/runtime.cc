@@ -46,6 +46,12 @@ RECORDER(gc,            16, "Garbage collection events");
 RECORDER(gc_details,    32, "Details about garbage collection (noisy)");
 
 
+// ============================================================================
+//
+//   Initialization
+//
+// ============================================================================
+
 runtime::runtime(byte *mem, size_t size)
 // ----------------------------------------------------------------------------
 //   Runtime constructor
@@ -97,6 +103,47 @@ void runtime::memory(byte *memory, size_t size)
 }
 
 
+
+// ============================================================================
+//
+//    Temporaries
+//
+// ============================================================================
+
+size_t runtime::available()
+// ----------------------------------------------------------------------------
+//   Return the size available for temporaries
+// ----------------------------------------------------------------------------
+{
+    size_t aboveTemps = Editing + Scratch + redzone;
+    return (byte *) StackTop - (byte *) Temporaries - aboveTemps;
+}
+
+
+size_t runtime::available(size_t size)
+// ----------------------------------------------------------------------------
+//   Check if we have enough for the given size
+// ----------------------------------------------------------------------------
+{
+    if (available() < size)
+    {
+        gc();
+        size_t avail = available();
+        if (avail < size)
+            error("Out of memory");
+        return avail;
+    }
+    return size;
+}
+
+
+
+// ============================================================================
+//
+//   Garbage collection
+//
+// ============================================================================
+
 static void dump_object_list(cstring  message,
                              object_p first,
                              object_p last,
@@ -127,6 +174,30 @@ static void dump_object_list(cstring  message,
 }
 
 
+runtime::gcptr::~gcptr()
+// ----------------------------------------------------------------------------
+//   Destructor for a garbage-collected pointer
+// ----------------------------------------------------------------------------
+{
+    gcptr *last = nullptr;
+    if (this == RT.GCSafe)
+    {
+        RT.GCSafe = next;
+        return;
+    }
+
+    for (gcptr *gc = RT.GCSafe; gc; gc = gc->next)
+    {
+        if (gc == this)
+        {
+            last->next = gc->next;
+            return;
+        }
+        last = gc;
+    }
+}
+
+
 size_t runtime::gc()
 // ----------------------------------------------------------------------------
 //   Recycle unused temporaries
@@ -150,7 +221,7 @@ size_t runtime::gc()
     for (object_p obj = first; obj < last; obj = next)
     {
         bool found = false;
-        next = skip(obj);
+        next = obj->skip();
         record(gc_details, "Scanning object %p (ends at %p)", obj, next);
         for (object_p *s = StackTop; s < StackBottom && !found; s++)
         {
@@ -297,12 +368,59 @@ void runtime::move_globals(object_p to, object_p from)
 }
 
 
-size_t runtime::size(object_p obj)
+
+// ============================================================================
+//
+//    Editor
+//
+// ============================================================================
+
+size_t runtime::insert(size_t offset, utf8 data, size_t len)
 // ----------------------------------------------------------------------------
-//   Delegate the size to the object
+//   Insert data in the editor, return size inserted
 // ----------------------------------------------------------------------------
 {
-    return obj->size(*this);
+    record(editor,
+           "Insert %u bytes at offset %u starting with %c, %u available",
+           len, offset, data[0], available());
+    if (offset <= Editing)
+    {
+        if (available(len) >= len)
+        {
+            size_t moved = Scratch + Editing - offset;
+            byte_p edr = (byte_p) editor() + offset;
+            move(object_p(edr + len), object_p(edr), moved);
+            memcpy(editor() + offset, data, len);
+            Editing += len;
+            return len;
+        }
+    }
+    else
+    {
+        record(runtime_error,
+               "Invalid insert at %zu size=%zu len=%zu [%s]\n",
+               offset, Editing, len, data);
+    }
+    return 0;
+}
+
+
+void runtime::remove(size_t offset, size_t len)
+// ----------------------------------------------------------------------------
+//   Remove characers from the editor
+// ----------------------------------------------------------------------------
+{
+    record(editor, "Removing %u bytes at offset %u", len, offset);
+    size_t end = offset + len;
+    if (end > Editing)
+        end = Editing;
+    if (offset > end)
+        offset = end;
+    len = end - offset;
+    size_t moving = Scratch + Editing - end;
+    byte_p edr = (byte_p) editor() + offset;
+    move(object_p(edr), object_p(edr + len), moving);
+    Editing -= len;
 }
 
 
@@ -385,4 +503,201 @@ size_t runtime::edit()
 
     record(editor, "Editor size now %u", Editing);
     return Editing;
+}
+
+
+byte *runtime::allocate(size_t sz)
+// ----------------------------------------------------------------------------
+//   Allocate additional bytes at end of scratchpad
+// ----------------------------------------------------------------------------
+{
+    if (available(sz) >= sz)
+    {
+        byte *scratch = editor() + Editing + Scratch;
+        Scratch += sz;
+        return scratch;
+    }
+
+    // Ran out of memory despite garbage collection
+    return nullptr;
+}
+
+
+byte *runtime::append(size_t sz, byte *bytes)
+// ----------------------------------------------------------------------------
+//   Append some bytes at end of scratch pad
+// ----------------------------------------------------------------------------
+{
+    byte *ptr = allocate(sz);
+    if (ptr)
+        memcpy(ptr, bytes, sz);
+    return ptr;
+}
+
+
+object_p runtime::clone(object_p source)
+// ----------------------------------------------------------------------------
+//   Clone an object into the temporaries area
+// ----------------------------------------------------------------------------
+//   This is useful when storing into a global referenced from the stack
+{
+    size_t size = source->size();
+    if (available(size) < size)
+        return nullptr;
+    object_p result = Temporaries;
+    Temporaries = object_p((byte *) Temporaries + size);
+    move(Temporaries, result, Editing + Scratch, true);
+    memmove((void *) result, source, size);
+    return result;
+}
+
+
+
+// ============================================================================
+//
+//   RPL stack
+//
+// ============================================================================
+
+bool runtime::push(gcp<const object> obj)
+// ----------------------------------------------------------------------------
+//   Push an object on top of RPL stack
+// ----------------------------------------------------------------------------
+{
+    // This may cause garbage collection, hence the need to adjust
+    if (available(sizeof(obj)) < sizeof(obj))
+        return false;
+    *(--StackTop) = obj;
+    return true;
+}
+
+
+object_p runtime::top()
+// ----------------------------------------------------------------------------
+//   Return the top of the runtime stack
+// ----------------------------------------------------------------------------
+{
+    if (StackTop >= StackBottom)
+    {
+        error("Too few arguments");
+        return nullptr;
+    }
+    return *StackTop;
+}
+
+
+bool runtime::top(object_p obj)
+// ----------------------------------------------------------------------------
+//   Set the top of the runtime stack
+// ----------------------------------------------------------------------------
+{
+    if (StackTop >= StackBottom)
+    {
+        error("Too few arguments");
+        return false;
+    }
+    *StackTop = obj;
+    return true;
+}
+
+
+object_p runtime::pop()
+// ----------------------------------------------------------------------------
+//   Pop the top-level object from the stack, or return NULL
+// ----------------------------------------------------------------------------
+{
+    if (StackTop >= StackBottom)
+    {
+        error("Too few arguments");
+        return nullptr;
+    }
+    return *StackTop++;
+}
+
+
+object_p runtime::stack(uint idx)
+// ----------------------------------------------------------------------------
+//    Get the object at a given position in the stack
+// ----------------------------------------------------------------------------
+{
+    if (idx >= depth())
+    {
+        error("Too few arguments");
+        return nullptr;
+    }
+    return StackTop[idx];
+}
+
+
+bool runtime::stack(uint idx, object_p obj)
+// ----------------------------------------------------------------------------
+//    Get the object at a given position in the stack
+// ----------------------------------------------------------------------------
+{
+    if (idx >= depth())
+    {
+        error("Too few arguments");
+        return false;
+    }
+    StackTop[idx] = obj;
+    return true;
+}
+
+
+bool runtime::drop(uint count)
+// ----------------------------------------------------------------------------
+//   Pop the top-level object from the stack, or return NULL
+// ----------------------------------------------------------------------------
+{
+    if (count > depth())
+    {
+        error("Too few arguments");
+        return false;
+    }
+    StackTop += count;
+    return true;
+}
+
+
+
+// ============================================================================
+//
+//   Return stack
+//
+// ============================================================================
+
+void runtime::call(gcp<const object> callee)
+// ------------------------------------------------------------------------
+//   Push the current object on the RPL stack
+// ------------------------------------------------------------------------
+{
+    if (available(sizeof(callee)) < sizeof(callee))
+    {
+        error("Too many calls");
+        return;
+    }
+    StackTop--;
+    StackBottom--;
+    for (object_p *s = StackBottom; s < StackTop; s++)
+        s[0] = s[1];
+    *(--Returns) = Code;
+    Code = callee;
+}
+
+
+void runtime::ret()
+// ----------------------------------------------------------------------------
+//   Return from an RPL call
+// ----------------------------------------------------------------------------
+{
+    if ((byte *) Returns >= (byte *) HighMem)
+    {
+        error("Return without a caller");
+        return;
+    }
+    Code = *Returns++;
+    StackTop++;
+    StackBottom++;
+    for (object_p *s = StackTop; s > StackTop; s--)
+        s[0] = s[-1];
 }

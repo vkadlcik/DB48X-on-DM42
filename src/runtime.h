@@ -105,69 +105,34 @@ struct runtime
     //
     // ========================================================================
 
-    size_t available()
+    size_t available();
     // ------------------------------------------------------------------------
     //   Return the size available for temporaries
     // ------------------------------------------------------------------------
-    {
-        size_t aboveTemps = Editing + Scratch + redzone;
-        return (byte *) StackTop - (byte *) Temporaries - aboveTemps;
-    }
 
-    size_t available(size_t size)
+    size_t available(size_t size);
     // ------------------------------------------------------------------------
     //   Check if we have enough for the given size
     // ------------------------------------------------------------------------
-    {
-        if (available() < size)
-        {
-            gc();
-            size_t avail = available();
-            if (avail < size)
-                error("Out of memory");
-            return avail;
-        }
-        return size;
-    }
 
     template <typename Obj, typename ... Args>
-    Obj *make(typename Obj::id type, const Args &... args)
+    Obj *make(typename Obj::id type, const Args &... args);
     // ------------------------------------------------------------------------
     //   Make a new temporary of the given size
     // ------------------------------------------------------------------------
-    {
-        // Find required memory for this object
-        size_t size = Obj::required_memory(type, args...);
-        record(runtime,
-               "Initializing object %p type %d size %u",
-               Temporaries, type, size);
-
-        // Check if we have room (may cause garbage collection)
-        if (available(size) < size)
-            return nullptr;    // Failed to allocate
-        Obj *result = (Obj *) Temporaries;
-        Temporaries = (object *) ((byte *) Temporaries + size);
-
-        // Move the editor up (available() checked we have room)
-        move(Temporaries, (object_p) result, Editing + Scratch, true);
-
-        // Initialize the object in place
-        new(result) Obj(args..., type);
-
-        // Return initialized object
-        return result;
-    }
 
     template <typename Obj, typename ... Args>
-    Obj *make(const Args &... args)
+    Obj *make(const Args &... args);
     // ------------------------------------------------------------------------
     //   Make a new temporary of the given size
     // ------------------------------------------------------------------------
-    {
-        // Find the required type for this object
-        typename Obj::id type = Obj::static_type();
-        return make<Obj>(type, args...);
-    }
+
+
+    object_p clone(object_p source);
+    // ------------------------------------------------------------------------
+    //   Clone an object into the temporaries area
+    // ------------------------------------------------------------------------
+
 
 
     // ========================================================================
@@ -222,34 +187,10 @@ struct runtime
     }
 
 
-    size_t insert(size_t offset, utf8 data, size_t len)
+    size_t insert(size_t offset, utf8 data, size_t len);
     // ------------------------------------------------------------------------
     //   Insert data in the editor, return size inserted
     // ------------------------------------------------------------------------
-    {
-        record(editor,
-               "Insert %u bytes at offset %u starting with %c, %u available",
-               len, offset, data[0], available());
-        if (offset <= Editing)
-        {
-            if (available(len) >= len)
-            {
-                size_t moved = Scratch + Editing - offset;
-                byte_p edr = (byte_p) editor() + offset;
-                move(object_p(edr + len), object_p(edr), moved);
-                memcpy(editor() + offset, data, len);
-                Editing += len;
-                return len;
-            }
-        }
-        else
-        {
-            record(runtime_error,
-                   "Invalid insert at %zu size=%zu len=%zu [%s]\n",
-                   offset, Editing, len, data);
-        }
-        return 0;
-    }
 
 
     size_t insert(size_t offset, byte c)
@@ -270,23 +211,10 @@ struct runtime
     }
 
 
-    void remove(size_t offset, size_t len)
+    void remove(size_t offset, size_t len);
     // ------------------------------------------------------------------------
     //   Remove characers from the editor
     // ------------------------------------------------------------------------
-    {
-        record(editor, "Removing %u bytes at offset %u", len, offset);
-        size_t end = offset + len;
-        if (end > Editing)
-            end = Editing;
-        if (offset > end)
-            offset = end;
-        len = end - offset;
-        size_t moving = Scratch + Editing - end;
-        byte_p edr = (byte_p) editor() + offset;
-        move(object_p(edr), object_p(edr + len), moving);
-        Editing -= len;
-    }
 
 
 
@@ -316,33 +244,16 @@ struct runtime
         return Scratch;
     }
 
-    byte *allocate(size_t sz)
+    byte *allocate(size_t sz);
     // ------------------------------------------------------------------------
     //   Allocate additional bytes at end of scratchpad
     // ------------------------------------------------------------------------
-    {
-        if (available(sz) >= sz)
-        {
-            byte *scratch = editor() + Editing + Scratch;
-            Scratch += sz;
-            return scratch;
-        }
-
-        // Ran out of memory despite garbage collection
-        return nullptr;
-    }
 
 
-    byte *append(size_t sz, byte *bytes)
+    byte *append(size_t sz, byte *bytes);
     // ------------------------------------------------------------------------
     //   Append some bytes at end of scratch pad
     // ------------------------------------------------------------------------
-    {
-        byte *ptr = allocate(sz);
-        if (ptr)
-            memcpy(ptr, bytes, sz);
-        return ptr;
-    }
 
 
     template<typename T>
@@ -356,48 +267,24 @@ struct runtime
 
 
     template<typename T, typename ...Args>
-    byte *append(const T& t, Args... args)
+    byte *append(const T& t, Args... args);
     // ------------------------------------------------------------------------
     //   Append multiple objects to the scratchpad
     // ------------------------------------------------------------------------
-    {
-        byte *first = append(t);
-        if (first && append(args...))
-            return first;
-        return nullptr;         // One of the allocations failed
-    }
 
 
     template <typename Int>
-    byte *encode(Int value)
+    byte *encode(Int value);
     // ------------------------------------------------------------------------
     //   Add an LEB128-encoded value to the scratchpad
     // ------------------------------------------------------------------------
-    {
-        size_t sz = leb128size(value);
-        byte *ptr = allocate(sz);
-        if (ptr)
-            leb128(ptr, value);
-        return ptr;
-    }
 
 
     template <typename Int, typename ...Args>
-    byte *encode(Int value, Args... args)
+    byte *encode(Int value, Args... args);
     // ------------------------------------------------------------------------
     //   Add an LEB128-encoded value to the scratchpad
     // ------------------------------------------------------------------------
-    {
-        size_t sz = leb128size(value);
-        byte *ptr = allocate(sz);
-        if (ptr)
-        {
-            leb128(ptr, value);
-            if (!encode(args...))
-                return nullptr;
-        }
-        return ptr;
-    }
 
 
     void free(size_t size)
@@ -453,21 +340,6 @@ struct runtime
     // ------------------------------------------------------------------------
 
 
-    size_t size(object_p obj);
-    // ------------------------------------------------------------------------
-    //   Query the size of an RPL object
-    // ------------------------------------------------------------------------
-
-
-    object_p skip(object_p obj)
-    // ------------------------------------------------------------------------
-    //   Skip an RPL object
-    // ------------------------------------------------------------------------
-    {
-        return (object_p ) ((byte *) obj + size(obj));
-    }
-
-
     struct gcptr
     // ------------------------------------------------------------------------
     //   Protect a pointer against garbage collection
@@ -481,22 +353,7 @@ struct runtime
         {
             RT.GCSafe = this;
         }
-        ~gcptr()
-        {
-            gcptr *last = nullptr;
-            for (gcptr *gc = RT.GCSafe; gc; gc = gc->next)
-            {
-                if (gc == this)
-                {
-                    if (last)
-                        last->next = gc->next;
-                    else
-                        RT.GCSafe = gc->next;
-                    break;
-                }
-                last = gc;
-            }
-        }
+        ~gcptr();
 
         operator byte  *() const                { return safe; }
         operator byte *&()                      { return safe; }
@@ -539,98 +396,40 @@ struct runtime
     //
     // ========================================================================
 
-    bool push(gcp<const object> obj)
+    bool push(gcp<const object> obj);
     // ------------------------------------------------------------------------
     //   Push an object on top of RPL stack
     // ------------------------------------------------------------------------
-    {
-        // This may cause garbage collection, hence the need to adjust
-        if (available(sizeof(obj)) < sizeof(obj))
-            return false;
-        *(--StackTop) = obj;
-        return true;
-    }
 
-    object_p top()
+    object_p top();
     // ------------------------------------------------------------------------
     //   Return the top of the runtime stack
     // ------------------------------------------------------------------------
-    {
-        if (StackTop >= StackBottom)
-        {
-            error("Too few arguments");
-            return nullptr;
-        }
-        return *StackTop;
-    }
 
-    bool top(object_p obj)
+    bool top(object_p obj);
     // ------------------------------------------------------------------------
     //   Set the top of the runtime stack
     // ------------------------------------------------------------------------
-    {
-        if (StackTop >= StackBottom)
-        {
-            error("Too few arguments");
-            return false;
-        }
-        *StackTop = obj;
-        return true;
-    }
 
-    object_p pop()
+    object_p pop();
     // ------------------------------------------------------------------------
     //   Pop the top-level object from the stack, or return NULL
     // ------------------------------------------------------------------------
-    {
-        if (StackTop >= StackBottom)
-        {
-            error("Too few arguments");
-            return nullptr;
-        }
-        return *StackTop++;
-    }
 
-    object_p stack(uint idx)
+    object_p stack(uint idx);
     // ------------------------------------------------------------------------
     //    Get the object at a given position in the stack
     // ------------------------------------------------------------------------
-    {
-        if (idx >= depth())
-        {
-            error("Too few arguments");
-            return nullptr;
-        }
-        return StackTop[idx];
-    }
 
-    bool stack(uint idx, object_p obj)
+    bool stack(uint idx, object_p obj);
     // ------------------------------------------------------------------------
     //    Get the object at a given position in the stack
     // ------------------------------------------------------------------------
-    {
-        if (idx >= depth())
-        {
-            error("Too few arguments");
-            return false;
-        }
-        StackTop[idx] = obj;
-        return true;
-    }
 
-    bool drop(uint count = 1)
+    bool drop(uint count = 1);
     // ------------------------------------------------------------------------
     //   Pop the top-level object from the stack, or return NULL
     // ------------------------------------------------------------------------
-    {
-        if (count > depth())
-        {
-            error("Too few arguments");
-            return false;
-        }
-        StackTop += count;
-        return true;
-    }
 
     uint depth()
     // ------------------------------------------------------------------------
@@ -665,40 +464,16 @@ struct runtime
     //
     // ========================================================================
 
-    void call(gcp<const object> callee)
+    void call(gcp<const object> callee);
     // ------------------------------------------------------------------------
     //   Push the current object on the RPL stack
     // ------------------------------------------------------------------------
-    {
-        if (available(sizeof(callee)) < sizeof(callee))
-        {
-            error("Too many calls");
-            return;
-        }
-        StackTop--;
-        StackBottom--;
-        for (object_p *s = StackBottom; s < StackTop; s++)
-            s[0] = s[1];
-        *(--Returns) = Code;
-        Code = callee;
-    }
 
-    void ret()
+    void ret();
     // ------------------------------------------------------------------------
     //   Return from an RPL call
     // ------------------------------------------------------------------------
-    {
-        if ((byte *) Returns >= (byte *) HighMem)
-        {
-            error("Return without a caller");
-            return;
-        }
-        Code = *Returns++;
-        StackTop++;
-        StackBottom++;
-        for (object_p *s = StackTop; s > StackTop; s--)
-            s[0] = s[-1];
-    }
+
 
 
     // ========================================================================
@@ -840,5 +615,93 @@ inline void *operator new(size_t UNUSED size, Obj *where)
 {
     return where;
 }
+
+
+template <typename Obj, typename ... Args>
+Obj *runtime::make(typename Obj::id type, const Args &... args)
+// ----------------------------------------------------------------------------
+//   Make a new temporary of the given size
+// ----------------------------------------------------------------------------
+{
+    // Find required memory for this object
+    size_t size = Obj::required_memory(type, args...);
+    record(runtime,
+           "Initializing object %p type %d size %u",
+           Temporaries, type, size);
+
+    // Check if we have room (may cause garbage collection)
+    if (available(size) < size)
+        return nullptr;    // Failed to allocate
+    Obj *result = (Obj *) Temporaries;
+    Temporaries = (object *) ((byte *) Temporaries + size);
+
+    // Move the editor up (available() checked we have room)
+    move(Temporaries, (object_p) result, Editing + Scratch, true);
+
+    // Initialize the object in place
+    new(result) Obj(args..., type);
+
+    // Return initialized object
+    return result;
+}
+
+
+template <typename Obj, typename ... Args>
+Obj *runtime::make(const Args &... args)
+// ----------------------------------------------------------------------------
+//   Make a new temporary of the given size
+// ----------------------------------------------------------------------------
+{
+    // Find the required type for this object
+    typename Obj::id type = Obj::static_type();
+    return make<Obj>(type, args...);
+}
+
+
+template<typename T, typename ...Args>
+byte *runtime::append(const T& t, Args... args)
+// ------------------------------------------------------------------------
+//   Append multiple objects to the scratchpad
+// ------------------------------------------------------------------------
+{
+    byte *first = append(t);
+    if (first && append(args...))
+        return first;
+    return nullptr;         // One of the allocations failed
+}
+
+
+template <typename Int>
+byte *runtime::encode(Int value)
+// ------------------------------------------------------------------------
+//   Add an LEB128-encoded value to the scratchpad
+// ------------------------------------------------------------------------
+{
+    size_t sz = leb128size(value);
+    byte *ptr = allocate(sz);
+    if (ptr)
+        leb128(ptr, value);
+    return ptr;
+}
+
+
+template <typename Int, typename ...Args>
+byte *runtime::encode(Int value, Args... args)
+// ------------------------------------------------------------------------
+//   Add an LEB128-encoded value to the scratchpad
+// ------------------------------------------------------------------------
+{
+    size_t sz = leb128size(value);
+    byte *ptr = allocate(sz);
+    if (ptr)
+    {
+        leb128(ptr, value);
+        if (!encode(args...))
+            return nullptr;
+    }
+    return ptr;
+}
+
+
 
 #endif // RUNTIME_H

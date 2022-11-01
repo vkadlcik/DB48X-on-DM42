@@ -552,6 +552,25 @@ object_p runtime::clone(object_p source)
 }
 
 
+object_p runtime::clone_global(object_p global)
+// ----------------------------------------------------------------------------
+//   Check if any entry in the stack points to a given global, if so clone it
+// ----------------------------------------------------------------------------
+{
+    object_p cloned = nullptr;
+    for (object_p *s = StackTop; s < StackBottom; s++)
+    {
+        if (*s == global)
+        {
+            if (!cloned)
+                cloned = clone(global);
+            *s = cloned;
+        }
+    }
+    return cloned;
+}
+
+
 
 // ============================================================================
 //

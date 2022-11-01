@@ -110,6 +110,9 @@ bool catalog::store(gcobj name, gcobj value)
                 return false;           // Out of memory
         }
 
+        // Clone any value in the stack that points to the existing value
+        rt.clone_global(evalue);
+
         // Move memory above storage if necessary
         if (vs != es)
             rt.move_globals((object_p) evalue + vs, (object_p) evalue + es);

@@ -127,10 +127,14 @@ struct runtime
     //   Make a new temporary of the given size
     // ------------------------------------------------------------------------
 
-
     object_p clone(object_p source);
     // ------------------------------------------------------------------------
     //   Clone an object into the temporaries area
+    // ------------------------------------------------------------------------
+
+    object_p clone_global(object_p source);
+    // ------------------------------------------------------------------------
+    //   Clone values in the stack that point to a global we will change
     // ------------------------------------------------------------------------
 
 

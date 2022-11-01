@@ -47,6 +47,7 @@ OBJECT_HANDLER_BODY(menu)
 {
     switch(op)
     {
+    case EXEC:
     case EVAL:
         Input.menu(obj);
         return OK;

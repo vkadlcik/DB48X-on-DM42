@@ -54,6 +54,7 @@ OBJECT_HANDLER_BODY(decimal64)
     record(decimal64, "Command %+s on %p", name(op), obj);
     switch(op)
     {
+    case EXEC:
     case EVAL:
         // Decimal64 values evaluate as self
         rt.push(obj);

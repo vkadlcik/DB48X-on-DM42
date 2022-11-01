@@ -53,6 +53,7 @@ OBJECT_HANDLER_BODY(algebraic)
     record(algebraic, "Algebraic %+s on %p", object::name(op), obj);
     switch(op)
     {
+    case EXEC:
     case EVAL:
         record(algebraic_error, "Invoked default algebraic handler");
         rt.error("Algebraic is not implemented");

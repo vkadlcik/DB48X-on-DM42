@@ -82,7 +82,7 @@ struct program : list
     program(gcbytes bytes, size_t len, id type = ID_program)
         : list(bytes, len, type) {}
 
-    result           evaluate(runtime &rt = RT) const;
+    result           execute(runtime &rt = RT) const;
     static bool      interrupted(); // Program interrupted e.g. by EXIT key
     static program_p parse(utf8 source, size_t size);
 

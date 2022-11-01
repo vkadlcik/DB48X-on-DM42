@@ -44,6 +44,7 @@ OBJECT_HANDLER_BODY(catalog)
 {
     switch(op)
     {
+    case EXEC:
     case EVAL:
         // Catalogs evaluate as self
         rt.push(obj);

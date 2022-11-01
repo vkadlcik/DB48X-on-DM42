@@ -256,6 +256,15 @@ struct object
         return (result) run(EVAL, rt);
     }
 
+    result execute(runtime &rt = RT) const
+    // ------------------------------------------------------------------------
+    //   Execute the object, i.e. run programs and equations
+    // ------------------------------------------------------------------------
+    {
+        record(eval, "Evaluating %+s %p", name(), this);
+        return (result) run(EXEC, rt);
+    }
+
     size_t render(char *output, size_t length, runtime &rt = RT) const;
     // ------------------------------------------------------------------------
     //   Render the object into a buffer

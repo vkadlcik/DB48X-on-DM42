@@ -49,6 +49,7 @@ OBJECT_HANDLER_BODY(list)
 {
     switch(op)
     {
+    case EXEC:
     case EVAL:
         // List values evaluate as self
         rt.push(obj);
@@ -247,6 +248,9 @@ OBJECT_HANDLER_BODY(program)
 {
     switch(op)
     {
+    case EXEC:
+        // Execute the program
+        return obj->execute(rt);
     case EVAL:
         // A normal evaluation (not from ID_eval) just places program on stack
         // e.g.: from command line, or « « 1 + 2 » »
@@ -286,7 +290,7 @@ OBJECT_RENDERER_BODY(program)
 }
 
 
-object::result program::evaluate(runtime &rt) const
+object::result program::execute(runtime &rt) const
 // ----------------------------------------------------------------------------
 //   We evaluate a program by evaluating all the objects in it
 // ----------------------------------------------------------------------------
@@ -342,6 +346,8 @@ OBJECT_HANDLER_BODY(equation)
 {
     switch(op)
     {
+    case EXEC:
+        return obj->execute(rt);
     case EVAL:
         // Equations evaluate like programs
         rt.push(obj);
@@ -408,6 +414,7 @@ OBJECT_HANDLER_BODY(array)
 {
     switch(op)
     {
+    case EXEC:
     case EVAL:
         // Programs evaluate by evaluating all elements in sequence
         rt.push(obj);

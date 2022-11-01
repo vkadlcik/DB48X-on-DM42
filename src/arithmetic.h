@@ -111,7 +111,7 @@ struct derived : arithmetic                                             \
                                                                         \
     OBJECT_HANDLER(derived)                                             \
     {                                                                   \
-        if (op == EVAL)                                                 \
+        if (op == EVAL || op == EXEC)                                   \
         {                                                               \
             RT.command(fancy(ID_##derived));                            \
             if (!Arity || RT.stack(Arity-1))                            \

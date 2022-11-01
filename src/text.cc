@@ -43,6 +43,7 @@ OBJECT_HANDLER_BODY(text)
 {
     switch(op)
     {
+    case EXEC:
     case EVAL:
         // Text values evaluate as self
         rt.push(obj);

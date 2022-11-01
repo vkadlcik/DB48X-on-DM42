@@ -82,7 +82,7 @@ struct command : object
                                                                 \
         OBJECT_HANDLER(derived)                                 \
         {                                                       \
-            if (op == EVAL)                                     \
+            if (op == EVAL || op == EXEC)                       \
             {                                                   \
                 RT.command(fancy(ID_##derived));                \
                 return ((derived *) obj)->evaluate();           \
@@ -122,10 +122,7 @@ COMMAND(Eval)
 // ----------------------------------------------------------------------------
 {
     object_p x = RT.pop();
-    if (program_p prog = x->as<program, equation>())
-        return prog->evaluate();
-    else
-        return x->evaluate();
+    return x->execute();
     return ERROR;
 }
 

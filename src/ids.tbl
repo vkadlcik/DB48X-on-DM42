@@ -200,6 +200,7 @@ ID(dmcp_font)
 // ============================================================================
 
 OPCODE(EVAL)
+OPCODE(EXEC)
 OPCODE(SIZE)
 OPCODE(PARSE)
 OPCODE(RENDER)

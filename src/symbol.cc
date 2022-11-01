@@ -46,6 +46,12 @@ OBJECT_HANDLER_BODY(symbol)
 {
     switch(op)
     {
+    case EXEC:
+        if (catalog_p cat = rt.variables(0))
+            if (object_p found = cat->recall(obj))
+                return found->execute();
+        rt.push(obj);
+        return OK;
     case EVAL:
         if (catalog_p cat = rt.variables(0))
             if (object_p found = cat->recall(obj))

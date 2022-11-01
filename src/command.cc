@@ -49,6 +49,7 @@ OBJECT_HANDLER_BODY(command)
     record(command, "Command %+s on %p", object::name(op), obj);
     switch(op)
     {
+    case EXEC:
     case EVAL:
         record(command_error, "Invoked default command handler");
         rt.error("Command is not implemented");

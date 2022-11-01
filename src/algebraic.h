@@ -79,7 +79,7 @@ struct derived : algebraic                                              \
                                                                         \
     OBJECT_HANDLER(derived)                                             \
     {                                                                   \
-        if (op == EVAL)                                                 \
+        if (op == EVAL || op == EXEC)                                   \
         {                                                               \
             RT.command(#derived);                                       \
             if (!Arity || RT.stack(Arity-1))                            \

@@ -80,7 +80,7 @@ struct derived : function                                               \
                                                                         \
     OBJECT_HANDLER(derived)                                             \
     {                                                                   \
-        if (op == EVAL)                                                 \
+        if (op == EVAL || op == EXEC)                                   \
         {                                                               \
             RT.command(fancy(ID_##derived));                            \
             return evaluate<derived>();                                 \

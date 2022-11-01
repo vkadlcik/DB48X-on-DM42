@@ -218,6 +218,7 @@ OBJECT_HANDLER_BODY(object)
 {
     switch(op)
     {
+    case EXEC:
     case EVAL:
         rt.error("Invalid object");
         return ERROR;

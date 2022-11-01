@@ -48,6 +48,7 @@ OBJECT_HANDLER_BODY(integer)
     record(integer, "Command %+s on %p", name(op), obj);
     switch(op)
     {
+    case EXEC:
     case EVAL:
         // Integer values evaluate as self
         rt.push(obj);

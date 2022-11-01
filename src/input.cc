@@ -149,7 +149,7 @@ bool input::end_edit()
             {
                 // We successfully parsed the line
                 clear_editor();
-                cmds->evaluate();
+                cmds->execute();
             }
             else
             {
@@ -2375,7 +2375,7 @@ bool input::handle_functions(int key)
                     return false;
             }
         }
-        obj->evaluate();
+        obj->execute();
         return true;
     }
 

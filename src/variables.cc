@@ -183,7 +183,8 @@ object_p catalog::lookup(object_p ref) const
         if (ns + vs > size)
         {
             record(catalog_error,
-                   "Malformed catalog (ns=%u vs=%u size=%u)", ns, vs, size);
+                   "Lookup malformed catalog (ns=%u vs=%u size=%u)",
+                   ns, vs, size);
             return nullptr;     // Malformed catalog, quick exit
         }
 
@@ -272,7 +273,8 @@ size_t catalog::enumerate(enumeration_fn callback, void *arg)
         if (ns + vs > size)
         {
             record(catalog_error,
-                   "Malformed catalog (ns=%u vs=%u size=%u)", ns, vs, size);
+                   "Malformed catalog during enumeration (ns=%u vs=%u size=%u)",
+                   ns, vs, size);
             return 0;     // Malformed catalog, quick exit
         }
 

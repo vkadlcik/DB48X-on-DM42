@@ -52,7 +52,7 @@
 //        [Text editor contents]
 //      Temporaries     Temporaries, allocated up
 //        [Previously allocated temporary objects, can be garbage collected]
-//      Globals         Global named RPL objects
+//      Globals         End of global named RPL objects
 //        [Top-level catalog of global objects]
 //      LowMem          Bottom of memory
 //
@@ -564,7 +564,7 @@ protected:
     utf8      ErrorCommand; // Source of the error if known
     object_p  Code;         // Currently executing code
     object_p  LowMem;       // Bottom of available memory
-    object_p  Globals;      // Global objects
+    object_p  Globals;      // End of global objects
     object_p  Temporaries;  // Temporaries (must be valid objects)
     size_t    Editing;      // Text editor (utf8 encoded)
     size_t    Scratch;      // Scratch pad (may be invalid objects)

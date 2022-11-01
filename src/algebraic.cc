@@ -200,7 +200,7 @@ ALGEBRAIC_BODY(inv)
     // Apparently there is a div function getting in the way, see man div(3)
     using div = struct div;
     RT.push(RT.make<integer>(ID_integer, 1));
-    run<swap>();
+    run<Swap>();
     run<div>();
     return OK;
 }
@@ -212,7 +212,7 @@ ALGEBRAIC_BODY(neg)
 // ----------------------------------------------------------------------------
 {
     RT.push(RT.make<integer>(ID_integer, 0));
-    run<swap>();
+    run<Swap>();
     run<sub>();
     return OK;
 }
@@ -223,7 +223,7 @@ ALGEBRAIC_BODY(sq)
 //   Square is implemented as "dup mul"
 // ----------------------------------------------------------------------------
 {
-    run<dup>();
+    run<Dup>();
     run<mul>();
     return OK;
 }
@@ -234,8 +234,8 @@ ALGEBRAIC_BODY(cubed)
 //   Cubed is implemented as "dup dup mul mul"
 // ----------------------------------------------------------------------------
 {
-    run<dup>();
-    run<dup>();
+    run<Dup>();
+    run<Dup>();
     run<mul>();
     run<mul>();
     return OK;

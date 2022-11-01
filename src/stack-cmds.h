@@ -32,7 +32,7 @@
 #include "command.h"
 #include "list.h"
 
-COMMAND(dup)
+COMMAND(Dup)
 // ----------------------------------------------------------------------------
 //   Implement the RPL "dup" command, duplicate top of stack
 // ----------------------------------------------------------------------------
@@ -46,7 +46,7 @@ COMMAND(dup)
 }
 
 
-COMMAND(drop)
+COMMAND(Drop)
 // ----------------------------------------------------------------------------
 //   Implement the RPL "drop" command, remove top of stack
 // ----------------------------------------------------------------------------
@@ -55,7 +55,7 @@ COMMAND(drop)
     return RT.error() ? ERROR : OK;
 }
 
-COMMAND(swap)
+COMMAND(Swap)
 // ----------------------------------------------------------------------------
 //   Implement the RPL "swap" command, swap the two top elements
 // ----------------------------------------------------------------------------

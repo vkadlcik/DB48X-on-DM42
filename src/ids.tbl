@@ -82,12 +82,12 @@ ID(decimal128)
 #define LAST_REAL_TYPE          ID_decimal128
 
 #define FIRST_COMMAND           ID_drop
-CMD(drop)
-NAMED(dup, "Duplicate")
-CMD(swap)
-NAMED(eval, "Evaluate")
-NAMED(sto, "Store")
-NAMED(rcl, "Recall")
+CMD(Drop)
+NAMED(Dup, "Duplicate")
+CMD(Swap)
+NAMED(Eval, "Evaluate")
+NAMED(Sto, "Store")
+NAMED(Rcl, "Recall")
 
 #define FIRST_ALGEBRAIC         ID_add
 OP(add, "+")
@@ -137,9 +137,9 @@ CMD(tgamma)
 CMD(lgamma)
 #define LAST_ALGEBRAIC          ID_lgamma
 
-CMD(purge)
+CMD(Purge)
 CMD(PurgeAll)
-NAMED(mem, "AvailableMemory")
+NAMED(Mem, "AvailableMemory")
 CMD(FreeMemory)
 CMD(GarbageCollect)
 
@@ -176,8 +176,8 @@ CMD(MenuNextPage)
 CMD(MenuPreviousPage)
 CMD(MenuFirstPage)
 
-CMD(unimplemented)
-#define LAST_COMMAND            ID_unimplemented
+CMD(Unimplemented)
+#define LAST_COMMAND            ID_Unimplemented
 
 
 

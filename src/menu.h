@@ -188,10 +188,10 @@ MENU(RealMenu,
      "Hyperbolic",      ID_HyperbolicMenu);
 
 MENU(ComplexMenu,
-     "→ℂ",              ID_unimplemented,
-     "𝒊",               ID_unimplemented,
-     "𝒋",               ID_unimplemented,
-     "𝒌",               ID_unimplemented);
+     "→ℂ",              ID_Unimplemented,
+     "𝒊",               ID_Unimplemented,
+     "𝒋",               ID_Unimplemented,
+     "𝒌",               ID_Unimplemented);
 
 MENU(VectorMenu);
 MENU(MatrixMenu);

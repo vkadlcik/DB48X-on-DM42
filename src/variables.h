@@ -98,11 +98,11 @@ struct catalog : list
 typedef const catalog *catalog_p;
 
 
-COMMAND_DECLARE(sto);
-COMMAND_DECLARE(rcl);
-COMMAND_DECLARE(purge);
+COMMAND_DECLARE(Sto);
+COMMAND_DECLARE(Rcl);
+COMMAND_DECLARE(Purge);
 COMMAND_DECLARE(PurgeAll);
-COMMAND_DECLARE(mem);
+COMMAND_DECLARE(Mem);
 COMMAND_DECLARE(FreeMemory);
 COMMAND_DECLARE(GarbageCollect);
 

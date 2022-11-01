@@ -568,7 +568,8 @@ COMMAND_BODY(VariablesMenuRecall)
         if (symbol_p name = Input.label(key - KEY_F1))
             if (catalog *cat = RT.variables(0))
                 if (object_p value = cat->recall(name))
-                    return value->execute();
+                    if (RT.push(value))
+                        return OK;
 
     return ERROR;
 }

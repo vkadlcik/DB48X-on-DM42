@@ -368,11 +368,12 @@ COMMAND_BODY(Purge)
     if (!x)
         return ERROR;
     symbol_p name = x->as_name();
-    if (name)
+    if (!name)
     {
         RT.error("Invalid name");
         return ERROR;
     }
+    RT.pop();
 
     // Lookup all catalogs, starting with innermost one
     catalog *cat = RT.variables(0);
@@ -397,11 +398,12 @@ COMMAND_BODY(PurgeAll)
     if (!x)
         return ERROR;
     symbol_p name = x->as_name();
-    if (name)
+    if (!name)
     {
         RT.error("Invalid name");
         return ERROR;
     }
+    RT.pop();
 
     // Lookup all catalogs, starting with innermost one, and purge there
     catalog *cat = nullptr;

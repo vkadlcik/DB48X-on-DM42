@@ -41,6 +41,7 @@
 #include <unistd.h>
 #include FT_FREETYPE_H
 #include <vector>
+#include <cerrno>
 
 typedef const char *cstring;
 typedef unsigned char byte;

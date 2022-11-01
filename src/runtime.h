@@ -539,15 +539,16 @@ struct runtime
     //
     // ========================================================================
 
-    void push(gcp<const object> obj)
+    bool push(gcp<const object> obj)
     // ------------------------------------------------------------------------
     //   Push an object on top of RPL stack
     // ------------------------------------------------------------------------
     {
         // This may cause garbage collection, hence the need to adjust
         if (available(sizeof(obj)) < sizeof(obj))
-            return;
+            return false;
         *(--StackTop) = obj;
+        return true;
     }
 
     object_p top()
@@ -563,15 +564,18 @@ struct runtime
         return *StackTop;
     }
 
-    void top(object_p obj)
+    bool top(object_p obj)
     // ------------------------------------------------------------------------
     //   Set the top of the runtime stack
     // ------------------------------------------------------------------------
     {
         if (StackTop >= StackBottom)
+        {
             error("Too few arguments");
-        else
-            *StackTop = obj;
+            return false;
+        }
+        *StackTop = obj;
+        return true;
     }
 
     object_p pop()
@@ -600,26 +604,32 @@ struct runtime
         return StackTop[idx];
     }
 
-    void stack(uint idx, object_p obj)
+    bool stack(uint idx, object_p obj)
     // ------------------------------------------------------------------------
     //    Get the object at a given position in the stack
     // ------------------------------------------------------------------------
     {
         if (idx >= depth())
+        {
             error("Too few arguments");
-        else
-            StackTop[idx] = obj;
+            return false;
+        }
+        StackTop[idx] = obj;
+        return true;
     }
 
-    void drop(uint count = 1)
+    bool drop(uint count = 1)
     // ------------------------------------------------------------------------
     //   Pop the top-level object from the stack, or return NULL
     // ------------------------------------------------------------------------
     {
         if (count > depth())
+        {
             error("Too few arguments");
-        else
-            StackTop += count;
+            return false;
+        }
+        StackTop += count;
+        return true;
     }
 
     uint depth()

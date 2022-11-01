@@ -39,7 +39,7 @@
 
 extern volatile int lcd_needsupdate;
 
-void tests::run()
+void tests::run(bool onlyCurrent)
 // ----------------------------------------------------------------------------
 //   Run all test categories
 // ----------------------------------------------------------------------------
@@ -91,12 +91,23 @@ void tests::run()
                 Settings.base,
                 Settings.command_fmt);
 
-    arithmetic();
-    shift_logic();
-    keyboard_entry();
-    data_types();
-
+    current();
+    if (!onlyCurrent)
+    {
+        arithmetic();
+        shift_logic();
+        keyboard_entry();
+        data_types();
+    }
     summary();
+}
+
+
+void tests::current()
+// ----------------------------------------------------------------------------
+//   Test the current thing (this is a temporary test)
+// ----------------------------------------------------------------------------
+{
 }
 
 

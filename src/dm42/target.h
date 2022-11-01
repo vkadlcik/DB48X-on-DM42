@@ -179,15 +179,4 @@ extern surface Screen;
 #define KB_Y                 30         //! Y
 #define KB_Z                 31         //! Z
 
-// Prime-specific keys (using their names) all map to 'RCL'
-#define KB_APPS               8         //! APPS key (prime only)
-#define KB_SYMB               8         //! SYMB key (prime only)
-#define KB_HELP               8         //! HELP key (prime only)
-#define KB_HOME               8         //! HOME key (prime only)
-#define KB_PLOT               8         //! PLOT key (prime only)
-#define KB_VIEW               8         //! VIEW key (prime only)
-#define KB_CAS                8         //! CAS key (prime only)
-#define KB_NUM                8         //! NUM key (prime only)
-#define KB_MENU               8         //! MENU key (prime only)
-
 #endif // TARGET_DM42_H

@@ -48,7 +48,10 @@ struct tests
     { }
 
     // Run all tests
-    void run();
+    void run(bool onlyCurrent);
+
+    // Test the current thing
+    void current();
 
     // Individual test categories
     void shift_logic();

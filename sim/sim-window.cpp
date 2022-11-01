@@ -328,10 +328,13 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
     int k = ev->key();
     record(sim_keys, "Key press %d", k);
 
-    if (k == Qt::Key_F12)
+    if (k == Qt::Key_F11 || k == Qt::Key_F12)
     {
         if (!tests.isRunning())
+        {
+            tests.onlyCurrent = k == Qt::Key_F11;
             tests.start();
+        }
     }
 
     for (int i = 0; keyMap[i] != 0; i += 2)

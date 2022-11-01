@@ -192,10 +192,9 @@ static bool round_string(char *s, int digit, char rounding_digit)
 // ----------------------------------------------------------------------------
 //   Checks which digit was responsible for overflow
 // ----------------------------------------------------------------------------
-
 {
     if (rounding_digit + 5 <= '9')
-        return 0;
+        return false;
 
     for (; digit >= 0; digit--)
     {
@@ -207,7 +206,7 @@ static bool round_string(char *s, int digit, char rounding_digit)
         s[digit] -= 10;
     }
 
-    return 1;
+    return true;
 }
 
 
@@ -346,11 +345,12 @@ void decimal_format(char *str, size_t len, int digits)
             int trailingZeroes = max(digits + zeroFillAfterDot - frac, 0);
             for (int z = 0; z < trailingZeroes; z++)
                 *p++ = '0';
+            *p = 0;
         }
 
         if (*mp)
         {
-            // More mantissa digits available -> rounding
+            // More mantissa digits rounding
             int rix  = mp - s;
             bool ovfl = round_string(str + ms, strlen(str + ms) - 1, s[rix]);
             if (ovfl)

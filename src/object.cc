@@ -139,7 +139,7 @@ object_p object::parse(utf8 source, size_t &size, runtime &rt)
         r = (result) handler[candidate](rt, PARSE, &p, nullptr, nullptr);
         if (r != SKIP)
             record(parse_attempts, "Result for ID %+s was %+s (%d) for [%s]",
-                   name(p.candidate), name(r), r, source);
+                   name(p.candidate), name(r), r, utf8(p.source));
         if (r == WARN)
         {
             err = rt.error();
@@ -149,7 +149,7 @@ object_p object::parse(utf8 source, size_t &size, runtime &rt)
         }
     }
 
-    record(parse, "<Done parsing [%s], end is at %d", source, p.end);
+    record(parse, "<Done parsing [%s], end is at %d", utf8(p.source), p.end);
     size = p.end + skipped;
 
     if (r == SKIP)
@@ -157,7 +157,7 @@ object_p object::parse(utf8 source, size_t &size, runtime &rt)
         if (err)
             error(err, src);
         else
-            error("Syntax error", source);
+            error("Syntax error", p.source);
     }
 
     return r == OK ? p.out : nullptr;
@@ -208,6 +208,22 @@ cstring object::edit(runtime &rt) const
     if (result)
         rt.edit();
     return result;
+}
+
+
+void object::object_error(id type, object_p ptr)
+// ----------------------------------------------------------------------------
+//    Report an error in an object
+// ----------------------------------------------------------------------------
+{
+    uintptr_t debug[2];
+    byte *d = (byte *) debug;
+    byte *s = (byte *) ptr;
+    for (uint i = 0; i < sizeof(debug); i++)
+        d[i] = s[i];
+    record(object_errors,
+           "Invalid type %d for %p  Data %16llX %16llX",
+           type, ptr, debug[0], debug[1]);
 }
 
 

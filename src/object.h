@@ -200,16 +200,7 @@ struct object
         byte *ptr = (byte *) this;
         id ty = (id) leb128(ptr);
         if (ty > NUM_IDS)
-        {
-            uintptr_t debug[2];
-            byte *d = (byte *) debug;
-            byte *s = (byte *) this;
-            for (uint i = 0; i < sizeof(debug); i++)
-                d[i] = s[i];
-            record(object_errors,
-                   "Invalid type %d for %p  Data %16llX %16llX",
-                   ty, this, debug[0], debug[1]);
-        }
+            object_error(ty, this);
         return ty;
     }
 
@@ -238,6 +229,11 @@ struct object
         leb128(ptr);            // Skip ID
         return ptr;
     }
+
+    static void object_error(id type, const object *ptr);
+    // ------------------------------------------------------------------------
+    //   Report an error e.g. with with an object type
+    // ------------------------------------------------------------------------
 
 
 
@@ -472,7 +468,8 @@ struct object
         {
             record(object_errors, "Static run op %+s with id %u, max %u",
                    name(op), type, NUM_IDS);
-            return -1;
+            object_error(type, (object_p) "Static");
+            return ERROR;
         }
         record(run, "Static run %+s cmd %+s", name(type), name(op));
         return handler[type](rt, op, arg, nullptr, nullptr);
@@ -490,6 +487,7 @@ struct object
             record(object_errors,
                    "Dynamic run op %+s at %p with id %u, max %u",
                    name(op), this, type, NUM_IDS);
+            object_error(type, this);
             return -1;
         }
         record(run, "Dynamic run %+s op %+s", name(type), name(op));

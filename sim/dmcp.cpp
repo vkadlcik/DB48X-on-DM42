@@ -410,8 +410,6 @@ void lcd_switchFont(disp_stat_t * ds, int nr)
     record(lcd, "Select font %d", nr);
     if (nr >= 0 && nr <= (int) dmcp_fonts_count)
         ds->f = dmcp_fonts[nr];
-    else
-        record(lcd_warning, "lcd_switchFont for bad font number %d", nr);
 }
 
 int lcd_charWidth(disp_stat_t * ds, int c)

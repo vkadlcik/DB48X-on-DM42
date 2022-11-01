@@ -858,12 +858,13 @@ void input::draw_command()
 {
     if (command && !RT.error())
     {
-        size  w = HelpFont->width(command);
-        size  h = HelpFont->height();
-        coord x = LCD_W - w - 10;
+        font_p font = HelpCodeFont;
+        size  w = font->width(command);
+        size  h = font->height();
+        coord x = 25;
         coord y = HeaderFont->height() + 6;
         Screen.fill(x-2, y, x + w + 1, y + h, pattern::black);
-        Screen.text(x, y, command, HelpFont, pattern::white);
+        Screen.text(x, y, command, font, pattern::white);
     }
 }
 

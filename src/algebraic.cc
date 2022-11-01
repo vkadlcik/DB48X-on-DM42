@@ -105,17 +105,17 @@ bool algebraic::real_promotion(gcobj &x, object::id type)
     case ID_neg_integer:
     {
         integer_p i    = x->as<neg_integer>();
-        large     ival = -i->value<large>();
+        ularge    ival = i->value<ularge>();
         switch (type)
         {
         case ID_decimal32:
-            x = rt.make<decimal32>(ID_decimal32, ival);
+            x = rt.make<decimal32>(ID_decimal32, ival, true);
             return true;
         case ID_decimal64:
-            x = rt.make<decimal64>(ID_decimal64, ival);
+            x = rt.make<decimal64>(ID_decimal64, ival, true);
             return true;
         case ID_decimal128:
-            x = rt.make<decimal128>(ID_decimal128, ival);
+            x = rt.make<decimal128>(ID_decimal128, ival, true);
             return true;
         default:
             break;

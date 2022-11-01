@@ -72,6 +72,16 @@ struct decimal64 : object
         memcpy(p, &num, sizeof(num));
     }
 
+    decimal64(uint64_t value, bool neg, id type = ID_decimal64): object(type)
+    {
+        bid64 num, negated;
+        byte *p = payload();
+        bid64_from_uint64(&num.value, &value);
+        if (neg)
+            bid64_negate(&negated.value, &num.value);
+        memcpy(p, neg ? &negated : &num, sizeof(num));
+    }
+
     decimal64(int64_t value, id type = ID_decimal64): object(type)
     {
         bid64 num;
@@ -121,6 +131,12 @@ struct decimal64 : object
 
     template <typename Value>
     static size_t required_memory(id i, Value UNUSED value)
+    {
+        return leb128size(i) + sizeof(bid64);
+    }
+
+    template <typename Value>
+    static size_t required_memory(id i, Value UNUSED value, bool UNUSED neg)
     {
         return leb128size(i) + sizeof(bid64);
     }

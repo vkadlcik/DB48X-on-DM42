@@ -108,6 +108,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
+    test(CLEAR, ~0ULL, CHS, ENTER, -2);
 }
 
 
@@ -277,14 +278,14 @@ void tests::arithmetic()
     test(CLEAR, ~0ULL, ENTER, 1, ADD)
         .type(object::ID_decimal128).expect("18446744073709551616");
     test(CLEAR, ~0ULL, CHS, ENTER, -2, ADD)
-        .type(object::ID_decimal128).expect("-18446744073709551616");
+        .type(object::ID_decimal128).expect("-18446744073709551617");
 
     step("Adding ten small integers at random");
     srand48(sys_current_ms());
     for (int i = 0; i < 10; i++)
     {
-        int x = (lrand48() & 0xFFFF) - 0x8000;
-        int y = (lrand48() & 0xFFFF) - 0x8000;
+        large x = (lrand48() & 0xFFFFFF) - 0x800000;
+        large y = (lrand48() & 0xFFFFFF) - 0x800000;
         test(CLEAR, x, ENTER, y, ADD)
             .explain("Computing ", x, " + ", y, ", ")
             .expect(x + y);
@@ -323,8 +324,8 @@ void tests::arithmetic()
     step("Subtracting ten small integers at random");
     for (int i = 0; i < 10; i++)
     {
-        int x = (lrand48() & 0xFFFF) - 0x8000;
-        int y = (lrand48() & 0xFFFF) - 0x8000;
+        large x = (lrand48() & 0xFFFFFF) - 0x800000;
+        large y = (lrand48() & 0xFFFFFF) - 0x800000;
         test(CLEAR, x, ENTER, y, SUB)
             .explain("Computing ", x, " - ", y, ", ")
             .expect(x - y);
@@ -345,8 +346,8 @@ void tests::arithmetic()
     step("Multiplying ten small integers at random");
     for (int i = 0; i < 10; i++)
     {
-        int x = (lrand48() & 0xFFFF) - 0x8000;
-        int y = (lrand48() & 0xFFFF) - 0x8000;
+        large x = (lrand48() & 0xFFFFFF) - 0x800000;
+        large y = (lrand48() & 0xFFFFFF) - 0x800000;
         test(CLEAR, x, ENTER, y, MUL)
             .explain("Computing ", x, " * ", y, ", ")
             .expect(x * y);
@@ -365,8 +366,8 @@ void tests::arithmetic()
     step("Dividing ten small integers at random");
     for (int i = 0; i < 10; i++)
     {
-        int x = (lrand48() & 0x3FFF) - 0x4000;
-        int y = (lrand48() & 0x3FFF) - 0x4000;
+        large x = (lrand48() & 0x3FFF) - 0x4000;
+        large y = (lrand48() & 0x3FFF) - 0x4000;
         test(CLEAR, x * y, ENTER, y, DIV)
             .explain("Computing ", x * y, " / ", y, ", ")
             .expect(x);
@@ -969,6 +970,39 @@ tests &tests::expect(int output)
 {
     char num[32];
     snprintf(num, sizeof(num), "%d", output);
+    return expect(num);
+}
+
+
+tests &tests::expect(uint output)
+// ----------------------------------------------------------------------------
+//   Check that the output matches an integer value
+// ----------------------------------------------------------------------------
+{
+    char num[32];
+    snprintf(num, sizeof(num), "%u", output);
+    return expect(num);
+}
+
+
+tests &tests::expect(large output)
+// ----------------------------------------------------------------------------
+//   Check that the output matches an integer value
+// ----------------------------------------------------------------------------
+{
+    char num[32];
+    snprintf(num, sizeof(num), "%lld", output);
+    return expect(num);
+}
+
+
+tests &tests::expect(ularge output)
+// ----------------------------------------------------------------------------
+//   Check that the output matches an integer value
+// ----------------------------------------------------------------------------
+{
+    char num[32];
+    snprintf(num, sizeof(num), "%llu", output);
     return expect(num);
 }
 

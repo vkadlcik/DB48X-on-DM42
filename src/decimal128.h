@@ -72,6 +72,16 @@ struct decimal128 : object
         memcpy(p, &num, sizeof(num));
     }
 
+    decimal128(uint64_t value, bool neg, id type = ID_decimal128): object(type)
+    {
+        bid128 num, negated;
+        byte *p = payload();
+        bid128_from_uint64(&num.value, &value);
+        if (neg)
+            bid128_negate(&negated.value, &num.value);
+        memcpy(p, neg ? &negated : &num, sizeof(num));
+    }
+
     decimal128(int64_t value, id type = ID_decimal128): object(type)
     {
         bid128 num;
@@ -121,6 +131,12 @@ struct decimal128 : object
 
     template <typename Value>
     static size_t required_memory(id i, Value UNUSED value)
+    {
+        return leb128size(i) + sizeof(bid128);
+    }
+
+    template <typename Value>
+    static size_t required_memory(id i, Value UNUSED value, bool UNUSED neg)
     {
         return leb128size(i) + sizeof(bid128);
     }

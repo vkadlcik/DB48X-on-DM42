@@ -6,7 +6,7 @@
 //
 //      Implementation of variables
 //
-//      Global variables are stored in mutable catalog objects that occupy
+//      Global variables are stored in mutable directory objects that occupy
 //      a reserved area of the runtime, and can grow/shrinnk as you store
 //      or purge global variables
 //
@@ -34,12 +34,12 @@
 #include "parser.h"
 #include "renderer.h"
 
-RECORDER(catalog,       16, "Catalogs");
-RECORDER(catalog_error, 16, "Errors from catalogs");
+RECORDER(directory,       16, "Catalogs");
+RECORDER(directory_error, 16, "Errors from directorys");
 
-OBJECT_HANDLER_BODY(catalog)
+OBJECT_HANDLER_BODY(directory)
 // ----------------------------------------------------------------------------
-//    Handle commands for catalogs
+//    Handle commands for directorys
 // ----------------------------------------------------------------------------
 {
     switch(op)
@@ -56,7 +56,7 @@ OBJECT_HANDLER_BODY(catalog)
     case RENDER:
         return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
     case HELP:
-        return (intptr_t) "catalog";
+        return (intptr_t) "directory";
 
     default:
         // Check if anyone else knows how to deal with it
@@ -65,9 +65,9 @@ OBJECT_HANDLER_BODY(catalog)
 }
 
 
-OBJECT_PARSER_BODY(catalog)
+OBJECT_PARSER_BODY(directory)
 // ----------------------------------------------------------------------------
-//    Try to parse this as a catalog
+//    Try to parse this as a directory
 // ----------------------------------------------------------------------------
 //    Catalog should never be parsed, but do something sensible if it happens
 {
@@ -75,26 +75,26 @@ OBJECT_PARSER_BODY(catalog)
 }
 
 
-OBJECT_RENDERER_BODY(catalog)
+OBJECT_RENDERER_BODY(directory)
 // ----------------------------------------------------------------------------
-//   Render the catalog into the given catalog buffer
+//   Render the directory into the given directory buffer
 // ----------------------------------------------------------------------------
 {
     return snprintf(r.target, r.length, "Catalog (internal)");
 }
 
 
-bool catalog::store(gcobj name, gcobj value)
+bool directory::store(gcobj name, gcobj value)
 // ----------------------------------------------------------------------------
-//    Store an object in the catalog
+//    Store an object in the directory
 // ----------------------------------------------------------------------------
-//    Note that the catalog itself should never move because of GC
+//    Note that the directory itself should never move because of GC
 //    That's because it normally should reside in the globals area
 {
     runtime &rt     = runtime::RT;
     object_p header = (object_p) payload();
     object_p body   = header;
-    size_t   old    = leb128<size_t>(body);     // Old size of catalog
+    size_t   old    = leb128<size_t>(body);     // Old size of directory
     size_t   now    = old;                      // Updated size
     size_t   vs     = value->size();            // Size of value
 
@@ -120,7 +120,7 @@ bool catalog::store(gcobj name, gcobj value)
         // Copy new value into storage location
         memmove((byte *) evalue, (byte *) value, vs);
 
-        // Compute new size of the catalog
+        // Compute new size of the directory
         now += vs - es;
     }
     else
@@ -132,23 +132,23 @@ bool catalog::store(gcobj name, gcobj value)
         if (rt.available(requested) < requested)
             return false;               // Out of memory
 
-        // Move memory above end of catalog
+        // Move memory above end of directory
         object_p end = body + old;
         rt.move_globals(end + requested, end);
 
-        // Copy name and value at end of catalog
+        // Copy name and value at end of directory
         memmove((byte *) end, (byte *) name, ns);
         memmove((byte *) end + ns, (byte *) value, vs);
 
-        // Compute new size of the catalog
+        // Compute new size of the directory
         now += requested;
     }
 
-    // Adjust catalog size
+    // Adjust directory size
     size_t nowh = leb128size(now);
     size_t oldh = leb128size(old);
     if (nowh != oldh)
-        // Header size changed, move the catalog contents and rest of globals
+        // Header size changed, move the directory contents and rest of globals
         rt.move_globals(header + nowh, header + oldh);
     leb128(header, now);
 
@@ -156,9 +156,9 @@ bool catalog::store(gcobj name, gcobj value)
 }
 
 
-object_p catalog::lookup(object_p ref) const
+object_p directory::lookup(object_p ref) const
 // ----------------------------------------------------------------------------
-//   Find if the name exists in the catalog, if so return pointer to it
+//   Find if the name exists in the directory, if so return pointer to it
 // ----------------------------------------------------------------------------
 {
     byte_p p = payload();
@@ -169,7 +169,7 @@ object_p catalog::lookup(object_p ref) const
     {
         object_p name = (object_p) p;
         size_t ns = name->size();
-        if (name == ref)          // Optimization when name is from catalog
+        if (name == ref)          // Optimization when name is from directory
             return name;
         if (ns == rsize && memcmp(name, ref, rsize) == 0)
             return name;
@@ -179,13 +179,13 @@ object_p catalog::lookup(object_p ref) const
         size_t vs = value->size();
         p += vs;
 
-        // Defensive coding against malformed catalogs
+        // Defensive coding against malformed directorys
         if (ns + vs > size)
         {
-            record(catalog_error,
-                   "Lookup malformed catalog (ns=%u vs=%u size=%u)",
+            record(directory_error,
+                   "Lookup malformed directory (ns=%u vs=%u size=%u)",
                    ns, vs, size);
-            return nullptr;     // Malformed catalog, quick exit
+            return nullptr;     // Malformed directory, quick exit
         }
 
         size -= (ns + vs);
@@ -195,9 +195,9 @@ object_p catalog::lookup(object_p ref) const
 }
 
 
-object_p catalog::recall(object_p ref) const
+object_p directory::recall(object_p ref) const
 // ----------------------------------------------------------------------------
-//   If the referenced object exists in catalog, return associated value
+//   If the referenced object exists in directory, return associated value
 // ----------------------------------------------------------------------------
 {
     if (object_p found = lookup(ref))
@@ -207,9 +207,9 @@ object_p catalog::recall(object_p ref) const
 }
 
 
-size_t catalog::purge(object_p ref)
+size_t directory::purge(object_p ref)
 // ----------------------------------------------------------------------------
-//    Purge a name (and associated value) from the catalog
+//    Purge a name (and associated value) from the directory
 // ----------------------------------------------------------------------------
 {
     if (object_p name = lookup(ref))
@@ -225,8 +225,8 @@ size_t catalog::purge(object_p ref)
         size_t old = object::size();
         if (old < purged)
         {
-            record(catalog_error,
-                   "Purging %u bytes in %u bytes catalog", purged, old);
+            record(directory_error,
+                   "Purging %u bytes in %u bytes directory", purged, old);
             purged = old;
         }
 
@@ -236,10 +236,10 @@ size_t catalog::purge(object_p ref)
         size_t oldh = leb128size(old);
         size_t nowh = leb128size(now);
         if (nowh > oldh)
-            record(catalog_error,
-                   "Purge increased catalog size from %u to %u", oldh, nowh);
+            record(directory_error,
+                   "Purge increased directory size from %u to %u", oldh, nowh);
         if (nowh < oldh)
-            // Rare case where the catalog size itself uses less bytes
+            // Rare case where the directory size itself uses less bytes
             rt.move_globals(header + nowh, header + oldh);
         leb128(header, now);
 
@@ -251,7 +251,7 @@ size_t catalog::purge(object_p ref)
 }
 
 
-size_t catalog::enumerate(enumeration_fn callback, void *arg)
+size_t directory::enumerate(enumeration_fn callback, void *arg)
 // ----------------------------------------------------------------------------
 //   Process all the variables in turn, return number of true values
 // ----------------------------------------------------------------------------
@@ -269,13 +269,13 @@ size_t catalog::enumerate(enumeration_fn callback, void *arg)
         size_t   vs    = value->size();
         p += vs;
 
-        // Defensive coding against malformed catalogs
+        // Defensive coding against malformed directorys
         if (ns + vs > size)
         {
-            record(catalog_error,
-                   "Malformed catalog during enumeration (ns=%u vs=%u size=%u)",
+            record(directory_error,
+                   "Malformed directory during enumeration (ns=%u vs=%u size=%u)",
                    ns, vs, size);
-            return 0;     // Malformed catalog, quick exit
+            return 0;     // Malformed directory, quick exit
         }
 
         if (!callback || callback(name, value, arg))
@@ -300,7 +300,7 @@ COMMAND_BODY(Sto)
 //   Store a global variable into current directory
 // ----------------------------------------------------------------------------
 {
-    catalog *cat = RT.variables(0);
+    directory *cat = RT.variables(0);
     if (!cat)
     {
         RT.error("No current directory");
@@ -347,8 +347,8 @@ COMMAND_BODY(Rcl)
         return ERROR;
     }
 
-    // Lookup all catalogs, starting with innermost one
-    catalog *cat = nullptr;
+    // Lookup all directorys, starting with innermost one
+    directory *cat = nullptr;
     for (uint depth = 0; (cat = RT.variables(depth)); depth++)
     {
         if (object_p value = cat->recall(name))
@@ -380,8 +380,8 @@ COMMAND_BODY(Purge)
     }
     RT.pop();
 
-    // Lookup all catalogs, starting with innermost one
-    catalog *cat = RT.variables(0);
+    // Lookup all directorys, starting with innermost one
+    directory *cat = RT.variables(0);
     if (!cat)
     {
         RT.error("No current directory");
@@ -410,8 +410,8 @@ COMMAND_BODY(PurgeAll)
     }
     RT.pop();
 
-    // Lookup all catalogs, starting with innermost one, and purge there
-    catalog *cat = nullptr;
+    // Lookup all directorys, starting with innermost one, and purge there
+    directory *cat = nullptr;
     for (uint depth = 0; (cat = RT.variables(depth)); depth++)
         cat->purge(name);
 
@@ -489,7 +489,7 @@ uint VariablesMenu::count_variables()
 //    Count the variables in the current directory
 // ----------------------------------------------------------------------------
 {
-    catalog *cat = RT.variables(0);
+    directory *cat = RT.variables(0);
     if (!cat)
     {
         RT.error("No current directory");
@@ -539,7 +539,7 @@ void VariablesMenu::list_variables(info &mi)
 //   Fill the menu with variable names
 // ----------------------------------------------------------------------------
 {
-    catalog *cat = RT.variables(0);
+    directory *cat = RT.variables(0);
     if (!cat)
     {
         RT.error("No current directory");
@@ -577,7 +577,7 @@ COMMAND_BODY(VariablesMenuRecall)
     int key = Input.evaluating;
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))
-            if (catalog *cat = RT.variables(0))
+            if (directory *cat = RT.variables(0))
                 if (object_p value = cat->recall(name))
                     if (RT.push(value))
                         return OK;
@@ -594,7 +594,7 @@ COMMAND_BODY(VariablesMenuStore)
     int key = Input.evaluating;
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))
-            if (catalog *cat = RT.variables(0))
+            if (directory *cat = RT.variables(0))
                 if (object_p value = RT.pop())
                     if (cat->store(name, value))
                         return OK;

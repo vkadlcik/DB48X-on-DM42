@@ -39,9 +39,9 @@
 //        [... the same as the above for inner objects being evaluated ...]
 //        [Number of local variables in currently evaluating program, may be 0]
 //      Returns         Top of return stack
-//        [Pointer to outermost catalog in path]
-//        [ ... intermediate catalog pointers ...]
-//        [Pointer to innermost catalog in path]
+//        [Pointer to outermost directory in path]
+//        [ ... intermediate directory pointers ...]
+//        [Pointer to innermost directory in path]
 //      StackBottom     Bottom of stack
 //        [User stack]
 //      StackTop        Top of stack
@@ -53,7 +53,7 @@
 //      Temporaries     Temporaries, allocated up
 //        [Previously allocated temporary objects, can be garbage collected]
 //      Globals         End of global named RPL objects
-//        [Top-level catalog of global objects]
+//        [Top-level directory of global objects]
 //      LowMem          Bottom of memory
 //
 //   When allocating a temporary, we move 'Temporaries' up
@@ -70,9 +70,9 @@
 
 
 struct object;                  // RPL object
-struct catalog;
+struct directory;
 typedef const object *object_p;
-typedef const catalog *catalog_p;
+typedef const directory *directory_p;
 
 RECORDER_DECLARE(runtime);
 RECORDER_DECLARE(runtime_error);
@@ -447,18 +447,18 @@ struct runtime
 
     // ========================================================================
     //
-    //   Global catalogs
+    //   Global directorys
     //
     // ========================================================================
 
-    catalog *variables(uint depth)
+    directory *variables(uint depth)
     // ------------------------------------------------------------------------
-    //   Current catalog for global variables
+    //   Current directory for global variables
     // ------------------------------------------------------------------------
     {
         if (depth >= (uint) (Returns - StackBottom))
             return nullptr;
-        return (catalog *) StackBottom[depth];
+        return (directory *) StackBottom[depth];
     }
 
 

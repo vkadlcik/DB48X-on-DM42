@@ -8,7 +8,7 @@
 //
 //     An RPL menu object defines the content of the soft menu keys
 //
-//     It is a catalog which, when evaluated, updates the soft menu keys
+//     It is a directory which, when evaluated, updates the soft menu keys
 //
 //
 //

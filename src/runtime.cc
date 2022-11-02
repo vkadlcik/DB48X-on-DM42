@@ -92,9 +92,9 @@ void runtime::memory(byte *memory, size_t size)
 
     // Stuff at bottom of memory
     Globals = LowMem;
-    catalog_p home = new((void *) Globals) catalog();   // Home directory
+    directory_p home = new((void *) Globals) directory();   // Home directory
     *StackBottom = (object_p) home;                     // Current search path
-    Globals = home->skip();                             // Globals after catalog
+    Globals = home->skip();                             // Globals after directory
     Temporaries = Globals;                              // Area for temporaries
     Editing = 0;                                        // No editor
     Scratch = 0;                                        // No scratchpad

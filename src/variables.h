@@ -8,7 +8,7 @@
 //
 //    Operations on variables
 //
-//    Global variables are stored in catalog objects
+//    Global variables are stored in directory objects
 //    Local variables are stored just above the stack
 //
 //
@@ -31,7 +31,7 @@
 //
 // Payload format:
 //
-//   A catalog is represented in memory as follows:
+//   A directory is represented in memory as follows:
 //   - The type ID (one byte, ID_directory)
 //   - The total length of the directory
 //   - For each entry:
@@ -44,7 +44,7 @@
 //   Unlike the HP48, the names can be something else than symbols.
 //   This is used notably
 //
-//   Searching through a catalog is done using a linear search, but given the
+//   Searching through a directory is done using a linear search, but given the
 //   small number of objects typically expected in a calculator, this should be
 //   fine. Note that local variables, which are more important for the
 //   performance of programs.
@@ -58,12 +58,12 @@
 #include "menu.h"
 
 
-struct catalog : list
+struct directory : list
 // ----------------------------------------------------------------------------
-//   Representation of a catalog
+//   Representation of a directory
 // ----------------------------------------------------------------------------
 {
-    catalog(id type = ID_catalog): list(nullptr, 0, type)
+    directory(id type = ID_directory): list(nullptr, 0, type)
     {}
 
     static size_t required_memory(id i)
@@ -73,27 +73,27 @@ struct catalog : list
 
     bool store(gcobj name, gcobj value);
     // ------------------------------------------------------------------------
-    //    Store an object in the catalog
+    //    Store an object in the directory
     // ------------------------------------------------------------------------
 
     object_p recall(object_p name) const;
     // ------------------------------------------------------------------------
-    //    Check if a name exists in the catalog, return value pointer if it does
+    //    Check if a name exists in the directory, return value pointer if it does
     // ------------------------------------------------------------------------
 
     object_p lookup(object_p name) const;
     // ------------------------------------------------------------------------
-    //    Check if a name exists in the catalog, return name pointer if it does
+    //    Check if a name exists in the directory, return name pointer if it does
     // ------------------------------------------------------------------------
 
     size_t purge(object_p name);
     // ------------------------------------------------------------------------
-    //   Purge an entry from the catalog, return purged size
+    //   Purge an entry from the directory, return purged size
     // ------------------------------------------------------------------------
 
     size_t count()
     // ------------------------------------------------------------------------
-    //   Return the number of variables in the catalog
+    //   Return the number of variables in the directory
     // ------------------------------------------------------------------------
     {
         return enumerate(nullptr, nullptr);
@@ -103,16 +103,16 @@ struct catalog : list
     typedef bool (*enumeration_fn)(symbol_p name, object_p obj, void *arg);
     size_t enumerate(enumeration_fn callback, void *arg);
     // ------------------------------------------------------------------------
-    //   Enumerate all the variables in the catalog, return count of true
+    //   Enumerate all the variables in the directory, return count of true
     // ------------------------------------------------------------------------
 
 
-    OBJECT_HANDLER(catalog);
-    OBJECT_PARSER(catalog);
-    OBJECT_RENDERER(catalog);
+    OBJECT_HANDLER(directory);
+    OBJECT_PARSER(directory);
+    OBJECT_RENDERER(directory);
 };
 
-typedef const catalog *catalog_p;
+typedef const directory *directory_p;
 
 
 COMMAND_DECLARE(Sto);

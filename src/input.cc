@@ -349,7 +349,7 @@ void input::page(uint p)
 //   Set the menu page to display
 // ----------------------------------------------------------------------------
 {
-    menuPage = p % pages();
+    menuPage = (p + menuPages) % menuPages;
 }
 
 
@@ -359,6 +359,15 @@ uint input::pages()
 // ----------------------------------------------------------------------------
 {
     return menuPages;
+}
+
+
+void input::pages(uint p)
+// ----------------------------------------------------------------------------
+//   Return number of menu pages
+// ----------------------------------------------------------------------------
+{
+    menuPages = p ? p : 1;
 }
 
 
@@ -2135,8 +2144,7 @@ bool input::handle_digits(int key)
         "_789_"
         "_456_"
         "_123_"
-        "_0.__"
-        "_____";
+        "_0.__";
 
     if (RT.editing())
     {
@@ -2175,7 +2183,7 @@ bool input::handle_digits(int key)
             return true;
         }
     }
-    if (key > KEY_CHS)
+    if (key > KEY_CHS && key < KEY_F1)
     {
         char c = numbers[key-1];
         if (c == '_')

@@ -82,9 +82,10 @@ void menu::items_init(info &mi, uint nitems, uint planes)
     {
         uint perpage = planes * (input::NUM_SOFTKEYS - 1);
         mi.skip = mi.page * perpage;
-        mi.pages = nitems / perpage;
+        mi.pages = (nitems + perpage - 1) / perpage;
     }
     Input.menus(0, nullptr, nullptr);
+    Input.pages(mi.pages);
 }
 
 
@@ -102,7 +103,7 @@ void menu::items(info &mi, cstring label, object_p action)
         uint idx = mi.index++;
         if (mi.pages > 1 && mi.plane < mi.planes)
         {
-            if ((idx + 1) % input::NUM_SOFTKEYS == 0)
+            if (idx % input::NUM_SOFTKEYS == 0)
             {
                 // Insert next and previous keys in menu
                 static cstring labels[input::NUM_PLANES] = { "▶", "◀︎", "◀︎◀︎" };
@@ -110,10 +111,14 @@ void menu::items(info &mi, cstring label, object_p action)
                 {
                     ID_MenuNextPage, ID_MenuPreviousPage, ID_MenuFirstPage
                 };
-                uint plane = mi.plane++;
+                uint plane = mi.plane;
                 object_p function = command::static_object(functions[plane]);
                 cstring label = labels[plane];
-                Input.menu(idx, label, function);
+                Input.menu(idx + input::NUM_SOFTKEYS - 1, label, function);
+            }
+            if ((idx + 1) % input::NUM_SOFTKEYS == 0)
+            {
+                mi.plane++;
                 idx = mi.index++;
             }
         }

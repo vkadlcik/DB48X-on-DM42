@@ -473,7 +473,7 @@ OBJECT_HANDLER_BODY(VariablesMenu)
     {
         info &mi     = *((info *) arg);
         uint  nitems = count_variables();
-        items_init(mi, nitems, 3);
+        items_init(mi, nitems, 1);
         list_variables(mi);
         return OK;
     }

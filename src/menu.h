@@ -127,7 +127,7 @@ COMMAND(MenuPreviousPage)
 //   Select the previous page in the menu
 // ----------------------------------------------------------------------------
 {
-    Input.page((Input.page() - 1) % Input.pages());
+    Input.page(Input.page() - 1);
     return OK;
 }
 

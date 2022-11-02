@@ -121,6 +121,7 @@ COMMAND_DECLARE(Purge);
 COMMAND_DECLARE(PurgeAll);
 COMMAND_DECLARE(Mem);
 COMMAND_DECLARE(FreeMemory);
+COMMAND_DECLARE(SystemMemory);
 COMMAND_DECLARE(GarbageCollect);
 
 struct VariablesMenu : menu

@@ -141,6 +141,7 @@ CMD(Purge)
 CMD(PurgeAll)
 NAMED(Mem, "AvailableMemory")
 CMD(FreeMemory)
+CMD(SystemMemory)
 CMD(GarbageCollect)
 
 #define LAST_IMMEDIATE          ID_GarbageCollect

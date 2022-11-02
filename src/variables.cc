@@ -455,6 +455,18 @@ COMMAND_BODY(FreeMemory)
 }
 
 
+COMMAND_BODY(SystemMemory)
+// ----------------------------------------------------------------------------
+//   Return the amount of memory that is seen as free by the system
+// ----------------------------------------------------------------------------
+{
+    size_t mem = sys_free_mem();
+    integer_p result = RT.make<integer>(ID_integer, mem);
+    RT.push(result);
+    return OK;
+}
+
+
 
 // ============================================================================
 //

@@ -2423,7 +2423,9 @@ bool input::handle_functions(int key)
     if (object_p obj = object_for_key(key))
     {
         evaluating = key;
-        if (RT.editing() && obj->type() != object::ID_AutoComplete)
+        object::id ty = obj->type();
+        bool imm = ty >= object::FIRST_COMMAND && ty <= object::LAST_IMMEDIATE;
+        if (RT.editing() && imm)
         {
             if (key == KEY_ENTER || key == KEY_BSP)
                 return false;

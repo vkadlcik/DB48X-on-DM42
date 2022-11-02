@@ -141,6 +141,7 @@ public:
     OBJECT_HANDLER(VariablesMenu);
 };
 
+COMMAND_DECLARE(VariablesMenuExecute);
 COMMAND_DECLARE(VariablesMenuRecall);
 COMMAND_DECLARE(VariablesMenuStore);
 

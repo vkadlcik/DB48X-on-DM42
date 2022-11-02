@@ -505,7 +505,7 @@ static bool evaluate_variable(symbol_p name, object_p value, void *arg)
 // ----------------------------------------------------------------------------
 {
     menu::info &mi = *((menu::info *) arg);
-    menu::items(mi, name, value);
+    menu::items(mi, name, menu::ID_VariablesMenuExecute);
     return true;
 }
 
@@ -571,12 +571,58 @@ void VariablesMenu::list_variables(info &mi)
 }
 
 
+static object::result insert(int key, cstring before, cstring after)
+// ----------------------------------------------------------------------------
+//   Insert the name associated with the key if editing
+// ----------------------------------------------------------------------------
+{
+    if (symbol_p name = Input.label(key - KEY_F1))
+    {
+        runtime &rt     = runtime::RT;
+        uint     cursor = Input.cursorPosition();
+        size_t   length = 0;
+        utf8     text   = name->value(&length);
+
+        cursor += rt.insert(cursor, utf8(before));
+        cursor += rt.insert(cursor, text, length);
+        cursor += rt.insert(cursor, utf8(after));
+
+        Input.cursorPosition(cursor);
+
+        return object::OK;
+    }
+    return object::ERROR;
+}
+
+
+COMMAND_BODY(VariablesMenuExecute)
+// ----------------------------------------------------------------------------
+//   Recall a variable from the VariablesMenu
+// ----------------------------------------------------------------------------
+{
+    int key = Input.evaluating;
+    if (RT.editing())
+        return insert(key, "", " ");
+
+    if (key >= KEY_F1 && key <= KEY_F6)
+        if (symbol_p name = Input.label(key - KEY_F1))
+            if (directory *cat = RT.variables(0))
+                if (object_p value = cat->recall(name))
+                    return value->execute();
+
+    return ERROR;
+}
+
+
 COMMAND_BODY(VariablesMenuRecall)
 // ----------------------------------------------------------------------------
 //   Recall a variable from the VariablesMenu
 // ----------------------------------------------------------------------------
 {
     int key = Input.evaluating;
+    if (RT.editing())
+        return insert(key, "'", "' Recall ");
+
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))
             if (directory *cat = RT.variables(0))
@@ -594,6 +640,9 @@ COMMAND_BODY(VariablesMenuStore)
 // ----------------------------------------------------------------------------
 {
     int key = Input.evaluating;
+    if (RT.editing())
+        return insert(key, "'", "' Store ");
+
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))
             if (directory *cat = RT.variables(0))

@@ -248,6 +248,8 @@ OBJECT_HANDLER_BODY(object)
         return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
     case HELP:
         return (intptr_t) "Unknown";
+    case MENU_MARKER:
+        return 0;
     default:
         return SKIP;
     }

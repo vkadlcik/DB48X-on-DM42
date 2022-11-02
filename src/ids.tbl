@@ -143,6 +143,8 @@ NAMED(Mem, "AvailableMemory")
 CMD(FreeMemory)
 CMD(GarbageCollect)
 
+#define LAST_IMMEDIATE          ID_GarbageCollect
+
 
 // ============================================================================
 //
@@ -190,6 +192,7 @@ CMD(Unimplemented)
 // ============================================================================
 
 CMD(AutoComplete)
+CMD(VariablesMenuExecute)
 CMD(VariablesMenuRecall)
 CMD(VariablesMenuStore)
 
@@ -219,6 +222,7 @@ OPCODE(PARSE)
 OPCODE(RENDER)
 OPCODE(HELP)
 OPCODE(MENU)
+OPCODE(MENU_MARKER)
 
 #undef ID
 #undef OP

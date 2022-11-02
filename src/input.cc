@@ -236,15 +236,6 @@ bool input::key(int key, bool repeating)
         return true;
     }
 
-    if (shift && key == KEY_E)
-    {
-        printf("Editor content is [%.*s] (%u bytes)\n",
-               (int) RT.editing(),
-               RT.editor(),
-               (uint) RT.editing());
-        return true;
-    }
-
     // Hard-code OFF
     if (shift && key == KEY_EXIT)
     {

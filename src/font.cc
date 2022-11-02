@@ -615,6 +615,36 @@ bool dmcp_font::glyph(unicode utf8cp, glyph_info &g) const
         synthesized = bitmap;
         break;
     }
+    case L'⁻':
+    {
+        static const byte bitmap[] = {
+            0x00,               // --------
+            0x00,               // --------
+            0x7E,               // -******-
+            0x00,               // --------
+            0x00,               // --------
+            0x00,               // --------
+            0x00,               // --------
+            0x00,               // --------
+        };
+        synthesized = bitmap;
+        break;
+    }
+    case L'¹':
+    {
+        static const byte bitmap[] = {
+            0x20,               // --*-----
+            0x60,               // -**-----
+            0x20,               // --*-----
+            0x20,               // --*-----
+            0x70,               // -***----
+            0x00,               // --------
+            0x00,               // --------
+            0x00,               // --------
+        };
+        synthesized = bitmap;
+        break;
+    }
     default:
         break;
     }

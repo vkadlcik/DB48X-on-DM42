@@ -89,7 +89,9 @@ struct input
     void        menu(uint index, cstring label, object_p function);
     void        menu(uint index, symbol_p label, object_p function);
     void        marker(uint index, unicode mark, bool alignLeft = false);
+    void        menuNeedsRefresh()      { dynMenu = true; }
     symbol_p    label(uint index);
+    cstring     labelText(uint index);
 
     void        draw_annunciators();
     void        draw_editor();
@@ -104,6 +106,8 @@ struct input
     int         stack_screen_bottom()   { return stack; }
     int         menu_screen_bottom()    { return menuHeight; }
     bool        showingHelp()           { return help + 1 != 0; }
+    uint        cursorPosition()        { return cursor; }
+    void        cursorPosition(uint pos){ cursor = pos; }
 
     uint        shift_plane()   { return xshift ? 2 : shift ? 1 : 0; }
     void        clear_help();
@@ -156,6 +160,7 @@ protected:
     bool     blink     : 1; // Cursor blink indicator
     bool     follow    : 1; // Follow a help topic
     bool     dirtyMenu : 1; // Menu label needs redraw
+    bool     dynMenu   : 1; // Menu is dynamic, needs update
 
 protected:
     // Key mappings

@@ -81,7 +81,7 @@ ID(decimal128)
 #define LAST_DECIMAL_TYPE       ID_decimal128
 #define LAST_REAL_TYPE          ID_decimal128
 
-#define FIRST_COMMAND           ID_drop
+#define FIRST_COMMAND           ID_Drop
 CMD(Drop)
 NAMED(Dup, "Duplicate")
 CMD(Swap)
@@ -172,8 +172,8 @@ CMD(LoopsMenu)
 CMD(ListMenu)
 
 CMD(VariablesMenu)
-CMD(VariablesMenuRecall)
-CMD(VariablesMenuStore)
+
+CMD(Catalog)
 
 CMD(MenuNextPage)
 CMD(MenuPreviousPage)
@@ -182,6 +182,16 @@ CMD(MenuFirstPage)
 CMD(Unimplemented)
 #define LAST_COMMAND            ID_Unimplemented
 
+
+// ============================================================================
+//
+//   Commands that we don't want to see appear in the catalog
+//
+// ============================================================================
+
+CMD(AutoComplete)
+CMD(VariablesMenuRecall)
+CMD(VariablesMenuStore)
 
 
 // ============================================================================

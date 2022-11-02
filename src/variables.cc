@@ -566,6 +566,8 @@ void VariablesMenu::list_variables(info &mi)
         Input.marker(k + 1 * input::NUM_SOFTKEYS, L'▶', true);
         Input.marker(k + 2 * input::NUM_SOFTKEYS, L'▶', false);
     }
+
+    Input.menuNeedsRefresh();
 }
 
 

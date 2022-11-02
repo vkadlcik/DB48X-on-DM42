@@ -28,13 +28,15 @@
 // ****************************************************************************
 
 #include "command.h"
+
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
+#include "utf8.h"
 
-#include <stdio.h>
 #include <ctype.h>
+#include <stdio.h>
 
 RECORDER(command,       16, "RPL Commands");
 RECORDER(command_error, 16, "Errors processing a command");
@@ -82,37 +84,28 @@ OBJECT_PARSER_BODY(command)
     size_t  maxlen = p.length;
     size_t  len    = maxlen;
 
-    if (cstring cmd = (cstring) object::fancy(i))
+    cstring names[3] = { nullptr };
+    names[0] = cstring(object::fancy(i));
+    names[1] = cstring(object::name(i));
+    switch(i)
     {
-        len = strlen(cmd);
-        if (len <= maxlen && strncasecmp(ref, cmd, len) == 0)
-            found = id(i);
-    }
-    if (!found)
-    {
-        if (cstring cmd = (cstring) object::name(i))
-        {
-            len = strlen(cmd);
-            if (len <= maxlen && strncasecmp(ref, cmd, len) == 0)
-                found = id(i);
-        }
-
-    }
-
-    if (!found)
-    {
-        switch (i)
-        {
 #define ALIAS(base, name)                                               \
-            case ID_##base:                                             \
-                len = strlen(name);                                     \
-                if (len <= maxlen && strncasecmp(ref, name, len) == 0)  \
-                    found = id(i);                                      \
-                break;
+        case ID_##base: names[2] = name; break;
 #define ID(i)
 #include "ids.tbl"
         default:
             break;
+    }
+
+    for (uint attempt = 0; !found && attempt < 3; attempt++)
+    {
+        if (cstring cmd = names[attempt])
+        {
+            len = strlen(cmd);
+            if (len <= maxlen
+                && strncasecmp(ref, cmd, len) == 0
+                && (len >= maxlen || is_separator(utf8(ref + len))))
+                found = id(i);
         }
     }
 
@@ -187,4 +180,27 @@ object_p command::static_object(id i)
     };
 
     return (object_p) (cmds + 2 * i);
+}
+
+
+bool command::is_separator(utf8 str)
+// ----------------------------------------------------------------------------
+//   Check if the code point at given string is a separator
+// ----------------------------------------------------------------------------
+{
+    unicode code = utf8_codepoint(str);
+    return is_separator(code);
+}
+
+
+bool command::is_separator(unicode code)
+// ----------------------------------------------------------------------------
+//   Check if the code point at given string is a separator
+// ----------------------------------------------------------------------------
+{
+    static utf8 separators = utf8(" ;,.'\"<=>≤≠≥[](){}«»0123456789⁳");
+    for (utf8 p = separators; *p; p = utf8_next(p))
+        if (code == utf8_codepoint(p))
+            return true;
+    return false;
 }

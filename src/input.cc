@@ -94,6 +94,7 @@ input::input()
       blink(false),
       follow(false),
       dirtyMenu(false),
+      dynMenu(false),
       helpfile()
 {}
 
@@ -285,7 +286,7 @@ bool input::key(int key, bool repeating)
         blink = true; // Show cursor if things changed
 
     // Refresh the variables menu
-    if (menuObject && menuObject->type() == object::ID_VariablesMenu)
+    if (menuObject && dynMenu)
         menuObject->update(menuPage);
 
     return result;
@@ -383,6 +384,7 @@ void input::menus(uint count, cstring labels[], object_p function[])
         else
             menu(m, cstring(nullptr), nullptr);
     }
+    dynMenu = false;
 }
 
 
@@ -435,12 +437,22 @@ symbol_p input::label(uint menu_id)
 //   Return the label for a given menu ID
 // ----------------------------------------------------------------------------
 {
-    int     softkey_id = menu_id % NUM_SOFTKEYS;
-    int     plane      = menu_id / NUM_SOFTKEYS;
-    cstring lbl        = menu_label[plane][softkey_id];
+    cstring lbl = labelText(menu_id);
     if (*lbl == object::ID_symbol)
         return (symbol_p) lbl;
     return nullptr;
+}
+
+
+cstring input::labelText(uint menu_id)
+// ----------------------------------------------------------------------------
+//   Return the label for a given menu ID
+// ----------------------------------------------------------------------------
+{
+    int     softkey_id = menu_id % NUM_SOFTKEYS;
+    int     plane      = menu_id / NUM_SOFTKEYS;
+    cstring lbl        = menu_label[plane][softkey_id];
+    return lbl;
 }
 
 
@@ -2055,7 +2067,8 @@ bool input::handle_alpha(int key)
 //    Handle alphabetic input
 // ----------------------------------------------------------------------------
 {
-    if (!alpha || !key || (key == KEY_ENTER && !xshift) || key == KEY_BSP)
+    if (!alpha || !key || (key == KEY_ENTER && !xshift) || key == KEY_BSP ||
+        (key >= KEY_F1 && key <= KEY_F6))
         return false;
 
     static const char upper[] =
@@ -2065,8 +2078,7 @@ bool input::handle_alpha(int key)
         "_PQRS"
         "_TUVW"
         "_XYZ_"
-        "_:, ;"
-        "......";
+        "_:, ;";
     static const char lower[] =
         "abcdef"
         "ghijkl"
@@ -2074,44 +2086,7 @@ bool input::handle_alpha(int key)
         "_pqrs"
         "_tuvw"
         "_xyz_"
-        "_:, ;"
-        "......";
-
-#define DIV        "\x80"  // ÷
-#define MUL        "\x81"  // ×
-#define SQRT       "\x82"  // √
-#define INTEG      "\x83"  // ∫
-#define FILL       "\x84"  // ▒
-#define SIGMA      "\x85"  // Σ
-#define STO        "\x86"  // ▶
-#define PI         "\x87"  // π
-#define INVQ       "\x88"  // ¿
-#define LE         "\x89"  // ≤
-#define LF         "\x8A"  // ␊
-#define GE         "\x8B"  // ≥
-#define NE         "\x8C"  // ≠
-#define CR         "\x8D"  // ↲
-#define DOWN       "\x8E"  // ↓
-#define RIGHT      "\x8F"  // →
-#define LEFT       "\x90"  // ←
-#define MU         "\x91"  // μ
-#define POUND      "\x92"  // £
-#define DEG        "\x93"  // °
-#define ANGST      "\x94"  // Å
-#define NTILD      "\x95"  // Ñ
-#define ABAR       "\x96"  // Ä
-#define ANGLE      "\x97"  // ∡
-#define EXP        "\x98"  // ᴇ
-#define AE         "\x99"  // Æ
-#define ETC        "\x9A"  // …
-#define ESC        "\x9B"  // ␛
-#define OUML       "\x9C"  // Ö
-#define UUML       "\x9D"  // Ü
-#define FILL2      "\x9E"  // ▒
-#define SQ         "\x9F"  // ■
-#define DOWNTRI    "\xA0"  // Down triangle
-#define UPTRI      "\xA1"  // Up triangle
-#define FREE       "@"
+        "_:, ;";
 
     static const unicode shifted[] =
     {
@@ -2121,8 +2096,7 @@ bool input::handle_alpha(int key)
         '_', '7', '8', '9', L'÷',
         '_', '4', '5', '6', L'×',
         '_', '1', '2', '3', '-',
-        '_', '0', '.',  L'«', '+',
-        '.', '.', '.', '.', '.', '.'
+        '_', '0', '.',  L'«', '+'
     };
 
     static const  unicode xshifted[] =
@@ -2133,9 +2107,16 @@ bool input::handle_alpha(int key)
         '_',  '~', '\\', L'∏',  '/',
         '_',  '$',  L'∞', '|' , '*',
         '_',  '&',   '@', '#',  '_',
-        '_',  ';',  L'·', '?',  '!',
-        '.', '.', '.', '.', '.', '.'
+        '_',  ';',  L'·', '?',  '!'
     };
+
+    // Special case: + in alpha mode shows the catalog
+    if (key == KEY_ADD && !shift && !xshift)
+    {
+        object_p cat = command::static_object(menu::ID_Catalog);
+        cat->execute();
+        return true;
+    }
 
     key--;
     unicode c =
@@ -2330,7 +2311,7 @@ static const byte defaultShiftedCommand[2*input::NUM_KEYS] =
     OP2BYTES(KEY_0,     0),
     OP2BYTES(KEY_DOT,   0),
     OP2BYTES(KEY_RUN,   0),
-    OP2BYTES(KEY_ADD,   0),
+    OP2BYTES(KEY_ADD,   menu::ID_Catalog),
 
     OP2BYTES(KEY_F1,    0),
     OP2BYTES(KEY_F2,    0),
@@ -2442,7 +2423,7 @@ bool input::handle_functions(int key)
     if (object_p obj = object_for_key(key))
     {
         evaluating = key;
-        if (RT.editing())
+        if (RT.editing() && obj->type() != object::ID_AutoComplete)
         {
             if (key == KEY_ENTER || key == KEY_BSP)
                 return false;

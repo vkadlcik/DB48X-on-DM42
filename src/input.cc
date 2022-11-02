@@ -398,6 +398,8 @@ void input::menu(uint menu_id, cstring label, object_p fn)
         int plane            = menu_id / NUM_SOFTKEYS;
         function[plane][key-1] = fn;
         menu_label[plane][softkey_id] = label;
+        menu_marker[plane][softkey_id] = 0;
+        menu_marker_align[plane][softkey_id] = false;
         dirtyMenu = true;       // Redraw menu
     }
 }
@@ -409,6 +411,22 @@ void input::menu(uint id, symbol_p label, object_p fn)
 // ----------------------------------------------------------------------------
 {
     menu(id, (cstring) label, fn);
+}
+
+
+void input::marker(uint menu_id, unicode mark, bool alignLeft)
+// ----------------------------------------------------------------------------
+//   Record that we have a menu marker for this menu
+// ----------------------------------------------------------------------------
+{
+    if (menu_id < NUM_MENUS)
+    {
+        int softkey_id       = menu_id % NUM_SOFTKEYS;
+        int plane            = menu_id / NUM_SOFTKEYS;
+        menu_marker[plane][softkey_id] = mark;
+        menu_marker_align[plane][softkey_id] = alignLeft;
+        dirtyMenu = true;
+    }
 }
 
 
@@ -517,14 +535,6 @@ int input::draw_menus(uint time, uint &period)
                 size_t len = 0;
                 if (*label == object::ID_symbol)
                 {
-                    // Check if we have variables from VariablesMenu
-                    if (plane > 0 && cstring(label) == menu_label[0][m])
-                    {
-                        marker = L'▶';
-                        mkw = font->width(marker);
-                        mkx = plane == 1 ? x + mw/2 - mkw : x - mw/2;
-                    }
-
                     // If we are given a symbol, use its length
                     label++;
                     len = leb128<size_t>(label);
@@ -534,6 +544,16 @@ int input::draw_menus(uint time, uint &period)
                     // Regular C string
                     len = strlen(cstring(label));
                 }
+
+                // Check if we have a marker from VariablesMenu
+                if (unicode mark = menu_marker[plane][m])
+                {
+                    bool alignLeft = menu_marker_align[plane][m];
+                    marker = mark;
+                    mkw = font->width(marker);
+                    mkx = alignLeft ? x + mw/2 - mkw : x - mw/2;
+                }
+
                 size tw = font->width(label, len);
                 if (tw > mw)
                 {

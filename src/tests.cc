@@ -108,7 +108,8 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    test(CLEAR, ~0ULL, CHS, ENTER, -2);
+    for (int i = 0; i < 26; i++)
+        test(i, "'", char(i + 'A'), "'", ENTER, STO);
 }
 
 

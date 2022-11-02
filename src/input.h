@@ -88,6 +88,7 @@ struct input
     void        menus(uint count, cstring labels[], object_p function[]);
     void        menu(uint index, cstring label, object_p function);
     void        menu(uint index, symbol_p label, object_p function);
+    void        marker(uint index, unicode mark, bool alignLeft = false);
     symbol_p    label(uint index);
 
     void        draw_annunciators();
@@ -160,6 +161,8 @@ protected:
     // Key mappings
     object_p function[NUM_PLANES][NUM_KEYS];
     cstring  menu_label[NUM_PLANES][NUM_SOFTKEYS];
+    uint16_t menu_marker[NUM_PLANES][NUM_SOFTKEYS];
+    bool     menu_marker_align[NUM_PLANES][NUM_SOFTKEYS];
     static runtime &RT;
     friend struct tests;
     friend struct runtime;

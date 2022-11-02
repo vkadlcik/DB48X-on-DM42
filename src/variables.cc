@@ -560,6 +560,12 @@ void VariablesMenu::list_variables(info &mi)
     mi.index  = mi.plane * input::NUM_SOFTKEYS;
     mi.skip   = skip;
     cat->enumerate(store_variable, &mi);
+
+    for (uint k = 0; k < input::NUM_SOFTKEYS - (mi.pages > 1); k++)
+    {
+        Input.marker(k + 1 * input::NUM_SOFTKEYS, L'▶', true);
+        Input.marker(k + 2 * input::NUM_SOFTKEYS, L'▶', false);
+    }
 }
 
 

@@ -233,7 +233,7 @@ extern "C" void program_main()
             {
                 // Going to off mode
                 lcd_set_buf_cleared(0); // Mark no buffer change region
-                draw_power_off_image(1);
+                draw_power_off_image(0);
 
                 LCD_power_off(0);
                 SET_ST(STAT_SUSPENDED);

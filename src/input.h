@@ -100,6 +100,7 @@ struct input
     int         draw_cursor(uint time, uint &period);
 
     int         stack_screen_bottom()   { return stack; }
+    int         menu_screen_bottom()    { return menuHeight; }
     bool        showingHelp()           { return help + 1 != 0; }
 
     uint        shift_plane()   { return xshift ? 2 : shift ? 1 : 0; }
@@ -141,11 +142,11 @@ protected:
     menu_p   menuObject;    // Current menu being shown
     uint     menuPage;      // Current menu page
     uint     menuPages;     // Number of menu pages
+    uint     menuHeight;    // Height of the menu
     bool     shift     : 1; // Normal shift active
     bool     xshift    : 1; // Extended shift active (simulate Right)
     bool     alpha     : 1; // Alpha mode active
     bool     lowercase : 1; // Lowercase
-    bool     hideMenu  : 1; // Hide the menu
     bool     down      : 1; // Move one line down
     bool     up        : 1; // Move one line up
     bool     repeat    : 1; // Repeat the key

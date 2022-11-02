@@ -82,11 +82,11 @@ input::input()
       menuObject(),
       menuPage(),
       menuPages(),
+      menuHeight(),
       shift(false),
       xshift(false),
       alpha(false),
       lowercase(false),
-      hideMenu(false),
       down(false),
       up(false),
       repeat(false),
@@ -424,22 +424,19 @@ int input::draw_menus(uint time, uint &period)
 {
     static int  lastp   = 0;
     static uint lastt   = 0;
-    int         plane   = shift_plane();
+    int         shplane = shift_plane();
     const uint  refresh = 200;
 
-    bool redraw = dirtyMenu || plane != lastp || time - lastt > refresh;
+    bool redraw = dirtyMenu || shplane != lastp || time - lastt > refresh;
     if (!redraw)
         return -1;
 
     lastt = time;
-    lastp = plane;
+    lastp = shplane;
     dirtyMenu = false;
 
-
     font_p font  = MenuFont;
-    int    fh    = font->height();
-    int    mh    = fh + 4;
-    int    my    = LCD_H - mh;
+    int    mh    = font->height() + 2;
     int    mw    = (LCD_W - 10) / 6;
     int    sp    = (LCD_W - 5) - 6 * mw;
     rect   clip  = Screen.clip();
@@ -447,65 +444,110 @@ int input::draw_menus(uint time, uint &period)
     static unsigned menuShift = 0;
     menuShift++;
 
-    cstring *labels = menu_label[plane];
+    int planes = 3;
     if (showingHelp())
     {
-        static cstring helpMenu[] =
-        {
-            "Home", "Page▲", "Page▼", "Link▲", "Link▼", "← Menu"
-        };
-        labels = helpMenu;
+        planes = 1;
     }
-
-    for (int m = 0; m < NUM_SOFTKEYS; m++)
+    else
     {
-        int x = (2 * m + 1) * mw / 2 + (m * sp) / 5 + 2;
-        rect mrect(x - mw/2-1, my, x + mw/2, my+mh-1);
-        Screen.fill(mrect, pattern::white);
-
-        mrect.inset(3,  1);
-        Screen.fill(mrect, pattern::black);
-        mrect.inset(-1, 1);
-        Screen.fill(mrect, pattern::black);
-        mrect.inset(-1, 1);
-        Screen.fill(mrect, pattern::black);
-
-        mrect.inset(2, 0);
-        utf8 label = utf8(labels[m]);
-        if (label)
+        while (planes > 0)
         {
-            Screen.clip(mrect);
-            size_t len = 0;
-            if (*label == object::ID_symbol)
+            bool found = false;
+            for (uint sk = 0; !found && sk < NUM_SOFTKEYS; sk++)
+                found = menu_label[planes-1][sk] != 0;
+            if (found)
+                break;
+            planes--;
+        }
+    }
+    menuHeight = planes * mh;
+
+    for (int plane = 0; plane < planes; plane++)
+    {
+        cstring *labels = menu_label[plane];
+        if (showingHelp())
+        {
+            static cstring helpMenu[] =
             {
-                // If we are given a symbol, use its length
-                label++;
-                len = leb128<size_t>(label);
-            }
-            else
+                "Home", "Page▲", "Page▼", "Link▲", "Link▼", "← Menu"
+            };
+            labels = helpMenu;
+        }
+
+        int my = LCD_H - (plane + 1) * mh;
+        for (int m = 0; m < NUM_SOFTKEYS; m++)
+        {
+            int x = (2 * m + 1) * mw / 2 + (m * sp) / 5 + 2;
+            rect mrect(x - mw/2-1, my, x + mw/2, my+mh-1);
+            Screen.fill(mrect, pattern::white);
+
+            mrect.inset(3,  1);
+            Screen.fill(mrect, pattern::black);
+            mrect.inset(-1, 1);
+            Screen.fill(mrect, pattern::black);
+            mrect.inset(-1, 1);
+            Screen.fill(mrect, pattern::black);
+
+            mrect.inset(2, 0);
+            pattern color = pattern::white;
+            if (plane != shplane)
             {
-                // Regular C string
-                len = strlen(cstring(label));
+                Screen.fill(mrect, pattern::white);
+                color = pattern::black;
             }
-            size tw = font->width(label, len);
-            if (tw > mw)
+
+            utf8 label = utf8(labels[m]);
+            if (label)
             {
-                dirtyMenu = true;
-                x -= mw/2 - 5 + menuShift % (tw - mw + 10);
+                unicode marker = 0;
+                coord   mkw    = 0;
+                coord   mkx    = 0;
+
+                Screen.clip(mrect);
+                size_t len = 0;
+                if (*label == object::ID_symbol)
+                {
+                    // Check if we have variables from VariablesMenu
+                    if (plane > 0 && cstring(label) == menu_label[0][m])
+                    {
+                        marker = L'▶';
+                        mkw = font->width(marker);
+                        mkx = plane == 1 ? x + mw/2 - mkw : x - mw/2;
+                    }
+
+                    // If we are given a symbol, use its length
+                    label++;
+                    len = leb128<size_t>(label);
+                }
+                else
+                {
+                    // Regular C string
+                    len = strlen(cstring(label));
+                }
+                size tw = font->width(label, len);
+                if (tw > mw)
+                {
+                    dirtyMenu = true;
+                    x -= mw/2 - 5 + menuShift % (tw - mw + 10);
+                }
+                else
+                {
+                    x = x - tw / 2;
+                }
+                coord ty = mrect.y1 - 2;
+                Screen.text(x, ty, label, len, font, color);
+                if (marker)
+                    Screen.glyph(mkx, ty, marker, font, color);
+                Screen.clip(clip);
             }
-            else
-            {
-                x = x - tw / 2;
-            }
-            Screen.text(x, mrect.y1, label, len, font, pattern::white);
-            Screen.clip(clip);
         }
     }
 
     if (dirtyMenu && period > refresh)
         period = refresh;
 
-    return my;
+    return LCD_H - menuHeight;
 }
 
 
@@ -622,12 +664,11 @@ void input::draw_editor()
     size_t len  = RT.editing();
     utf8   last = ed + len;
     font_p font = EditorFont;
-    uint   mh   = MenuFont->height() + 4;
 
     if (!len)
     {
         // Editor is not open, compute stack bottom
-        stack = LCD_H - (hideMenu ? 0 : mh);
+        stack = LCD_H - menuHeight;
         return;
     }
 
@@ -716,7 +757,7 @@ void input::draw_editor()
     int   lineHeight      = font->height();
     int   errorHeight     = RT.error() ? LCD_H / 3 : 0;
     int   top             = HeaderFont->height() + errorHeight + 2;
-    int   bottom          = LCD_H - (hideMenu ? 0 : mh);
+    int   bottom          = LCD_H - menuHeight;
     int   availableHeight = bottom - top;
     int   availableRows   = availableHeight / lineHeight;
     utf8  display         = ed;

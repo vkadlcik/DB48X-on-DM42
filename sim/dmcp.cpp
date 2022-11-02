@@ -604,6 +604,13 @@ void stop_buzzer()
 {
     record(dmcp_notyet, "stop_buzzer not implemented");
 }
+
+int sys_free_mem()
+{
+    // On the simulator, we have real memory
+    return 1024 * 1024;
+}
+
 void sys_delay(uint32_t ms_delay)
 {
     QThread::msleep(ms_delay);

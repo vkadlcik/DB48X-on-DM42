@@ -157,25 +157,15 @@ void program_init()
     font_defaults();
 
 #ifndef DEBUG
-    // Give 64K to the runtime
-    size_t size = 64 * 1024;
+    // Give as much as memory as possible to the runtime
+    // Experimentally, this is the amount of memory we need to leave free
+    size_t size = sys_free_mem() - 8 * 1024;
 #else
     // Give 256 bytes to the runtime to stress-test the GC
     size_t size = 256;
 #endif
     byte *memory = (byte *) malloc(size);
     runtime::RT.memory(memory, size);
-
-    // Fake test menu
-    cstring labels[input::NUM_MENUS] = {
-        "Short", "A bit long", "Very long", "Super Duper long",
-        "X1",    "X2",         "A",         "B",
-        "C",     "D",          "E",         "F",
-        "Tests",     "Benchmark DMCP",          "Benchark My Code",         "Toggle Font",
-        "Previous Font",     "Next Font",
-    };
-    object_p functions[input::NUM_MENUS] = { MenuFont };
-    Input.menus(input::NUM_MENUS, labels, functions);
 
     // The following is just to link the same set of functions as DM42
     if (memory == (byte *) program_init)

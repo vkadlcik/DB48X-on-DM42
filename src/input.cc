@@ -613,7 +613,7 @@ int input::draw_menus(uint time, uint &period)
                     bool alignLeft = menu_marker_align[plane][m];
                     marker = mark;
                     mkw = font->width(marker);
-                    mkx = alignLeft ? x + mw/2 - mkw : x - mw/2;
+                    mkx = alignLeft ? x - mw/2 : x + mw/2 - mkw;
                 }
 
                 size tw = font->width(label, len);

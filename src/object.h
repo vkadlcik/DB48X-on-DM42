@@ -351,6 +351,15 @@ struct object
     }
 
 
+    unicode marker() const
+    // ------------------------------------------------------------------------
+    //   Marker in menus
+    // ------------------------------------------------------------------------
+    {
+        return (unicode) run(MENU_MARKER);
+    }
+
+
     // Off-line so that we don't need to import runtime.h
     static void error(utf8 err, utf8 source = nullptr, runtime &rt = RT);
     static void error(cstring err, utf8 source, runtime &rt = RT)

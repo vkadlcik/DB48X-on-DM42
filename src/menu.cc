@@ -56,6 +56,8 @@ OBJECT_HANDLER_BODY(menu)
     case MENU:
         record(menu_error, "Invalid menu %u", obj->type());
         return ERROR;
+    case MENU_MARKER:
+        return L'◥';
 
     default:
         return DELEGATE(command);
@@ -135,6 +137,18 @@ void menu::items(info &mi, cstring label, object_p action)
             }
         }
         if (idx < input::NUM_SOFTKEYS * mi.planes)
+        {
             Input.menu(idx, label, action);
+            if (action)
+            {
+                if (unicode mark = action->marker())
+                {
+                    if ((int) mark < 0)
+                        Input.marker(idx, -mark, true);
+                    else
+                        Input.marker(idx, mark, false);
+                }
+            }
+        }
     }
 }

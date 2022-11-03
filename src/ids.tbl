@@ -167,6 +167,7 @@ CMD(ProbabilitiesMenu)
 CMD(StatisticsMenu)
 CMD(FourierMenu)
 CMD(ConstantsMenu)
+CMD(EquationsMenu)
 CMD(SymbolicMenu)
 
 CMD(ProgramMenu)

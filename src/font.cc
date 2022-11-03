@@ -681,13 +681,14 @@ bool dmcp_font::glyph(unicode utf8cp, glyph_info &g) const
         if (synthesized)
         {
             // Special case of characters we synthesize
+            uint synthesized_y = codepoint == L'◥' ? 1 : (f->height - 8) / 2;
             g.bitmap = synthesized;
             g.bx = 0;
             g.by = 0;
             g.bw = 8;
             g.bh = 8;
             g.x =  0;
-            g.y =  (f->height - 8) / 2;
+            g.y =  synthesized_y;
             g.w =  8;
             g.h =  8;
             g.advance = g.w;

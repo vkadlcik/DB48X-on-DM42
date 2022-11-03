@@ -185,31 +185,23 @@ COMMAND(MenuFirstPage)
 MENU(MainMenu, "Math", ID_MathMenu, "Program", ID_ProgramMenu);
 
 MENU(MathMenu,
-     "Real",
-     ID_RealMenu,
-     "Complex",
-     ID_ComplexMenu,
-     "Bases",
-     ID_BasesMenu,
-     "Vector",
-     ID_VectorMenu,
-     "Matrix",
-     ID_MatrixMenu,
-     "Constants",
-     ID_ConstantsMenu,
+     "Real",    ID_RealMenu,
+     "Cmplx",   ID_ComplexMenu,
+     "Bases",   ID_BasesMenu,
+     "Vector",  ID_VectorMenu,
+     "Matrix",  ID_MatrixMenu,
+     "Const",   ID_ConstantsMenu,
 
-     "Hyperbolic",
-     ID_HyperbolicMenu,
-     "Probabilities",
-     ID_ProbabilitiesMenu,
-     "Statistics",
-     ID_StatisticsMenu,
-     "Fourier",
-     ID_FourierMenu,
-     "Symbolic",
-     ID_SymbolicMenu);
+     "Hyper",   ID_HyperbolicMenu,
+     "Proba",   ID_ProbabilitiesMenu,
+     "Stats",   ID_StatisticsMenu,
+     "Fourier", ID_FourierMenu,
+     "Symb",    ID_SymbolicMenu,
+     "Eqns",    ID_EquationsMenu);
 
-MENU(RealMenu, "Circular", ID_CircularMenu, "Hyperbolic", ID_HyperbolicMenu);
+MENU(RealMenu,
+     "Trig",    ID_CircularMenu,
+     "Hyper",   ID_HyperbolicMenu);
 
 MENU(ComplexMenu,
      "→ℂ",
@@ -230,6 +222,7 @@ MENU(ProbabilitiesMenu);
 MENU(StatisticsMenu);
 MENU(FourierMenu);
 MENU(ConstantsMenu);
+MENU(EquationsMenu);
 MENU(SymbolicMenu);
 
 MENU(ProgramMenu);

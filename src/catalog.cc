@@ -46,7 +46,7 @@ OBJECT_HANDLER_BODY(Catalog)
     {
         info &mi     = *((info *) arg);
         uint  nitems = count_commands();
-        items_init(mi, nitems, 2);
+        items_init(mi, nitems, 1);
         list_commands(mi);
         return OK;
     }
@@ -181,7 +181,7 @@ COMMAND_BODY(AutoComplete)
     int key = Input.evaluating;
     if (key >= KEY_F1 && key <= KEY_F6)
     {
-        uint menu_id = key - KEY_F1 + input::NUM_SOFTKEYS * Input.shift_plane();
+        uint menu_id = key - KEY_F1;
         if (cstring name = Input.labelText(menu_id))
         {
             utf8   start  = nullptr;

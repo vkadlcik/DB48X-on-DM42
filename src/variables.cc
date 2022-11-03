@@ -511,7 +511,7 @@ uint VariablesMenu::count_variables()
 }
 
 
-static bool evaluate_variable(symbol_p name, object_p value, void *arg)
+static bool evaluate_variable(symbol_p name, object_p UNUSED value, void *arg)
 // ----------------------------------------------------------------------------
 //   Add a variable to evaluate in the menu
 // ----------------------------------------------------------------------------

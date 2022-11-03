@@ -447,6 +447,32 @@ cstring input::labelText(uint menu_id)
 }
 
 
+uint input::menuPlanes()
+// ----------------------------------------------------------------------------
+//   Count menu planes
+// ----------------------------------------------------------------------------
+{
+    int planes = 3;
+    if (showingHelp())
+    {
+        planes = 1;
+    }
+    else
+    {
+        while (planes > 0)
+        {
+            bool found = false;
+            for (uint sk = 0; !found && sk < NUM_SOFTKEYS; sk++)
+                found = menu_label[planes-1][sk] != 0;
+            if (found)
+                break;
+            planes--;
+        }
+    }
+    return planes;
+}
+
+
 int input::draw_menus(uint time, uint &period)
 // ----------------------------------------------------------------------------
 //   Draw the softkey menus
@@ -474,23 +500,7 @@ int input::draw_menus(uint time, uint &period)
     static unsigned menuShift = 0;
     menuShift++;
 
-    int planes = 3;
-    if (showingHelp())
-    {
-        planes = 1;
-    }
-    else
-    {
-        while (planes > 0)
-        {
-            bool found = false;
-            for (uint sk = 0; !found && sk < NUM_SOFTKEYS; sk++)
-                found = menu_label[planes-1][sk] != 0;
-            if (found)
-                break;
-            planes--;
-        }
-    }
+    int planes = menuPlanes();
     menuHeight = planes * mh;
 
     for (int plane = 0; plane < planes; plane++)
@@ -521,7 +531,7 @@ int input::draw_menus(uint time, uint &period)
 
             mrect.inset(2, 0);
             pattern color = pattern::white;
-            if (plane != shplane)
+            if (planes > 1 && plane != shplane)
             {
                 Screen.fill(mrect, pattern::white);
                 color = pattern::black;
@@ -2391,7 +2401,10 @@ object_p input::object_for_key(int key)
 //    Return the object for a given key
 // ----------------------------------------------------------------------------
 {
-    int      plane = shift_plane();
+    uint plane = shift_plane();
+    if (key >= KEY_F1 && key <= KEY_F6 && plane >= menuPlanes())
+        plane = 0;
+
     object_p obj   = function[plane][key - 1];
     if (!obj)
     {

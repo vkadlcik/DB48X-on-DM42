@@ -85,6 +85,7 @@ struct input
     void        page(uint p);
     uint        pages();
     void        pages(uint p);
+    uint        menuPlanes();
     void        menus(uint count, cstring labels[], object_p function[]);
     void        menu(uint index, cstring label, object_p function);
     void        menu(uint index, symbol_p label, object_p function);

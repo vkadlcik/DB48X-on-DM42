@@ -106,10 +106,24 @@ void menu::items(info &mi, cstring label, object_p action)
             if (idx == 0)
             {
                 // Insert next and previous keys in menu
-                Input.menu(1 * input::NUM_SOFTKEYS - 1, "▶",
-                           command::static_object(ID_MenuNextPage));
-                Input.menu(2 * input::NUM_SOFTKEYS - 1, "◀︎",
-                           command::static_object(ID_MenuPreviousPage));
+                if (mi.planes >= 2)
+                {
+                    Input.menu(1 * input::NUM_SOFTKEYS - 1, "▶",
+                               command::static_object(ID_MenuNextPage));
+                    Input.menu(2 * input::NUM_SOFTKEYS - 1, "◀︎",
+                               command::static_object(ID_MenuPreviousPage));
+                }
+                else if (Input.shift_plane())
+                {
+                    Input.menu(1 * input::NUM_SOFTKEYS - 1, "◀︎",
+                               command::static_object(ID_MenuPreviousPage));
+                }
+                else
+                {
+                    Input.menu(1 * input::NUM_SOFTKEYS - 1, "▶",
+                               command::static_object(ID_MenuNextPage));
+
+                }
             }
 
             if ((idx + 1) % input::NUM_SOFTKEYS == 0)

@@ -955,7 +955,7 @@ int input::draw_cursor(uint time, uint &period)
     size_t  len        = RT.editing();
     utf8    last       = ed + len;
     utf8    p          = ed + cursor;
-    while (x < cx + csrw)
+    while (x < cx + csrw + 1)
     {
         unicode cchar = p < last ? utf8_codepoint(p) : ' ';
         if (cchar == '\n')
@@ -972,11 +972,22 @@ int input::draw_cursor(uint time, uint &period)
 
     if (blink)
     {
-        coord csrx = cx;
+        coord csrx = cx + 1;
         coord csry = cy + (ch - csrh)/2;
         Screen.fill(csrx, cy, csrx+1, cy + ch - 1, pattern::black);
-        Screen.fill(csrx, csry, csrx + csrw-1, csry + csrh-1, pattern::black);
-        Screen.glyph(csrx, csry, cursorChar, CursorFont, pattern::white);
+        rect r(csrx, csry - 1, csrx+csrw, csry + csrh);
+        if (alpha)
+        {
+            Screen.fill(r, pattern::black);
+            r.inset(2,2);
+            Screen.fill(r, pattern::white);
+            Screen.glyph(csrx, csry, cursorChar, CursorFont, pattern::black);
+        }
+        else
+        {
+            Screen.fill(r, pattern::black);
+            Screen.glyph(csrx, csry, cursorChar, CursorFont, pattern::white);
+        }
     }
 
     blink = !blink;

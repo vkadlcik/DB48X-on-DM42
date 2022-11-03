@@ -38,11 +38,13 @@ struct renderer
 // ----------------------------------------------------------------------------
 {
     renderer(object_p what, char *target, size_t length, bool editing = false)
-        : what(what), target(target), length(length), editing(editing) {}
+        : what(what), target(target), length(length),
+          indent(), editing(editing) {}
 
     gcobj       what;           // Object being rendered
     gcmstring   target;         // Buffer where we render the object
     size_t      length;         // Available space
+    uint        indent;         // Amount of indent
     bool        editing : 1;    // For editing
 };
 

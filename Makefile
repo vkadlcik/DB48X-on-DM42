@@ -108,6 +108,7 @@ CXX_SOURCES +=				\
 	src/catalog.cc			\
 	src/menu.cc			\
 	src/list.cc			\
+	src/loops.cc			\
 	src/font.cc			\
 	fonts/HelpFont.cc		\
 	fonts/EditorFont.cc		\

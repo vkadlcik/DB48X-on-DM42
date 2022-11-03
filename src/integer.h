@@ -31,7 +31,7 @@
 //
 // Payload format:
 //
-//   Integer types are disstinguished by their type ID.
+//   Integer types are distinguished by their type ID.
 //   Negative integers are represented by ID_neg_integer.
 //   They store their magnitude in LEB128 format.
 //

@@ -168,38 +168,69 @@ struct decimal32 : object
         positiveInfinity
     };
 
-    static class_type fpclass(BID_UINT32 *b)
+    static class_type fpclass(const BID_UINT32 *b)
     {
         int c = 0;
-        bid32_class(&c, b);
+        bid32_class(&c, (BID_UINT32 *) b);
         return (class_type) c;
     }
 
-    static class_type fpclass(bid32 &x)
+    static class_type fpclass(const bid32 &x)
     {
         return fpclass(&x.value);
     }
 
-    static bool is_negative(BID_UINT32 *x)
+    class_type fpclass() const
+    {
+        return fpclass(value());
+    }
+
+    static bool is_zero(const BID_UINT32 *x)
+    {
+        class_type c = fpclass(x);
+        return c >= negativeZero && c <= positiveZero;
+    }
+
+    static bool is_zero(const bid32 &x)
+    {
+        return is_zero(&x.value);
+    }
+
+    bool is_zero() const
+    {
+        return is_zero(value());
+    }
+
+    static bool is_negative(const BID_UINT32 *x)
     {
         class_type c = fpclass(x);
         return c >= negativeInfinity && c <= negativeZero;
     }
 
-    static bool is_negative(bid32 &x)
+    static bool is_negative(const bid32 &x)
     {
         return is_negative(&x.value);
     }
 
-    static bool is_negative_or_zero(BID_UINT32 *x)
+    bool is_negative() const
+    {
+        return is_negative(value());
+    }
+
+    static bool is_negative_or_zero(const BID_UINT32 *x)
     {
         class_type c = fpclass(x);
         return c >= negativeInfinity && c <= positiveZero;
     }
 
-    static bool is_negative_or_zero(bid32 &x)
+    static bool is_negative_or_zero(const bid32 &x)
     {
         return is_negative_or_zero(&x.value);
+    }
+
+    bool is_negative_or_zero() const
+    {
+        return is_negative_or_zero(value());
     }
 
     OBJECT_HANDLER(decimal32);

@@ -66,7 +66,7 @@ struct command : object
     // Get a static command pointer for a given command
     static object_p static_object(id i);
 
-    // Check if a code point or text is a seprator
+    // Check if a code point or text is a separator
     static bool is_separator(unicode code);
     static bool is_separator(utf8 str);
 

@@ -56,6 +56,7 @@ SOURCES +=                                      \
         ../src/catalog.cc                       \
         ../src/menu.cc                          \
         ../src/list.cc                          \
+        ../src/loops.cc                         \
 	../fonts/EditorFont.cc	                \
 	../fonts/HelpFont.cc	                \
 	../fonts/StackFont.cc			\

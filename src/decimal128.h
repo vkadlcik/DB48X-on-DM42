@@ -168,38 +168,69 @@ struct decimal128 : object
         positiveInfinity
     };
 
-    static class_type fpclass(BID_UINT128 *b)
+    static class_type fpclass(const BID_UINT128 *b)
     {
         int c = 0;
-        bid128_class(&c, b);
+        bid128_class(&c, (BID_UINT128 *) b);
         return (class_type) c;
     }
 
-    static class_type fpclass(bid128 &x)
+    static class_type fpclass(const bid128 &x)
     {
         return fpclass(&x.value);
     }
 
-    static bool is_negative(BID_UINT128 *x)
+    class_type fpclass() const
+    {
+        return fpclass(value());
+    }
+
+    static bool is_zero(const BID_UINT128 *x)
+    {
+        class_type c = fpclass(x);
+        return c >= negativeZero && c <= positiveZero;
+    }
+
+    static bool is_zero(const bid128 &x)
+    {
+        return is_zero(&x.value);
+    }
+
+    bool is_zero() const
+    {
+        return is_zero(value());
+    }
+
+    static bool is_negative(const BID_UINT128 *x)
     {
         class_type c = fpclass(x);
         return c >= negativeInfinity && c <= negativeZero;
     }
 
-    static bool is_negative(bid128 &x)
+    static bool is_negative(const bid128 &x)
     {
         return is_negative(&x.value);
     }
 
-    static bool is_negative_or_zero(BID_UINT128 *x)
+    bool is_negative() const
+    {
+        return is_negative(value());
+    }
+
+    static bool is_negative_or_zero(const BID_UINT128 *x)
     {
         class_type c = fpclass(x);
         return c >= negativeInfinity && c <= positiveZero;
     }
 
-    static bool is_negative_or_zero(bid128 &x)
+    static bool is_negative_or_zero(const bid128 &x)
     {
         return is_negative_or_zero(&x.value);
+    }
+
+    bool is_negative_or_zero() const
+    {
+        return is_negative_or_zero(value());
     }
 
     OBJECT_HANDLER(decimal128);

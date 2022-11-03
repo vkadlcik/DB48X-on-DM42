@@ -85,10 +85,11 @@ object::result list::object_parser(id type,
 //   of complex objects, like { { A B { C D } } }
 {
     // We have to be careful that we may have to GC to make room for list
-    gcutf8 s = p.source;
+    gcutf8  s   = p.source;
+    size_t  max = p.length;
 
     // Check if we have the opening marker
-    unicode cp = 0;
+    unicode cp  = 0;
     if (open)
     {
         cp = utf8_codepoint(s);
@@ -99,7 +100,7 @@ object::result list::object_parser(id type,
 
     size_t  prealloc = rt.allocated();
     gcbytes scratch = rt.scratchpad() + prealloc;
-    while (size_t((byte *) s  - (byte *) p.source) < p.length)
+    while (size_t(utf8(s) - utf8(p.source)) < max)
     {
         cp = utf8_codepoint(s);
         if (cp == close)
@@ -115,7 +116,7 @@ object::result list::object_parser(id type,
 
         // Parse an object
         size_t done = (byte *) s - (byte *) p.source;
-        size_t length = p.length > done ? p.length - done : 0;
+        size_t length = max > done ? max - done : 0;
         gcobj obj = object::parse(s, length);
         if (!obj)
             return ERROR;
@@ -126,7 +127,7 @@ object::result list::object_parser(id type,
         memmove(objcopy, (byte *) obj, objsize);
 
         // Jump past what we parsed
-        s = (byte_p) s + length;
+        s = utf8(s) + length;
     }
 
     // Check that we have a matching closing character
@@ -140,7 +141,7 @@ object::result list::object_parser(id type,
 
     // Create the object
     size_t alloc  = rt.allocated() - prealloc;
-    size_t parsed = (byte_p) s - (byte_p) p.source;
+    size_t parsed = utf8(s) - utf8(p.source);
     p.end         = parsed;
     p.out         = rt.make<list>(type, scratch, alloc);
 

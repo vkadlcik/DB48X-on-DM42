@@ -120,45 +120,51 @@ OBJECT_PARSER_BODY(integer)
 
         if (endp > s)
         {
+            // The HP syntax takes A-F as digits, and b/d as bases
+            // Prefer to accept B and D suffixes, but only if no
+            // digit above was found in the base
+            base = Settings.base;
+
+            uint max = 0;
+            for (byte_p e = s; e < endp - 1; e++)
+                if (max < value[*e])
+                    max = value[*e];
+
             switch(endp[-1])
             {
             case 'b':
             case 'B':
-                base = 2;
-                type = ID_bin_integer;
+                if (max < 2)
+                    base = 2;
+                else
+                    endp++;
                 break;
             case 'O':
             case 'o':
                 base = 8;
-                type = ID_oct_integer;
                 break;
             case 'd':
             case 'D':
-                base = 10;
-                type = ID_dec_integer;
+                if (max < 10)
+                    base = 10;
+                else
+                    endp++;
                 break;
             case 'H':
             case 'h':
                 base = 16;
-                type = ID_hex_integer;
                 break;
             default:
-                // Check if we can use the current default base
-                base = Settings.base;
-                if (value[(byte) endp[-1]] > base)
-                {
-                    rt.error("Invalid base", endp-1);
-                    return ERROR;
-                }
-                switch(base)
-                {
-                case  2: type = ID_bin_integer; break;
-                case  8: type = ID_oct_integer; break;
-                case 10: type = ID_dec_integer; break;
-                case 16: type = ID_hex_integer; break;
-                }
+                // Use current default base
                 endp++;
                 break;
+            }
+            switch(base)
+            {
+            case  2: type = ID_bin_integer; break;
+            case  8: type = ID_oct_integer; break;
+            case 10: type = ID_dec_integer; break;
+            case 16: type = ID_hex_integer; break;
             }
             endp--;
             if (s >= endp)

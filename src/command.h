@@ -112,14 +112,26 @@ struct command : object
 //
 // ============================================================================
 
-COMMAND(Unimplemented)
+struct Unimplemented : command
 // ----------------------------------------------------------------------------
 //   Used for unimplemented commands, e.g. in menus
 // ----------------------------------------------------------------------------
 {
-    RT.error("Not yet implemented");
-    return ERROR;
-}
+    Unimplemented(id i = ID_Unimplemented) : command(i) { }
+    OBJECT_HANDLER(Unimplemented)
+    {
+        if (op == EVAL || op == EXEC)
+        {
+            RT.error("Not yet implemented");
+            return ERROR;
+        }
+        if (op == MENU_MARKER)
+            return L'░';
+
+        return DELEGATE(command);
+    }
+};
+
 
 COMMAND(Eval)
 // ----------------------------------------------------------------------------

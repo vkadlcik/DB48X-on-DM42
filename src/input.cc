@@ -110,6 +110,7 @@ void input::edit(unicode c, modes m)
         m = mode;
 
     byte utf8buf[4];
+    uint savec = cursor;
     size_t len = utf8_encode(c, utf8buf);
     cursor += RT.insert(cursor, utf8buf, len);
 
@@ -127,6 +128,9 @@ void input::edit(unicode c, modes m)
     }
     if (closing)
     {
+        byte *ed = RT.editor();
+        if (savec > 0 && ed[savec] != ' ')
+            cursor += RT.insert(savec, ' ');
         len = utf8_encode(closing, utf8buf);
         RT.insert(cursor, utf8buf, len);
     }
@@ -324,11 +328,17 @@ void input::updateMode()
     uint algs  = 0;
     uint txts  = 0;
     uint vecs  = 0;
+    uint hex   = 0;
 
     mode = DIRECT;
     for (utf8 p = ed; p < last; p = utf8_next(p))
     {
         unicode code = utf8_codepoint(p);
+        if (hex && (code < '0'
+                    || (code > '9' && code < 'A')
+                    || (code > 'F' && code < 'a')
+                    || (code > 'f')))
+            hex = 0;
         switch(code)
         {
         case '\'':      algs = 1 - algs;        break;
@@ -339,11 +349,14 @@ void input::updateMode()
         case ']':       vecs--;                 break;
         case L'«':      progs++;                break;
         case L'»':      progs--;                break;
+        case '#':       hex++;                  break;
         }
     }
 
     if (txts)
         mode = TEXT;
+    else if (hex)
+        mode = HEXADECIMAL;
     else if (algs)
         mode = ALGEBRAIC;
     else if (vecs)
@@ -942,21 +955,23 @@ int input::draw_cursor(uint time, uint &period)
     lastT = time;
 
     // Select cursor character
-    unicode cursorChar         = mode == DIRECT    ? 'D'
-                       : mode == TEXT      ? (lowercase ? 'L' : 'C')
-                       : mode == PROGRAM   ? 'P'
-                       : mode == ALGEBRAIC ? 'A'
-                       : mode == MATRIX    ? 'M'
-                                           : 'X';
-    size csrh                  = CursorFont->height();
-    size csrw                  = CursorFont->width(cursorChar);
-    size ch                    = EditorFont->height();
+    unicode cursorChar = mode == DIRECT      ? 'D'
+                       : mode == TEXT        ? (lowercase ? 'L' : 'C')
+                       : mode == PROGRAM     ? 'P'
+                       : mode == ALGEBRAIC   ? 'A'
+                       : mode == MATRIX      ? 'M'
+                       : mode == HEXADECIMAL ? 'B'
+                                             : 'X';
+    size    csrh       = CursorFont->height();
+    size    csrw       = CursorFont->width(cursorChar);
+    size    ch         = EditorFont->height();
 
-    coord  x          = cx;
-    utf8   ed   = RT.editor();
-    size_t len  = RT.editing();
-    utf8   last = ed + len;
-    utf8   p    = ed + cursor;
+    coord   x          = cx;
+    utf8    ed         = RT.editor();
+    size_t  len        = RT.editing();
+    utf8    last       = ed + len;
+    utf8    p          = ed + cursor;
+
     while (x < cx + csrw + 1)
     {
         unicode cchar  = p < last ? utf8_codepoint(p) : ' ';
@@ -1728,16 +1743,34 @@ bool input::draw_help()
 }
 
 
-static bool immediate_key(int key)
+bool input::noHelpForKey(int key)
 // ----------------------------------------------------------------------------
-//   Return true if the key requires immediate action
+//   Return true if key requires immediate action, no help displayed
 // ----------------------------------------------------------------------------
 {
-    return (key < KEY_ENTER ||
-            key >= KEY_ADD  ||
-            key == KEY_SUB  ||
-            key == KEY_MUL  ||
-            key == KEY_DIV);
+    bool editing  = RT.editing();
+
+    // No help in alpha mode
+    if (alpha && key < KEY_F1)
+        return true;
+
+    // No help for ENTER or BSP key while editing
+    if (editing && (key == KEY_ENTER || key == KEY_BSP ||
+                    key == KEY_UP || key == KEY_DOWN))
+        return true;
+
+    // No help for A-F keys in hexadecimal entry mode
+    if (editing && (key >= KB_A && key <= KB_F) && mode == HEXADECIMAL)
+        return true;
+
+    // No help for digits entry
+    if (!shift && !xshift)
+        if (key > KEY_ENTER && key < KEY_ADD &&
+            key != KEY_SUB && key != KEY_MUL && KEY != KEY_DIV)
+            return true;
+
+    // Other cases are regular functions, we can display help
+    return false;
 }
 
 
@@ -1751,18 +1784,16 @@ bool input::handle_help(int &key)
     {
         // Exit if we are editing or entering digits
         bool editing  = RT.editing();
-        if (last == KEY_SHIFT
-            || alpha
-            || key   == KEY_ENTER
-            || (editing && !immediate_key(key)))
+        if (last == KEY_SHIFT || noHelpForKey(key))
             return false;
 
         // Check if we have a long press, if so load corresponding help
         if (key)
         {
-            record(help, "Looking for help topic for key %d, long = %d shift=%d\n",
+            record(help,
+                   "Looking for help topic for key %d, long = %d shift=%d\n",
                    key, longpress, shift_plane());
-            if (object_p obj                                      = object_for_key(key))
+            if (object_p obj = object_for_key(key))
             {
                 record(help, "Looking for help topic for key %d\n", key);
                 if (utf8 htopic = obj->help())
@@ -1791,8 +1822,8 @@ bool input::handle_help(int &key)
         }
         else
         {
-            if (!editing || immediate_key(last))
-                key = last;
+            if (!noHelpForKey(last))
+                key = last;     // Time to evaluate
             last    = 0;
             command = nullptr;
         }
@@ -1912,18 +1943,19 @@ bool input::handle_shifts(int key)
         }
         else
         {
-            xshift                   = false;
+            xshift = false;
 #define SHM(d, a, s) ((d << 2) | (a << 1) | (s << 0))
 #define SHD(d, a, s) (1 << SHM(d, a, s))
-            bool dshift              = last == KEY_SHIFT; // Double shift toggles alpha
-            int  plane               = SHM(dshift, alpha, shift);
+            // Double shift toggles alpha
+            bool dshift = last == KEY_SHIFT;
+            int  plane  = SHM(dshift, alpha, shift);
             const unsigned nextShift =
                 SHD(0, 0, 0) | SHD(0, 1, 0) | SHD(1, 0, 0);
             const unsigned nextAlpha =
                 SHD(0, 0, 1) | SHD(0, 1, 0) | SHD(0, 1, 1) | SHD(1, 0, 1);
-            shift                    = (nextShift & (1 << plane)) != 0;
-            alpha                    = (nextAlpha & (1 << plane)) != 0;
-            repeat                   = true;
+            shift  = (nextShift & (1 << plane)) != 0;
+            alpha  = (nextAlpha & (1 << plane)) != 0;
+            repeat = true;
         }
         consumed = true;
 #undef SHM
@@ -1950,15 +1982,10 @@ bool input::handle_editing(int key)
         switch(key)
         {
         case KEY_XEQ:
-            if (!shift && !xshift)
+            if ((!editing  || mode != HEXADECIMAL) && !shift && !xshift)
             {
                 edit('\'', ALGEBRAIC);
                 alpha = true;
-                return true;
-            }
-            else if (xshift)
-            {
-                edit('{', PROGRAM);
                 return true;
             }
             break;
@@ -2133,9 +2160,12 @@ bool input::handle_alpha(int key)
 //    Handle alphabetic input
 // ----------------------------------------------------------------------------
 {
+    bool editing = RT.editing();
+    bool hex = editing && mode == HEXADECIMAL && key >= KB_A && key <= KB_F;
     if (!alpha || !key || (key == KEY_ENTER && !xshift) || key == KEY_BSP ||
-        (key                   >= KEY_F1 && key <= KEY_F6))
-        return false;
+        (key >= KEY_F1 && key <= KEY_F6))
+        if (!hex)
+            return false;
 
     static const char upper[] =
         "ABCDEF"
@@ -2186,6 +2216,7 @@ bool input::handle_alpha(int key)
 
     key--;
     unicode c =
+        hex       ? upper[key]    :
         xshift    ? xshifted[key] :
         shift     ? shifted[key]  :
         lowercase ? lower[key]    :
@@ -2250,15 +2281,13 @@ bool input::handle_digits(int key)
             return true;
         }
     }
-    if (key > KEY_CHS && key < KEY_F1)
+    if (!shift && !xshift && (key > KEY_CHS && key < KEY_F1))
     {
-        char            c  = numbers[key-1];
-        if (c             == '_')
+        char c  = numbers[key-1];
+        if (c == '_')
             return false;
-        if (c             == '.')
+        if (c == '.')
             c = Settings.decimalDot;
-        if (c == '4' && shift)
-            c              = '#';
         edit(c, DIRECT);
         repeat = true;
         return true;

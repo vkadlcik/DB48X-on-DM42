@@ -59,6 +59,7 @@ struct input
         PROGRAM,                // Keys like 'sin' show as 'sin' in the editor
         ALGEBRAIC,              // Keys like 'sin' show as 'sin()'
         MATRIX,                 // Matrix/vector mode
+        HEXADECIMAL,            // Based number: A-F map switch to alpha
     };
 
     enum
@@ -131,6 +132,7 @@ protected:
     bool        handle_alpha(int key);
     bool        handle_functions(int key);
     bool        handle_digits(int key);
+    bool        noHelpForKey(int key);
 
 protected:
     typedef graphics::coord     coord;

@@ -47,6 +47,7 @@ OBJECT_HANDLER_BODY(Catalog)
         info &mi     = *((info *) arg);
         uint  nitems = count_commands();
         items_init(mi, nitems, 1);
+        Input.autoCompleteMenu();
         list_commands(mi);
         return OK;
     }
@@ -84,35 +85,6 @@ static void initialize_sorted_ids()
 }
 
 
-static bool current_word(utf8 &start, size_t &size)
-// ----------------------------------------------------------------------------
-//   Find the word under the cursor in the editor, if there is one
-// ----------------------------------------------------------------------------
-{
-    runtime &rt = runtime::RT;
-    if (size_t sz = rt.editing())
-    {
-        byte *ed     = rt.editor();
-        uint  cursor = Input.cursorPosition();
-        while (cursor > 0 && !command::is_separator(ed + cursor))
-            cursor = utf8_previous(ed, cursor);
-        if (command::is_separator(ed + cursor))
-            cursor = utf8_next(ed, cursor, sz);
-        uint spos = cursor;
-        while (cursor < sz && !command::is_separator(ed + cursor))
-            cursor = utf8_next(ed, cursor, sz);
-        uint end = cursor;
-        if (end > spos)
-        {
-            start = ed + spos;
-            size = end - spos;
-            return true;
-        }
-    }
-    return false;
-}
-
-
 static bool matches(utf8 start, size_t size, cstring name)
 // ----------------------------------------------------------------------------
 //   Check if what was typed matches the name
@@ -134,9 +106,9 @@ uint Catalog::count_commands()
     if (!sorted_ids[0])
         initialize_sorted_ids();
 
-    utf8   start  = nullptr;
+    utf8   start  = 0;
     size_t size   = 0;
-    bool   filter = current_word(start, size);
+    bool   filter = Input.currentWord(start, size);
     uint   count  = 0;
 
     for (uint i = 0; i < NUM_COMMANDS; i++)
@@ -159,69 +131,15 @@ void Catalog::list_commands(info &mi)
 {
     utf8   start  = nullptr;
     size_t size   = 0;
-    bool   filter = current_word(start, size);
+    bool   filter = Input.currentWord(start, size);
 
     for (uint i = 0; i < NUM_COMMANDS; i++)
     {
-        uint sorted = sorted_ids[i];
+        object::id sorted = sorted_ids[i];
         if (!filter                                     ||
             matches(start, size, id_name[sorted])       ||
             matches(start, size, fancy_name[sorted]))
-            menu::items(mi, fancy_name[sorted], ID_AutoComplete);
+            menu::items(mi, fancy_name[sorted], command::static_object(sorted));
     }
     Input.menuNeedsRefresh();
-}
-
-
-COMMAND_BODY(AutoComplete)
-// ----------------------------------------------------------------------------
-//   Auto-complete the current command
-// ----------------------------------------------------------------------------
-{
-    int key = Input.evaluating;
-    if (key >= KEY_F1 && key <= KEY_F6)
-    {
-        uint menu_id = key - KEY_F1;
-        if (cstring name = Input.labelText(menu_id))
-        {
-            utf8   start  = nullptr;
-            size_t size   = 0;
-            bool   filter = current_word(start, size);
-
-            for (uint i = 0; i < NUM_COMMANDS; i++)
-            {
-                uint sorted = sorted_ids[i];
-                if (!filter                                     ||
-                    matches(start, size, id_name[sorted])       ||
-                    matches(start, size, fancy_name[sorted]))
-                {
-                    if (strcasecmp(name, fancy_name[sorted]) == 0)
-                    {
-                        if (!RT.editing())
-                        {
-                            // Execute command directly
-                            id cmd = id(sorted);
-                            object_p function = command::static_object(cmd);
-                            return function->execute();
-                        }
-                        else
-                        {
-                            runtime &rt = runtime::RT;
-                            uint cmdlen = strlen(fancy_name[sorted]);
-                            uint pos = Input.cursorPosition();
-                            if (start)
-                            {
-                                pos = start - rt.editor();
-                                rt.remove(pos, size);
-                            }
-                            rt.insert(pos, utf8(fancy_name[sorted]), cmdlen);
-                            Input.cursorPosition(pos + cmdlen);
-                            return OK;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return ERROR;
 }

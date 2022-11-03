@@ -94,7 +94,8 @@ input::input()
       blink(false),
       follow(false),
       dirtyMenu(false),
-      dynMenu(false),
+      dynamicMenu(false),
+      autoComplete(false),
       helpfile()
 {}
 
@@ -266,6 +267,8 @@ bool input::key(int key, bool repeating)
         handle_functions(key) ||
         key == 0;
 
+    if (RT.editing())
+        updateMode();
 
     if (!skey && last != KEY_SHIFT)
     {
@@ -277,7 +280,7 @@ bool input::key(int key, bool repeating)
         blink = true; // Show cursor if things changed
 
     // Refresh the variables menu
-    if (menuObject && dynMenu)
+    if (menuObject && dynamicMenu)
         menuObject->update(menuPage);
 
     return result;
@@ -302,6 +305,49 @@ object_p input::assigned(int key, uint plane)
     if (key >= 1 && key <= NUM_KEYS && plane <= NUM_PLANES)
         return function[plane][key - 1];
     return nullptr;
+}
+
+
+void input::updateMode()
+// ----------------------------------------------------------------------------
+//   Scan the command line to check what the state is at the cursor
+// ----------------------------------------------------------------------------
+{
+    utf8 ed    = RT.editor();
+    utf8 last  = ed + cursor;
+    uint progs = 0;
+    uint lists = 0;
+    uint algs  = 0;
+    uint txts  = 0;
+    uint vecs  = 0;
+
+    mode = DIRECT;
+    for (utf8 p = ed; p < last; p = utf8_next(p))
+    {
+        unicode code = utf8_codepoint(p);
+        switch(code)
+        {
+        case '\'':      algs = 1 - algs;        break;
+        case '"':       txts = 1 - txts;        break;
+        case '{':       lists++;                break;
+        case '}':       lists--;                break;
+        case '[':       vecs++;                 break;
+        case ']':       vecs--;                 break;
+        case L'«':      progs++;                break;
+        case L'»':      progs--;                break;
+        }
+    }
+
+    if (txts)
+        mode = TEXT;
+    else if (algs)
+        mode = ALGEBRAIC;
+    else if (vecs)
+        mode = MATRIX;
+    else if (lists || progs)
+        mode = PROGRAM;
+    else
+        mode = DIRECT;
 }
 
 
@@ -375,7 +421,8 @@ void input::menus(uint count, cstring labels[], object_p function[])
         else
             menu(m, cstring(nullptr), nullptr);
     }
-    dynMenu = false;
+    dynamicMenu = false;
+    autoComplete = false;
 }
 
 
@@ -2435,26 +2482,92 @@ bool input::handle_functions(int key)
             if (key == KEY_ENTER || key == KEY_BSP)
                 return false;
 
+            if (key >= KEY_F1 && key <= KEY_F6 && autoComplete)
+            {
+                size_t start = 0;
+                size_t size  = 0;
+                if (currentWord(start, size))
+                {
+                    RT.remove(start, size);
+                    cursor = start;
+                }
+            }
+
+            byte *ed = RT.editor();
             switch (mode)
             {
             case PROGRAM:
-                cursor += RT.insert(cursor, obj->fancy());
-                cursor += RT.insert(cursor, ' ');
-                return true;
+                if (obj->is_command())
+                {
+                    if (ed[cursor] != ' ')
+                        cursor += RT.insert(cursor, ' ');
+                    cursor += RT.insert(cursor, obj->fancy());
+                    cursor += RT.insert(cursor, ' ');
+                    return true;
+                }
+                break;
 
             case ALGEBRAIC:
-                cursor += RT.insert(cursor, obj->fancy());
-                return true;
+                if (obj->is_algebraic())
+                {
+                    cursor += RT.insert(cursor, obj->fancy());
+                    return true;
+                }
+                break;
 
             default:
-                // If we have the editor open, need to close it
-                if (!end_edit())
-                    return false;
+                break;
             }
+
+            // If we have the editor open, need to close it
+            if (!end_edit())
+                return false;
         }
         obj->execute();
         return true;
     }
 
+    return false;
+}
+
+
+bool input::currentWord(size_t &start, size_t &size)
+// ----------------------------------------------------------------------------
+//   REturn position of word under the cursor if there is one
+// ----------------------------------------------------------------------------
+{
+    utf8 sed = nullptr;
+    bool result = currentWord(sed, size);
+    if (result)
+        start = sed - RT.editor();
+    return result;
+}
+
+
+bool input::currentWord(utf8 &start, size_t &size)
+// ----------------------------------------------------------------------------
+//   Find the word under the cursor in the editor, if there is one
+// ----------------------------------------------------------------------------
+{
+    if (size_t sz = RT.editing())
+    {
+        byte *ed = RT.editor();
+        uint  c  = cursor;
+        c = utf8_previous(ed, c);
+        while (c > 0 && !command::is_separator(ed + c))
+            c = utf8_previous(ed, c);
+        if (command::is_separator(ed + c))
+            c = utf8_next(ed, c, sz);
+        uint spos = c;
+        while (c < sz && !command::is_separator(ed + c))
+            c = utf8_next(ed, c, sz);
+        uint end = c;
+        if (end > spos)
+        {
+            start = ed + spos;
+            size = end - spos;
+            return true;
+        }
+    }
     return false;
 }

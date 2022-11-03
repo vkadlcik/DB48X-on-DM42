@@ -366,7 +366,7 @@ struct object
     //
     // ========================================================================
 
-    static bool is_integer(object::id ty)
+    static bool is_integer(id ty)
     // -------------------------------------------------------------------------
     //   Check if a type is an integer
     // -------------------------------------------------------------------------
@@ -375,16 +375,16 @@ struct object
     }
 
 
-    bool is_integer(object *obj) const
+    bool is_integer() const
     // -------------------------------------------------------------------------
     //   Check if an object is an integer
     // -------------------------------------------------------------------------
     {
-        return is_integer(obj->type());
+        return is_integer(type());
     }
 
 
-    static bool is_decimal(object::id ty)
+    static bool is_decimal(id ty)
     // -------------------------------------------------------------------------
     //   Check if a type is a decimal
     // -------------------------------------------------------------------------
@@ -393,16 +393,16 @@ struct object
     }
 
 
-    bool is_decimal(object *obj) const
+    bool is_decimal() const
     // -------------------------------------------------------------------------
     //   Check if an object is a decimal
     // -------------------------------------------------------------------------
     {
-        return is_decimal(obj->type());
+        return is_decimal(type());
     }
 
 
-    static  bool is_real(object::id ty)
+    static  bool is_real(id ty)
     // -------------------------------------------------------------------------
     //   Check if a type is a real number
     // -------------------------------------------------------------------------
@@ -411,12 +411,48 @@ struct object
     }
 
 
-    bool is_real(object *obj) const
+    bool is_real() const
     // -------------------------------------------------------------------------
     //   Check if an object is a real number
     // -------------------------------------------------------------------------
     {
-        return is_real(obj->type());
+        return is_real(type());
+    }
+
+
+    static bool is_command(id ty)
+    // ------------------------------------------------------------------------
+    //    Check if a type denotes a command
+    // ------------------------------------------------------------------------
+    {
+        return ty >= FIRST_COMMAND && ty <= LAST_COMMAND;
+    }
+
+
+    bool is_command() const
+    // ------------------------------------------------------------------------
+    //   Check if an object is a command
+    // ------------------------------------------------------------------------
+    {
+        return is_command(type());
+    }
+
+
+    static bool is_algebraic(id ty)
+    // ------------------------------------------------------------------------
+    //    Check if a type denotes an algebraic function
+    // ------------------------------------------------------------------------
+    {
+        return ty >= FIRST_ALGEBRAIC && ty <= LAST_ALGEBRAIC;
+    }
+
+
+    bool is_algebraic() const
+    // ------------------------------------------------------------------------
+    //   Check if an object is an algebraic function
+    // ------------------------------------------------------------------------
+    {
+        return is_algebraic(type());
     }
 
 

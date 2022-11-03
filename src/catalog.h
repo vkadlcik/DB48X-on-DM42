@@ -45,6 +45,4 @@ struct Catalog : menu
     OBJECT_HANDLER(Catalog);
 };
 
-COMMAND_DECLARE(AutoComplete);
-
 #endif // CATALOG_H

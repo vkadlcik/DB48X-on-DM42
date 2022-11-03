@@ -192,7 +192,6 @@ CMD(Unimplemented)
 //
 // ============================================================================
 
-CMD(AutoComplete)
 CMD(VariablesMenuExecute)
 CMD(VariablesMenuRecall)
 CMD(VariablesMenuStore)

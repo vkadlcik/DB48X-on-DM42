@@ -79,6 +79,8 @@ struct input
     void        assign(int key, uint plane, object_p code);
     object_p    assigned(int key, uint plane);
 
+    void        updateMode();
+
     void        menu(menu_p menu, uint page = 0);
     menu_p      menu();
     uint        page();
@@ -90,7 +92,8 @@ struct input
     void        menu(uint index, cstring label, object_p function);
     void        menu(uint index, symbol_p label, object_p function);
     void        marker(uint index, unicode mark, bool alignLeft = false);
-    void        menuNeedsRefresh()      { dynMenu = true; }
+    void        menuNeedsRefresh()      { dynamicMenu = true; }
+    void        menuAutoComplete()      { autoComplete = true; }
     symbol_p    label(uint index);
     cstring     labelText(uint index);
 
@@ -109,6 +112,9 @@ struct input
     bool        showingHelp()           { return help + 1 != 0; }
     uint        cursorPosition()        { return cursor; }
     void        cursorPosition(uint pos){ cursor = pos; }
+    void        autoCompleteMenu()      { autoComplete = true; }
+    bool        currentWord(size_t &start, size_t &size);
+    bool        currentWord(utf8 &start, size_t &size);
 
     uint        shift_plane()   { return xshift ? 2 : shift ? 1 : 0; }
     void        clear_help();
@@ -131,37 +137,38 @@ protected:
     typedef graphics::size      size;
 
 public:
-    int      evaluating;    // Key being evaluated
+    int evaluating; // Key being evaluated
 
 protected:
-    utf8     command;       // Command being executed
-    uint     help;          // Offset of help being displayed in help file
-    uint     line;          // Line offset in the help display
-    uint     topic;         // Offset of topic being highlighted
-    uint     history;       // History depth
-    uint     topics[8];     // Topics history
-    uint     cursor;        // Cursor position in buffer
-    coord    xoffset;       // Offset of the cursor
-    modes    mode;          // Current editing mode
-    int      last;          // Last key
-    int      stack;         // Vertical bottom of the stack
-    coord    cx, cy;        // Cursor position on screen
-    menu_p   menuObject;    // Current menu being shown
-    uint     menuPage;      // Current menu page
-    uint     menuPages;     // Number of menu pages
-    uint     menuHeight;    // Height of the menu
-    bool     shift     : 1; // Normal shift active
-    bool     xshift    : 1; // Extended shift active (simulate Right)
-    bool     alpha     : 1; // Alpha mode active
-    bool     lowercase : 1; // Lowercase
-    bool     down      : 1; // Move one line down
-    bool     up        : 1; // Move one line up
-    bool     repeat    : 1; // Repeat the key
-    bool     longpress : 1; // We had a long press of the key
-    bool     blink     : 1; // Cursor blink indicator
-    bool     follow    : 1; // Follow a help topic
-    bool     dirtyMenu : 1; // Menu label needs redraw
-    bool     dynMenu   : 1; // Menu is dynamic, needs update
+    utf8   command;          // Command being executed
+    uint   help;             // Offset of help being displayed in help file
+    uint   line;             // Line offset in the help display
+    uint   topic;            // Offset of topic being highlighted
+    uint   history;          // History depth
+    uint   topics[8];        // Topics history
+    uint   cursor;           // Cursor position in buffer
+    coord  xoffset;          // Offset of the cursor
+    modes  mode;             // Current editing mode
+    int    last;             // Last key
+    int    stack;            // Vertical bottom of the stack
+    coord  cx, cy;           // Cursor position on screen
+    menu_p menuObject;       // Current menu being shown
+    uint   menuPage;         // Current menu page
+    uint   menuPages;        // Number of menu pages
+    uint   menuHeight;       // Height of the menu
+    bool   shift        : 1; // Normal shift active
+    bool   xshift       : 1; // Extended shift active (simulate Right)
+    bool   alpha        : 1; // Alpha mode active
+    bool   lowercase    : 1; // Lowercase
+    bool   down         : 1; // Move one line down
+    bool   up           : 1; // Move one line up
+    bool   repeat       : 1; // Repeat the key
+    bool   longpress    : 1; // We had a long press of the key
+    bool   blink        : 1; // Cursor blink indicator
+    bool   follow       : 1; // Follow a help topic
+    bool   dirtyMenu    : 1; // Menu label needs redraw
+    bool   dynamicMenu  : 1; // Menu is dynamic, needs update after keystroke
+    bool   autoComplete : 1; // Menu is auto-complete
 
 protected:
     // Key mappings

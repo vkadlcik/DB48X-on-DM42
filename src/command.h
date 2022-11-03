@@ -131,5 +131,10 @@ COMMAND(Eval)
     return ERROR;
 }
 
+COMMAND_DECLARE(SelfInsert);
+// ----------------------------------------------------------------------------
+//   Insert the label associated to a menu
+// ----------------------------------------------------------------------------
+
 
 #endif // COMMAND_H

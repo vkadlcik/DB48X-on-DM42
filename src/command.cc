@@ -34,6 +34,7 @@
 #include "runtime.h"
 #include "settings.h"
 #include "utf8.h"
+#include "input.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -203,4 +204,22 @@ bool command::is_separator(unicode code)
         if (code == utf8_codepoint(p))
             return true;
     return false;
+}
+
+
+COMMAND_BODY(SelfInsert)
+// ----------------------------------------------------------------------------
+//   Find the label associated to the menu and enter it in the editor
+// ----------------------------------------------------------------------------
+{
+    int key = Input.evaluating;
+    if (key >= KEY_F1 && key <= KEY_F6)
+    {
+        uint plane = Input.shift_plane();
+        uint menu_idx = key - KEY_F1 + plane * input::NUM_SOFTKEYS;
+        if (cstring lbl = Input.labelText(menu_idx))
+            for (utf8 p = utf8(lbl); *p; p = utf8_next(p))
+                Input.edit(utf8_codepoint(p), input::PROGRAM);
+    }
+    return OK;
 }

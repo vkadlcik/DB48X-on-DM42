@@ -405,6 +405,8 @@ void input::page(uint p)
 // ----------------------------------------------------------------------------
 {
     menuPage = (p + menuPages) % menuPages;
+    if (menuObject)
+        menuObject->update(menuPage);
 }
 
 

@@ -52,6 +52,10 @@
 #define OPCODE(id)              ID(id)
 #endif
 
+#ifndef MENU
+#define MENU(id)                ID(id)
+#endif
+
 ID(object)                      // Value 0 is reserved for "not implemented"
 
 ID(symbol)
@@ -124,7 +128,9 @@ NAMED(acosh, "cosh⁻¹")
 NAMED(atanh, "tanh⁻¹")
 
 CMD(log1p)
+ALIAS(log1p, "lnp1")            // HP48 compatibility
 CMD(expm1)
+ALIAS(expm1, "expm")            // HP48 compatibility
 CMD(log)
 CMD(log10)
 CMD(log2)
@@ -133,7 +139,7 @@ CMD(exp10)
 CMD(exp2)
 CMD(erf)
 CMD(erfc)
-CMD(tgamma)
+NAMED(tgamma, "Gamma")
 CMD(lgamma)
 #define LAST_ALGEBRAIC          ID_lgamma
 
@@ -153,35 +159,62 @@ CMD(GarbageCollect)
 //
 // ============================================================================
 
-CMD(MainMenu)
+MENU(MainMenu)
 
-CMD(MathMenu)
-CMD(RealMenu)
-CMD(ComplexMenu)
-CMD(VectorMenu)
-CMD(MatrixMenu)
-CMD(HyperbolicMenu)
-CMD(CircularMenu)
-CMD(BasesMenu)
-CMD(ProbabilitiesMenu)
-CMD(StatisticsMenu)
-CMD(FourierMenu)
-CMD(ConstantsMenu)
-CMD(EquationsMenu)
-CMD(SymbolicMenu)
+MENU(MathMenu)
+MENU(RealMenu)
+MENU(PartsMenu)
+MENU(FractionsMenu)
+MENU(PowersMenu)
+MENU(ComplexMenu)
+MENU(VectorMenu)
+MENU(MatrixMenu)
+MENU(AnglesMenu)
+MENU(HyperbolicMenu)
+MENU(CircularMenu)
+MENU(BasesMenu)
+MENU(ProbabilitiesMenu)
+MENU(StatisticsMenu)
+MENU(SignalProcessingMenu)
+MENU(ConstantsMenu)
+MENU(EquationsMenu)
+MENU(UnitsMenu)
+MENU(UnitsConversionsMenu)
+MENU(SymbolicMenu)
+MENU(SolverMenu)
+MENU(NumericalSolverMenu)
+MENU(DifferentialSolverMenu)
+MENU(SymbolicSolverMenu)
+MENU(PolynomialSolverMenu)
+MENU(LinearSolverMenu)
+MENU(MultiSolverMenu)
+MENU(FinanceSolverMenu)
 
-CMD(ProgramMenu)
-CMD(TestsMenu)
-CMD(LoopsMenu)
-CMD(ListMenu)
+MENU(ProgramMenu)
+MENU(TestsMenu)
+MENU(CompareMenu)
+MENU(LoopsMenu)
+MENU(ListMenu)
+MENU(StackMenu)
+MENU(ObjectMenu)
+MENU(FlagsMenu)
+MENU(LastThingsMenu)
+MENU(CharsMenu)
+MENU(ModesMenu)
+MENU(IOMenu)
+MENU(TimeMenu)
+MENU(PlotMenu)
+
+
+
+// ============================================================================
+//
+//   Special menus and menu commands
+//
+// ============================================================================
 
 CMD(VariablesMenu)
-
 CMD(Catalog)
-
-CMD(MenuNextPage)
-CMD(MenuPreviousPage)
-CMD(MenuFirstPage)
 
 CMD(Unimplemented)
 #define LAST_COMMAND            ID_Unimplemented
@@ -193,9 +226,14 @@ CMD(Unimplemented)
 //
 // ============================================================================
 
+CMD(MenuNextPage)
+CMD(MenuPreviousPage)
+CMD(MenuFirstPage)
+
 CMD(VariablesMenuExecute)
 CMD(VariablesMenuRecall)
 CMD(VariablesMenuStore)
+CMD(SelfInsert)
 
 
 // ============================================================================
@@ -228,6 +266,7 @@ OPCODE(MENU_MARKER)
 #undef ID
 #undef OP
 #undef CMD
+#undef MENU
 #undef NAMED
 #undef ALIAS
 #undef OPCODE

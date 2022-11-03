@@ -63,6 +63,7 @@ struct menu : command
 
     static void items_init(info &mi, uint nitems, uint planes = 2);
     static void items(info &UNUSED mi) { }
+    static void items(info &mi, id action);
     static void items(info &mi, cstring label, object_p action);
     static void items(info &mi, cstring label, id action)
     {
@@ -80,9 +81,17 @@ struct menu : command
     template <typename... Args>
     static void items(info &mi, cstring label, id action, Args... args);
 
+    template <typename... Args>
+    static void items(info &mi, id action, Args... args);
+
     static uint count()
     {
         return 0;
+    }
+    template <typename... Args>
+    static uint count(id UNUSED action, Args... args)
+    {
+        return 1 + count(args...);
     }
     template <typename... Args>
     static uint count(cstring UNUSED label, id UNUSED action, Args... args)
@@ -104,6 +113,18 @@ void menu::items(info &mi, cstring label, id type, Args... args)
     items(mi, label, type);
     items(mi, args...);
 }
+
+
+template <typename... Args>
+void menu::items(info &mi, id type, Args... args)
+// ----------------------------------------------------------------------------
+//   Update menu items
+// ----------------------------------------------------------------------------
+{
+    items(mi, type);
+    items(mi, args...);
+}
+
 
 
 // ============================================================================
@@ -141,93 +162,17 @@ COMMAND(MenuFirstPage)
     return OK;
 }
 
-
-// ============================================================================
-//
-//   Creation of a menu
-//
-// ============================================================================
-
-#define MENU(SysMenu, ...)                                           \
+#define ID(i)
+#define MENU(SysMenu)                                                \
   struct SysMenu : menu                                              \
   /* ------------------------------------------------------------ */ \
   /*   Create a system menu                                       */ \
   /* ------------------------------------------------------------ */ \
   {                                                                  \
-      SysMenu(id type = ID_##SysMenu) : menu(type)                   \
-      { }                                                            \
-                                                                     \
-      OBJECT_HANDLER(SysMenu)                                        \
-      {                                                              \
-          switch (op)                                                \
-          {                                                          \
-          case MENU:                                                 \
-          {                                                          \
-              info &mi     = *((info *) arg);                        \
-              uint  nitems = count(__VA_ARGS__);                     \
-              items_init(mi, nitems, 2);                             \
-              items(mi, ##__VA_ARGS__);                              \
-              return OK;                                             \
-          }                                                          \
-          default:                                                   \
-              return DELEGATE(menu);                                 \
-          }                                                          \
-      }                                                              \
-  }
+      SysMenu(id type = ID_##SysMenu) : menu(type) { }               \
+      OBJECT_HANDLER(SysMenu);                                       \
+  };
+#include "ids.tbl"
 
-
-// ============================================================================
-//
-//    Menu hierarchy
-//
-// ============================================================================
-
-MENU(MainMenu, "Math", ID_MathMenu, "Program", ID_ProgramMenu);
-
-MENU(MathMenu,
-     "Real",    ID_RealMenu,
-     "Cmplx",   ID_ComplexMenu,
-     "Bases",   ID_BasesMenu,
-     "Vector",  ID_VectorMenu,
-     "Matrix",  ID_MatrixMenu,
-     "Const",   ID_ConstantsMenu,
-
-     "Hyper",   ID_HyperbolicMenu,
-     "Proba",   ID_ProbabilitiesMenu,
-     "Stats",   ID_StatisticsMenu,
-     "Fourier", ID_FourierMenu,
-     "Symb",    ID_SymbolicMenu,
-     "Eqns",    ID_EquationsMenu);
-
-MENU(RealMenu,
-     "Trig",    ID_CircularMenu,
-     "Hyper",   ID_HyperbolicMenu);
-
-MENU(ComplexMenu,
-     "→ℂ",
-     ID_Unimplemented,
-     "𝒊",
-     ID_Unimplemented,
-     "𝒋",
-     ID_Unimplemented,
-     "𝒌",
-     ID_Unimplemented);
-
-MENU(VectorMenu);
-MENU(MatrixMenu);
-MENU(HyperbolicMenu);
-MENU(CircularMenu);
-MENU(BasesMenu);
-MENU(ProbabilitiesMenu);
-MENU(StatisticsMenu);
-MENU(FourierMenu);
-MENU(ConstantsMenu);
-MENU(EquationsMenu);
-MENU(SymbolicMenu);
-
-MENU(ProgramMenu);
-MENU(TestsMenu);
-MENU(LoopsMenu);
-MENU(ListMenu);
 
 #endif // MENU_H

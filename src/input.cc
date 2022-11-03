@@ -1990,6 +1990,7 @@ bool input::handle_editing(int key)
                 repeat = false;
                 beep(4400, 50);
             }
+            last = 0;
             return true;
         case KEY_ENTER:
         {

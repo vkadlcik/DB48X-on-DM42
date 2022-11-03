@@ -140,6 +140,12 @@ bool input::end_edit()
 //   Clear the editor
 // ----------------------------------------------------------------------------
 {
+    alpha   = false;
+    shift   = false;
+    xshift  = false;
+    last    = 0;
+    clear_help();
+
     size_t edlen = RT.editing();
     if (edlen)
     {
@@ -163,14 +169,10 @@ bool input::end_edit()
                 if (!RT.edit(ed, edlen))
                     cursor = 0;
                 beep(3300, 100);
-                return true;
+                return false;
             }
         }
     }
-    alpha   = false;
-    shift   = false;
-    xshift  = false;
-    clear_help();
 
     return true;
 }
@@ -1719,7 +1721,7 @@ static bool immediate_key(int key)
 // ----------------------------------------------------------------------------
 {
     return (key < KEY_ENTER ||
-            key == KEY_ADD  ||
+            key >= KEY_ADD  ||
             key == KEY_SUB  ||
             key == KEY_MUL  ||
             key == KEY_DIV);
@@ -1736,12 +1738,13 @@ bool input::handle_help(int &key)
     {
         // Exit if we are editing or entering digits
         bool editing = RT.editing();
-        if (last == KEY_SHIFT || alpha ||
-            (editing && !immediate_key(key)) ||
-            (shift && (key == KEY_ENTER || key == KEY_4)))
+        if (last == KEY_SHIFT
+            || alpha
+            || key == KEY_ENTER
+            || (editing && !immediate_key(key)))
             return false;
 
-            // Check if we have a long press, if so load corresponding help
+        // Check if we have a long press, if so load corresponding help
         if (key)
         {
             record(help, "Looking for help topic for key %d, long=%d shift=%d\n",

@@ -540,13 +540,13 @@ void processFont(cstring fontName,
 
     // Emit the headers
     bytes sparseHeader;
-    sparseHeader += ID_sparse_font;
+    sparseHeader += unsigned(ID_sparse_font);
     sparseHeader += sparse.size();
     sparse.insert(sparse.begin(), sparseHeader.begin(), sparseHeader.end());
 
     bytes denseHeader;
     denseHeader.clear();
-    denseHeader += ID_dense_font;
+    denseHeader += unsigned(ID_dense_font);
     denseHeader += dense.size();
     dense.insert(dense.begin(), denseHeader.begin(), denseHeader.end());
 

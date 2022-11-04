@@ -100,30 +100,32 @@ static const byte dmcpFontRPL[]
 //   RPL object representing the various DMCP fonts
 // ----------------------------------------------------------------------------
 {
-    object::ID_dmcp_font, 0,            // lib_mono
-    object::ID_dmcp_font, 1,
-    object::ID_dmcp_font, 2,
-    object::ID_dmcp_font, 3,
-    object::ID_dmcp_font, 4,
-    object::ID_dmcp_font, 5,
+#define LEB128(id, fnt)      (id) | 0x80, ((id) >> 7) & 0x7F, (fnt)
 
-    object::ID_dmcp_font, 10,           // Free42 (fixed size, very small)
+    LEB128(object::ID_dmcp_font, 0),            // lib_mono
+    LEB128(object::ID_dmcp_font, 1),
+    LEB128(object::ID_dmcp_font, 2),
+    LEB128(object::ID_dmcp_font, 3),
+    LEB128(object::ID_dmcp_font, 4),
+    LEB128(object::ID_dmcp_font, 5),
 
-    object::ID_dmcp_font, 18,           // skr_mono
-    object::ID_dmcp_font, 21,           // skr_mono
+    LEB128(object::ID_dmcp_font, 10),           // Free42 (fixed size, very small)
+
+    LEB128(object::ID_dmcp_font, 18),           // skr_mono
+    LEB128(object::ID_dmcp_font, 21),           // skr_mono
 
 };
 
 // In the DM42 DMCP - Not fully Unicode capable
 const dmcp_font_p LibMonoFont10x17 = (dmcp_font_p) (dmcpFontRPL +  0);
-const dmcp_font_p LibMonoFont11x18 = (dmcp_font_p) (dmcpFontRPL +  2);
-const dmcp_font_p LibMonoFont12x20 = (dmcp_font_p) (dmcpFontRPL +  4);
-const dmcp_font_p LibMonoFont14x22 = (dmcp_font_p) (dmcpFontRPL +  6);
-const dmcp_font_p LibMonoFont17x25 = (dmcp_font_p) (dmcpFontRPL +  8);
-const dmcp_font_p LibMonoFont17x28 = (dmcp_font_p) (dmcpFontRPL + 10);
-const dmcp_font_p Free42Font       = (dmcp_font_p) (dmcpFontRPL + 12);
-const dmcp_font_p SkrMono13x18     = (dmcp_font_p) (dmcpFontRPL + 14);
-const dmcp_font_p SkrMono18x24     = (dmcp_font_p) (dmcpFontRPL + 16);
+const dmcp_font_p LibMonoFont11x18 = (dmcp_font_p) (dmcpFontRPL +  3);
+const dmcp_font_p LibMonoFont12x20 = (dmcp_font_p) (dmcpFontRPL +  6);
+const dmcp_font_p LibMonoFont14x22 = (dmcp_font_p) (dmcpFontRPL +  9);
+const dmcp_font_p LibMonoFont17x25 = (dmcp_font_p) (dmcpFontRPL + 12);
+const dmcp_font_p LibMonoFont17x28 = (dmcp_font_p) (dmcpFontRPL + 15);
+const dmcp_font_p Free42Font       = (dmcp_font_p) (dmcpFontRPL + 18);
+const dmcp_font_p SkrMono13x18     = (dmcp_font_p) (dmcpFontRPL + 21);
+const dmcp_font_p SkrMono18x24     = (dmcp_font_p) (dmcpFontRPL + 24);
 
 
 font_p EditorFont;

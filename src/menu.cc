@@ -617,12 +617,12 @@ MENU(LoopsMenu,
 // ----------------------------------------------------------------------------
 //   Control structures
 // ----------------------------------------------------------------------------
-     "Start",   ID_Unimplemented,
-     "StNext",  ID_Unimplemented,
-     "For",     ID_Unimplemented,
-     "ForStep", ID_Unimplemented,
-     "Until",   ID_Unimplemented,
-     "While",   ID_Unimplemented,
+     "Start",   ID_StartNext,
+     "StStep",  ID_StartStep,
+     "For",     ID_ForNext,
+     "ForStep", ID_ForStep,
+     "Until",   ID_DoUntil,
+     "While",   ID_WhileRepeat,
 
      "Compare", ID_TestsMenu,
      "Prog",    ID_ProgramMenu,

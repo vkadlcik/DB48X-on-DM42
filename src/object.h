@@ -109,6 +109,7 @@ struct renderer;
 struct object;
 struct symbol;
 struct program;
+struct input;
 
 RECORDER_DECLARE(object);
 RECORDER_DECLARE(parse);
@@ -275,6 +276,14 @@ struct object
     // ------------------------------------------------------------------------
     //   Render the object into the scratchpad, then move into the editor
     // ------------------------------------------------------------------------
+
+    result insert(input *Input, runtime &rt = RT) const
+    // ------------------------------------------------------------------------
+    //   Insert in the editor at cursor position
+    // ------------------------------------------------------------------------
+    {
+        return (object::result) run(INSERT, rt, Input);
+    }
 
 
     static object_p parse(utf8 source, size_t &size, runtime &rt = RT);

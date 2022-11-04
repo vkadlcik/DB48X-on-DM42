@@ -37,6 +37,7 @@
 #include "decimal128.h"
 #include "font.h"
 #include "functions.h"
+#include "input.h"
 #include "integer.h"
 #include "list.h"
 #include "loops.h"
@@ -247,6 +248,8 @@ OBJECT_HANDLER_BODY(object)
         return SKIP;
     case RENDER:
         return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+    case INSERT:
+        return ((input *) arg)->edit(obj->fancy(), input::PROGRAM);
     case HELP:
         return (intptr_t) "Unknown";
     case MENU_MARKER:

@@ -151,6 +151,47 @@ void input::edit(unicode c, modes m)
 }
 
 
+object::result input::edit(utf8 text, size_t len, modes m, int offset)
+// ----------------------------------------------------------------------------
+//   Enter the given text on the command line
+// ----------------------------------------------------------------------------
+{
+    bool editing = RT.editing();
+    byte *ed = RT.editor();
+
+    if (!editing)
+        cursor = 0;
+    else if ((mode != ALGEBRAIC || m != ALGEBRAIC) && ed[cursor] != ' ')
+        cursor += RT.insert(cursor, ' ');
+
+    size_t added = RT.insert(cursor, text, len);
+    cursor += added;
+
+    if (mode != ALGEBRAIC || m != ALGEBRAIC)
+        cursor += RT.insert(cursor, ' ');
+    else
+        cursor += RT.insert(cursor, utf8("()"), 2) - 1;
+
+    // Offset from beginning or end of inserted text
+    if (offset > 0 && cursor > len)
+        cursor = cursor - len + offset;
+    else if (offset < 0 && cursor > uint(-offset))
+        cursor = cursor + offset;
+
+    updateMode();
+    return added == len ? object::OK : object::ERROR;
+}
+
+
+object::result input::edit(utf8 text, modes m, int offset)
+// ----------------------------------------------------------------------------
+//   Edit a null-terminated text
+// ----------------------------------------------------------------------------
+{
+    return edit(text, strlen(cstring(text)), m, offset);
+}
+
+
 bool input::end_edit()
 // ----------------------------------------------------------------------------
 //   Clear the editor
@@ -2536,8 +2577,8 @@ bool input::handle_functions(int key)
     {
         evaluating = key;
         object::id ty = obj->type();
-        bool imm = ty >= object::FIRST_COMMAND && ty <= object::LAST_IMMEDIATE;
-        if (RT.editing() && imm)
+        bool imm = ty >= object::FIRST_IMMEDIATE && ty <= object::LAST_COMMAND;
+        if (RT.editing() && !imm)
         {
             if (key == KEY_ENTER || key == KEY_BSP)
                 return false;
@@ -2553,26 +2594,16 @@ bool input::handle_functions(int key)
                 }
             }
 
-            byte *ed = RT.editor();
             switch (mode)
             {
             case PROGRAM:
                 if (obj->is_command())
-                {
-                    if (ed[cursor] != ' ')
-                        cursor += RT.insert(cursor, ' ');
-                    cursor += RT.insert(cursor, obj->fancy());
-                    cursor += RT.insert(cursor, ' ');
-                    return true;
-                }
+                    return obj->insert(this) != object::ERROR;
                 break;
 
             case ALGEBRAIC:
                 if (obj->is_algebraic())
-                {
-                    cursor += RT.insert(cursor, obj->fancy());
-                    return true;
-                }
+                    return obj->insert(this) != object::ERROR;
                 break;
 
             default:

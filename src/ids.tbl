@@ -150,8 +150,6 @@ CMD(FreeMemory)
 CMD(SystemMemory)
 CMD(GarbageCollect)
 
-#define LAST_IMMEDIATE          ID_GarbageCollect
-
 
 // ============================================================================
 //
@@ -173,6 +171,8 @@ CMD(ForStep)
 //   Menus
 //
 // ============================================================================
+
+#define FIRST_IMMEDIATE          ID_MainMenu
 
 MENU(MainMenu)
 
@@ -269,14 +269,15 @@ ID(dmcp_font)
 //
 // ============================================================================
 
-OPCODE(EVAL)
-OPCODE(EXEC)
-OPCODE(SIZE)
-OPCODE(PARSE)
-OPCODE(RENDER)
-OPCODE(HELP)
-OPCODE(MENU)
-OPCODE(MENU_MARKER)
+OPCODE(EVAL)                    // Evaluation, no program execution
+OPCODE(EXEC)                    // Evaluation, program execution
+OPCODE(SIZE)                    // Size in byte for object
+OPCODE(PARSE)                   // Parse this object class
+OPCODE(RENDER)                  // Render object as text in a buffer
+OPCODE(INSERT)                  // Insert in editor
+OPCODE(HELP)                    // Help topic for this object
+OPCODE(MENU)                    // Insert menu entries (menu objects only)
+OPCODE(MENU_MARKER)             // Menu marker for object (e.g. directory)
 
 #undef ID
 #undef OP

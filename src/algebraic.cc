@@ -30,6 +30,7 @@
 #include "algebraic.h"
 
 #include "arithmetic.h"
+#include "input.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
@@ -58,6 +59,9 @@ OBJECT_HANDLER_BODY(algebraic)
         record(algebraic_error, "Invoked default algebraic handler");
         rt.error("Algebraic is not implemented");
         return ERROR;
+
+    case INSERT:
+        return ((input *) arg)->edit(obj->fancy(), input::ALGEBRAIC);
 
     default:
         // Check if anyone else knows how to deal with it

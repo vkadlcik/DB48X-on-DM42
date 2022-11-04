@@ -64,6 +64,8 @@ OBJECT_HANDLER_BODY(command)
         return object_parser(OBJECT_PARSER_ARG(), rt);
     case RENDER:
         return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+    case INSERT:
+        return ((input *) arg)->edit(obj->fancy(), input::PROGRAM);
     case HELP:
         return (intptr_t) obj->fancy();
 

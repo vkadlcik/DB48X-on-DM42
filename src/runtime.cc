@@ -491,7 +491,7 @@ size_t runtime::edit(utf8 buf, size_t len)
 
 size_t runtime::edit()
 // ----------------------------------------------------------------------------
-//   Append the scratchpad to the editor
+//   Append the scratchpad to the editor (at end of buffer)
 // ----------------------------------------------------------------------------
 {
     record(editor, "Editing scratch pad size %u, editor was %u",
@@ -499,7 +499,7 @@ size_t runtime::edit()
     Editing += Scratch;
     Scratch = 0;
 
-    // Remove trailing 0
+    // Remove trailing 0 if there was one
     byte *ed = editor();
     if (Editing && ed[Editing] == 0)
         Editing--;

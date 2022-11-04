@@ -74,6 +74,8 @@ struct input
         NUM_MENUS = NUM_PLANES * NUM_SOFTKEYS,
     };
 
+    using result = object::result;
+
 
     bool        key(int key, bool repeating);
     bool        repeating()     { return repeat; }
@@ -121,6 +123,8 @@ struct input
     void        clear_help();
     object_p    object_for_key(int key);
     void        edit(unicode c, modes m);
+    result      edit(utf8 s, size_t len, modes m, int off = 0);
+    result      edit(utf8 s, modes m, int off = 0);
     bool        end_edit();
     void        clear_editor();
     void        load_help(utf8 topic);

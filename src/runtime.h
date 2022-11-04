@@ -163,7 +163,7 @@ struct runtime
 
     size_t edit();
     // ------------------------------------------------------------------------
-    //   Append the scratch pad into the editor
+    //   Append the scratch pad to the editor (at end)
     // ------------------------------------------------------------------------
 
 

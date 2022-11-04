@@ -583,7 +583,7 @@ void VariablesMenu::list_variables(info &mi)
 }
 
 
-static object::result insert(int key, cstring before, cstring after)
+static object::result insert_cmd(int key, cstring before, cstring after)
 // ----------------------------------------------------------------------------
 //   Insert the name associated with the key if editing
 // ----------------------------------------------------------------------------
@@ -614,7 +614,7 @@ COMMAND_BODY(VariablesMenuExecute)
 {
     int key = Input.evaluating;
     if (RT.editing())
-        return insert(key, "", " ");
+        return insert_cmd(key, "", " ");
 
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))
@@ -633,7 +633,7 @@ COMMAND_BODY(VariablesMenuRecall)
 {
     int key = Input.evaluating;
     if (RT.editing())
-        return insert(key, "'", "' Recall ");
+        return insert_cmd(key, "'", "' Recall ");
 
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))
@@ -653,7 +653,7 @@ COMMAND_BODY(VariablesMenuStore)
 {
     int key = Input.evaluating;
     if (RT.editing())
-        return insert(key, "'", "' Store ");
+        return insert_cmd(key, "'", "' Store ");
 
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))

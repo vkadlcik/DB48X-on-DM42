@@ -33,6 +33,7 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
+#include "input.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
@@ -123,7 +124,7 @@ object::result loop::object_parser(id       type,
         {
             // Skip spaces
             unicode cp = utf8_codepoint(s);
-            if (cp == ' ' || cp == '\n')
+            if (cp == ' ' || cp == '\n' || cp == '\t')
             {
                 s = utf8_next(s);
                 continue;
@@ -166,10 +167,15 @@ object::result loop::object_parser(id       type,
             RT.error("Unterminated loop", utf8(p.source));
             return ERROR;
         }
+        else if (step == 0)
+        {
+            continue;
+        }
+
 
         // Create the program object for condition or body
         size_t alloc  = rt.allocated() - prealloc;
-        object_p prog = rt.make<program>(type, scratch, alloc);
+        object_p prog = rt.make<program>(ID_block, scratch, alloc);
         rt.free(alloc);
         condsize = bodysize;
         bodysize = prog->size();
@@ -309,6 +315,10 @@ OBJECT_HANDLER_BODY(DoUntil)
     case RENDER:
         return obj->loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
                                           "do", "end", "until");
+
+    case INSERT:
+        return ((input *) arg)->edit(utf8("do  until  end"), input::PROGRAM, 3);
+
     case HELP:
         return (intptr_t) "DoUntilLoop";
 
@@ -373,6 +383,11 @@ OBJECT_HANDLER_BODY(WhileRepeat)
     case RENDER:
         return obj->loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
                                           "while", "end", "repeat");
+
+    case INSERT:
+        return ((input *) arg)->edit(utf8("while  repeat  end"),
+                                     input::PROGRAM, 6);
+
     case HELP:
         return (intptr_t) "WhileRepeat";
 
@@ -436,6 +451,9 @@ OBJECT_HANDLER_BODY(StartNext)
     case RENDER:
         return obj->loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
                                           "start", "next");
+    case INSERT:
+        return ((input *) arg)->edit(utf8("start  next"), input::PROGRAM, 6);
+
     case HELP:
         return (intptr_t) "StartNextLoop";
 
@@ -539,6 +557,10 @@ OBJECT_HANDLER_BODY(StartStep)
     case RENDER:
         return obj->loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
                                           "start", "step");
+
+    case INSERT:
+        return ((input *) arg)->edit(utf8("start  step"), input::PROGRAM, 6);
+
     case HELP:
         return (intptr_t) "StartStepLoop";
 
@@ -587,6 +609,10 @@ OBJECT_HANDLER_BODY(ForNext)
     case RENDER:
         return obj->loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
                                           "for", "next");
+
+    case INSERT:
+        return ((input *) arg)->edit(utf8("for  next"), input::PROGRAM, 4);
+
     case HELP:
         return (intptr_t) "ForNextLoop";
 
@@ -635,6 +661,9 @@ OBJECT_HANDLER_BODY(ForStep)
     case RENDER:
         return obj->loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
                                           "for", "step");
+    case INSERT:
+        return ((input *) arg)->edit(utf8("for  step"), input::PROGRAM, 4);
+
     case HELP:
         return (intptr_t) "ForStepLoop";
 

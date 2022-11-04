@@ -108,7 +108,7 @@ object::result list::object_parser(id type,
             s = utf8_next(s);
             break;
         }
-        if (cp == ' ' || cp == '\n')
+        if (cp == ' ' || cp == '\n' || cp == '\t')
         {
             s = utf8_next(s);
             continue;
@@ -169,12 +169,15 @@ intptr_t list::object_renderer(renderer &r, runtime &rt,
 
     // Write the header, e.g. "{ "
     byte buffer[4];
-    size_t rendered = utf8_encode(open, buffer);
-    for (size_t i = 0; i < rendered; i++)
+    if (open)
     {
-        if (idx < available)
+        size_t rendered = utf8_encode(open, buffer);
+        for (size_t i = 0; i < rendered; i++)
+        {
+            if (idx < available)
             dst[idx] = buffer[i];
-        idx++;
+            idx++;
+        }
     }
 
     // Loop on all objects inside the list
@@ -205,12 +208,15 @@ intptr_t list::object_renderer(renderer &r, runtime &rt,
     idx++;
 
     // Add closing separator
-    rendered = utf8_encode(close, buffer);
-    for (size_t i = 0; i < rendered; i++)
+    if (close)
     {
-        if (idx < available)
-            dst[idx] = buffer[i];
-        idx++;
+        size_t rendered = utf8_encode(close, buffer);
+        for (size_t i = 0; i < rendered; i++)
+        {
+            if (idx < available)
+                dst[idx] = buffer[i];
+            idx++;
+        }
     }
 
     return idx;
@@ -336,6 +342,47 @@ program_p program::parse(utf8 source, size_t size)
     return prog;
 }
 
+
+
+// ============================================================================
+//
+//    Block
+//
+// ============================================================================
+
+OBJECT_HANDLER_BODY(block)
+// ----------------------------------------------------------------------------
+//    Handle commands for blocks
+// ----------------------------------------------------------------------------
+{
+    switch(op)
+    {
+    case EXEC:
+    case EVAL:
+        return obj->execute(rt);
+    case SIZE:
+        return size(obj, payload);
+    case PARSE:
+        return SKIP;
+    case RENDER:
+        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+    case HELP:
+        return (intptr_t) "block";
+
+    default:
+        // Check if anyone else knows how to deal with it
+        return DELEGATE(program);
+    }
+}
+
+
+OBJECT_RENDERER_BODY(block)
+// ----------------------------------------------------------------------------
+//   Render the program into the given program buffer
+// ----------------------------------------------------------------------------
+{
+    return list::object_renderer(r, rt, 0, 0);
+}
 
 
 // ============================================================================

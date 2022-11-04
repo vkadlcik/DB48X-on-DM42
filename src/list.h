@@ -93,6 +93,20 @@ struct program : list
 typedef const program *program_p;
 
 
+struct block : program
+// ----------------------------------------------------------------------------
+//   A block inside a program, e.g. in loops
+// ----------------------------------------------------------------------------
+{
+    block(gcbytes bytes, size_t len, id type = ID_block)
+        : program(bytes, len, type) {}
+
+    OBJECT_HANDLER(block);
+    OBJECT_RENDERER(block);
+};
+typedef const block *block_p;
+
+
 struct equation : program
 // ----------------------------------------------------------------------------
 //   An equation is a program with ' and ' as delimiters

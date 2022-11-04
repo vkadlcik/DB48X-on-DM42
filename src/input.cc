@@ -97,7 +97,19 @@ input::input()
       dynamicMenu(false),
       autoComplete(false),
       helpfile()
-{}
+{
+    for (uint p = 0; p < NUM_PLANES; p++)
+    {
+        for (uint k = 0; k < NUM_KEYS; k++)
+            function[p][k] = nullptr;
+        for (uint k = 0; k < NUM_SOFTKEYS; k++)
+        {
+            menu_label[p][k] = nullptr;
+            menu_marker[p][k] = 0;
+            menu_marker_align[p][k] = false;
+        }
+    }
+}
 
 
 void input::edit(unicode c, modes m)

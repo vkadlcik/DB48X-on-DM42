@@ -696,7 +696,7 @@ int input::draw_menus(uint time, uint &period)
                 {
                     x = x - tw / 2;
                 }
-                coord ty = mrect.y1 - 2;
+                coord ty = mrect.y1 - 3;
                 Screen.text(x, ty, label, len, font, color);
                 if (marker)
                     Screen.glyph(mkx, ty, marker, font, color);

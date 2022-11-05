@@ -158,7 +158,7 @@ void font_defaults()
     HeaderFont       = LibMonoFont10x17;
     CursorFont       = LibMonoFont17x25;
     ErrorFont        = SkrMono13x18;
-    MenuFont         = LibMonoFont10x17;
+    MenuFont         = HelpFont;
 
     HelpBoldFont     = HelpFont;
     HelpItalicFont   = HelpFont;

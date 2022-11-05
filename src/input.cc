@@ -703,7 +703,7 @@ int input::draw_menus(uint time, uint &period)
                 coord ty = mrect.y1 - 3;
                 Screen.text(x, ty, label, len, font, color);
                 if (marker)
-                    Screen.glyph(mkx, ty, marker, font, color);
+                    Screen.glyph(mkx, ty - 2 * (marker == L'◥'), marker, font, color);
                 Screen.clip(clip);
             }
         }

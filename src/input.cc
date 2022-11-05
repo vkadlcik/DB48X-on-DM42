@@ -615,6 +615,7 @@ int input::draw_menus(uint time, uint &period)
     int    mw    = (LCD_W - 10) / 6;
     int    sp    = (LCD_W - 5) - 6 * mw;
     rect   clip  = Screen.clip();
+    bool   help  = showingHelp();
 
     static unsigned menuShift = 0;
     menuShift++;
@@ -625,7 +626,7 @@ int input::draw_menus(uint time, uint &period)
     for (int plane = 0; plane < planes; plane++)
     {
         cstring *labels = menu_label[plane];
-        if (showingHelp())
+        if (help)
         {
             static cstring helpMenu[] =
             {
@@ -678,12 +679,15 @@ int input::draw_menus(uint time, uint &period)
                 }
 
                 // Check if we have a marker from VariablesMenu
-                if (unicode mark = menu_marker[plane][m])
+                if (!help)
                 {
-                    bool alignLeft = menu_marker_align[plane][m];
-                    marker = mark;
-                    mkw = font->width(marker);
-                    mkx = alignLeft ? x - mw/2 : x + mw/2 - mkw;
+                    if (unicode mark = menu_marker[plane][m])
+                    {
+                        bool alignLeft = menu_marker_align[plane][m];
+                        marker = mark;
+                        mkw = font->width(marker);
+                        mkx = alignLeft ? x - mw/2 : x + mw/2 - mkw;
+                    }
                 }
 
                 size tw = font->width(label, len);

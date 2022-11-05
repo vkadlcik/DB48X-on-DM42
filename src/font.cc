@@ -515,7 +515,6 @@ bool dmcp_font::glyph(unicode utf8cp, glyph_info &g) const
 //   That's because it has a single range and a direct access already.
 {
     // Map Unicode code points to corresonding entry in DMCP charset
-    byte_p synthesized = nullptr;
     unicode codepoint = utf8cp;
     switch(codepoint)
     {
@@ -525,7 +524,7 @@ bool dmcp_font::glyph(unicode utf8cp, glyph_info &g) const
     case L'∫': codepoint = 0x83; break;
     case L'░': codepoint = 0x84; break;
     case L'Σ': codepoint = 0x85; break;
-    case L'▶': codepoint = 0x86; break;
+        // case L'▶': codepoint = 0x86; break;
     case L'π': codepoint = 0x87; break;
     case L'¿': codepoint = 0x88; break;
     case L'≤': codepoint = 0x89; break;
@@ -553,116 +552,6 @@ bool dmcp_font::glyph(unicode utf8cp, glyph_info &g) const
     case L'■': codepoint = 0x9F; break;
     case L'▼': codepoint = 0xA0; break;
     case L'▲': codepoint = 0xA1; break;
-    case L'◀':
-    {
-        // Invent this character for the font
-        static const byte bitmap[] = {
-            0x02,               // ------*-
-            0x0E,               // ----***-
-            0x3E,               // --*****-
-            0xFE,               // *******-
-            0x3E,               // --*****-
-            0x0E,               // ----***-
-            0x02,               // ------*-
-            0x00,               // --------
-        };
-        synthesized = bitmap;
-        break;
-    }
-    case L'«':
-    {
-        // Invent this character for the font
-        static const byte bitmap[] = {
-            0x05,               // ----*-*-
-            0x0A,               // ---*-*--
-            0x14,               // --*-*---
-            0x28,               // -*-*----
-            0x14,               // --*-*---
-            0x0A,               // ---*-*--
-            0x05,               // ----*-*-
-            0x00,               // --------
-        };
-        synthesized = bitmap;
-        break;
-    }
-    case L'»':
-    {
-        // Invent this character for the font
-        static const byte bitmap[] = {
-            0x50,               // -*-*----
-            0x28,               // --*-*---
-            0x14,               // ---*-*--
-            0x0A,               // ----*-*-
-            0x14,               // ---*-*--
-            0x28,               // --*-*---
-            0x50,               // -*-*----
-            0x00,               // --------
-        };
-        synthesized = bitmap;
-        break;
-    }
-    case L'⇆':
-    {
-        // Invent this character for the font
-        static const byte bitmap[] = {
-            0x40,               // -*------
-            0x70,               // -***----
-            0x7C,               // -*****--
-            0x71,               // -***---*
-            0x43,               // -*---***
-            0x1F,               // ---*****
-            0x03,               // -----***
-            0x01,               // -------*
-        };
-        synthesized = bitmap;
-        break;
-    }
-    case L'⁻':
-    {
-        static const byte bitmap[] = {
-            0x00,               // --------
-            0x00,               // --------
-            0x7E,               // -******-
-            0x00,               // --------
-            0x00,               // --------
-            0x00,               // --------
-            0x00,               // --------
-            0x00,               // --------
-        };
-        synthesized = bitmap;
-        break;
-    }
-    case L'¹':
-    {
-        static const byte bitmap[] = {
-            0x20,               // --*-----
-            0x60,               // -**-----
-            0x20,               // --*-----
-            0x20,               // --*-----
-            0x70,               // -***----
-            0x00,               // --------
-            0x00,               // --------
-            0x00,               // --------
-        };
-        synthesized = bitmap;
-        break;
-    }
-    case L'◥':
-    {
-        static const byte bitmap[] = {
-            0xFE,               // *******-
-            0x7E,               // -******-
-            0x3E,               // --*****-
-            0x1E,               // ---****-
-            0x0E,               // ----***-
-            0x06,               // -----**-
-            0x02,               // ------*-
-            0x00,               // --------
-        };
-        synthesized = bitmap;
-        break;
-    }
-
     default:
         break;
     }
@@ -680,26 +569,26 @@ bool dmcp_font::glyph(unicode utf8cp, glyph_info &g) const
     uint               last     = first + count;
     if (codepoint < first || codepoint >= last)
     {
-        if (synthesized)
+        font_p alternate = HelpFont;
+        switch (fontnr)
         {
-            // Special case of characters we synthesize
-            uint synthesized_y = codepoint == L'◥' ? 1 : (f->height - 8) / 2;
-            g.bitmap = synthesized;
-            g.bx = 0;
-            g.by = 0;
-            g.bw = 8;
-            g.bh = 8;
-            g.x =  0;
-            g.y =  synthesized_y;
-            g.w =  8;
-            g.h =  8;
-            g.advance = g.w;
-            return true;
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            alternate = StackFont;
+            break;
+        case 18:
+        case 21:
+            alternate = HelpFont;
+            break;
+        case 24:
+            alternate = StackFont;
+            break;
         }
-
-        record(dmcp_fonts, "Code point %u not found (utf8 %u)",
+        record(dmcp_fonts, "Code point %u not found (utf8 %u), using alternate",
                codepoint, utf8cp);
-        return false;
+        return alternate->glyph(codepoint, g);
     }
 
     // Get font and glyph properties

@@ -2669,9 +2669,9 @@ bool input::currentWord(utf8 &start, size_t &size)
         byte *ed = RT.editor();
         uint  c  = cursor;
         c = utf8_previous(ed, c);
-        while (c > 0 && !command::is_separator(ed + c))
+        while (c > 0 && !command::is_separator_or_digit(ed + c))
             c = utf8_previous(ed, c);
-        if (command::is_separator(ed + c))
+        if (command::is_separator_or_digit(ed + c))
             c = utf8_next(ed, c, sz);
         uint spos = c;
         while (c < sz && !command::is_separator(ed + c))

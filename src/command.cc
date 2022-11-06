@@ -202,6 +202,29 @@ bool command::is_separator(unicode code)
 //   Check if the code point at given string is a separator
 // ----------------------------------------------------------------------------
 {
+    static utf8 separators = utf8(" ;,.'\"<=>≤≠≥[](){}«»");
+    for (utf8 p = separators; *p; p = utf8_next(p))
+        if (code == utf8_codepoint(p))
+            return true;
+    return false;
+}
+
+
+bool command::is_separator_or_digit(utf8 str)
+// ----------------------------------------------------------------------------
+//   Check if the code point at given string is a separator
+// ----------------------------------------------------------------------------
+{
+    unicode code = utf8_codepoint(str);
+    return is_separator(code);
+}
+
+
+bool command::is_separator_or_digit(unicode code)
+// ----------------------------------------------------------------------------
+//   Check if the code point at given string is a separator
+// ----------------------------------------------------------------------------
+{
     static utf8 separators = utf8(" ;,.'\"<=>≤≠≥[](){}«»0123456789⁳");
     for (utf8 p = separators; *p; p = utf8_next(p))
         if (code == utf8_codepoint(p))

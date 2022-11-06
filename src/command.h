@@ -69,7 +69,8 @@ struct command : object
     // Check if a code point or text is a separator
     static bool is_separator(unicode code);
     static bool is_separator(utf8 str);
-
+    static bool is_separator_or_digit(unicode code);
+    static bool is_separator_or_digit(utf8 str);
 
     // Standard object interface
     OBJECT_PARSER(command);

@@ -48,7 +48,33 @@ RECORDER(loop, 16, "Loops");
 RECORDER(loop_errors, 16, "Errors processing loops");
 
 
-object::result loop::condition(bool &value) const
+loop::loop(gcobj body, id type)
+// ----------------------------------------------------------------------------
+//   Constructor for loops
+// ----------------------------------------------------------------------------
+    : command(type)
+{
+    byte *p = payload();
+    size_t bsize = body->size();
+    memmove(p, byte_p(body), bsize);
+}
+
+
+conditional_loop::conditional_loop(gcobj first, gcobj second, id type)
+// ----------------------------------------------------------------------------
+//   Constructor for conditional loops
+// ----------------------------------------------------------------------------
+    : loop(first, type)
+{
+    size_t fsize = first->size();
+    byte *p = payload() + fsize;
+    size_t ssize = second->size();
+    memmove(p, byte_p(second), ssize);
+}
+
+
+
+object::result conditional_loop::condition(bool &value) const
 // ----------------------------------------------------------------------------
 //   Check if the stack is a true condition
 // ----------------------------------------------------------------------------
@@ -86,8 +112,64 @@ object::result loop::object_parser(id       type,
                                    parser  &p,
                                    runtime &rt,
                                    cstring  open,
-                                   cstring  close,
-                                   cstring  middle)
+                                   cstring  close)
+// ----------------------------------------------------------------------------
+//   Call object parser with two separators
+// ----------------------------------------------------------------------------
+{
+    cstring seps[] = { open, close };
+    return loop::object_parser(type, p, rt, 2, seps);
+}
+
+
+intptr_t loop::object_renderer(renderer &r,
+                               runtime  &rt,
+                               cstring   open,
+                               cstring   close) const
+// ----------------------------------------------------------------------------
+//   Call object renderer with two separators
+// ----------------------------------------------------------------------------
+{
+    cstring seps[] = { open, close };
+    return loop::object_renderer(r, rt, 2, seps);
+}
+
+
+object::result conditional_loop::object_parser(id       type,
+                                               parser  &p,
+                                               runtime &rt,
+                                               cstring  open,
+                                               cstring  middle,
+                                               cstring  close)
+// ----------------------------------------------------------------------------
+//   Call object parser with two separators
+// ----------------------------------------------------------------------------
+{
+    cstring seps[] = { open, middle, close };
+    return loop::object_parser(type, p, rt, 3, seps);
+}
+
+
+intptr_t conditional_loop::object_renderer(renderer &r,
+                                           runtime  &rt,
+                                           cstring   open,
+                                           cstring   middle,
+                                           cstring   close) const
+// ----------------------------------------------------------------------------
+//   Call object renderer with two separators
+// ----------------------------------------------------------------------------
+{
+    cstring seps[] = { open, middle, close };
+    return loop::object_renderer(r, rt, 3, seps);
+}
+
+
+
+object::result loop::object_parser(id       type,
+                                   parser  &p,
+                                   runtime &rt,
+                                   uint     steps,
+                                   cstring  separators[])
 // ----------------------------------------------------------------------------
 //   Generic parser for loops
 // ----------------------------------------------------------------------------
@@ -95,48 +177,40 @@ object::result loop::object_parser(id       type,
 //   may allocate new temporaries, which itself may cause garbage collection.
 {
     // We have to be careful that we may have to GC to make room for loop
-    gcutf8  s             = p.source;
-    cstring separators[3] = { open, middle, close };
-    uint    steps         = middle ? 3 : 2;
-    size_t  max           = p.length;
-    size_t  len           = max;
-    size_t  prealloc      = rt.allocated();
-    gcbytes scratch       = rt.scratchpad() + prealloc;
-    size_t  condsize      = 0;
-    size_t  bodysize      = 0;
-    size_t  size          = 0;
-    gcobj   condition     = nullptr;
-    gcobj   body          = nullptr;
-
-    if (!middle)
-        separators[1] = separators[2];
+    gcutf8  src      = p.source;
+    size_t  max      = p.length;
+    size_t  len      = max;
+    size_t  prealloc = rt.allocated();
+    gcbytes scratch  = rt.scratchpad() + prealloc;
+    gcobj   obj1     = nullptr;
+    gcobj   obj2     = nullptr;
 
     // Loop over the two or three separators
     for (uint step = 0;
-         step < steps && size_t(utf8(s) - utf8(p.source)) < max;
+         step < steps && size_t(utf8(src) - utf8(p.source)) < max;
          step++)
     {
         cstring sep   = cstring(separators[step]);
         bool    found = false;
 
         // Scan the body of the loop
-        while (!found && size_t(utf8(s) - utf8(p.source)) < max)
+        while (!found && size_t(utf8(src) - utf8(p.source)) < max)
         {
             // Skip spaces
-            unicode cp = utf8_codepoint(s);
+            unicode cp = utf8_codepoint(src);
             if (cp == ' ' || cp == '\n' || cp == '\t')
             {
-                s = utf8_next(s);
+                src = utf8_next(src);
                 continue;
             }
 
             // Check if we have the separator
             len = strlen(sep);
             if (len <= max
-                && strncasecmp(cstring(utf8(s)), sep, len) == 0
-                && (len >= max || command::is_separator(utf8(s) + len)))
+                && strncasecmp(cstring(utf8(src)), sep, len) == 0
+                && (len >= max || command::is_separator(utf8(src) + len)))
             {
-                s += len;
+                src += len;
                 found = true;
                 continue;
             }
@@ -146,9 +220,9 @@ object::result loop::object_parser(id       type,
                 return SKIP;
 
             // Parse an object
-            size_t done = utf8(s) - utf8(p.source);
+            size_t done = utf8(src) - utf8(p.source);
             size_t length = max > done ? max - done : 0;
-            gcobj obj = object::parse(s, length);
+            gcobj obj = object::parse(src, length);
             if (!obj)
                 return ERROR;
 
@@ -158,7 +232,7 @@ object::result loop::object_parser(id       type,
             memmove(objcopy, (byte *) obj, objsize);
 
             // Jump past what we parsed
-            s = utf8(s) + length;
+            src = utf8(src) + length;
         }
 
         if (!found)
@@ -169,6 +243,7 @@ object::result loop::object_parser(id       type,
         }
         else if (step == 0)
         {
+            // If we matched the first word ('for', 'start', etc), no object
             continue;
         }
 
@@ -177,29 +252,17 @@ object::result loop::object_parser(id       type,
         size_t alloc  = rt.allocated() - prealloc;
         object_p prog = rt.make<program>(ID_block, scratch, alloc);
         rt.free(alloc);
-        condsize = bodysize;
-        bodysize = prog->size();
-        if (step == steps - 1)
-            body = prog;
+        if (step == 1)
+            obj1 = prog;
         else
-            condition = prog;
-        size += bodysize;
+            obj2 = prog;
     }
 
-    // Allocate the loop
-    byte *buf = rt.allocate(size);
-    byte *ptr = buf;
-    if (condition)
-    {
-        memmove(ptr, object_p(condition), condsize);
-        ptr += condsize;
-    }
-    memmove(ptr, object_p(body), bodysize);
-
-    size_t parsed = utf8(s) - utf8(p.source);
+    size_t parsed = utf8(src) - utf8(p.source);
     p.end         = parsed;
-    p.out         = rt.make<loop>(type, scratch, size);
-    rt.free(size);
+    p.out         = steps == 2
+        ? rt.make<loop>(type, obj1)
+        : rt.make<conditional_loop>(type, obj1, obj2);
 
     return OK;
 }
@@ -239,53 +302,52 @@ static inline void indent(byte *dst, size_t &idx, size_t available, uint indent)
 
 intptr_t loop::object_renderer(renderer &r,
                                runtime  &rt,
-                               cstring   open,
-                               cstring   close,
-                               cstring   middle) const
+                               uint      nseps,
+                               cstring   separators[]) const
 // ----------------------------------------------------------------------------
 //   Render the loop into the given buffer
 // ----------------------------------------------------------------------------
 {
     // Source objects
     byte_p p    = payload();
-    size_t size = leb128<size_t>(p);
 
     // Isolate condition and body
-    object_p condition = middle ? object_p(p) : nullptr;
-    object_p body = condition ? condition->skip() : object_p(p);
+    object_p first = object_p(p);
+    object_p second = nseps == 3 ? first->skip() : nullptr;
 
     // Destination buffer
     size_t idx = 0;
     size_t available = r.length;
     byte * dst = r.target;
+    uint sep = 0;
 
     // Write the header, e.g. "DO", and indent condition
     indent(dst, idx, available, r.indent);
-    put(dst, idx, available, open);
+    put(dst, idx, available, separators[sep++]);
     indent(dst, idx, available, ++r.indent);
 
-    // Emit the condition
+    // Emit the first object (e.g. condition in do-until)
     size_t remaining = r.length > idx ? r.length - idx : 0;
-    if (condition)
-    {
-        idx += condition->render((char *) dst + idx, remaining, rt);
+    idx += first->render((char *) dst + idx, remaining, rt);
 
+    // Emit the second object if there is one
+    if (second)
+    {
         // Emit separator after condition
         indent(dst, idx, available, --r.indent);
-        put(dst, idx, available, middle);
+        put(dst, idx, available, separators[sep++]);
         indent(dst, idx, available, ++r.indent);
-    }
 
-    // Emit body
-    remaining = r.length > idx ? r.length - idx : 0;
-    idx += body->render((char *) dst + idx, remaining, rt);
+        remaining = r.length > idx ? r.length - idx : 0;
+        idx += second->render((char *) dst + idx, remaining, rt);
+
+    }
 
     // Emit closing separator
     indent(dst, idx, available, --r.indent);
-    put(dst, idx, available, close);
+    put(dst, idx, available, separators[sep++]);
     indent(dst, idx, available, r.indent);
 
-    size = size + 0;
     return idx;
 }
 
@@ -310,11 +372,12 @@ OBJECT_HANDLER_BODY(DoUntil)
     case SIZE:
         return size(obj, payload);
     case PARSE:
-        return loop::object_parser(ID_DoUntil, OBJECT_PARSER_ARG(), rt,
-                                   "do", "end", "until");
+        return conditional_loop::object_parser(ID_DoUntil,
+                                               OBJECT_PARSER_ARG(), rt,
+                                               "do", "until", "end");
     case RENDER:
-        return obj->loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
-                                          "do", "end", "until");
+        return obj->conditional_loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
+                                                      "do", "until", "end");
 
     case INSERT:
         return ((input *) arg)->edit(utf8("do  until  end"), input::PROGRAM, 3);
@@ -336,7 +399,6 @@ object::result DoUntil::execute(runtime &rt) const
 //   In this loop, the body comes first
 {
     byte  *p       = (byte *) payload();
-    size_t len     = leb128<size_t>(p);
     gcobj  body    = object_p(p);
     gcobj  cond    = body->skip();
     result r       = OK;
@@ -354,7 +416,6 @@ object::result DoUntil::execute(runtime &rt) const
         if (r != OK || test)
             break;
     }
-    len = len + 0;
     return r;
 }
 
@@ -378,11 +439,12 @@ OBJECT_HANDLER_BODY(WhileRepeat)
     case SIZE:
         return size(obj, payload);
     case PARSE:
-        return loop::object_parser(ID_WhileRepeat, OBJECT_PARSER_ARG(), rt,
-                                   "while", "end", "repeat");
+        return conditional_loop::object_parser(ID_WhileRepeat,
+                                               OBJECT_PARSER_ARG(), rt,
+                                               "while", "end", "repeat");
     case RENDER:
-        return obj->loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
-                                          "while", "end", "repeat");
+        return obj->conditional_loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
+                                                      "while", "end", "repeat");
 
     case INSERT:
         return ((input *) arg)->edit(utf8("while  repeat  end"),
@@ -405,7 +467,6 @@ object::result WhileRepeat::execute(runtime &rt) const
 //   In this loop, the condition comes first
 {
     byte  *p       = (byte *) payload();
-    size_t len     = leb128<size_t>(p);
     gcobj  cond    = object_p(p);
     gcobj  body    = cond->skip();
     result r       = OK;
@@ -421,7 +482,6 @@ object::result WhileRepeat::execute(runtime &rt) const
             break;
         r = body->evaluate(rt);
     }
-    len = len + 0;
     return r;
 }
 
@@ -526,9 +586,7 @@ object::result StartNext::execute(runtime &rt) const
 // ----------------------------------------------------------------------------
 {
     byte    *p    = (byte *) payload();
-    size_t   len  = leb128<size_t>(p);
     object_p body = object_p(p);
-    len = len + 0;
     return counted(body, rt, false);
 }
 
@@ -577,9 +635,7 @@ object::result StartStep::execute(runtime &rt) const
 // ----------------------------------------------------------------------------
 {
     byte    *p    = (byte *) payload();
-    size_t   len  = leb128<size_t>(p);
     object_p body = object_p(p);
-    len = len + 0;
     return counted(body, rt, true);
 }
 
@@ -629,9 +685,7 @@ object::result ForNext::execute(runtime &rt) const
 // ----------------------------------------------------------------------------
 {
     byte    *p    = (byte *) payload();
-    size_t   len  = leb128<size_t>(p);
     object_p body = object_p(p);
-    len = len + 0;
     return counted(body, rt, false);
 }
 
@@ -680,8 +734,6 @@ object::result ForStep::execute(runtime &rt) const
 // ----------------------------------------------------------------------------
 {
     byte    *p    = (byte *) payload();
-    size_t   len  = leb128<size_t>(p);
     object_p body = object_p(p);
-    len = len + 0;
     return counted(body, rt, true);
 }

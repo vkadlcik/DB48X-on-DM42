@@ -38,33 +38,79 @@
 //   - Body object, typically a program, which is executed repeatedly
 
 
-#include "list.h"
+#include "command.h"
 
-struct loop : program
+struct loop : command
 // ----------------------------------------------------------------------------
 //    Loop structures
 // ----------------------------------------------------------------------------
 {
-    loop(gcbytes bytes, size_t len, id type): program(bytes, len, type) {}
-
+    loop(gcobj body, id type);
     result condition(bool &value) const;
+
+    static size_t required_memory(id i, gcobj body)
+    {
+        return leb128size(i) + body->size();
+    }
+
+    static intptr_t size(object_p obj, object_p payload)
+    {
+        payload = payload->skip();
+        return ptrdiff(payload, obj);
+    }
+
+    static bool interrupted()   { return program::interrupted(); }
 
 protected:
     // Shared code for parsing and rendering, taking delimiters as input
     intptr_t object_renderer(renderer &r, runtime &rt,
-                             cstring beg, cstring end, cstring mid = 0) const;
+                             uint nsep, cstring seps[]) const;
     static result object_parser(id type, parser UNUSED &p, runtime &rt,
-                                cstring beg, cstring end, cstring mid = 0);
+                                uint nsep, cstring seps[]);
+    intptr_t object_renderer(renderer &r, runtime &rt,
+                             cstring beg, cstring end) const;
+    static result object_parser(id type, parser UNUSED &p, runtime &rt,
+                                cstring beg, cstring end);
     static result counted(gcobj body, runtime &rt, bool stepping);
 };
 
 
-struct DoUntil : loop
+struct conditional_loop : loop
+// ----------------------------------------------------------------------------
+//    Loop structures
+// ----------------------------------------------------------------------------
+{
+    conditional_loop(gcobj condition, gcobj body, id type);
+    result condition(bool &value) const;
+
+    static size_t required_memory(id i, gcobj condition, gcobj body)
+    {
+        return leb128size(i) + condition->size() + body->size();
+    }
+
+    static intptr_t size(object_p obj, object_p payload)
+    {
+        payload = payload->skip()->skip();
+        return ptrdiff(payload, obj);
+    }
+
+protected:
+    // Shared code for parsing and rendering, taking delimiters as input
+    intptr_t object_renderer(renderer &r, runtime &rt,
+                             cstring beg, cstring mid, cstring end) const;
+    static result object_parser(id type, parser UNUSED &p, runtime &rt,
+                                cstring beg, cstring mid, cstring end);
+    static result counted(gcobj body, runtime &rt, bool stepping);
+};
+
+
+struct DoUntil : conditional_loop
 // ----------------------------------------------------------------------------
 //   do...until...end loop
 // ----------------------------------------------------------------------------
 {
-    DoUntil(gcbytes bytes, size_t len, id type): loop(bytes, len, type) {}
+    DoUntil(gcobj condition, gcobj body, id type)
+        : conditional_loop(condition, body, type) {}
 
     result execute(runtime &rt) const;
     OBJECT_HANDLER(DoUntil);
@@ -73,12 +119,13 @@ struct DoUntil : loop
 };
 
 
-struct WhileRepeat : loop
+struct WhileRepeat : conditional_loop
 // ----------------------------------------------------------------------------
 //   while...repeat...end loop
 // ----------------------------------------------------------------------------
 {
-    WhileRepeat(gcbytes bytes, size_t len, id type): loop(bytes, len, type) {}
+    WhileRepeat(gcobj condition, gcobj body, id type)
+        : conditional_loop(condition, body, type) {}
 
     result execute(runtime &rt) const;
     OBJECT_HANDLER(WhileRepeat);
@@ -92,7 +139,7 @@ struct StartNext : loop
 //   start..next loop
 // ----------------------------------------------------------------------------
 {
-    StartNext(gcbytes bytes, size_t len, id type): loop(bytes, len, type) {}
+    StartNext(gcobj body, id type): loop(body, type) {}
 
     result execute(runtime &rt) const;
     OBJECT_HANDLER(StartNext);
@@ -106,7 +153,7 @@ struct StartStep : StartNext
 //   start..step loop
 // ----------------------------------------------------------------------------
 {
-    StartStep(gcbytes by, size_t len, id type): StartNext(by, len, type) {}
+    StartStep(gcobj body, id type): StartNext(body, type) {}
 
     result execute(runtime &rt) const;
     OBJECT_HANDLER(StartStep);
@@ -120,7 +167,7 @@ struct ForNext : StartNext
 //   for..next loop
 // ----------------------------------------------------------------------------
 {
-    ForNext(gcbytes bytes, size_t len, id type): StartNext(bytes, len, type) {}
+    ForNext(gcobj body, id type): StartNext(body, type) {}
 
     result execute(runtime &rt) const;
     OBJECT_HANDLER(ForNext);
@@ -134,7 +181,7 @@ struct ForStep : ForNext
 //   for..step loop
 // ----------------------------------------------------------------------------
 {
-    ForStep(gcbytes bytes, size_t len, id type): ForNext(bytes, len, type) {}
+    ForStep(gcobj body, id type): ForNext(body, type) {}
 
     result execute(runtime &rt) const;
     OBJECT_HANDLER(ForStep);

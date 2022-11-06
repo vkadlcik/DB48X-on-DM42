@@ -1860,12 +1860,15 @@ bool input::handle_help(int &key)
     {
         // Exit if we are editing or entering digits
         bool editing  = RT.editing();
-        if (last == KEY_SHIFT || noHelpForKey(key))
+        if (last == KEY_SHIFT)
             return false;
 
         // Check if we have a long press, if so load corresponding help
         if (key)
         {
+            if (noHelpForKey(key))
+                return false;
+
             record(help,
                    "Looking for help topic for key %d, long = %d shift=%d\n",
                    key, longpress, shift_plane());

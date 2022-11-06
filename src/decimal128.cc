@@ -357,12 +357,13 @@ void decimal_format(char *str, size_t len, int digits)
             if (ovfl)
             {
                 // Retry -
-                sprintf(s,
-                        "%c1%c%c%i",
-                        ms ? '-' : '+',
-                        'E',
-                        exp < 0 ? '-' : '+',
-                        abs(exp + 1));
+                snprintf(s,
+                         s + sizeof(s)-1 - ep,
+                         "%c1%c%c%i",
+                         ms ? '-' : '+',
+                         'E',
+                         exp < 0 ? '-' : '+',
+                         abs(exp + 1));
                 continue;
             }
             if (mode == settings::display::NORMAL)

@@ -224,7 +224,11 @@ object::result loop::object_parser(id       type,
             size_t length = max > done ? max - done : 0;
             gcobj obj = object::parse(src, length);
             if (!obj)
+            {
+                size_t alloc  = rt.allocated() - prealloc;
+                rt.free(alloc);
                 return ERROR;
+            }
 
             // Copy the parsed object to the scratch pad (may GC)
             size_t objsize = obj->size();
@@ -239,6 +243,8 @@ object::result loop::object_parser(id       type,
         {
             // If we did not find the terminator, we reached end of text
             RT.error("Unterminated loop", utf8(p.source));
+            size_t alloc  = rt.allocated() - prealloc;
+            rt.free(alloc);
             return ERROR;
         }
         else if (step == 0)

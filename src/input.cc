@@ -338,7 +338,7 @@ bool input::key(int key, bool repeating)
 
     if (key && result)
         blink = true; // Show cursor if things changed
-    if (!key && result)
+    if (!skey)
         command = nullptr;
 
     // Refresh the variables menu

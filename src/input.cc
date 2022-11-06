@@ -848,6 +848,13 @@ void input::draw_editor()
     bool found  = false;
 
     for (utf8 p = ed; p < last; p = utf8_next(p))
+        if (*p == '\n')
+            rows++;
+    if (rows > 2)
+        font = StackFont;
+
+    rows = 1;
+    for (utf8 p = ed; p < last; p = utf8_next(p))
     {
         if (p - ed == (int) cursor)
         {
@@ -934,22 +941,22 @@ void input::draw_editor()
     if (rows > availableRows)
     {
         // Skip rows to show the cursor
-        int skip          = edrow < availableRows         ? 0
+        int skip = edrow < availableRows         ? 0
                  : edrow >= rows - availableRows ? rows - availableRows
                                                  : edrow - availableRows / 2;
-        for (int r        = 0; r < skip; r++)
+        for (int r = 0; r < skip; r++)
         {
             do
-                display      = utf8_next(display);
+                display = utf8_next(display);
             while (*display != '\n');
-            display          = utf8_next(display);
+            display = utf8_next(display);
         }
-        rows = availableRows;
+        rows = (availableHeight + lineHeight - 1) / lineHeight;
     }
 
     // Draw the editor rows
     int  skip   = 64;
-    size cursw = EditorFont->width('M');
+    size cursw = font->width('M');
     if (xoffset > cursx)
         xoffset = (cursx > skip) ? cursx - skip : 0;
     else if (xoffset + LCD_W - cursw < cursx)
@@ -1013,6 +1020,18 @@ int input::draw_cursor(uint time, uint &period)
         return -1;
     lastT = time;
 
+    // Select editor font
+    utf8   ed     = RT.editor();
+    font_p edFont = EditorFont;
+    size_t len    = RT.editing();
+    utf8   last   = ed + len;
+    uint   rows   = 1;
+    for (utf8 p = ed; p < last; p = utf8_next(p))
+        if (*p == '\n')
+            rows++;
+    if (rows > 2)
+        edFont = StackFont;
+
     // Select cursor character
     unicode cursorChar = mode == DIRECT      ? 'D'
                        : mode == TEXT        ? (lowercase ? 'L' : 'C')
@@ -1023,12 +1042,9 @@ int input::draw_cursor(uint time, uint &period)
                                              : 'X';
     size    csrh       = CursorFont->height();
     size    csrw       = CursorFont->width(cursorChar);
-    size    ch         = EditorFont->height();
+    size    ch         = edFont->height();
 
     coord   x          = cx;
-    utf8    ed         = RT.editor();
-    size_t  len        = RT.editing();
-    utf8    last       = ed + len;
     utf8    p          = ed + cursor;
 
     while (x < cx + csrw + 1)
@@ -1036,12 +1052,12 @@ int input::draw_cursor(uint time, uint &period)
         unicode cchar  = p < last ? utf8_codepoint(p) : ' ';
         if (cchar     == '\n')
             cchar      = ' ';
-        size    cw     = EditorFont->width(cchar);
+        size    cw     = edFont->width(cchar);
         Screen.fill(x, cy, x + cw - 1, cy + ch - 1,
                     x == cx ? pattern::gray75 : pattern::white);
 
         // Write the character under the cursor
-        x = Screen.glyph(x, cy, cchar, EditorFont);
+        x = Screen.glyph(x, cy, cchar, edFont);
         if (p < last)
             p = utf8_next(p);
     }

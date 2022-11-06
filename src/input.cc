@@ -141,8 +141,9 @@ void input::edit(unicode c, modes m)
     if (closing)
     {
         byte *ed = RT.editor();
-        if (savec > 0 && ed[savec] != ' ')
-            cursor += RT.insert(savec, ' ');
+        if (mode == PROGRAM || mode == ALGEBRAIC || mode == DIRECT)
+            if (savec > 0 && ed[savec] != ' ')
+                cursor += RT.insert(savec, ' ');
         len = utf8_encode(closing, utf8buf);
         RT.insert(cursor, utf8buf, len);
     }

@@ -84,6 +84,7 @@ void stack::draw_stack()
 
     utf8 saveError = RT.error();
     utf8 saveCmd   = RT.command();
+    rect clip      = Screen.clip();
 
     Screen.fill(hdrx, top, hdrx, bottom, pattern::gray50);
     if (RT.editing())
@@ -93,8 +94,12 @@ void stack::draw_stack()
     for (uint level = 0; level < depth; level++)
     {
         coord y = bottom - (level + 1) * lineHeight;
-        if (y <= top)
+        if (y + lineHeight  <= top)
             break;
+
+        coord ytop = y < top ? top : y;
+        coord yb   = y + lineHeight-1;
+        Screen.clip(0, ytop, LCD_W, yb);
 
         snprintf(buf, sizeof(buf), "%d", level + 1);
         size w = StackFont->width(utf8(buf));
@@ -111,24 +116,22 @@ void stack::draw_stack()
         {
             unicode sep   = L'…';
             coord   x     = hdrx + 5;
-            coord   yb    = y + lineHeight;
             coord   split = 200;
             coord   skip  = StackFont->width(sep);
-            rect    clip  = Screen.clip();
 
-            Screen.clip(x, y, split, yb);
+            Screen.clip(x, ytop, split, yb);
             Screen.text(x, y, utf8(buf), StackFont);
-            Screen.clip(split, y, split + skip, yb);
+            Screen.clip(split, ytop, split + skip, yb);
             Screen.glyph(split, y, sep, StackFont, pattern::gray50);
             Screen.clip(split+skip, y, LCD_W, yb);
             Screen.text(LCD_W - w, y, utf8(buf), StackFont);
-            Screen.clip(clip);
         }
         else
         {
             Screen.text(LCD_W - w, y, utf8(buf), StackFont);
         }
     }
+    Screen.clip(clip);
 
     // Clear any error raised during rendering
     RT.error(saveError, saveCmd);

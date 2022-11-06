@@ -32,6 +32,8 @@
 #include "command.h"
 #include "list.h"
 
+#include <dmcp.h>
+
 COMMAND(Dup)
 // ----------------------------------------------------------------------------
 //   Implement the RPL "dup" command, duplicate top of stack
@@ -71,5 +73,16 @@ COMMAND(Swap)
     return ERROR;
 }
 
+COMMAND(Depth)
+// ----------------------------------------------------------------------------
+//   Return the depth of the stack
+// ----------------------------------------------------------------------------
+{
+    uint ticks = RT.depth();
+    if (integer_p ti = RT.make<integer>(ID_integer, ticks))
+        if (RT.push(ti))
+            return OK;
+    return ERROR;
+}
 
 #endif // STACK_CMDS_H

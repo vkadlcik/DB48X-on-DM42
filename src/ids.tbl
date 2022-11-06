@@ -152,6 +152,7 @@ CMD(SystemMemory)
 CMD(GarbageCollect)
 
 CMD(Ticks)
+CMD(Depth)
 
 // ============================================================================
 //

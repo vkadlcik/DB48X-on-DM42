@@ -29,12 +29,13 @@
 
 #include "command.h"
 
+#include "input.h"
+#include "integer.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
 #include "utf8.h"
-#include "input.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -224,4 +225,17 @@ COMMAND_BODY(SelfInsert)
                 Input.edit(utf8_codepoint(p), input::PROGRAM);
     }
     return OK;
+}
+
+
+COMMAND_BODY(Ticks)
+// ----------------------------------------------------------------------------
+//   Return number of ticks
+// ----------------------------------------------------------------------------
+{
+    uint ticks = sys_current_ms();
+    if (integer_p ti = RT.make<integer>(ID_integer, ticks))
+        if (RT.push(ti))
+            return OK;
+    return ERROR;
 }

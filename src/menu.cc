@@ -972,7 +972,7 @@ MENU(TimeMenu,
      "∆Date",   ID_Unimplemented,
      "Time",    ID_Unimplemented,
      "∆Time",   ID_Unimplemented,
-     "Ticks",   ID_Unimplemented,
+     "Ticks",   ID_Ticks,
 
      "→Date",   ID_Unimplemented,
      "→Time",   ID_Unimplemented,

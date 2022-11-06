@@ -297,7 +297,7 @@ void decimal_format(char *str, size_t len, int digits)
         {
             // Do not interfere with mantissa end
             ep++;
-            sprintf(ep, "%c%i", 'E', exp);
+            snprintf(ep, s + sizeof(s)-1 - ep, "%c%i", 'E', exp);
             elen = strlen(ep);
         }
         else

@@ -50,6 +50,8 @@ typedef std::vector<byte> bytes;
 typedef std::vector<int>  ints;
 
 int verbose = 0;
+int ascenderPct = 100;
+int descenderPct = 100;
 
 
 const char *getErrorMessage(FT_Error err)
@@ -230,6 +232,9 @@ void processFont(cstring fontName,
     int  descend     = face->descender;
     int  faceHeight  = ascend - descend;
     uint denseHeight = SCALED(faceHeight) / pixelSize;
+    int  scAscend    = ascend * ascenderPct / 100;
+    int  scDescend   = descend * descenderPct / 100;
+    uint sparseHeight= SCALED(scAscend - scDescend) / pixelSize;
     int  renderFlag  = FT_LOAD_RENDER;
     if (!threshold)
         renderFlag |= FT_LOAD_TARGET_MONO;
@@ -290,7 +295,7 @@ void processFont(cstring fontName,
 
     // Sparse format data
     bytes        sparse;
-    sparse += denseHeight;
+    sparse += sparseHeight;
 
     if (verbose)
         printf("Font bitmap width %u height %u size %u\n",
@@ -410,7 +415,7 @@ void processFont(cstring fontName,
 
             // Fill sparse data header
             sparse += colsBeforeGlyph;
-            sparse += rowsAboveGlyph;
+            sparse += rowsAboveGlyph * ascenderPct / 100;
             sparse += colsGlyph;
             sparse += rowsGlyph;
             sparse += glyphWidth;
@@ -620,6 +625,8 @@ void usage(cstring prog)
            "  ttf: TrueType input font\n"
            "  output: C source file to be generated\n"
            "  -h: Display this usage message\n"
+           "  -a: Adjust ascender (percentage)\n"
+           "  -d: Adjust descender (percentage)\n"
            "  -v: Verbose output\n"
            "  -s <size>: Force font size to s pixels\n", prog);
 }
@@ -634,10 +641,16 @@ int main(int argc, char *argv[])
     int opt;
     int fontSize = 0;
     int threshold = 0;
-    while ((opt = getopt(argc, argv, "hs:t:v")) != -1)
+    while ((opt = getopt(argc, argv, "a:hs:t:v")) != -1)
     {
         switch (opt)
         {
+        case 'a':
+            ascenderPct = atoi(optarg);
+            break;
+        case 'd':
+            descenderPct = atoi(optarg);
+            break;
         case 'v':
             verbose = 1;
             break;

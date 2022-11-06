@@ -52,6 +52,7 @@ typedef std::vector<int>  ints;
 int verbose = 0;
 int ascenderPct = 100;
 int descenderPct = 100;
+int heightPct = 100;
 
 
 const char *getErrorMessage(FT_Error err)
@@ -234,7 +235,7 @@ void processFont(cstring fontName,
     uint denseHeight = SCALED(faceHeight) / pixelSize;
     int  scAscend    = ascend * ascenderPct / 100;
     int  scDescend   = descend * descenderPct / 100;
-    uint sparseHeight= SCALED(scAscend - scDescend) / pixelSize;
+    uint sparseHeight= SCALED(scAscend - scDescend) / pixelSize * heightPct/100;
     int  renderFlag  = FT_LOAD_RENDER;
     if (!threshold)
         renderFlag |= FT_LOAD_TARGET_MONO;
@@ -641,7 +642,7 @@ int main(int argc, char *argv[])
     int opt;
     int fontSize = 0;
     int threshold = 0;
-    while ((opt = getopt(argc, argv, "a:hs:t:v")) != -1)
+    while ((opt = getopt(argc, argv, "a:d:hs:S:t:v")) != -1)
     {
         switch (opt)
         {
@@ -656,6 +657,9 @@ int main(int argc, char *argv[])
             break;
         case 's':
             fontSize = atoi(optarg);
+            break;
+        case 'S':
+            heightPct = atoi(optarg);
             break;
         case 't':
             threshold = atoi(optarg);

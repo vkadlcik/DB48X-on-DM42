@@ -88,7 +88,8 @@ ID(decimal128)
 
 #define FIRST_COMMAND           ID_Drop
 CMD(Drop)
-NAMED(Dup, "Duplicate")
+NAMED(Dup,  "Duplicate")
+NAMED(Dup2, "Duplicate2")
 CMD(Swap)
 NAMED(Eval, "Evaluate")
 NAMED(Sto, "Store")

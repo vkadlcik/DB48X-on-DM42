@@ -72,6 +72,10 @@ struct command : object
     static bool is_separator_or_digit(unicode code);
     static bool is_separator_or_digit(utf8 str);
 
+    // Get the top of the stack as an integer
+    static bool stack(uint32_t *result, uint level = 0);
+    static bool stack(int32_t  *result, uint level = 0);
+
     // Standard object interface
     OBJECT_PARSER(command);
     OBJECT_RENDERER(command);

@@ -666,6 +666,48 @@ bool runtime::stack(uint idx, object_p obj)
 }
 
 
+bool runtime::roll(uint idx)
+// ----------------------------------------------------------------------------
+//    Move the object at a given position in the stack
+// ----------------------------------------------------------------------------
+{
+    if (idx)
+    {
+        idx--;
+        if (idx >= depth())
+        {
+            error("Too few arguments");
+            return false;
+        }
+        object_p s = StackTop[idx];
+        memmove(StackTop + 1, StackTop, idx * sizeof(*StackTop));
+        *StackTop = s;
+    }
+    return true;
+}
+
+
+bool runtime::rolld(uint idx)
+// ----------------------------------------------------------------------------
+//    Get the object at a given position in the stack
+// ----------------------------------------------------------------------------
+{
+    if (idx)
+    {
+        idx--;
+        if (idx >= depth())
+        {
+            error("Too few arguments");
+            return false;
+        }
+        object_p s = *StackTop;
+        memmove(StackTop, StackTop + 1, idx * sizeof(*StackTop));
+        StackTop[idx] = s;
+    }
+    return true;
+}
+
+
 bool runtime::drop(uint count)
 // ----------------------------------------------------------------------------
 //   Pop the top-level object from the stack, or return NULL

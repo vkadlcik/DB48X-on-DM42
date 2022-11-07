@@ -425,6 +425,16 @@ struct runtime
     //    Get the object at a given position in the stack
     // ------------------------------------------------------------------------
 
+    bool roll(uint idx);
+    // ------------------------------------------------------------------------
+    //    Get the object at a given position in the stack
+    // ------------------------------------------------------------------------
+
+    bool rolld(uint idx);
+    // ------------------------------------------------------------------------
+    //    Get the object at a given position in the stack
+    // ------------------------------------------------------------------------
+
     bool stack(uint idx, object_p obj);
     // ------------------------------------------------------------------------
     //    Get the object at a given position in the stack

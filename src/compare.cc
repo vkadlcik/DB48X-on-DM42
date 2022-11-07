@@ -269,4 +269,3 @@ template object::result comparison::evaluate<TestEQ>();
 template object::result comparison::evaluate<TestGT>();
 template object::result comparison::evaluate<TestGE>();
 template object::result comparison::evaluate<TestNE>();
-template object::result comparison::evaluate<TestSame>();

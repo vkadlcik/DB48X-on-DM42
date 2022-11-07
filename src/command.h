@@ -144,6 +144,26 @@ COMMAND(Eval)
     return ERROR;
 }
 
+COMMAND(True)
+// ----------------------------------------------------------------------------
+//   Evaluate as self
+// ----------------------------------------------------------------------------
+{
+    if (RT.push(command::static_object(ID_True)))
+        return OK;
+    return ERROR;
+}
+
+COMMAND(False)
+// ----------------------------------------------------------------------------
+//   Evaluate as self
+// ----------------------------------------------------------------------------
+{
+    if (RT.push(command::static_object(ID_False)))
+        return OK;
+    return ERROR;
+}
+
 COMMAND_DECLARE(SelfInsert);
 // ----------------------------------------------------------------------------
 //   Insert the label associated to a menu

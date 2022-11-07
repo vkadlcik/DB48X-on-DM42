@@ -100,6 +100,12 @@ object::result conditional_loop::condition(bool &value) const
         case ID_decimal32:
             value = !decimal32_p(cond)->is_zero();
             return OK;
+        case ID_True:
+            value = true;
+            return OK;
+        case ID_False:
+            value = false;
+            return OK;
         default:
             RT.error("Bad argument type");
         }

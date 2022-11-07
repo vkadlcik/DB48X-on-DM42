@@ -95,6 +95,9 @@ NAMED(Eval, "Evaluate")
 NAMED(Sto, "Store")
 NAMED(Rcl, "Recall")
 
+CMD(True)
+CMD(False)
+
 #define FIRST_ALGEBRAIC         ID_add
 OP(add, "+")
 OP(sub, "-")

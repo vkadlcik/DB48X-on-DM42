@@ -89,14 +89,11 @@ inline utf8 utf8_previous(utf8 text)
 }
 
 
-inline uint utf8_next(utf8 text, uint position, size_t len = 0)
+inline uint utf8_next(utf8 text, uint position, size_t len)
 // ----------------------------------------------------------------------------
 //   Find the next position in the text, assumed to be UTF-8
 // ----------------------------------------------------------------------------
 {
-    if (!len && text[len])
-        len = strlen(cstring(text));
-
     if (position < len)
     {
         position++;
@@ -104,6 +101,15 @@ inline uint utf8_next(utf8 text, uint position, size_t len = 0)
             position++;
     }
     return position;
+}
+
+
+inline uint utf8_next(utf8 text, uint position)
+// ----------------------------------------------------------------------------
+//   Find the next position in the text, assumed to be UTF-8
+// ----------------------------------------------------------------------------
+{
+    return utf8_next(text, position, strlen(cstring(text)));
 }
 
 

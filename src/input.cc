@@ -848,6 +848,10 @@ void input::draw_editor()
     int  cursx  = 0;            // Cursor X position
     bool found  = false;
 
+    byte *wed = (byte *) ed;
+    wed[len] = 0;               // Ensure utf8_next does not go into the woods
+
+    // Count rows to check if we need to switch to stack font
     for (utf8 p = ed; p < last; p = utf8_next(p))
         if (*p == '\n')
             rows++;
@@ -971,13 +975,16 @@ void input::draw_editor()
     while (r < rows && display <= last)
     {
         bool    atCursor = display == ed + cursor;
-        unicode c                   = utf8_codepoint(display);
-        display                     = utf8_next(display);
         if (atCursor)
         {
             cx = x;
             cy = y;
         }
+        if (display >= last)
+            break;
+
+        unicode c = utf8_codepoint(display);
+        display = utf8_next(display);
         if (c == '\n')
         {
             y += lineHeight;
@@ -985,9 +992,6 @@ void input::draw_editor()
             r++;
             continue;
         }
-        if (display > last)
-            break;
-
         int cw     = font->width(c);
         if (x +cw >= 0 && x < LCD_W)
             x      = Screen.glyph(x, y, c, font);

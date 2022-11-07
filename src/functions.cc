@@ -32,6 +32,7 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
+#include "integer.h"
 
 
 object::result function::evaluate(bid128_fn op128, arg_check_fn check)
@@ -118,6 +119,38 @@ object::result function::evaluate()
 // ----------------------------------------------------------------------------
 {
     return evaluate(Func::bid128_op, arg_check<Func>);
+}
+
+
+template<>
+object::result function::evaluate<struct abs>()
+// ----------------------------------------------------------------------------
+//   Special case for abs
+// ----------------------------------------------------------------------------
+{
+    gcobj x = RT.stack(0);
+    if (!x)
+        return ERROR;
+
+    id xt = x->type();
+    if (xt == ID_neg_integer)
+    {
+        integer_p i = integer_p(object_p(x));
+        ularge magnitude = i->value<ularge>();
+        integer_p ai = RT.make<integer>(ID_integer, magnitude);
+        if (!ai)
+            return ERROR;
+        RT.top(ai);
+        return OK;
+    }
+    else if (is_integer(xt))
+    {
+        // No-op
+        return OK;
+    }
+
+    // Fall-back to floating-point abs
+    return evaluate(bid128_abs, arg_check<struct abs>);
 }
 
 

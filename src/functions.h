@@ -120,4 +120,11 @@ FUNCTION(erfc);
 FUNCTION(tgamma);
 FUNCTION(lgamma);
 
+
+struct abs;
+template<> object::result function::evaluate<struct abs>();
+FUNCTION(abs);
+
+
+
 #endif // FUNCTIONS_H

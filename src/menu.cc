@@ -581,18 +581,18 @@ MENU(CompareMenu,
 // ----------------------------------------------------------------------------
 //   Comparisons
 // ----------------------------------------------------------------------------
-     "<",       ID_Unimplemented,
-     "=",       ID_Unimplemented,
-     ">",       ID_Unimplemented,
-     "≤",       ID_Unimplemented,
-     "≠",       ID_Unimplemented,
-     "≥",       ID_Unimplemented,
+     "<",       ID_TestLT,
+     "=",       ID_TestEQ,
+     ">",       ID_TestGT,
+     "≤",       ID_TestLE,
+     "≠",       ID_TestNE,
+     "≥",       ID_TestGE,
 
-     "and",     ID_Unimplemented,
-     "or",      ID_Unimplemented,
-     "xor",     ID_Unimplemented,
-     "not",     ID_Unimplemented,
-     "==",      ID_Unimplemented,
+     "and",     ID_And,
+     "or",      ID_Or,
+     "xor",     ID_Xor,
+     "not",     ID_Not,
+     "==",      ID_TestSame,
      "Prog",    ID_ProgramMenu);
 
 

@@ -30,6 +30,7 @@
 #include "loops.h"
 
 #include "command.h"
+#include "compare.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
@@ -80,36 +81,7 @@ object::result conditional_loop::condition(bool &value) const
 // ----------------------------------------------------------------------------
 {
     if (object_p cond = RT.pop())
-    {
-        switch(cond->type())
-        {
-        case ID_hex_integer:
-        case ID_oct_integer:
-        case ID_bin_integer:
-        case ID_dec_integer:
-        case ID_integer:
-        case ID_neg_integer:
-            value = integer_p(cond)->value<ularge>() != 0;
-            return OK;
-        case ID_decimal128:
-            value = !decimal128_p(cond)->is_zero();
-            return OK;
-        case ID_decimal64:
-            value = !decimal64_p(cond)->is_zero();
-            return OK;
-        case ID_decimal32:
-            value = !decimal32_p(cond)->is_zero();
-            return OK;
-        case ID_True:
-            value = true;
-            return OK;
-        case ID_False:
-            value = false;
-            return OK;
-        default:
-            RT.error("Bad argument type");
-        }
-    }
+        return comparison::condition(value, cond);
     return ERROR;
 }
 

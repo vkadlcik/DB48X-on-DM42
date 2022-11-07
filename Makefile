@@ -96,6 +96,8 @@ CXX_SOURCES +=				\
 	src/runtime.cc			\
 	src/object.cc			\
 	src/command.cc			\
+	src/compare.cc			\
+	src/logical.cc			\
 	src/integer.cc			\
 	src/decimal128.cc		\
 	$(DECIMAL_SOURCES)		\

@@ -57,8 +57,6 @@ struct arithmetic : algebraic
         return algebraic::real_promotion(x);
     }
 
-
-
 protected:
     typedef bool (*integer_fn)(id &xt, id &yt, ularge &xv, ularge &yv);
     typedef bool (*non_numeric_fn)(gcobj &x, gcobj &y, id &xt, id &yt);

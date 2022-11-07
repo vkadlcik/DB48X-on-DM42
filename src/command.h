@@ -82,7 +82,7 @@ struct command : object
 
 // Macro to defined a simple command handler for derived classes
 #define COMMAND_DECLARE(derived)                                \
-    struct derived : command                                    \
+struct derived : command                                        \
     {                                                           \
         derived(id i = ID_##derived) : command(i) { }           \
                                                                 \

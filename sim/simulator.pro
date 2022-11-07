@@ -42,6 +42,8 @@ SOURCES +=                                      \
 	../src/settings.cc                      \
         ../src/object.cc                        \
         ../src/command.cc                       \
+        ../src/compare.cc                       \
+        ../src/logical.cc                       \
         ../src/integer.cc                       \
         ../src/decimal128.cc                    \
         ../src/decimal-64.cc                    \

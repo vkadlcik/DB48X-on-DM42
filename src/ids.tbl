@@ -115,6 +115,26 @@ NAMED(cubed, "x³")
 
 NAMED(sqrt, "√")
 
+NAMED(abs, "|x|")
+ALIAS(abs, "norm")
+
+OP(And,         "and")
+OP(Or,          "or")
+OP(Xor,         "xor")
+OP(NAnd,        "nand")
+OP(NOr,         "nor")
+OP(Implies,     "implies")
+OP(Equiv,       "equiv")
+OP(Excludes,    "excludes")
+OP(Not,         "not")
+NAMED(TestSame, "==")           // Must be before =
+NAMED(TestLT,   "<")
+NAMED(TestEQ,   "=")
+NAMED(TestGT,   ">")
+NAMED(TestLE,   "≤")
+NAMED(TestNE,   "≠")
+NAMED(TestGE,   "≥")
+
 CMD(sin)
 CMD(cos)
 CMD(tan)

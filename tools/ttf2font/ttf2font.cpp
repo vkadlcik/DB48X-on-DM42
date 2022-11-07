@@ -53,6 +53,7 @@ int verbose = 0;
 int ascenderPct = 100;
 int descenderPct = 100;
 int heightPct = 100;
+int yAdjustPixels = 0;
 
 
 const char *getErrorMessage(FT_Error err)
@@ -416,7 +417,7 @@ void processFont(cstring fontName,
 
             // Fill sparse data header
             sparse += colsBeforeGlyph;
-            sparse += rowsAboveGlyph * ascenderPct / 100;
+            sparse += rowsAboveGlyph * ascenderPct / 100 + yAdjustPixels;
             sparse += colsGlyph;
             sparse += rowsGlyph;
             sparse += glyphWidth;
@@ -628,8 +629,10 @@ void usage(cstring prog)
            "  -h: Display this usage message\n"
            "  -a: Adjust ascender (percentage)\n"
            "  -d: Adjust descender (percentage)\n"
+           "  -s <size>: Force font size to s pixels\n"
            "  -v: Verbose output\n"
-           "  -s <size>: Force font size to s pixels\n", prog);
+           "  -y: Adjust Y position",
+           prog);
 }
 
 
@@ -642,7 +645,7 @@ int main(int argc, char *argv[])
     int opt;
     int fontSize = 0;
     int threshold = 0;
-    while ((opt = getopt(argc, argv, "a:d:hs:S:t:v")) != -1)
+    while ((opt = getopt(argc, argv, "a:d:hs:S:t:vy:")) != -1)
     {
         switch (opt)
         {
@@ -663,6 +666,10 @@ int main(int argc, char *argv[])
             break;
         case 't':
             threshold = atoi(optarg);
+            break;
+        case 'y':
+            yAdjustPixels = atoi(optarg);
+            printf("Adjust pixels = %d\n", yAdjustPixels);
             break;
         case 'h':
             usage(argv[0]);

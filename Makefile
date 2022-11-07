@@ -39,11 +39,11 @@ tools/ttf2fonts/ttf2fonts: tools/ttf2font/ttf2font.cpp tools/ttf2font/Makefile
 #BASE_FONT=fonts/C43StandardFont.ttf
 BASE_FONT=fonts/FogSans-ddd.ttf
 fonts/EditorFont.cc: ttf2font $(BASE_FONT)
-	tools/ttf2font/ttf2font -s 48 -S 80 EditorFont $(BASE_FONT) $@
+	tools/ttf2font/ttf2font -s 48 -S 80 -y -10 EditorFont $(BASE_FONT) $@
 fonts/StackFont.cc: ttf2font $(BASE_FONT)
-	tools/ttf2font/ttf2font -s 32 -S 80 StackFont $(BASE_FONT) $@
+	tools/ttf2font/ttf2font -s 32 -S 80 -y -8 StackFont $(BASE_FONT) $@
 fonts/HelpFont.cc: ttf2font $(BASE_FONT)
-	tools/ttf2font/ttf2font -s 18 -S 80 HelpFont $(BASE_FONT) $@
+	tools/ttf2font/ttf2font -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
 help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md)
 	cat $^ > $@
 

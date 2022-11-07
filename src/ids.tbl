@@ -107,16 +107,13 @@ ALIAS(mul, "*")
 ALIAS(div, "/")
 CMD(mod)
 CMD(rem)
-OP(pow, "^")
-NAMED(hypot, "Hypothenuse")
 
 NAMED(neg, "Negate")
 NAMED(inv, "Invert")
-NAMED(sq,  "Squared")
-CMD(cubed)
+NAMED(sq,  "x²")
+NAMED(cubed, "x³")
 
 NAMED(sqrt, "√")
-NAMED(cbrt, "∛")
 
 CMD(sin)
 CMD(cos)
@@ -147,6 +144,10 @@ CMD(erfc)
 NAMED(tgamma, "Gamma")
 CMD(lgamma)
 #define LAST_ALGEBRAIC          ID_lgamma
+
+NAMED(cbrt, "∛")
+OP(pow, "^")
+NAMED(hypot, "Hypothenuse")
 
 CMD(Purge)
 CMD(PurgeAll)

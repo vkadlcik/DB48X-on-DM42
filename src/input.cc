@@ -1060,10 +1060,13 @@ int input::draw_cursor(uint time, uint &period)
     coord   ybot       = LCD_H - menuHeight;
 
     Screen.clip(0, ytop, LCD_W, ybot);
+    bool spaces = false;
     while (x < cx + csrw + 1)
     {
         unicode cchar  = p < last ? utf8_codepoint(p) : ' ';
         if (cchar     == '\n')
+            spaces = true;
+        if (spaces)
             cchar      = ' ';
         size    cw     = edFont->width(cchar);
         Screen.fill(x, cy, x + cw - 1, cy + ch - 1,

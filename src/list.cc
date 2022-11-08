@@ -452,6 +452,18 @@ symbol_p equation::symbol() const
 }
 
 
+inline size_t equation::size_in_equation(object_p obj)
+// ----------------------------------------------------------------------------
+//   Size of an object in an equation
+// ----------------------------------------------------------------------------
+//   Inside an equation object, equations are reduced to their payload
+{
+    if (obj->type() == ID_equation)
+        return equation_p(obj)->length();
+    return obj->size();
+}
+
+
 equation::equation(uint arity, const gcobj args[], id op, id type)
 // ----------------------------------------------------------------------------
 //   Build an equation from N arguments
@@ -463,7 +475,7 @@ equation::equation(uint arity, const gcobj args[], id op, id type)
     // Compute the size of the program
     size_t size = 0;
     for (uint i = 0; i < arity; i++)
-        size += args[i]->size();
+        size += size_in_equation(args[i]);
     size += leb128size(op);
 
     // Write the size of the program
@@ -472,8 +484,19 @@ equation::equation(uint arity, const gcobj args[], id op, id type)
     // Write the arguments
     for (uint i = 0; i < arity; i++)
     {
-        size_t objsize = args[i]->size();
-        memmove(p, byte_p(args[i]), objsize);
+        object_p obj = args[i];
+        size_t objsize = 0;
+        byte_p objptr = nullptr;
+        if (obj->type() == ID_equation)
+        {
+            objptr = equation_p(obj)->value(&objsize);
+        }
+        else
+        {
+            objsize = obj->size();
+            objptr = byte_p(obj);
+        }
+        memmove(p, objptr, objsize);
         p += objsize;
     }
 
@@ -489,7 +512,7 @@ size_t equation::required_memory(id type, uint arity, const gcobj args[], id op)
 {
     size_t size = 0;
     for (uint i = 0; i < arity; i++)
-        size += args[i]->size();
+        size += size_in_equation(args[i]);
     size += leb128size(op);
     size += leb128size(size);
     size += leb128size(type);

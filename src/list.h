@@ -125,6 +125,7 @@ struct equation : program
     static size_t required_memory(id i, uint arity, const gcobj args[], id op);
 
     symbol_p symbol() const;
+    static size_t size_in_equation(object_p obj);
 
     OBJECT_HANDLER(equation);
     OBJECT_PARSER(equation);

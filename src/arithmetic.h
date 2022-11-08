@@ -65,7 +65,8 @@ protected:
     typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x, BID_UINT128 *y);
     typedef void (*bid64_fn) (BID_UINT64  *res, BID_UINT64  *x, BID_UINT64  *y);
     typedef void (*bid32_fn) (BID_UINT32  *res, BID_UINT32  *x, BID_UINT32  *y);
-    static result evaluate(bid128_fn      op128,
+    static result evaluate(id             op,
+                           bid128_fn      op128,
                            bid64_fn       op64,
                            bid32_fn       op32,
                            integer_fn     integer_ok,

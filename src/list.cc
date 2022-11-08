@@ -452,6 +452,51 @@ symbol_p equation::symbol() const
 }
 
 
+equation::equation(uint arity, const gcobj args[], id op, id type)
+// ----------------------------------------------------------------------------
+//   Build an equation from N arguments
+// ----------------------------------------------------------------------------
+    : program(nullptr, 0, type)
+{
+    byte *p = payload();
+
+    // Compute the size of the program
+    size_t size = 0;
+    for (uint i = 0; i < arity; i++)
+        size += args[i]->size();
+    size += leb128size(op);
+
+    // Write the size of the program
+    p = leb128(p, size);
+
+    // Write the arguments
+    for (uint i = 0; i < arity; i++)
+    {
+        size_t objsize = args[i]->size();
+        memmove(p, byte_p(args[i]), objsize);
+        p += objsize;
+    }
+
+    // Write the last opcode
+    p = leb128(p, op);
+}
+
+
+size_t equation::required_memory(id type, uint arity, const gcobj args[], id op)
+// ----------------------------------------------------------------------------
+//   Size of an equation object with N arguments
+// ----------------------------------------------------------------------------
+{
+    size_t size = 0;
+    for (uint i = 0; i < arity; i++)
+        size += args[i]->size();
+    size += leb128size(op);
+    size += leb128size(size);
+    size += leb128size(type);
+    return size;
+}
+
+
 
 // ============================================================================
 //

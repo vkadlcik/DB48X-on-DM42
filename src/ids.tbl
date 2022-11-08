@@ -58,13 +58,11 @@
 
 ID(object)                      // Value 0 is reserved for "not implemented"
 
-ID(symbol)
 ID(directory)
 ID(text)
 ID(list)
 ID(program)
 ID(block)
-ID(equation)
 ID(array)
 ID(menu)
 
@@ -75,6 +73,7 @@ ID(bin_integer)
 ID(dec_integer)
 
 #define FIRST_REAL_TYPE         ID_integer
+#define FIRST_SYMBOLIC_TYPE     ID_integer
 ID(integer)
 ID(neg_integer)
 #define LAST_INTEGER_TYPE       ID_neg_integer
@@ -85,6 +84,10 @@ ID(decimal64)
 ID(decimal128)
 #define LAST_DECIMAL_TYPE       ID_decimal128
 #define LAST_REAL_TYPE          ID_decimal128
+
+ID(symbol)
+ID(equation)
+#define LAST_SYMBOLIC_TYPE      ID_equation
 
 #define FIRST_COMMAND           ID_Drop
 CMD(Drop)

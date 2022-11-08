@@ -456,6 +456,24 @@ struct object
     }
 
 
+    static bool is_symbolic(id ty)
+    // ------------------------------------------------------------------------
+    //    Check if a type denotes a symbol or equation
+    // ------------------------------------------------------------------------
+    {
+        return ty >= FIRST_SYMBOLIC_TYPE && ty <= LAST_SYMBOLIC_TYPE;
+    }
+
+
+    bool is_symbolic() const
+    // ------------------------------------------------------------------------
+    //   Check if an object is an algebraic function
+    // ------------------------------------------------------------------------
+    {
+        return is_symbolic(type());
+    }
+
+
     static bool is_algebraic(id ty)
     // ------------------------------------------------------------------------
     //    Check if a type denotes an algebraic function

@@ -115,6 +115,14 @@ struct equation : program
 {
     equation(gcbytes bytes, size_t len, id type = ID_equation)
         : program(bytes, len, type) {}
+    static size_t required_memory(id i, gcbytes UNUSED bytes, size_t len)
+    {
+        return program::required_memory(i, bytes, len);
+    }
+
+    // Building equations from arguments
+    equation(uint arity, const gcobj args[], id op, id type = ID_equation);
+    static size_t required_memory(id i, uint arity, const gcobj args[], id op);
 
     symbol_p symbol() const;
 

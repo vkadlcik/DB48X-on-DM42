@@ -105,6 +105,7 @@ bool algebraic::real_promotion(gcobj &x, object::id type)
         record(algebraic_error,
                "Cannot promote integer %p (%llu) from %+s to %+s",
                i, ival, object::name(xt), object::name(type));
+        break;
     }
     case ID_neg_integer:
     {
@@ -127,6 +128,7 @@ bool algebraic::real_promotion(gcobj &x, object::id type)
         record(algebraic_error,
                "Cannot promote neg_integer %p (%lld) from %+s to %+s",
                i, ival, object::name(xt), object::name(type));
+        break;
     }
 
     case ID_decimal32:
@@ -147,6 +149,7 @@ bool algebraic::real_promotion(gcobj &x, object::id type)
         record(algebraic_error,
                "Cannot promote decimal32 %p from %+s to %+s",
                d, object::name(xt), object::name(type));
+        break;
     }
 
     case ID_decimal64:
@@ -167,6 +170,7 @@ bool algebraic::real_promotion(gcobj &x, object::id type)
         record(algebraic_error,
                "Cannot promote decimal64 %p from %+s to %+s",
                d, object::name(xt), object::name(type));
+        break;
     }
     default:
         break;

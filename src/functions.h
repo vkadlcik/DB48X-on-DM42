@@ -43,7 +43,7 @@ struct function : algebraic
 protected:
     typedef bool (*arg_check_fn)(bid128 &x);
 
-    static result evaluate(bid128_fn op128, arg_check_fn check);
+    static result evaluate(id op, bid128_fn op128, arg_check_fn check);
     // ------------------------------------------------------------------------
     //   The actual evaluation for all binary operators
     // ------------------------------------------------------------------------

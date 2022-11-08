@@ -380,7 +380,8 @@ inline bool hypot::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
 //
 // ============================================================================
 
-object::result arithmetic::evaluate(bid128_fn op128,
+object::result arithmetic::evaluate(id        op,
+                                    bid128_fn op128,
                                     bid64_fn  op64,
                                     bid32_fn  op32,
                                     integer_fn integer_ok,
@@ -460,6 +461,13 @@ object::result arithmetic::evaluate(bid128_fn op128,
     if (!ok)
         ok = non_numeric(x, y, xt, yt);
 
+    if (!ok && x->is_symbolic() && y->is_symbolic())
+    {
+        gcobj args[2] = { y, x };
+        x = rt.make<equation>(ID_equation, 2, args, op);
+        ok = true;
+    }
+
     if (ok)
     {
         rt.drop();
@@ -480,7 +488,8 @@ object::result arithmetic::evaluate()
 //   The evaluator for arithmetic operations
 // ----------------------------------------------------------------------------
 {
-    return evaluate(Op::bid128_op,
+    return evaluate(Op::static_type(),
+                    Op::bid128_op,
                     Op::bid64_op,
                     Op::bid32_op,
                     Op::integer_ok,

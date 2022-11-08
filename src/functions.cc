@@ -35,7 +35,7 @@
 #include "integer.h"
 
 
-object::result function::evaluate(bid128_fn op128, arg_check_fn check)
+object::result function::evaluate(id op, bid128_fn op128, arg_check_fn check)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------
@@ -70,8 +70,17 @@ object::result function::evaluate(bid128_fn op128, arg_check_fn check)
         return OK;
     }
 
+    // If things did not work with real number, try an equation
+    if (x->is_symbolic())
+    {
+        gcobj arg[1] = { x };
+        x = rt.make<equation>(ID_equation, 1, arg, op);
+        rt.top(x);
+        return OK;
+    }
+
     // All other cases: report an error
-    rt.error("Invalid number type");
+    rt.error("Bad arguments type");
     return ERROR;
 }
 
@@ -118,7 +127,7 @@ object::result function::evaluate()
 //   Evaluation for a given function
 // ----------------------------------------------------------------------------
 {
-    return evaluate(Func::bid128_op, arg_check<Func>);
+    return evaluate(Func::static_type(), Func::bid128_op, arg_check<Func>);
 }
 
 
@@ -150,7 +159,7 @@ object::result function::evaluate<struct abs>()
     }
 
     // Fall-back to floating-point abs
-    return evaluate(bid128_abs, arg_check<struct abs>);
+    return evaluate(ID_abs, bid128_abs, arg_check<struct abs>);
 }
 
 

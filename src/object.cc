@@ -216,6 +216,32 @@ cstring object::edit(runtime &rt) const
 }
 
 
+text_p object::as_text(bool equation, runtime &rt) const
+// ----------------------------------------------------------------------------
+//   Render an object into a text
+// ----------------------------------------------------------------------------
+{
+    if (type() == ID_text && !equation)
+        return text_p(this);
+
+    record(render, "Rendering %+s %p into text", name(), this);
+    size_t available = rt.available();
+    gcmstring buffer = (char *) rt.scratchpad();
+    renderer r(this, buffer, available, true, equation);
+    size_t actual = run(RENDER, rt, &r);
+    record(render, "Rendered %+s as size %u [%s]",
+           name(), actual, (char *) buffer);
+    if (actual + 1 > available)
+        return nullptr;
+
+    // Allocate in the scratchpad, and null-terminate
+    gcutf8 allocated = utf8(rt.allocate(actual));
+    text_g result = rt.make<text>(ID_text, allocated, actual);
+    rt.free(actual);
+    return result;
+}
+
+
 void object::object_error(id type, object_p ptr)
 // ----------------------------------------------------------------------------
 //    Report an error in an object

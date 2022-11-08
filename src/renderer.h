@@ -37,15 +37,17 @@ struct renderer
 //  Arguments to the RENDER command
 // ----------------------------------------------------------------------------
 {
-    renderer(object_p what, char *target, size_t length, bool editing = false)
+    renderer(object_p what, char *target, size_t length,
+             bool editing = false, bool equation = false)
         : what(what), target(target), length(length),
-          indent(), editing(editing) {}
+          indent(), editing(editing), equation(equation) {}
 
     gcobj       what;           // Object being rendered
     gcmstring   target;         // Buffer where we render the object
     size_t      length;         // Available space
     uint        indent;         // Amount of indent
-    bool        editing : 1;    // For editing
+    bool        editing  : 1;   // For editing
+    bool        equation : 1;   // As equation
 };
 
 

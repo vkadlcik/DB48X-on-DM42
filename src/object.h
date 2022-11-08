@@ -110,6 +110,7 @@ struct object;
 struct symbol;
 struct program;
 struct input;
+struct text;
 
 RECORDER_DECLARE(object);
 RECORDER_DECLARE(parse);
@@ -122,6 +123,7 @@ RECORDER_DECLARE(object_errors);
 typedef const object  *object_p;
 typedef const symbol  *symbol_p;
 typedef const program *program_p;
+typedef const text    *text_p;
 
 
 struct object
@@ -267,7 +269,7 @@ struct object
     //   Render the object into a buffer
     // ------------------------------------------------------------------------
 
-    cstring render(bool editing = false, runtime &rt = RT) const;
+    cstring render(bool edit = false, runtime &rt = RT) const;
     // ------------------------------------------------------------------------
     //   Render the object into the scratchpad
     // ------------------------------------------------------------------------
@@ -275,6 +277,11 @@ struct object
     cstring edit(runtime &rt = RT) const;
     // ------------------------------------------------------------------------
     //   Render the object into the scratchpad, then move into the editor
+    // ------------------------------------------------------------------------
+
+    text_p as_text(bool equation = false, runtime &rt = RT) const;
+    // ------------------------------------------------------------------------
+    //   Return the object as text
     // ------------------------------------------------------------------------
 
     result insert(input *Input, runtime &rt = RT) const
@@ -367,7 +374,6 @@ struct object
     {
         return (unicode) run(MENU_MARKER);
     }
-
 
     // Off-line so that we don't need to import runtime.h
     static void error(utf8 err, utf8 source = nullptr, runtime &rt = RT);

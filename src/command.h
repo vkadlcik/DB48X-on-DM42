@@ -168,6 +168,20 @@ COMMAND(False)
     return ERROR;
 }
 
+
+COMMAND(ToText)
+// ----------------------------------------------------------------------------
+//   Convert an object to text
+// ----------------------------------------------------------------------------
+{
+    if (gcobj obj = RT.top())
+        if (gcobj txt = obj->as_text())
+            if (RT.top(txt))
+                return OK;
+    return ERROR;
+}
+
+
 COMMAND_DECLARE(SelfInsert);
 // ----------------------------------------------------------------------------
 //   Insert the label associated to a menu

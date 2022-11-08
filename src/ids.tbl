@@ -109,6 +109,9 @@ NAMED(Rcl, "Recall")
 CMD(True)
 CMD(False)
 
+NAMED(ToText, "→Text")
+ALIAS(ToText, "→Str")
+
 #define FIRST_ALGEBRAIC         ID_add
 OP(add, "+")
 OP(sub, "-")

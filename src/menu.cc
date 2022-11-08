@@ -661,7 +661,7 @@ MENU(ObjectMenu,
      "Clone",   ID_Unimplemented,
      "Size",    ID_Unimplemented,
 
-     "→Str",    ID_Unimplemented,
+     "→Text",   ID_ToText,
      "→List",   ID_Unimplemented,
      "→Prog",   ID_Unimplemented,
      "→Array",  ID_Unimplemented,

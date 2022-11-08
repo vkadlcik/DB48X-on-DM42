@@ -1731,19 +1731,14 @@ bool input::draw_help()
         }
 
         // Select font and color based on style
-        pattern color     = styles[style].color;
-        pattern bg        = styles[style].background;
-        bool    bold      = styles[style].bold;
-        bool    italic    = styles[style].italic;
-        bool    underline = styles[style].underline;
-        bool    box       = styles[style].box;
         font              = styles[style].font;
         height            = font->height();
 
+
         // Compute width of word (or words in the case of titles)
-        coord width                                          = 0;
-        for (uint                                         i  = 0; i < widx; i++)
-            width                                           += font->width(word[i]);
+        coord width = 0;
+        for (uint i  = 0; i < widx; i++)
+            width += font->width(word[i]);
 
         if (style <= SUBTITLE)
         {
@@ -1762,55 +1757,65 @@ bool input::draw_help()
             }
         }
 
-        // Draw a decoration
         coord yf = y + height;
-        coord xl = x;
-        coord xr = x + width;
-        if (box || underline)
+        if (yf > ytop)
         {
-            xl -= 2;
-            xr += 2;
-            Screen.fill(xl, yf, xr, yf, bg);
-            if (box)
-            {
-                Screen.fill(xl, y, xl, yf, bg);
-                Screen.fill(xr, y, xr, yf, bg);
-                Screen.fill(xl, y, xr, y, bg);
-            }
-            xl += 2;
-            xr -= 2;
-        }
-        else if (bg.bits != pattern::white.bits)
-        {
-            Screen.fill(xl, y, xr, yf, bg);
-        }
+            pattern color     = styles[style].color;
+            pattern bg        = styles[style].background;
+            bool    bold      = styles[style].bold;
+            bool    italic    = styles[style].italic;
+            bool    underline = styles[style].underline;
+            bool    box       = styles[style].box;
 
-        // Draw next word
-        for (int i = 0; i < 1 + 3 * italic; i++)
-        {
-            x = xl;
+            // Draw a decoration
+            coord xl = x;
+            coord xr = x + width;
+            if (box || underline)
+            {
+                xl -= 2;
+                xr += 2;
+                Screen.fill(xl, yf, xr, yf, bg);
+                if (box)
+                {
+                    Screen.fill(xl, y, xl, yf, bg);
+                    Screen.fill(xr, y, xr, yf, bg);
+                    Screen.fill(xl, y, xr, y, bg);
+                }
+                xl += 2;
+                xr -= 2;
+            }
+            else if (bg.bits != pattern::white.bits)
+            {
+                Screen.fill(xl, y, xr, yf, bg);
+            }
+
+            // Draw next word
+            for (int i = 0; i < 1 + 3 * italic; i++)
+            {
+                x = xl;
+                if (italic)
+                {
+                    coord yt  = y + (3-i) * height / 4;
+                    coord yb  = y + (4-i) * height / 4;
+                    x        += i;
+                    Screen.clip(x, yt, xr + i, yb);
+                }
+                coord x0   = x;
+                for (int b = 0; b <= bold; b++)
+                    x      = draw_word(x0 + b, y, widx, word, font, color);
+            }
             if (italic)
-            {
-                coord yt  = y + (3-i) * height / 4;
-                coord yb  = y + (4-i) * height / 4;
-                x        += i;
-                Screen.clip(x, yt, xr + i, yb);
-            }
-            coord x0   = x;
-            for (int b = 0; b <= bold; b++)
-                x      = draw_word(x0 + b, y, widx, word, font, color);
-        }
-        if (italic)
-            Screen.clip(r);
+                Screen.clip(r);
 
-        // Select style for next round
-        style = restyle;
+            // Select style for next round
+            style = restyle;
+        }
 
         if (newline)
         {
             xleft  = r.x1 + 2;
-            x      = xleft;
-            y     += height * 5 / 4;
+            x = xleft;
+            y += height * 5 / 4;
         }
     }
 

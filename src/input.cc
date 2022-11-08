@@ -938,6 +938,7 @@ void input::draw_editor()
     int  bottom          = LCD_H - menuHeight;
     int  availableHeight = bottom - top;
     int  availableRows   = availableHeight / lineHeight;
+    int  displayRows     = (availableHeight + lineHeight - 1) / lineHeight;
     utf8 display         = ed;
 
     graphics::rect clip = Screen.clip();
@@ -946,9 +947,9 @@ void input::draw_editor()
     if (rows > availableRows)
     {
         // Skip rows to show the cursor
-        int skip = edrow < availableRows         ? 0
-                 : edrow >= rows - availableRows ? rows - availableRows
-                                                 : edrow - availableRows / 2;
+        int skip = edrow < displayRows / 2         ? 0
+                 : edrow >= rows - displayRows / 2 ? rows - availableRows
+                                                   : edrow - displayRows / 2;
         for (int r = 0; r < skip; r++)
         {
             do
@@ -956,22 +957,25 @@ void input::draw_editor()
             while (*display != '\n');
             display = utf8_next(display);
         }
-        rows = (availableHeight + lineHeight - 1) / lineHeight;
+        rows = availableRows;
     }
 
     // Draw the editor rows
-    int  skip   = 64;
+    int  hskip   = 64;
     size cursw = font->width('M');
     if (xoffset > cursx)
-        xoffset = (cursx > skip) ? cursx - skip : 0;
+        xoffset = (cursx > hskip) ? cursx - hskip : 0;
     else if (xoffset + LCD_W - cursw < cursx)
-        xoffset = cursx - LCD_W + cursw + skip;
+        xoffset = cursx - LCD_W + cursw + hskip;
 
     coord y = bottom - rows * lineHeight;
     coord x = -xoffset;
+    int   r = 0;
+
+    if (y < top)
+        y = top;
     stack   = y;
 
-    int r                       = 0;
     while (r < rows && display <= last)
     {
         bool    atCursor = display == ed + cursor;
@@ -1051,7 +1055,11 @@ int input::draw_cursor(uint time, uint &period)
 
     coord   x          = cx;
     utf8    p          = ed + cursor;
+    rect    clip       = Screen.clip();
+    coord   ytop       = HeaderFont->height() + 2;
+    coord   ybot       = LCD_H - menuHeight;
 
+    Screen.clip(0, ytop, LCD_W, ybot);
     while (x < cx + csrw + 1)
     {
         unicode cchar  = p < last ? utf8_codepoint(p) : ' ';
@@ -1088,6 +1096,7 @@ int input::draw_cursor(uint time, uint &period)
     }
 
     blink = !blink;
+    Screen.clip(clip);
     return cy;
 }
 
@@ -1124,25 +1133,25 @@ void input::draw_error()
         coord     x      = LCD_W / 2 - width / 2;
         coord     y      = top;
 
-        graphics::rect clip = Screen.clip();
-        graphics::rect rect(x, y, x + width - 1, y + height - 1);
-        Screen.fill(rect, pattern::gray50);
-        rect.inset(border);
-        Screen.fill(rect, pattern::white);
-        rect.inset(2);
+        rect clip = Screen.clip();
+        rect r(x, y, x + width - 1, y + height - 1);
+        Screen.fill(r, pattern::gray50);
+        r.inset(border);
+        Screen.fill(r, pattern::white);
+        r.inset(2);
 
-        Screen.clip(rect);
+        Screen.clip(r);
         if (utf8 cmd = RT.command())
         {
-            coord x = Screen.text(rect.x1, rect.y1, cmd, ErrorFont);
-            Screen.text(x, rect.y1, utf8(" error:"), ErrorFont);
+            coord x = Screen.text(r.x1, r.y1, cmd, ErrorFont);
+            Screen.text(x, r.y1, utf8(" error:"), ErrorFont);
         }
         else
         {
-            Screen.text(rect.x1, rect.y1, utf8("Error:"), ErrorFont);
+            Screen.text(r.x1, r.y1, utf8("Error:"), ErrorFont);
         }
-        rect.y1 += ErrorFont->height();
-        Screen.text(rect.x1, rect.y1, err, ErrorFont);
+        r.y1 += ErrorFont->height();
+        Screen.text(r.x1, r.y1, err, ErrorFont);
         Screen.clip(clip);
     }
 }

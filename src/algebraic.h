@@ -61,53 +61,25 @@ struct algebraic : command
     typedef void (*bid64_fn) (BID_UINT64  *res, BID_UINT64  *x);
     typedef void (*bid32_fn) (BID_UINT32  *res, BID_UINT32  *x);
 
-// Standard object interface
+    // Precedence for the various operators
+    enum
+    {
+        LOGICAL         = 1,    // and, or, xor
+        RELATIONAL      = 3,    // <, >, =, etc
+        ADDITIVE        = 5,    // +, -
+        MULTIPICATIVE   = 7,    // *, /
+        POWER           = 9,    // ^
+
+        FUNCTION_POWER  = 44,   // X²
+
+        UNKNOWN         = 55,   // Unknown operator
+        PARENTHESES     = 77,   // Parentheses
+        SYMBOL          = 88,   // Names
+        FUNCTION        = 99,   // Functions, e.g. f(x)
+    };
+
+    // Standard object interface
     OBJECT_HANDLER_NO_ID(algebraic);
 };
-
-
-#define ALGEBRAIC_DECLARE(derived, Arity, Precedence)                   \
-/* ----------------------------------------------------------------- */ \
-/*  Macro to define an algebraic command                             */ \
-/* ----------------------------------------------------------------- */ \
-struct derived : algebraic                                              \
-{                                                                       \
-    derived(id i = ID_##derived) : algebraic(i) {}                      \
-                                                                        \
-    static uint arity()             { return Arity; }                   \
-    static uint precedence()        { return Precedence; }              \
-                                                                        \
-    OBJECT_HANDLER(derived)                                             \
-    {                                                                   \
-        if (op == EVAL || op == EXEC)                                   \
-        {                                                               \
-            RT.command(#derived);                                       \
-            if (!Arity || RT.stack(Arity-1))                            \
-                return ((derived *) obj)->evaluate();                   \
-            return ERROR;                                               \
-        }                                                               \
-        return DELEGATE(command);                                       \
-    }                                                                   \
-    static result evaluate();                                           \
-}
-
-#define ALGEBRAIC_BODY(derived)                 \
-    object::result derived::evaluate()
-
-#define ALGEBRAIC(derived, arit, prec)          \
-    ALGEBRAIC_DECLARE(derived, arit, prec);     \
-    inline ALGEBRAIC_BODY(derived)
-
-
-// ============================================================================
-//
-//   Simple operations
-//
-// ============================================================================
-
-ALGEBRAIC_DECLARE(inv,   1, 3);
-ALGEBRAIC_DECLARE(neg,   1, 3);
-ALGEBRAIC_DECLARE(sq,    1, 3);
-ALGEBRAIC_DECLARE(cubed, 1, 3);
 
 #endif // ALGEBRAIC_H

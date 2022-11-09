@@ -29,10 +29,12 @@
 
 #include "functions.h"
 
+#include "arithmetic.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
 #include "integer.h"
+#include "stack-cmds.h"
 
 
 object::result function::evaluate(id op, bid128_fn op128, arg_check_fn check)
@@ -131,15 +133,37 @@ object::result function::evaluate()
 }
 
 
-template<>
-object::result function::evaluate<struct abs>()
+static object::result symbolic(object::id type)
 // ----------------------------------------------------------------------------
-//   Special case for abs
+//   Check if the function's argument is symbolic, if so process it as is
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = runtime::RT;
+    gcobj x = rt.stack(0);
+    if (x->is_strictly_symbolic())
+    {
+        x = rt.make<equation>(object::ID_equation, 1, &x, type);
+        if (x && rt.top(x))
+            return object::OK;
+        return object::ERROR;
+    }
+    return object::SKIP;
+}
+
+
+
+FUNCTION_BODY(abs)
+// ----------------------------------------------------------------------------
+//   Implementation of 'abs'
 // ----------------------------------------------------------------------------
 {
     gcobj x = RT.stack(0);
     if (!x)
         return ERROR;
+
+    result r = symbolic(ID_abs);
+    if (r != SKIP)
+        return r;
 
     id xt = x->type();
     if (xt == ID_neg_integer)
@@ -159,8 +183,100 @@ object::result function::evaluate<struct abs>()
     }
 
     // Fall-back to floating-point abs
-    return evaluate(ID_abs, bid128_abs, arg_check<struct abs>);
+    return function::evaluate(ID_abs, bid128_abs, arg_check<struct abs>);
 }
+
+
+FUNCTION_BODY(norm)
+// ----------------------------------------------------------------------------
+//   Implementation of 'norm'
+// ----------------------------------------------------------------------------
+{
+    using abs = struct abs;
+
+    result r = symbolic(ID_norm);
+    if (r != SKIP)
+        return r;
+
+    return (result) run<abs>();
+}
+
+
+FUNCTION_BODY(inv)
+// ----------------------------------------------------------------------------
+//   Invert is implemented as 1/x
+// ----------------------------------------------------------------------------
+{
+    result r = symbolic(ID_inv);
+    if (r != SKIP)
+        return r;
+
+    // Apparently there is a div function getting in the way, see man div(3)
+    using div = struct div;
+    RT.push(RT.make<integer>(ID_integer, 1));
+    run<Swap>();
+    run<div>();
+    return OK;
+}
+
+
+FUNCTION_BODY(neg)
+// ----------------------------------------------------------------------------
+//   Negate is implemented as 0-x
+// ----------------------------------------------------------------------------
+{
+    result r = symbolic(ID_neg);
+    if (r != SKIP)
+        return r;
+
+    RT.push(RT.make<integer>(ID_integer, 0));
+    run<Swap>();
+    run<sub>();
+    return OK;
+}
+
+
+FUNCTION_BODY(sq)
+// ----------------------------------------------------------------------------
+//   Square is implemented as "dup mul"
+// ----------------------------------------------------------------------------
+{
+    result r = symbolic(ID_sq);
+    if (r != SKIP)
+        return r;
+
+    runtime &rt = RT;
+    gcobj x = rt.stack(0);
+    if (x->is_symbolic())
+    {
+        x = rt.make<equation>(ID_equation, 1, &x, ID_sq);
+        if (rt.top(x))
+            return OK;
+        return ERROR;
+    }
+
+    run<Dup>();
+    run<mul>();
+    return OK;
+}
+
+
+FUNCTION_BODY(cubed)
+// ----------------------------------------------------------------------------
+//   Cubed is implemented as "dup dup mul mul"
+// ----------------------------------------------------------------------------
+{
+    result r = symbolic(ID_cubed);
+    if (r != SKIP)
+        return r;
+
+    run<Dup>();
+    run<Dup>();
+    run<mul>();
+    run<mul>();
+    return OK;
+}
+
 
 
 

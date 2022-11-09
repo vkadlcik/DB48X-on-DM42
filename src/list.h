@@ -130,6 +130,11 @@ struct equation : program
     OBJECT_HANDLER(equation);
     OBJECT_PARSER(equation);
     OBJECT_RENDERER(equation);
+
+protected:
+    static symbol_g render(uint depth, int &precedence);
+    static symbol_g parentheses(symbol_g what);
+    static symbol_g space(symbol_g what);
 };
 typedef const equation *equation_p;
 

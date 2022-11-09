@@ -92,16 +92,13 @@ inline bool non_numeric(gcobj &UNUSED      x,
 }
 
 
-#define ARITHMETIC_DECLARE(derived, Arity, Precedence)                  \
+#define ARITHMETIC_DECLARE(derived, Precedence)                         \
 /* ----------------------------------------------------------------- */ \
 /*  Macro to define an arithmetic command                            */ \
 /* ----------------------------------------------------------------- */ \
 struct derived : arithmetic                                             \
 {                                                                       \
     derived(id i = ID_##derived) : arithmetic(i) {}                     \
-                                                                        \
-    static uint arity()             { return Arity; }                   \
-    static uint precedence()        { return Precedence; }              \
                                                                         \
     static bool integer_ok(id &xt, id &yt, ularge &xv, ularge &yv);     \
     static constexpr auto bid32_op = bid32_##derived;                   \
@@ -110,14 +107,21 @@ struct derived : arithmetic                                             \
                                                                         \
     OBJECT_HANDLER(derived)                                             \
     {                                                                   \
-        if (op == EVAL || op == EXEC)                                   \
+        switch(op)                                                      \
         {                                                               \
+        case EVAL:                                                      \
+        case EXEC:                                                      \
             RT.command(fancy(ID_##derived));                            \
-            if (!Arity || RT.stack(Arity-1))                            \
-                return derived::evaluate();                             \
-            return ERROR;                                               \
+            return derived::evaluate();                                 \
+        case SIZE:                                                      \
+            return byte_p(payload) - byte_p(obj);                       \
+        case ARITY:                                                     \
+            return 2;                                                   \
+        case PRECEDENCE:                                                \
+            return Precedence;                                          \
+        default:                                                        \
+            return DELEGATE(arithmetic);                                \
         }                                                               \
-        return DELEGATE(arithmetic);                                    \
     }                                                                   \
     static result evaluate()                                            \
     {                                                                   \
@@ -126,14 +130,14 @@ struct derived : arithmetic                                             \
 }
 
 
-ARITHMETIC_DECLARE(add, 2, 5);
-ARITHMETIC_DECLARE(sub, 2, 5);
-ARITHMETIC_DECLARE(mul, 2, 7);
-ARITHMETIC_DECLARE(div, 2, 7);
-ARITHMETIC_DECLARE(mod, 2, 7);
-ARITHMETIC_DECLARE(rem, 2, 7);
-ARITHMETIC_DECLARE(pow, 2, 9);
-ARITHMETIC_DECLARE(hypot, 2, 15);
+ARITHMETIC_DECLARE(add, algebraic::ADDITIVE);
+ARITHMETIC_DECLARE(sub, algebraic::ADDITIVE);
+ARITHMETIC_DECLARE(mul, algebraic::MULTIPICATIVE);
+ARITHMETIC_DECLARE(div, algebraic::MULTIPICATIVE);
+ARITHMETIC_DECLARE(mod, algebraic::MULTIPICATIVE);
+ARITHMETIC_DECLARE(rem, algebraic::MULTIPICATIVE);
+ARITHMETIC_DECLARE(pow, algebraic::POWER);
+ARITHMETIC_DECLARE(hypot, algebraic::FUNCTION);
 
 void bid64_hypot(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
 void bid32_hypot(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);

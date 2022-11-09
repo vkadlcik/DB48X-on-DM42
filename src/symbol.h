@@ -52,11 +52,24 @@ struct symbol : text
         text(source, len, type)
     { }
 
+    static gcp<const symbol> make(char c)
+    {
+        return RT.make<symbol>(ID_symbol, utf8(&c), 1);
+    }
+
+    static gcp<const symbol> make(cstring s)
+    {
+        return RT.make<symbol>(ID_symbol, utf8(s), strlen(s));
+    }
+
     OBJECT_HANDLER(symbol);
     OBJECT_PARSER(symbol);
     OBJECT_RENDERER(symbol);
 };
 
 typedef const symbol *symbol_p;
+typedef gcp<const symbol> symbol_g;
+
+symbol_g operator+(symbol_g x, symbol_g y);
 
 #endif // SYMBOL_H

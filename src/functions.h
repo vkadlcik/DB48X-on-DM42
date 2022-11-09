@@ -65,66 +65,106 @@ bool arg_check(bid128 &UNUSED x)
 }
 
 
-#define FUNCTION(derived)                                               \
+#define STANDARD_FUNCTION(derived)                                      \
 /* ----------------------------------------------------------------- */ \
-/*  Macro to define a standard mathematical function                 */ \
+/*  Macro to define a standard mathematical function (in library)    */ \
 /* ----------------------------------------------------------------- */ \
 struct derived : function                                               \
 {                                                                       \
     derived(id i = ID_##derived) : function(i) {}                       \
                                                                         \
-    static uint arity()             { return 1; }                       \
-    static uint precedence()        { return 15; }                      \
-                                                                        \
     static constexpr auto bid128_op = bid128_##derived;                 \
                                                                         \
     OBJECT_HANDLER(derived)                                             \
     {                                                                   \
-        if (op == EVAL || op == EXEC)                                   \
+        switch(op)                                                      \
         {                                                               \
+        case EVAL:                                                      \
+        case EXEC:                                                      \
             RT.command(fancy(ID_##derived));                            \
             return evaluate<derived>();                                 \
+        case SIZE:                                                      \
+            return byte_p(payload) - byte_p(obj);                       \
+        case ARITY:                                                     \
+            return 1;                                                   \
+        case PRECEDENCE:                                                \
+            return algebraic::FUNCTION;                                 \
+        default:                                                        \
+            return DELEGATE(function);                                  \
         }                                                               \
-        return DELEGATE(function);                                      \
     }                                                                   \
 }
 
+STANDARD_FUNCTION(sqrt);
+STANDARD_FUNCTION(cbrt);
 
-FUNCTION(sqrt);
-FUNCTION(cbrt);
+STANDARD_FUNCTION(sin);
+STANDARD_FUNCTION(cos);
+STANDARD_FUNCTION(tan);
+STANDARD_FUNCTION(asin);
+STANDARD_FUNCTION(acos);
+STANDARD_FUNCTION(atan);
 
-FUNCTION(sin);
-FUNCTION(cos);
-FUNCTION(tan);
-FUNCTION(asin);
-FUNCTION(acos);
-FUNCTION(atan);
+STANDARD_FUNCTION(sinh);
+STANDARD_FUNCTION(cosh);
+STANDARD_FUNCTION(tanh);
+STANDARD_FUNCTION(asinh);
+STANDARD_FUNCTION(acosh);
+STANDARD_FUNCTION(atanh);
 
-FUNCTION(sinh);
-FUNCTION(cosh);
-FUNCTION(tanh);
-FUNCTION(asinh);
-FUNCTION(acosh);
-FUNCTION(atanh);
-
-FUNCTION(log1p);
-FUNCTION(expm1);
-FUNCTION(log);
-FUNCTION(log10);
-FUNCTION(log2);
-FUNCTION(exp);
-FUNCTION(exp10);
-FUNCTION(exp2);
-FUNCTION(erf);
-FUNCTION(erfc);
-FUNCTION(tgamma);
-FUNCTION(lgamma);
+STANDARD_FUNCTION(log1p);
+STANDARD_FUNCTION(expm1);
+STANDARD_FUNCTION(log);
+STANDARD_FUNCTION(log10);
+STANDARD_FUNCTION(log2);
+STANDARD_FUNCTION(exp);
+STANDARD_FUNCTION(exp10);
+STANDARD_FUNCTION(exp2);
+STANDARD_FUNCTION(erf);
+STANDARD_FUNCTION(erfc);
+STANDARD_FUNCTION(tgamma);
+STANDARD_FUNCTION(lgamma);
 
 
-struct abs;
-template<> object::result function::evaluate<struct abs>();
+#define FUNCTION(derived)                                               \
+struct derived : function                                               \
+/* ----------------------------------------------------------------- */ \
+/*  Macro to define a mathematical function not from the library     */ \
+/* ----------------------------------------------------------------- */ \
+{                                                                       \
+    derived(id i = ID_##derived) : function(i) {}                       \
+                                                                        \
+    static result evaluate();                                           \
+                                                                        \
+    OBJECT_HANDLER(derived)                                             \
+    {                                                                   \
+        switch(op)                                                      \
+        {                                                               \
+        case EVAL:                                                      \
+        case EXEC:                                                      \
+            RT.command(fancy(ID_##derived));                            \
+            return evaluate();                                          \
+        case SIZE:                                                      \
+            return byte_p(payload) - byte_p(obj);                       \
+        case ARITY:                                                     \
+            return 1;                                                   \
+        case PRECEDENCE:                                                \
+            return algebraic::FUNCTION;                                 \
+        default:                                                        \
+            return DELEGATE(function);                                  \
+        }                                                               \
+    }                                                                   \
+};                                                                      \
+template<> object::result function::evaluate<struct derived>()
+
+#define FUNCTION_BODY(derived)                  \
+object::result derived::evaluate()
+
 FUNCTION(abs);
-
-
+FUNCTION(norm);
+FUNCTION(inv);
+FUNCTION(neg);
+FUNCTION(sq);
+FUNCTION(cubed);
 
 #endif // FUNCTIONS_H

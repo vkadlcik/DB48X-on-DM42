@@ -36,7 +36,6 @@
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
-#include "stack-cmds.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -191,61 +190,4 @@ object::id algebraic::real_promotion(gcobj &x)
                   : prec > BID32_MAXDIGITS ? ID_decimal64
                                            : ID_decimal32;
     return real_promotion(x, type) ? type : ID_object;
-}
-
-
-
-// ============================================================================
-//
-//   Simple operators
-//
-// ============================================================================
-
-ALGEBRAIC_BODY(inv)
-// ----------------------------------------------------------------------------
-//   Invert is implemented as 1/x
-// ----------------------------------------------------------------------------
-{
-    // Apparently there is a div function getting in the way, see man div(3)
-    using div = struct div;
-    RT.push(RT.make<integer>(ID_integer, 1));
-    run<Swap>();
-    run<div>();
-    return OK;
-}
-
-
-ALGEBRAIC_BODY(neg)
-// ----------------------------------------------------------------------------
-//   Negate is implemented as 0-x
-// ----------------------------------------------------------------------------
-{
-    RT.push(RT.make<integer>(ID_integer, 0));
-    run<Swap>();
-    run<sub>();
-    return OK;
-}
-
-
-ALGEBRAIC_BODY(sq)
-// ----------------------------------------------------------------------------
-//   Square is implemented as "dup mul"
-// ----------------------------------------------------------------------------
-{
-    run<Dup>();
-    run<mul>();
-    return OK;
-}
-
-
-ALGEBRAIC_BODY(cubed)
-// ----------------------------------------------------------------------------
-//   Cubed is implemented as "dup dup mul mul"
-// ----------------------------------------------------------------------------
-{
-    run<Dup>();
-    run<Dup>();
-    run<mul>();
-    run<mul>();
-    return OK;
 }

@@ -113,6 +113,10 @@ text_g operator+(text_g x, text_g y)
 //   Concatenate two texts
 // ----------------------------------------------------------------------------
 {
+    if (!x)
+        return y;
+    if (!y)
+        return x;
     runtime &rt = runtime::RT;
     size_t sx = 0, sy = 0;
     utf8 tx = x->value(&sx);

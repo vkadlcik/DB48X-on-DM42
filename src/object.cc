@@ -236,7 +236,8 @@ text_p object::as_text(bool equation, runtime &rt) const
 
     // Allocate in the scratchpad, and null-terminate
     gcutf8 allocated = utf8(rt.allocate(actual));
-    text_g result = rt.make<text>(ID_text, allocated, actual);
+    id type = equation ? ID_symbol : ID_text;
+    text_g result = rt.make<text>(type, allocated, actual);
     rt.free(actual);
     return result;
 }
@@ -282,6 +283,10 @@ OBJECT_HANDLER_BODY(object)
         return (intptr_t) "Unknown";
     case MENU_MARKER:
         return 0;
+    case ARITY:
+        return SKIP;
+    case PRECEDENCE:
+        return algebraic::UNKNOWN;
     default:
         return SKIP;
     }

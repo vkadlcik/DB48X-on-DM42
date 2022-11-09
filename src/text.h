@@ -40,6 +40,8 @@
 
 #include "object.h"
 #include "runtime.h"
+#include "text.h"
+
 
 struct text : object
 // ----------------------------------------------------------------------------
@@ -71,6 +73,11 @@ struct text : object
         return make(str, strlen(cstring(str)));
     }
 
+    static text *make(cstring str, size_t len)
+    {
+        return make(utf8(str), len);
+    }
+
     size_t length() const
     {
         byte *p = payload();
@@ -94,6 +101,7 @@ struct text : object
         return (utf8) p;
     }
 
+
     OBJECT_HANDLER(text);
     OBJECT_PARSER(text);
     OBJECT_RENDERER(text);
@@ -103,7 +111,6 @@ typedef const text     *text_p;
 typedef gcp<const text> text_g;
 
 // Some operators on texts
-
 text_g operator+(text_g x, text_g y);
 text_g operator*(text_g x, uint y);
 

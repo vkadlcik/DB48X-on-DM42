@@ -129,8 +129,7 @@ NAMED(cubed, "x³")
 
 NAMED(sqrt, "√")
 
-NAMED(abs, "|x|")
-ALIAS(abs, "norm")
+CMD(abs)
 
 OP(And,         "and")
 OP(Or,          "or")
@@ -182,6 +181,7 @@ CMD(lgamma)
 NAMED(cbrt, "∛")
 OP(pow, "^")
 NAMED(hypot, "Hypothenuse")
+CMD(norm)
 
 CMD(Purge)
 CMD(PurgeAll)
@@ -320,6 +320,8 @@ OPCODE(INSERT)                  // Insert in editor
 OPCODE(HELP)                    // Help topic for this object
 OPCODE(MENU)                    // Insert menu entries (menu objects only)
 OPCODE(MENU_MARKER)             // Menu marker for object (e.g. directory)
+OPCODE(ARITY)                   // Return arity for an arithmetic operation
+OPCODE(PRECEDENCE)              // Return precedence for arithmetic operations
 
 #undef ID
 #undef OP

@@ -29,14 +29,15 @@
 
 #include "symbol.h"
 
+#include "algebraic.h"
+#include "command.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
-#include "command.h"
 #include "variables.h"
 
-#include <stdio.h>
 #include <ctype.h>
+#include <stdio.h>
 
 
 OBJECT_HANDLER_BODY(symbol)
@@ -70,6 +71,11 @@ OBJECT_HANDLER_BODY(symbol)
     }
     case RENDER:
         return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+    case ARITY:
+        return 0;
+    case PRECEDENCE:
+        return algebraic::SYMBOL;
+
     case HELP:
         return (intptr_t) "symbols";
 
@@ -114,4 +120,27 @@ OBJECT_RENDERER_BODY(symbol)
     size_t len = 0;
     utf8   txt = value(&len);
     return snprintf(r.target, r.length, "%.*s", (int) len, txt);
+}
+
+
+symbol_g operator+(symbol_g x, symbol_g y)
+// ----------------------------------------------------------------------------
+//   Concatenate two texts
+// ----------------------------------------------------------------------------
+{
+    if (!x)
+        return y;
+    if (!y)
+        return x;
+    runtime &rt = runtime::RT;
+    size_t sx = 0, sy = 0;
+    utf8 tx = x->value(&sx);
+    utf8 ty = y->value(&sy);
+    symbol_g concat = rt.make<symbol>(symbol::ID_symbol, tx, sx + sy);
+    if (concat)
+    {
+        utf8 tc = concat->value();
+        memcpy((byte *) tc + sx, (byte *) ty, sy);
+    }
+    return concat;
 }

@@ -284,6 +284,14 @@ struct object
     //   Return the object as text
     // ------------------------------------------------------------------------
 
+    symbol_p as_symbol(runtime &rt = RT) const
+    // ------------------------------------------------------------------------
+    //   Return the object as text
+    // ------------------------------------------------------------------------
+    {
+        return symbol_p(as_text(true, rt));
+    }
+
     result insert(input *Input, runtime &rt = RT) const
     // ------------------------------------------------------------------------
     //   Insert in the editor at cursor position
@@ -464,7 +472,7 @@ struct object
 
     static bool is_symbolic(id ty)
     // ------------------------------------------------------------------------
-    //    Check if a type denotes a symbol or equation
+    //    Check if a type denotes a symbolic argument (symbol, equation, number)
     // ------------------------------------------------------------------------
     {
         return ty >= FIRST_SYMBOLIC_TYPE && ty <= LAST_SYMBOLIC_TYPE;
@@ -473,10 +481,28 @@ struct object
 
     bool is_symbolic() const
     // ------------------------------------------------------------------------
-    //   Check if an object is an algebraic function
+    //   Check if an object is a symbolic argument
     // ------------------------------------------------------------------------
     {
         return is_symbolic(type());
+    }
+
+
+    static bool is_strictly_symbolic(id ty)
+    // ------------------------------------------------------------------------
+    //    Check if a type denotes a symbol or equation
+    // ------------------------------------------------------------------------
+    {
+        return ty == ID_symbol || ty == ID_equation;
+    }
+
+
+    bool is_strictly_symbolic() const
+    // ------------------------------------------------------------------------
+    //   Check if an object is a symbol or equation
+    // ------------------------------------------------------------------------
+    {
+        return is_strictly_symbolic(type());
     }
 
 
@@ -495,6 +521,24 @@ struct object
     // ------------------------------------------------------------------------
     {
         return is_algebraic(type());
+    }
+
+
+    intptr_t arity() const
+    // ------------------------------------------------------------------------
+    //   Return the arity for arithmetic operators
+    // ------------------------------------------------------------------------
+    {
+        return run(ARITY);
+    }
+
+
+    intptr_t precedence() const
+    // ------------------------------------------------------------------------
+    //   Return the arity for arithmetic operators
+    // ------------------------------------------------------------------------
+    {
+        return run(PRECEDENCE);
     }
 
 

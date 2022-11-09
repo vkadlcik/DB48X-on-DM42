@@ -29,6 +29,7 @@
 
 #include "list.h"
 
+#include "algebraic.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -422,10 +423,136 @@ OBJECT_HANDLER_BODY(equation)
 
 OBJECT_PARSER_BODY(equation)
 // ----------------------------------------------------------------------------
-//    Try to parse this as a program
+//    Try to parse this as an equation
 // ----------------------------------------------------------------------------
 {
     return list::object_parser(ID_equation, p, rt, '\'', '\'');
+}
+
+
+symbol_g equation::parentheses(symbol_g arg)
+// ----------------------------------------------------------------------------
+//   Render, putting parentheses around an argument
+// ----------------------------------------------------------------------------
+{
+    symbol_g open = symbol::make('(');
+    symbol_g close = symbol::make(')');
+    return open + arg + close;
+}
+
+
+symbol_g equation::space(symbol_g arg)
+// ----------------------------------------------------------------------------
+//   Render, putting parentheses around an argument
+// ----------------------------------------------------------------------------
+{
+    return symbol::make(' ') + arg;
+}
+
+
+symbol_g equation::render(uint depth, int &precedence)
+// ----------------------------------------------------------------------------
+//   Render an object as a symbol at a given precedence
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = RT;
+    while (rt.depth() > depth)
+    {
+        if (gcobj obj = rt.pop())
+        {
+            int arity = obj->arity();
+            switch(arity)
+            {
+            case SKIP:
+                // Non-algebraic in an equation, e.g. numbers
+                precedence = algebraic::UNKNOWN;
+                return obj->as_symbol(rt);
+
+            case 0:
+                // Symbols
+                precedence = algebraic::SYMBOL;
+                if (obj->type() == ID_symbol)
+                    return symbol_p(object_p(obj));
+                return obj->as_symbol(rt);
+
+            case 1:
+            {
+                // TODO: Prefix and postfix operators
+                int argp = 0;
+                symbol_g fn = obj->as_symbol(rt);
+                symbol_g arg = render(depth, argp);
+                if (argp < algebraic::SYMBOL)
+                    arg = parentheses(arg);
+                precedence = algebraic::FUNCTION;
+                switch(obj->type())
+                {
+                case ID_sq:
+                    precedence = algebraic::FUNCTION_POWER;
+                    return arg + symbol::make("²");
+                case ID_cubed:
+                    precedence = algebraic::FUNCTION_POWER;
+                    return arg + symbol::make("³");
+                case ID_neg:
+                    precedence = algebraic::ADDITIVE;
+                    return symbol::make('-') + arg;
+                case ID_inv:
+                    precedence = algebraic::FUNCTION_POWER;
+                    return arg + symbol::make("⁻¹");
+                default:
+                    break;
+                }
+                if (argp >= algebraic::SYMBOL)
+                    arg = space(arg);
+                return fn + arg;
+            }
+            break;
+            case 2:
+            {
+                int lprec = 0, rprec = 0;
+                symbol_g op = obj->as_symbol(rt);
+                symbol_g rtxt = render(depth, rprec);
+                symbol_g ltxt = render(depth, lprec);
+                int prec = obj->precedence();
+                if (prec != algebraic::FUNCTION)
+                {
+                    if (lprec < prec)
+                        ltxt = parentheses(ltxt);
+                    if (rprec <= prec)
+                        rtxt = parentheses(rtxt);
+                    precedence = prec;
+                    return ltxt + op + rtxt;
+                }
+                else
+                {
+                    symbol_g arg = ltxt + symbol::make(';') + rtxt;
+                    arg = parentheses(arg);
+                    precedence = algebraic::FUNCTION;
+                    return op + arg;
+                }
+            }
+            break;
+            default:
+            {
+                symbol_g op = obj->as_symbol(rt);
+                symbol_g args = nullptr;
+                for (int a = 0; a < arity; a++)
+                {
+                    int prec = 0;
+                    symbol_g arg = render(depth, prec);
+                    if (a)
+                        args = arg + symbol::make(';') + args;
+                    else
+                        args = arg;
+                }
+                args = parentheses(args);
+                precedence = algebraic::FUNCTION;
+                return op + args;
+            }
+            }
+        }
+    }
+
+    return nullptr;
 }
 
 
@@ -433,8 +560,34 @@ OBJECT_RENDERER_BODY(equation)
 // ----------------------------------------------------------------------------
 //   Render the program into the given program buffer
 // ----------------------------------------------------------------------------
+//   1 2 3 5 * + - 2 3 * +
 {
-    return list::object_renderer(r, rt, '\'', '\'');
+    size_t depth   = rt.depth();
+    byte_p p       = payload();
+    size_t size    = leb128<size_t>(p);
+    gcobj  first   = object_p(p);
+    bool   ok      = true;
+    size_t objsize = 0;
+
+    // First push all things so that we have the outermost operators first
+    for (gcobj obj = first; ok && size; size -= objsize, obj += objsize)
+    {
+        objsize = obj->size();
+        ok = rt.push(obj);
+    }
+
+    int precedence = 0;
+    symbol_g result = render(depth, precedence);
+    if (result)
+    {
+        size_t size = 0;
+        utf8 txt = result->value(&size);
+        if (r.equation)
+            return snprintf(r.target, r.length, "%.*s", (int) size, txt);
+        else
+            return snprintf(r.target, r.length, "'%.*s'", (int) size, txt);
+    }
+    return 0;
 }
 
 

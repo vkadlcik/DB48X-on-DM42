@@ -414,6 +414,8 @@ object::result arithmetic::evaluate(id        op,
             x = rt.make<integer>(xt, xv);
             ok = true;
         }
+        if (rt.error())
+            return ERROR;
     }
 
     /* Real data types */

@@ -82,7 +82,7 @@ object::result function::evaluate(id op, bid128_fn op128, arg_check_fn check)
     }
 
     // All other cases: report an error
-    rt.error("Bad arguments type");
+    rt.type_error();
     return ERROR;
 }
 
@@ -94,7 +94,7 @@ static bool log_arg_check(bid128 &x)
 {
     if (decimal128::is_negative_or_zero(x))
     {
-        runtime::RT.error("Argument outside domain");
+        runtime::RT.domain_error();
         return false;
     }
     return true;
@@ -113,7 +113,7 @@ static bool sqrt_arg_check(bid128 &x)
 {
     if (decimal128::is_negative(x))
     {
-        runtime::RT.error("Argument outside domain");
+        runtime::RT.domain_error();
         return false;
     }
     return true;

@@ -127,7 +127,7 @@ struct Unimplemented : command
     {
         if (op == EVAL || op == EXEC)
         {
-            RT.error("Not yet implemented");
+            RT.unimplemented_error();
             return ERROR;
         }
         if (op == MENU_MARKER)

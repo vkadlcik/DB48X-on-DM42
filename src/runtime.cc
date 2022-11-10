@@ -474,7 +474,7 @@ size_t runtime::edit(utf8 buf, size_t len)
     if (available(len) < len)
     {
         record(editor, "Insufficent memory for %u bytes", len);
-        error("Out of memory", "Editor");
+        out_of_memory_error();
         Editing = 0;
         return 0;
     }
@@ -765,3 +765,18 @@ void runtime::ret()
     for (object_p *s = StackTop; s > StackTop; s--)
         s[0] = s[-1];
 }
+
+
+
+// ============================================================================
+//
+//
+//
+// ============================================================================
+
+#define ERROR(name, msg)                        \
+runtime &runtime::name##_error()                \
+{                                               \
+    return error(msg);                          \
+}
+#include "errors.tbl"

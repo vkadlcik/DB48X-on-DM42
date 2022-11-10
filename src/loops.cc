@@ -220,7 +220,7 @@ object::result loop::object_parser(id       type,
         if (!found)
         {
             // If we did not find the terminator, we reached end of text
-            RT.error("Unterminated loop", utf8(p.source));
+            RT.unterminated_error().source(p.source);
             size_t alloc  = rt.allocated() - prealloc;
             rt.free(alloc);
             return ERROR;
@@ -526,7 +526,7 @@ object::result loop::counted(gcobj body, runtime &rt, bool stepping)
     integer_p istart = start->as<integer>();
     if (!ifinish || !istart)
     {
-        RT.error("Invalid type");
+        RT.type_error();
         return ERROR;
     }
 
@@ -551,7 +551,7 @@ object::result loop::counted(gcobj body, runtime &rt, bool stepping)
             integer_p istep = step->as<integer>();
             if (!istep)
             {
-                RT.error("Invalid type");
+                RT.type_error();
                 return ERROR;
             }
             incr = istep->value<ularge>();

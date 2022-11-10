@@ -69,7 +69,7 @@ object::result logical::value(object_p obj, ularge *v)
         *v = !decimal32_p(obj)->is_zero();
         return OK;
     default:
-        RT.error("Bad argument type");
+        RT.type_error();
     }
     return ERROR;
 }
@@ -119,7 +119,7 @@ object::result logical::evaluate(binary_fn op)
         RT.push(RT.make<integer>(xt, value));
         return OK;
     default:
-        RT.error("Bad argument type");
+        RT.type_error();
         break;
     }
 
@@ -163,7 +163,7 @@ object::result logical::evaluate(unary_fn op)
         RT.top(RT.make<integer>(xt, value));
         return OK;
     default:
-        RT.error("Bad argument type");
+        RT.type_error();
         break;
     }
 

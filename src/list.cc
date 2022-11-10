@@ -86,8 +86,8 @@ object::result list::object_parser(id type,
 //   of complex objects, like { { A B { C D } } }
 {
     // We have to be careful that we may have to GC to make room for list
-    gcutf8  s   = p.source;
-    size_t  max = p.length;
+    gcutf8  s     = p.source;
+    size_t  max   = p.length;
 
     // Check if we have the opening marker
     unicode cp  = 0;
@@ -136,7 +136,7 @@ object::result list::object_parser(id type,
     {
         record(list_errors, "Missing terminator, got %u (%c) at %s",
                cp, cp, (byte *) s);
-        rt.error("Missing terminator", s);
+        rt.unterminated_error().source(p.source);
         return ERROR;
     }
 

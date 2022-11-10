@@ -82,7 +82,7 @@ OBJECT_PARSER_BODY(text)
 
     if (*s != '"')
     {
-        rt.error("Invalid text", s);
+        rt.unterminated_error().source(p.source);
         return ERROR;
     }
     s++;

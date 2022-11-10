@@ -808,7 +808,7 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
     {
         explain("Unexpected error message [", rt.error(), "] "
                 "during data entry, cleared");
-        rt.error(nullptr);
+        rt.clear_error();
         ok = false;
     }
 
@@ -893,8 +893,7 @@ tests &tests::clear()
     runtime &rt = runtime::RT;
     while (rt.depth())
         rt.pop();
-    rt.error(nullptr);
-    rt.command(utf8());
+    rt.clear_error();
     return *this;
 }
 

@@ -243,7 +243,7 @@ inline bool div::integer_ok(object::id &xt, object::id &yt,
     // Check divid by zero
     if (xv == 0)
     {
-        runtime::RT.error("Divide by zero");
+        RT.zero_divide_error();
         return false;
     }
 
@@ -278,7 +278,7 @@ inline bool mod::integer_ok(object::id &xt, object::id &yt,
     // Check divid by zero
     if (xv == 0)
     {
-        runtime::RT.error("Divide by zero");
+        RT.zero_divide_error();
         return false;
     }
 
@@ -309,7 +309,7 @@ inline bool rem::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
     // Check divid by zero
     if (xv == 0)
     {
-        runtime::RT.error("Divide by zero");
+        RT.zero_divide_error();
         return false;
     }
 
@@ -328,7 +328,7 @@ inline bool pow::integer_ok(object::id &xt, object::id &yt,
     // Check divid by zero
     if (xv == 0 && yv == 0)
     {
-        runtime::RT.error("Undefined 0^0");
+        RT.undefined_operation_error();
         return false;
     }
 
@@ -476,7 +476,7 @@ object::result arithmetic::evaluate(id        op,
     }
     else
     {
-        rt.error("Invalid types");
+        rt.type_error();
     }
     return ERROR;
 }

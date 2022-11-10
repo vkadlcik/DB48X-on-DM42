@@ -67,7 +67,7 @@ object::result comparison::condition(bool &value, object_p cond)
             value = false;
             return OK;
         default:
-            RT.error("Bad argument type");
+            RT.type_error();
         }
     }
     return ERROR;
@@ -211,7 +211,7 @@ object::result comparison::compare(comparison_fn comparator)
     result r = compare(&cmp, y, x);
     if (r != OK)
     {
-        RT.error("Bad argument type");
+        RT.type_error();
         return r;
     }
 

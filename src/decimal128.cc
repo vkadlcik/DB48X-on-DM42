@@ -120,7 +120,7 @@ OBJECT_PARSER_BODY(decimal128)
     record(decimal128, "Had %u digits, max %u", mantissa, BID128_MAXDIGITS);
     if (mantissa >= BID128_MAXDIGITS)
     {
-        rt.error("Too many digits", digits + BID128_MAXDIGITS);
+        rt.mantissa_error().source(digits + BID128_MAXDIGITS);
         return WARN;                    // Try again with higher-precision
     }
 
@@ -137,7 +137,7 @@ OBJECT_PARSER_BODY(decimal128)
             s++;
         if (s == expval)
         {
-            rt.error("Malformed exponent");
+            rt.exponent_error().source(s);
             return ERROR;
         }
     }
@@ -150,7 +150,7 @@ OBJECT_PARSER_BODY(decimal128)
         record(decimal128, "Exponent is %d, max is %d", expval, maxexp);
         if (expval < -(maxexp-1) || expval > maxexp)
         {
-            rt.error("Exponent out of range");
+            rt.exponent_range_error().source(s);
             return WARN;
         }
     }

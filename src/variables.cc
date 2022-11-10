@@ -300,10 +300,10 @@ COMMAND_BODY(Sto)
 //   Store a global variable into current directory
 // ----------------------------------------------------------------------------
 {
-    directory *cat = RT.variables(0);
-    if (!cat)
+    directory *dir = RT.variables(0);
+    if (!dir)
     {
-        RT.error("No current directory");
+        RT.no_directory_error();
         return ERROR;
     }
 
@@ -315,11 +315,11 @@ COMMAND_BODY(Sto)
         symbol_p name = x->as_name();
         if (!name)
         {
-            RT.error("Invalid name");
+            RT.invalid_name_error();
             return ERROR;
         }
 
-        if (cat->store(name, y))
+        if (dir->store(name, y))
         {
             RT.drop();
             RT.drop();
@@ -343,15 +343,15 @@ COMMAND_BODY(Rcl)
     symbol_p name = x->as_name();
     if (!name)
     {
-        RT.error("Invalid name");
+        RT.invalid_name_error();
         return ERROR;
     }
 
     // Lookup all directorys, starting with innermost one
-    directory *cat = nullptr;
-    for (uint depth = 0; (cat = RT.variables(depth)); depth++)
+    directory *dir = nullptr;
+    for (uint depth = 0; (dir = RT.variables(depth)); depth++)
     {
-        if (object_p value = cat->recall(name))
+        if (object_p value = dir->recall(name))
         {
             RT.top(value);
             return OK;
@@ -359,7 +359,7 @@ COMMAND_BODY(Rcl)
     }
 
     // Otherwise, return an error
-    RT.error("Undefined name");
+    RT.undefined_name_error();
     return ERROR;
 }
 
@@ -375,21 +375,21 @@ COMMAND_BODY(Purge)
     symbol_p name = x->as_name();
     if (!name)
     {
-        RT.error("Invalid name");
+        RT.invalid_name_error();
         return ERROR;
     }
     RT.pop();
 
     // Lookup all directorys, starting with innermost one
-    directory *cat = RT.variables(0);
-    if (!cat)
+    directory *dir = RT.variables(0);
+    if (!dir)
     {
-        RT.error("No current directory");
+        RT.no_directory_error();
         return ERROR;
     }
 
     // Purge the object (HP48 doesn't error out if name does not exist)
-    cat->purge(name);
+    dir->purge(name);
     return OK;
 }
 
@@ -405,15 +405,15 @@ COMMAND_BODY(PurgeAll)
     symbol_p name = x->as_name();
     if (!name)
     {
-        RT.error("Invalid name");
+        RT.invalid_name_error();
         return ERROR;
     }
     RT.pop();
 
     // Lookup all directorys, starting with innermost one, and purge there
-    directory *cat = nullptr;
-    for (uint depth = 0; (cat = RT.variables(depth)); depth++)
-        cat->purge(name);
+    directory *dir = nullptr;
+    for (uint depth = 0; (dir = RT.variables(depth)); depth++)
+        dir->purge(name);
 
     return OK;
 }
@@ -501,13 +501,13 @@ uint VariablesMenu::count_variables()
 //    Count the variables in the current directory
 // ----------------------------------------------------------------------------
 {
-    directory *cat = RT.variables(0);
-    if (!cat)
+    directory *dir = RT.variables(0);
+    if (!dir)
     {
-        RT.error("No current directory");
+        RT.no_directory_error();
         return 0;
     }
-    return cat->count();
+    return dir->count();
 }
 
 
@@ -551,27 +551,27 @@ void VariablesMenu::list_variables(info &mi)
 //   Fill the menu with variable names
 // ----------------------------------------------------------------------------
 {
-    directory *cat = RT.variables(0);
-    if (!cat)
+    directory *dir = RT.variables(0);
+    if (!dir)
     {
-        RT.error("No current directory");
+        RT.no_directory_error();
         return;
     }
 
     uint skip = mi.skip;
     mi.plane  = 0;
     mi.planes = 1;
-    cat->enumerate(evaluate_variable, &mi);
+    dir->enumerate(evaluate_variable, &mi);
     mi.plane  = 1;
     mi.planes = 2;
     mi.skip   = skip;
     mi.index  = mi.plane * input::NUM_SOFTKEYS;
-    cat->enumerate(recall_variable, &mi);
+    dir->enumerate(recall_variable, &mi);
     mi.plane  = 2;
     mi.planes = 3;
     mi.index  = mi.plane * input::NUM_SOFTKEYS;
     mi.skip   = skip;
-    cat->enumerate(store_variable, &mi);
+    dir->enumerate(store_variable, &mi);
 
     for (uint k = 0; k < input::NUM_SOFTKEYS - (mi.pages > 1); k++)
     {
@@ -618,8 +618,8 @@ COMMAND_BODY(VariablesMenuExecute)
 
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))
-            if (directory *cat = RT.variables(0))
-                if (object_p value = cat->recall(name))
+            if (directory *dir = RT.variables(0))
+                if (object_p value = dir->recall(name))
                     return value->execute();
 
     return ERROR;
@@ -637,8 +637,8 @@ COMMAND_BODY(VariablesMenuRecall)
 
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))
-            if (directory *cat = RT.variables(0))
-                if (object_p value = cat->recall(name))
+            if (directory *dir = RT.variables(0))
+                if (object_p value = dir->recall(name))
                     if (RT.push(value))
                         return OK;
 
@@ -657,9 +657,9 @@ COMMAND_BODY(VariablesMenuStore)
 
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))
-            if (directory *cat = RT.variables(0))
+            if (directory *dir = RT.variables(0))
                 if (object_p value = RT.pop())
-                    if (cat->store(name, value))
+                    if (dir->store(name, value))
                         return OK;
 
     return ERROR;

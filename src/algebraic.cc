@@ -56,7 +56,7 @@ OBJECT_HANDLER_BODY(algebraic)
     case EXEC:
     case EVAL:
         record(algebraic_error, "Invoked default algebraic handler");
-        rt.error("Algebraic is not implemented");
+        rt.unimplemented_error();
         return ERROR;
 
     case INSERT:

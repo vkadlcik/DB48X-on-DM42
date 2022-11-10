@@ -83,6 +83,7 @@ void stack::draw_stack()
         return;
 
     utf8 saveError = RT.error();
+    utf8 saveSrc   = RT.source();
     utf8 saveCmd   = RT.command();
     rect clip      = Screen.clip();
 
@@ -134,5 +135,5 @@ void stack::draw_stack()
     Screen.clip(clip);
 
     // Clear any error raised during rendering
-    RT.error(saveError, saveCmd);
+    RT.error(saveError).source(saveSrc).command(saveCmd);
 }

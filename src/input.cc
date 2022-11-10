@@ -286,14 +286,9 @@ bool input::key(int key, bool repeating)
     if (RT.error())
     {
         if (key == KEY_EXIT || key == KEY_ENTER || key == KEY_BSP)
-        {
-            RT.error(nullptr);
-            RT.command(utf8(nullptr));
-        }
+            RT.clear_error();
         else if (key)
-        {
             beep(2200, 75);
-        }
         return true;
     }
 
@@ -2159,11 +2154,10 @@ bool input::handle_editing(int key)
             return true;
         }
         case KEY_EXIT:
+            // Clear error if there is one, else clear editor
             if (RT.error())
-                // Clear error
-                RT.error(nullptr);
+                RT.clear_error();
             else
-                // Clear the editor
                 clear_editor();
             return true;
 

@@ -59,7 +59,7 @@ OBJECT_HANDLER_BODY(command)
     case EXEC:
     case EVAL:
         record(command_error, "Invoked default command handler");
-        rt.error("Command is not implemented");
+        rt.unimplemented_error();
         return ERROR;
     case SIZE:
         // Commands have no payload
@@ -271,7 +271,7 @@ bool command::stack(uint32_t *result, uint level)
             return true;
         }
         default:
-            RT.error("Bad argument type");
+            RT.type_error();
         }
     }
     return false;
@@ -313,7 +313,7 @@ bool command::stack(int32_t *result, uint level)
             return true;
         }
         default:
-            RT.error("Bad argument type");
+            RT.type_error();
         }
     }
     return false;

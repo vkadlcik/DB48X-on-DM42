@@ -169,7 +169,7 @@ OBJECT_PARSER_BODY(integer)
             endp--;
             if (s >= endp)
             {
-                rt.error("Invalid based number", s);
+                rt.based_number_error(). source(s);
                 return ERROR;
             }
         }
@@ -187,7 +187,7 @@ OBJECT_PARSER_BODY(integer)
     {
         if (v >= base)
         {
-            rt.error("Invalid digit for base", s-1);
+            rt.based_digit_error().source(s-1);
             return ERROR;
         }
         ularge next = result * base + v;
@@ -197,7 +197,7 @@ OBJECT_PARSER_BODY(integer)
         // If the value does not fit in an integer, defer to bignum / real
         if ((next << shift) <  result)
         {
-            rt.error("Number is too big");
+            rt.based_range_error().source(s);
             return WARN;
         }
 

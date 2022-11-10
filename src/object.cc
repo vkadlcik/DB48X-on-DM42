@@ -104,16 +104,6 @@ const cstring object::fancy_name[NUM_IDS] =
 };
 
 
-void object::error(utf8 message, utf8 source, runtime &rt)
-// ----------------------------------------------------------------------------
-//    Send the error to the runtime
-// ----------------------------------------------------------------------------
-//    This function is not inline to avoid including runtime.h in object.h
-{
-    rt.error(message, source);
-}
-
-
 object_p object::parse(utf8 source, size_t &size, runtime &rt)
 // ----------------------------------------------------------------------------
 //  Try parsing the object as a top-level temporary
@@ -149,7 +139,7 @@ object_p object::parse(utf8 source, size_t &size, runtime &rt)
         {
             err = rt.error();
             src = rt.source();
-            rt.error(nullptr);
+            rt.clear_error();
             r = SKIP;
         }
     }
@@ -160,9 +150,9 @@ object_p object::parse(utf8 source, size_t &size, runtime &rt)
     if (r == SKIP)
     {
         if (err)
-            error(err, src);
+            RT.error(err).source(src);
         else
-            error("Syntax error", p.source);
+            RT.syntax_error().source(p.source);
     }
 
     return r == OK ? p.out : nullptr;
@@ -268,7 +258,7 @@ OBJECT_HANDLER_BODY(object)
     {
     case EXEC:
     case EVAL:
-        rt.error("Invalid object");
+        rt.invalid_object_error();
         return ERROR;
     case SIZE:
         return payload - obj;
@@ -301,7 +291,7 @@ OBJECT_PARSER_BODY(object)
 {
     p.out = nullptr;
     p.end = 0;
-    rt.error("Default object parser called", p.source);
+    rt.invalid_object_error().source(p.source);
     return ERROR;
 }
 
@@ -312,7 +302,7 @@ OBJECT_RENDERER_BODY(object)
 // ----------------------------------------------------------------------------
 //   Returns number of bytes needed - If larger than end - begin, retry
 {
-    rt.error("Rendering unimplemented object");
+    rt.invalid_object_error();
     return snprintf(r.target, r.length, "<Unknown %p>", this);
 }
 

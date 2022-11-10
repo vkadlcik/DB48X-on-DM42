@@ -496,34 +496,25 @@ struct runtime
     //
     // ========================================================================
 
-    runtime &error(utf8 message, utf8 source)
+    runtime &error(utf8 message)
     // ------------------------------------------------------------------------
     //   Set the error message
     // ------------------------------------------------------------------------
     {
         if (message)
-            record(errors, "Error [%s] at source [%s]", message, source);
+            record(errors, "Error [%s]", message);
         else
             record(runtime, "Clearing error");
         Error = message;
-        ErrorSource = source;
         return *this;
     }
 
-    runtime &error(cstring message, cstring source = nullptr)
+    runtime &error(cstring message)
     // ------------------------------------------------------------------------
     //   Set the error message
     // ------------------------------------------------------------------------
     {
-        return error(utf8(message), utf8(source));
-    }
-
-    runtime &error(cstring message, utf8 source)
-    // ------------------------------------------------------------------------
-    //   Set the error message
-    // ------------------------------------------------------------------------
-    {
-        return error(utf8(message), source);
+        return error(utf8(message));
     }
 
     utf8 error()
@@ -532,6 +523,23 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         return Error;
+    }
+
+    runtime &source(utf8 spos)
+    // ------------------------------------------------------------------------
+    //   Set the source location for the current error
+    // ------------------------------------------------------------------------
+    {
+        ErrorSource = spos;
+        return *this;
+    }
+
+    runtime &source(cstring spos)
+    // ------------------------------------------------------------------------
+    //   Set the source location for the current error
+    // ------------------------------------------------------------------------
+    {
+        return source(utf8(spos));
     }
 
     utf8 source()
@@ -566,6 +574,27 @@ struct runtime
     {
         return ErrorCommand;
     }
+
+    void clear_error()
+    // ------------------------------------------------------------------------
+    //   Clear error state
+    // ------------------------------------------------------------------------
+    {
+        Error = nullptr;
+        ErrorSource = nullptr;
+        ErrorCommand = nullptr;
+    }
+
+
+
+    // ========================================================================
+    //
+    //   Common errors
+    //
+    // ========================================================================
+
+#define ERROR(name, msg)        runtime &name##_error();
+#include "errors.tbl"
 
 
 protected:

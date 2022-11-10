@@ -101,6 +101,7 @@ OBJECT_PARSER_BODY(decimal32)
     if (s == digits)
     {
         if (strncasecmp(cstring(s), "inf", sizeof("inf") - 1) != 0 &&
+            strncasecmp(cstring(s), "∞",   sizeof("∞")   - 1) != 0 &&
             strncasecmp(cstring(s), "NaN", sizeof("NaN") - 1) != 0)
             return SKIP;
         record(decimal32, "Recognized NaN or Inf", s);
@@ -229,7 +230,12 @@ void decimal_format(char *str, size_t len, int digits)
         {
             // No exponent -> expecting special number like Inf or NaN
             // Just copy (we may have eliminated mantissa sign
-            strcpy(str, s);
+            if (strncasecmp(s, "+inf", sizeof("inf") - 1) == 0)
+                strncpy(str, "+∞", len);
+            else if (strncasecmp(s, "-inf", sizeof("inf") - 1) == 0)
+                strncpy(str, "-∞", len);
+            else
+                strncpy(str, s, len);
             return;
         }
 

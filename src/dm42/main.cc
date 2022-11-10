@@ -159,7 +159,7 @@ void program_init()
 #ifndef DEBUG
     // Give as much as memory as possible to the runtime
     // Experimentally, this is the amount of memory we need to leave free
-    size_t size = sys_free_mem() - 8 * 1024;
+    size_t size = sys_free_mem() - 10 * 1024;
 #else
     // Give 256 bytes to the runtime to stress-test the GC
     size_t size = 2048;

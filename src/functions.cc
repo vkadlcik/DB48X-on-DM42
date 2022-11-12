@@ -37,7 +37,7 @@
 #include "stack-cmds.h"
 
 
-object::result function::evaluate(id op, bid128_fn op128, arg_check_fn check)
+object::result function::evaluate(id op, bid128_fn op128)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------
@@ -63,10 +63,15 @@ object::result function::evaluate(id op, bid128_fn op128, arg_check_fn check)
     if (ok)
     {
         bid128 xv = x->as<decimal128>()->value();
-        if (!check(xv))
-            return ERROR;
         bid128 res;
         op128(&res.value, &xv.value);
+        int finite = false;
+        bid128_isFinite(&finite, &res.value);
+        if (!finite)
+        {
+            rt.domain_error();
+            return ERROR;
+        }
         x = rt.make<decimal128>(ID_decimal128, res);
         rt.top(x);
         return OK;
@@ -87,49 +92,13 @@ object::result function::evaluate(id op, bid128_fn op128, arg_check_fn check)
 }
 
 
-static bool log_arg_check(bid128 &x)
-// ----------------------------------------------------------------------------
-//   Log cannot take a negative value as input
-// ----------------------------------------------------------------------------
-{
-    if (decimal128::is_negative_or_zero(x))
-    {
-        runtime::RT.domain_error();
-        return false;
-    }
-    return true;
-}
-
-
-template<> bool arg_check<struct log>  (bid128 &x) { return log_arg_check(x); }
-template<> bool arg_check<struct log2> (bid128 &x) { return log_arg_check(x); }
-template<> bool arg_check<struct log10>(bid128 &x) { return log_arg_check(x); }
-
-
-static bool sqrt_arg_check(bid128 &x)
-// ----------------------------------------------------------------------------
-//   Log cannot take a negative value as input
-// ----------------------------------------------------------------------------
-{
-    if (decimal128::is_negative(x))
-    {
-        runtime::RT.domain_error();
-        return false;
-    }
-    return true;
-}
-
-
-template<> bool arg_check<struct sqrt>(bid128 &x) { return sqrt_arg_check(x); }
-
-
 template<typename Func>
 object::result function::evaluate()
 // ----------------------------------------------------------------------------
 //   Evaluation for a given function
 // ----------------------------------------------------------------------------
 {
-    return evaluate(Func::static_type(), Func::bid128_op, arg_check<Func>);
+    return evaluate(Func::static_type(), Func::bid128_op);
 }
 
 
@@ -183,7 +152,7 @@ FUNCTION_BODY(abs)
     }
 
     // Fall-back to floating-point abs
-    return function::evaluate(ID_abs, bid128_abs, arg_check<struct abs>);
+    return function::evaluate(ID_abs, bid128_abs);
 }
 
 

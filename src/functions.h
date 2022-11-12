@@ -41,9 +41,7 @@ struct function : algebraic
 
 
 protected:
-    typedef bool (*arg_check_fn)(bid128 &x);
-
-    static result evaluate(id op, bid128_fn op128, arg_check_fn check);
+    static result evaluate(id op, bid128_fn op128);
     // ------------------------------------------------------------------------
     //   The actual evaluation for all binary operators
     // ------------------------------------------------------------------------
@@ -53,16 +51,6 @@ protected:
     //   The actual evaluation for all binary operators
     // ------------------------------------------------------------------------
 };
-
-
-template <typename Func>
-bool arg_check(bid128 &UNUSED x)
-// ----------------------------------------------------------------------------
-//   Check the arguments for a given function
-// ----------------------------------------------------------------------------
-{
-    return true;
-}
 
 
 #define STANDARD_FUNCTION(derived)                                      \

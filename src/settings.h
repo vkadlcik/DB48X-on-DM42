@@ -44,6 +44,7 @@ struct settings
           exponentChar(L'⁳'),
           angle_mode(DEGREES),
           base(16),
+          wordsize(128),
           command_fmt(LONG_FORM)
     {}
 
@@ -94,9 +95,10 @@ public:
     uint16_t displayed;    // Number of displayed digits
     display  display_mode; // Display mode
     char     decimalDot;   // Character used for decimal separator
-    unicode exponentChar; // The character used to represent exponents
+    unicode  exponentChar; // The character used to represent exponents
     angles   angle_mode;   // Whether we compute in degrees, radians or grads
     uint8_t  base;         // The default base for #numbers
+    uint16_t wordsize;     // Wordsize for binary numbers (in bits)
     commands command_fmt;  // How we prefer to display commands
 };
 

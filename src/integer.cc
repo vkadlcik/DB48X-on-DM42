@@ -343,3 +343,551 @@ OBJECT_RENDERER_BODY(bin_integer)
     ularge v = value<ularge>();
     return render_num(r.target, r.length, v, 2, "#b");
 }
+
+
+
+// ============================================================================
+//
+//    Big integer comparisons
+//
+// ============================================================================
+
+int integer::compare(byte_p x, byte_p y)
+// ----------------------------------------------------------------------------
+//   Compare the two byte sequences
+// ----------------------------------------------------------------------------
+{
+    int result = 0;
+    byte c = 0;
+    bool xmore, ymore;
+    do
+    {
+        byte xd = *x++;
+        byte yd = *y++;
+        xmore = xd & 0x80;
+        ymore = yd & 0x80;
+        result = int(xd & 0x7F) - int(yd & 0x7F);
+        c = byte(result) - c;
+        c >>= 7;
+    }
+    while (xmore && ymore);
+    if (xmore)
+        return 1;
+    else if (ymore)
+        return -1;
+    else if (c)
+        return -1;
+    else
+        return result;
+}
+
+
+int integer::compare(integer_g x, integer_g y)
+// ----------------------------------------------------------------------------
+//   Compare two integer values
+// ----------------------------------------------------------------------------
+{
+    id xt = x->type();
+    id yt = y->type();
+
+    // Negative integers are always smaller than positive integers
+    if (xt == ID_neg_integer && yt != ID_neg_integer)
+        return -2;
+    else if (yt == ID_neg_integer && xt != ID_neg_integer)
+        return 2;
+
+    byte_p xp = x->payload();
+    byte_p yp = y->payload();
+    int result = compare(xp, yp);
+    if (xt == ID_neg_integer)
+        result = -result;
+    return result;
+}
+
+
+
+// ============================================================================
+//
+//    Big integer arithmetic
+//
+// ============================================================================
+
+static inline byte add_op(byte x, byte y)       { return x + y; }
+static inline byte sub_op(byte x, byte y)       { return x - y; }
+static inline byte neg_op(byte x, byte y)       { return -x - y; }
+static inline byte not_op(byte x, byte  )       { return ~x; }
+static inline byte and_op(byte x, byte y)       { return x & y; }
+static inline byte or_op (byte x, byte y)       { return x | y; }
+static inline byte xor_op(byte x, byte y)       { return x ^ y; }
+
+
+inline object::id integer::opposite_type(id type)
+// ----------------------------------------------------------------------------
+//   Return the type of the opposite
+// ----------------------------------------------------------------------------
+{
+    switch(type)
+    {
+    case ID_integer:            return ID_neg_integer;
+    case ID_neg_integer:        return ID_integer;
+    default:                    return type;
+    }
+}
+
+
+inline object::id integer::product_type(id yt, id xt)
+// ----------------------------------------------------------------------------
+//   Return the type of the product of x and y
+// ----------------------------------------------------------------------------
+{
+    switch(xt)
+    {
+    case ID_integer:
+        if (yt == ID_neg_integer)
+            return ID_neg_integer;
+        return ID_integer;
+    case ID_neg_integer:
+        if (yt == ID_neg_integer)
+            return ID_integer;
+        return ID_neg_integer;
+    default:
+        return xt;
+    }
+}
+
+
+integer_g operator-(integer_g x)
+// ----------------------------------------------------------------------------
+//   Negate the input value
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = runtime::RT;
+    object::id xt = x->type();
+    byte_p p = x->payload();
+
+    // Deal with simple case where we can simply copy the payload
+    if (xt == object::ID_integer)
+        return rt.make<integer>(object::ID_neg_integer, p, leb128size(p));
+    else if (xt == object::ID_neg_integer)
+        return rt.make<integer>(object::ID_integer, p, leb128size(p));
+
+    // Complicated case: need to actually compute the opposite
+    size_t ws = integer::wordsize(xt);
+    size_t size = integer::unary(neg_op, x->payload(), ws);
+    gcbytes bytes = rt.allocate(size);
+    integer_g result = rt.make<integer>(xt, bytes, size);
+    rt.free(size);
+    return result;
+}
+
+
+integer_g operator~(integer_g x)
+// ----------------------------------------------------------------------------
+//   Boolean not
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = runtime::RT;
+    object::id xt = x->type();
+    byte_p p = x->payload();
+
+    // For integer and neg_integer, do a 0/1 not
+    if (xt == object::ID_integer || xt == object::ID_neg_integer)
+    {
+        return rt.make<integer>(object::ID_integer, *p == 0);
+    }
+
+    // For hex_integer and other based numbers, do a binary not
+    size_t ws = integer::wordsize(xt);
+    size_t size = integer::unary(not_op, x->payload(), ws);
+    gcbytes bytes = rt.allocate(size);
+    integer_g result = rt.make<integer>(xt, bytes, size);
+    rt.free(size);
+    return result;
+}
+
+
+integer_g integer::add_sub(integer_g y, integer_g x, bool issub)
+// ----------------------------------------------------------------------------
+//   Add the two integer values, result has type of x
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = RT;
+    id yt = y->type();
+    id xt = x->type();
+    byte_p yp = y->payload();
+    byte_p xp = x->payload();
+    size_t ws = wordsize(xt);
+
+    // Check if we have opposite signs
+    bool samesgn = (xt == ID_neg_integer) == (yt == ID_neg_integer);
+    if (samesgn == issub)
+    {
+        int cmp = compare(yp, xp);
+        if (cmp >= 0)
+        {
+            // abs Y > abs X: result has opposite type of X
+            size_t size = binary(sub_op, yp, xp, ws);
+            gcbytes bytes = rt.allocate(size);
+            id ty = cmp == 0 ? ID_integer: issub ? xt : opposite_type(xt);
+            integer_g result = rt.make<integer>(ty, bytes, size);
+            rt.free(size);
+            return result;
+        }
+        else
+        {
+            // abs Y < abs X: result has type of X
+            size_t size = binary(sub_op, xp, yp, ws);
+            gcbytes bytes = rt.allocate(size);
+            id ty = issub ? opposite_type(xt) : xt;
+            integer_g result = rt.make<integer>(ty, bytes, size);
+            rt.free(size);
+            return result;
+        }
+    }
+
+    // We have the same sign, add items
+    size_t size = binary(add_op, yp, xp, ws);
+    gcbytes bytes = rt.allocate(size);
+    id ty = issub ? opposite_type(xt) : xt;
+    integer_g result = rt.make<integer>(ty, bytes, size);
+    rt.free(size);
+    return result;
+}
+
+
+
+integer_g operator+(integer_g y, integer_g x)
+// ----------------------------------------------------------------------------
+//   Add the two integer values, result has type of x
+// ----------------------------------------------------------------------------
+{
+    return integer::add_sub(y, x, false);
+}
+
+
+integer_g operator-(integer_g y, integer_g x)
+// ----------------------------------------------------------------------------
+//   Subtract two integer values, result has type of x
+// ----------------------------------------------------------------------------
+{
+    return integer::add_sub(y, x, true);
+}
+
+
+integer_g operator&(integer_g y, integer_g x)
+// ----------------------------------------------------------------------------
+//   Perform a binary and operation
+// ----------------------------------------------------------------------------
+{
+    return integer::binary(and_op, x, y);
+}
+
+
+integer_g operator|(integer_g y, integer_g x)
+// ----------------------------------------------------------------------------
+//   Perform a binary or operation
+// ----------------------------------------------------------------------------
+{
+    return integer::binary(or_op, x, y);
+}
+
+
+integer_g operator^(integer_g y, integer_g x)
+// ----------------------------------------------------------------------------
+//   Perform a binary xor operation
+// ----------------------------------------------------------------------------
+{
+    return integer::binary(xor_op, x, y);
+}
+
+
+size_t integer::multiply(byte_p x, byte_p y, size_t maxbits)
+// ----------------------------------------------------------------------------
+//   Perform multiply operation op on leb128 numbers x and y
+// ----------------------------------------------------------------------------
+//   Result is placed in scratchpad, the function returns the size in bytes
+{
+    runtime &rt = runtime::RT;
+    byte *buffer = rt.scratchpad();
+    byte *p = buffer;
+    bool xmore;
+    uint shift = 0;
+    size_t available = rt.available();
+    if (available > (maxbits + 6) / 7)
+        available = (maxbits + 6) / 7;
+    *p = 0;
+    byte *highest = p;
+
+    do
+    {
+        uint xs = 0;
+        byte xd = *x++;
+        xmore = xd & 0x80;
+        xd &= 0x7F;
+        while (xd)
+        {
+            if (xd & 1)
+            {
+                size_t a = available;
+                bool ymore = true;
+                byte_p yp = y;
+                uint c = 0;
+                uint s = shift + xs;
+                uint word = s / 7;
+                p = buffer + word;
+                if (a > word)
+                    a -= word;
+                else
+                    a = 0;
+                s %= 7;
+                while (highest < p)
+                    *highest++ = 0x80;
+                if (p > buffer)
+                    p[-1] |= 0x80;
+                while (ymore && a)
+                {
+                    byte yd = *yp++;
+                    ymore = yd & 0x80;
+                    byte pd = p < highest ? *p & 0x7F : 0;
+                    c = pd + ((yd & 0x7F) << s) + c;
+                    *p++ = byte(c & 0x7F) | 0x80;
+                    c >>= 7;
+                    a--;
+                }
+                while (c && a)
+                {
+                    byte pd = p < highest ? *p & 0x7F : 0;
+                    c = pd + c;
+                    *p++ = byte(c & 0x7F) | 0x80;
+                    c >>= 7;
+                    a--;
+                }
+                p[-1] &= ~0x80;
+                highest = p;
+            }
+            xd >>= 1;
+            xs++;
+        }
+        shift += 7;
+    }
+    while (xmore);
+
+    size_t written = p - buffer;
+    if (maxbits < 7 * written)
+    {
+        size_t bits = 7 * written - maxbits;
+        p[-1] = byte(p[-1] << bits) >> bits;
+    }
+    return p - buffer;
+}
+
+
+integer_g operator*(integer_g y, integer_g x)
+// ----------------------------------------------------------------------------
+//   Multiplication of integers
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = runtime::RT;
+    object::id yt = y->type();
+    object::id xt = x->type();
+    byte_p yp = y->payload();
+    byte_p xp = x->payload();
+    size_t ws = integer::wordsize(xt);
+    size_t size = integer::multiply(yp, xp, ws);
+    gcbytes bytes = rt.allocate(size);
+    object::id prodtype = integer::product_type(yt, xt);
+    integer_g result = rt.make<integer>(prodtype, bytes, size);
+    rt.free(size);
+    return result;
+
+}
+
+
+size_t integer::divide(byte_p y, byte_p x, size_t maxbits,
+                       byte_p &qptr, size_t &qsize,
+                       byte_p &rptr, size_t &rsize)
+// ----------------------------------------------------------------------------
+//   Perform divide  operation op on leb128 numbers x and y
+// ----------------------------------------------------------------------------
+//   Result is placed in scratchpad, the function returns the size in bytes
+{
+    runtime &rt = runtime::RT;
+    if (*x == 0)
+    {
+        rt.zero_divide_error();
+        return 0;
+    }
+
+    // Allocate size for the remainder (smaller than x), initialize to 0
+    byte_p yp = y;
+    do { } while (*yp++ & 0x80);
+    size_t qsz = yp - y;
+    byte *quotient = rt.scratchpad();
+    *quotient = 0;
+
+    // Pointer to the remainder, initialize to 0
+    size_t rsz = 0;
+    byte *remainder = quotient + qsz;
+    *remainder = 0;
+
+    size_t available = rt.available();
+    if (available > (maxbits + 6) / 7)
+        available = (maxbits + 6) / 7;
+    for (int word = qsz-1; word >= 0; word--)
+    {
+        quotient[word] = 0x80;
+        for (int bit = 6; bit >= 0; bit--)
+        {
+            // Shift remainder left by one bit, add numerator bit
+            byte_p xp = x;
+            int delta = 0;      // >= 0 if remainder >= denominator
+            byte *r = remainder;
+            byte c = (y[word] >> bit) & 1;
+            bool rmore, xmore;
+
+            do
+            {
+                byte rd = *r;
+                rmore = rd & 0x80;
+                byte xd = *xp++;
+                xmore = xd & 0x80;
+                c = (byte(rd & 0x7F) << 1) | c;
+                delta = int(c & 0x7F) - int(xd & 0x7F);
+                *r++ = c | 0x80;
+                c >>= 7;
+            }
+            while(rmore && xmore);
+
+            if (rmore || xmore)
+                delta = rmore - xmore;
+
+            while (rmore)
+            {
+                byte rd = *r;
+                rmore = rd & 0x80;
+                c = (byte(rd & 0x7F) << 1) | c;
+                *r++ = c | 0x80;
+                c >>= 7;
+            }
+
+            if (c)
+                *r++ = c | 0x80;
+
+            // If remainder >= denominator, add to quotient, subtract from rem
+            if (delta >= 0)
+            {
+                quotient[word] |= (1 << bit);
+
+                // Strip zeroes at top of remainder
+                while (r > remainder + 1 && r[-1] == 0x80)
+                    r--;
+                r[-1] &= ~0x80;
+
+                r = remainder;
+                xp = x;
+
+                c = 0;
+                do
+                {
+                    byte rd = *r;
+                    rmore = rd & 0x80;
+                    byte xd = *xp++;
+                    xmore = xd & 0x80;
+                    c = byte(rd & 0x7F) - byte(xd & 0x7F) - c;
+                    *r++ = (c & 0x7F) | 0x80;
+                    c >>= 7;
+                }
+                while (rmore && xmore);
+
+                while (rmore)
+                {
+                    byte rd = *r;
+                    rmore = rd & 0x80;
+                    c = (byte(rd & 0x7F) << 1) - c;
+                    *r++ = c | 0x80;
+                    c >>= 7;
+                }
+
+            }
+
+            // Strip zeroes at top of remainder
+            while (r > remainder + 1 && r[-1] == 0x80)
+                r--;
+            r[-1] &= ~0x80;
+            rsz = r - remainder;
+        } // numerator bit loop
+
+    } // numerator word loop
+
+    // Strip zeroes from the quotient
+    byte *q = quotient + qsz;
+    while (q > quotient + 1 && q[-1] == 0x80)
+        q--;
+    q[-1] &= ~0x80;
+    qsz = q - quotient;
+
+    // Write out result
+    qptr  = quotient;
+    qsize = qsz;
+    rptr  = remainder;
+    rsize = rsz;
+
+    // Return total size used in scratchpad
+    return remainder + rsz - quotient;
+}
+
+
+integer_g operator/(integer_g y, integer_g x)
+// ----------------------------------------------------------------------------
+//   Perform long division of y by x
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = runtime::RT;
+    object::id yt = y->type();
+    object::id xt = x->type();
+    byte_p yp = y->payload();
+    byte_p xp = x->payload();
+    size_t ws = integer::wordsize(xt);
+    byte_p qp = nullptr;
+    byte_p rp = nullptr;
+    size_t qs = 0;
+    size_t rs = 0;
+    if (size_t size = integer::divide(yp, xp, ws, qp, qs, rp, rs))
+    {
+        gcbytes bytes = rt.allocate(size);
+        object::id prodtype = integer::product_type(yt, xt);
+        gcbytes qbytes = qp;
+        integer_g result = rt.make<integer>(prodtype, qbytes, qs);
+        rt.free(size);
+        return result;
+    }
+    return y;
+}
+
+
+integer_g operator%(integer_g y, integer_g x)
+// ----------------------------------------------------------------------------
+//  Perform long-remainder of y by x
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = runtime::RT;
+    object::id yt = y->type();
+    object::id xt = x->type();
+    byte_p yp = y->payload();
+    byte_p xp = x->payload();
+    size_t ws = integer::wordsize(xt);
+    byte_p qp = nullptr;
+    byte_p rp = nullptr;
+    size_t qs = 0;
+    size_t rs = 0;
+    if (size_t size = integer::divide(yp, xp, ws, qp, qs, rp, rs))
+    {
+        gcbytes bytes = rt.allocate(size);
+        object::id prodtype = integer::product_type(yt, xt);
+        gcbytes rbytes = rp;
+        integer_g result = rt.make<integer>(prodtype, rbytes, qs);
+        rt.free(size);
+        return result;
+    }
+    return y;
+}

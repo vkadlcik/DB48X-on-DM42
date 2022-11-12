@@ -226,11 +226,11 @@ OBJECT_PARSER_BODY(integer)
 }
 
 
-static size_t render_num(char   *dest,
-                         size_t  size,
-                         ularge  num,
-                         uint    base,
-                         cstring fmt)
+static size_t render_num(char     *dest,
+                         size_t    size,
+                         integer_p num,
+                         uint      base,
+                         cstring   fmt)
 // ----------------------------------------------------------------------------
 //   Convert an integer value to the proper format
 // ----------------------------------------------------------------------------
@@ -249,13 +249,35 @@ static size_t render_num(char   *dest,
         fmt++;
     }
 
-    // count digits to display
-    ularge testdigits = num;
+    // Get denominator for the base
+    runtime &rt = runtime::RT;
+    object::id ntype = num->type();
+    char *first = p;
+    integer_g b = rt.make<integer>(ntype, base);
+    integer_g n = (integer *) num;
+
+    // Keep dividing by the base until we get 0
     do
     {
+        integer_g r = nullptr;
+        if (!integer::quorem(n, b, n, r))
+            break;
+        uint digit = r->value<uint>();
+        if (p < end)
+            *p = (digit < 10) ? digit + '0' : digit + ('A' - 10);
         p++;
-        testdigits /= base;
-    } while (testdigits);
+    } while (!n->zero());
+
+    // Revert the digits
+    char *last = (p < end ? p : end) - 1;
+    while (first < last)
+    {
+        char tmp = *first;
+        *first = *last;
+        *last = tmp;
+        last--;
+        first++;
+    }
 
     // add suffix
     char *tail = p;
@@ -269,14 +291,6 @@ static size_t render_num(char   *dest,
         *tail = 0;
 
     size_t result = tail - (char *) dest;
-    do
-    {
-        uint digit = num % base;
-        digit = (digit < 10) ? digit + '0' : digit + ('A' - 10);
-        *(--p) = digit;
-        num /= base;
-    } while (num);
-
     return result;
 }
 
@@ -286,9 +300,7 @@ OBJECT_RENDERER_BODY(integer)
 //   Render the integer into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    ularge v = value<ularge>();
-    size_t result = render_num(r.target, r.length, v, 10, "");
-    record(integer, "Render %llu (0x%llX) as [%s]", v, v, (cstring) r.target);
+    size_t result = render_num(r.target, r.length, this, 10, "");
     return result;
 }
 
@@ -299,8 +311,7 @@ OBJECT_RENDERER_BODY(neg_integer)
 //   Render the negative integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    ularge v = value<ularge>();
-    return render_num(r.target, r.length, v, 10, "-");
+    return render_num(r.target, r.length, this, 10, "-");
 }
 
 
@@ -310,8 +321,7 @@ OBJECT_RENDERER_BODY(hex_integer)
 //   Render the hexadecimal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    ularge v = value<ularge>();
-    return render_num(r.target, r.length, v, 16, "#h");
+    return render_num(r.target, r.length, this, 16, "#h");
 }
 
 template<>
@@ -320,8 +330,7 @@ OBJECT_RENDERER_BODY(dec_integer)
 //   Render the decimal based number
 // ----------------------------------------------------------------------------
 {
-    ularge v = value<ularge>();
-    return render_num(r.target, r.length, v, 10, "#d");
+    return render_num(r.target, r.length, this, 10, "#d");
 }
 
 template<>
@@ -330,8 +339,7 @@ OBJECT_RENDERER_BODY(oct_integer)
 //   Render the octal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    ularge v = value<ularge>();
-    return render_num(r.target, r.length, v, 8, "#o");
+    return render_num(r.target, r.length, this, 8, "#o");
 }
 
 template<>
@@ -340,8 +348,7 @@ OBJECT_RENDERER_BODY(bin_integer)
 //   Render the binary integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    ularge v = value<ularge>();
-    return render_num(r.target, r.length, v, 2, "#b");
+    return render_num(r.target, r.length, this, 2, "#b");
 }
 
 
@@ -885,9 +892,39 @@ integer_g operator%(integer_g y, integer_g x)
         gcbytes bytes = rt.allocate(size);
         object::id prodtype = integer::product_type(yt, xt);
         gcbytes rbytes = rp;
-        integer_g result = rt.make<integer>(prodtype, rbytes, qs);
+        integer_g result = rt.make<integer>(prodtype, rbytes, rs);
         rt.free(size);
         return result;
     }
     return y;
+}
+
+
+bool integer::quorem(integer_g y, integer_g x, integer_g &q, integer_g &r)
+// ----------------------------------------------------------------------------
+//  Perform long-remainder of y by x
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = runtime::RT;
+    object::id yt = y->type();
+    object::id xt = x->type();
+    byte_p yp = y->payload();
+    byte_p xp = x->payload();
+    size_t ws = integer::wordsize(xt);
+    byte_p qp = nullptr;
+    byte_p rp = nullptr;
+    size_t qs = 0;
+    size_t rs = 0;
+    if (size_t size = integer::divide(yp, xp, ws, qp, qs, rp, rs))
+    {
+        gcbytes bytes = rt.allocate(size);
+        object::id prodtype = integer::product_type(yt, xt);
+        gcbytes qbytes = qp;
+        gcbytes rbytes = rp;
+        q = rt.make<integer>(prodtype, qbytes, qs);
+        r = rt.make<integer>(prodtype, rbytes, rs);
+        rt.free(size);
+        return true;
+    }
+    return false;
 }

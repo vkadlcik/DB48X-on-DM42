@@ -88,13 +88,16 @@ struct integer : object
         return leb128<Int>(p);
     }
 
+    operator bool() const               { return !zero(); }
+    bool zero() const                   { return *payload() == 0; }
+
     template <typename Int>
     static integer *make(Int value);
 
     // Up to 63 bits, we use native functions, it's faster
     enum { NATIVE = 64 / 7 };
     static bool native(byte_p x)        { return leb128size(x) <= NATIVE; }
-    bool native()                       { return native(payload()); }
+    bool native() const                 { return native(payload()); }
 
     OBJECT_HANDLER(integer);
     OBJECT_PARSER(integer);
@@ -106,6 +109,7 @@ public:
     static int compare(integer_g x, integer_g y);
 
     static size_t wordsize(id type);
+    size_t wordsize() const             { return wordsize(type()); }
     static id opposite_type(id type);
     static id product_type(id yt, id xt);
 
@@ -121,6 +125,9 @@ public:
     static size_t divide(byte_p y, byte_p x, size_t maxbits,
                          byte_p &qptr, size_t &qsize,
                          byte_p &rptr, size_t &rsize);
+
+    // Compute quotient and reminder together
+    static bool quorem(integer_g y, integer_g x, integer_g &q, integer_g &r);
 };
 
 

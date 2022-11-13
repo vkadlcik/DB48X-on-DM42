@@ -318,3 +318,35 @@ symbol_p object::as_name() const
         return eq->symbol();
     return nullptr;
 }
+
+
+int object::as_truth() const
+// ----------------------------------------------------------------------------
+//   Get the logical value for an object, or -1 if invalid
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    switch(ty)
+    {
+    case ID_True:
+        return 1;
+    case ID_False:
+        return 0;
+    case ID_integer:
+    case ID_neg_integer:
+    case ID_bin_integer:
+    case ID_oct_integer:
+    case ID_dec_integer:
+    case ID_hex_integer:
+        return payload() != 0;
+    case ID_decimal128:
+        return !decimal128_p(this)->is_zero();
+    case ID_decimal64:
+        return !decimal64_p(this)->is_zero();
+    case ID_decimal32:
+        return !decimal32_p(this)->is_zero();
+    default:
+        RT.type_error();
+    }
+    return -1;
+}

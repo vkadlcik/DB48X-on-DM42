@@ -419,13 +419,13 @@ int integer::compare(integer_g x, integer_g y)
 //
 // ============================================================================
 
-static inline byte add_op(byte x, byte y)       { return x + y; }
-static inline byte sub_op(byte x, byte y)       { return x - y; }
-static inline byte neg_op(byte x, byte y)       { return -x - y; }
-static inline byte not_op(byte x, byte  )       { return ~x; }
-static inline byte and_op(byte x, byte y)       { return x & y; }
-static inline byte or_op (byte x, byte y)       { return x | y; }
-static inline byte xor_op(byte x, byte y)       { return x ^ y; }
+static inline byte add_op(byte x, byte y, byte c)       { return x + y + c; }
+static inline byte sub_op(byte x, byte y, byte c)       { return x - y - c; }
+static inline byte neg_op(byte x, byte c)               { return -x - c; }
+static inline byte not_op(byte x, byte  )               { return ~x; }
+static inline byte and_op(byte x, byte y, byte  )       { return x & y; }
+static inline byte or_op (byte x, byte y, byte  )       { return x | y; }
+static inline byte xor_op(byte x, byte y, byte  )       { return x ^ y; }
 
 
 inline object::id integer::opposite_type(id type)
@@ -480,7 +480,7 @@ integer_g operator-(integer_g x)
 
     // Complicated case: need to actually compute the opposite
     size_t ws = integer::wordsize(xt);
-    size_t size = integer::unary(neg_op, x->payload(), ws);
+    size_t size = integer::unary<true>(neg_op, x->payload(), ws);
     gcbytes bytes = rt.allocate(size);
     integer_g result = rt.make<integer>(xt, bytes, size);
     rt.free(size);
@@ -505,7 +505,7 @@ integer_g operator~(integer_g x)
 
     // For hex_integer and other based numbers, do a binary not
     size_t ws = integer::wordsize(xt);
-    size_t size = integer::unary(not_op, x->payload(), ws);
+    size_t size = integer::unary<true>(not_op, x->payload(), ws);
     gcbytes bytes = rt.allocate(size);
     integer_g result = rt.make<integer>(xt, bytes, size);
     rt.free(size);
@@ -533,7 +533,7 @@ integer_g integer::add_sub(integer_g y, integer_g x, bool issub)
         if (cmp >= 0)
         {
             // abs Y > abs X: result has opposite type of X
-            size_t size = binary(sub_op, yp, xp, ws);
+            size_t size = binary<false>(sub_op, yp, xp, ws);
             gcbytes bytes = rt.allocate(size);
             id ty = cmp == 0 ? ID_integer: issub ? xt : opposite_type(xt);
             integer_g result = rt.make<integer>(ty, bytes, size);
@@ -543,7 +543,7 @@ integer_g integer::add_sub(integer_g y, integer_g x, bool issub)
         else
         {
             // abs Y < abs X: result has type of X
-            size_t size = binary(sub_op, xp, yp, ws);
+            size_t size = binary<false>(sub_op, xp, yp, ws);
             gcbytes bytes = rt.allocate(size);
             id ty = issub ? opposite_type(xt) : xt;
             integer_g result = rt.make<integer>(ty, bytes, size);
@@ -553,7 +553,7 @@ integer_g integer::add_sub(integer_g y, integer_g x, bool issub)
     }
 
     // We have the same sign, add items
-    size_t size = binary(add_op, yp, xp, ws);
+    size_t size = binary<false>(add_op, yp, xp, ws);
     gcbytes bytes = rt.allocate(size);
     id ty = issub ? opposite_type(xt) : xt;
     integer_g result = rt.make<integer>(ty, bytes, size);
@@ -586,7 +586,7 @@ integer_g operator&(integer_g y, integer_g x)
 //   Perform a binary and operation
 // ----------------------------------------------------------------------------
 {
-    return integer::binary(and_op, x, y);
+    return integer::binary<false>(and_op, x, y);
 }
 
 
@@ -595,7 +595,7 @@ integer_g operator|(integer_g y, integer_g x)
 //   Perform a binary or operation
 // ----------------------------------------------------------------------------
 {
-    return integer::binary(or_op, x, y);
+    return integer::binary<false>(or_op, x, y);
 }
 
 
@@ -604,7 +604,7 @@ integer_g operator^(integer_g y, integer_g x)
 //   Perform a binary xor operation
 // ----------------------------------------------------------------------------
 {
-    return integer::binary(xor_op, x, y);
+    return integer::binary<false>(xor_op, x, y);
 }
 
 

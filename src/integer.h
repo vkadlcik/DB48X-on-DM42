@@ -113,11 +113,11 @@ public:
     static id opposite_type(id type);
     static id product_type(id yt, id xt);
 
-    template<typename Op>
+    template<bool extend, typename Op>
     static size_t binary(Op op, byte_p x, byte_p y, size_t maxbits);
-    template<typename Op>
+    template<bool extend, typename Op>
     static integer_g binary(Op op, integer_g x, integer_g y);
-    template<typename Op>
+    template<bool extend, typename Op>
     static size_t unary(Op op, byte_p x, size_t maxbits);
 
     static integer_g add_sub(integer_g y, integer_g x, bool subtract);
@@ -235,7 +235,7 @@ inline size_t integer::wordsize(id type)
 }
 
 
-template<typename Op>
+template<bool extend, typename Op>
 size_t integer::binary(Op op, byte_p x, byte_p y, size_t maxbits)
 // ----------------------------------------------------------------------------
 //   Perform binary operation op on leb128 numbers x and y
@@ -256,7 +256,7 @@ size_t integer::binary(Op op, byte_p x, byte_p y, size_t maxbits)
         byte yd = *y++;
         xmore = xd & 0x80;
         ymore = yd & 0x80;
-        c = op(op(xd & 0x7F, yd & 0x7F), c);
+        c = op(xd & 0x7F, yd & 0x7F, c);
         *p++ = (c & 0x7F) | 0x80;
         c >>= 7;
         available--;
@@ -267,7 +267,7 @@ size_t integer::binary(Op op, byte_p x, byte_p y, size_t maxbits)
     {
         byte xd = *x++;
         xmore = xd & 0x80;
-        c = op(op(xd & 0x7F, 0), c);
+        c = op(xd & 0x7F, 0, c);
         *p++ = (c & 0x7F) | 0x80;
         c >>= 7;
         available--;
@@ -276,7 +276,14 @@ size_t integer::binary(Op op, byte_p x, byte_p y, size_t maxbits)
     {
         byte yd = *y++;
         ymore = yd & 0x80;
-        c = op(op(0, yd & 0x7F), c);
+        c = op(0, yd & 0x7F, c);
+        *p++ = (c & 0x7F) | 0x80;
+        c >>= 7;
+        available--;
+    }
+    while (extend && available)
+    {
+        c = op(0, 0, c);
         *p++ = (c & 0x7F) | 0x80;
         c >>= 7;
         available--;
@@ -286,7 +293,7 @@ size_t integer::binary(Op op, byte_p x, byte_p y, size_t maxbits)
         *p++ = (c & 0x7F) | 0x80;
         available--;
     }
-    while (p > buffer && p[-1] == 0x80)
+    while (p > buffer + 1 && p[-1] == 0x80)
         p--;
     p[-1] &= ~0x80;
     size_t written = p - buffer;
@@ -299,7 +306,7 @@ size_t integer::binary(Op op, byte_p x, byte_p y, size_t maxbits)
 }
 
 
-template<typename Op>
+template<bool extend, typename Op>
 integer_g integer::binary(Op op, integer_g x, integer_g y)
 // ----------------------------------------------------------------------------
 //   Perform binary operation op on leb128 numbers x and y
@@ -310,7 +317,7 @@ integer_g integer::binary(Op op, integer_g x, integer_g y)
     byte_p yp = y->payload();
     byte_p xp = x->payload();
     size_t ws = wordsize(xt);
-    size_t size = binary(op, yp, xp, ws);
+    size_t size = binary<extend, Op>(op, yp, xp, ws);
     gcbytes bytes = rt.allocate(size);
     integer_g result = rt.make<integer>(xt, bytes, size);
     rt.free(size);
@@ -318,7 +325,7 @@ integer_g integer::binary(Op op, integer_g x, integer_g y)
 }
 
 
-template<typename Op>
+template<bool extend, typename Op>
 size_t integer::unary(Op op, byte_p x, size_t maxbits)
 // ----------------------------------------------------------------------------
 //   Shift the bytes at x left
@@ -344,7 +351,16 @@ size_t integer::unary(Op op, byte_p x, size_t maxbits)
     }
     while (xmore && available);
 
-    while (p > buffer && p[-1] == 0x80)
+    while (extend && available)
+    {
+        c = op(0, c);
+        *p++ = (c & 0x7F) | 0x80;
+        c >>= 7;
+        available--;
+    }
+    if (extend)
+        p[-1] &= (1 << (maxbits % 7)) - 1;
+    while (p > buffer + 1 && p[-1] == 0x80)
         p--;
     p[-1] &= ~0x80;
     size_t written = p - buffer;

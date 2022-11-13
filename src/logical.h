@@ -30,6 +30,7 @@
 // ****************************************************************************
 
 #include "arithmetic.h"
+#include "integer.h"
 
 
 struct logical : arithmetic
@@ -39,23 +40,25 @@ struct logical : arithmetic
 {
     logical(id i): arithmetic(i) {}
 
-    static result value(object_p obj, ularge *val);
+    static int as_truth(object_p obj);
     typedef ularge (*binary_fn)(ularge x, ularge y);
-    static result evaluate(binary_fn cmp);
+    typedef integer_g (*big_binary_fn)(integer_g x, integer_g y);
+    static result evaluate(binary_fn opn, big_binary_fn opb);
     typedef ularge (*unary_fn)(ularge x);
-    static result evaluate(unary_fn cmp);
+    typedef integer_g (*big_unary_fn)(integer_g x);
+    static result evaluate(unary_fn opn, big_unary_fn opb);
 
     template <typename Cmp> static result evaluate()
     // ------------------------------------------------------------------------
     //   The actual evaluation for all binary operators
     // ------------------------------------------------------------------------
     {
-        return evaluate(Cmp::make_result);
+        return evaluate(Cmp::native, Cmp::bignum);
     }
 };
 
 
-#define BINARY_LOGICAL(derived, operation)                              \
+#define BINARY_LOGICAL(derived, code)                                   \
 /* ----------------------------------------------------------------- */ \
 /*  Macro to define an arithmetic command                            */ \
 /* ----------------------------------------------------------------- */ \
@@ -75,15 +78,12 @@ struct derived : logical                                                \
         }                                                               \
         return DELEGATE(arithmetic);                                    \
     }                                                                   \
-    static ularge make_result(ularge Y, ularge X) { return operation; } \
-    static result evaluate()                                            \
-    {                                                                   \
-        return logical::evaluate<derived>();                            \
-    }                                                                   \
+    static ularge    native(ularge Y, ularge X)        { return code; } \
+    static integer_g bignum(integer_g Y, integer_g X)  { return code; } \
 }
 
 
-#define UNARY_LOGICAL(derived, operation)                               \
+#define UNARY_LOGICAL(derived, code)                                    \
 /* ----------------------------------------------------------------- */ \
 /*  Macro to define an arithmetic command                            */ \
 /* ----------------------------------------------------------------- */ \
@@ -103,22 +103,19 @@ struct derived : logical                                                \
         }                                                               \
         return DELEGATE(arithmetic);                                    \
     }                                                                   \
-    static ularge make_result(ularge X) { return operation; }           \
-    static result evaluate()                                            \
-    {                                                                   \
-        return logical::evaluate<derived>();                            \
-    }                                                                   \
+    static ularge    native(ularge X)           { return code; }        \
+    static integer_g bignum(integer_g X)        { return code; }        \
 }
 
 
 BINARY_LOGICAL(And,      Y &  X);
 BINARY_LOGICAL(Or,       Y |  X);
-BINARY_LOGICAL(Xor,      X ^  Y);
+BINARY_LOGICAL(Xor,      Y ^  X);
 BINARY_LOGICAL(NAnd,   ~(Y &  X));
 BINARY_LOGICAL(NOr,    ~(Y |  X));
 BINARY_LOGICAL(Implies, ~Y |  X);
 BINARY_LOGICAL(Equiv,  ~(Y ^  X));
 BINARY_LOGICAL(Excludes, Y & ~X); // If Y then X=0
-UNARY_LOGICAL (Not, ~X);
+UNARY_LOGICAL (Not,          ~X);
 
 #endif // LOGICAL_H

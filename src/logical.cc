@@ -35,47 +35,7 @@
 #include "integer.h"
 
 
-object::result logical::value(object_p obj, ularge *v)
-// ----------------------------------------------------------------------------
-//   Get the logical value for an object
-// ----------------------------------------------------------------------------
-{
-    id type = obj->type();
-    switch(type)
-    {
-    case ID_True:
-        *v = 1;
-        return OK;
-    case ID_False:
-        *v = 0;
-        return OK;
-    case ID_integer:
-    case ID_neg_integer:
-        *v = integer_p(obj)->value<ularge>() != 0;
-        return OK;
-    case ID_bin_integer:
-    case ID_oct_integer:
-    case ID_dec_integer:
-    case ID_hex_integer:
-        *v = integer_p(obj)->value<ularge>();
-        return OK;
-    case ID_decimal128:
-        *v = !decimal128_p(obj)->is_zero();
-        return OK;
-    case ID_decimal64:
-        *v = !decimal64_p(obj)->is_zero();
-        return OK;
-    case ID_decimal32:
-        *v = !decimal32_p(obj)->is_zero();
-        return OK;
-    default:
-        RT.type_error();
-    }
-    return ERROR;
-}
-
-
-object::result logical::evaluate(binary_fn op)
+object::result logical::evaluate(binary_fn native, big_binary_fn big)
 // ----------------------------------------------------------------------------
 //   Evaluation for binary logical operations
 // ----------------------------------------------------------------------------
@@ -86,20 +46,6 @@ object::result logical::evaluate(binary_fn op)
         return ERROR;
 
     id xt = x->type();
-
-    ularge xv = 0;
-    ularge yv = 0;
-    result r = value(y, &yv);
-    if (r != OK)
-        return r;
-    r = value(x, &xv);
-    if (r != OK)
-        return r;
-
-    RT.pop();
-    RT.pop();
-    ularge value = op(yv, xv);
-
     switch(xt)
     {
     case ID_True:
@@ -109,15 +55,46 @@ object::result logical::evaluate(binary_fn op)
     case ID_decimal128:
     case ID_decimal64:
     case ID_decimal32:
-        RT.push(command::static_object(value ? ID_True : ID_False));
+    {
+        // Logical truth
+        int xv = x->as_truth();
+        int yv = y->as_truth();
+        if (xv < 0 || yv < 0)
+            return ERROR;
+        int r = native(yv, xv) & 1;
+        RT.pop();
+        RT.top(command::static_object(r ? ID_True : ID_False));
         return OK;
-
+    }
     case ID_bin_integer:
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
-        RT.push(RT.make<integer>(xt, value));
-        return OK;
+    {
+        integer_p xi = integer_p(x);
+        if (y->is_integer())
+        {
+            integer_p yi = integer_p(y);
+            if (Settings.wordsize <= 64 && yi->native() && xi->native())
+            {
+                // Short-enough integers to fit as native machine type
+                ularge xv = xi->value<ularge>();
+                ularge yv = yi->value<ularge>();
+                ularge value = native(yv, xv);
+                if (Settings.wordsize < 64)
+                    value &= (1ULL << Settings.wordsize) - 1ULL;
+                RT.pop();
+                RT.top(RT.make<integer>(xt, value));
+                return OK;
+            }
+            integer_g xv = (integer *) xi;
+            integer_g yv = (integer *) yi;
+            integer_g result = big(yv, xv);
+            RT.pop();
+            RT.top(integer_p(result));
+            return OK;
+        }
+    }
     default:
         RT.type_error();
         break;
@@ -127,7 +104,7 @@ object::result logical::evaluate(binary_fn op)
 }
 
 
-object::result logical::evaluate(unary_fn op)
+object::result logical::evaluate(unary_fn native, big_unary_fn big)
 // ----------------------------------------------------------------------------
 //   Evaluation for unary logical operations
 // ----------------------------------------------------------------------------
@@ -137,13 +114,6 @@ object::result logical::evaluate(unary_fn op)
         return ERROR;
 
     id xt = x->type();
-    ularge xv = 0;
-    result r = value(x, &xv);
-    if (r != OK)
-        return r;
-
-    ularge value = op(xv);
-
     switch(xt)
     {
     case ID_True:
@@ -153,15 +123,33 @@ object::result logical::evaluate(unary_fn op)
     case ID_decimal128:
     case ID_decimal64:
     case ID_decimal32:
-        RT.top(command::static_object(value ? ID_True : ID_False));
+    {
+        int xv = x->as_truth();
+        if (xv < 0)
+            return ERROR;
+        RT.top(command::static_object((native(xv) & 1) ? ID_True : ID_False));
         return OK;
-
+    }
     case ID_bin_integer:
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
-        RT.top(RT.make<integer>(xt, value));
+    {
+        integer_p xi = integer_p(x);
+        if (Settings.wordsize <= 64 && xi->native())
+        {
+            ularge xv = xi->value<ularge>();
+            ularge value = native(xv);
+            if (Settings.wordsize < 64)
+                value &= (1ULL << Settings.wordsize) - 1ULL;
+            RT.top(RT.make<integer>(xt, value));
+            return OK;
+        }
+        integer_g xv = (integer *) xi;
+        integer_g result = big(xv);
+        RT.top(integer_p(result));
         return OK;
+    }
     default:
         RT.type_error();
         break;

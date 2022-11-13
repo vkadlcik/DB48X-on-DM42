@@ -76,20 +76,19 @@ protected:
     // ------------------------------------------------------------------------
     //   The actual evaluation for all binary operators
     // ------------------------------------------------------------------------
+
+    template <typename Op>
+    static bool non_numeric(gcobj &UNUSED x,
+                            gcobj &UNUSED y,
+                            id &   UNUSED xt,
+                            id &   UNUSED yt)
+    // ------------------------------------------------------------------------
+    //   Return true if we can process non-numeric objects of the type
+    // ------------------------------------------------------------------------
+    {
+        return false;
+    }
 };
-
-
-template <typename Alg>
-inline bool non_numeric(gcobj &UNUSED      x,
-                        gcobj &UNUSED      y,
-                        object::id &UNUSED xt,
-                        object::id &UNUSED yt)
-// ----------------------------------------------------------------------------
-//   Return true if we can process non-numeric objects of the type
-// ----------------------------------------------------------------------------
-{
-    return false;
-}
 
 
 #define ARITHMETIC_DECLARE(derived, Precedence)                         \

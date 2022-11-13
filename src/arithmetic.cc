@@ -57,8 +57,8 @@ bool arithmetic::real_promotion(gcobj &x, gcobj &y)
 
 
 template<>
-inline bool non_numeric<add>(gcobj &x, gcobj & y,
-                             object::id &xt, object::id &yt)
+inline bool arithmetic::non_numeric<add>(gcobj &x, gcobj & y,
+                                         object::id &xt, object::id &yt)
 // ----------------------------------------------------------------------------
 //   Deal with non-numerical data types for addition
 // ----------------------------------------------------------------------------
@@ -171,9 +171,11 @@ inline bool sub::integer_ok(object::id &xt, object::id &yt,
 }
 
 
-template<>
-inline bool non_numeric<mul>(gcobj &UNUSED x, gcobj &UNUSED y,
-                             object::id &UNUSED xt, object::id &UNUSED yt)
+template <>
+inline bool arithmetic::non_numeric<mul>(gcobj &UNUSED      x,
+                                         gcobj &UNUSED      y,
+                                         object::id &UNUSED xt,
+                                         object::id &UNUSED yt)
 // ----------------------------------------------------------------------------
 //   Deal with non-numerical data types for multiplication
 // ----------------------------------------------------------------------------

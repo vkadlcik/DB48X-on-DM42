@@ -125,6 +125,16 @@ inline bool add::integer_ok(object::id &xt, object::id &yt,
 }
 
 
+inline bool add::bigint_ok(integer_g &x, integer_g &y)
+// ----------------------------------------------------------------------------
+//   We can always add two big integers (memory permitting)
+// ----------------------------------------------------------------------------
+{
+    x = y + x;
+    return true;
+}
+
+
 inline bool sub::integer_ok(object::id &xt, object::id &yt,
                             ularge &xv, ularge &yv)
 // ----------------------------------------------------------------------------
@@ -167,6 +177,16 @@ inline bool sub::integer_ok(object::id &xt, object::id &yt,
         xv = xv - yv;
         xt = (xv == 0 || xt == ID_neg_integer) ? ID_integer : ID_neg_integer;
     }
+    return true;
+}
+
+
+inline bool sub::bigint_ok(integer_g &x, integer_g &y)
+// ----------------------------------------------------------------------------
+//   We can always subtract two big integers (memory permitting)
+// ----------------------------------------------------------------------------
+{
+    x = y - x;
     return true;
 }
 
@@ -236,6 +256,16 @@ inline bool mul::integer_ok(object::id &xt, object::id &yt,
 }
 
 
+inline bool mul::bigint_ok(integer_g &x, integer_g &y)
+// ----------------------------------------------------------------------------
+//   We can always multiply two big integers (memory permitting)
+// ----------------------------------------------------------------------------
+{
+    x = y * x;
+    return true;
+}
+
+
 inline bool div::integer_ok(object::id &xt, object::id &yt,
                             ularge &xv, ularge &yv)
 // ----------------------------------------------------------------------------
@@ -271,6 +301,25 @@ inline bool div::integer_ok(object::id &xt, object::id &yt,
 }
 
 
+inline bool div::bigint_ok(integer_g &x, integer_g &y)
+// ----------------------------------------------------------------------------
+//   Division works if there is no remainder
+// ----------------------------------------------------------------------------
+{
+    integer_g q = nullptr;
+    integer_g r = nullptr;
+    if (integer::quorem(y, x, q, r))
+    {
+        if (r->zero())
+        {
+            x = q;
+            return true;
+        }
+    }
+    return false;
+}
+
+
 inline bool mod::integer_ok(object::id &xt, object::id &yt,
                             ularge &xv, ularge &yv)
 // ----------------------------------------------------------------------------
@@ -302,6 +351,25 @@ inline bool mod::integer_ok(object::id &xt, object::id &yt,
 }
 
 
+inline bool mod::bigint_ok(integer_g &x, integer_g &y)
+// ----------------------------------------------------------------------------
+//   Modulo always works except divide by zero
+// ----------------------------------------------------------------------------
+{
+    integer_g q = nullptr;
+    integer_g r = nullptr;
+    if (integer::quorem(y, x, q, r))
+    {
+        if (x->type() == ID_neg_integer)
+            x = y - r;
+        else
+            x = r;
+        return true;
+    }
+    return false;
+}
+
+
 inline bool rem::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
                             ularge &xv, ularge &yv)
 // ----------------------------------------------------------------------------
@@ -318,6 +386,22 @@ inline bool rem::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
     // The type of the result is always the type of x
     xv = yv % xv;
     return true;
+}
+
+
+inline bool rem::bigint_ok(integer_g &x, integer_g &y)
+// ----------------------------------------------------------------------------
+//   Remainder always works except divide by zero
+// ----------------------------------------------------------------------------
+{
+    integer_g q = nullptr;
+    integer_g r = nullptr;
+    if (integer::quorem(y, x, q, r))
+    {
+        x = r;
+        return true;
+    }
+    return false;
 }
 
 
@@ -364,12 +448,34 @@ inline bool pow::integer_ok(object::id &xt, object::id &yt,
 }
 
 
+inline bool pow::bigint_ok(integer_g &x, integer_g &y)
+// ----------------------------------------------------------------------------
+//   Compute y^x, works if x >= 0
+// ----------------------------------------------------------------------------
+{
+    // Compute result, check that it does not overflow
+    if (x->type() == ID_neg_integer)
+        return false;
+    x = integer::pow(y, x);
+    return true;
+}
+
+
 inline bool hypot::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
                               ularge &UNUSED xv, ularge &UNUSED yv)
 // ----------------------------------------------------------------------------
 //   hypot() involves a square root, so not working on integers
 // ----------------------------------------------------------------------------
 //   Not trying to optimize the few cases where it works, e.g. 3^2+4^2=5^2
+{
+    return false;
+}
+
+
+inline bool hypot::bigint_ok(integer_g &UNUSED x, integer_g &UNUSED y)
+// ----------------------------------------------------------------------------
+//   Hypot never works with big integers
+// ----------------------------------------------------------------------------
 {
     return false;
 }
@@ -382,11 +488,12 @@ inline bool hypot::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
 //
 // ============================================================================
 
-object::result arithmetic::evaluate(id        op,
-                                    bid128_fn op128,
-                                    bid64_fn  op64,
-                                    bid32_fn  op32,
-                                    integer_fn integer_ok,
+object::result arithmetic::evaluate(id             op,
+                                    bid128_fn      op128,
+                                    bid64_fn       op64,
+                                    bid32_fn       op32,
+                                    integer_fn     integer_ok,
+                                    bigint_fn      bigint_ok,
                                     non_numeric_fn non_numeric)
 // ----------------------------------------------------------------------------
 //   Shared code for all forms of evaluation
@@ -409,12 +516,27 @@ object::result arithmetic::evaluate(id        op,
         /* Perform conversion of integer values to the same base */
         integer *xi = (integer *) (object_p) x;
         integer *yi = (integer *) (object_p) y;
-        ularge xv = xi->value<ularge>();
-        ularge yv = yi->value<ularge>();
-        if (integer_ok(xt, yt, xv, yv))
+        if (xi->native() && yi->native())
         {
-            x = rt.make<integer>(xt, xv);
-            ok = true;
+            ularge xv = xi->value<ularge>();
+            ularge yv = yi->value<ularge>();
+            if (integer_ok(xt, yt, xv, yv))
+            {
+                x = rt.make<integer>(xt, xv);
+                ok = true;
+            }
+        }
+        // Proceed with big integers if native did not fit
+        if (!ok && !rt.error())
+        {
+            integer_g xg = xi;
+            integer_g yg = yi;
+            if (bigint_ok(xg, yg))
+            {
+                x = integer_p(xg);
+                ok = true;
+            }
+
         }
         if (rt.error())
             return ERROR;
@@ -497,6 +619,7 @@ object::result arithmetic::evaluate()
                     Op::bid64_op,
                     Op::bid32_op,
                     Op::integer_ok,
+                    Op::bigint_ok,
                     non_numeric<Op>);
 }
 

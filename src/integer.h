@@ -128,6 +128,7 @@ public:
 
     // Compute quotient and reminder together
     static bool quorem(integer_g y, integer_g x, integer_g &q, integer_g &r);
+    static integer_g pow(integer_g y, integer_g x);
 };
 
 

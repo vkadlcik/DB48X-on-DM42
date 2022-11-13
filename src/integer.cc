@@ -928,3 +928,33 @@ bool integer::quorem(integer_g y, integer_g x, integer_g &q, integer_g &r)
     }
     return false;
 }
+
+
+integer_g integer::pow(integer_g y, integer_g x)
+// ----------------------------------------------------------------------------
+//    Compute y^abs(x)
+// ----------------------------------------------------------------------------
+//   Note that the case where x is negative should be filtered by caller
+{
+    runtime &rt = RT;
+    integer_g r = rt.make<integer>(ID_integer, 1);
+
+    byte_p xp = x->payload();
+    bool xmore;
+    do
+    {
+        byte xv = *xp++;
+        xmore = xv & 0x80;
+        xv &= 0x7F;
+        for (uint bit = 0; bit < 7; bit++)
+        {
+            if (xv & 1)
+                r = r * y;
+            xv >>= 1;
+            if (xv || xmore)
+                y = y * y;
+        }
+    }
+    while (xmore);
+    return r;
+}

@@ -249,7 +249,7 @@ void decimal_format(char *str, size_t len, int digits)
         char *mant   = s + 1;  // Mantissa string
 
         // Ignore mantissa trailing zeros
-        while (mend > mant && mend[0] == '0')
+        while (ep > mant && mend[0] == '0')
             mend--;
         *(++mend) = 0;
 
@@ -282,7 +282,7 @@ void decimal_format(char *str, size_t len, int digits)
             break;
         }
 
-        int digitsBeforePoint  = hasexp ? 1 : exp ? exp : 1;
+        int digitsBeforePoint  = hasexp ? 1 : exp;
         int mantissaLen = strlen(s + 1);       // Available mantissa digits
 
         // Exponent correction for ENG mode
@@ -337,8 +337,7 @@ void decimal_format(char *str, size_t len, int digits)
         int avail = len - strlen(str) - elen;
 
         // Add fractional part
-        digits = min(min(digits, frac),
-                     avail - 1 - (digitsBeforePoint > 0 ? 0 : 1));
+        digits = min(min(digits, frac), avail - 1 - (digitsBeforePoint > 0 ? 0 : 1));
         if (digits > 0)
         {
             // We have digits and have room for at least one frac digit

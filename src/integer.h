@@ -96,7 +96,7 @@ struct integer : object
 
     // Up to 63 bits, we use native functions, it's faster
     enum { NATIVE = 64 / 7 };
-    static bool native(byte_p x)        { return leb128size(x) <= NATIVE; }
+    static bool native(byte_p x)        { return false && leb128size(x) <= NATIVE; }
     bool native() const                 { return native(payload()); }
 
     OBJECT_HANDLER(integer);

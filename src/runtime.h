@@ -669,8 +669,8 @@ Obj *runtime::make(typename Obj::id type, const Args &... args)
     // Find required memory for this object
     size_t size = Obj::required_memory(type, args...);
     record(runtime,
-           "Initializing object %p type %d size %u",
-           Temporaries, type, size);
+           "Initializing object %p type %d %+s size %u",
+           Temporaries, type, Obj::object::name(type), size);
 
     // Check if we have room (may cause garbage collection)
     if (available(size) < size)

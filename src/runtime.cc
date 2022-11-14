@@ -273,17 +273,26 @@ size_t runtime::gc()
     if (Editing + Scratch)
     {
         object_p edit = Temporaries;
-        move(edit - recycled, edit, Editing + Scratch);
+        move(edit - recycled, edit, Editing + Scratch, true);
     }
 
     // Adjust Temporaries
     Temporaries -= recycled;
 
 
+#ifdef SIMULATOR
+    if (!integrity_test(Globals, Temporaries, StackTop, StackBottom))
+    {
+        record(gc_errors, "Integrity test failed post-collection");
+        recorder_dump();
+        RECORDER_TRACE(gc) = 2;
+    }
     if (RECORDER_TRACE(gc) > 1)
         dump_object_list("Post-collection",
                          (object_p) Globals, Temporaries,
                          StackTop, StackBottom);
+#endif // SIMULATOR
+
     record(gc, "Garbage collection done, purged %u, available %u",
            recycled, available());
     return recycled;
@@ -307,9 +316,9 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
     memmove((byte *) to, (byte *) from, size);
 
     // Adjust the protected pointers
-    object_p last = (scratch || from + size >= Temporaries)
-        ? (object_p) StackTop
-        : from + size;
+    object_p last = scratch ? (object_p) StackTop : from + size;
+    record(gc_details, "Adjustment range is %p-%p, %+s",
+           from, last, scratch ? "scratch" : "no scratch");
     for (gcptr *p = GCSafe; p; p = p->next)
     {
         if (p->safe >= (byte *) from && p->safe < (byte *) last)

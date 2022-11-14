@@ -42,8 +42,9 @@ RECORDER(runtime,       16, "RPL runtime");
 RECORDER(runtime_error, 16, "RPL runtime error (anomalous behaviors)");
 RECORDER(editor,        16, "Text editor (command line)");
 RECORDER(errors,        16, "Runtime errors)");
-RECORDER(gc,            16, "Garbage collection events");
-RECORDER(gc_details,    32, "Details about garbage collection (noisy)");
+RECORDER(gc,           256, "Garbage collection events");
+RECORDER(gc_errors,     16, "Garbage collection errors");
+RECORDER(gc_details,   256, "Details about garbage collection (noisy)");
 
 
 // ============================================================================
@@ -145,6 +146,35 @@ size_t runtime::available(size_t size)
 //
 // ============================================================================
 
+#ifdef SIMULATOR
+static bool integrity_test(object_p first,
+                           object_p last,
+                           object_p *stack,
+                           object_p *stackEnd)
+// ----------------------------------------------------------------------------
+//   Check all the objects in a given range
+// ----------------------------------------------------------------------------
+{
+    object_p next, obj;
+
+    for (obj = first; obj < last; obj = next)
+    {
+        object::id type = obj->type();
+        if (type >= object::NUM_IDS)
+            return false;
+        next = obj->skip();
+    }
+    if (obj != last)
+        return false;
+
+    for (object_p *s = stack; s < stackEnd; s++)
+        if (!*s || (*s)->type() >= object::NUM_IDS)
+            return false;
+
+    return true;
+}
+
+
 static void dump_object_list(cstring  message,
                              object_p first,
                              object_p last,
@@ -161,10 +191,16 @@ static void dump_object_list(cstring  message,
     record(gc, "%+s object list", message);
     for (object_p obj = first; obj < last; obj = next)
     {
-        next = obj->skip();
         object::id i = obj->type();
-        record(gc, " %p-%p: %+s (%d) uses %d bytes)",
-               obj, next-1, object::name(i), i, next - obj);
+        if (i >= object::NUM_IDS)
+        {
+            record(gc_errors, " %p: corrupt object ID type %u", obj, i);
+            break;
+        }
+
+        next = obj->skip();
+        record(gc, " %p+%llu: %+s (%d)",
+               obj, next - obj, object::name(i), i);
         sz += next - obj;
         count++;
     }
@@ -173,6 +209,7 @@ static void dump_object_list(cstring  message,
         record(gc, " %u: %p (%+s)", s - stack, *s, object::name((*s)->type()));
     record(gc, "%+s: %u objects using %u bytes", message, count, sz);
 }
+#endif // SIMULATOR
 
 
 runtime::gcptr::~gcptr()
@@ -215,9 +252,17 @@ size_t runtime::gc()
 
     record(gc, "Garbage collection, available %u, range %p-%p",
            available(), first, last);
+#ifdef SIMULATOR
+    if (!integrity_test(first, last, StackTop, StackBottom))
+    {
+        record(gc_errors, "Integrity test failed pre-collection");
+        recorder_dump();
+        RECORDER_TRACE(gc) = 2;
+    }
     if (RECORDER_TRACE(gc) > 1)
         dump_object_list("Pre-collection",
                          first, last, StackTop, StackBottom);
+#endif // SIMULATOR
 
     for (object_p obj = first; obj < last; obj = next)
     {

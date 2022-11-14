@@ -274,6 +274,7 @@ protected:
     uint                 sindex;
     uint                 cindex;
     uint                 count;
+    uint                 refresh;
     int                  lcd_update;
     bool                 ok;
     bool                 longpress;

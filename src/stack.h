@@ -44,6 +44,13 @@ struct stack
 
 protected:
     static runtime &RT;
+
+public:
+#ifdef SIMULATOR
+    char stack0[80];
+    object::id stack0type;
+#endif
+    uint refresh;
 };
 
 extern stack Stack;

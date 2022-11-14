@@ -32,12 +32,14 @@
 #include "dmcp.h"
 #include "input.h"
 #include "settings.h"
+#include "stack.h"
 
-#include <stdio.h>
 #include <regex.h>
+#include <stdio.h>
 
 
 extern volatile int lcd_needsupdate;
+extern char stack0[80];
 
 void tests::run(bool onlyCurrent)
 // ----------------------------------------------------------------------------
@@ -108,8 +110,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    for (int i = 0; i < 26; i++)
-        test(i, "'", char(i + 'A'), "'", ENTER, STO);
+    test(39916800, ENTER, 12, ENTER);
 }
 
 
@@ -435,6 +436,7 @@ tests &tests::step(cstring name)
 // ----------------------------------------------------------------------------
 {
     lcd_update = lcd_needsupdate;
+    refresh = Stack.refresh;
     sname = name;
     if (sindex++)
     {
@@ -948,17 +950,14 @@ tests &tests::expect(cstring output)
 {
     ready();
     cindex++;
-    runtime &rt = runtime::RT;
-    if (object_p top = rt.top())
+    if (refresh != Stack.refresh)
     {
-        char buffer[256];
-        top->render(buffer, sizeof(buffer), rt);
-        if (strcmp(output, buffer) == 0)
+        if (strncmp(output, Stack.stack0, sizeof(Stack.stack0)) == 0)
             return *this;
-        explain("Expected output [", output, "], got [", buffer, "] instead");
+        explain("Expected output [", output, "], got [", Stack.stack0, "] instead");
         return fail();
     }
-    explain("Expected output [", output, "] but got no object");
+    explain("Expected output [", output, "] but got no stack change");
     return fail();
 }
 
@@ -1014,27 +1013,24 @@ tests &tests::match(cstring restr)
 {
     ready();
     cindex++;
-    runtime &rt = runtime::RT;
-    if (object_p top = rt.top())
+    if (refresh != Stack.refresh)
     {
         regex_t    re;
         regmatch_t rm;
-        char       buffer[256];
 
         regcomp(&re, restr, REG_EXTENDED | REG_ICASE);
-        top->render(buffer, sizeof(buffer), rt);
         bool ok =
-            regexec(&re, buffer, 1, &rm, 0) == 0 &&
+            regexec(&re, Stack.stack0, 1, &rm, 0) == 0 &&
             rm.rm_so == 0 &&
-            buffer[rm.rm_eo] == 0;
+            Stack.stack0[rm.rm_eo] == 0;
         regfree(&re);
         if (ok)
             return *this;
         explain("Expected output matching [", restr, "], "
-                "got [", buffer, "]");
+                "got [", Stack.stack0, "]");
         return fail();
     }
-    explain("Expected output matching [", restr, "] but got no object");
+    explain("Expected output matching [", restr, "] but stack not updated");
     return fail();
 }
 
@@ -1046,10 +1042,9 @@ tests &tests::type(object::id ty)
 {
     ready();
     cindex++;
-    runtime &rt = runtime::RT;
-    if (object_p top = rt.top())
+    if (refresh != Stack.refresh)
     {
-        object::id tty = top->type();
+        object::id tty = Stack.stack0type;
         if (tty == ty)
             return *this;
         explain("Expected type ", object::name(ty), " (", int(ty), ")"
@@ -1057,7 +1052,7 @@ tests &tests::type(object::id ty)
         return fail();
     }
     explain("Expected type ", object::name(ty), " (", int(ty), ")"
-            " but got no object");
+            " but stack not updated");
     return fail();
 }
 

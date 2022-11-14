@@ -49,6 +49,7 @@ stack::stack()
 // ----------------------------------------------------------------------------
 //   Constructor does nothing at the moment
 // ----------------------------------------------------------------------------
+    : refresh(0)
 {
 }
 
@@ -111,6 +112,14 @@ void stack::draw_stack()
         if (len >= sizeof(buf))
             len = sizeof(buf) - 1;
         buf[len]  = 0;
+#ifdef SIMULATOR
+        if (level == 0)
+        {
+            strncpy(stack0, buf, sizeof(stack0));
+            stack0type = obj->type();
+            refresh++;
+        }
+#endif
 
         w = StackFont->width(utf8(buf));
         if (w > avail)

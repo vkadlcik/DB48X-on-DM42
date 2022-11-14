@@ -341,7 +341,7 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
     object_p *lastf = functions + count;
     for (object_p *p = functions; p < lastf; p++)
     {
-        if (*p >= from && *p <= last)
+        if (*p >= from && *p < last)
         {
             record(gc_details, "Adjusting input function %u from %p to %p",
                    p - functions, *p, *p + delta);

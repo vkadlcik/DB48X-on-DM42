@@ -51,8 +51,7 @@ OBJECT_HANDLER_BODY(integer)
     case EXEC:
     case EVAL:
         // Integer values evaluate as self
-        rt.push(obj);
-        return OK;
+        return rt.push(obj) ? OK : ERROR;
     case SIZE:
         return ptrdiff(payload, obj) + leb128size(payload);
     case PARSE:

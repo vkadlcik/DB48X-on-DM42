@@ -55,9 +55,8 @@ OBJECT_HANDLER_BODY(font)
     {
     case EXEC:
     case EVAL:
-        // Integer values evaluate as self
-        rt.push(obj);
-        return OK;
+        // Font values evaluate as self
+        return rt.push(obj) ? OK : ERROR;
     case SIZE:
         return ptrdiff(payload, obj) + leb128<size_t>(payload);
     case PARSE:

@@ -53,8 +53,7 @@ OBJECT_HANDLER_BODY(list)
     case EXEC:
     case EVAL:
         // List values evaluate as self
-        rt.push(obj);
-        return OK;
+        return rt.push(obj) ? OK : ERROR;
     case SIZE:
         return size(obj, payload);
     case PARSE:
@@ -262,8 +261,7 @@ OBJECT_HANDLER_BODY(program)
     case EVAL:
         // A normal evaluation (not from ID_eval) just places program on stack
         // e.g.: from command line, or « « 1 + 2 » »
-        rt.push(obj);
-        return OK;
+        return rt.push(obj) ? OK : ERROR;
     case SIZE:
         return size(obj, payload);
     case PARSE:
@@ -403,8 +401,7 @@ OBJECT_HANDLER_BODY(equation)
         return obj->execute(rt);
     case EVAL:
         // Equations evaluate like programs
-        rt.push(obj);
-        return OK;
+        return rt.push(obj) ? OK : ERROR;
     case SIZE:
         return size(obj, payload);
     case PARSE:
@@ -576,6 +573,14 @@ OBJECT_RENDERER_BODY(equation)
         ok = rt.push(obj);
     }
 
+    if (!ok)
+    {
+        // We ran out of memory pushing things
+        if (size_t remove = rt.depth() - depth)
+            rt.drop(remove);
+        return 0;
+    }
+
     int precedence = 0;
     symbol_g result = render(depth, precedence);
     if (result)
@@ -690,8 +695,7 @@ OBJECT_HANDLER_BODY(array)
     case EXEC:
     case EVAL:
         // Programs evaluate by evaluating all elements in sequence
-        rt.push(obj);
-        return 0;
+        return rt.push(obj) ? OK : ERROR;
     case SIZE:
         return size(obj, payload);
     case PARSE:

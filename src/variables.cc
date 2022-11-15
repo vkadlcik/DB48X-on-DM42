@@ -34,8 +34,8 @@
 #include "parser.h"
 #include "renderer.h"
 
-RECORDER(directory,       16, "Catalogs");
-RECORDER(directory_error, 16, "Errors from directorys");
+RECORDER(directory,       16, "Directories");
+RECORDER(directory_error, 16, "Errors from directories");
 
 OBJECT_HANDLER_BODY(directory)
 // ----------------------------------------------------------------------------
@@ -46,9 +46,8 @@ OBJECT_HANDLER_BODY(directory)
     {
     case EXEC:
     case EVAL:
-        // Catalogs evaluate as self
-        rt.push(obj);
-        return OK;
+        // Directorys evaluate as self
+        return rt.push(obj) ? OK : ERROR;
     case SIZE:
         return size(obj, payload);
     case PARSE:
@@ -69,7 +68,7 @@ OBJECT_PARSER_BODY(directory)
 // ----------------------------------------------------------------------------
 //    Try to parse this as a directory
 // ----------------------------------------------------------------------------
-//    Catalog should never be parsed, but do something sensible if it happens
+//    Directory should never be parsed, but do something sensible if it happens
 {
     return SKIP;
 }
@@ -80,7 +79,7 @@ OBJECT_RENDERER_BODY(directory)
 //   Render the directory into the given directory buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(r.target, r.length, "Catalog (internal)");
+    return snprintf(r.target, r.length, "Directory (internal)");
 }
 
 
@@ -353,8 +352,10 @@ COMMAND_BODY(Rcl)
     {
         if (object_p value = dir->recall(name))
         {
-            RT.top(value);
-            return OK;
+            if (RT.top(value))
+                return OK;
+            return ERROR;       // Out of memory, cannot happen?
+
         }
     }
 
@@ -438,8 +439,7 @@ COMMAND_BODY(GarbageCollect)
 {
     size_t saved = RT.gc();
     integer_p result = RT.make<integer>(ID_integer, saved);
-    RT.push(result);
-    return OK;
+    return RT.push(result) ? OK : ERROR;
 }
 
 
@@ -450,8 +450,7 @@ COMMAND_BODY(FreeMemory)
 {
     size_t available = RT.available();
     integer_p result = RT.make<integer>(ID_integer, available);
-    RT.push(result);
-    return OK;
+    return RT.push(result) ? OK : ERROR;
 }
 
 
@@ -462,8 +461,7 @@ COMMAND_BODY(SystemMemory)
 {
     size_t mem = sys_free_mem();
     integer_p result = RT.make<integer>(ID_integer, mem);
-    RT.push(result);
-    return OK;
+    return RT.push(result) ? OK : ERROR;
 }
 
 

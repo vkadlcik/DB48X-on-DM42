@@ -591,14 +591,16 @@ object::result arithmetic::evaluate(id             op,
     {
         gcobj args[2] = { y, x };
         x = rt.make<equation>(ID_equation, 2, args, op);
+        if (!x)
+            return ERROR;
         ok = true;
     }
 
     if (ok)
     {
         rt.drop();
-        rt.top(x);
-        return OK;
+        if (rt.top(x))
+            return OK;
     }
     else
     {

@@ -73,8 +73,9 @@ object::result function::evaluate(id op, bid128_fn op128)
             return ERROR;
         }
         x = rt.make<decimal128>(ID_decimal128, res);
-        rt.top(x);
-        return OK;
+        if (x && rt.top(x))
+            return OK;
+        return ERROR;           // Out of memory
     }
 
     // If things did not work with real number, try an equation
@@ -82,8 +83,9 @@ object::result function::evaluate(id op, bid128_fn op128)
     {
         gcobj arg[1] = { x };
         x = rt.make<equation>(ID_equation, 1, arg, op);
-        rt.top(x);
-        return OK;
+        if (x && rt.top(x))
+            return OK;
+        return ERROR;           // Out of memory
     }
 
     // All other cases: report an error
@@ -140,10 +142,9 @@ FUNCTION_BODY(abs)
         integer_p i = integer_p(object_p(x));
         ularge magnitude = i->value<ularge>();
         integer_p ai = RT.make<integer>(ID_integer, magnitude);
-        if (!ai)
-            return ERROR;
-        RT.top(ai);
-        return OK;
+        if (ai && RT.top(ai))
+            return OK;
+        return ERROR;           // Out of memory
     }
     else if (is_integer(xt))
     {
@@ -182,10 +183,12 @@ FUNCTION_BODY(inv)
 
     // Apparently there is a div function getting in the way, see man div(3)
     using div = struct div;
-    RT.push(RT.make<integer>(ID_integer, 1));
-    run<Swap>();
-    run<div>();
-    return OK;
+    integer_p one = RT.make<integer>(ID_integer, 1);
+    if (RT.push(one)             &&
+        run<Swap>() == OK        &&
+        run<div>()  == OK)
+        return OK;
+    return ERROR;
 }
 
 
@@ -198,10 +201,12 @@ FUNCTION_BODY(neg)
     if (r != SKIP)
         return r;
 
-    RT.push(RT.make<integer>(ID_integer, 0));
-    run<Swap>();
-    run<sub>();
-    return OK;
+    integer_p zero = RT.make<integer>(ID_integer, 0);
+    if (RT.push(zero)           &&
+        run<Swap>() == OK       &&
+        run<sub>()  == OK)
+        return OK;
+    return ERROR;
 }
 
 
@@ -219,9 +224,9 @@ FUNCTION_BODY(sq)
     if (x->is_symbolic())
     {
         x = rt.make<equation>(ID_equation, 1, &x, ID_sq);
-        if (rt.top(x))
+        if (x && rt.top(x))
             return OK;
-        return ERROR;
+        return ERROR;           // Out of memory
     }
 
     run<Dup>();

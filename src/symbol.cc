@@ -51,14 +51,12 @@ OBJECT_HANDLER_BODY(symbol)
         if (directory_p cat = rt.variables(0))
             if (object_p found = cat->recall(obj))
                 return found->execute();
-        rt.push(obj);
-        return OK;
+        return rt.push(obj) ? OK : ERROR;
     case EVAL:
         if (directory_p cat = rt.variables(0))
             if (object_p found = cat->recall(obj))
                 return found->evaluate();
-        rt.push(obj);
-        return OK;
+        return rt.push(obj) ? OK : ERROR;
     case SIZE:
         return size(obj, payload);
     case PARSE:

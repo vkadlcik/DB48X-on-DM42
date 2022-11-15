@@ -46,8 +46,7 @@ OBJECT_HANDLER_BODY(text)
     case EXEC:
     case EVAL:
         // Text values evaluate as self
-        rt.push(obj);
-        return OK;
+        return rt.push(obj) ? OK : ERROR;
     case SIZE:
         return size(obj, payload);
     case PARSE:

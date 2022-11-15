@@ -63,8 +63,9 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
             return ERROR;
         int r = native(yv, xv) & 1;
         RT.pop();
-        RT.top(command::static_object(r ? ID_True : ID_False));
-        return OK;
+        if (RT.top(command::static_object(r ? ID_True : ID_False)))
+            return OK;
+        return ERROR;           // Out of memory
     }
     case ID_bin_integer:
     case ID_oct_integer:
@@ -84,15 +85,18 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
                 if (Settings.wordsize < 64)
                     value &= (1ULL << Settings.wordsize) - 1ULL;
                 RT.pop();
-                RT.top(RT.make<integer>(xt, value));
-                return OK;
+                integer_p result = RT.make<integer>(xt, value);
+                if (result && RT.top(result))
+                    return OK;
+                return ERROR;   // Out of memory
             }
             integer_g xv = (integer *) xi;
             integer_g yv = (integer *) yi;
             integer_g result = big(yv, xv);
             RT.pop();
-            RT.top(integer_p(result));
-            return OK;
+            if (result && RT.top(integer_p(result)))
+                return OK;
+            return ERROR;       // Out of memory
         }
     }
     default:
@@ -127,8 +131,10 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big)
         int xv = x->as_truth();
         if (xv < 0)
             return ERROR;
-        RT.top(command::static_object((native(xv) & 1) ? ID_True : ID_False));
-        return OK;
+        xv = native(xv) & 1;
+        if (RT.top(command::static_object(xv ? ID_True : ID_False)))
+            return OK;
+        return ERROR;           // Out of memory
     }
     case ID_bin_integer:
     case ID_oct_integer:
@@ -142,12 +148,15 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big)
             ularge value = native(xv);
             if (Settings.wordsize < 64)
                 value &= (1ULL << Settings.wordsize) - 1ULL;
-            RT.top(RT.make<integer>(xt, value));
-            return OK;
+            integer_p result = RT.make<integer>(xt, value);
+            if (result && RT.top(result))
+                return OK;
+            return ERROR;       // Out of memory
         }
         integer_g xv = (integer *) xi;
         integer_g result = big(xv);
-        RT.top(integer_p(result));
+        if (!RT.top(integer_p(result)))
+            return ERROR;;
         return OK;
     }
     default:

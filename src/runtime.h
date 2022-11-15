@@ -612,8 +612,8 @@ protected:
     object_p *Returns;      // Return stack
     object_p  HighMem;      // Top of available memory
 
-  // Pointers that are GC-adjusted
-  gcptr    *GCSafe;
+    // Pointers that are GC-adjusted
+    gcptr    *GCSafe;
 
 public:
     // The one and only runtime

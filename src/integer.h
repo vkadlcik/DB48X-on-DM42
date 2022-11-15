@@ -39,9 +39,15 @@
 //   and uses native CPU operations to do that (or at least, a fixed number
 //   of CPU operations on 32-bit CPUs like on the DM42).
 //
-//   However, the design allows computations with unlimited precision to be
-//   implemented without changing the number storage format. Such
-//   variable-precision arithmetic is likely to be implemented some day.
+//   While an implementation of computations on larger values was implemented on
+//   this LEB128 format, it is now replaced with a bignum format for both
+//   computation and memory efficiency reasons:
+//   - Computations do not need to mask 7 bits at every step
+//   - Memory for 64 bits is 2 (ID + size) + 8 (payload) = 10, whereas LEB128
+//     would use 1 (ID) + 10 (64 / 7 > 9), so starting at 63 bits, the LEB128
+//     representation is 12.5% less memory-efficient.
+//
+//   See bignum.h for the 8-bit big-num implementation
 
 #include "object.h"
 #include "runtime.h"
@@ -102,33 +108,6 @@ struct integer : object
     OBJECT_HANDLER(integer);
     OBJECT_PARSER(integer);
     OBJECT_RENDERER(integer);
-
-public:
-    // Arithmetic internal routines
-    static int compare(byte_p x, byte_p y);
-    static int compare(integer_g x, integer_g y);
-
-    static size_t wordsize(id type);
-    size_t wordsize() const             { return wordsize(type()); }
-    static id opposite_type(id type);
-    static id product_type(id yt, id xt);
-
-    template<bool extend, typename Op>
-    static size_t binary(Op op, byte_p x, byte_p y, size_t maxbits);
-    template<bool extend, typename Op>
-    static integer_g binary(Op op, integer_g x, integer_g y);
-    template<bool extend, typename Op>
-    static size_t unary(Op op, byte_p x, size_t maxbits);
-
-    static integer_g add_sub(integer_g y, integer_g x, bool subtract);
-    static size_t multiply(byte_p x, byte_p y, size_t maxbits);
-    static size_t divide(byte_p y, byte_p x, size_t maxbits,
-                         byte_p &qptr, size_t &qsize,
-                         byte_p &rptr, size_t &rsize);
-
-    // Compute quotient and reminder together
-    static bool quorem(integer_g y, integer_g x, integer_g &q, integer_g &r);
-    static integer_g pow(integer_g y, integer_g x);
 };
 
 
@@ -164,212 +143,6 @@ integer *integer::make(Int value)
 // ----------------------------------------------------------------------------
 {
     return value < 0 ? RT.make<neg_integer>(-value) : RT.make<integer>(value);
-}
-
-
-// ============================================================================
-//
-//    Big-integer comparisons and arithmetic
-//
-// ============================================================================
-
-inline bool operator< (integer_g y, integer_g x)
-{
-    return integer::compare(y,x) <  0;
-}
-
-inline bool operator==(integer_g y, integer_g x)
-{
-    return integer::compare(y,x) == 0;
-}
-
-inline bool operator> (integer_g y, integer_g x)
-{
-    return integer::compare(y,x) >  0;
-}
-
-inline bool operator<=(integer_g y, integer_g x)
-{
-    return integer::compare(y,x) <= 0;
-}
-
-inline bool operator>=(integer_g y, integer_g x)
-{
-    return integer::compare(y,x) >= 0;
-}
-
-inline bool operator!=(integer_g y, integer_g x)
-{
-    return integer::compare(y,x) != 0;
-}
-
-
-integer_g operator- (integer_g x);
-integer_g operator~ (integer_g x);
-integer_g operator+ (integer_g y, integer_g x);
-integer_g operator- (integer_g y, integer_g x);
-integer_g operator* (integer_g y, integer_g x);
-integer_g operator/ (integer_g y, integer_g x);
-integer_g operator% (integer_g y, integer_g x);
-integer_g operator& (integer_g y, integer_g x);
-integer_g operator| (integer_g y, integer_g x);
-integer_g operator^ (integer_g y, integer_g x);
-
-
-
-
-// ============================================================================
-//
-//   Helper code
-//
-// ============================================================================
-
-inline size_t integer::wordsize(id type)
-// ----------------------------------------------------------------------------
-//   Return the word size for an integer type
-// ----------------------------------------------------------------------------
-{
-    if (type == ID_integer || type == ID_neg_integer)
-        return size_t(-7); // So that (ws + 6) / 7 is a large value
-    return Settings.wordsize;
-}
-
-
-template<bool extend, typename Op>
-size_t integer::binary(Op op, byte_p x, byte_p y, size_t maxbits)
-// ----------------------------------------------------------------------------
-//   Perform binary operation op on leb128 numbers x and y
-// ----------------------------------------------------------------------------
-//   Result is placed in scratchpad, the function returns the size in bytes
-{
-    runtime &rt = runtime::RT;
-    byte *buffer = rt.scratchpad();
-    byte *p = buffer;
-    bool xmore, ymore;
-    byte c = 0;
-    size_t available = rt.available();
-    if (available > (maxbits + 6) / 7)
-        available = (maxbits + 6) / 7;
-    do
-    {
-        byte xd = *x++;
-        byte yd = *y++;
-        xmore = xd & 0x80;
-        ymore = yd & 0x80;
-        c = op(xd & 0x7F, yd & 0x7F, c);
-        *p++ = (c & 0x7F) | 0x80;
-        c >>= 7;
-        available--;
-    }
-    while (xmore && ymore && available);
-
-    while (xmore && available)
-    {
-        byte xd = *x++;
-        xmore = xd & 0x80;
-        c = op(xd & 0x7F, 0, c);
-        *p++ = (c & 0x7F) | 0x80;
-        c >>= 7;
-        available--;
-    }
-    while (ymore && available)
-    {
-        byte yd = *y++;
-        ymore = yd & 0x80;
-        c = op(0, yd & 0x7F, c);
-        *p++ = (c & 0x7F) | 0x80;
-        c >>= 7;
-        available--;
-    }
-    while (extend && available)
-    {
-        c = op(0, 0, c);
-        *p++ = (c & 0x7F) | 0x80;
-        c >>= 7;
-        available--;
-    }
-    if (c & available)
-    {
-        *p++ = (c & 0x7F) | 0x80;
-        available--;
-    }
-    while (p > buffer + 1 && p[-1] == 0x80)
-        p--;
-    p[-1] &= ~0x80;
-    size_t written = p - buffer;
-    if (maxbits < 7 * written)
-    {
-        size_t bits = 7 * written - maxbits;
-        p[-1] = byte(p[-1] << bits) >> bits;
-    }
-    return p - buffer;
-}
-
-
-template<bool extend, typename Op>
-integer_g integer::binary(Op op, integer_g x, integer_g y)
-// ----------------------------------------------------------------------------
-//   Perform binary operation op on leb128 numbers x and y
-// ----------------------------------------------------------------------------
-{
-    runtime &rt = RT;
-    object::id xt = x->type();
-    byte_p yp = y->payload();
-    byte_p xp = x->payload();
-    size_t ws = wordsize(xt);
-    size_t size = binary<extend, Op>(op, yp, xp, ws);
-    gcbytes bytes = rt.allocate(size);
-    integer_g result = rt.make<integer>(xt, bytes, size);
-    rt.free(size);
-    return result;
-}
-
-
-template<bool extend, typename Op>
-size_t integer::unary(Op op, byte_p x, size_t maxbits)
-// ----------------------------------------------------------------------------
-//   Shift the bytes at x left
-// ----------------------------------------------------------------------------
-//   Result is placed in the scratchpad, the function returns size in bytes
-{
-    runtime &rt = runtime::RT;
-    byte *buffer = rt.scratchpad();
-    byte *p = buffer;
-    bool xmore;
-    byte c = 0;
-    size_t available = rt.available();
-    if (available > (maxbits + 6) / 7)
-        available = (maxbits + 6) / 7;
-    do
-    {
-        byte xd = *x++;
-        xmore = xd & 0x80;
-        c = op(xd & 0x7F, c);
-        *p++ = (c & 0x7F) | 0x80;
-        c >>= 7;
-        available--;
-    }
-    while (xmore && available);
-
-    while (extend && available)
-    {
-        c = op(0, c);
-        *p++ = (c & 0x7F) | 0x80;
-        c >>= 7;
-        available--;
-    }
-    if (extend)
-        p[-1] &= (1 << (maxbits % 7)) - 1;
-    while (p > buffer + 1 && p[-1] == 0x80)
-        p--;
-    p[-1] &= ~0x80;
-    size_t written = p - buffer;
-    if (maxbits < 7 * written)
-    {
-        size_t bits = 7 * written - maxbits;
-        p[-1] = byte(p[-1] << bits) >> bits;
-    }
-    return p - buffer;
 }
 
 #endif // INTEGER_H

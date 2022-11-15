@@ -40,8 +40,9 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
 //   Evaluation for binary logical operations
 // ----------------------------------------------------------------------------
 {
-    object_p y = RT.stack(1);
-    object_p x = RT.stack(0);
+    runtime &rt = RT;
+    gcobj y = rt.stack(1);
+    gcobj x = rt.stack(0);
     if (!x || !y)
         return ERROR;
 
@@ -52,6 +53,8 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
     case ID_False:
     case ID_integer:
     case ID_neg_integer:
+    case ID_bignum:
+    case ID_neg_bignum:
     case ID_decimal128:
     case ID_decimal64:
     case ID_decimal32:
@@ -62,8 +65,8 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
         if (xv < 0 || yv < 0)
             return ERROR;
         int r = native(yv, xv) & 1;
-        RT.pop();
-        if (RT.top(command::static_object(r ? ID_True : ID_False)))
+        rt.pop();
+        if (rt.top(command::static_object(r ? ID_True : ID_False)))
             return OK;
         return ERROR;           // Out of memory
     }
@@ -72,10 +75,10 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
     case ID_dec_integer:
     case ID_hex_integer:
     {
-        integer_p xi = integer_p(x);
+        integer_p xi = integer_p(object_p(x));
         if (y->is_integer())
         {
-            integer_p yi = integer_p(y);
+            integer_p yi = integer_p(object_p(y));
             if (Settings.wordsize <= 64 && yi->native() && xi->native())
             {
                 // Short-enough integers to fit as native machine type
@@ -84,23 +87,39 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
                 ularge value = native(yv, xv);
                 if (Settings.wordsize < 64)
                     value &= (1ULL << Settings.wordsize) - 1ULL;
-                RT.pop();
-                integer_p result = RT.make<integer>(xt, value);
-                if (result && RT.top(result))
+                rt.pop();
+                integer_p result = rt.make<integer>(xt, value);
+                if (result && rt.top(result))
                     return OK;
                 return ERROR;   // Out of memory
             }
-            integer_g xv = (integer *) xi;
-            integer_g yv = (integer *) yi;
-            integer_g result = big(yv, xv);
-            RT.pop();
-            if (result && RT.top(integer_p(result)))
-                return OK;
-            return ERROR;       // Out of memory
         }
+        // Fall through to bignum variants
     }
+
+    case ID_bin_bignum:
+    case ID_oct_bignum:
+    case ID_dec_bignum:
+    case ID_hex_bignum:
+    {
+        id yt = x->type();
+        if (!is_bignum(xt))
+            xt = bignum_promotion(x);
+        if (!is_bignum(yt))
+            yt = bignum_promotion(y);
+
+        // Proceed with big integers if native did not fit
+        bignum_g xg = (bignum *) object_p(x);
+        bignum_g yg = (bignum *) object_p(y);
+        rt.pop();
+        bignum_g rg = big(yg, xg);
+        if (bignum_p(rg) && rt.top(rg))
+            return OK;
+        return ERROR;           // Out of memory
+    }
+
     default:
-        RT.type_error();
+        rt.type_error();
         break;
     }
 
@@ -113,7 +132,8 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big)
 //   Evaluation for unary logical operations
 // ----------------------------------------------------------------------------
 {
-    object_p x = RT.stack(0);
+    runtime &rt = RT;
+    gcobj x = rt.stack(0);
     if (!x)
         return ERROR;
 
@@ -124,6 +144,8 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big)
     case ID_False:
     case ID_integer:
     case ID_neg_integer:
+    case ID_bignum:
+    case ID_neg_bignum:
     case ID_decimal128:
     case ID_decimal64:
     case ID_decimal32:
@@ -132,7 +154,7 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big)
         if (xv < 0)
             return ERROR;
         xv = native(xv) & 1;
-        if (RT.top(command::static_object(xv ? ID_True : ID_False)))
+        if (rt.top(command::static_object(xv ? ID_True : ID_False)))
             return OK;
         return ERROR;           // Out of memory
     }
@@ -141,26 +163,39 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big)
     case ID_dec_integer:
     case ID_hex_integer:
     {
-        integer_p xi = integer_p(x);
+        integer_p xi = integer_p(object_p(x));
         if (Settings.wordsize <= 64 && xi->native())
         {
             ularge xv = xi->value<ularge>();
             ularge value = native(xv);
             if (Settings.wordsize < 64)
                 value &= (1ULL << Settings.wordsize) - 1ULL;
-            integer_p result = RT.make<integer>(xt, value);
-            if (result && RT.top(result))
+            integer_p result = rt.make<integer>(xt, value);
+            if (result && rt.top(result))
                 return OK;
             return ERROR;       // Out of memory
         }
-        integer_g xv = (integer *) xi;
-        integer_g result = big(xv);
-        if (!RT.top(integer_p(result)))
-            return ERROR;;
-        return OK;
+        // Fall-through to bignum case
     }
+
+    case ID_bin_bignum:
+    case ID_oct_bignum:
+    case ID_dec_bignum:
+    case ID_hex_bignum:
+    {
+        if (!is_bignum(xt))
+            xt = bignum_promotion(x);
+
+        // Proceed with big integers if native did not fit
+        bignum_g xg = (bignum *) object_p(x);
+        bignum_g rg = big(xg);
+        if (bignum_p(rg) && rt.top(rg))
+            return OK;
+        return ERROR;           // Out of memory
+    }
+
     default:
-        RT.type_error();
+        rt.type_error();
         break;
     }
 

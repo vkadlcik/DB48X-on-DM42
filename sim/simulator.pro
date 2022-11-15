@@ -45,6 +45,7 @@ SOURCES +=                                      \
         ../src/compare.cc                       \
         ../src/logical.cc                       \
         ../src/integer.cc                       \
+        ../src/bignum.cc                        \
         ../src/decimal128.cc                    \
         ../src/decimal-64.cc                    \
         ../src/decimal-32.cc                    \

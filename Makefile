@@ -99,6 +99,7 @@ CXX_SOURCES +=				\
 	src/compare.cc			\
 	src/logical.cc			\
 	src/integer.cc			\
+	src/bignum.cc			\
 	src/decimal128.cc		\
 	$(DECIMAL_SOURCES)		\
 	src/text.cc		        \

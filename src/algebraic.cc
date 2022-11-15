@@ -30,6 +30,7 @@
 #include "algebraic.h"
 
 #include "arithmetic.h"
+#include "bignum.h"
 #include "input.h"
 #include "integer.h"
 #include "parser.h"
@@ -130,6 +131,30 @@ bool algebraic::real_promotion(gcobj &x, object::id type)
         break;
     }
 
+    case ID_bignum:
+    case ID_neg_bignum:
+    {
+        bignum_p i = bignum_p(object_p(x));
+        switch (type)
+        {
+        case ID_decimal32:
+            x = rt.make<decimal32>(ID_decimal32, i);
+            return true;
+        case ID_decimal64:
+            x = rt.make<decimal64>(ID_decimal64, i);
+            return true;
+        case ID_decimal128:
+            x = rt.make<decimal128>(ID_decimal128, i);
+            return true;
+        default:
+            break;
+        }
+        record(algebraic_error,
+               "Cannot promote bignum %p from %+s to %+s",
+               i, object::name(xt), object::name(type));
+        break;
+    }
+
     case ID_decimal32:
     {
         decimal32_p d = x->as<decimal32>();
@@ -190,4 +215,32 @@ object::id algebraic::real_promotion(gcobj &x)
                   : prec > BID32_MAXDIGITS ? ID_decimal64
                                            : ID_decimal32;
     return real_promotion(x, type) ? type : ID_object;
+}
+
+
+object::id algebraic::bignum_promotion(gcobj &x)
+// ----------------------------------------------------------------------------
+//   Promote the value x to the corresponding bignum
+// ----------------------------------------------------------------------------
+{
+    id xt = x->type();
+    id ty = xt;
+
+    switch(xt)
+    {
+    case ID_hex_integer:        ty = ID_hex_bignum;     break;
+    case ID_dec_integer:        ty = ID_dec_bignum;     break;
+    case ID_oct_integer:        ty = ID_oct_bignum;     break;
+    case ID_bin_integer:        ty = ID_bin_bignum;     break;
+    case ID_neg_integer:        ty = ID_neg_bignum;     break;
+    case ID_integer:            ty = ID_bignum;         break;
+    default:
+        break;
+    }
+    if (ty != xt)
+    {
+        integer_p i = (integer *) object_p(x);
+        x = RT.make<bignum>(ty, i);
+    }
+    return ty;
 }

@@ -30,7 +30,7 @@
 // ****************************************************************************
 
 #include "arithmetic.h"
-#include "integer.h"
+#include "bignum.h"
 
 
 struct logical : arithmetic
@@ -42,10 +42,10 @@ struct logical : arithmetic
 
     static int as_truth(object_p obj);
     typedef ularge (*binary_fn)(ularge x, ularge y);
-    typedef integer_g (*big_binary_fn)(integer_g x, integer_g y);
+    typedef bignum_g (*big_binary_fn)(bignum_g x, bignum_g y);
     static result evaluate(binary_fn opn, big_binary_fn opb);
     typedef ularge (*unary_fn)(ularge x);
-    typedef integer_g (*big_unary_fn)(integer_g x);
+    typedef bignum_g (*big_unary_fn)(bignum_g x);
     static result evaluate(unary_fn opn, big_unary_fn opb);
 
     template <typename Cmp> static result evaluate()
@@ -79,7 +79,7 @@ struct derived : logical                                                \
         return DELEGATE(arithmetic);                                    \
     }                                                                   \
     static ularge    native(ularge Y, ularge X)        { return code; } \
-    static integer_g bignum(integer_g Y, integer_g X)  { return code; } \
+    static bignum_g  bignum(bignum_g Y, bignum_g X)    { return code; } \
 }
 
 
@@ -104,7 +104,7 @@ struct derived : logical                                                \
         return DELEGATE(arithmetic);                                    \
     }                                                                   \
     static ularge    native(ularge X)           { return code; }        \
-    static integer_g bignum(integer_g X)        { return code; }        \
+    static bignum_g  bignum(bignum_g X)         { return code; }        \
 }
 
 

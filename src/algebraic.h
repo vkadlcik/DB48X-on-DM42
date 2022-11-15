@@ -56,6 +56,9 @@ struct algebraic : command
     static bool real_promotion(gcobj &x, object::id type);
     static id   real_promotion(gcobj &x);
 
+    // Promotion of integer to bignum
+    static id   bignum_promotion(gcobj &x);
+
     // Function pointers used by generic evaluation code
     typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x);
     typedef void (*bid64_fn) (BID_UINT64  *res, BID_UINT64  *x);

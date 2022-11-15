@@ -30,6 +30,7 @@
 // ****************************************************************************
 
 #include "algebraic.h"
+#include "bignum.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
@@ -60,7 +61,7 @@ struct arithmetic : algebraic
 
 protected:
     typedef bool (*integer_fn)(id &xt, id &yt, ularge &xv, ularge &yv);
-    typedef bool (*bigint_fn)(integer_g &x, integer_g &y);
+    typedef bool (*bignum_fn)(bignum_g &x, bignum_g &y);
     typedef bool (*non_numeric_fn)(gcobj &x, gcobj &y, id &xt, id &yt);
 
     // Function pointers used by generic evaluation code
@@ -72,7 +73,7 @@ protected:
                            bid64_fn       op64,
                            bid32_fn       op32,
                            integer_fn     integer_ok,
-                           bigint_fn      bigint_ok,
+                           bignum_fn      bignum_ok,
                            non_numeric_fn non_numeric);
 
     template <typename Op> static result evaluate();
@@ -103,7 +104,7 @@ struct derived : arithmetic                                             \
     derived(id i = ID_##derived) : arithmetic(i) {}                     \
                                                                         \
     static bool integer_ok(id &xt, id &yt, ularge &xv, ularge &yv);     \
-    static bool bigint_ok(integer_g &x, integer_g &y);                  \
+    static bool bignum_ok(bignum_g &x, bignum_g &y);                    \
     static constexpr auto bid32_op = bid32_##derived;                   \
     static constexpr auto bid64_op = bid64_##derived;                   \
     static constexpr auto bid128_op = bid128_##derived;                 \

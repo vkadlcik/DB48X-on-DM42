@@ -389,6 +389,7 @@ struct runtime
         Obj operator *() const          { return *((Obj *) safe); }
         Obj &operator *()               { return *((Obj *) safe); }
         Obj *operator ->() const        { return (Obj *) safe; }
+        gcp &operator++()               { safe += sizeof(Obj); return *this; }
 #pragma GCC diagnostic pop
     };
 

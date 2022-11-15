@@ -29,22 +29,54 @@
 
 #include "decimal-32.h"
 
-#include "runtime.h"
-#include "settings.h"
+#include "bignum.h"
 #include "parser.h"
 #include "renderer.h"
+#include "runtime.h"
+#include "settings.h"
 #include "utf8.h"
 
+#include <algorithm>
 #include <bid_conf.h>
 #include <bid_functions.h>
 #include <cstdio>
-#include <algorithm>
 #include <cstdlib>
 
 using std::min;
 using std::max;
 
 RECORDER(decimal32, 32, "Decimal32 data type");
+
+
+decimal32::decimal32(bignum_p num, id type)
+// ----------------------------------------------------------------------------
+//   Create a decimal32 from a bignum value
+// ----------------------------------------------------------------------------
+    : object(type)
+{
+    bid32 result;
+    bid32 mul;
+    unsigned z = 0;
+    bid32_from_uint32(&result.value, &z);
+    z = 256;
+    bid32_from_uint32(&mul.value, &z);
+
+    size_t size = 0;
+    byte_p n = num->value(&size);
+    for (uint i = 0; i < size; i++)
+    {
+        unsigned digits = n[i];
+        bid32 step;
+        bid32_mul(&step.value, &result.value, &mul.value);
+        bid32 add;
+        bid32_from_uint32(&add.value, &digits);
+        bid32_add(&result.value, &step.value, &add.value);
+    }
+    if (num->type() == ID_neg_bignum)
+        bid32_negate(&result.value, &result.value);
+    byte *p = payload();
+    memcpy(p, &result, sizeof(result));
+}
 
 
 OBJECT_HANDLER_BODY(decimal32)

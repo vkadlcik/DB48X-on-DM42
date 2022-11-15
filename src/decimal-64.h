@@ -45,6 +45,9 @@
 #include <bid_functions.h>
 #include <cstring>
 
+struct bignum;
+typedef const bignum *bignum_p;
+
 struct decimal64 : object
 // ----------------------------------------------------------------------------
 //    Floating-point numbers in 64-bit decimal64 representation
@@ -108,6 +111,7 @@ struct decimal64 : object
         memcpy(p, &num, sizeof(num));
     }
 
+    decimal64(bignum_p value, id type = ID_decimal64);
 
 #if 64 > 64
     decimal64(const bid64 &value, id type = ID_decimal64): object(type)

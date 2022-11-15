@@ -29,13 +29,14 @@
 
 #include "arithmetic.h"
 
+#include "bignum.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
 #include "integer.h"
 #include "runtime.h"
-#include "text.h"
 #include "settings.h"
+#include "text.h"
 
 
 RECORDER(arithmetic,            16, "Arithmetic");
@@ -125,13 +126,13 @@ inline bool add::integer_ok(object::id &xt, object::id &yt,
 }
 
 
-inline bool add::bigint_ok(integer_g &x, integer_g &y)
+inline bool add::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 //   We can always add two big integers (memory permitting)
 // ----------------------------------------------------------------------------
 {
     x = y + x;
-    return true;
+    return byte_p(x) != nullptr;
 }
 
 
@@ -181,13 +182,13 @@ inline bool sub::integer_ok(object::id &xt, object::id &yt,
 }
 
 
-inline bool sub::bigint_ok(integer_g &x, integer_g &y)
+inline bool sub::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 //   We can always subtract two big integers (memory permitting)
 // ----------------------------------------------------------------------------
 {
     x = y - x;
-    return true;
+    return byte_p(x) != nullptr;
 }
 
 
@@ -256,13 +257,13 @@ inline bool mul::integer_ok(object::id &xt, object::id &yt,
 }
 
 
-inline bool mul::bigint_ok(integer_g &x, integer_g &y)
+inline bool mul::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 //   We can always multiply two big integers (memory permitting)
 // ----------------------------------------------------------------------------
 {
     x = y * x;
-    return true;
+    return byte_p(x) != nullptr;
 }
 
 
@@ -301,22 +302,18 @@ inline bool div::integer_ok(object::id &xt, object::id &yt,
 }
 
 
-inline bool div::bigint_ok(integer_g &x, integer_g &y)
+inline bool div::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 //   Division works if there is no remainder
 // ----------------------------------------------------------------------------
 {
-    integer_g q = nullptr;
-    integer_g r = nullptr;
-    if (integer::quorem(y, x, q, r))
+    if (!x)
     {
-        if (r->zero())
-        {
-            x = q;
-            return true;
-        }
+        RT.zero_divide_error();
+        return false;
     }
-    return false;
+    x = y / x;
+    return byte_p(x) != nullptr;
 }
 
 
@@ -351,22 +348,19 @@ inline bool mod::integer_ok(object::id &xt, object::id &yt,
 }
 
 
-inline bool mod::bigint_ok(integer_g &x, integer_g &y)
+inline bool mod::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 //   Modulo always works except divide by zero
 // ----------------------------------------------------------------------------
 {
-    integer_g q = nullptr;
-    integer_g r = nullptr;
-    if (integer::quorem(y, x, q, r))
-    {
-        if (x->type() == ID_neg_integer)
-            x = y - r;
-        else
-            x = r;
-        return true;
-    }
-    return false;
+    bignum_g r = y % x;
+    if (byte_p(r) == nullptr)
+        return false;
+    if (x->type() == ID_neg_bignum)
+        x = y - r;
+    else
+        x = y;
+    return byte_p(x) != nullptr;
 }
 
 
@@ -389,19 +383,13 @@ inline bool rem::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
 }
 
 
-inline bool rem::bigint_ok(integer_g &x, integer_g &y)
+inline bool rem::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 //   Remainder always works except divide by zero
 // ----------------------------------------------------------------------------
 {
-    integer_g q = nullptr;
-    integer_g r = nullptr;
-    if (integer::quorem(y, x, q, r))
-    {
-        x = r;
-        return true;
-    }
-    return false;
+    x = y % x;
+    return byte_p(x) != nullptr;
 }
 
 
@@ -448,7 +436,7 @@ inline bool pow::integer_ok(object::id &xt, object::id &yt,
 }
 
 
-inline bool pow::bigint_ok(integer_g &x, integer_g &y)
+inline bool pow::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 //   Compute y^x, works if x >= 0
 // ----------------------------------------------------------------------------
@@ -456,8 +444,8 @@ inline bool pow::bigint_ok(integer_g &x, integer_g &y)
     // Compute result, check that it does not overflow
     if (x->type() == ID_neg_integer)
         return false;
-    x = integer::pow(y, x);
-    return true;
+    x = bignum::pow(y, x);
+    return byte_p(x) != nullptr;
 }
 
 
@@ -472,7 +460,7 @@ inline bool hypot::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
 }
 
 
-inline bool hypot::bigint_ok(integer_g &UNUSED x, integer_g &UNUSED y)
+inline bool hypot::bignum_ok(bignum_g &UNUSED x, bignum_g &UNUSED y)
 // ----------------------------------------------------------------------------
 //   Hypot never works with big integers
 // ----------------------------------------------------------------------------
@@ -493,7 +481,7 @@ object::result arithmetic::evaluate(id             op,
                                     bid64_fn       op64,
                                     bid32_fn       op32,
                                     integer_fn     integer_ok,
-                                    bigint_fn      bigint_ok,
+                                    bignum_fn      bignum_ok,
                                     non_numeric_fn non_numeric)
 // ----------------------------------------------------------------------------
 //   Shared code for all forms of evaluation
@@ -513,33 +501,43 @@ object::result arithmetic::evaluate(id             op,
 
     if (!ok && is_integer(xt) && is_integer(yt))
     {
-        /* Perform conversion of integer values to the same base */
-        integer *xi = (integer *) (object_p) x;
-        integer *yi = (integer *) (object_p) y;
-        if (xi->native() && yi->native())
+        if (!is_bignum(xt) && !is_bignum(yt))
         {
-            ularge xv = xi->value<ularge>();
-            ularge yv = yi->value<ularge>();
-            if (integer_ok(xt, yt, xv, yv))
+            /* Perform conversion of integer values to the same base */
+            integer *xi = (integer *) (object_p) x;
+            integer *yi = (integer *) (object_p) y;
+            if (xi->native() && yi->native())
             {
-                x = rt.make<integer>(xt, xv);
-                ok = true;
+                ularge xv = xi->value<ularge>();
+                ularge yv = yi->value<ularge>();
+                if (integer_ok(xt, yt, xv, yv))
+                {
+                    x = rt.make<integer>(xt, xv);
+                    ok = object_p(x) != nullptr;
+                }
             }
+            if (rt.error())
+                return ERROR;
         }
-        // Proceed with big integers if native did not fit
-        if (!ok && !rt.error())
-        {
-            integer_g xg = xi;
-            integer_g yg = yi;
-            if (bigint_ok(xg, yg))
-            {
-                x = integer_p(xg);
-                ok = true;
-            }
 
+        if (!ok)
+        {
+            if (!is_bignum(xt))
+                xt = bignum_promotion(x);
+            if (!is_bignum(yt))
+                yt = bignum_promotion(y);
+
+            // Proceed with big integers if native did not fit
+            bignum_g xg = (bignum *) object_p(x);
+            bignum_g yg = (bignum *) object_p(y);
+            if (bignum_ok(xg, yg))
+            {
+                x = bignum_p(xg);
+                ok = object_p(x) != nullptr;
+            }
+            if (rt.error())
+                return ERROR;
         }
-        if (rt.error())
-            return ERROR;
     }
 
     /* Real data types */
@@ -621,7 +619,7 @@ object::result arithmetic::evaluate()
                     Op::bid64_op,
                     Op::bid32_op,
                     Op::integer_ok,
-                    Op::bigint_ok,
+                    Op::bignum_ok,
                     non_numeric<Op>);
 }
 

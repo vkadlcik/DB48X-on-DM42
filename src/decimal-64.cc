@@ -29,22 +29,54 @@
 
 #include "decimal-64.h"
 
-#include "runtime.h"
-#include "settings.h"
+#include "bignum.h"
 #include "parser.h"
 #include "renderer.h"
+#include "runtime.h"
+#include "settings.h"
 #include "utf8.h"
 
+#include <algorithm>
 #include <bid_conf.h>
 #include <bid_functions.h>
 #include <cstdio>
-#include <algorithm>
 #include <cstdlib>
 
 using std::min;
 using std::max;
 
 RECORDER(decimal64, 32, "Decimal64 data type");
+
+
+decimal64::decimal64(bignum_p num, id type)
+// ----------------------------------------------------------------------------
+//   Create a decimal64 from a bignum value
+// ----------------------------------------------------------------------------
+    : object(type)
+{
+    bid64 result;
+    bid64 mul;
+    unsigned z = 0;
+    bid64_from_uint32(&result.value, &z);
+    z = 256;
+    bid64_from_uint32(&mul.value, &z);
+
+    size_t size = 0;
+    byte_p n = num->value(&size);
+    for (uint i = 0; i < size; i++)
+    {
+        unsigned digits = n[i];
+        bid64 step;
+        bid64_mul(&step.value, &result.value, &mul.value);
+        bid64 add;
+        bid64_from_uint32(&add.value, &digits);
+        bid64_add(&result.value, &step.value, &add.value);
+    }
+    if (num->type() == ID_neg_bignum)
+        bid64_negate(&result.value, &result.value);
+    byte *p = payload();
+    memcpy(p, &result, sizeof(result));
+}
 
 
 OBJECT_HANDLER_BODY(decimal64)

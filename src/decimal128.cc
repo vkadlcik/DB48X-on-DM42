@@ -29,22 +29,54 @@
 
 #include "decimal128.h"
 
-#include "runtime.h"
-#include "settings.h"
+#include "bignum.h"
 #include "parser.h"
 #include "renderer.h"
+#include "runtime.h"
+#include "settings.h"
 #include "utf8.h"
 
+#include <algorithm>
 #include <bid_conf.h>
 #include <bid_functions.h>
 #include <cstdio>
-#include <algorithm>
 #include <cstdlib>
 
 using std::min;
 using std::max;
 
 RECORDER(decimal128, 32, "Decimal128 data type");
+
+
+decimal128::decimal128(bignum_p num, id type)
+// ----------------------------------------------------------------------------
+//   Create a decimal128 from a bignum value
+// ----------------------------------------------------------------------------
+    : object(type)
+{
+    bid128 result;
+    bid128 mul;
+    unsigned z = 0;
+    bid128_from_uint32(&result.value, &z);
+    z = 256;
+    bid128_from_uint32(&mul.value, &z);
+
+    size_t size = 0;
+    byte_p n = num->value(&size);
+    for (uint i = 0; i < size; i++)
+    {
+        unsigned digits = n[i];
+        bid128 step;
+        bid128_mul(&step.value, &result.value, &mul.value);
+        bid128 add;
+        bid128_from_uint32(&add.value, &digits);
+        bid128_add(&result.value, &step.value, &add.value);
+    }
+    if (num->type() == ID_neg_bignum)
+        bid128_negate(&result.value, &result.value);
+    byte *p = payload();
+    memcpy(p, &result, sizeof(result));
+}
 
 
 OBJECT_HANDLER_BODY(decimal128)

@@ -409,6 +409,24 @@ struct object
     }
 
 
+    static bool is_bignum(id ty)
+    // -------------------------------------------------------------------------
+    //   Check if a type is an big integer
+    // -------------------------------------------------------------------------
+    {
+        return ty >= FIRST_BIGNUM_TYPE && ty <= LAST_BIGNUM_TYPE;
+    }
+
+
+    bool is_bignum() const
+    // -------------------------------------------------------------------------
+    //   Check if an object is an integer
+    // -------------------------------------------------------------------------
+    {
+        return is_bignum(type());
+    }
+
+
     static bool is_decimal(id ty)
     // -------------------------------------------------------------------------
     //   Check if a type is a decimal

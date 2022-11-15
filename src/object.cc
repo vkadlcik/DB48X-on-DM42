@@ -31,6 +31,7 @@
 
 #include "algebraic.h"
 #include "arithmetic.h"
+#include "bignum.h"
 #include "catalog.h"
 #include "compare.h"
 #include "decimal-32.h"
@@ -338,7 +339,14 @@ int object::as_truth() const
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
-        return payload() != 0;
+        return *payload() != 0;
+    case ID_bignum:
+    case ID_neg_bignum:
+    case ID_bin_bignum:
+    case ID_oct_bignum:
+    case ID_dec_bignum:
+    case ID_hex_bignum:
+        return payload()[1] != 0; // Check if the size is not zero
     case ID_decimal128:
         return !decimal128_p(this)->is_zero();
     case ID_decimal64:

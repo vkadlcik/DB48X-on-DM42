@@ -266,12 +266,12 @@ struct object
 
     size_t render(char *output, size_t length, runtime &rt = RT) const;
     // ------------------------------------------------------------------------
-    //   Render the object into a buffer
+    //   Render the object into a static buffer
     // ------------------------------------------------------------------------
 
-    cstring render(bool edit = false, runtime &rt = RT) const;
+    size_t render(renderer &r, runtime &rt = RT) const;
     // ------------------------------------------------------------------------
-    //   Render the object into the scratchpad
+    //   Render the object into an existing renderer
     // ------------------------------------------------------------------------
 
     cstring edit(runtime &rt = RT) const;

@@ -79,7 +79,7 @@ OBJECT_RENDERER_BODY(directory)
 //   Render the directory into the given directory buffer
 // ----------------------------------------------------------------------------
 {
-    return snprintf(r.target, r.length, "Directory (internal)");
+    return r.put("Directory (internal)");
 }
 
 

@@ -87,10 +87,8 @@ OBJECT_RENDERER_BODY(font)
 //   Render the integer into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    char buffer[32];
-    size_t result = snprintf(buffer, sizeof(buffer), "Font %p", this);
-    record(fonts, "Render %p [%s]", this, (cstring) r.target);
-    return result;
+    r.put("Font (internal)");
+    return r.size();
 }
 
 

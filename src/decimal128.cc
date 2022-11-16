@@ -437,8 +437,8 @@ OBJECT_RENDERER_BODY(decimal128)
     bid128_to_string(buffer, &num.value);
     record(decimal128, "Render raw output [%s]", buffer);
 
-    int digits = r.editing ? BID128_MAXDIGITS : Settings.displayed;
-    decimal_format(buffer, min(sizeof(buffer), r.length), digits);
+    int digits = r.editing() ? BID128_MAXDIGITS : Settings.displayed;
+    decimal_format(buffer, sizeof(buffer), digits);
     record(decimal128, "Render formatted output [%s]", buffer);
 
     // Adjust special characters
@@ -463,7 +463,7 @@ OBJECT_RENDERER_BODY(decimal128)
     }
 
     // And return it to the caller
-    return snprintf(r.target, r.length, "%s%s%s", buffer, expbuf, ep);
+    return r.printf("%s%s%s", buffer, expbuf, ep);
 }
 
 

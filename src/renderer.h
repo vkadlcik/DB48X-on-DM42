@@ -6,11 +6,11 @@
 //
 //   File Description:
 //
+//     Structure used to record information about rendering
 //
-//
-//
-//
-//
+//     This works in two modes:
+//     - Write to a fixed-size buffer, e.g. while rendering stack
+//     - Write to the scratchpad, e.g. to edit
 //
 //
 //
@@ -29,26 +29,76 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include "object.h"
-#include "runtime.h"
+#include "types.h"
+#include "utf8.h"
+
 
 struct renderer
 // ----------------------------------------------------------------------------
 //  Arguments to the RENDER command
 // ----------------------------------------------------------------------------
 {
-    renderer(object_p what, char *target, size_t length,
-             bool editing = false, bool equation = false)
-        : what(what), target(target), length(length),
-          indent(), editing(editing), equation(equation) {}
+    renderer(char *buffer = nullptr, size_t length = ~0U)
+        : target(buffer), length(length), written(0), tabs(0),
+          eq(false) {}
+    renderer(bool equation)
+        : target(nullptr), length(0), written(0), tabs(0),
+          eq(equation) {}
+    ~renderer();
 
-    gcobj       what;           // Object being rendered
-    gcmstring   target;         // Buffer where we render the object
+    bool put(char c);
+    bool put(cstring s)
+    {
+        for (char c = *s; c; c = *s++)
+            if (!put(c))
+                return false;
+        return true;
+    }
+    bool put(cstring s, size_t len)
+    {
+        for (size_t i = 0; i < len; i++)
+            if (!put(s[i]))
+                return false;
+        return true;
+    }
+    bool put(unicode code)
+    {
+        byte buffer[4];
+        size_t rendered = utf8_encode(code, buffer);
+        return put(buffer, rendered);
+    }
+    bool   put(utf8 s)                  { return put(cstring(s)); }
+    bool   put(utf8 s, size_t len)      { return put(cstring(s), len); }
+
+
+
+    bool   editing() const              { return target == nullptr; }
+    bool   equation() const             { return eq; }
+    size_t size() const                 { return written; }
+    utf8   text() const;
+
+    size_t printf(const char *format, ...);
+    void   indent(int i)
+    {
+        tabs += i;
+    }
+    bool   indent()
+    {
+        indent(1);
+        return put('\n');
+    }
+    bool   unindent()
+    {
+        indent(-1);
+        return put('\n');
+    }
+
+protected:
+    char        *target;        // Buffer where we render the object, or nullptr
     size_t      length;         // Available space
-    uint        indent;         // Amount of indent
-    bool        editing  : 1;   // For editing
-    bool        equation : 1;   // As equation
+    size_t      written;        // Number of bytes written
+    uint        tabs;           // Amount of indent
+    bool        eq : 1;         // As equation
 };
-
 
 #endif // RENDERER_H

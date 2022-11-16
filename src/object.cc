@@ -166,30 +166,18 @@ size_t object::render(char *output, size_t length, runtime &rt) const
 // ----------------------------------------------------------------------------
 {
     record(render, "Rendering %+s %p into %p", name(), this, output);
-    renderer r(this, output, length);
+    renderer r(output, length);
     return run(RENDER, rt, &r);
 }
 
 
-cstring object::render(bool editing, runtime &rt) const
+size_t object::render(renderer &r, runtime &rt) const
 // ----------------------------------------------------------------------------
-//   Render the object into the scratchpad
+//   Render the object in a text buffer
 // ----------------------------------------------------------------------------
 {
-    record(render, "Rendering %+s %p into scratchpad", name(), this);
-    size_t available = rt.available();
-    gcmstring buffer = (char *) rt.scratchpad();
-    renderer r(this, buffer, available, editing);
-    size_t actual = run(RENDER, rt, &r);
-    record(render, "Rendered %+s as size %u [%s]",
-           name(), actual, (char *) buffer);
-    if (actual + 1 > available)
-        return nullptr;
-
-    // Allocate in the scratchpad, and null-terminate
-    char *allocated = (char *) rt.allocate(actual + 1);
-    allocated[actual] = 0;
-    return allocated;
+    record(render, "Rendering %+s %p into existing %p", name(), this, &r);
+    return run(RENDER, rt, &r);
 }
 
 
@@ -197,13 +185,14 @@ cstring object::edit(runtime &rt) const
 // ----------------------------------------------------------------------------
 //   Render an object into the scratchpad, then move it into editor
 // ----------------------------------------------------------------------------
-//   Note that it is still null-terminated, but will no longer be as soon as
-//   it is being edited
 {
-    cstring result = render(true, rt);
-    if (result)
+    record(render, "Rendering %+s %p into editor", name(), this);
+    renderer r;
+    size_t size = run(RENDER, rt, &r);
+    record(render, "Rendered %+s as size %u [%s]", name(), size, r.text());
+    if (size)
         rt.edit();
-    return result;
+    return (cstring) rt.editor();
 }
 
 
@@ -216,20 +205,13 @@ text_p object::as_text(bool equation, runtime &rt) const
         return text_p(this);
 
     record(render, "Rendering %+s %p into text", name(), this);
-    size_t available = rt.available();
-    gcmstring buffer = (char *) rt.scratchpad();
-    renderer r(this, buffer, available, true, equation);
-    size_t actual = run(RENDER, rt, &r);
-    record(render, "Rendered %+s as size %u [%s]",
-           name(), actual, (char *) buffer);
-    if (actual + 1 > available)
+    renderer r(equation);
+    size_t size = run(RENDER, rt, &r);
+    record(render, "Rendered %+s as size %u [%s]", name(), size, r.text());
+    if (!size)
         return nullptr;
-
-    // Allocate in the scratchpad, and null-terminate
-    gcutf8 allocated = utf8(rt.allocate(actual));
     id type = equation ? ID_symbol : ID_text;
-    text_g result = rt.make<text>(type, allocated, actual);
-    rt.free(actual);
+    text_g result = rt.make<text>(type, r.text(), size);
     return result;
 }
 
@@ -304,7 +286,7 @@ OBJECT_RENDERER_BODY(object)
 //   Returns number of bytes needed - If larger than end - begin, retry
 {
     rt.invalid_object_error();
-    return snprintf(r.target, r.length, "<Unknown %p>", this);
+    return r.printf("<Unknown %p>", this);
 }
 
 

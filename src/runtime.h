@@ -236,7 +236,7 @@ struct runtime
     // ------------------------------------------------------------------------
     //   This must be called each time a GC could have happened
     {
-        byte *scratch = (byte *) Temporaries + Editing;
+        byte *scratch = (byte *) Temporaries + Editing + Scratch;
         return scratch;
     }
 

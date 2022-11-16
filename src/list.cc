@@ -158,68 +158,41 @@ intptr_t list::object_renderer(renderer &r, runtime &rt,
 // ----------------------------------------------------------------------------
 {
     // Source objects
-    byte_p p    = payload();
-    size_t size = leb128<size_t>(p);
-    byte_p end  = p + size;
-
-    // Destination buffer
-    size_t idx = 0;
-    size_t available = r.length;
-    byte * dst = r.target;
+    byte_p  p      = payload();
+    size_t  size   = leb128<size_t>(p);
+    gcbytes start  = p;
+    size_t  offset = 0;
 
     // Write the header, e.g. "{ "
-    byte buffer[4];
     if (open)
-    {
-        size_t rendered = utf8_encode(open, buffer);
-        for (size_t i = 0; i < rendered; i++)
-        {
-            if (idx < available)
-            dst[idx] = buffer[i];
-            idx++;
-        }
-    }
+        r.put(open);
 
     // Loop on all objects inside the list
-    while (p < end)
+    while (offset < size)
     {
-        // Add space separator
-        dst = r.target;
-        if (idx < available)
-            dst[idx] = ' ';
-        idx++;
+        // Add space separator (except on first object when no separator)
+        if (open)
+            r.put(' ');
+        open = 1;
 
-        object_p obj = (object_p) p;
+        object_p obj = object_p(start + offset);
         size_t   objsize = obj->size();
 
-        // Render the object in what remains
-        size_t remaining = r.length > idx ? r.length - idx : 0;
-        size_t rsize = obj->render((char *) dst + idx, remaining, rt);
-        idx += rsize;
+        // Render the object in what remains (may GC)
+        obj->render(r, rt);
 
         // Loop on next object
-        p += objsize;
+        offset += objsize;
     }
 
-    // Add final space separator
-    dst = r.target;
-    if (idx < available)
-        dst[idx] = ' ';
-    idx++;
-
-    // Add closing separator
+    // Add final space and closing separator
     if (close)
     {
-        size_t rendered = utf8_encode(close, buffer);
-        for (size_t i = 0; i < rendered; i++)
-        {
-            if (idx < available)
-                dst[idx] = buffer[i];
-            idx++;
-        }
+        r.put(' ');
+        r.put(close);
     }
 
-    return idx;
+    return r.size();
 }
 
 
@@ -583,16 +556,17 @@ OBJECT_RENDERER_BODY(equation)
 
     int precedence = 0;
     symbol_g result = render(depth, precedence);
-    if (result)
-    {
-        size_t size = 0;
-        utf8 txt = result->value(&size);
-        if (r.equation)
-            return snprintf(r.target, r.length, "%.*s", (int) size, txt);
-        else
-            return snprintf(r.target, r.length, "'%.*s'", (int) size, txt);
-    }
-    return 0;
+    if (!result)
+        return 0;
+
+    size_t len = 0;
+    utf8 txt = result->value(&len);
+    if (!r.equation())
+        r.put('\'');
+    r.put(txt, len);
+    if (!r.equation())
+        r.put('\'');
+    return r.size();
 }
 
 
@@ -601,8 +575,8 @@ symbol_p equation::symbol() const
 //   If an equation contains a single symbol, return that
 // ----------------------------------------------------------------------------
 {
-    byte  *p       = (byte *) payload();
-    size_t size    = leb128<size_t>(p);
+    byte  *p = (byte *) payload();
+    size_t size = leb128<size_t>(p);
     object_p first = (object_p) p;
     if (first->type() == ID_symbol && first->size() == size)
         return (symbol_p) first;

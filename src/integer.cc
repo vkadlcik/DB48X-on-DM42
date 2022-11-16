@@ -225,8 +225,7 @@ OBJECT_PARSER_BODY(integer)
 }
 
 
-static size_t render_num(char     *dest,
-                         size_t    size,
+static size_t render_num(renderer &r,
                          integer_p num,
                          uint      base,
                          cstring   fmt)
@@ -236,20 +235,12 @@ static size_t render_num(char     *dest,
 //   This is necessary because the arm-none-eabi-gcc printf can't do 64-bit
 //   I'm getting non-sensible output
 {
-    char *p = dest;
-    char *end = p + size;
-
-    // copy the '#' or '-' sign
+    // Copy the '#' or '-' sign
     if (*fmt)
-    {
-        if (p < end)
-            *p = *fmt;
-        p++;
-        fmt++;
-    }
+        r.put(*fmt++);
 
     // Get denominator for the base
-    char *first = p;
+    size_t findex = r.size();
     ularge n = num->value<ularge>();
 
     // Keep dividing by the base until we get 0
@@ -257,13 +248,14 @@ static size_t render_num(char     *dest,
     {
         ularge digit = n % base;
         n /= base;
-        if (p < end)
-            *p = (digit < 10) ? digit + '0' : digit + ('A' - 10);
-        p++;
+        char c = (digit < 10) ? digit + '0' : digit + ('A' - 10);
+        r.put(c);
     } while (n);
 
     // Revert the digits
-    char *last = (p < end ? p : end) - 1;
+    char *dest = (char *) r.text();
+    char *first = dest + findex;
+    char *last = dest + r.size() - 1;
     while (first < last)
     {
         char tmp = *first;
@@ -273,19 +265,11 @@ static size_t render_num(char     *dest,
         first++;
     }
 
-    // add suffix
-    char *tail = p;
+    // Add suffix
     if (*fmt)
-    {
-        if (tail < end)
-            *tail = *fmt;
-        tail++;
-    }
-    if (tail < end)
-        *tail = 0;
+        r.put(*fmt++);
 
-    size_t result = tail - (char *) dest;
-    return result;
+    return r.size();
 }
 
 
@@ -294,7 +278,7 @@ OBJECT_RENDERER_BODY(integer)
 //   Render the integer into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    size_t result = render_num(r.target, r.length, this, 10, "");
+    size_t result = render_num(r, this, 10, "");
     return result;
 }
 
@@ -305,7 +289,7 @@ OBJECT_RENDERER_BODY(neg_integer)
 //   Render the negative integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r.target, r.length, this, 10, "-");
+    return render_num(r, this, 10, "-");
 }
 
 
@@ -315,7 +299,7 @@ OBJECT_RENDERER_BODY(hex_integer)
 //   Render the hexadecimal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r.target, r.length, this, 16, "#h");
+    return render_num(r, this, 16, "#h");
 }
 
 template<>
@@ -324,7 +308,7 @@ OBJECT_RENDERER_BODY(dec_integer)
 //   Render the decimal based number
 // ----------------------------------------------------------------------------
 {
-    return render_num(r.target, r.length, this, 10, "#d");
+    return render_num(r, this, 10, "#d");
 }
 
 template<>
@@ -333,7 +317,7 @@ OBJECT_RENDERER_BODY(oct_integer)
 //   Render the octal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r.target, r.length, this, 8, "#o");
+    return render_num(r, this, 8, "#o");
 }
 
 template<>
@@ -342,5 +326,5 @@ OBJECT_RENDERER_BODY(bin_integer)
 //   Render the binary integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r.target, r.length, this, 2, "#b");
+    return render_num(r, this, 2, "#b");
 }

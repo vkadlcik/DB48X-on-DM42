@@ -252,38 +252,6 @@ object::result loop::object_parser(id       type,
 }
 
 
-static inline void put(byte *dst, size_t &idx, size_t available, char c)
-// ----------------------------------------------------------------------------
-//   Safely put a char in the buffer
-// ----------------------------------------------------------------------------
-{
-    if (idx < available)
-        dst[idx] = c;
-    idx++;
-}
-
-
-static inline void put(byte *dst, size_t &idx, size_t available, cstring src)
-// ----------------------------------------------------------------------------
-//   Safely put info into the buffer
-// ----------------------------------------------------------------------------
-{
-    for (cstring p = src; *p; p++)
-        put(dst, idx, available, *p);
-}
-
-
-static inline void indent(byte *dst, size_t &idx, size_t available, uint indent)
-// ----------------------------------------------------------------------------
-//   Safely put a char in the buffer
-// ----------------------------------------------------------------------------
-{
-    put(dst, idx, available, '\n');
-    for(uint i = 0; i < indent; i++)
-        put(dst, idx, available, '\t');
-}
-
-
 intptr_t loop::object_renderer(renderer &r,
                                runtime  &rt,
                                uint      nseps,
@@ -293,46 +261,36 @@ intptr_t loop::object_renderer(renderer &r,
 // ----------------------------------------------------------------------------
 {
     // Source objects
-    byte_p p    = payload();
+    byte_p p      = payload();
 
     // Isolate condition and body
-    object_p first = object_p(p);
-    object_p second = nseps == 3 ? first->skip() : nullptr;
-
-    // Destination buffer
-    size_t idx = 0;
-    size_t available = r.length;
-    byte * dst = r.target;
-    uint sep = 0;
+    gcobj  first  = object_p(p);
+    gcobj  second = nseps == 3 ? first->skip() : nullptr;
+    uint   sep    = 0;
 
     // Write the header, e.g. "DO", and indent condition
-    indent(dst, idx, available, r.indent);
-    put(dst, idx, available, separators[sep++]);
-    indent(dst, idx, available, ++r.indent);
+    r.put('\n');
+    r.put(separators[sep++]);
+    r.indent();
 
     // Emit the first object (e.g. condition in do-until)
-    size_t remaining = r.length > idx ? r.length - idx : 0;
-    idx += first->render((char *) dst + idx, remaining, rt);
+    first->render(r, rt);
 
     // Emit the second object if there is one
     if (second)
     {
         // Emit separator after condition
-        indent(dst, idx, available, --r.indent);
-        put(dst, idx, available, separators[sep++]);
-        indent(dst, idx, available, ++r.indent);
-
-        remaining = r.length > idx ? r.length - idx : 0;
-        idx += second->render((char *) dst + idx, remaining, rt);
-
+        r.unindent();
+        r.put(separators[sep++]);
+        r.indent();
+        second->render(r, rt);
     }
 
     // Emit closing separator
-    indent(dst, idx, available, --r.indent);
-    put(dst, idx, available, separators[sep++]);
-    indent(dst, idx, available, r.indent);
+    r.unindent();
+    r.put(separators[sep++]);
 
-    return idx;
+    return r.size();
 }
 
 

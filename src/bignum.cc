@@ -275,21 +275,6 @@ OBJECT_PARSER_BODY(bignum)
 }
 
 
-static inline void write(renderer &r, size_t &i, char c)
-// ----------------------------------------------------------------------------
-//   Write a character if there is room
-// ----------------------------------------------------------------------------
-{
-    if (i < r.length)
-    {
-        ((byte *) r.target)[i] = c;
-        if (r.editing)
-            runtime::RT.allocate(1);
-    }
-    i++;
-}
-
-
 static size_t render_num(renderer &r,
                          bignum_p  num,
                          uint      base,
@@ -301,20 +286,14 @@ static size_t render_num(renderer &r,
 //   I'm getting non-sensible output
 {
     runtime &rt = runtime::RT;
-    gcutf8 scratchpad = rt.scratchpad();
-    size_t index = 0;
-    size_t dropped = 0;
-    size_t size = r.length;
 
-    printf("Initial scratchpad %p\n", byte_p(scratchpad));
-
-    // copy the '#' or '-' sign
+    // Copy the '#' or '-' sign
     if (*fmt)
-        write(r, index, *fmt++);
+        r.put(*fmt++);
 
     // Get denominator for the base
     object::id ntype = num->type();
-    size_t findex = index;
+    size_t findex = r.size();
     bignum_g b = rt.make<bignum>(ntype, base);
     bignum_g n = (bignum *) num;
 
@@ -326,22 +305,13 @@ static size_t render_num(renderer &r,
             break;
         uint digit = remainder->value<uint>();
         char c = (digit < 10) ? digit + '0' : digit + ('A' - 10);
-        if (index >= size)
-        {
-            // Overflow: keep higher digits
-            byte *d = (byte *) scratchpad;
-            memmove(d + findex, d + findex + 1, size - findex);
-            index--;
-            dropped++;
-        }
-        printf("   Add %c %p %p\n", c, byte_p(scratchpad), byte_p(rt.scratchpad()));
-        write(r, index, c);
+        r.put(c);
     } while (!n->zero());
 
     // Revert the digits
-    char *dest = r.target;
+    char *dest = (char *) r.text();
     char *first = dest + findex;
-    char *last = dest + std::min(index, size) - 1;
+    char *last = dest + r.size() - 1;
     while (first < last)
     {
         char tmp = *first;
@@ -353,16 +323,10 @@ static size_t render_num(renderer &r,
 
     // Add suffix if there is one
     if (*fmt)
-        write(r, index, *fmt++);
-
-    if (r.editing)
-    {
-        size_t allocated = rt.scratchpad() - utf8(scratchpad);
-        rt.free(allocated);
-    }
+        r.put(*fmt++);
 
     // Return the number of items we need
-    return index + dropped;
+    return r.size();
 }
 
 

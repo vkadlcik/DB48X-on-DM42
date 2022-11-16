@@ -92,6 +92,7 @@ CXX_SOURCES +=				\
 	src/input.cc			\
 	src/stack.cc			\
 	src/util.cc			\
+	src/renderer.cc			\
 	src/settings.cc			\
 	src/runtime.cc			\
 	src/object.cc			\

@@ -140,34 +140,29 @@ OBJECT_RENDERER_BODY(command)
     size_t result = 0;
     if (ty < NUM_IDS)
     {
-        char              *target = r.target;
-        size_t             len    = r.length;
-        settings::commands fmt    = Settings.command_fmt;
-        result = snprintf(target, len, "%s",
-                          fmt == settings::commands::LONG_FORM
-                          ? fancy_name[ty]
-                          : id_name[ty]);
         switch(Settings.command_fmt)
         {
         case settings::commands::LOWERCASE:
-            for (char *p = r.target; *p; p++)
-                *p = tolower(*p);
+            for (cstring p = id_name[ty]; *p; p++)
+                r.put(char(tolower(*p)));
             break;
 
         case settings::commands::UPPERCASE:
-            for (char *p = r.target; *p; p++)
-                *p = toupper(*p);
+            for (cstring p = id_name[ty]; *p; p++)
+                r.put(char(toupper(*p)));
             break;
 
         case settings::commands::CAPITALIZED:
-            *target = toupper(*target);
+            for (cstring p = id_name[ty], p0 = p; *p; p++)
+                r.put(p == p0 ? char(toupper(*p)) : *p);
             break;
 
-        default:
-            break;
+        case settings::commands::LONG_FORM:
+            for (cstring p = fancy_name[ty]; *p; p++)
+                r.put(*p);
         }
     }
-    record(command, "Render %u as [%s]", ty, (cstring) r.target);
+    record(command, "Render %u as [%s]", ty, (cstring) r.text());
     return result;
 }
 

@@ -37,6 +37,7 @@ SOURCES +=                                      \
         ../src/dm42/sysmenu.cc                  \
         ../src/dm42/main.cc                     \
 	../src/util.cc                          \
+	../src/renderer.cc                      \
 	../src/input.cc                         \
 	../src/stack.cc                         \
 	../src/settings.cc                      \

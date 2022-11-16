@@ -553,11 +553,6 @@ size_t runtime::edit()
     Editing += Scratch;
     Scratch = 0;
 
-    // Remove trailing 0 if there was one
-    byte *ed = editor();
-    if (Editing && ed[Editing] == 0)
-        Editing--;
-
     record(editor, "Editor size now %u", Editing);
     return Editing;
 }

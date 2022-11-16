@@ -437,8 +437,8 @@ OBJECT_RENDERER_BODY(decimal64)
     bid64_to_string(buffer, &num.value);
     record(decimal64, "Render raw output [%s]", buffer);
 
-    int digits = r.editing ? BID64_MAXDIGITS : Settings.displayed;
-    decimal_format(buffer, min(sizeof(buffer), r.length), digits);
+    int digits = r.editing() ? BID64_MAXDIGITS : Settings.displayed;
+    decimal_format(buffer, sizeof(buffer), digits);
     record(decimal64, "Render formatted output [%s]", buffer);
 
     // Adjust special characters
@@ -463,7 +463,7 @@ OBJECT_RENDERER_BODY(decimal64)
     }
 
     // And return it to the caller
-    return snprintf(r.target, r.length, "%s%s%s", buffer, expbuf, ep);
+    return r.printf("%s%s%s", buffer, expbuf, ep);
 }
 
 

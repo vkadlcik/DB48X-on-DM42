@@ -86,10 +86,19 @@ struct bignum : text
     static size_t bytesize(integer_p i)
     {
         byte_p p = i->payload();
-        if (!*p)                                // Special case 0, size 0
-            return 0;
-        size_t size = leb128size(p);
-        return ((size + 1) * 7) / 8;
+        size_t bitsize = 0;
+        while (*p & 0x80)
+        {
+            bitsize += 7;
+            p++;
+        }
+        byte c = *p;
+        while(c)
+        {
+            bitsize++;
+            c >>= 1;
+        }
+        return (bitsize + 7) / 8;
     }
 
     // REVISIT: This is implicitly little-endian dependent

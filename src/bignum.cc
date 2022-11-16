@@ -59,7 +59,7 @@ bignum::bignum(integer_p value, id type)
         {
             byte b = *q++;
             more = b & 0x80;
-            c = (c << 7) | (b & 0x7F);
+            c |= (b & 0x7F) << bits;
             bits += 7;
             if (bits >= 8)
             {

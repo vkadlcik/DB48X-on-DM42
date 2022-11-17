@@ -79,6 +79,8 @@ struct bignum : text
             sz++;
             if (sizeof(x) > 1)
                 x >>= 8;
+            else
+                break;
         }
         return sz;
     }

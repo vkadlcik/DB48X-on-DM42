@@ -29,6 +29,7 @@
 
 #include "integer.h"
 
+#include "bignum.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -72,9 +73,8 @@ OBJECT_PARSER_BODY(integer)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an integer
 // ----------------------------------------------------------------------------
-//    For simplicity, this deals with all kinds of integers
+//    For simplicity, this deals with all kinds of integers, including bignum
 {
-    int         sign       = 1;
     int         base       = 10;
     id          type       = ID_integer;
     const byte  NODIGIT    = (byte) -1;
@@ -101,13 +101,11 @@ OBJECT_PARSER_BODY(integer)
 
     if (*s == '-')
     {
-        sign = -1;
         type = ID_neg_integer;
         s++;
     }
     else if (*s == '+')
     {
-        sign = 1;
         s++;
     }
     else if (*s == '#')
@@ -180,10 +178,14 @@ OBJECT_PARSER_BODY(integer)
 
     // Loop on digits
     ularge result = 0;
-    uint shift = sign < 0 ? 1 : 0;
+    bool big = false;
     byte v;
-    while ((!endp || s < endp) && (v = value[*s++]) != NODIGIT)
+    while (!endp || s < endp)
     {
+        v = value[*s++];
+        if (v == NODIGIT)
+            break;
+
         if (v >= base)
         {
             rt.based_digit_error().source(s-1);
@@ -194,14 +196,60 @@ OBJECT_PARSER_BODY(integer)
                s[-1], v, result, next);
 
         // If the value does not fit in an integer, defer to bignum / real
-        if ((next << shift) <  result)
-        {
-            rt.based_range_error().source(s);
-            return WARN;
-        }
+        big = next / base != result;
+        if (big)
+            break;
 
         result = next;
     }
+
+    // Check if we need bignum
+    bignum_g bresult = nullptr;
+    if (big)
+    {
+        // We may cause garbage collection in bignum arithmetic
+        gcbytes gs = s;
+        gcbytes ge = endp;
+        size_t  count = endp - s;
+
+        switch(type)
+        {
+        case ID_integer:        type = ID_bignum;       break;
+        case ID_neg_integer:    type = ID_neg_bignum;   break;
+        case ID_hex_integer:    type = ID_hex_bignum;   break;
+        case ID_dec_integer:    type = ID_dec_bignum;   break;
+        case ID_oct_integer:    type = ID_oct_bignum;   break;
+        case ID_bin_integer:    type = ID_bin_bignum;   break;
+        default:                                        break;
+        }
+
+        // Integrate last digit that overflowed above
+        bignum_g bbase = rt.make<bignum>(ID_bignum, base);
+        bignum_g bvalue = rt.make<bignum>(ID_bignum, v);
+        bresult = rt.make<bignum>(type, result);
+        bresult = bvalue + bbase * bresult; // Order matters for types
+
+        while (count--)
+        {
+            v = value[*gs];
+            ++gs;
+            if (v == NODIGIT)
+                break;
+
+            if (v >= base)
+            {
+                rt.based_digit_error().source(s-1);
+                return ERROR;
+            }
+            record(integer, "Digit %c value %u in bignum", s[-1], v);
+            bvalue = rt.make<bignum>(ID_bignum, v);
+            bresult = bvalue + bbase * bresult;
+        }
+
+        s = gs;
+        endp = ge;
+    }
+
 
     // Skip base if one was given, else point at char that got us out
     if (endp && s == endp)
@@ -209,17 +257,15 @@ OBJECT_PARSER_BODY(integer)
     else
         s--;
 
-
     // Check if we finish with something indicative of a real number
-    if (*s == Settings.decimalDot || utf8_codepoint(s) == Settings.exponentChar)
-        return SKIP;
+    if (!endp)
+        if (*s == Settings.decimalDot ||
+            utf8_codepoint(s) == Settings.exponentChar)
+            return SKIP;
 
     // Record output
     p.end = (utf8) s - (utf8) p.source;
-    if (sign < 0)
-        p.out = rt.make<neg_integer>(type, result);
-    else
-        p.out = rt.make<integer>(type, result);
+    p.out = big ? object_p(bresult) : rt.make<integer>(type, result);
 
     return OK;
 }

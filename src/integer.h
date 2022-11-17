@@ -125,6 +125,8 @@ struct special_integer : integer
     {
         if (op == RENDER)
             return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+        if (op == PARSE)
+            return SKIP;        // We do all integer types in integer handler
         return DELEGATE(integer);
     }
     OBJECT_RENDERER(special_integer);

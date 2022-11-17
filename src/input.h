@@ -106,9 +106,9 @@ struct input
     bool        draw_help();
     void        draw_command();
 
-    int         draw_menus(uint time, uint &period);
-    int         draw_battery(uint time, uint &period);
-    int         draw_cursor(uint time, uint &period);
+    int         draw_menus(uint time, uint &period, bool force);
+    int         draw_battery(uint time, uint &period, bool force);
+    int         draw_cursor(uint time, uint &period, bool force);
 
     int         stack_screen_bottom()   { return stack; }
     int         menu_screen_bottom()    { return menuHeight; }

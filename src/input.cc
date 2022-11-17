@@ -331,8 +331,6 @@ bool input::key(int key, bool repeating)
         xshift = false;
     }
 
-    if (key && result)
-        blink = true; // Show cursor if things changed
     if (!skey)
         command = nullptr;
 
@@ -588,7 +586,7 @@ uint input::menuPlanes()
 }
 
 
-int input::draw_menus(uint time, uint &period)
+int input::draw_menus(uint time, uint &period, bool force)
 // ----------------------------------------------------------------------------
 //   Draw the softkey menus
 // ----------------------------------------------------------------------------
@@ -599,7 +597,7 @@ int input::draw_menus(uint time, uint &period)
     const uint  refresh = 200;
 
     bool redraw = dirtyMenu || shplane != lastp || time - lastt > refresh;
-    if (!redraw)
+    if (!force && !redraw)
         return -1;
 
     lastt = time;
@@ -759,14 +757,14 @@ void input::draw_annunciators()
 }
 
 
-int input::draw_battery(uint time, uint &period)
+int input::draw_battery(uint time, uint &period, bool force)
 // ----------------------------------------------------------------------------
 //    Draw the battery information
 // ----------------------------------------------------------------------------
 {
     static uint last = 0;
     if (period > 2000)
-        period       = 2000;
+        period = 2000;
 
     const uint ann_height = 12;
     coord      ann_y      = (HeaderFont->height() - ann_height) / 2;
@@ -782,7 +780,10 @@ int input::draw_battery(uint time, uint &period)
         low  = get_lowbat_state();
         usb  = usb_powered();
         last = time;
+        force = true;
     }
+    if (!force)
+        return -1;
 
     char buffer[64];
     snprintf(buffer, sizeof(buffer), "%d.%03dV", vdd / 1000, vdd % 1000);
@@ -1007,7 +1008,7 @@ void input::draw_editor()
 }
 
 
-int input::draw_cursor(uint time, uint &period)
+int input::draw_cursor(uint time, uint &period, bool force)
 // ----------------------------------------------------------------------------
 //   Draw the cursor at the location
 // ----------------------------------------------------------------------------
@@ -1019,10 +1020,12 @@ int input::draw_cursor(uint time, uint &period)
 
     static uint lastT = 0;
     if (period > 500)
-        period        = 500;
-    if (time - lastT < 500)
+        period = 500;
+    if (!force && time - lastT < 500)
         return -1;
     lastT = time;
+    if (force)
+        blink = true;
 
     // Select editor font
     utf8   ed     = RT.editor();

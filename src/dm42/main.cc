@@ -72,12 +72,12 @@ static void redraw_lcd()
 
     // Draw the various components handled by input
     Input.draw_annunciators();
-    Input.draw_battery(now - period, period);
-    Input.draw_menus(now - period, period);
+    Input.draw_battery(now, period, true);
+    Input.draw_menus(now, period, true);
     if (!Input.draw_help())
     {
         Input.draw_editor();
-        Input.draw_cursor(now - period, period);
+        Input.draw_cursor(now, period, true);
         Stack.draw_stack();
         Input.draw_command();
     }
@@ -100,13 +100,13 @@ static void redraw_periodics()
     uint period = 60000;         // Default refresh is one minute
     uint now = sys_current_ms();
 
-    int cy = Input.draw_cursor(now, period);
+    int cy = Input.draw_cursor(now, period, false);
     if (cy >= 0)
         lcd_refresh_lines(cy, EditorFont->height());
-    cy = Input.draw_battery(now, period);
+    cy = Input.draw_battery(now, period, false);
     if (cy >= 0)
         lcd_refresh_lines(cy, HeaderFont->height());
-    cy = Input.draw_menus(now, period);
+    cy = Input.draw_menus(now, period, false);
     if (cy >= 0)
         lcd_refresh_lines(cy, LCD_H - cy);
 

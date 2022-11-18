@@ -147,11 +147,18 @@ static size_t render_num(renderer &r,
     do
     {
         bignum_g remainder = nullptr;
-        if (!bignum::quorem(n, b, bignum::ID_bignum, &n, &remainder))
+        bignum_g quotient = nullptr;
+        if (!bignum::quorem(n, b, bignum::ID_bignum, &quotient, &remainder))
             break;
         uint digit = remainder->value<uint>();
+        if (digit > base)
+        {
+            printf("Ooops: digit=%u, base=%u\n", digit, base);
+            bignum::quorem(n, b, bignum::ID_bignum, &quotient, &remainder);
+        }
         char c = (digit < 10) ? digit + '0' : digit + ('A' - 10);
         r.put(c);
+        n = quotient;
     } while (!n->zero());
 
     // Revert the digits
@@ -451,16 +458,19 @@ bignum_g bignum::multiply(bignum_g yg, bignum_g xg, id ty)
     runtime &rt = runtime::RT;
     size_t xs = 0;
     size_t ys = 0;
-    byte_p x = xg->value(&xs);
+    byte_p x = xg->value(&xs);                // Read sizes and pointers
     byte_p y = yg->value(&ys);
     id xt = xg->type();
     size_t wbits = wordsize(xt);
     size_t wbytes = (wbits + 7) / 8;
-    size_t needed = wbits ? std::min(xs + ys, wbytes) : xs + ys;
-    size_t available = rt.available(needed);    // May GC here
-    if (available < needed)
-        return nullptr;                         // Out of memory
-    byte *buffer = rt.scratchpad();             // This must be below GC above
+    size_t needed = xs + ys;
+    if (wbits && needed > wbytes)
+        needed = wbytes;
+    byte *buffer = rt.allocate(needed);       // May GC here
+    if (!buffer)
+        return nullptr;                       // Out of memory
+    x = xg->value(&xs);                       // Re-read after potential GC
+    y = yg->value(&ys);
 
     // Zero-initialie the result
     for (size_t i = 0; i < needed; i++)
@@ -476,13 +486,13 @@ bignum_g bignum::multiply(bignum_g yg, bignum_g xg, id ty)
             {
                 uint c = 0;
                 size_t yi;
-                for (yi = 0; yi < ys; yi++)
+                for (yi = 0; yi < ys && xi + yi < needed; yi++)
                 {
                     c += buffer[xi + yi] + (y[yi] << bit);
                     buffer[xi + yi] = byte(c);
                     c >>= 8;
                 }
-                while (c)
+                while (c && xi + yi < needed)
                 {
                     c += buffer[xi + yi];
                     buffer[xi + yi] = byte(c);
@@ -497,9 +507,9 @@ bignum_g bignum::multiply(bignum_g yg, bignum_g xg, id ty)
     size_t sz = xs + ys;
     while (sz > 0 && buffer[sz-1] == 0)
         sz--;
-    gcbytes bytes = rt.allocate(sz);
-    bignum_g result = rt.make<bignum>(ty, bytes, sz);
-    rt.free(sz);
+    gcbytes buf = buffer;
+    bignum_g result = rt.make<bignum>(ty, buf, sz);
+    rt.free(needed);
     return result;
 }
 
@@ -534,18 +544,19 @@ bool bignum::quorem(bignum_g yg, bignum_g xg, id ty, bignum_g *q, bignum_g *r)
     // size of x, therefore, we need at most xs + ys for both
     size_t xs = 0;
     size_t ys = 0;
-    byte_p x = xg->value(&xs);
+    byte_p x = xg->value(&xs);                // Read those after potential GC
     byte_p y = yg->value(&ys);
     id xt = xg->type();
     size_t wbits = wordsize(xt);
     size_t wbytes = (wbits + 7) / 8;
-    size_t needed = wbits ? std::min(ys + xs, wbytes) : ys + xs;
-    size_t available = rt.available(needed);    // May GC here
-    if (available < needed)
+    size_t needed = ys + xs;
+    byte *buffer = rt.allocate(needed);       // May GC here
+    if (!buffer)
         return false;                         // Out of memory
-    byte *buffer = rt.scratchpad();             // This must be below GC above
+    x = xg->value(&xs);                       // Re-read after potential GC
+    y = yg->value(&ys);
 
-    // Allocate size for the quotient (smaller than y), initialize to 0
+    // Pointers ot quotient and remainder, initializer to 0
     byte *quotient = buffer;
     byte *remainder = quotient + ys;
     size_t rs = 0;
@@ -603,15 +614,18 @@ bool bignum::quorem(bignum_g yg, bignum_g xg, id ty, bignum_g *q, bignum_g *r)
     // Generate results
     gcutf8 qg = quotient;
     gcutf8 rg = remainder;
-    rt.allocate(needed);
     bool ok = true;
     if (q)
     {
+        if (wbits && qs > wbytes)
+            qs = wbytes;
         *q = rt.make<bignum>(ty, qg, qs);
         ok = bignum_p(*q) != nullptr;
     }
     if (r && ok)
     {
+        if (wbits && rs > wbytes)
+            rs = wbytes;
         *r = rt.make<bignum>(ty, rg, rs);
         ok = bignum_p(*r) != nullptr;
     }

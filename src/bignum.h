@@ -296,19 +296,17 @@ bignum_g bignum::binary(Op op, bignum_g xg, bignum_g yg, id ty)
     size_t wbytes = (wbits + 7) / 8;
     uint16_t c = 0;
     size_t needed = std::max(xs, ys);
-    if (wbits)
-        needed = std::min(needed, wbytes);
-    size_t available = rt.available(needed);    // May GC here
-    if (available < needed)
+    if (wbits && needed > wbytes)
+        needed = wbytes;
+    byte *buffer = rt.allocate(needed);         // May GC here
+    if (!buffer)
         return nullptr;                         // Out of memory
-    if (wbits && available > wbytes)
-        available = wbytes;
-
-    byte *buffer = rt.scratchpad();             // This must be below GC above
+    x = xg->value(&xs);                       // Re-read after potential GC
+    y = yg->value(&ys);
     size_t i = 0;
 
     // Process the part that is common to X and Y
-    size_t max = std::min(std::min(xs, ys), available);
+    size_t max = std::min(std::min(xs, ys), needed);
     for (i = 0; i < max; i++)
     {
         byte xd = x[i];
@@ -319,7 +317,7 @@ bignum_g bignum::binary(Op op, bignum_g xg, bignum_g yg, id ty)
     }
 
     // Process X-only part if there is one
-    for (max = std::min(xs, available); i < max; i++)
+    for (max = std::min(xs, needed); i < max; i++)
     {
         byte xd = x[i];
         c = op(xd, 0, c);
@@ -328,7 +326,7 @@ bignum_g bignum::binary(Op op, bignum_g xg, bignum_g yg, id ty)
     }
 
     // Process Y-only part if there is one
-    for (max = std::min(ys, available); i < max; i++)
+    for (max = std::min(ys, needed); i < max; i++)
     {
         byte yd = y[i];
         c = op(0, yd, c);
@@ -337,7 +335,7 @@ bignum_g bignum::binary(Op op, bignum_g xg, bignum_g yg, id ty)
     }
 
     // Process extension to wordsize (when op(0, 0, 0) can be non-zero)
-    for (max = (extend && wbits) ? available : 0; i < max; i++)
+    for (max = (extend && wbits) ? wbytes : 0; i < max; i++)
     {
         c = op(0, 0, c);
         buffer[i] = byte(c);
@@ -345,7 +343,7 @@ bignum_g bignum::binary(Op op, bignum_g xg, bignum_g yg, id ty)
     }
 
     // Write last carry if applicable
-    if (c && i < available)
+    if (c && i < needed)
         buffer[i++] = c;
 
     // Drop highest zeros (this can reach i == 0 for value zero)
@@ -357,9 +355,9 @@ bignum_g bignum::binary(Op op, bignum_g xg, bignum_g yg, id ty)
         buffer[i-1] &= byte(0xFFu >> (8 - wbits % 8));
 
     // Create the resulting bignum
-    gcbytes bytes = rt.allocate(i);
-    bignum_g result = rt.make<bignum>(ty, bytes, i);
-    rt.free(i);
+    gcbytes buf = buffer;
+    bignum_g result = rt.make<bignum>(ty, buf, i);
+    rt.free(needed);
     return result;
 }
 
@@ -378,18 +376,17 @@ bignum_g bignum::unary(Op op, bignum_g xg)
     size_t wbits = wordsize(xt);
     size_t wbytes = (wbits + 7) / 8;
     uint16_t c = 0;
-    size_t needed = wbits ? std::min(xs, wbytes) : xs;
-    size_t available = rt.available(needed);    // May GC here
-    if (available < needed)
+    size_t needed = xs;
+    if (wbits && needed > wbytes)
+        needed = wbytes;
+    byte *buffer = rt.allocate(needed);         // May GC here
+    if (!buffer)
         return nullptr;                         // Out of memory
-    if (wbits && available > wbytes)
-        available = wbytes;
-
-    byte *buffer = rt.scratchpad();             // This must be below GC above
     size_t i = 0;
+    x = xg->value(&xs);                         // Re-read after potential GC
 
     // Process the part in X
-    size_t max = std::min(xs, available);
+    size_t max = std::min(xs, needed);
     for (i = 0; i < max; i++)
     {
         byte xd = x[i];
@@ -399,7 +396,7 @@ bignum_g bignum::unary(Op op, bignum_g xg)
     }
 
     // Process extension to wordsize (when op(0, 0, 0) can be non-zero)
-    for (max = (extend && wbits) ? available : 0; i < max; i++)
+    for (max = (extend && wbits) ? wbytes : 0; i < max; i++)
     {
         c = op(0, c);
         buffer[i] = byte(c);
@@ -407,7 +404,7 @@ bignum_g bignum::unary(Op op, bignum_g xg)
     }
 
     // Write last carry if applicable
-    if (c && i < available)
+    if (c && i < needed)
         buffer[i++] = c;
 
     // Drop highest zeros (this can reach i == 0 for value 0)
@@ -419,9 +416,9 @@ bignum_g bignum::unary(Op op, bignum_g xg)
         buffer[i-1] &= byte(0xFFu >> (8 - wbits % 8));
 
     // Create the resulting bignum
-    gcbytes bytes = rt.allocate(i);
-    bignum_g result = rt.make<bignum>(xt, bytes, i);
-    rt.free(i);
+    gcbytes buf = buffer;
+    bignum_g result = rt.make<bignum>(xt, buf, i);
+    rt.free(needed);
     return result;
 }
 

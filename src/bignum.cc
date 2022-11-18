@@ -247,7 +247,7 @@ OBJECT_RENDERER_BODY(bin_bignum)
 //
 // ============================================================================
 
-int bignum::compare(bignum_g xg, bignum_g yg)
+int bignum::compare(bignum_g xg, bignum_g yg, bool magnitude)
 // ----------------------------------------------------------------------------
 //   Compare two bignum values
 // ----------------------------------------------------------------------------
@@ -256,10 +256,13 @@ int bignum::compare(bignum_g xg, bignum_g yg)
     id yt = yg->type();
 
     // Negative bignums are always smaller than positive bignums
-    if (xt == ID_neg_bignum && yt != ID_neg_bignum)
-        return -1;
-    else if (yt == ID_neg_bignum && xt != ID_neg_bignum)
-        return 1;
+    if (!magnitude)
+    {
+        if (xt == ID_neg_bignum && yt != ID_neg_bignum)
+            return -1;
+        else if (yt == ID_neg_bignum && xt != ID_neg_bignum)
+            return 1;
+    }
 
     size_t xs = 0;
     size_t ys = 0;
@@ -276,7 +279,7 @@ int bignum::compare(bignum_g xg, bignum_g yg)
     }
 
     // If xt is ID_neg_bignum, then yt also must be, see test at top of function
-    if (xt == ID_neg_bignum)
+    if (!magnitude && xt == ID_neg_bignum)
         result = -result;
     return result;
 }
@@ -290,13 +293,13 @@ int bignum::compare(bignum_g xg, bignum_g yg)
 // ============================================================================
 
 // Operations with carry
-static inline byte add_op(byte x, byte y, byte c)       { return x + y + c; }
-static inline byte sub_op(byte x, byte y, byte c)       { return x - y - c; }
-static inline byte neg_op(byte x, byte c)               { return -x - c; }
-static inline byte not_op(byte x, byte  )               { return ~x; }
-static inline byte and_op(byte x, byte y, byte  )       { return x & y; }
-static inline byte or_op (byte x, byte y, byte  )       { return x | y; }
-static inline byte xor_op(byte x, byte y, byte  )       { return x ^ y; }
+static inline uint16_t add_op(byte x, byte y, byte c) { return x + y + (c != 0);}
+static inline uint16_t sub_op(byte x, byte y, byte c) { return x - y - (c != 0);}
+static inline uint16_t neg_op(byte x, byte c)         { return -x - (c != 0); }
+static inline byte     not_op(byte x, byte  )         { return ~x; }
+static inline byte     and_op(byte x, byte y, byte  ) { return x & y; }
+static inline byte     or_op (byte x, byte y, byte  ) { return x | y; }
+static inline byte     xor_op(byte x, byte y, byte  ) { return x ^ y; }
 
 
 inline object::id bignum::opposite_type(id type)
@@ -306,8 +309,8 @@ inline object::id bignum::opposite_type(id type)
 {
     switch(type)
     {
-    case ID_bignum:            return ID_neg_bignum;
-    case ID_neg_bignum:        return ID_bignum;
+    case ID_bignum:             return ID_neg_bignum;
+    case ID_neg_bignum:         return ID_bignum;
     default:                    return type;
     }
 }
@@ -384,7 +387,7 @@ bignum_g bignum::add_sub(bignum_g yg, bignum_g xg, bool issub)
     bool samesgn = (xt == ID_neg_bignum) == (yt == ID_neg_bignum);
     if (samesgn == issub)
     {
-        int cmp = compare(yg, xg);
+        int cmp = compare(yg, xg, true);
         if (cmp >= 0)
         {
             // abs Y > abs X: result has opposite type of X

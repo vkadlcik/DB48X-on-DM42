@@ -156,7 +156,7 @@ struct bignum : text
 
 public:
     // Arithmetic internal routines
-    static int compare(bignum_g x, bignum_g y);
+    static int compare(bignum_g x, bignum_g y, bool magnitude = false);
 
     static size_t wordsize(id type);
     size_t wordsize() const             { return wordsize(type()); }
@@ -295,7 +295,7 @@ bignum_g bignum::binary(Op op, bignum_g xg, bignum_g yg, id ty)
     size_t wbits = wordsize(xt);
     size_t wbytes = (wbits + 7) / 8;
     uint16_t c = 0;
-    size_t needed = std::max(xs, ys);
+    size_t needed = std::max(xs, ys) + 1;
     if (wbits && needed > wbytes)
         needed = wbytes;
     byte *buffer = rt.allocate(needed);         // May GC here
@@ -376,7 +376,7 @@ bignum_g bignum::unary(Op op, bignum_g xg)
     size_t wbits = wordsize(xt);
     size_t wbytes = (wbits + 7) / 8;
     uint16_t c = 0;
-    size_t needed = xs;
+    size_t needed = xs + 1;
     if (wbits && needed > wbytes)
         needed = wbytes;
     byte *buffer = rt.allocate(needed);         // May GC here

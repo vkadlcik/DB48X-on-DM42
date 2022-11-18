@@ -312,8 +312,15 @@ inline bool div::bignum_ok(bignum_g &x, bignum_g &y)
         RT.zero_divide_error();
         return false;
     }
-    x = y / x;
-    return byte_p(x) != nullptr;
+    bignum_g q = nullptr;
+    bignum_g r = nullptr;
+    id type = bignum::product_type(y->type(), x->type());
+    bool result = bignum::quorem(y, x, type, &q, &r);
+    if (result)
+        result = bignum_p(r) && r->zero(); // Integer result if remainder is 0
+    if (result)
+        x = q;
+    return result;
 }
 
 

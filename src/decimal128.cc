@@ -65,7 +65,7 @@ decimal128::decimal128(bignum_p num, id type)
     byte_p n = num->value(&size);
     for (uint i = 0; i < size; i++)
     {
-        unsigned digits = n[i];
+        unsigned digits = n[size - i - 1];
         bid128 step;
         bid128_mul(&step.value, &result.value, &mul.value);
         bid128 add;

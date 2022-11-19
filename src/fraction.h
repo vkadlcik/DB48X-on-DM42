@@ -35,6 +35,9 @@
 //     + ID_big_fraction:       Positive ratio of two bignum-encoded numbers
 //     + ID_neg_big_fraction:   Negative ratio of two bignum-encoded numbers
 //   - Following the ID are the two payloads for the matching integer type
+//
+//   A lot of the code in fraction is carefully written to work both with
+//   integer (LEB128) and bignum (sized + bytes) payloads
 
 #include "bignum.h"
 #include "integer.h"
@@ -55,8 +58,13 @@ struct fraction : object
 //   A fraction is a ratio of two integers
 // ----------------------------------------------------------------------------
 {
-    fraction(integer_g n, integer_g d, id type): object(type)
+    fraction(integer_g n, integer_g d, id type)
+    // ------------------------------------------------------------------------
+    //   Constructs a fraction from two integers or two bignums
+    // ------------------------------------------------------------------------
+        : object(type)
     {
+        // This is written so that it works with integer_g and bignum_g
         byte *p = payload();
         byte_p np = n->payload();
         byte_p dp = d->payload();
@@ -78,7 +86,7 @@ struct fraction : object
 
     size_t size(byte_p payload) const
     // ------------------------------------------------------------------------
-    //   Return the size of a fraction
+    //   Return the size of an LEB128-encoded fraction
     // ------------------------------------------------------------------------
     {
         // LEB-128 encoded numerator and denominator
@@ -89,28 +97,10 @@ struct fraction : object
         return payload - byte_p(this);
     }
 
-    integer_g numerator() const
-    // ------------------------------------------------------------------------
-    //   Return the numerator as an integer
-    // ------------------------------------------------------------------------
-    {
-        id ty = type() == ID_fraction ? ID_integer : ID_neg_integer;
-        byte_p p = payload();
-        size_t ns = leb128size(p);
-        return RT.make<integer>(ty, p, ns);
-    }
-
-    integer_g denominator() const
-    // ------------------------------------------------------------------------
-    //   Return the denominator as an integer (always positive)
-    // ------------------------------------------------------------------------
-    {
-        byte_p p = payload();
-        size_t ns = leb128size(p);
-        p += ns;
-        size_t ds = leb128size(p);
-        return RT.make<integer>(ID_integer, p, ds);
-    }
+    bignum_g numerator() const;
+    bignum_g denominator() const;
+    integer_g numerator(int) const;
+    integer_g denominator(int) const;
 
     static fraction_g make(integer_g n, integer_g d);
     OBJECT_HANDLER(fraction);
@@ -134,22 +124,18 @@ struct neg_fraction : fraction
     OBJECT_RENDERER(neg_fraction);
 };
 
-
-struct big_fraction : object
+struct big_fraction : fraction
 // ----------------------------------------------------------------------------
 //   A fraction where numerator and denominator are bignum
 // ----------------------------------------------------------------------------
 {
-    big_fraction(bignum_g n, bignum_g d, id type): object(type)
-    {
-        byte *p = payload();
-        byte_p np = n->payload();
-        byte_p dp = d->payload();
-        size_t ns = n->skip() - object_p(np);
-        size_t ds = d->skip() - object_p(dp);
-        memcpy(p, np, ns);
-        memcpy(p + ns, dp, ds);
-    }
+    big_fraction(bignum_g n, bignum_g d, id type):
+    // ------------------------------------------------------------------------
+    //   Constructor for a big fraction
+    // ------------------------------------------------------------------------
+        // We play a rather ugly wrong-cast game here...
+        fraction((integer *) bignum_p(n), (integer *) bignum_p(d), type)
+    {}
 
     static size_t required_memory(id i, bignum_g n, bignum_g d)
     // ------------------------------------------------------------------------
@@ -161,7 +147,7 @@ struct big_fraction : object
             + d->object::size() - leb128size(d->type());
     }
 
-    static big_fraction_g make(bignum_g n, bignum_g d);
+    static fraction_g make(bignum_g n, bignum_g d);
 
     size_t size(byte_p payload) const
     // ------------------------------------------------------------------------
@@ -176,28 +162,8 @@ struct big_fraction : object
         return payload - byte_p(this);
     }
 
-    bignum_g numerator() const
-    // ------------------------------------------------------------------------
-    //   Return the numerator as a bignum
-    // ------------------------------------------------------------------------
-    {
-        id ty = type() == ID_big_fraction ? ID_bignum : ID_neg_bignum;
-        byte_p p = payload();
-        size_t ns = leb128<size_t>(p);
-        return RT.make<bignum>(ty, p, ns);
-    }
-
-    bignum_g denominator() const
-    // ------------------------------------------------------------------------
-    //   Return the denominator as bignum (always positive)
-    // ------------------------------------------------------------------------
-    {
-        byte_p p = payload();
-        size_t ns = leb128<size_t>(p);
-        p += ns;
-        size_t ds = leb128<size_t>(p);
-        return RT.make<bignum>(ID_bignum, p, ds);
-    }
+    bignum_g numerator() const;
+    bignum_g denominator() const;
 
     OBJECT_HANDLER(big_fraction);
     OBJECT_RENDERER(big_fraction);
@@ -219,5 +185,11 @@ struct neg_big_fraction : big_fraction
     }
     OBJECT_RENDERER(neg_big_fraction);
 };
+
+fraction_g operator+(fraction_g x, fraction_g y);
+fraction_g operator-(fraction_g x, fraction_g y);
+fraction_g operator*(fraction_g x, fraction_g y);
+fraction_g operator/(fraction_g x, fraction_g y);
+
 
 #endif // FRACTION_H

@@ -382,8 +382,8 @@ OBJECT_RENDERER_BODY(fraction)
 //   Render the fraction as 'num/den'
 // ----------------------------------------------------------------------------
 {
-    integer_g n = numerator();
-    integer_g d = denominator();
+    integer_g n = numerator(1);
+    integer_g d = denominator(1);
     size_t sz = render_num(r, n, 10, "");
     sz += r.put('/');
     sz += render_num(r, d, 10, "");
@@ -396,8 +396,8 @@ OBJECT_RENDERER_BODY(neg_fraction)
 //   Render the fraction as '-num/den'
 // ----------------------------------------------------------------------------
 {
-    integer_g n = numerator();
-    integer_g d = denominator();
+    integer_g n = numerator(1);
+    integer_g d = denominator(1);
     size_t sz = render_num(r, n, 10, "-/");
     sz += render_num(r, d, 10, "");
     return sz;

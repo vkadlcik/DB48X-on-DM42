@@ -239,7 +239,7 @@ object::id algebraic::bignum_promotion(gcobj &x)
     }
     if (ty != xt)
     {
-        integer_p i = (integer *) object_p(x);
+        integer_g i = (integer *) object_p(x);
         x = RT.make<bignum>(ty, i);
     }
     return ty;

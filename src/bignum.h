@@ -108,11 +108,15 @@ struct bignum : text
         return bytesize(integer_p(i));
     }
 
-    // REVISIT: This is implicitly little-endian dependent
     template <typename Int>
     bignum(Int value, id type = ID_bignum)
         : text((utf8) &value, bytesize(value), type)
-    {}
+    {
+        byte *p = payload();
+        size_t sz = leb128<size_t>(p);
+        for (uint i = 0; i < sz; i++)
+            p[i] = byte(value >> (8 * i));
+    }
 
     template <typename Int>
     static size_t required_memory(id i, Int value)

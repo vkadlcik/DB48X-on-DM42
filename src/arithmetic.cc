@@ -33,6 +33,7 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
+#include "fraction.h"
 #include "integer.h"
 #include "runtime.h"
 #include "settings.h"
@@ -287,7 +288,7 @@ inline bool div::integer_ok(object::id &xt, object::id &yt,
         return true;
     }
 
-    // Check if there is a remainder - If so, need to use real numbers
+    // Check if there is a remainder - If so, switch to fraction
     if (yv % xv)
         return false;
 
@@ -317,9 +318,14 @@ inline bool div::bignum_ok(bignum_g &x, bignum_g &y)
     id type = bignum::product_type(y->type(), x->type());
     bool result = bignum::quorem(y, x, type, &q, &r);
     if (result)
-        result = bignum_p(r) && r->zero(); // Integer result if remainder is 0
+        result = bignum_p(r) != nullptr;
     if (result)
-        x = q;
+    {
+        if (r->zero())
+            x = q;                  // Integer result
+        else
+            x = (bignum *) fraction_p(big_fraction::make(y, x)); // Wrong-cast
+    }
     return result;
 }
 

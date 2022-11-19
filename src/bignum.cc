@@ -42,7 +42,7 @@
 
 RECORDER(bignum, 16, "Bignums");
 
-bignum::bignum(integer_p value, id type)
+bignum::bignum(integer_g value, id type)
 // ----------------------------------------------------------------------------
 //   Create a bignum from an integer value
 // ----------------------------------------------------------------------------
@@ -75,7 +75,7 @@ bignum::bignum(integer_p value, id type)
 }
 
 
-size_t bignum::required_memory(id i, integer_p value)
+size_t bignum::required_memory(id i, integer_g value)
 // ----------------------------------------------------------------------------
 //   Compute the size to copy an integer value
 // ----------------------------------------------------------------------------

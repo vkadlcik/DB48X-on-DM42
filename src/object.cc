@@ -38,6 +38,7 @@
 #include "decimal-64.h"
 #include "decimal128.h"
 #include "font.h"
+#include "fraction.h"
 #include "functions.h"
 #include "input.h"
 #include "integer.h"

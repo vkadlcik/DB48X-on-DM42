@@ -90,6 +90,13 @@ ID(integer)
 ID(neg_integer)
 #define LAST_INTEGER_TYPE       ID_neg_integer
 
+#define FIRST_FRACTION_TYPE     ID_fraction
+ID(fraction)
+ID(neg_fraction)
+ID(big_fraction)
+ID(neg_big_fraction)
+#define LAST_FRACTION_TYPE      ID_neg_big_fraction
+
 #define FIRST_DECIMAL_TYPE      ID_decimal32
 ID(decimal32)
 ID(decimal64)

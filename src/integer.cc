@@ -30,6 +30,7 @@
 #include "integer.h"
 
 #include "bignum.h"
+#include "fraction.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -373,4 +374,31 @@ OBJECT_RENDERER_BODY(bin_integer)
 // ----------------------------------------------------------------------------
 {
     return render_num(r, this, 2, "#b");
+}
+
+
+OBJECT_RENDERER_BODY(fraction)
+// ----------------------------------------------------------------------------
+//   Render the fraction as 'num/den'
+// ----------------------------------------------------------------------------
+{
+    integer_g n = numerator();
+    integer_g d = denominator();
+    size_t sz = render_num(r, n, 10, "");
+    sz += r.put('/');
+    sz += render_num(r, d, 10, "");
+    return sz;
+}
+
+
+OBJECT_RENDERER_BODY(neg_fraction)
+// ----------------------------------------------------------------------------
+//   Render the fraction as '-num/den'
+// ----------------------------------------------------------------------------
+{
+    integer_g n = numerator();
+    integer_g d = denominator();
+    size_t sz = render_num(r, n, 10, "-/");
+    sz += render_num(r, d, 10, "");
+    return sz;
 }

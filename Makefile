@@ -101,6 +101,7 @@ CXX_SOURCES +=				\
 	src/logical.cc			\
 	src/integer.cc			\
 	src/bignum.cc			\
+	src/fraction.cc			\
 	src/decimal128.cc		\
 	$(DECIMAL_SOURCES)		\
 	src/text.cc		        \

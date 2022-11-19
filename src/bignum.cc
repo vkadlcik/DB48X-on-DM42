@@ -29,6 +29,7 @@
 
 #include "bignum.h"
 
+#include "fraction.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
@@ -687,4 +688,31 @@ bignum_g bignum::pow(bignum_g y, bignum_g xg)
         }
     }
     return r;
+}
+
+
+OBJECT_RENDERER_BODY(big_fraction)
+// ----------------------------------------------------------------------------
+//   Render the fraction as 'num/den'
+// ----------------------------------------------------------------------------
+{
+    bignum_g n = numerator();
+    bignum_g d = denominator();
+    size_t sz = render_num(r, n, 10, "");
+    sz += r.put('/');
+    sz += render_num(r, d, 10, "");
+    return sz;
+}
+
+
+OBJECT_RENDERER_BODY(neg_big_fraction)
+// ----------------------------------------------------------------------------
+//   Render the fraction as '-num/den'
+// ----------------------------------------------------------------------------
+{
+    bignum_g n = numerator();
+    bignum_g d = denominator();
+    size_t sz = render_num(r, n, 10, "-/");
+    sz += render_num(r, d, 10, "");
+    return sz;
 }

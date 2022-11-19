@@ -149,6 +149,9 @@ struct bignum : text
         return text::value(size);
     }
 
+    // Creating a small integer from a bignum, or return nullptr
+    integer_p as_integer() const;
+
     operator bool() const               { return !zero(); }
     bool zero() const                   { return length() == 0; }
 

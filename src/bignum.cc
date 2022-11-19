@@ -85,6 +85,23 @@ size_t bignum::required_memory(id i, integer_g value)
 }
 
 
+integer_p bignum::as_integer() const
+// ----------------------------------------------------------------------------
+//   Check if this fits in a small integer, if so build it
+// ----------------------------------------------------------------------------
+{
+    size_t size = 0;
+    byte_p p = value(&size);
+    if (size > sizeof(ularge))
+        return nullptr;
+    ularge value = 0;
+    for (uint i = 0; i < size; i++)
+        value |= ularge(p[i]) << (i * 8);
+    id ty = type() == ID_neg_bignum ? ID_neg_integer : ID_integer;
+    return RT.make<integer>(ty, value);
+}
+
+
 OBJECT_HANDLER_BODY(bignum)
 // ----------------------------------------------------------------------------
 //    Handle commands for bignums

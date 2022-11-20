@@ -384,10 +384,10 @@ OBJECT_RENDERER_BODY(fraction)
 {
     integer_g n = numerator(1);
     integer_g d = denominator(1);
-    size_t sz = render_num(r, n, 10, "");
-    sz += r.put('/');
-    sz += render_num(r, d, 10, "");
-    return sz;
+    render_num(r, n, 10, "");
+    r.put('/');
+    render_num(r, d, 10, "");
+    return r.size();
 }
 
 
@@ -398,7 +398,7 @@ OBJECT_RENDERER_BODY(neg_fraction)
 {
     integer_g n = numerator(1);
     integer_g d = denominator(1);
-    size_t sz = render_num(r, n, 10, "-/");
-    sz += render_num(r, d, 10, "");
-    return sz;
+    render_num(r, n, 10, "-/");
+    render_num(r, d, 10, "");
+    return r.size();
 }

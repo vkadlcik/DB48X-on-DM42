@@ -715,10 +715,10 @@ OBJECT_RENDERER_BODY(big_fraction)
 {
     bignum_g n = numerator();
     bignum_g d = denominator();
-    size_t sz = render_num(r, n, 10, "");
-    sz += r.put('/');
-    sz += render_num(r, d, 10, "");
-    return sz;
+    render_num(r, n, 10, "");
+    r.put('/');
+    render_num(r, d, 10, "");
+    return r.size();
 }
 
 
@@ -729,7 +729,7 @@ OBJECT_RENDERER_BODY(neg_big_fraction)
 {
     bignum_g n = numerator();
     bignum_g d = denominator();
-    size_t sz = render_num(r, n, 10, "-/");
-    sz += render_num(r, d, 10, "");
-    return sz;
+    render_num(r, n, 10, "-/");
+    render_num(r, d, 10, "");
+    return r.size();
 }

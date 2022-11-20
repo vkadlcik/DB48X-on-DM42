@@ -42,7 +42,7 @@ struct renderer
         : target(buffer), length(length), written(0), tabs(0),
           eq(false), flat(flat) {}
     renderer(bool equation)
-        : target(nullptr), length(0), written(0), tabs(0),
+        : target(nullptr), length(~0U), written(0), tabs(0),
           eq(equation) {}
     ~renderer();
 

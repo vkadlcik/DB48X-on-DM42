@@ -137,7 +137,6 @@ OBJECT_RENDERER_BODY(command)
 // ----------------------------------------------------------------------------
 {
     id     ty     = type();
-    size_t result = 0;
     if (ty < NUM_IDS)
     {
         switch(Settings.command_fmt)
@@ -163,7 +162,7 @@ OBJECT_RENDERER_BODY(command)
         }
     }
     record(command, "Render %u as [%s]", ty, (cstring) r.text());
-    return result;
+    return r.size();
 }
 
 

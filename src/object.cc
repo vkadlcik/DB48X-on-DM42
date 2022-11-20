@@ -212,7 +212,8 @@ text_p object::as_text(bool equation, runtime &rt) const
     if (!size)
         return nullptr;
     id type = equation ? ID_symbol : ID_text;
-    text_g result = rt.make<text>(type, r.text(), size);
+    gcutf8 txt = r.text();
+    text_g result = rt.make<text>(type, txt, size);
     return result;
 }
 

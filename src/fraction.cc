@@ -28,6 +28,7 @@
 // ****************************************************************************
 
 #include "fraction.h"
+#include "algebraic.h"
 
 RECORDER(fraction, 16, "Fractions");
 
@@ -104,7 +105,7 @@ integer_g fraction::numerator(int) const
 //   Return the numerator as an integer
 // ----------------------------------------------------------------------------
 {
-    id ty = (type() == ID_neg_fraction) ? ID_neg_bignum : ID_bignum;
+    id ty = (type() == ID_neg_fraction) ? ID_neg_integer : ID_integer;
     byte_p p = payload();
     ularge nv = leb128<ularge>(p);
     return RT.make<integer>(ty, nv);
@@ -144,6 +145,8 @@ OBJECT_HANDLER_BODY(fraction)
         return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
     case HELP:
         return (intptr_t) "fraction";
+    case PRECEDENCE:
+        return algebraic::MULTIPICATIVE;
 
     default:
         // Check if anyone else knows how to deal with it
@@ -216,7 +219,7 @@ static bignum_g gcd(bignum_g a, bignum_g b)
 //   Compute the greatest common denominator between a and b
 // ----------------------------------------------------------------------------
 {
-    while (!b->zero())
+    while (*b)
     {
         bignum_g na = b;
         b = a % b;
@@ -232,9 +235,7 @@ fraction_g big_fraction::make(bignum_g n, bignum_g d)
 // ----------------------------------------------------------------------------
 {
     bignum_g cd = gcd(n, d);
-    size_t cds = 0;
-    byte_p cdt = cd->value(&cds);
-    if (cds != 1 || *cdt != 1)
+    if (*cd != 1)
     {
         n = n / cd;
         d = d / cd;
@@ -242,9 +243,9 @@ fraction_g big_fraction::make(bignum_g n, bignum_g d)
     runtime &rt = runtime::RT;
 
     // Check if numerator and denominator are small enough to use LEB128
-    if (integer_p ni = n->as_integer())
-        if (integer_p di = d->as_integer())
-            return fraction::make((integer *) ni, (integer *) di);
+    if (integer_g ni = (integer *) n->as_integer())
+        if (integer_g di = (integer *) d->as_integer())
+            return fraction::make(ni, di);
 
     // Otherwise, use the bignum representation
     bool neg = (n->type() == ID_neg_bignum) != (d->type() == ID_neg_bignum);
@@ -309,4 +310,22 @@ fraction_g operator/(fraction_g x, fraction_g y)
     bignum_g  yn = y->numerator();
     bignum_g  yd = y->denominator();
     return big_fraction::make(xn * yd, xd * yn);
+}
+
+
+fraction_g operator%(fraction_g x, fraction_g y)
+// ----------------------------------------------------------------------------
+//    Divide two fractions
+// ----------------------------------------------------------------------------
+{
+    bignum_g   xn = x->numerator();
+    bignum_g   xd = x->denominator();
+    bignum_g   yn = y->numerator();
+    bignum_g   yd = y->denominator();
+    fraction_g q  = big_fraction::make(xn * yd, xd * yn);
+    bignum_g   ir = q->numerator() / q->denominator();
+    fraction_g fr = big_fraction::make(ir, bignum::make(1));
+    fr            = fr * y;
+    q             = q - fr;
+    return q;
 }

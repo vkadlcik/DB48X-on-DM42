@@ -94,8 +94,20 @@ struct integer : object
         return leb128<Int>(p);
     }
 
-    operator bool() const               { return !zero(); }
-    bool zero() const                   { return *payload() == 0; }
+    operator bool() const               { return !is_zero(); }
+    bool is_zero() const                { return *payload() == 0; }
+    template<typename Int>
+    bool operator==(Int x)              { return value<Int>() == x; }
+    template<typename Int>
+    bool operator!=(Int x)              { return value<Int>() != x; }
+    template<typename Int>
+    bool operator< (Int x)              { return value<Int>() <  x; }
+    template<typename Int>
+    bool operator<=(Int x)              { return value<Int>() <= x; }
+    template<typename Int>
+    bool operator> (Int x)              { return value<Int>() >  x; }
+    template<typename Int>
+    bool operator>=(Int x)              { return value<Int>() >= x; }
 
     template <typename Int>
     static integer *make(Int value);

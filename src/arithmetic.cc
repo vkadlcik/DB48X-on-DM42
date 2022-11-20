@@ -58,6 +58,32 @@ bool arithmetic::real_promotion(gcobj &x, gcobj &y)
 }
 
 
+fraction_g arithmetic::fraction_promotion(gcobj &x)
+// ----------------------------------------------------------------------------
+//  Check if we can promote the number to a fraction
+// ----------------------------------------------------------------------------
+{
+    id ty = x->type();
+    if (ty >= FIRST_FRACTION_TYPE && ty <= LAST_FRACTION_TYPE)
+        return fraction_g((fraction *) object_p(x));
+    if (ty >= ID_integer && ty <= ID_neg_integer)
+    {
+        integer_g n = (integer *) object_p(x);
+        integer_g d = integer::make(1);
+        fraction_g f = fraction::make(n, d);
+        return f;
+    }
+    if (ty >= ID_bignum && ty <= ID_neg_bignum)
+    {
+        bignum_g n = (bignum *) object_p(x);
+        bignum_g d = bignum::make(1);
+        fraction_g f = big_fraction::make(n, d);
+        return f;
+    }
+    return nullptr;
+}
+
+
 template<>
 inline bool arithmetic::non_numeric<add>(gcobj &x, gcobj & y,
                                          object::id &xt, object::id &yt)
@@ -137,6 +163,16 @@ inline bool add::bignum_ok(bignum_g &x, bignum_g &y)
 }
 
 
+inline bool add::fraction_ok(fraction_g &x, fraction_g &y)
+// ----------------------------------------------------------------------------
+//   We can always add two fractions
+// ----------------------------------------------------------------------------
+{
+    x = y + x;
+    return byte_p(x) != nullptr;
+}
+
+
 inline bool sub::integer_ok(object::id &xt, object::id &yt,
                             ularge &xv, ularge &yv)
 // ----------------------------------------------------------------------------
@@ -186,6 +222,16 @@ inline bool sub::integer_ok(object::id &xt, object::id &yt,
 inline bool sub::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 //   We can always subtract two big integers (memory permitting)
+// ----------------------------------------------------------------------------
+{
+    x = y - x;
+    return byte_p(x) != nullptr;
+}
+
+
+inline bool sub::fraction_ok(fraction_g &x, fraction_g &y)
+// ----------------------------------------------------------------------------
+//   We can always subtract two fractions (memory permitting)
 // ----------------------------------------------------------------------------
 {
     x = y - x;
@@ -268,6 +314,16 @@ inline bool mul::bignum_ok(bignum_g &x, bignum_g &y)
 }
 
 
+inline bool mul::fraction_ok(fraction_g &x, fraction_g &y)
+// ----------------------------------------------------------------------------
+//   We can always multiply two fractions (memory permitting)
+// ----------------------------------------------------------------------------
+{
+    x = y * x;
+    return byte_p(x) != nullptr;
+}
+
+
 inline bool div::integer_ok(object::id &xt, object::id &yt,
                             ularge &xv, ularge &yv)
 // ----------------------------------------------------------------------------
@@ -321,12 +377,27 @@ inline bool div::bignum_ok(bignum_g &x, bignum_g &y)
         result = bignum_p(r) != nullptr;
     if (result)
     {
-        if (r->zero())
+        if (r->is_zero())
             x = q;                  // Integer result
         else
             x = (bignum *) fraction_p(big_fraction::make(y, x)); // Wrong-cast
     }
     return result;
+}
+
+
+inline bool div::fraction_ok(fraction_g &x, fraction_g &y)
+// ----------------------------------------------------------------------------
+//   Division of fractions, except division by zero
+// ----------------------------------------------------------------------------
+{
+    if (!x->numerator())
+    {
+        RT.zero_divide_error();
+        return false;
+    }
+    x = y / x;
+    return byte_p(x) != nullptr;
 }
 
 
@@ -377,6 +448,21 @@ inline bool mod::bignum_ok(bignum_g &x, bignum_g &y)
 }
 
 
+inline bool mod::fraction_ok(fraction_g &x, fraction_g &y)
+// ----------------------------------------------------------------------------
+//   Modulo of fractions, except division by zero
+// ----------------------------------------------------------------------------
+{
+    if (!x->numerator())
+    {
+        RT.zero_divide_error();
+        return false;
+    }
+    x = y % x;
+    return byte_p(x) != nullptr;
+}
+
+
 inline bool rem::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
                             ularge &xv, ularge &yv)
 // ----------------------------------------------------------------------------
@@ -401,6 +487,21 @@ inline bool rem::bignum_ok(bignum_g &x, bignum_g &y)
 //   Remainder always works except divide by zero
 // ----------------------------------------------------------------------------
 {
+    x = y % x;
+    return byte_p(x) != nullptr;
+}
+
+
+inline bool rem::fraction_ok(fraction_g &x, fraction_g &y)
+// ----------------------------------------------------------------------------
+//   Modulo of fractions, except division by zero
+// ----------------------------------------------------------------------------
+{
+    if (!x->numerator())
+    {
+        RT.zero_divide_error();
+        return false;
+    }
     x = y % x;
     return byte_p(x) != nullptr;
 }
@@ -462,6 +563,15 @@ inline bool pow::bignum_ok(bignum_g &x, bignum_g &y)
 }
 
 
+inline bool pow::fraction_ok(fraction_g &UNUSED x, fraction_g &UNUSED y)
+// ----------------------------------------------------------------------------
+//   Compute y^x, works if x >= 0
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
 inline bool hypot::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
                               ularge &UNUSED xv, ularge &UNUSED yv)
 // ----------------------------------------------------------------------------
@@ -474,6 +584,15 @@ inline bool hypot::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
 
 
 inline bool hypot::bignum_ok(bignum_g &UNUSED x, bignum_g &UNUSED y)
+// ----------------------------------------------------------------------------
+//   Hypot never works with big integers
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
+inline bool hypot::fraction_ok(fraction_g &UNUSED x, fraction_g &UNUSED y)
 // ----------------------------------------------------------------------------
 //   Hypot never works with big integers
 // ----------------------------------------------------------------------------
@@ -495,6 +614,7 @@ object::result arithmetic::evaluate(id             op,
                                     bid32_fn       op32,
                                     integer_fn     integer_ok,
                                     bignum_fn      bignum_ok,
+                                    fraction_fn    fraction_ok,
                                     non_numeric_fn non_numeric)
 // ----------------------------------------------------------------------------
 //   Shared code for all forms of evaluation
@@ -550,6 +670,32 @@ object::result arithmetic::evaluate(id             op,
             }
             if (rt.error())
                 return ERROR;
+        }
+    }
+
+    /* Fraction types */
+    if (!ok)
+    {
+        if (fraction_g xf = fraction_promotion(x))
+        {
+            if (fraction_g yf = fraction_promotion(y))
+            {
+                ok = fraction_ok(xf, yf);
+                if (ok)
+                {
+                    x = (object *) fraction_p(xf);
+                    ok = object_p(x);
+                    if (ok)
+                    {
+                        bignum_g d = xf->denominator();
+                        if (*d == 1)
+                        {
+                            x = (object *) bignum_p(xf->numerator());
+                            ok = object_p(x);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -633,6 +779,7 @@ object::result arithmetic::evaluate()
                     Op::bid32_op,
                     Op::integer_ok,
                     Op::bignum_ok,
+                    Op::fraction_ok,
                     non_numeric<Op>);
 }
 

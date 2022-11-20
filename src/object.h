@@ -411,7 +411,7 @@ struct object
 
     static bool is_bignum(id ty)
     // -------------------------------------------------------------------------
-    //   Check if a type is an big integer
+    //   Check if a type is a big integer
     // -------------------------------------------------------------------------
     {
         return ty >= FIRST_BIGNUM_TYPE && ty <= LAST_BIGNUM_TYPE;
@@ -420,10 +420,28 @@ struct object
 
     bool is_bignum() const
     // -------------------------------------------------------------------------
-    //   Check if an object is an integer
+    //   Check if an object is a big integer
     // -------------------------------------------------------------------------
     {
         return is_bignum(type());
+    }
+
+
+    static bool is_fraction(id ty)
+    // -------------------------------------------------------------------------
+    //   Check if a type is a fraction
+    // -------------------------------------------------------------------------
+    {
+        return ty >= FIRST_FRACTION_TYPE && ty <= LAST_FRACTION_TYPE;
+    }
+
+
+    bool is_fraction() const
+    // -------------------------------------------------------------------------
+    //   Check if an object is an integer
+    // -------------------------------------------------------------------------
+    {
+        return is_fraction(type());
     }
 
 

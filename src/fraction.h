@@ -190,6 +190,7 @@ fraction_g operator+(fraction_g x, fraction_g y);
 fraction_g operator-(fraction_g x, fraction_g y);
 fraction_g operator*(fraction_g x, fraction_g y);
 fraction_g operator/(fraction_g x, fraction_g y);
+fraction_g operator%(fraction_g x, fraction_g y);
 
 
 #endif // FRACTION_H

@@ -177,7 +177,7 @@ static size_t render_num(renderer &r,
         char c = (digit < 10) ? digit + '0' : digit + ('A' - 10);
         r.put(c);
         n = quotient;
-    } while (!n->zero());
+    } while (!n->is_zero());
 
     // Revert the digits
     char *dest = (char *) r.text();

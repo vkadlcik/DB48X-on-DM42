@@ -147,10 +147,10 @@ size_t runtime::available(size_t size)
 // ============================================================================
 
 #ifdef SIMULATOR
-static bool integrity_test(object_p first,
-                           object_p last,
-                           object_p *stack,
-                           object_p *stackEnd)
+bool runtime::integrity_test(object_p first,
+                             object_p last,
+                             object_p *stack,
+                             object_p *stackEnd)
 // ----------------------------------------------------------------------------
 //   Check all the objects in a given range
 // ----------------------------------------------------------------------------
@@ -175,11 +175,21 @@ static bool integrity_test(object_p first,
 }
 
 
-static void dump_object_list(cstring  message,
-                             object_p first,
-                             object_p last,
-                             object_p *stack,
-                             object_p *stackEnd)
+bool runtime::integrity_test()
+// ----------------------------------------------------------------------------
+//   Check all the objects in a given range
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = runtime::RT;
+    return integrity_test(rt.Globals,rt.Temporaries,rt.StackTop,rt.StackBottom);
+}
+
+
+void runtime::dump_object_list(cstring  message,
+                               object_p first,
+                               object_p last,
+                               object_p *stack,
+                               object_p *stackEnd)
 // ----------------------------------------------------------------------------
 //   Dump all objects in a given range
 // ----------------------------------------------------------------------------
@@ -209,6 +219,18 @@ static void dump_object_list(cstring  message,
         record(gc, " %u: %p (%+s)", s - stack, *s, object::name((*s)->type()));
     record(gc, "%+s: %u objects using %u bytes", message, count, sz);
 }
+
+
+void runtime::dump_object_list(cstring  message)
+// ----------------------------------------------------------------------------
+//   Dump object list for the runtime
+// ----------------------------------------------------------------------------
+{
+    runtime &rt = runtime::RT;
+    dump_object_list(message,
+                     rt.Globals, rt.Temporaries, rt.StackTop, rt.StackBottom);
+}
+
 #endif // SIMULATOR
 
 
@@ -256,8 +278,11 @@ size_t runtime::gc()
     if (!integrity_test(first, last, StackTop, StackBottom))
     {
         record(gc_errors, "Integrity test failed pre-collection");
+        RECORDER_TRACE(gc) = 1;
+        dump_object_list("Pre-collection failure",
+                         first, last, StackTop, StackBottom);
+        integrity_test(first, last, StackTop, StackBottom);
         recorder_dump();
-        RECORDER_TRACE(gc) = 2;
     }
     if (RECORDER_TRACE(gc) > 1)
         dump_object_list("Pre-collection",
@@ -329,8 +354,10 @@ size_t runtime::gc()
     if (!integrity_test(Globals, Temporaries, StackTop, StackBottom))
     {
         record(gc_errors, "Integrity test failed post-collection");
-        recorder_dump();
         RECORDER_TRACE(gc) = 2;
+        dump_object_list("Post-collection failure",
+                         first, last, StackTop, StackBottom);
+        recorder_dump();
     }
     if (RECORDER_TRACE(gc) > 1)
         dump_object_list("Post-collection",

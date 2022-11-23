@@ -409,6 +409,21 @@ struct runtime
     };
 
 
+#ifdef SIMULATOR
+    static bool integrity_test(object_p first,
+                               object_p last,
+                               object_p *stack,
+                               object_p *stackEnd);
+    static bool integrity_test();
+    static void dump_object_list(cstring  message,
+                                 object_p first,
+                                 object_p last,
+                                 object_p *stack,
+                                 object_p *stackEnd);
+    static void dump_object_list(cstring  message);
+#endif // SIMULATOR
+
+
 
     // ========================================================================
     //

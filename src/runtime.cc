@@ -416,11 +416,11 @@ void runtime::move_globals(object_p to, object_p from)
     size_t moving = last - first;
     move(to, from, moving);
 
-    // Adjust Globals and Temporaries
+    // Adjust Globals and Temporaries (for Temporaries, must be <=, not <)
     int delta = to - from;
-    if (Globals >= first && Globals < last)             // Probably never
+    if (Globals >= first && Globals < last)             // Storing global var
         Globals += delta;
-    if (Temporaries >= first && Temporaries < last)     // Probably always
+    if (Temporaries >= first && Temporaries <= last)    // Probably always
         Temporaries += delta;
 }
 

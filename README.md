@@ -66,17 +66,21 @@ arrow keys (only up and down), and no `SPC` (space) key.
 The keyboard differences force us to revisit the user interaction with the
 calculator compared to the HP48:
 
-* The single *Shift* key cycles between **Shift**, **Alpha** and no shift.
-  This double-shift shortcut appears necessary because RPL uses Alpha entry a
-  lot more than the HP42, so making it quickly accessible seems important.
+* The single *Shift* key cycles between **Shift**, **Right Shift** and no shift.
+  This double-shift shortcut appears necessary because RPL calculators like the
+  HP48 have a rather full keyboard even with two shift keys.
+
+* Since RPL uses Alpha entry a lot more than the HP42, making it quickly
+  accessible seems important, so holding the *Shift* key enters Alpha mode.
 
 * It is also possible to enter Alpha mode with **Shift `ENTER`** to match
-  the labelling on the DM42. Furthermore, **Shift `ENTER`** also cycles between
-  uppercase and lowercase alphabetical entry.
+  the labelling on the DM42. Furthermore, repeating **Shift `ENTER`** also
+  cycles between uppercase and lowercase alphabetical entry.
 
 * Alpha mode is always sticky. In other words, there is no equivalent of the
-  HP48's "single-Alpha" mode. Alpha mode is also exited when pressing `ENTER` or
-  `EXIT`.
+  HP48's "single-Alpha" mode. This is true whether you enter it wiht a long
+  shift or using *Shift* `ENTER`. Alpha mode is also exited when pressing
+  `ENTER` or `EXIT`.
 
 * Since the DM42's Alpha keys overlap with the numeric keys, as well as with and
   `×` and `÷`, using **Shift** in Alpha mode brings back numbers. This means it

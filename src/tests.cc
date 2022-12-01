@@ -122,35 +122,36 @@ void tests::shift_logic()
     begin("Shift logic");
     step("Shift state must be cleared at start")
         .shift(false).xshift(false).alpha(false).lower(false);
-    step("Shift works")
+
+    step("Shift basic cycle")
         .test(SHIFT)
         .shift(true).xshift(false).alpha(false).lower(false);
-    step("Shift-Shift is Alpha")
+    step("Shift-Shift is Right Shift")
         .test(SHIFT)
-        .shift(false).xshift(false).alpha(true).lower(false);
+        .shift(false).xshift(true).alpha(false).lower(false);
     step("Third shift clears all shifts")
         .test(SHIFT)
         .shift(false).xshift(false).alpha(false).lower(false);
 
-    step("Shift pass two")
+    step("Shift second cycle")
         .test(SHIFT)
         .shift(true).xshift(false).alpha(false).lower(false);
-    step("Shift pass two: Shift-Shift is Alpha")
+    step("Shift second cycle: Shift-Shift is Right Shift")
         .test(SHIFT)
-        .shift(false).xshift(false).alpha(true).lower(false);
-    step("Shift pass two: Third shift clears all shifts")
+        .shift(false).xshift(true).alpha(false).lower(false);
+    step("Shift second cycle: Third shift clears all shifts")
         .test(SHIFT)
         .shift(false).xshift(false).alpha(false).lower(false);
 
-    step("Long-press shift is right shift")
+    step("Long-press shift is Alpha")
         .test(SHIFT, false).wait(600).test(RELEASE)
-        .shift(false).xshift(true);
-    step("Clearing right shift")
-        .test(SHIFT)
-        .shift(false).xshift(false);
+        .shift(false).xshift(false).alpha(true);
+    step("Long-press shift clears Alpha")
+        .test(SHIFT, false).wait(600).test(RELEASE)
+        .shift(false).xshift(false).alpha(false);
 
     step("Typing alpha")
-        .test(SHIFT, SHIFT, A)
+        .test(LONGPRESS, SHIFT, A)
         .shift(false).alpha(true).lower(false)
         .editor("A");
     step("Selecting lowercase with Shift-ENTER")
@@ -834,7 +835,7 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
             if (!alpha)
             {
                 while (Input.alpha)
-                    test(SHIFT, NOKEYS);
+                    test(LONGPRESS, SHIFT, NOKEYS);
             }
             else
             {
@@ -847,22 +848,15 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
         {
             // Keep pressing shift until we get alpha
             while (Input.alpha != alpha)
-                test(SHIFT, NOKEYS);
+                test(LONGPRESS, SHIFT, NOKEYS);
         }
     }
 
     while (xshift != Input.xshift)
-    {
-        if (xshift)
-            test(LONGPRESS, SHIFT, NOKEYS, RELEASE, NOKEYS);
-        else
-            test(SHIFT, NOKEYS);
-    }
+        test(SHIFT, NOKEYS);
 
     while (shift != Input.shift)
-    {
         test(SHIFT, NOKEYS);
-    }
 
     return *this;
 }

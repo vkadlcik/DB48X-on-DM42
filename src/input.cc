@@ -2032,8 +2032,9 @@ bool input::handle_shifts(int key)
     {
         if (longpress)
         {
-            xshift = true;
-            shift  = false;
+            alpha = !alpha;
+            xshift = 0;
+            shift = 0;
         }
         else if (xshift)
         {
@@ -2042,17 +2043,17 @@ bool input::handle_shifts(int key)
         else
         {
             xshift = false;
-#define SHM(d, a, s) ((d << 2) | (a << 1) | (s << 0))
-#define SHD(d, a, s) (1 << SHM(d, a, s))
-            // Double shift toggles alpha
+#define SHM(d, x, s) ((d << 2) | (x << 1) | (s << 0))
+#define SHD(d, x, s) (1 << SHM(d, x, s))
+            // Double shift toggles xshift
             bool dshift = last == KEY_SHIFT;
-            int  plane  = SHM(dshift, alpha, shift);
+            int  plane  = SHM(dshift, xshift, shift);
             const unsigned nextShift =
                 SHD(0, 0, 0) | SHD(0, 1, 0) | SHD(1, 0, 0);
-            const unsigned nextAlpha =
+            const unsigned nextXShift =
                 SHD(0, 0, 1) | SHD(0, 1, 0) | SHD(0, 1, 1) | SHD(1, 0, 1);
-            shift  = (nextShift & (1 << plane)) != 0;
-            alpha  = (nextAlpha & (1 << plane)) != 0;
+            shift  = (nextShift  & (1 << plane)) != 0;
+            xshift  = (nextXShift & (1 << plane)) != 0;
             repeat = true;
         }
         consumed = true;

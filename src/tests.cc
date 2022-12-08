@@ -96,10 +96,10 @@ void tests::run(bool onlyCurrent)
     current();
     if (!onlyCurrent)
     {
-        arithmetic();
         shift_logic();
         keyboard_entry();
         data_types();
+        arithmetic();
     }
     summary();
 }
@@ -445,7 +445,7 @@ tests &tests::step(cstring name)
         if (!ok)
             show(failures.back());
     }
-    fprintf(stderr, "%3u:  %03u: %-64s", tindex, sindex, sname);
+    fprintf(stderr, "%3u:  %03u: %-60s", tindex, sindex, sname);
     cindex = 0;
     count++;
     ok = true;

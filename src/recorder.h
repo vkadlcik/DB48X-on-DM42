@@ -31,6 +31,16 @@
 
 #ifdef SIMULATOR
 #include "../recorder/recorder.h"
+
+RECORDER_DECLARE(assert_error);
+
+#define ASSERT(x)                                               \
+    do                                                          \
+    {                                                           \
+        if (!(x))                                               \
+            record(assert_error, "Assertion failed: " #x);      \
+    } while(0)
+
 #else
 // The DM42 has so little memory (70K) that we can't use it for recorders
 #define RECORDER(Name, Size, Info)
@@ -56,6 +66,8 @@ inline void recorder_ignore(const T& first, const Args &...rest)
     recorder_ignore(first);     // A lot of work for nothing
     recorder_ignore(rest...);
 }
+
+#define ASSERT(x)
 
 #endif
 

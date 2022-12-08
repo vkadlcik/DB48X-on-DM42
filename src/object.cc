@@ -66,6 +66,7 @@ RECORDER(render,         16, "Rendering objects");
 RECORDER(eval,           16, "Evaluating objects");
 RECORDER(run,            16, "Running commands on objects");
 RECORDER(object_errors,  16, "Runtime errors on objects");
+RECORDER(assert_error,   16, "Assertion failures");
 
 
 // Define dummy opcode classes

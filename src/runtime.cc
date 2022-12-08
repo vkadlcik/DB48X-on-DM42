@@ -676,6 +676,8 @@ bool runtime::push(gcp<const object> obj)
 //   Push an object on top of RPL stack
 // ----------------------------------------------------------------------------
 {
+    ASSERT(obj && "Pushing a NULL object");
+
     // This may cause garbage collection, hence the need to adjust
     if (available(sizeof(obj)) < sizeof(obj))
         return false;
@@ -703,6 +705,8 @@ bool runtime::top(object_p obj)
 //   Set the top of the runtime stack
 // ----------------------------------------------------------------------------
 {
+    ASSERT(obj && "Putting a NULL object on top of stack");
+
     if (StackTop >= StackBottom)
     {
         error("Too few arguments");

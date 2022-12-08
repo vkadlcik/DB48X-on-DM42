@@ -35,6 +35,7 @@
 
 #include <cstring>
 
+
 // The one and only runtime
 runtime runtime::RT(nullptr, 0);
 
@@ -95,7 +96,7 @@ void runtime::memory(byte *memory, size_t size)
     Globals = LowMem;
     directory_p home = new((void *) Globals) directory();   // Home directory
     *StackBottom = (object_p) home;                     // Current search path
-    Globals = home->skip();                             // Globals after directory
+    Globals = home->skip();                             // Globals after home
     Temporaries = Globals;                              // Area for temporaries
     Editing = 0;                                        // No editor
     Scratch = 0;                                        // No scratchpad
@@ -229,6 +230,19 @@ void runtime::dump_object_list(cstring  message)
     runtime &rt = runtime::RT;
     dump_object_list(message,
                      rt.Globals, rt.Temporaries, rt.StackTop, rt.StackBottom);
+}
+
+
+void runtime::object_validate(unsigned      typeID,
+                              const object *object,
+                              size_t        size)
+// ----------------------------------------------------------------------------
+//   Check if an object we created is valid
+// ----------------------------------------------------------------------------
+{
+    object::id type = (object::id) typeID;
+    if (object->size() != size)
+        object::object_error(type, object);
 }
 
 #endif // SIMULATOR

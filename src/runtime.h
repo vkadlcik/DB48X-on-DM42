@@ -421,6 +421,9 @@ struct runtime
                                  object_p *stack,
                                  object_p *stackEnd);
     static void dump_object_list(cstring  message);
+    static void object_validate(unsigned typeID,
+                                const object *obj,
+                                size_t size);
 #endif // SIMULATOR
 
 
@@ -714,6 +717,10 @@ Obj *runtime::make(typename Obj::id type, const Args &... args)
 
     // Initialize the object in place
     new(result) Obj(args..., type);
+
+#ifdef SIMULATOR
+    object_validate(type, (const object *) result, size);
+#endif // SIMULATOR
 
     // Return initialized object
     return result;

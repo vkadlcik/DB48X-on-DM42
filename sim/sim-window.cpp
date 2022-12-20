@@ -74,6 +74,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     setWindowTitle("DB48X");
 
+    QObject::connect(this, SIGNAL(keyResizeSignal(const QRect &)),
+                     highlight, SLOT(keyResizeSlot(const QRect &)));
+
     qreal dpratio = qApp->primaryScreen()->devicePixelRatio();
     resize(210 * dpratio, 390 * dpratio);
 
@@ -291,8 +294,16 @@ void MainWindow::pushKey(int key)
            rect.y(),
            rect.width(),
            rect.height());
-    highlight->setGeometry(rect);
-    update();
+    emit keyResizeSignal(rect);
+}
+
+
+void Highlight::keyResizeSlot(const QRect &rect)
+// ----------------------------------------------------------------------------
+//   Receive signal that the widget was resized
+// ----------------------------------------------------------------------------
+{
+    setGeometry(rect);
 }
 
 

@@ -64,6 +64,9 @@ class Highlight : public QWidget
 public:
     Highlight(QWidget *parent): QWidget(parent) {}
     void paintEvent(QPaintEvent *);
+
+public slots:
+    void keyResizeSlot(const QRect &rect);
 };
 
 class MainWindow : public QMainWindow
@@ -90,6 +93,9 @@ protected:
 protected:
     static MainWindow *mainWindow;
     Highlight *highlight;
+
+signals:
+    void keyResizeSignal(const QRect &rect);
 };
 
 #endif // SIM_WINDOW_H

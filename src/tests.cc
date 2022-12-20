@@ -181,10 +181,11 @@ void tests::keyboard_entry()
 
     step("Separators");
     cstring seps = "[](){}\"Hello\"'Test'";
-    test(CLEAR, seps).editor(seps).wait(500);
+    cstring sepsWithSpaces = "[] ( ) { } \"Hello\" 'Test '";
+    test(CLEAR, seps).editor(sepsWithSpaces).wait(500);
 
     step("Key repeat");
-    test(CLEAR, SHIFT, SHIFT, LONGPRESS, A).wait(1000).test(RELEASE)
+    test(CLEAR, LONGPRESS, SHIFT, LONGPRESS, A).wait(1000).test(RELEASE)
         .check(Input.cursor > 4);
 }
 

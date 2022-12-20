@@ -432,7 +432,7 @@ tests &tests::begin(cstring name)
 }
 
 
-tests &tests::step(cstring name)
+tests &tests::istep(cstring name)
 // ----------------------------------------------------------------------------
 //  Beginning of a step
 // ----------------------------------------------------------------------------
@@ -456,6 +456,17 @@ tests &tests::step(cstring name)
 }
 
 
+tests &tests::position(cstring sourceFile, uint sourceLine)
+// ----------------------------------------------------------------------------
+//  Record the position of the current test step
+// ----------------------------------------------------------------------------
+{
+    file = sourceFile;
+    line = sourceLine;
+    return *this;
+}
+
+
 tests &tests::check(bool valid)
 // ----------------------------------------------------------------------------
 //   Record if a test fails
@@ -473,7 +484,8 @@ tests &tests::fail()
 //   Report that a test failed
 // ----------------------------------------------------------------------------
 {
-    failures.push_back(failure(tname, sname, explanation,
+    failures.push_back(failure(file, line,
+                               tname, sname, explanation,
                                tindex, sindex, cindex));
     ok = false;
     return *this;
@@ -492,8 +504,9 @@ tests &tests::summary()
     {
         fprintf(stderr, "Summary of %zu failures:\n", failures.size());\
         cstring last = nullptr;
+        uint line = 0;
         for (auto f : failures)
-            show(f, last);
+            show(f, last, line);
     }
     fprintf(stderr, "Ran %u tests, %zu failures\n",
             count, failures.size());
@@ -507,26 +520,27 @@ tests &tests::show(tests::failure &f)
 // ----------------------------------------------------------------------------
 {
     cstring last = nullptr;
-    return show(f, last);
+    uint line = 0;
+    return show(f, last, line);
 }
 
 
-tests &tests::show(tests::failure &f, cstring &last)
+tests &tests::show(tests::failure &f, cstring &last, uint &line)
 // ----------------------------------------------------------------------------
 //   Show an individual failure
 // ----------------------------------------------------------------------------
 {
-    if (f.test != last)
+    if (f.test != last || f.line != line)
     {
-        fprintf(stderr, "%3u: %s\n", f.tindex, f.test);
+        fprintf(stderr,
+                "%s:%d:  Test #%u: %s\n", f.file, f.line, f.tindex, f.test);
         last = f.test;
     }
-    fprintf(stderr, "%3u:%03u.%03u: %s\n",
-            f.tindex, f.sindex, f.cindex, f.step);
-    fprintf(stderr, "==== %s\n", f.explanation.c_str());
+    fprintf(stderr, "%s:%d: %3u:%03u.%03u: %s\n",
+            f.file, f.line, f.tindex, f.sindex, f.cindex, f.step);
+    fprintf(stderr, "%s\n", f.explanation.c_str());
     return *this;
 }
-
 
 
 
@@ -536,7 +550,7 @@ tests &tests::show(tests::failure &f, cstring &last)
 //
 // ============================================================================
 
-tests &tests::test(tests::key k, bool release)
+tests &tests::itest(tests::key k, bool release)
 // ----------------------------------------------------------------------------
 //   Type a given key directly
 // ----------------------------------------------------------------------------
@@ -594,55 +608,55 @@ tests &tests::test(tests::key k, bool release)
 }
 
 
-tests &tests::test(uint value)
+tests &tests::itest(uint value)
 // ----------------------------------------------------------------------------
 //    Test a numerical value
 // ----------------------------------------------------------------------------
 {
     char buffer[32];
     snprintf(buffer, sizeof(buffer), "%u", value);
-    test(cstring(buffer));
+    itest(cstring(buffer));
     return shifts(false, false, false, false);
 }
 
 
-tests &tests::test(int value)
+tests &tests::itest(int value)
 // ----------------------------------------------------------------------------
 //   Test a signed numerical value
 // ----------------------------------------------------------------------------
 {
     if (value < 0)
-        return test(uint(-value), CHS);
+        return itest(uint(-value), CHS);
     else
-        return test(uint(value));
+        return itest(uint(value));
 }
 
 
-tests &tests::test(ularge value)
+tests &tests::itest(ularge value)
 // ----------------------------------------------------------------------------
 //    Test a numerical value
 // ----------------------------------------------------------------------------
 {
     char buffer[32];
     snprintf(buffer, sizeof(buffer), "%llu", (unsigned long long) value);
-    test(cstring(buffer));
+    itest(cstring(buffer));
     return shifts(false, false, false, false);
 }
 
 
-tests &tests::test(large value)
+tests &tests::itest(large value)
 // ----------------------------------------------------------------------------
 //   Test a signed numerical value
 // ----------------------------------------------------------------------------
 {
     if (value < 0)
-        return test(ularge(-value), CHS);
+        return itest(ularge(-value), CHS);
     else
-        return test(ularge(value));
+        return itest(ularge(value));
 }
 
 
-tests &tests::test(char c)
+tests &tests::itest(char c)
 // ----------------------------------------------------------------------------
 //   Type the character on the calculator's keyboard
 // ----------------------------------------------------------------------------
@@ -774,26 +788,26 @@ tests &tests::test(char c)
         shifts(shift, xshift, alpha, lower);
 
         // Send the key
-        test(k);
+        itest(k);
 
         // If we have a pair, like (), check if we need bsp or del
         if (bsp)
-            test(BSP, DOWN);
+            itest(BSP, DOWN);
         else if (del)
-            test(SHIFT, BSP);
+            itest(SHIFT, BSP);
     }
 
     return *this;
 }
 
 
-tests &tests::test(cstring alpha)
+tests &tests::itest(cstring alpha)
 // ----------------------------------------------------------------------------
 //   Type the string on the calculator's keyboard
 // ----------------------------------------------------------------------------
 {
     while (*alpha)
-        test(*alpha++);
+        itest(*alpha++);
     return *this;
 }
 
@@ -824,8 +838,8 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
     while (lowercase != Input.lowercase)
     {
         while (!Input.shift)
-            test(SHIFT, NOKEYS);
-        test(ENTER, NOKEYS);
+            itest(SHIFT, NOKEYS);
+        itest(ENTER, NOKEYS);
     }
 
     // Enter alpha mode using Shift-Enter so that we can shift afterwards
@@ -836,34 +850,34 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
             if (!alpha)
             {
                 while (Input.alpha)
-                    test(LONGPRESS, SHIFT, NOKEYS);
+                    itest(LONGPRESS, SHIFT, NOKEYS);
             }
             else
             {
                 while (!Input.shift)
-                    test(SHIFT, NOKEYS);
-                test(ENTER, NOKEYS);
+                    itest(SHIFT, NOKEYS);
+                itest(ENTER, NOKEYS);
             }
         }
         else
         {
             // Keep pressing shift until we get alpha
             while (Input.alpha != alpha)
-                test(LONGPRESS, SHIFT, NOKEYS);
+                itest(LONGPRESS, SHIFT, NOKEYS);
         }
     }
 
     while (xshift != Input.xshift)
-        test(SHIFT, NOKEYS);
+        itest(SHIFT, NOKEYS);
 
     while (shift != Input.shift)
-        test(SHIFT, NOKEYS);
+        itest(SHIFT, NOKEYS);
 
     return *this;
 }
 
 
-tests &tests::test(tests::WAIT delay)
+tests &tests::itest(tests::WAIT delay)
 // ----------------------------------------------------------------------------
 //   Wait for a given delay
 // ----------------------------------------------------------------------------
@@ -949,7 +963,8 @@ tests &tests::expect(cstring output)
     {
         if (strncmp(output, Stack.stack0, sizeof(Stack.stack0)) == 0)
             return *this;
-        explain("Expected output [", output, "], got [", Stack.stack0, "] instead");
+        explain("Expected output [", output, "], "
+                "got [", Stack.stack0, "] instead");
         return fail();
     }
     explain("Expected output [", output, "] but got no stack change");

@@ -154,13 +154,17 @@ struct tests
   protected:
     struct failure
     {
-        failure(cstring     test,
+        failure(cstring     file,
+                uint        line,
+                cstring     test,
                 cstring     step,
                 std::string explanation,
                 uint        ti,
                 uint        si,
                 int         ci)
-            : test(test),
+            : file(file),
+              line(line),
+              test(test),
               step(step),
               explanation(explanation),
               tindex(ti),
@@ -168,6 +172,8 @@ struct tests
               cindex(ci)
         {
         }
+        cstring     file;
+        uint        line;
         cstring     test;
         cstring     step;
         std::string explanation;
@@ -185,27 +191,28 @@ protected:
 
     // Naming / identifying tests
     tests &begin(cstring name);
-    tests &step(cstring name);
+    tests &istep(cstring name);
+    tests &position(cstring file, uint line);
     tests &check(bool test);
     tests &fail();
     tests &summary();
-    tests &show(failure &f, cstring &last);
+    tests &show(failure &f, cstring &last, uint &line);
     tests &show(failure &f);
 
     // Used to build the tests
-    tests &test(key k, bool release = true);
-    tests &test(uint value);
-    tests &test(int value);
-    tests &test(ularge value);
-    tests &test(large value);
-    tests &test(char c);
-    tests &test(cstring alpha);
-    tests &test(WAIT delay);
+    tests &itest(key k, bool release = true);
+    tests &itest(uint value);
+    tests &itest(int value);
+    tests &itest(ularge value);
+    tests &itest(large value);
+    tests &itest(char c);
+    tests &itest(cstring alpha);
+    tests &itest(WAIT delay);
 
     template <typename First, typename... Args>
-    tests &test(First first, Args... args)
+    tests &itest(First first, Args... args)
     {
-        return test(first).test(args...);
+        return itest(first).itest(args...);
     }
 
     tests &clear();
@@ -238,7 +245,11 @@ protected:
     tests &explain(Args... args)
     {
         if (explanation.length())
-            explanation += "\n---- ";
+            explanation += "\n";
+        explanation += file;
+        explanation += ":";
+        explanation += std::to_string(line);
+        explanation += ":    ";
         return explain_more(args...);
     }
 
@@ -268,6 +279,8 @@ protected:
 
 
 protected:
+    cstring              file;
+    uint                 line;
     cstring              tname;
     cstring              sname;
     uint                 tindex;
@@ -281,5 +294,8 @@ protected:
     std::vector<failure> failures;
     std::string          explanation;
 };
+
+#define step(...)       position(__FILE__, __LINE__).istep(__VA_ARGS__)
+#define test(...)       position(__FILE__, __LINE__).itest(__VA_ARGS__)
 
 #endif // TESTS_H

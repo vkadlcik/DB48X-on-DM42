@@ -274,15 +274,15 @@ void tests::arithmetic()
         .type(object::ID_integer).expect("0");
 
     step("Integer addition overflow");
-    test(CLEAR, ~0ULL-1, ENTER, 1, ADD)
-        .type(object::ID_integer).expect("18446744073709551615");
-    test(CLEAR, ~0ULL-3, CHS, ENTER, -2, ADD)
-        .type(object::ID_neg_integer).expect("-18446744073709551614");
+    test(CLEAR, (1ULL << 63) - 2ULL, ENTER, 1, ADD)
+        .type(object::ID_integer).expect("9223372036854775807");
+    test(CLEAR, (1ULL << 63) - 3ULL, CHS, ENTER, -2, ADD)
+        .type(object::ID_neg_integer).expect("-9223372036854775807");
 
     test(CLEAR, ~0ULL, ENTER, 1, ADD)
-        .type(object::ID_decimal128).expect("18446744073709551616");
+        .type(object::ID_bignum).expect("18446744073709551616");
     test(CLEAR, ~0ULL, CHS, ENTER, -2, ADD)
-        .type(object::ID_decimal128).expect("-18446744073709551617");
+        .type(object::ID_neg_bignum).expect("-18446744073709551617");
 
     step("Adding ten small integers at random");
     srand48(sys_current_ms());

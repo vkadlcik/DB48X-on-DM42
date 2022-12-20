@@ -103,3 +103,5 @@ win32:   LIBS += -lsetupapi
 android: LIBS +=
 freebsd: LIBS += -lthr -liconv
 macx:    LIBS += -framework CoreFoundation -framework IOKit
+macx:    QMAKE_CFLAGS += -fsanitize=address
+macx:    LIBS += -fsanitize=address

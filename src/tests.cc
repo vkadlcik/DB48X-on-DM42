@@ -558,6 +558,8 @@ tests &tests::itest(tests::key k, bool release)
 {
     extern int key_remaining();
 
+    refresh = Stack.refresh;
+
     // Check for special key sequences
     switch(k)
     {

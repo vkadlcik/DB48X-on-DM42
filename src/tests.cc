@@ -243,6 +243,11 @@ void tests::data_types()
     test(CLEAR, list, ENTER)
         .type(object::ID_list).expect(list);
 
+    step("Program");
+    cstring prgm = "« 1 + sin »";
+    test(CLEAR, RUNSTOP, 1, ADD, "sin", ENTER)
+        .type(object::ID_program).expect(prgm);
+
     clear();
 }
 

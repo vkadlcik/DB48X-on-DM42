@@ -238,6 +238,11 @@ void tests::data_types()
     test(CLEAR, string, ENTER)
         .type(object::ID_text).expect(string);
 
+    step("List");
+    cstring list = "{ A 1 3 }";
+    test(CLEAR, list, ENTER)
+        .type(object::ID_list).expect(list);
+
     clear();
 }
 

@@ -669,153 +669,161 @@ tests &tests::itest(char c)
 //   Type the character on the calculator's keyboard
 // ----------------------------------------------------------------------------
 {
-    nokeys();
-
-    bool alpha  = Input.alpha;
-    bool shift  = false;
-    bool xshift = false;
-    bool lower  = Input.lowercase;
-    key  k      = RELEASE;
-    bool del    = false;
-    bool bsp    = false;
-
-    switch(c)
-    {
-    case 'A': k = A;            alpha = true; lower = false; break;
-    case 'B': k = B;            alpha = true; lower = false; break;
-    case 'C': k = C;            alpha = true; lower = false; break;
-    case 'D': k = D;            alpha = true; lower = false; break;
-    case 'E': k = E;            alpha = true; lower = false; break;
-    case 'F': k = F;            alpha = true; lower = false; break;
-    case 'G': k = G;            alpha = true; lower = false; break;
-    case 'H': k = H;            alpha = true; lower = false; break;
-    case 'I': k = I;            alpha = true; lower = false; break;
-    case 'J': k = J;            alpha = true; lower = false; break;
-    case 'K': k = K;            alpha = true; lower = false; break;
-    case 'L': k = L;            alpha = true; lower = false; break;
-    case 'M': k = M;            alpha = true; lower = false; break;
-    case 'N': k = N;            alpha = true; lower = false; break;
-    case 'O': k = O;            alpha = true; lower = false; break;
-    case 'P': k = P;            alpha = true; lower = false; break;
-    case 'Q': k = Q;            alpha = true; lower = false; break;
-    case 'R': k = R;            alpha = true; lower = false; break;
-    case 'S': k = S;            alpha = true; lower = false; break;
-    case 'T': k = T;            alpha = true; lower = false; break;
-    case 'U': k = U;            alpha = true; lower = false; break;
-    case 'V': k = V;            alpha = true; lower = false; break;
-    case 'W': k = W;            alpha = true; lower = false; break;
-    case 'X': k = X;            alpha = true; lower = false; break;
-    case 'Y': k = Y;            alpha = true; lower = false; break;
-    case 'Z': k = Z;            alpha = true; lower = false; break;
-
-    case 'a': k = A;            alpha = true; lower = true;  break;
-    case 'b': k = B;            alpha = true; lower = true;  break;
-    case 'c': k = C;            alpha = true; lower = true;  break;
-    case 'd': k = D;            alpha = true; lower = true;  break;
-    case 'e': k = E;            alpha = true; lower = true;  break;
-    case 'f': k = F;            alpha = true; lower = true;  break;
-    case 'g': k = G;            alpha = true; lower = true;  break;
-    case 'h': k = H;            alpha = true; lower = true;  break;
-    case 'i': k = I;            alpha = true; lower = true;  break;
-    case 'j': k = J;            alpha = true; lower = true;  break;
-    case 'k': k = K;            alpha = true; lower = true;  break;
-    case 'l': k = L;            alpha = true; lower = true;  break;
-    case 'm': k = M;            alpha = true; lower = true;  break;
-    case 'n': k = N;            alpha = true; lower = true;  break;
-    case 'o': k = O;            alpha = true; lower = true;  break;
-    case 'p': k = P;            alpha = true; lower = true;  break;
-    case 'q': k = Q;            alpha = true; lower = true;  break;
-    case 'r': k = R;            alpha = true; lower = true;  break;
-    case 's': k = S;            alpha = true; lower = true;  break;
-    case 't': k = T;            alpha = true; lower = true;  break;
-    case 'u': k = U;            alpha = true; lower = true;  break;
-    case 'v': k = V;            alpha = true; lower = true;  break;
-    case 'w': k = W;            alpha = true; lower = true;  break;
-    case 'x': k = X;            alpha = true; lower = true;  break;
-    case 'y': k = Y;            alpha = true; lower = true;  break;
-    case 'z': k = Z;            alpha = true; lower = true;  break;
-
-    case '0': k = KEY0;         shift = alpha; break;
-    case '1': k = KEY1;         shift = alpha; break;
-    case '2': k = KEY2;         shift = alpha; break;
-    case '3': k = KEY3;         shift = alpha; break;
-    case '4': k = KEY4;         shift = alpha; break;
-    case '5': k = KEY5;         shift = alpha; break;
-    case '6': k = KEY6;         shift = alpha; break;
-    case '7': k = KEY7;         shift = alpha; break;
-    case '8': k = KEY8;         shift = alpha; break;
-    case '9': k = KEY9;         shift = alpha; break;
-    case '+': k = ADD;          alpha = true;  shift = true; break;
-    case '-': k = SUB;          alpha = true;  shift = true; break;
-    case '*': k = MUL;          alpha = true; xshift = true; break;
-    case '/': k = DIV;          alpha = true; xshift = true; break;
-    case '.': k = DOT;          shift = alpha; break;
-    case ',': k = DOT;          shift = !alpha; break;
-    case ' ': k = RUNSTOP;      alpha = true;  break;
-    case '?': k = RUNSTOP;      alpha = true;  xshift = true; break;
-    case '!': k = ADD;          alpha = true;  xshift  = true; break;
-    case '_': k = SUB;          alpha = true;  break;
-    case '%': k = RCL;          alpha = true;  break;
-    case ':': k = KEY0;         alpha = true;  del = true; break;
-    case ';': k = KEY0;         alpha = true; xshift = true;  break;
-    case '<': k = SIN;          alpha = true;  shift = true;  break;
-    case '=': k = COS;          alpha = true;  shift = true;  break;
-    case '>': k = TAN;          alpha = true;  shift = true;  break;
-    case '^': k = INV;          alpha = true;  shift = true;  break;
-    case '(': k = LOG;          alpha = true;  shift = true;  del = true; break;
-    case ')': k = LOG;          alpha = true;  shift = true;  bsp = true; break;
-    case '[': k = LN;           alpha = true;  shift = true;  del = true; break;
-    case ']': k = LN;           alpha = true;  shift = true;  bsp = true; break;
-    case '{': k = XEQ;          alpha = true;  shift = true;  del = true; break;
-    case '}': k = XEQ;          alpha = true;  shift = true;  bsp = true; break;
-    case '"': k = SWAP;         alpha = true;  shift = true;  bsp = true; break;
-    case '\'': k = CHS;         alpha = true;  shift = true;  bsp = true; break;
-    case '&': k = KEY1;         alpha = true; xshift = true; break;
-    case '@': k = KEY2;         alpha = true; xshift = true; break;
-#if 1
-    case '#': k = KEY3;         alpha = true; xshift = true; break;
-#else
-    case '#': k = KEY4;         alpha = false; shift = true; break;
-#endif
-    case '$': k = KEY4;         alpha = true; xshift = true; break;
-    case '\\': k = ADD;         alpha = true; xshift = true; break;
-    }
-
-    if (shift)
-        xshift = false;
-    else if (xshift)
-        shift = false;
-
-    if (k == RELEASE)
-    {
-        fprintf(stderr, "Cannot translate '%c' (%d)\n", c, c);
-    }
-    else
-    {
-        // Reach the required shift state
-        shifts(shift, xshift, alpha, lower);
-
-        // Send the key
-        itest(k);
-
-        // If we have a pair, like (), check if we need bsp or del
-        if (bsp)
-            itest(BSP, DOWN);
-        else if (del)
-            itest(SHIFT, BSP);
-    }
-
-    return *this;
+    const char buf[] = { c, 0 };
+    return itest(buf);
 }
 
 
-tests &tests::itest(cstring alpha)
+tests &tests::itest(cstring txt)
 // ----------------------------------------------------------------------------
 //   Type the string on the calculator's keyboard
 // ----------------------------------------------------------------------------
 {
-    while (*alpha)
-        itest(*alpha++);
+    utf8 u = utf8(txt);
+
+    while (*u)
+    {
+        unicode c = utf8_codepoint(u);
+        u = utf8_next(u);
+
+        nokeys();
+
+        bool alpha  = Input.alpha;
+        bool shift  = false;
+        bool xshift = false;
+        bool lower  = Input.lowercase;
+        key  k      = RELEASE;
+        bool del    = false;
+        bool bsp    = false;
+
+        switch(c)
+        {
+        case 'A': k = A;            alpha = true; lower = false; break;
+        case 'B': k = B;            alpha = true; lower = false; break;
+        case 'C': k = C;            alpha = true; lower = false; break;
+        case 'D': k = D;            alpha = true; lower = false; break;
+        case 'E': k = E;            alpha = true; lower = false; break;
+        case 'F': k = F;            alpha = true; lower = false; break;
+        case 'G': k = G;            alpha = true; lower = false; break;
+        case 'H': k = H;            alpha = true; lower = false; break;
+        case 'I': k = I;            alpha = true; lower = false; break;
+        case 'J': k = J;            alpha = true; lower = false; break;
+        case 'K': k = K;            alpha = true; lower = false; break;
+        case 'L': k = L;            alpha = true; lower = false; break;
+        case 'M': k = M;            alpha = true; lower = false; break;
+        case 'N': k = N;            alpha = true; lower = false; break;
+        case 'O': k = O;            alpha = true; lower = false; break;
+        case 'P': k = P;            alpha = true; lower = false; break;
+        case 'Q': k = Q;            alpha = true; lower = false; break;
+        case 'R': k = R;            alpha = true; lower = false; break;
+        case 'S': k = S;            alpha = true; lower = false; break;
+        case 'T': k = T;            alpha = true; lower = false; break;
+        case 'U': k = U;            alpha = true; lower = false; break;
+        case 'V': k = V;            alpha = true; lower = false; break;
+        case 'W': k = W;            alpha = true; lower = false; break;
+        case 'X': k = X;            alpha = true; lower = false; break;
+        case 'Y': k = Y;            alpha = true; lower = false; break;
+        case 'Z': k = Z;            alpha = true; lower = false; break;
+
+        case 'a': k = A;            alpha = true; lower = true;  break;
+        case 'b': k = B;            alpha = true; lower = true;  break;
+        case 'c': k = C;            alpha = true; lower = true;  break;
+        case 'd': k = D;            alpha = true; lower = true;  break;
+        case 'e': k = E;            alpha = true; lower = true;  break;
+        case 'f': k = F;            alpha = true; lower = true;  break;
+        case 'g': k = G;            alpha = true; lower = true;  break;
+        case 'h': k = H;            alpha = true; lower = true;  break;
+        case 'i': k = I;            alpha = true; lower = true;  break;
+        case 'j': k = J;            alpha = true; lower = true;  break;
+        case 'k': k = K;            alpha = true; lower = true;  break;
+        case 'l': k = L;            alpha = true; lower = true;  break;
+        case 'm': k = M;            alpha = true; lower = true;  break;
+        case 'n': k = N;            alpha = true; lower = true;  break;
+        case 'o': k = O;            alpha = true; lower = true;  break;
+        case 'p': k = P;            alpha = true; lower = true;  break;
+        case 'q': k = Q;            alpha = true; lower = true;  break;
+        case 'r': k = R;            alpha = true; lower = true;  break;
+        case 's': k = S;            alpha = true; lower = true;  break;
+        case 't': k = T;            alpha = true; lower = true;  break;
+        case 'u': k = U;            alpha = true; lower = true;  break;
+        case 'v': k = V;            alpha = true; lower = true;  break;
+        case 'w': k = W;            alpha = true; lower = true;  break;
+        case 'x': k = X;            alpha = true; lower = true;  break;
+        case 'y': k = Y;            alpha = true; lower = true;  break;
+        case 'z': k = Z;            alpha = true; lower = true;  break;
+
+        case '0': k = KEY0;         shift = alpha; break;
+        case '1': k = KEY1;         shift = alpha; break;
+        case '2': k = KEY2;         shift = alpha; break;
+        case '3': k = KEY3;         shift = alpha; break;
+        case '4': k = KEY4;         shift = alpha; break;
+        case '5': k = KEY5;         shift = alpha; break;
+        case '6': k = KEY6;         shift = alpha; break;
+        case '7': k = KEY7;         shift = alpha; break;
+        case '8': k = KEY8;         shift = alpha; break;
+        case '9': k = KEY9;         shift = alpha; break;
+        case '+': k = ADD;          alpha = true;  shift = true; break;
+        case '-': k = SUB;          alpha = true;  shift = true; break;
+        case '*': k = MUL;          alpha = true; xshift = true; break;
+        case '/': k = DIV;          alpha = true; xshift = true; break;
+        case '.': k = DOT;          shift = alpha; break;
+        case ',': k = DOT;          shift = !alpha; break;
+        case ' ': k = RUNSTOP;      alpha = true;  break;
+        case '?': k = RUNSTOP;      alpha = true;  xshift = true; break;
+        case '!': k = ADD;          alpha = true;  xshift  = true; break;
+        case '_': k = SUB;          alpha = true;  break;
+        case '%': k = RCL;          alpha = true;  break;
+        case ':': k = KEY0;         alpha = true;  del = true; break;
+        case ';': k = KEY0;         alpha = true; xshift = true;  break;
+        case '<': k = SIN;          alpha = true;  shift = true;  break;
+        case '=': k = COS;          alpha = true;  shift = true;  break;
+        case '>': k = TAN;          alpha = true;  shift = true;  break;
+        case '^': k = INV;          alpha = true;  shift = true;  break;
+        case '(': k = LOG;          alpha = true;  shift = true;  del = true; break;
+        case ')': k = LOG;          alpha = true;  shift = true;  bsp = true; break;
+        case '[': k = LN;           alpha = true;  shift = true;  del = true; break;
+        case ']': k = LN;           alpha = true;  shift = true;  bsp = true; break;
+        case '{': k = XEQ;          alpha = true;  shift = true;  del = true; break;
+        case '}': k = XEQ;          alpha = true;  shift = true;  bsp = true; break;
+        case '"': k = SWAP;         alpha = true;  shift = true;  bsp = true; break;
+        case '\'': k = CHS;         alpha = true;  shift = true;  bsp = true; break;
+        case '&': k = KEY1;         alpha = true; xshift = true; break;
+        case '@': k = KEY2;         alpha = true; xshift = true; break;
+#if 1
+        case '#': k = KEY3;         alpha = true; xshift = true; break;
+#else
+        case '#': k = KEY4;         alpha = false; shift = true; break;
+#endif
+        case '$': k = KEY4;         alpha = true; xshift = true; break;
+        case '\\': k = ADD;         alpha = true; xshift = true; break;
+        case L'«': k = RUNSTOP;     alpha = false; shift = true; del = true; break;
+        case L'»': k = RUNSTOP;     alpha = false; shift = true; bsp = true; break;
+        }
+
+        if (shift)
+            xshift = false;
+        else if (xshift)
+            shift = false;
+
+        if (k == RELEASE)
+        {
+            fprintf(stderr, "Cannot translate '%c' (%d)\n", c, c);
+        }
+        else
+        {
+            // Reach the required shift state
+            shifts(shift, xshift, alpha, lower);
+
+            // Send the key
+            itest(k);
+
+            // If we have a pair, like (), check if we need bsp or del
+            if (bsp)
+                itest(BSP, DOWN);
+            else if (del)
+                itest(SHIFT, BSP);
+        }
+    }
     return *this;
 }
 

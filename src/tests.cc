@@ -321,9 +321,9 @@ void tests::arithmetic()
 
     step("Integer subtraction overflow");
     test(CLEAR, 0xFFFFFFFFFFFFFFFFull, CHS, ENTER, 1, SUB)
-        .type(object::ID_decimal128).expect("-18446744073709551616");
+        .type(object::ID_neg_bignum).expect("-18446744073709551616");
     test(CLEAR, -3, ENTER, 0xFFFFFFFFFFFFFFFFull, SUB)
-        .type(object::ID_decimal128).expect("-18446744073709551618");
+        .type(object::ID_neg_bignum).expect("-18446744073709551618");
 
     step("Subtracting ten small integers at random");
     for (int i = 0; i < 10; i++)
@@ -377,11 +377,11 @@ void tests::arithmetic()
             .expect(x);
     }
 
-    step("Division with real promotion");
+    step("Division with fractional output");
     test(CLEAR, 1, ENTER, 3, DIV)
-        .match("0.333*");
-    test(CLEAR, 2, ENTER, 3, DIV)
-        .match("0.66*7");
+        .match("1/3");
+    test(CLEAR, 2, ENTER, 5, DIV)
+        .match("2/5");
 }
 
 
@@ -463,6 +463,7 @@ tests &tests::position(cstring sourceFile, uint sourceLine)
 {
     file = sourceFile;
     line = sourceLine;
+    refresh = Stack.refresh;
     return *this;
 }
 

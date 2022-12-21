@@ -62,7 +62,7 @@ ID(directory)
 ID(text)
 ID(list)
 ID(program)
-ID(block)
+ID(block)                       // Blocks, e.g. inside loops
 ID(array)
 ID(menu)
 

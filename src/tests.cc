@@ -249,7 +249,7 @@ void tests::data_types()
 
     step("Program");
     cstring prgm = "« 1 + sin »";
-    test(CLEAR, RUNSTOP, 1, ADD, "sin", ENTER)
+    test(CLEAR, SHIFT, RUNSTOP, 1, ADD, "sin", ENTER)
         .type(object::ID_program).expect(prgm);
 
     clear();

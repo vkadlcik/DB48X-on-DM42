@@ -143,8 +143,8 @@ COMMAND(Eval)
 //   Evaluate an object
 // ----------------------------------------------------------------------------
 {
-    object_p x = RT.pop();
-    return x->execute();
+    if (object_p x = RT.pop())
+        return x->execute();
     return ERROR;
 }
 

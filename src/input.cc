@@ -2081,6 +2081,7 @@ bool input::handle_editing(int key)
         switch(key)
         {
         case KEY_XEQ:
+            // XEQ is used to enter algebraic / equation objects
             if ((!editing  || mode != HEXADECIMAL) && !shift && !xshift)
             {
                 edit('\'', ALGEBRAIC);
@@ -2091,12 +2092,14 @@ bool input::handle_editing(int key)
         case KEY_RUN:
             if (shift)
             {
+                // Shift R/S = PRGM enters a program symbol
                 edit(L'«', PROGRAM);
-                 return true;
+                last = 0;
+                return true;
             }
             else if (editing)
             {
-                // Stick to space role while editing, do not EVAL
+                // Stick to space role while editing, do not EVAL, repeat
                 edit(' ', PROGRAM);
                 repeat = true;
                 return true;

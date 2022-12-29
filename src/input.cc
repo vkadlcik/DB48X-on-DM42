@@ -2098,6 +2098,7 @@ bool input::handle_editing(int key)
             {
                 // Stick to space role while editing, do not EVAL
                 edit(' ', PROGRAM);
+                repeat = true;
                 return true;
             }
             break;

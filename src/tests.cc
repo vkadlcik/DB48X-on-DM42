@@ -180,9 +180,13 @@ void tests::keyboard_entry()
     test(CLEAR, special).editor(special);
 
     step("Separators");
-    cstring seps = "[](){}\"Hello\"'Test'";
-    cstring sepsWithSpaces = "[] ( ) { } \"Hello\" 'Test '";
-    test(CLEAR, seps).editor(sepsWithSpaces).wait(500);
+    cstring seps = "\"Hello [A] (B) {C} 'Test' D";
+    test(CLEAR, seps).editor(seps).wait(500);
+
+    step("Separators with auto-spacing");
+    cstring seps2 = "{}()[]";
+    cstring seps2auto = "{ } ( ) []";
+    test(CLEAR, seps2).editor(seps2auto).wait(500);
 
     step("Key repeat");
     test(CLEAR, LONGPRESS, SHIFT, LONGPRESS, A).wait(1000).test(RELEASE)

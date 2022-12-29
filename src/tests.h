@@ -145,10 +145,10 @@ struct tests
         // Special stuff
         ALPHA      = 100,       // Set alpha
         LOWERCASE  = 101,       // Set lowercase
-        LONGPRESS,              // Force long press
-        CLEAR,                  // Clear the editor
-        NOKEYS,                 // Wait until keys buffer is empty
-        REFRESH,                // Wait until there is a screen refresh
+        LONGPRESS  = 102,       // Force long press
+        CLEAR      = 103,       // Clear the calculator state
+        NOKEYS     = 104,       // Wait until keys buffer is empty
+        REFRESH    = 105,       // Wait until there is a screen refresh
     };
 
   protected:

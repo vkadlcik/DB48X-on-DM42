@@ -603,7 +603,7 @@ tests &tests::itest(tests::key k, bool release)
 
     // Wait for the RPL thread to process the keys (to be revisited on DM42)
     while (!key_remaining())
-        sys_delay(20);
+        sys_delay(2);
 
     key_push(k);
     if (longpress)
@@ -612,12 +612,12 @@ tests &tests::itest(tests::key k, bool release)
         longpress = false;
         release = false;
     }
-    sys_delay(20);
+    sys_delay(2);
 
     if (release && k != RELEASE)
     {
         while (!key_remaining())
-            sys_delay(20);
+            sys_delay(2);
         key_push(RELEASE);
     }
 
@@ -925,11 +925,10 @@ tests &tests::clear()
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    Input.clear_editor();
-    runtime &rt = runtime::RT;
-    while (rt.depth())
-        rt.pop();
-    rt.clear_error();
+    key_push(CLEAR);
+    while(!key_empty())
+        sys_delay(2);
+    sys_delay(2);
     return *this;
 }
 
@@ -951,7 +950,7 @@ tests &tests::nokeys()
 // ----------------------------------------------------------------------------
 {
     while (!key_empty())
-        sys_delay(20);
+        sys_delay(2);
     return *this;
 }
 
@@ -962,7 +961,7 @@ tests &tests::refreshed()
 // ----------------------------------------------------------------------------
 {
     while (lcd_needsupdate == lcd_update)
-        sys_delay(20);
+        sys_delay(2);
     return *this;
 }
 

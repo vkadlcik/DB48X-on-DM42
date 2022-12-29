@@ -41,6 +41,10 @@
 #include "target.h"
 #include "util.h"
 
+#ifdef SIMULATOR
+#include "tests.h"
+#endif // SIMULATOR
+
 #include <ctype.h>
 #include <dmcp.h>
 #include <stdio.h>
@@ -282,6 +286,19 @@ bool input::key(int key, bool repeating)
     longpress = key && repeating;
     record(input, "Key %d shifts %d longpress", key, shift_plane(), longpress);
     repeat = false;
+
+#if SIMULATOR
+    // Special keu to clear calculator state
+    if (key == tests::CLEAR)
+    {
+        clear_editor();
+        runtime &rt = runtime::RT;
+        while (rt.depth())
+            rt.pop();
+        rt.clear_error();
+        return true;
+    }
+#endif // SIMULATOR
 
     if (RT.error())
     {

@@ -559,11 +559,11 @@ void bid32_hypot(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py)
 //
 // ============================================================================
 
-template object::result arithmetic::evaluate<add>();
-template object::result arithmetic::evaluate<sub>();
-template object::result arithmetic::evaluate<mul>();
+template object::result arithmetic::evaluate<struct add>();
+template object::result arithmetic::evaluate<struct sub>();
+template object::result arithmetic::evaluate<struct mul>();
 template object::result arithmetic::evaluate<struct div>();
-template object::result arithmetic::evaluate<mod>();
-template object::result arithmetic::evaluate<rem>();
-template object::result arithmetic::evaluate<pow>();
-template object::result arithmetic::evaluate<hypot>();
+template object::result arithmetic::evaluate<struct mod>();
+template object::result arithmetic::evaluate<struct rem>();
+template object::result arithmetic::evaluate<struct pow>();
+template object::result arithmetic::evaluate<struct hypot>();

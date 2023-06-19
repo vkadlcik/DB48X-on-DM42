@@ -89,9 +89,9 @@ static bool log_arg_check(bid128 &x)
 }
 
 
-template<> bool arg_check<log>  (bid128 &x) { return log_arg_check(x); }
-template<> bool arg_check<log2> (bid128 &x) { return log_arg_check(x); }
-template<> bool arg_check<log10>(bid128 &x) { return log_arg_check(x); }
+template<> bool arg_check<struct log>  (bid128 &x) { return log_arg_check(x); }
+template<> bool arg_check<struct log2> (bid128 &x) { return log_arg_check(x); }
+template<> bool arg_check<struct log10>(bid128 &x) { return log_arg_check(x); }
 
 
 static bool sqrt_arg_check(bid128 &x)
@@ -108,7 +108,7 @@ static bool sqrt_arg_check(bid128 &x)
 }
 
 
-template<> bool arg_check<sqrt>(bid128 &x) { return sqrt_arg_check(x); }
+template<> bool arg_check<struct sqrt>(bid128 &x) { return sqrt_arg_check(x); }
 
 
 template<typename Func>
@@ -128,32 +128,32 @@ object::result function::evaluate()
 //
 // ============================================================================
 
-template object::result function::evaluate<sqrt>();
-template object::result function::evaluate<cbrt>();
+template object::result function::evaluate<struct sqrt>();
+template object::result function::evaluate<struct cbrt>();
 
-template object::result function::evaluate<sin>();
-template object::result function::evaluate<cos>();
-template object::result function::evaluate<tan>();
-template object::result function::evaluate<asin>();
-template object::result function::evaluate<acos>();
-template object::result function::evaluate<atan>();
+template object::result function::evaluate<struct sin>();
+template object::result function::evaluate<struct cos>();
+template object::result function::evaluate<struct tan>();
+template object::result function::evaluate<struct asin>();
+template object::result function::evaluate<struct acos>();
+template object::result function::evaluate<struct atan>();
 
-template object::result function::evaluate<sinh>();
-template object::result function::evaluate<cosh>();
-template object::result function::evaluate<tanh>();
-template object::result function::evaluate<asinh>();
-template object::result function::evaluate<acosh>();
-template object::result function::evaluate<atanh>();
+template object::result function::evaluate<struct sinh>();
+template object::result function::evaluate<struct cosh>();
+template object::result function::evaluate<struct tanh>();
+template object::result function::evaluate<struct asinh>();
+template object::result function::evaluate<struct acosh>();
+template object::result function::evaluate<struct atanh>();
 
-template object::result function::evaluate<log1p>();
-template object::result function::evaluate<expm1>();
-template object::result function::evaluate<log>();
-template object::result function::evaluate<log10>();
-template object::result function::evaluate<log2>();
-template object::result function::evaluate<exp>();
-template object::result function::evaluate<exp10>();
-template object::result function::evaluate<exp2>();
-template object::result function::evaluate<erf>();
-template object::result function::evaluate<erfc>();
-template object::result function::evaluate<tgamma>();
-template object::result function::evaluate<lgamma>();
+template object::result function::evaluate<struct log1p>();
+template object::result function::evaluate<struct expm1>();
+template object::result function::evaluate<struct log>();
+template object::result function::evaluate<struct log10>();
+template object::result function::evaluate<struct log2>();
+template object::result function::evaluate<struct exp>();
+template object::result function::evaluate<struct exp10>();
+template object::result function::evaluate<struct exp2>();
+template object::result function::evaluate<struct erf>();
+template object::result function::evaluate<struct erfc>();
+template object::result function::evaluate<struct tgamma>();
+template object::result function::evaluate<struct lgamma>();

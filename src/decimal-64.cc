@@ -41,7 +41,8 @@
 #include <algorithm>
 #include <cstdlib>
 
-using std::min, std::max;
+using std::min;
+using std::max;
 
 RECORDER(decimal64, 32, "Decimal64 data type");
 

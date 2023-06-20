@@ -159,7 +159,7 @@ object::result loop::object_parser(id       type,
     size_t  max      = p.length;
     size_t  len      = max;
     size_t  prealloc = rt.allocated();
-    gcbytes scratch  = rt.scratchpad() + prealloc;
+    gcbytes scratch  = rt.scratchpad();
     gcobj   obj1     = nullptr;
     gcobj   obj2     = nullptr;
 

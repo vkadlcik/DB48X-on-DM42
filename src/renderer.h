@@ -49,7 +49,7 @@ struct renderer
     bool put(char c);
     bool put(cstring s)
     {
-        for (char c = *s; c; c = *s++)
+        for (char c = *s++; c; c = *s++)
             if (!put(c))
                 return false;
         return true;

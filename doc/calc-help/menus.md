@@ -16,7 +16,6 @@ by cathegory. It includes the following submenus:
 * [Vars](#VariablesMenu): User variables
 
 
-
 ## MathMenu
 
 The *Math menu* gives access to mathematical functions like [SIN](#sin) in your
@@ -30,12 +29,27 @@ calculator. It includes the following submenus:
 * [Matrix](#MatrixMenu): Matrices and vectors
 * [Solve](#SolverMenu): Numerical solver
 
-## ArithmeticMenu
 
-The *Arithmetic menu* gives access to arithmetic functions in your
-calculator. It includes the following submenus:
+## VariablesMenu (VARS)
 
-* [Real](#RealMenu): Operations on real numbers
-* [Integer](#IntegerMenu): Operation on integer numnbers
-* [Modulo](#ModuloMenu): Modulo arithmetic
-* [Poly](#PolynomialsMenu): Operations on polynomials
+The variables menu displays the variables in the current directory.
+It is a three row menu, where for each variable:
+
+* The primary function [evaluates the variable](#VariablesMenuExecute)
+* The first shifted function [recalls the variable](#VariablesMenuRecall)
+* The second shifted function [stores in the variable](#VariablesMenuStore)
+
+## VariablesMenuExecute
+
+Hitting the primary function in the [Vars menu](#VariablesMenu) evaluates the
+corresponding variable.
+
+## VariablesMenuRecall
+
+Hitting the first shifted function in the [Vars menu](#VariablesMenu) will
+[recall](#Recall) the corresponding variable on the stack.
+
+## VariablesMenuStore
+
+Hitting the second shifted function in the [Vars menu](#VariablesMenu) will
+[store](#Store) the top of stack in the corresponding variable.

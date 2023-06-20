@@ -364,7 +364,14 @@ struct runtime
         operator bool()                         { return safe != nullptr; }
         operator int()                          = delete;
         gcptr &operator =(const gcptr &o)       { safe = o.safe; return *this; }
+        gcptr &operator++()                     { safe++; return *this; }
         gcptr &operator+=(size_t sz)            { safe += sz; return *this; }
+        friend gcptr operator+(const gcptr &left, size_t right)
+        {
+            gcptr result = left;
+            result += right;
+            return result;
+        }
 
     private:
         byte  *safe;
@@ -391,6 +398,13 @@ struct runtime
         Obj &operator *()               { return *((Obj *) safe); }
         Obj *operator ->() const        { return (Obj *) safe; }
         gcp &operator++()               { safe += sizeof(Obj); return *this; }
+        gcp &operator+=(size_t sz)      { safe += sz*sizeof(Obj);return *this; }
+        friend gcp operator+(const gcp &left, size_t right)
+        {
+            gcp result = left;
+            result += right;
+            return result;
+        }
 #pragma GCC diagnostic pop
     };
 

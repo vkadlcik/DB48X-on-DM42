@@ -24,7 +24,7 @@ EJECT=hdiutil eject $(MOUNTPOINT)
 #==============================================================================
 
 # default action: build all
-all: $(TARGET).pgm help/$(TARGET).html
+all: $(TARGET).pgm help/$(TARGET).md
 install: all help/$(TARGET).md
 	(tar cf - $(TARGET).pgm help/$(TARGET).md | \
 	(cd $(MOUNTPOINT) && tar xvf -)) && $(EJECT)

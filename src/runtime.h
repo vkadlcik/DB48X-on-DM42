@@ -362,6 +362,7 @@ struct runtime
         operator byte  *() const                { return safe; }
         operator byte *&()                      { return safe; }
         operator bool()                         { return safe != nullptr; }
+        operator int()                          = delete;
         gcptr &operator =(const gcptr &o)       { safe = o.safe; return *this; }
         gcptr &operator+=(size_t sz)            { safe += sz; return *this; }
 

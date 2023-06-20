@@ -175,7 +175,7 @@ intptr_t list::object_renderer(renderer &r, runtime &rt,
             r.put(' ');
         open = 1;
 
-        object_p obj = object_p(start + offset);
+        object_p obj = object_p((byte_p) start + offset);
         size_t   objsize = obj->size();
 
         // Render the object in what remains (may GC)

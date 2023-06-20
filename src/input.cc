@@ -1009,9 +1009,9 @@ void input::draw_editor()
             r++;
             continue;
         }
-        int cw     = font->width(c);
-        if (x +cw >= 0 && x < LCD_W)
-            x      = Screen.glyph(x, y, c, font);
+        int cw = font->width(c);
+        if (x + cw >= 0 && x < LCD_W)
+            x = Screen.glyph(x, y, c, font);
         else
             x += cw;
     }

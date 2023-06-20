@@ -53,6 +53,10 @@ bool renderer::put(char c)
     if (written >= length)
         return false;
 
+    // Render flat for stack display
+    if (c == '\n' && flat)
+        c = ' ';
+
     if (target)
     {
         target[written++] = c;

@@ -38,9 +38,9 @@ struct renderer
 //  Arguments to the RENDER command
 // ----------------------------------------------------------------------------
 {
-    renderer(char *buffer = nullptr, size_t length = ~0U)
+    renderer(char *buffer = nullptr, size_t length = ~0U, bool flat = false)
         : target(buffer), length(length), written(0), tabs(0),
-          eq(false) {}
+          eq(false), flat(flat) {}
     renderer(bool equation)
         : target(nullptr), length(0), written(0), tabs(0),
           eq(equation) {}
@@ -98,7 +98,8 @@ protected:
     size_t      length;         // Available space
     size_t      written;        // Number of bytes written
     uint        tabs;           // Amount of indent
-    bool        eq : 1;         // As equation
+    bool        eq   : 1;       // As equation
+    bool        flat : 1;       // Flat (for stack rendering)
 };
 
 #endif // RENDERER_H

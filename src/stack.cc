@@ -31,7 +31,7 @@
 
 #include "graphics.h"
 #include "input.h"
-#include "object.h"
+#include "renderer.h"
 #include "runtime.h"
 #include "target.h"
 
@@ -108,7 +108,8 @@ void stack::draw_stack()
         Screen.text(hdrx - w, y, utf8(buf), StackFont);
 
         gcobj  obj  = RT.stack(level);
-        size_t len = obj->render(buf, sizeof(buf));
+        renderer r(buf, sizeof(buf) - 1, true);
+        size_t len = obj->render(r);
         if (len >= sizeof(buf))
             len = sizeof(buf) - 1;
         buf[len]  = 0;

@@ -125,7 +125,7 @@ object_p object::parse(utf8 source, size_t &size, runtime &rt)
     parser p(source, size);
     result r   = SKIP;
     utf8   err = nullptr;
-    utf8   src = nullptr;
+    utf8   src = source;
 
     // Try parsing with the various handlers
     for (uint i = 0; r == SKIP && i < NUM_IDS; i++)

@@ -199,7 +199,7 @@ bool command::is_separator(unicode code)
 //   Check if the code point at given string is a separator
 // ----------------------------------------------------------------------------
 {
-    static utf8 separators = utf8(" ;,.'\"<=>≤≠≥[](){}«»");
+    static utf8 separators = utf8(" ;,.'\"<=>≤≠≥[](){}«»\n\t");
     for (utf8 p = separators; *p; p = utf8_next(p))
         if (code == utf8_codepoint(p))
             return true;

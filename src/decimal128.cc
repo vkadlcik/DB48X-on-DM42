@@ -128,6 +128,15 @@ OBJECT_PARSER_BODY(decimal128)
     while (s < last && (*s >= '0' && *s <= '9'))
         s++;
 
+    // Check decimal dot
+    bool hadDecimalDot = *s == Settings.decimalDot;
+    if (hadDecimalDot)
+    {
+        s++;
+        while (s < last && (*s >= '0' && *s <= '9'))
+            s++;
+    }
+
     // If we had no digits, check for special names or exit
     if (s == digits)
     {
@@ -136,15 +145,6 @@ OBJECT_PARSER_BODY(decimal128)
             strncasecmp(cstring(s), "NaN", sizeof("NaN") - 1) != 0)
             return SKIP;
         record(decimal128, "Recognized NaN or Inf", s);
-    }
-
-    // Check decimal dot
-    bool hadDecimalDot = *s == Settings.decimalDot;
-    if (hadDecimalDot)
-    {
-        s++;
-        while (s < last && (*s >= '0' && *s <= '9'))
-            s++;
     }
 
     // Check how many digits were given

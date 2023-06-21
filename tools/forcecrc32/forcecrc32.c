@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 	char temp[21] = {0};
-	sprintf(temp, "%" PRIu64, offset);
+	snprintf(temp, sizeof(temp), "%" PRIu64, offset);
 	if (strcmp(temp, argv[2]) != 0) {
 		fprintf(stderr, "Error: Invalid byte offset\n");
 		return EXIT_FAILURE;

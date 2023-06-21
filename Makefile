@@ -30,6 +30,10 @@ TOOLS = tools
 # CRC adjustment
 CRCFIX = $(TOOLS)/forcecrc32/forcecrc32
 
+FLASH=$(BUILD)/$(TARGET)_flash.bin
+QSPI =$(BUILD)/$(TARGET)_qspi.bin
+
+
 
 #==============================================================================
 #
@@ -240,10 +244,11 @@ $(BUILD)/%.o: %.s Makefile | $(BUILD)
 $(BUILD)/$(TARGET).elf: $(OBJECTS) Makefile
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 $(TARGET).pgm: $(BUILD)/$(TARGET).elf Makefile $(CRCFIX)
-	$(OBJCOPY) --remove-section .qspi -O ihex    $<  $(BUILD)/$(TARGET)_flash.hex
-	$(OBJCOPY) --remove-section .qspi -O binary  $<  $(BUILD)/$(TARGET)_flash.bin
-	$(OBJCOPY) --only-section   .qspi -O ihex    $<  $(BUILD)/$(TARGET)_qspi.hex
-	$(OBJCOPY) --only-section   .qspi -O binary  $<  $(BUILD)/$(TARGET)_qspi.bin
+	$(OBJCOPY) --remove-section .qspi -O binary  $<  $(FLASH)
+	$(OBJCOPY) --remove-section .qspi -O ihex    $<  $(FLASH:.bin=.hex)
+	$(OBJCOPY) --only-section   .qspi -O binary  $<  $(QSPI)
+	$(OBJCOPY) --only-section   .qspi -O ihex    $<  $(QSPI:.bin=.hex)
+	$(TOOLS)/adjust_crc $(CRCFIX) $(QSPI)
 	$(TOOLS)/check_qspi_crc $(TARGET) $(BUILD)/$(TARGET)_qspi.bin src/qspi_crc.h || ( $(MAKE) clean && false )
 	$(TOOLS)/add_pgm_chsum $(BUILD)/$(TARGET)_flash.bin $@
 	$(SIZE) $<

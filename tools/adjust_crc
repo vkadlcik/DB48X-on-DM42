@@ -1,0 +1,8 @@
+#!/bin/bash
+
+crcfix="$1"
+qspi="$2"
+
+sz=$(cat $qspi | wc -c)
+echo -n -e '\x00\x00\x00\x00' >> $qspi
+$crcfix $qspi $sz 000CFED6

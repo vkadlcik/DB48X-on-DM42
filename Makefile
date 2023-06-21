@@ -44,8 +44,9 @@ QSPI =$(BUILD)/$(TARGET)_qspi.bin
 # default action: build all
 all: $(TARGET).pgm help/$(TARGET).md
 install: all help/$(TARGET).md
-	(tar cf - $(TARGET).pgm help/$(TARGET).md | \
-	(cd $(MOUNTPOINT) && tar xvf -)) && $(EJECT)
+	cp -v $(TARGET).pgm help/$(TARGET).md $(MOUNTPOINT) && $(EJECT)
+install-qspi: all help/$(TARGET).md
+	cp -v $(TARGET).pgm help/$(TARGET).md $(QSPI) $(MOUNTPOINT) && $(EJECT)
 sim: sim/simulator.mak recorder/config.h help/$(TARGET).md .ALWAYS
 	cd sim; make -f $(<F)
 sim/simulator.mak: sim/simulator.pro

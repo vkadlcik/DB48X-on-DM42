@@ -2550,7 +2550,7 @@ static const byte defaultShiftedCommand[2*input::NUM_KEYS] =
 };
 
 
-static const byte defaultLongShiftedCommand[2*input::NUM_KEYS] =
+static const byte defaultSecondShiftedCommand[2*input::NUM_KEYS] =
 // ----------------------------------------------------------------------------
 //   RPL code for the commands assigned by default to long-shifted keys
 // ----------------------------------------------------------------------------
@@ -2614,7 +2614,7 @@ static const byte *const defaultCommand[input::NUM_PLANES] =
 {
     defaultUnshiftedCommand,
     defaultShiftedCommand,
-    defaultLongShiftedCommand,
+    defaultSecondShiftedCommand,
 };
 
 

@@ -790,21 +790,18 @@ tests &tests::itest(cstring txt)
         case '^': k = INV;          alpha = true;  shift = true;  break;
         case '(': k = LOG;          alpha = true;  shift = true;  del = true; break;
         case ')': k = LOG;          alpha = true;  shift = true;  bsp = true; break;
-        case '[': k = LN;           alpha = true;  shift = true;  del = true; break;
-        case ']': k = LN;           alpha = true;  shift = true;  bsp = true; break;
-        case '{': k = XEQ;          alpha = true;  shift = true;  del = true; break;
-        case '}': k = XEQ;          alpha = true;  shift = true;  bsp = true; break;
-        case '"': k = SWAP;         alpha = true;  shift = true;  bsp = true; break;
-        case '\'': k = CHS;         alpha = true;  shift = true;  bsp = true; break;
+        case '[': k = SWAP;         alpha = true;  shift = true;  del = true; break;
+        case ']': k = SWAP;         alpha = true;  shift = true;  bsp = true; break;
+        case '{': k = CHS;          alpha = true;  shift = true;  del = true; break;
+        case '}': k = CHS;          alpha = true;  shift = true;  bsp = true; break;
+        case '"': k = LN;           alpha = true;  shift = true;  bsp = true; break;
+        case '\'': k = XEQ;         alpha = true;  shift = true;  bsp = true; break;
         case '&': k = KEY1;         alpha = true; xshift = true; break;
         case '@': k = KEY2;         alpha = true; xshift = true; break;
-#if 1
-        case '#': k = KEY3;         alpha = true; xshift = true; break;
-#else
-        case '#': k = KEY4;         alpha = false; shift = true; break;
-#endif
-        case '$': k = KEY4;         alpha = true; xshift = true; break;
+        case '#': k = KEY4;         alpha = true; xshift = true; break;
+        case '$': k = KEY3;         alpha = true; xshift = true; break;
         case '\\': k = ADD;         alpha = true; xshift = true; break;
+        case '\n': k = BSP;         alpha = true; xshift = true; break;
         case L'«': k = RUNSTOP;     alpha = false; shift = true; del = true; break;
         case L'»': k = RUNSTOP;     alpha = false; shift = true; bsp = true; break;
         }

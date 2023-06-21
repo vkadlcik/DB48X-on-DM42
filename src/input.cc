@@ -2131,6 +2131,8 @@ bool input::handle_editing(int key)
         switch (key)
         {
         case KEY_BSP:
+            if (xshift)
+                return false;
             repeat = true;
             if (shift && cursor < editing)
             {
@@ -2289,7 +2291,7 @@ bool input::handle_alpha(int key)
 {
     bool editing = RT.editing();
     bool hex = editing && mode == HEXADECIMAL && key >= KB_A && key <= KB_F;
-    if (!alpha || !key || (key == KEY_ENTER && !xshift) || key == KEY_BSP ||
+    if (!alpha || !key || ((key == KEY_ENTER || key == KEY_BSP) && !xshift) ||
         (key >= KEY_F1 && key <= KEY_F6))
         if (!hex)
             return false;
@@ -2313,9 +2315,9 @@ bool input::handle_alpha(int key)
 
     static const unicode shifted[] =
     {
-        L'Σ', '^', L'√', '(', '[', '{',
+        L'Σ', '^', L'√', '(', '"', '\'',
         L'▶', '%', L'π', '<', '=', '>',
-        '_',  '"', '\'', L'⁳', '_',
+        '_',  '[', '{', L'⁳', '_',
         '_', '7', '8', '9', L'÷',
         '_', '4', '5', '6', L'×',
         '_', '1', '2', '3', '-',
@@ -2326,10 +2328,10 @@ bool input::handle_alpha(int key)
     {
         L'∫', L'↑', L'∜', L'μ', L'∡', L'°',
         L'←', L'→', L'↓', L'≤', L'≠', L'≥',
-        '\n', L'⇄', L'…', L'£', '_',
+        '"', L'⇄', L'…', L'£', '\n',
         '_',  '~', '\\', L'∏',  '/',
-        '_',  '$',  L'∞', '|' , '*',
-        '_',  '&',   '@', '#',  '_',
+        '_',  '#',  L'∞', '|' , '*',
+        '_',  '&',   '@', '$',  '_',
         '_',  ';',  L'·', '?',  '!'
     };
 

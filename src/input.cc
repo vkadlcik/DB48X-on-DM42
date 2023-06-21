@@ -2168,8 +2168,9 @@ bool input::handle_editing(int key)
             }
             else if (xshift)
             {
-                // Process it as alpha (CR)
-                return false;
+                // Insert quotes and begin editing text
+                edit('\"', TEXT);
+                alpha = true;
             }
             else
             {
@@ -2244,6 +2245,13 @@ bool input::handle_editing(int key)
                     lowercase = !lowercase;
                 else
                     alpha     = true;
+                return true;
+            }
+            else if (xshift)
+            {
+                // Insert quotes and begin editing
+                edit('\"', TEXT);
+                alpha = true;
                 return true;
             }
             break;

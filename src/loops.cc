@@ -211,6 +211,8 @@ object::result loop::object_parser(id       type,
             // Copy the parsed object to the scratch pad (may GC)
             size_t objsize = obj->size();
             byte *objcopy = rt.allocate(objsize);
+            if (!objcopy)
+                return ERROR;
             memmove(objcopy, (byte *) obj, objsize);
 
             // Jump past what we parsed

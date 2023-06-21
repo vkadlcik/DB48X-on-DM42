@@ -98,8 +98,7 @@ object::result list::object_parser(id type,
         s = utf8_next(s);
     }
 
-    size_t  prealloc = rt.allocated();
-    gcbytes scratch = rt.scratchpad() + prealloc;
+    scribble scr = rt;
     while (size_t(utf8(s) - utf8(p.source)) < max)
     {
         cp = utf8_codepoint(s);
@@ -142,13 +141,13 @@ object::result list::object_parser(id type,
     }
 
     // Create the object
-    size_t alloc  = rt.allocated() - prealloc;
-    size_t parsed = utf8(s) - utf8(p.source);
-    p.end         = parsed;
-    p.out         = rt.make<list>(type, scratch, alloc);
+    gcbytes scratch = scr.scratch();
+    size_t  alloc   = scr.growth();
+    size_t  parsed  = utf8(s) - utf8(p.source);
+    p.end           = parsed;
+    p.out           = rt.make<list>(type, scratch, alloc);
 
     // Restore the scratchpad
-    rt.free(alloc);
     return OK;
 }
 

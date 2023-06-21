@@ -155,21 +155,20 @@ object::result loop::object_parser(id       type,
 //   may allocate new temporaries, which itself may cause garbage collection.
 {
     // We have to be careful that we may have to GC to make room for loop
-    gcutf8  src      = p.source;
-    size_t  max      = p.length;
-    size_t  len      = max;
-    size_t  prealloc = rt.allocated();
-    gcbytes scratch  = rt.scratchpad();
-    gcobj   obj1     = nullptr;
-    gcobj   obj2     = nullptr;
+    gcutf8   src  = p.source;
+    size_t   max  = p.length;
+    gcobj    obj1 = nullptr;
+    gcobj    obj2 = nullptr;
 
     // Loop over the two or three separators
     for (uint step = 0;
          step < steps && size_t(utf8(src) - utf8(p.source)) < max;
          step++)
     {
-        cstring sep   = cstring(separators[step]);
-        bool    found = false;
+        cstring  sep   = cstring(separators[step]);
+        size_t   len   = strlen(sep);
+        bool     found = false;
+        scribble scr   = rt;
 
         // Scan the body of the loop
         while (!found && size_t(utf8(src) - utf8(p.source)) < max)
@@ -183,7 +182,6 @@ object::result loop::object_parser(id       type,
             }
 
             // Check if we have the separator
-            len = strlen(sep);
             if (len <= max
                 && strncasecmp(cstring(utf8(src)), sep, len) == 0
                 && (len >= max || command::is_separator(utf8(src) + len)))
@@ -202,11 +200,7 @@ object::result loop::object_parser(id       type,
             size_t length = max > done ? max - done : 0;
             gcobj obj = object::parse(src, length);
             if (!obj)
-            {
-                size_t alloc  = rt.allocated() - prealloc;
-                rt.free(alloc);
                 return ERROR;
-            }
 
             // Copy the parsed object to the scratch pad (may GC)
             size_t objsize = obj->size();
@@ -223,8 +217,6 @@ object::result loop::object_parser(id       type,
         {
             // If we did not find the terminator, we reached end of text
             RT.unterminated_error().source(p.source);
-            size_t alloc  = rt.allocated() - prealloc;
-            rt.free(alloc);
             return ERROR;
         }
         else if (step == 0)
@@ -235,9 +227,9 @@ object::result loop::object_parser(id       type,
 
 
         // Create the program object for condition or body
-        size_t alloc  = rt.allocated() - prealloc;
-        object_p prog = rt.make<program>(ID_block, scratch, alloc);
-        rt.free(alloc);
+        gcbytes  scratch = scr.scratch();
+        size_t   alloc   = scr.growth();
+        object_p prog    = rt.make<program>(ID_block, scratch, alloc);
         if (step == 1)
             obj1 = prog;
         else

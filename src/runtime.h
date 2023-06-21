@@ -784,5 +784,38 @@ byte *runtime::encode(Int value, Args... args)
 }
 
 
+struct scribble
+// ----------------------------------------------------------------------------
+//   Temporary area using the scratchpad
+// ----------------------------------------------------------------------------
+{
+    scribble(runtime &rt) : rt(rt), allocated(rt.allocated())
+    {
+    }
+    ~scribble()
+    {
+        if (size_t added = growth())
+            rt.free(added);
+    }
+    void commit()
+    {
+        allocated = rt.allocated();
+    }
+    size_t growth()
+    {
+        return rt.allocated() - allocated;
+    }
+    byte *scratch()
+    {
+        return rt.scratchpad() - rt.allocated() + allocated;
+    }
+
+private:
+    runtime &rt;
+    size_t  allocated;
+};
+
+
+
 
 #endif // RUNTIME_H

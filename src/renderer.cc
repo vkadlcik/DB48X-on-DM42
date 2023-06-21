@@ -88,9 +88,13 @@ size_t renderer::printf(const char *format, ...)
     if (target)
     {
         // Fixed target: write directly there
+        if (written >= length)
+            return 0;
+
         va_list va;
         va_start(va, format);
-        size_t size = vsnprintf(target, length, format, va);
+        size_t remaining = length - written;
+        size_t size = vsnprintf(target + written, remaining, format, va);
         va_end(va);
         written += size;
         return size;

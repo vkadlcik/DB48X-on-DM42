@@ -1,9 +1,10 @@
 /** Font StackFont, generated from fonts/FogSans-ddd.ttf - Do not edit manually **/
 
 #include "font.h"
+#include "target.h"
 
 extern const unsigned char StackFont_sparse_font_data[];
-const unsigned char StackFont_sparse_font_data[35939] =
+const unsigned char StackFont_sparse_font_data[35939] QSPI =
 {
 
     0xAC, 0x01, 0xDE, 0x98, 0x02, 0x24, 0x00, 0x01, 0x00, 0x1C, 0x01, 0x01, 0x00, 0x00, 0x0D, 0x01,

@@ -1,9 +1,10 @@
 /** Font EditorFont, generated from fonts/FogSans-ddd.ttf - Do not edit manually **/
 
 #include "font.h"
+#include "target.h"
 
 extern const unsigned char EditorFont_sparse_font_data[];
-const unsigned char EditorFont_sparse_font_data[72703] =
+const unsigned char EditorFont_sparse_font_data[72703] QSPI =
 {
 
     0xAC, 0x01, 0xFA, 0xB7, 0x04, 0x36, 0x00, 0x01, 0x00, 0x2C, 0x01, 0x01, 0x00, 0x00, 0x0D, 0x01,

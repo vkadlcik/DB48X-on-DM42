@@ -568,6 +568,7 @@ void processFont(cstring fontName,
             "/** Font %s, generated from %s - Do not edit manually **/\n"
             "\n"
             "#include \"font.h\"\n"
+            "#include \"target.h\"\n"
             "\n",
             fontName, ttfName);
 
@@ -577,7 +578,7 @@ void processFont(cstring fontName,
                 "extern const unsigned char %s_dense_font_data[];\n",
                 fontName);
         fprintf(output,
-                "const unsigned char %s_dense_font_data[%zu] =\n"
+                "const unsigned char %s_dense_font_data[%zu] QSPI =\n"
                 "{\n",
                 fontName, denseSize);
 
@@ -594,7 +595,7 @@ void processFont(cstring fontName,
                 "extern const unsigned char %s_sparse_font_data[];\n",
                 fontName);
         fprintf(output,
-                "const unsigned char %s_sparse_font_data[%zu] =\n"
+                "const unsigned char %s_sparse_font_data[%zu] QSPI =\n"
                 "{\n",
                 fontName, sparseSize);
 

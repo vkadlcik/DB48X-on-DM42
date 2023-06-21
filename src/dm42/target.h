@@ -60,6 +60,12 @@ extern surface Screen;
 #define MENU_TAB_WIDTH      ((LCD_W - 5 * MENU_TAB_SPACE) / 6)
 #define MENU_TAB_HEIGHT     (FONT_HEIGHT(FONT_MENU) + 2 * MENU_TAB_INSET)
 
+// Put slow-changing data in the QSPI
+#if SIMULATOR
+#  define QSPI
+#else
+#  define QSPI __attribute__((section(".qspi")))
+#endif // SIMULATOR
 
 /*
     KEYBOARD BIT MAP

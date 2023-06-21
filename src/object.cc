@@ -179,7 +179,10 @@ size_t object::render(renderer &r, runtime &rt) const
 // ----------------------------------------------------------------------------
 {
     record(render, "Rendering %+s %p into existing %p", name(), this, &r);
-    return run(RENDER, rt, &r);
+    size_t pre = r.size();
+    size_t sz = run(RENDER, rt, &r);
+    record(render, "Rendered %+s as size %u [%s]", name(), sz, r.text() + pre);
+    return sz;
 }
 
 

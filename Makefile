@@ -17,6 +17,20 @@ MOUNTPOINT=/Volumes/DM42/
 EJECT=hdiutil eject $(MOUNTPOINT)
 
 
+#######################################
+# pathes
+#######################################
+# Build path
+BUILD = build/$(OPT)
+
+# Path to aux build scripts (including trailing /)
+# Leave empty for scripts in PATH
+TOOLS = tools
+
+# CRC adjustment
+CRCFIX = $(TOOLS)/forcecrc32/forcecrc32
+
+
 #==============================================================================
 #
 #  Primary build rules
@@ -32,18 +46,18 @@ sim: sim/simulator.mak recorder/config.h help/$(TARGET).md .ALWAYS
 	cd sim; make -f $(<F)
 sim/simulator.mak: sim/simulator.pro
 	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(OPT)
-ttf2font: tools/ttf2fonts/ttf2fonts
-tools/ttf2fonts/ttf2fonts: tools/ttf2font/ttf2font.cpp tools/ttf2font/Makefile
-	cd tools/ttf2font; $(MAKE)
+ttf2font: $(TOOLS)/ttf2fonts/ttf2fonts
+$(TOOLS)/ttf2fonts/ttf2fonts: $(TOOLS)/ttf2font/ttf2font.cpp $(TOOLS)/ttf2font/Makefile
+	cd $(TOOLS)/ttf2font; $(MAKE)
 
 #BASE_FONT=fonts/C43StandardFont.ttf
 BASE_FONT=fonts/FogSans-ddd.ttf
 fonts/EditorFont.cc: ttf2font $(BASE_FONT)
-	tools/ttf2font/ttf2font -s 48 -S 80 -y -10 EditorFont $(BASE_FONT) $@
+	$(TOOLS)/ttf2font/ttf2font -s 48 -S 80 -y -10 EditorFont $(BASE_FONT) $@
 fonts/StackFont.cc: ttf2font $(BASE_FONT)
-	tools/ttf2font/ttf2font -s 32 -S 80 -y -8 StackFont $(BASE_FONT) $@
+	$(TOOLS)/ttf2font/ttf2font -s 32 -S 80 -y -8 StackFont $(BASE_FONT) $@
 fonts/HelpFont.cc: ttf2font $(BASE_FONT)
-	tools/ttf2font/ttf2font -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
+	$(TOOLS)/ttf2font/ttf2font -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
 help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md)
 	cat $^ > $@
 
@@ -52,16 +66,6 @@ debug-%:
 release-%:
 	$(MAKE) $* OPT=release
 
-
-#######################################
-# pathes
-#######################################
-# Build path
-BUILD = build/$(OPT)
-
-# Path to aux build scripts (including trailing /)
-# Leave empty for scripts in PATH
-TOOLS = tools
 
 ######################################
 # System sources
@@ -235,7 +239,7 @@ $(BUILD)/%.o: %.s Makefile | $(BUILD)
 
 $(BUILD)/$(TARGET).elf: $(OBJECTS) Makefile
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
-$(TARGET).pgm: $(BUILD)/$(TARGET).elf Makefile
+$(TARGET).pgm: $(BUILD)/$(TARGET).elf Makefile $(CRCFIX)
 	$(OBJCOPY) --remove-section .qspi -O ihex    $<  $(BUILD)/$(TARGET)_flash.hex
 	$(OBJCOPY) --remove-section .qspi -O binary  $<  $(BUILD)/$(TARGET)_flash.bin
 	$(OBJCOPY) --only-section   .qspi -O ihex    $<  $(BUILD)/$(TARGET)_qspi.hex
@@ -255,6 +259,10 @@ $(BUILD)/%.bin: $(BUILD)/%.elf | $(BUILD)
 
 $(BUILD):
 	mkdir -p $@
+
+$(CRCFIX): $(CRCFIX).c $(dir $(CRCFIX))/Makefile
+	cd $(dir $(CRCFIX)); $(MAKE)
+
 
 #######################################
 # clean up

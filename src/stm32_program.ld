@@ -18,7 +18,7 @@
 **  Distribution: The file is distributed as is, without any warranty
 **                of any kind.
 **
-**  Swissmicros - ld script for STM32 + QSPI 
+**  Swissmicros - ld script for STM32 + QSPI
 **
 *****************************************************************************
 */
@@ -62,10 +62,12 @@ SECTIONS
     *(.rodata.bid_multipliers2_bid64)
     *(.rodata.bid_multipliers1_bid64)
     *(.rodata.bid_multipliers2_binary128)
+/* ===== Addition by c3d =================== */
+    *(.text.__bid128*)
 /* ======================== */
     . = ALIGN(8);
     _qspi_end = .;         /* define a global symbols at end of qspi */
-    
+
   } >QSPI /* AT> FLASH */
 
   /* Constant data goes into FLASH */
@@ -98,8 +100,8 @@ SECTIONS
     _etext = .;        /* define a global symbols at end of code */
   } >FLASH
 
-  .ARM.extab   : 
-  { 
+  .ARM.extab   :
+  {
   . = ALIGN(8);
   *(.ARM.extab* .gnu.linkonce.armextab.*)
   . = ALIGN(8);
@@ -120,7 +122,7 @@ SECTIONS
     PROVIDE_HIDDEN (__preinit_array_end = .);
   . = ALIGN(8);
   } >FLASH
-  
+
   .init_array :
   {
   . = ALIGN(8);
@@ -144,7 +146,7 @@ SECTIONS
   _sidata = LOADADDR(.data);
 
   /* Initialized data sections goes into RAM, load LMA copy after code */
-  .data : 
+  .data :
   {
     . = ALIGN(8);
     _sdata = .;        /* create a global symbol at data start */
@@ -182,5 +184,3 @@ SECTIONS
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }
-
-

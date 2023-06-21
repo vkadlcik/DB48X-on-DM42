@@ -109,6 +109,8 @@ static object::result symbolic(object::id type)
 {
     runtime &rt = runtime::RT;
     gcobj x = rt.stack(0);
+    if (!x)
+        return object::ERROR;
     if (x->is_strictly_symbolic())
     {
         x = rt.make<equation>(object::ID_equation, 1, &x, type);

@@ -11,12 +11,13 @@
 - [x] Garbage collector
 - [x] Low-memory stress testing
 - [x] Built-in commands lookup and parsing
-- [ ] Soft menus navigation
-- [ ] Global variables
+- [x] Soft menus navigation
+- [x] Global variables
 - [ ] Local variables
 - [ ] Home directory and subdirectories
-- [ ] Variables menu accessible with **RCL** key
-- [ ] RPL program evaluattion
+- [x] Variables menu accessible with **RCL** key
+- [x] Complete interactive catalog of available functions
+- [x] RPL program evaluattion
 - [ ] RPL program single-stepping / debugging
 - [ ] Stack undo / redo
 - [X] Accelerated [blitter code with 8x8 patterns](https://github.com/c3d/db48x/blob/dm42/firmware/include/ggl.h)
@@ -27,8 +28,8 @@
 - [X] Larger font for editor (old geezer mode)
 - [ ] Objects in USB-accessible flash storage
 - [ ] Calculator state load/save
-- [ ] Global help from [HTML help file](help/db48x.html)
-- [ ] [Per-function help](https://github.com/c3d/db48x/blob/dm42/firmware/hal_keyboard.c#L116)
+- [x] Global help from [generated markdown file](help/db48x.md)
+- [x] [Per-function help](https://github.com/c3d/db48x/blob/dm42/firmware/hal_keyboard.c#L116)
       from [markdown files](doc/calc-help)
 - [ ] Character menu / table
 - [ ] Brezenham lines, circles and ellipses
@@ -57,8 +58,8 @@
 - [x] Hexadecimal (`#123h`), decimal (`#123d`), octal (`#123o`) and binary
       (`#1001b`) based numbers
 - [ ] Based integers (arbitrary base between 2 and 36, e.g. `13#10231AC`)
-- [ ] Arbitrary-size integers e.g. `123456789012345678901234567890`
-- [ ] Fractions, e.g. `1/7`
+- [x] Arbitrary-size integers e.g. `123456789012345678901234567890`
+- [x] Fractions, e.g. `1/7`
 - [ [ Fraction formats, e.g. `22/7` vs `3 1/7` vs. `3,1428571429`
 - [x] Decimal floating-point with fixed size (32, 64 and 128 bits)
 - [ ] Decimal floating-point with [arbitrary size](https://github.com/c3d/db48x/blob/dm42/newrpl/decimal.h)
@@ -72,17 +73,17 @@
 - [ ] Intervals / ranges, e.g. `1..5`
 - [ ] Angles, e.g. `∡30°`
 - [ ] Lists, e.g. `{ A 1 "Hello" }`
-- [ ] Arrays, vectors, matrices and tensors, e.g. `[ [ 1 2 3] [ 4 5 6] ]`
-- [ ] Program objects, e.g `« IF 1 = THEN "Equal to one" END »`
+- [x] Arrays, vectors, matrices and tensors, e.g. `[ [ 1 2 3] [ 4 5 6] ]`
+- [x] Program objects, e.g `« IF 1 = THEN "Equal to one" END »`
 - [ ] Algebraic programs, e.g. `'if x = 1 then "Equal to one"` based on
       [XL-style parser](https://github.com/c3d/XL)
 - [ ] Bitmaps, e.g. `GROB 8 8 00000000000000FF`
 - [ ] Fonts, e.g. `FONT 000000`
 - [ ] Vector graphics
 - [ ] Tagged objects
-- [ ] Algebraic expressions
+- [x] Algebraic expressions
 - [ ] Unit objects
-- [ ] Directories
+- [x] Directories
 - [ ] Software libraries
 - [ ] Keymaps
 - [ ] Softkey menus
@@ -101,7 +102,7 @@
 - [x] Automatic integer to floating-point promotion
 - [x] Automatic selection of entered floating-point size based on user input
 - [x] Automatic selection of computed floating-point size based on `Precision`
-- [ ] Fraction arithmetic
+- [x] Fraction arithmetic
 - [ ] Automatic fraction promotion
 - [ ] Correct rounding (a la [crlibm](https://github.com/taschini/crlibm))
 - [ ] Range arithmetic
@@ -110,9 +111,9 @@
 ### Computations on real numbers
 
 - [x] floating-point arithmetic
-- [ ] Circular functions, e.g. `sin`, `cos`, `atan`, ...
-- [ ] Exponentials and logarithms, e.g. `exp`, `ln`, ...
-- [ ] Hyperbolic functions, e.g. `sinh`, `atanh`, ...
+- [x] Circular functions, e.g. `sin`, `cos`, `atan`, ...
+- [x] Exponentials and logarithms, e.g. `exp`, `ln`, ...
+- [x] Hyperbolic functions, e.g. `sinh`, `atanh`, ...
 - [ ] Probabilities functions, like `Factorial`, `Combinations`, etc.
 - [ ] Statistics functions, like `Σ+`, `Mean` or `Median`
 - [ ] Special functions, like `Bessel`, `FastFourierTransforma`, etc
@@ -153,6 +154,8 @@
 
 ### Computer Algebra system
 
+- [x] Rendering of symbolic expressions
+- [ ] Parsing of symbolic expressions
 - [ ] Symbolic operations
 - [ ] Integrate existing CAS like [GIAC](https://github.com/geogebra/giac)
 - [ ] Rules engine
@@ -160,7 +163,7 @@
 - [ ] Symbolic integration
 
 
-### Other RPL functional areas
+### Other RPL functional areas (to be expanded)
 
 - [ ] Real-time clock
 - [ ] Alarms

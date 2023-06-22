@@ -2101,7 +2101,7 @@ bool input::handle_editing(int key)
             // XEQ is used to enter algebraic / equation objects
             if ((!editing  || mode != HEXADECIMAL) && !shift && !xshift)
             {
-                edit('\'', ALGEBRAIC);
+                edit(mode == ALGEBRAIC ? '(' : '\'', ALGEBRAIC);
                 alpha = true;
                 return true;
             }
@@ -2315,9 +2315,9 @@ bool input::handle_alpha(int key)
 
     static const unicode shifted[] =
     {
-        L'Σ', '^', L'√', '(', '"', '\'',
+        L'Σ', '^', L'√', L'∂', L'ρ', '(',
         L'▶', '%', L'π', '<', '=', '>',
-        '_',  '[', '{', L'⁳', '_',
+        '_', L'⇄', L'±', L'⁳', '_',
         '_', '7', '8', '9', L'÷',
         '_', '4', '5', '6', L'×',
         '_', '1', '2', '3', '-',
@@ -2326,13 +2326,13 @@ bool input::handle_alpha(int key)
 
     static const  unicode xshifted[] =
     {
-        L'∫', L'↑', L'∜', L'μ', L'∡', L'°',
-        L'←', L'→', L'↓', L'≤', L'≠', L'≥',
-        '"', L'⇄', L'…', L'£', '\n',
-        '_',  '~', '\\', L'∏',  '/',
+        L'∏', L'∆', L'↑', L'μ', L'θ', '\'',
+        L'→', L'←', L'↓', L'≤', L'≠', L'≥',
+        '"',  '~', L'°', L'ε', '\n',
+        '_',  '?', L'∫',   '[',  '/',
         '_',  '#',  L'∞', '|' , '*',
         '_',  '&',   '@', '$',  '_',
-        '_',  ';',  L'·', '?',  '!'
+        '_',  ';',  L'·', '{',  '!'
     };
 
     // Special case: + in alpha mode shows the catalog

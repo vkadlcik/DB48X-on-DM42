@@ -39,6 +39,7 @@ SOURCES +=                                      \
 	../src/util.cc                          \
 	../src/renderer.cc                      \
 	../src/input.cc                         \
+	../src/file.cc                          \
 	../src/stack.cc                         \
 	../src/settings.cc                      \
         ../src/object.cc                        \

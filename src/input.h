@@ -29,10 +29,11 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
+#include "dmcp.h"
+#include "file.h"
 #include "graphics.h"
 #include "object.h"
 #include "types.h"
-#include "dmcp.h"
 
 #include <string>
 #include <vector>
@@ -177,42 +178,15 @@ protected:
     bool   autoComplete : 1; // Menu is auto-complete
 
 protected:
-    // Key mappings
-    object_p function[NUM_PLANES][NUM_KEYS];
-    cstring  menu_label[NUM_PLANES][NUM_SOFTKEYS];
-    uint16_t menu_marker[NUM_PLANES][NUM_SOFTKEYS];
-    bool     menu_marker_align[NUM_PLANES][NUM_SOFTKEYS];
-    static runtime &RT;
-    friend struct tests;
-    friend struct runtime;
-
-protected:
-    struct file
-    // ------------------------------------------------------------------------
-    //   Direct access to the help file
-    // ------------------------------------------------------------------------
-    {
-        file();
-        ~file();
-
-        void    open(cstring path);
-        bool    valid();
-        void    close();
-        unicode get();
-        unicode get(uint offset);
-        void    seek(uint offset);
-        unicode peek();
-        uint    position();
-        uint    find(unicode cp);
-        uint    rfind(unicode cp);
-
-      protected:
-#ifdef SIMULATOR
-        FILE    *data;
-#else
-        FIL      data;
-#endif
-    } helpfile;
+  // Key mappings
+  object_p        function[NUM_PLANES][NUM_KEYS];
+  cstring         menu_label[NUM_PLANES][NUM_SOFTKEYS];
+  uint16_t        menu_marker[NUM_PLANES][NUM_SOFTKEYS];
+  bool            menu_marker_align[NUM_PLANES][NUM_SOFTKEYS];
+  file            helpfile;
+  static runtime &RT;
+  friend struct tests;
+  friend struct runtime;
 };
 
 

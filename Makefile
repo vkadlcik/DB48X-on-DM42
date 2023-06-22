@@ -99,6 +99,7 @@ CXX_SOURCES +=				\
 	src/dm42/sysmenu.cc		\
 	src/dm42/main.cc		\
 	src/input.cc			\
+	src/file.cc			\
 	src/stack.cc			\
 	src/util.cc			\
 	src/renderer.cc			\

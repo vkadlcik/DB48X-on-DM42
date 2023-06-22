@@ -48,6 +48,7 @@
 RECORDER(sim_keys, 16, "Recorder keys from the simulator");
 
 extern bool run_tests;
+extern bool db48x_keyboard;
 MainWindow *MainWindow::mainWindow = nullptr;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -67,6 +68,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui.keyboard->installEventFilter(this);
     ui.screen->setAttribute(Qt::WA_AcceptTouchEvents);
     ui.screen->installEventFilter(this);
+    if (db48x_keyboard)
+        ui.keyboard->setStyleSheet("border-image: url(:/bitmap/keyboard-db48x.png) 0 0 0 0 stretch stretch;");
+    else
+        ui.keyboard->setStyleSheet("border-image: url(:/bitmap/keyboard.png) 0 0 0 0 stretch stretch;");
 
     highlight = new Highlight(ui.keyboard);
     highlight->setGeometry(0,0,0,0);
@@ -346,6 +351,15 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
             tests.onlyCurrent = k == Qt::Key_F11;
             tests.start();
         }
+    }
+
+    if (k == Qt::Key_F10)
+    {
+        db48x_keyboard = !db48x_keyboard;
+        if (db48x_keyboard)
+            ui.keyboard->setStyleSheet("border-image: url(:/bitmap/keyboard-db48x.png) 0 0 0 0 stretch stretch;");
+        else
+            ui.keyboard->setStyleSheet("border-image: url(:/bitmap/keyboard.png) 0 0 0 0 stretch stretch;");
     }
 
     for (int i = 0; keyMap[i] != 0; i += 2)

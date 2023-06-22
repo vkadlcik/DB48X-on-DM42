@@ -118,7 +118,7 @@
 border-width: 0px;</string>
           </property>
           <property name="text">
-           <string>My Button</string>
+           <string></string>
           </property>
           <property name="flat">
            <bool>true</bool>

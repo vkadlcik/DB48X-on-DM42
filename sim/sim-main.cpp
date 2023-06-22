@@ -37,6 +37,7 @@
 RECORDER(options, 32, "Information about command line options");
 
 bool run_tests = false;
+bool db48x_keyboard = false;
 
 int main(int argc, char *argv[])
 // ----------------------------------------------------------------------------
@@ -53,10 +54,21 @@ int main(int argc, char *argv[])
     for (int a = 1; a < argc; a++)
     {
         record(options, "  %u: %+s", a, argv[a]);
-        if (argv[a][0] == '-' && argv[a][1] == 't')
-            recorder_trace_set(argv[a]+2);
-        if (argv[a][0] == '-' && argv[a][1] == 'T')
-            run_tests = true;
+        if (argv[a][0] == '-')
+        {
+            switch(argv[a][1])
+            {
+            case 't':
+                recorder_trace_set(argv[a]+2);
+                break;
+            case 'T':
+                run_tests = true;
+                break;
+            case 'd':
+                db48x_keyboard = true;
+                break;
+            }
+        }
     }
 
 #if QT_VERSION < 0x060000

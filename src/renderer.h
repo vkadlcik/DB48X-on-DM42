@@ -33,17 +33,21 @@
 #include "utf8.h"
 
 
+struct file;
+
 struct renderer
 // ----------------------------------------------------------------------------
 //  Arguments to the RENDER command
 // ----------------------------------------------------------------------------
 {
     renderer(char *buffer = nullptr, size_t length = ~0U, bool flat = false)
-        : target(buffer), length(length), written(0), tabs(0),
+        : target(buffer), length(length), written(0), saving(), tabs(0),
           eq(false), flat(flat) {}
     renderer(bool equation)
-        : target(nullptr), length(~0U), written(0), tabs(0),
-          eq(equation) {}
+        : target(nullptr), length(~0U), written(0), saving(), tabs(0),
+          eq(equation), flat(false) {}
+    renderer(file *f): target(), length(~0U), written(0), saving(f), tabs(0),
+                       eq(false), flat(false) {}
     ~renderer();
 
     bool put(char c);
@@ -97,6 +101,7 @@ protected:
     char        *target;        // Buffer where we render the object, or nullptr
     size_t      length;         // Available space
     size_t      written;        // Number of bytes written
+    file *      saving;         // Save area for a program or object
     uint        tabs;           // Amount of indent
     bool        eq   : 1;       // As equation
     bool        flat : 1;       // Flat (for stack rendering)

@@ -28,10 +28,48 @@
 // ****************************************************************************
 
 #include "file.h"
+#include "ff_ifc.h"
 #include "recorder.h"
+#include "utf8.h"
+
 
 RECORDER(file,          16, "File operations");
 RECORDER(file_error,    16, "File errors");
+
+
+
+// ============================================================================
+//
+//   DMCP wrappers
+//
+// ============================================================================
+
+#ifndef SIMULATOR
+static inline int fgetc(FIL &f)
+// ----------------------------------------------------------------------------
+//   Read one character from a file - Wrapper for DMCP filesystem
+// ----------------------------------------------------------------------------
+{
+    UINT br                     = 0;
+    char c                      = 0;
+    if (f_read(&f, &c, 1, &br) != FR_OK || br != 1)
+        return EOF;
+    return c;
+}
+
+
+static inline int fputc(int c, FIL &f)
+// ----------------------------------------------------------------------------
+//   Read one character from a file - Wrapper for DMCP filesystem
+// ----------------------------------------------------------------------------
+{
+    UINT bw = 0;
+    if (f_write(&f, &c, 1, &bw) != FR_OK || bw != 1)
+        return EOF;
+    return c;
+}
+#endif                          // SIMULATOR
+
 
 
 file::file()
@@ -40,6 +78,16 @@ file::file()
 // ----------------------------------------------------------------------------
     : data()
 {}
+
+
+file::file(cstring path)
+// ----------------------------------------------------------------------------
+//   Construct a file object for writing
+// ----------------------------------------------------------------------------
+    : data()
+{
+    open_for_writing(path);
+}
 
 
 file::~file()
@@ -53,7 +101,7 @@ file::~file()
 
 void file::open(cstring path)
 // ----------------------------------------------------------------------------
-//    Open a help file
+//    Open a file for reading
 // ----------------------------------------------------------------------------
 {
 #if SIMULATOR
@@ -65,10 +113,34 @@ void file::open(cstring path)
     }
 #else
     FRESULT ok = f_open(&data, path, FA_READ);
+    data.err = ok;
+    if (ok != FR_OK)
+        data.flag = 0;
+#endif                          // SIMULATOR
+}
+
+
+void file::open_for_writing(cstring path)
+// ----------------------------------------------------------------------------
+//    Open a file for writing
+// ----------------------------------------------------------------------------
+{
+#if SIMULATOR
+    data = fopen(path, "w");
+    if (!data)
+    {
+        record(file_error, "Error %s opening %s for writing",
+               strerror(errno), path);
+        return;
+    }
+#else
+    sys_disk_write_enable(1);
+    FRESULT ok = f_open(&data, path, FA_WRITE | FA_CREATE_ALWAYS);
+    data.err = ok;
     if (ok != FR_OK)
     {
-        data.obj.objsize = 0;
-        return;
+        sys_disk_write_enable(0);
+        data.flag = 0;
     }
 #endif                          // SIMULATOR
 }
@@ -80,7 +152,58 @@ void file::close()
 // ----------------------------------------------------------------------------
 {
     if (valid())
+    {
         fclose(data);
+
+#ifndef SIMULATOR
+        sys_disk_write_enable(0);
+#endif // SIMULATOR
+    }
+}
+
+
+bool file::put(unicode cp)
+// ----------------------------------------------------------------------------
+//   Emit a unicode character in the file
+// ----------------------------------------------------------------------------
+{
+    byte   buffer[4];
+    size_t count = utf8_encode(cp, buffer);
+
+#if SIMULATOR
+    return fwrite(buffer, 1, count, data) == count;
+#else
+    UINT bw = 0;
+    return f_write(&data, buffer, count, &bw) == FR_OK && bw == count;
+#endif
+}
+
+
+bool file::put(char c)
+// ----------------------------------------------------------------------------
+//   Emit a single character in the file
+// ----------------------------------------------------------------------------
+{
+#if SIMULATOR
+    return fwrite(&c, 1, 1, data) == 1;
+#else
+    UINT bw = 0;
+    return f_write(&data, &c, 1, &bw) == FR_OK && bw == 1;
+#endif
+}
+
+
+bool file::write(const char *buf, size_t len)
+// ----------------------------------------------------------------------------
+//   Emit a buffer to a file
+// ----------------------------------------------------------------------------
+{
+#if SIMULATOR
+    return fwrite(buf, 1, len, data) == len;
+#else
+    UINT bw = 0;
+    return f_write(&data, buf, len, &bw) == FR_OK && bw == len;
+#endif
 }
 
 

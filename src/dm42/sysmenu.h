@@ -38,13 +38,24 @@ enum menu_item
 //   The menu items in our application
 // ----------------------------------------------------------------------------
 {
-    MI_SETTINGS = 1,            // Application settings
-    MI_ABOUT_PROGRAM,           // Display the "About" dialog
+    MI_DB48_SETTINGS = 1,       // Application settings
+    MI_DB48_ABOUT,              // Display the "About" dialog
+
+    MI_48PGM,                   // Menu for 48 program load and save
+    MI_48PGM_LOAD,              // Load a .48S program
+    MI_48PGM_SAVE,              // Save a .48S program
+
+    MI_48STATE,                 // Menu for 48 state load and save
+    MI_48STATE_CLEAN,           // Restart with a clean state
+    MI_48STATE_LOAD,            // Load a state from diskdm
+    MI_48STATE_SAVE,            // Save state to disk
 };
 
 
 extern const smenu_t  application_menu;
 extern const smenu_t  settings_menu;
+extern const smenu_t  state_menu;
+extern const smenu_t  program_menu;
 
 // Callbacks installed in the SDB to run the menu system
 int                   menu_item_run(uint8_t mid);

@@ -28,10 +28,13 @@
 // ****************************************************************************
 
 #include "renderer.h"
+
+#include "file.h"
 #include "runtime.h"
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 renderer::~renderer()
@@ -57,7 +60,12 @@ bool renderer::put(char c)
     if (c == '\n' && flat)
         c = ' ';
 
-    if (target)
+    if (saving)
+    {
+        saving->put(c);
+        written++;
+    }
+    else if (target)
     {
         target[written++] = c;
     }
@@ -85,7 +93,22 @@ size_t renderer::printf(const char *format, ...)
 //   Write a formatted string
 // ----------------------------------------------------------------------------
 {
-    if (target)
+    if (saving)
+    {
+        va_list va;
+        va_start(va, format);
+        char buf[80];
+        size_t remaining = length - written;
+        if (remaining > sizeof(buf))
+            remaining = sizeof(buf);
+        int size = vsnprintf(buf, remaining, format, va);
+        va_end(va);
+        if (size > 0)
+            if (saving->write(buf, size))
+                written += size;
+        return size;
+    }
+    else if (target)
     {
         // Fixed target: write directly there
         if (written >= length)

@@ -41,11 +41,16 @@ struct file
 // ----------------------------------------------------------------------------
 {
     file();
+    file(cstring path);
     ~file();
 
     void    open(cstring path);
+    void    open_for_writing(cstring path);
     bool    valid();
     void    close();
+    bool    put(unicode out);
+    bool    put(char c);
+    bool    write(const char *buf, size_t len);
     unicode get();
     unicode get(uint offset);
     void    seek(uint offset);
@@ -54,14 +59,16 @@ struct file
     uint    find(unicode cp);
     uint    rfind(unicode cp);
 
-  protected:
+protected:
 #if SIMULATOR
     FILE *data;
 #else
-    FIL data;
+    FIL     data;
 #endif
 };
 
+
+#define MAGIC_SAVE_STATE         0x05121968
 
 
 // ============================================================================
@@ -74,20 +81,7 @@ struct file
 #define ftell(f)     f_tell(&f)
 #define fseek(f,o,w) f_lseek(&f,o)
 #define fclose(f)    f_close(&f)
-
-static inline int fgetc(FIL &f)
-// ----------------------------------------------------------------------------
-//   Read one character from a file - Wrapper for DMCP filesystem
-// ----------------------------------------------------------------------------
-{
-    UINT br                     = 0;
-    char c                      = 0;
-    if (f_read(&f, &c, 1, &br) != FR_OK || br != 1)
-        return EOF;
-    return c;
-}
-#endif                          // SIMULATOR
-
+#endif // SIMULATOR
 
 
 
@@ -105,7 +99,7 @@ inline bool file::valid()
 #if SIMULATOR
     return data          != 0;
 #else
-    return f_size(&data) != 0;
+    return data.flag && !data.err;
 #endif
 }
 

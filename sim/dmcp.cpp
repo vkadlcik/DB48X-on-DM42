@@ -741,3 +741,18 @@ FRESULT f_unlink(const TCHAR *path)
     record(dmcp_notyet, "f_unlink not implemented");
     return FR_NOT_ENABLED;
 }
+
+
+void disp_disk_info(const char *hdr)
+{
+}
+
+void set_reset_state_file(const char * str)
+{
+}
+
+
+char *get_reset_state_file()
+{
+    return "";
+}

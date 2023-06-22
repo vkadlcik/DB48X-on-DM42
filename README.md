@@ -53,7 +53,9 @@ patches. To run these tests, pass the `-T` option to the simulator, or hit the
 ## Design overview
 
 The objective is to re-create an RPL-like experience, but to optimize it for the
-existing DM42 physical hardware.
+existing DM42 physical hardware, with minimal changes in the keyboard
+layout. Ideally, db48x should be fully usable without a keyboard overlay. though
+one is [being worked on](Keyboard-Layout.png).
 
 Compared to the original HP48, the DM42 has a much larger screen but all bitmap
 (no annunciators). It has a keyboard with dedicated soft-menu (function) keys,
@@ -68,26 +70,31 @@ calculator compared to the HP48:
 
 * The single *Shift* key cycles between **Shift**, **Right Shift** and no shift.
   This double-shift shortcut appears necessary because RPL calculators like the
-  HP48 have a rather full keyboard even with two shift keys.
+  HP48 have a rather full keyboard even with two shift keys. In the rest of this
+  document, **Right Shift** refers to the state where the annunciators
+  contains an indicator that looks like HP's right shift key. This will be used
+  for less-frequently used functions and menu.
 
 * Since RPL uses Alpha entry a lot more than the HP42, making it quickly
   accessible seems important, so holding the *Shift* key enters Alpha mode.
+  Entering names can be done quickly using the `XEQ` key, which automatically
+  enters **Alpha** mode. This is intended to be reminiscent of the usage of
+  `XEQ-Alpha` on the HP41 series. You can usefully remember `XEQ` as meaning
+  _eXpression/EQuation_ on DB48X.
 
 * It is also possible to enter Alpha mode with **Shift `ENTER`** to match
   the labelling on the DM42. Furthermore, repeating **Shift `ENTER`** also
   cycles between uppercase and lowercase alphabetical entry.
 
 * Alpha mode is always sticky. In other words, there is no equivalent of the
-  HP48's "single-Alpha" mode. This is true whether you enter it wiht a long
+  HP48's "single-Alpha" mode. This is true whether you enter it with a long
   shift or using *Shift* `ENTER`. Alpha mode is also exited when pressing
   `ENTER` or `EXIT`.
 
 * Since the DM42's Alpha keys overlap with the numeric keys, as well as with and
-  `×` and `÷`, using **Shift** in Alpha mode brings back numbers. This means it
-  cannot be used for lowercase, hence the **Shift `ENTER`** shortcut.
-
-* The less-frequently used _Right Shift_ functions can be accessed with a
-  long-press on Shift.
+  `×` and `÷`, using **Shift** in Alpha mode brings back numbers and the four
+  arithmetic operators. This means **Shift** cannot be used for lowercase, hence
+  the **Shift `ENTER`** shortcut to switch cases.
 
 * The `🔼` and `🔽` keys are generally interpreted as `◀️` and `▶️` instead.
   To get `🔼` and `🔽` functionality, use **Shift**. When not editing, `🔼` and
@@ -101,92 +108,16 @@ calculator compared to the HP48:
   including function keys associated with a soft-menu, will show up the built-in
   help for the corresponding function.
 
-* Some keys that have little use or no direct equivalent for RPL are remapped
-  as follows (note: most of this is _not implemented yet_):
+* Some keys that have little use or no direct equivalent for RPL are remapped,
+  trying to preserve a meaning that is close to the original while maximizing
+  typing efficiency. For example, **Σ+** is mapped to the `MathMenu` and
+  shift-mapped to `MainMenu` and `MemMenu`. `XEQ` can be used to enter algebraic
+  expressions and equations, and is shift-mapped to `BranchesMenu` and
+  `EquationsMenu`. The planned keyboard layout on DB48X is shown below. This is
+  still subject to changed based on actual usage. Feedback is welcome.
 
-  * The **Σ+** key is used to call `MathMenu`, which includes submenus for sums
-    and statistics among others
-  * **Σ-** will select the `TopMenu`, i.e. the top-level menu containing all
-    other menus.
-  * **XEQ** opens an algebraic expression, i.e. it shows `''` on the
-    command-line and switches to equation entry. It can be remembered as
-    _Execute Equation_ and can be used to evaluate expressions in algebraic mode
-    instead of RPN. It also activates a menu facilitating algebraic entry,
-    e.g. with shortcuts for parentheses, and symbolic manipulation of
-    sub-expressions.
-  * **Gto** opens the `BranchesMenu`, with RPL branches and loops, e.g. `IF
-    THEN` or `DO WHILE`, as well as conditional tests.
-  * **Complex** will open the `ComplexMenu`, not just build a complex like on
-    the DM42. The `ComplexMenu` includes features to enter complex numbers, as
-    well as complex-specific functions like `Conjugate`.
-  * **RCL** will open the `VariablesMenu` menu (user variables), except if that
-    menu is already open, in which case it will perform a `Recall` (`RCL`)
-    function.
-  * **%** will open the `FractionsMenu`
-  * **R↓** will open the `StackMenu`
-  * **π** will open the `ConstantsMenu` (π being one of them). Just like in the
-    `VariablesMenu`, Each constant can either be evaluated by pressing the
-    corresponding function key, or simply named using Shift with the function
-    key. For example, pressing **F1** shows an approximate value of π beginning
-    with `3.1415926`, whereas Shift **F1** shows `'π'`. The value of constants
-    in this menu come from a file `CONSTANTS.CSV` on disk, which makes it
-    possible to add user-defined constants with arbitrary precision.
-  * **X⇆Y** executes the matching `Swap` function
-  * **LAST x** will open a `LastThingsMenu`, with options to Undo the last
-    operation, functions like `LastX`, `LastStack`, `LastArgs`, `LastKey` and
-    `LastMenu`.
-  * **+/-** executes the equivalent RPL `Negate` function
-  * **Modes** calls the `ModesMenu`, with submenus for various settings,
-    including computation precision, display modes, etc.
-  * **Disp** calls the `DisplayMenu`, with submenus for graphic operations,
-    plotting, shapes, and forms.
-  * **Clear** calls a `ClearThingsMenu` with options to clear various items,
-    including `ClearStack` and `ClearMenu`.
-  * **Bst** and **Sst** are remapped to moving the cursor Up and Down in text
-    editing mode. In direct mode, **Bst** selects the _Best_ editor for the
-    object, and **Sst** selects single-step evaluation.
-  * **Solver** shows the `SolverMenu`, with submenus for numerical and symbolic
-    solvers.
-  * **∫f(x)** shows the `SymbolicMenu`, with symbolic and numerical integration
-    and derivation features.
-  * **Matrix** shows the `MatrixMenu` with operations on vectors, matrices and
-    tensors.
-  * **Stat** shows the `StatisticsMenu`
-  * **Base** shows the `BasedNumbersMenu`, with operations on based numbers,
-    including facilities for entering hexadecimal numbers, temporarily remapping
-    the second row of the DM42 keyboard to enter `A`, `B`, `C`, `D`, `E` and
-    `F`.
-  * **Convert** shows a `UnitsMenu` with units and and conversion functions.
-  * **Flags** shows the `FlagsMenu` with operations on user and system flags.
-  * **Prob** shows the `PrombabilitiesMenu`, with functions such as `Factorial`,
-    `Combinations` or `Random`.
-  * **Assign** makes it possible to assign any function to any key. These
-    special functions are then selected by using **Custom** before the
-    function. This is the equivalent of the HP48 "User" mode. Selecting
-    **Custom** twice makes the custom-keys mode sticky. It is also possible to
-    store and evaluate complete keymaps, to match special environment
-    cases. The current keymap is stored in special variable `Keymap` for the
-    current directory.
-  * **Pgm.Fcn** shows the `ProgrammingMenu`, with all general-purpose
-    programming functions, categorized as sub-menus
-  * **Print** shows the `DevicesMenu`, which includes submenus like `PrintMenu`,
-    `FlashStorageMenu`. `TimeMenu`, `DateMenu`, and `AlarmMenu`.
-  * **Exit** corresponds to what the HP48 manual calls **Attn**, and typically
-    cancels the current activity. It can also be used to interrupt a running
-    program.
-  * **Off** shuts down the calculator
-  * **Setup** calls the DM42's built-in `SystemMenu`, for example to load the
-    original DM42 program, activate USB disk, and a menu-based access to
-    calculator preferences.
-  * **Show** selects the `ShowMenu`, with various ways to display objects on the
-    stack, such as `ShowBest`, `ShowSymbolic`, `ShowGraphical`, `ShowCompact`.
-  * The **R/S** keys is used for `SPC` (inserting a space) in alpha mode, and
-    maps to `Evaluate` in direct mode.
-  * **Prgm** inserts the delimiters for an RPL program, corresponding to `«` and
-    `»`. Since these characters are missing from the standard DM42 character
-    set, we will need a temporary workaround.
-  * **Catalog** shows a complete context-sensitive catalog of all available
-    functions, for auto-completion.
+![DB48X Keyboard Layout](Keyboard-Layout.png)
+
 
 ### Soft menus
 
@@ -194,12 +125,12 @@ The DM42 has 6 dedicated soft-menu keys at the top of the keyboard. Most of the
 advanced features of DB48X can be accessed through these soft menus.
 
 Menus are organized internally as a hierarchy, where menus can refer to other
-menus. A special menu, `TopMenu`, accessile via the **Σ-** key label
+menus. A special menu, `MainMenu`, accessile via the **Σ-** key label
 (Shift-**Σ+**), contains all other menus.
 
 Menus can contain up to 12 entries at once, 6 being directly accessible, and 6
 more being shown when using the Shift key. Since function keys are designed for
-rapiid access to features, a right-shift access does not really make sense,
+rapid access to features, a right-shift access does not really make sense,
 since that would require a long press of the shift key. A long press on a
 function key invokes the on-line help for the associated function.
 
@@ -239,10 +170,10 @@ For example:
 
 The `Variables` menu is special in the sense that selecting an entry evaluates
 that menu entry, while Shift recalls its name without evaluating it. This is one
-case where extended shift applies to a function key, and is used to directly
+case where right shift applies to a function key, and is used to directly
 store a value in the associated variable. As a result, at most 5 variables are
 shown at a time, the Shift state showing the variable name with tick marks, like
-`'X'`, and the long-shift state  showing the variable name with a `Store`
+`'X'`, and the right-shift state  showing the variable name with a `Store`
 indicator, as in `▶︎X`.
 
 For example, if the first variable is called `X` and contains the program
@@ -251,28 +182,16 @@ For example, if the first variable is called `X` and contains the program
 1. typing `3` and hitting **F1** with show `4`, having evaluted the program in
    `X` which adds one to the value on the stack. The associated label is `X`.
 
-2. After that, typing Shift-**F1** will show `'X'` in the menu, and put `'X'` on
-   the stack (if the text editor was active, it would type `X` in the editor
-   instead).
+2. The shifted menu entry associated to **F1** will be labelled `X▶`, and it
+   will _recall_ the value of `X` on the stack, i.e. the program `« 1 + »` in
+   our case.
 
-3. If you then type  **RCL**, since the `VariablesMenu` is already active, that
-   key will `Recall` the value of `X`, bringing the program `« 1 + »` on the
-   stack.
+3. The right-shifted menu entry associated to **F1** will be labelled `▶X`, and
+   it will _store_ the top of stack in `X`.
 
-4. Typing `3`, Shift-**F1**, then **STO** will store the value `3` in `X`,
-   leaving only the program `« 1 + »` on the stack.
-
-5. Hitting **F1** at that point will evaluate `3`, leaving `3` on the stack.
-
-6. The **X⇆Y** key will then put `3` at level 2 on the stack, and the
-   program ``« 1 + »` at level 1.
-
-7. A long-shift followed by **F1** will store the program in `X`. The menu label
-   changes to `▶︎X`
-
-8. Typing **F1** once more will evaluate `X` now containing the incrementing
-   program again, leaving `4` on the stack.
-
+When editing a program, the first operation would generate `X` in the program
+code, the second operation would generate `'X' Recall`, and the third operation
+would generate `'X' Store`.
 
 
 ### Some design differences with the original HP48

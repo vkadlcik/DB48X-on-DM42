@@ -2155,6 +2155,9 @@ bool input::handle_editing(int key)
                 repeat = false;
                 beep(4400, 50);
             }
+            // Do not stop editing if we delete last character
+            if (!RT.editing())
+                edit(' ', DIRECT);
             last = 0;
             return true;
         case KEY_ENTER:

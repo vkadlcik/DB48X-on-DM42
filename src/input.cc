@@ -2101,7 +2101,7 @@ bool input::handle_editing(int key)
             // XEQ is used to enter algebraic / equation objects
             if ((!editing  || mode != HEXADECIMAL) && !shift && !xshift)
             {
-                edit(mode == ALGEBRAIC ? '(' : '\'', ALGEBRAIC);
+                edit(editing && mode == ALGEBRAIC ? '(' : '\'', ALGEBRAIC);
                 alpha = true;
                 return true;
             }

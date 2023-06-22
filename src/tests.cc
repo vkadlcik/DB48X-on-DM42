@@ -788,14 +788,14 @@ tests &tests::itest(cstring txt)
         case '=': k = COS;          alpha = true;  shift = true;  break;
         case '>': k = TAN;          alpha = true;  shift = true;  break;
         case '^': k = INV;          alpha = true;  shift = true;  break;
-        case '(': k = XEQ;          alpha = true; xshift = true;  del = true; break;
-        case ')': k = XEQ;          alpha = true; xshift = true;  bsp = true; break;
+        case '(': k = XEQ;          alpha = true;  shift = true;  del = true; break;
+        case ')': k = XEQ;          alpha = true;  shift = true;  bsp = true; break;
         case '[': k = KEY9;         alpha = true; xshift = true;  del = true; break;
         case ']': k = KEY9;         alpha = true; xshift = true;  bsp = true; break;
         case '{': k = RUNSTOP;      alpha = true; xshift = true;  del = true; break;
         case '}': k = RUNSTOP;      alpha = true; xshift = true;  bsp = true; break;
         case '"': k = ENTER;        alpha = true; xshift = true;  bsp = true; break;
-        case '\'': k = XEQ;         alpha = true;  shift = true;  bsp = true; break;
+        case '\'': k = XEQ;         alpha = true; xshift = true;  bsp = true; break;
         case '&': k = KEY1;         alpha = true; xshift = true; break;
         case '@': k = KEY2;         alpha = true; xshift = true; break;
         case '$': k = KEY3;         alpha = true; xshift = true; break;

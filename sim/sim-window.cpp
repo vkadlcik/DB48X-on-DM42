@@ -95,7 +95,9 @@ MainWindow::~MainWindow()
 // ----------------------------------------------------------------------------
 //  Destroy the main window
 // ----------------------------------------------------------------------------
-{}
+{
+    key_push(-1);
+}
 
 
 void MainWindow::resizeEvent(QResizeEvent * event)

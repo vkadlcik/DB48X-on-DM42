@@ -184,6 +184,8 @@ int handle_menu(const smenu_t * menu_id, int action, int cur_line)
                     redraw = true;
                 }
                 break;
+            case -1:
+                // Signals that main application is exiting, leave all dialogs
             case KEY_EXIT:
                 redraw = true;
                 done = true;

@@ -334,9 +334,10 @@ size_t directory::enumerate(enumeration_fn callback, void *arg) const
 //   Process all the variables in turn, return number of true values
 // ----------------------------------------------------------------------------
 {
-    byte_p p     = payload();
-    size_t size  = leb128<size_t>(p);
-    size_t count = 0;
+    gcbytes base  = payload();
+    byte_p  p     = base;
+    size_t  size  = leb128<size_t>(p);
+    size_t  count = 0;
 
     while (size)
     {
@@ -356,10 +357,13 @@ size_t directory::enumerate(enumeration_fn callback, void *arg) const
             return 0;     // Malformed directory, quick exit
         }
 
+        // Stash in a gcp: the callback may cause garbage collection
+        base = p;
         if (!callback || callback(name, value, arg))
             count++;
 
         size -= (ns + vs);
+        p = base;
     }
 
     return count;

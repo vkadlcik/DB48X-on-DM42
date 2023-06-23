@@ -293,9 +293,12 @@ static bool state_save_variable(symbol_p name, object_p obj, void *renderer_ptr)
 {
     renderer &r = *((renderer *) renderer_ptr);
 
-    obj->render(r);
+    symbol_g  n = name;
+    gcobj     o = obj;
+
+    o->render(r);
     r.put("\n'");
-    name->render(r);
+    n->render(r);
     r.put("' STO\n\n");
     return true;
 }
@@ -328,7 +331,7 @@ static int state_save_callback(cstring fpath,
     // Save the contents of the global variables
     renderer render(&prog);
     runtime &rt = runtime::RT;
-    directory *home = rt.variables(0);
+    gcp<directory> home = rt.variables(0);
     home->enumerate(state_save_variable, &render);
 
     // Save the stack

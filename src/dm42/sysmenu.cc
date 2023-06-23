@@ -341,6 +341,10 @@ static int state_save_callback(cstring fpath,
         render.put('\n');
     }
 
+    // Save the current menu
+    if (menu_p menu = Input.menu())
+        menu->render(render, rt);
+
     return 0;
 }
 

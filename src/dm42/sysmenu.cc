@@ -476,7 +476,9 @@ static int state_load_callback(cstring path, cstring name, void *merge)
                 object::result exec = cmds->execute();
                 if (exec != object::OK)
                 {
-                    lcd_print(t24, "Error %d during loading", exec);
+                    lcd_print(t24, "Error loading file");
+                    lcd_puts(t24, (cstring) rt.error());
+                    lcd_print(t24, "executing %s", rt.command());
                     lcd_refresh();
                     wait_for_key_press();
                     return 1;
@@ -488,6 +490,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
                 utf8 ed = editor;
 
                 lcd_print(t24, "Error at byte %u", pos - ed);
+                lcd_puts(t24, (cstring) rt.error());
                 lcd_refresh();
                 beep(3300, 100);
                 wait_for_key_press();

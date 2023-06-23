@@ -48,20 +48,16 @@ OBJECT_HANDLER_BODY(integer)
 // ----------------------------------------------------------------------------
 {
     record(integer, "Command %+s on %p", name(op), obj);
-    switch(op)
+    switch (op)
     {
     case EXEC:
     case EVAL:
         // Integer values evaluate as self
         return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return ptrdiff(payload, obj) + leb128size(payload);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "integer";
+    case SIZE: return ptrdiff(payload, obj) + leb128size(payload);
+    case PARSE: return object_parser(OBJECT_PARSER_ARG(), rt);
+    case RENDER: return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
+    case HELP: return (intptr_t) "integer";
 
     default:
         // Check if anyone else knows how to deal with it
@@ -76,9 +72,12 @@ OBJECT_PARSER_BODY(integer)
 // ----------------------------------------------------------------------------
 //    For simplicity, this deals with all kinds of integers, including bignum
 {
-    int         base       = 10;
-    id          type       = ID_integer;
-    const byte  NODIGIT    = (byte) -1;
+    int        base        = 10;
+    id         type        = ID_integer;
+    const byte NODIGIT     = (byte) -1;
+    bool       is_fraction = false;
+    gcobj      number      = nullptr;
+    gcobj      numerator   = nullptr;
 
     record(integer, "Parsing [%s]", (utf8) p.source);
 
@@ -97,7 +96,7 @@ OBJECT_PARSER_BODY(integer)
             value[c] = c - 'a' + 10;
     }
 
-    byte_p s = (byte_p) p.source;
+    byte_p s    = (byte_p) p.source;
     byte_p endp = nullptr;
 
     if (*s == '-')
@@ -121,14 +120,14 @@ OBJECT_PARSER_BODY(integer)
             // The HP syntax takes A-F as digits, and b/d as bases
             // Prefer to accept B and D suffixes, but only if no
             // digit above was found in the base
-            base = Settings.base;
+            base     = Settings.base;
 
             uint max = 0;
             for (byte_p e = s; e < endp - 1; e++)
                 if (max < value[*e])
                     max = value[*e];
 
-            switch(endp[-1])
+            switch (endp[-1])
             {
             case 'b':
             case 'B':
@@ -138,9 +137,7 @@ OBJECT_PARSER_BODY(integer)
                     endp++;
                 break;
             case 'O':
-            case 'o':
-                base = 8;
-                break;
+            case 'o': base = 8; break;
             case 'd':
             case 'D':
                 if (max < 10)
@@ -149,25 +146,23 @@ OBJECT_PARSER_BODY(integer)
                     endp++;
                 break;
             case 'H':
-            case 'h':
-                base = 16;
-                break;
+            case 'h': base = 16; break;
             default:
                 // Use current default base
                 endp++;
                 break;
             }
-            switch(base)
+            switch (base)
             {
-            case  2: type = ID_bin_integer; break;
-            case  8: type = ID_oct_integer; break;
+            case 2: type = ID_bin_integer; break;
+            case 8: type = ID_oct_integer; break;
             case 10: type = ID_dec_integer; break;
             case 16: type = ID_hex_integer; break;
             }
             endp--;
             if (s >= endp)
             {
-                rt.based_number_error(). source(s);
+                rt.based_number_error().source(s);
                 return ERROR;
             }
         }
@@ -177,105 +172,156 @@ OBJECT_PARSER_BODY(integer)
     if (*s && value[*s] >= base)
         return SKIP;
 
-    // Loop on digits
-    ularge result = 0;
-    bool big = false;
-    byte v;
-    while (!endp || s < endp)
+    do
     {
-        v = value[*s++];
-        if (v == NODIGIT)
-            break;
-
-        if (v >= base)
+        // Loop on digits
+        ularge result = 0;
+        bool   big    = false;
+        byte   v;
+        if (is_fraction && value[*s] == NODIGIT)
         {
-            rt.based_digit_error().source(s-1);
+            rt.syntax_error();
             return ERROR;
         }
-        ularge next = result * base + v;
-        record(integer, "Digit %c value %u value=%llu next=%llu",
-               s[-1], v, result, next);
 
-        // If the value does not fit in an integer, defer to bignum / real
-        big = next / base != result;
-        if (big)
-            break;
-
-        result = next;
-    }
-
-    // Check if we need bignum
-    bignum_g bresult = nullptr;
-    if (big)
-    {
-        // We may cause garbage collection in bignum arithmetic
-        gcbytes gs = s;
-        gcbytes ge = endp;
-        size_t  count = endp - s;
-
-        switch(type)
+        while (!endp || s < endp)
         {
-        case ID_integer:        type = ID_bignum;       break;
-        case ID_neg_integer:    type = ID_neg_bignum;   break;
-        case ID_hex_integer:    type = ID_hex_bignum;   break;
-        case ID_dec_integer:    type = ID_dec_bignum;   break;
-        case ID_oct_integer:    type = ID_oct_bignum;   break;
-        case ID_bin_integer:    type = ID_bin_bignum;   break;
-        default:                                        break;
-        }
-
-        // Integrate last digit that overflowed above
-        bignum_g bbase = rt.make<bignum>(ID_bignum, base);
-        bignum_g bvalue = rt.make<bignum>(ID_bignum, v);
-        bresult = rt.make<bignum>(type, result);
-        bresult = bvalue + bbase * bresult; // Order matters for types
-
-        while (count--)
-        {
-            v = value[*gs];
-            ++gs;
+            v = value[*s++];
             if (v == NODIGIT)
                 break;
 
             if (v >= base)
             {
-                rt.based_digit_error().source(s-1);
+                rt.based_digit_error().source(s - 1);
                 return ERROR;
             }
-            record(integer, "Digit %c value %u in bignum", s[-1], v);
-            bvalue = rt.make<bignum>(ID_bignum, v);
-            bresult = bvalue + bbase * bresult;
+            ularge next = result * base + v;
+            record(integer,
+                   "Digit %c value %u value=%llu next=%llu",
+                   s[-1],
+                   v,
+                   result,
+                   next);
+
+            // If the value does not fit in an integer, defer to bignum / real
+            big = next / base != result;
+            if (big)
+                break;
+
+            result = next;
         }
 
-        s = gs;
-        endp = ge;
-    }
+        // Check if we need bignum
+        bignum_g bresult = nullptr;
+        if (big)
+        {
+            // We may cause garbage collection in bignum arithmetic
+            gcbytes gs    = s;
+            gcbytes ge    = endp;
+            size_t  count = endp - s;
+
+            switch (type)
+            {
+            case ID_integer: type = ID_bignum; break;
+            case ID_neg_integer: type = ID_neg_bignum; break;
+            case ID_hex_integer: type = ID_hex_bignum; break;
+            case ID_dec_integer: type = ID_dec_bignum; break;
+            case ID_oct_integer: type = ID_oct_bignum; break;
+            case ID_bin_integer: type = ID_bin_bignum; break;
+            default: break;
+            }
+
+            // Integrate last digit that overflowed above
+            bignum_g bbase  = rt.make<bignum>(ID_bignum, base);
+            bignum_g bvalue = rt.make<bignum>(type, v);
+            bresult         = rt.make<bignum>(type, result);
+            bresult = bvalue + bbase * bresult; // Order matters for types
+
+            while (count--)
+            {
+                v = value[*gs];
+                ++gs;
+                if (v == NODIGIT)
+                    break;
+
+                if (v >= base)
+                {
+                    rt.based_digit_error().source(s - 1);
+                    return ERROR;
+                }
+                record(integer, "Digit %c value %u in bignum", s[-1], v);
+                bvalue  = rt.make<bignum>(type, v);
+                bresult = bvalue + bbase * bresult;
+            }
+
+            s    = gs;
+            endp = ge;
+        }
 
 
-    // Skip base if one was given, else point at char that got us out
-    if (endp && s == endp)
-        s++;
-    else
-        s--;
+        // Skip base if one was given, else point at char that got us out
+        if (endp && s == endp)
+            s++;
+        else
+            s--;
 
-    // Check if we finish with something indicative of a real number
+        // Check if we parse a fraction
+        number = big ? object_p(bresult) : rt.make<integer>(type, result);
+        if (!number)
+            return ERROR;
+
+        if (is_fraction)
+        {
+            is_fraction = false;
+            if (integer_p(object_p(number))->is_zero())
+            {
+                rt.zero_divide_error();
+                return ERROR;
+            }
+            else if (numerator->is_bignum() || number->is_bignum())
+            {
+                // We rely here on the fact that an integer can also be read as
+                // a bignum (they share the same payload format)
+                bignum_g n = (bignum *) (object_p) numerator;
+                bignum_g d = (bignum *) (object_p) number;
+                number     = (object_p) big_fraction::make(n, d);
+            }
+            else
+            {
+                // We rely here on the fact that an integer can also be read as
+                // a bignum (they share the same payload format)
+                integer_g n = (integer *) (object_p) numerator;
+                integer_g d = (integer *) (object_p) number;
+                number      = (object_p) fraction::make(n, d);
+            }
+        }
+        else if (*s == '/')
+        {
+            is_fraction = true;
+            numerator   = number;
+            number      = nullptr;
+            type        = ID_integer;
+            s++;
+        }
+    } while (is_fraction);
+
+    // Check if we finish with something indicative of a fraction or real number
     if (!endp)
+    {
         if (*s == Settings.decimalDot ||
             utf8_codepoint(s) == Settings.exponentChar)
             return SKIP;
+    }
 
     // Record output
     p.end = (utf8) s - (utf8) p.source;
-    p.out = big ? object_p(bresult) : rt.make<integer>(type, result);
+    p.out = number;
 
     return OK;
 }
 
 
-static size_t render_num(renderer &r,
-                         integer_p num,
-                         uint      base,
-                         cstring   fmt)
+static size_t render_num(renderer &r, integer_p num, uint base, cstring fmt)
 // ----------------------------------------------------------------------------
 //   Convert an integer value to the proper format
 // ----------------------------------------------------------------------------
@@ -288,7 +334,7 @@ static size_t render_num(renderer &r,
 
     // Get denominator for the base
     size_t findex = r.size();
-    ularge n = num->value<ularge>();
+    ularge n      = num->value<ularge>();
 
     // Keep dividing by the base until we get 0
     do
@@ -300,14 +346,14 @@ static size_t render_num(renderer &r,
     } while (n);
 
     // Revert the digits
-    char *dest = (char *) r.text();
+    char *dest  = (char *) r.text();
     char *first = dest + findex;
-    char *last = dest + r.size() - 1;
+    char *last  = dest + r.size() - 1;
     while (first < last)
     {
         char tmp = *first;
-        *first = *last;
-        *last = tmp;
+        *first   = *last;
+        *last    = tmp;
         last--;
         first++;
     }
@@ -330,7 +376,7 @@ OBJECT_RENDERER_BODY(integer)
 }
 
 
-template<>
+template <>
 OBJECT_RENDERER_BODY(neg_integer)
 // ----------------------------------------------------------------------------
 //   Render the negative integer value into the given string buffer
@@ -340,7 +386,7 @@ OBJECT_RENDERER_BODY(neg_integer)
 }
 
 
-template<>
+template <>
 OBJECT_RENDERER_BODY(hex_integer)
 // ----------------------------------------------------------------------------
 //   Render the hexadecimal integer value into the given string buffer
@@ -349,7 +395,7 @@ OBJECT_RENDERER_BODY(hex_integer)
     return render_num(r, this, 16, "#h");
 }
 
-template<>
+template <>
 OBJECT_RENDERER_BODY(dec_integer)
 // ----------------------------------------------------------------------------
 //   Render the decimal based number
@@ -358,7 +404,7 @@ OBJECT_RENDERER_BODY(dec_integer)
     return render_num(r, this, 10, "#d");
 }
 
-template<>
+template <>
 OBJECT_RENDERER_BODY(oct_integer)
 // ----------------------------------------------------------------------------
 //   Render the octal integer value into the given string buffer
@@ -367,7 +413,7 @@ OBJECT_RENDERER_BODY(oct_integer)
     return render_num(r, this, 8, "#o");
 }
 
-template<>
+template <>
 OBJECT_RENDERER_BODY(bin_integer)
 // ----------------------------------------------------------------------------
 //   Render the binary integer value into the given string buffer

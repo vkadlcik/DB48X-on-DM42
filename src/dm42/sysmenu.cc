@@ -30,11 +30,14 @@
 #include "sysmenu.h"
 
 #include "file.h"
+#include "input.h"
+#include "list.h"
 #include "main.h"
 #include "object.h"
 #include "renderer.h"
 #include "runtime.h"
 #include "types.h"
+#include "util.h"
 
 #include <cstdio>
 #include <dmcp.h>
@@ -166,7 +169,7 @@ const smenu_t program_menu =
 
 static int program_save_callback(const char *fpath,
                                  const char *fname,
-                                 void       *data)
+                                 void       *)
 // ----------------------------------------------------------------------------
 //   Callback when a file is selected to save a program
 // ----------------------------------------------------------------------------
@@ -180,7 +183,8 @@ static int program_save_callback(const char *fpath,
     file prog(fpath);
     if (!prog.valid())
     {
-        disp_disk_info("Program save");
+        disp_disk_info("Program save failed");
+        wait_for_key_press();
         return 1;
     }
 
@@ -215,7 +219,7 @@ static int program_save()
 
 static int program_load_callback(const char *fpath,
                                  const char *fname,
-                                 void       *data)
+                                 void       *)
 // ----------------------------------------------------------------------------
 //   Callback when a file is selected for loading
 // ----------------------------------------------------------------------------
@@ -230,7 +234,8 @@ static int program_load_callback(const char *fpath,
     prog.open(fpath);
     if (!prog.valid())
     {
-        disp_disk_info("Program load");
+        disp_disk_info("Program load failed");
+        wait_for_key_press();
         return 1;
     }
 
@@ -282,7 +287,7 @@ const smenu_t state_menu =
 
 static int state_save_callback(const char *fpath,
                                  const char *fname,
-                                 void       *data)
+                                 void       *)
 // ----------------------------------------------------------------------------
 //   Callback when a file is selected
 // ----------------------------------------------------------------------------
@@ -299,7 +304,8 @@ static int state_save_callback(const char *fpath,
     file prog(fpath);
     if (!prog.valid())
     {
-        disp_disk_info("State save");
+        disp_disk_info("State save failed");
+        wait_for_key_press();
         return 1;
     }
 
@@ -343,7 +349,7 @@ static int state_save()
 
 static int state_load_callback(const char *fpath,
                                  const char *fname,
-                                 void       *data)
+                                 void       *)
 // ----------------------------------------------------------------------------
 //   Callback when a file is selected for loading
 // ----------------------------------------------------------------------------
@@ -358,8 +364,71 @@ static int state_load_callback(const char *fpath,
     prog.open(fpath);
     if (!prog.valid())
     {
-        disp_disk_info("State load");
+        disp_disk_info("State load failed");
+        wait_for_key_press();
         return 1;
+    }
+
+    // Loop on the input file and process it as if it was being typed
+    runtime &rt = runtime::RT;
+    uint bytes = 0;
+    rt.clear();
+
+    for (unicode c = prog.get(); c; c = prog.get())
+    {
+        byte buffer[4];
+        size_t count = utf8_encode(c, buffer);
+        rt.insert(bytes, buffer, count);
+        bytes += count;
+    }
+
+    // End of file: execute the command we typed
+    size_t edlen = rt.editing();
+    if (edlen)
+    {
+        gcutf8 editor = rt.close_editor();
+        if (editor)
+        {
+            gcp<const program> cmds = program::parse(editor, edlen);
+            if (cmds)
+            {
+                // We successfully parsed the line
+                rt.clear();
+                object::result exec = cmds->execute();
+                if (exec != object::OK)
+                {
+                    lcd_print(t24, "Error %d during loading", exec);
+                    lcd_refresh();
+                    wait_for_key_press();
+                    return 1;
+                }
+            }
+            else
+            {
+                utf8 pos = rt.source();
+                utf8 ed = editor;
+
+                lcd_print(t24, "Error at byte %u", pos - ed);
+                lcd_refresh();
+                beep(3300, 100);
+                wait_for_key_press();
+
+                if (pos >= editor && pos <= ed + edlen)
+                    Input.cursorPosition(pos - ed);
+                if (!rt.edit(ed, edlen))
+                    Input.cursorPosition(0);
+
+                return 1;
+            }
+        }
+        else
+        {
+            lcd_print(t24, "Out of memory");
+            lcd_refresh();
+            beep(3300, 100);
+            wait_for_key_press();
+            return 1;
+        }
     }
 
     // Exit with success
@@ -373,7 +442,7 @@ static int state_load()
 // ----------------------------------------------------------------------------
 {
     bool display_new = false;
-    bool overwrite_check = true;
+    bool overwrite_check = false;
     void *user_data = NULL;
     int ret = file_selection_screen("Load state",
                                     "/STATE", ".48S",

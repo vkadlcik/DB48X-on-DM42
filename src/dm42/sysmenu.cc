@@ -6,7 +6,7 @@
 //
 //     Handles the DMCP application menus on the DM42
 //
-//
+//     This piece of code is DM42-specific
 //
 //
 //
@@ -77,29 +77,29 @@ void about_dialog()
 //   Display the About dialog
 // ----------------------------------------------------------------------------
 {
-  lcd_clear_buf();
-  lcd_writeClr(t24);
+    lcd_clear_buf();
+    lcd_writeClr(t24);
 
-  // Header based on original system about
-  lcd_for_calc(DISP_ABOUT);
-  lcd_putsAt(t24,4,"");
-  lcd_prevLn(t24);
+    // Header based on original system about
+    lcd_for_calc(DISP_ABOUT);
+    lcd_putsAt(t24,4,"");
+    lcd_prevLn(t24);
 
-  // Display the main text
-  int h2 = lcd_lineHeight(t20)/2; // Extra spacing
-  lcd_setXY(t20, t24->x, t24->y + h2);
-  lcd_puts(t20, "DB48X v" PROGRAM_VERSION " (C) C. de Dinechin");
-  t20->y += h2;
-  lcd_puts(t20, "DMCP platform (C) SwissMicros GmbH");
-  lcd_puts(t20, "Intel Decimal Floating Point Library v2.0u1");
-  lcd_puts(t20, "  (C) 2007-2018, Intel Corp.");
+    // Display the main text
+    int h2 = lcd_lineHeight(t20)/2; // Extra spacing
+    lcd_setXY(t20, t24->x, t24->y + h2);
+    lcd_puts(t20, "DB48X v" PROGRAM_VERSION " (C) C. de Dinechin");
+    t20->y += h2;
+    lcd_puts(t20, "DMCP platform (C) SwissMicros GmbH");
+    lcd_puts(t20, "Intel Decimal Floating Point Library v2.0u1");
+    lcd_puts(t20, "  (C) 2007-2018, Intel Corp.");
 
-  t20->y = LCD_Y - lcd_lineHeight(t20);
-  lcd_putsR(t20, "    Press EXIT key to continue...");
+    t20->y = LCD_Y - lcd_lineHeight(t20);
+    lcd_putsR(t20, "    Press EXIT key to continue...");
 
-  lcd_refresh();
+    lcd_refresh();
 
-  wait_for_key_press();
+    wait_for_key_press();
 }
 
 

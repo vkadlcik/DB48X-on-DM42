@@ -158,11 +158,13 @@ size_t renderer::printf(const char *format, ...)
 
 utf8 renderer::text() const
 // ----------------------------------------------------------------------------
-//   Return the buffer of what written in the renderer
+//   Return the buffer of what was written in the renderer
 // ----------------------------------------------------------------------------
 {
     if (target)
         return (utf8) target;
+    if (saving)
+        return nullptr;
     runtime &rt = runtime::RT;
 #ifdef SIMULATOR
     *rt.scratchpad() = 0;

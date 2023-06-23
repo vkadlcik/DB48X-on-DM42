@@ -47,7 +47,8 @@ enum menu_item
 
     MI_48STATE,                 // Menu for 48 state load and save
     MI_48STATE_CLEAN,           // Restart with a clean state
-    MI_48STATE_LOAD,            // Load a state from diskdm
+    MI_48STATE_LOAD,            // Load a state from disk
+    MI_48STATE_MERGE,           // Merge a state from disk
     MI_48STATE_SAVE,            // Save state to disk
 };
 
@@ -60,5 +61,7 @@ extern const smenu_t  program_menu;
 // Callbacks installed in the SDB to run the menu system
 int                   menu_item_run(uint8_t mid);
 cstring               menu_item_description(uint8_t mid, char *, const int);
+bool                  load_state_file(cstring path);
+
 
 #endif // SYSMENU_H

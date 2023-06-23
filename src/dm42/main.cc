@@ -34,14 +34,11 @@
 #include "font.h"
 #include "graphics.h"
 #include "input.h"
-#include "integer.h"
 #include "list.h"
 #include "num.h"
-#include "rpl.h"
-#include "settings.h"
 #include "stack.h"
+#include "sysmenu.h"
 #include "target.h"
-#include "text.h"
 #include "util.h"
 
 #include <algorithm>
@@ -193,6 +190,14 @@ void program_init()
         num_asin(&res, &res);
         num_acos(&res, &res);
         num_atan(&res, &res);
+    }
+
+    // Check if we have a state file to load
+    if (sys_disk_ok())
+    {
+        char *state = get_reset_state_file();
+        if (state && *state)
+            load_state_file(state);
     }
 }
 

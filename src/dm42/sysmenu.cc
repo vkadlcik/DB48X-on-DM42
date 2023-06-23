@@ -38,6 +38,7 @@
 #include "runtime.h"
 #include "types.h"
 #include "util.h"
+#include "variables.h"
 
 #include <cstdio>
 #include <dmcp.h>
@@ -167,8 +168,8 @@ const smenu_t program_menu =
 };
 
 
-static int program_save_callback(const char *fpath,
-                                 const char *fname,
+static int program_save_callback(cstring fpath,
+                                 cstring fname,
                                  void       *)
 // ----------------------------------------------------------------------------
 //   Callback when a file is selected to save a program
@@ -217,8 +218,8 @@ static int program_save()
 }
 
 
-static int program_load_callback(const char *fpath,
-                                 const char *fname,
+static int program_load_callback(cstring fpath,
+                                 cstring fname,
                                  void       *)
 // ----------------------------------------------------------------------------
 //   Callback when a file is selected for loading
@@ -285,8 +286,23 @@ const smenu_t state_menu =
 };
 
 
-static int state_save_callback(const char *fpath,
-                                 const char *fname,
+static bool state_save_variable(symbol_p name, object_p obj, void *renderer_ptr)
+// ----------------------------------------------------------------------------
+//   Emit Object 'Name' STO for each object in the top level directory
+// ----------------------------------------------------------------------------
+{
+    renderer &r = *((renderer *) renderer_ptr);
+
+    obj->render(r);
+    r.put("\n'");
+    name->render(r);
+    r.put("' STO\n\n");
+    return true;
+}
+
+
+static int state_save_callback(cstring fpath,
+                                 cstring fname,
                                  void       *)
 // ----------------------------------------------------------------------------
 //   Callback when a file is selected
@@ -309,9 +325,13 @@ static int state_save_callback(const char *fpath,
         return 1;
     }
 
-    // Save the stack
+    // Save the contents of the global variables
     renderer render(&prog);
     runtime &rt = runtime::RT;
+    directory *home = rt.variables(0);
+    home->enumerate(state_save_variable, &render);
+
+    // Save the stack
     uint depth = rt.depth();
     while (depth > 0)
     {
@@ -346,22 +366,81 @@ static int state_save()
 }
 
 
+static bool danger_will_robinson(cstring header,
+                                 cstring msg1,
+                                 cstring msg2 = "",
+                                 cstring msg3 = "",
+                                 cstring msg4 = "",
+                                 cstring msg5 = "",
+                                 cstring msg6 = "",
+                                 cstring msg7 = "")
+// ----------------------------------------------------------------------------
+//  Warn user about the possibility to lose calculator state
+// ----------------------------------------------------------------------------
+{
+    lcd_writeClr(t24);
+    lcd_clear_buf();
+    lcd_putsR(t24, header);
+    t24->ln_offs = 8;
 
-static int state_load_callback(const char *fpath,
-                                 const char *fname,
-                                 void       *)
+    lcd_puts(t24, msg1);
+    lcd_puts(t24, msg2);
+    lcd_puts(t24, msg3);
+    lcd_puts(t24, msg4);
+    lcd_puts(t24, msg5);
+    lcd_puts(t24, msg6);
+    lcd_puts(t24, msg7);
+    lcd_puts(t24, "Press [ENTER] to confirm.");
+    lcd_refresh();
+
+    wait_for_key_release(-1);
+
+    while (true)
+    {
+        int key = runner_get_key(NULL);
+        if (IS_EXIT_KEY(key) || is_menu_auto_off())
+            return false;
+        if ( key == KEY_ENTER )
+            return true; // Proceed with reset
+    }
+}
+
+
+static int state_load_callback(cstring path, cstring name, void *merge)
 // ----------------------------------------------------------------------------
 //   Callback when a file is selected for loading
 // ----------------------------------------------------------------------------
 {
+    if (!merge)
+    {
+        // Check before erasing state
+        if (!danger_will_robinson("Loading DB48X state",
+
+                                  "You are about to erase the current",
+                                  "calculator state to replace it with"
+                                  "a new one",
+                                  ""
+                                  "WARNING: Current state will be lost"))
+            return 0;
+
+        // Clear the state
+        runtime::RT.reset();
+
+        set_reset_state_file(path);
+
+    }
+
     // Display the name of the file being saved
+    lcd_writeClr(t24);
+    lcd_clear_buf();
+    lcd_putsR(t24, merge ? "Merge state" : "Load state");
     lcd_puts(t24,"Loading state...");
-    lcd_puts(t24, fname);
+    lcd_puts(t24, name);
     lcd_refresh();
 
     // Store the state file name
     file prog;
-    prog.open(fpath);
+    prog.open(path);
     if (!prog.valid())
     {
         disp_disk_info("State load failed");
@@ -436,15 +515,15 @@ static int state_load_callback(const char *fpath,
 }
 
 
-static int state_load()
+static int state_load(bool merge)
 // ----------------------------------------------------------------------------
 //   Load a state from disk
 // ----------------------------------------------------------------------------
 {
     bool display_new = false;
     bool overwrite_check = false;
-    void *user_data = NULL;
-    int ret = file_selection_screen("Load state",
+    void *user_data = (void *) merge;
+    int ret = file_selection_screen(merge ? "Merge state" : "Load state",
                                     "/STATE", ".48S",
                                     state_load_callback,
                                     display_new, overwrite_check,
@@ -458,7 +537,36 @@ static int state_clear()
 //   Reset calculator to factory state
 // ----------------------------------------------------------------------------
 {
+    if (danger_will_robinson("Clear DB48X state",
+
+                              "You are about to reset the DB48X",
+                              "program to factory state.",
+                              ""
+                             "WARNING: Current state will be lost"))
+    {
+        // Reset statefile name for next load
+        set_reset_state_file("");
+
+        // Reset the system to force new statefile load
+        set_reset_magic(NO_SPLASH_MAGIC);
+        sys_reset();
+    }
+
+
     return 0;
+}
+
+
+bool load_state_file(cstring path)
+// ----------------------------------------------------------------------------
+//   Load the state file directly
+// ----------------------------------------------------------------------------
+{
+    cstring name = path;
+    for (cstring p = path; *p; p++)
+        if (*p == '/' || *p == '\\')
+            name = p + 1;
+    return state_load_callback(path, name, (void *) 1) == 0;
 }
 
 
@@ -467,23 +575,24 @@ int menu_item_run(uint8_t menu_id)
 //   Callback to run a menu item
 // ----------------------------------------------------------------------------
 {
-  int ret = 0;
+    int ret = 0;
 
-  switch(menu_id)
-  {
-  case MI_DB48_ABOUT:    about_dialog(); break;
-  case MI_DB48_SETTINGS: ret = handle_menu(&settings_menu, MENU_ADD, 0); break;
-  case MI_48PGM:         ret = handle_menu(&program_menu, MENU_ADD, 0); break;
-  case MI_48PGM_LOAD:    ret = program_load(); break;
-  case MI_48PGM_SAVE:    ret = program_save(); break;
-  case MI_48STATE:       ret = handle_menu(&state_menu, MENU_ADD, 0); break;
-  case MI_48STATE_LOAD:  ret = state_load(); break;
-  case MI_48STATE_SAVE:  ret = state_save(); break;
-  case MI_48STATE_CLEAN: ret = state_clear(); break;
-  default:               ret = MRET_UNIMPL; break;
-  }
+    switch (menu_id)
+    {
+    case MI_DB48_ABOUT:    about_dialog(); break;
+    case MI_DB48_SETTINGS: ret = handle_menu(&settings_menu, MENU_ADD, 0); break;
+    case MI_48PGM:         ret = handle_menu(&program_menu, MENU_ADD, 0); break;
+    case MI_48PGM_LOAD:    ret = program_load(); break;
+    case MI_48PGM_SAVE:    ret = program_save(); break;
+    case MI_48STATE:       ret = handle_menu(&state_menu, MENU_ADD, 0); break;
+    case MI_48STATE_LOAD:  ret = state_load(false); break;
+    case MI_48STATE_MERGE: ret = state_load(true); break;
+    case MI_48STATE_SAVE:  ret = state_save(); break;
+    case MI_48STATE_CLEAN: ret = state_clear(); break;
+    default:               ret = MRET_UNIMPL; break;
+    }
 
-  return ret;
+    return ret;
 }
 
 
@@ -494,7 +603,7 @@ cstring menu_item_description(uint8_t          menu_id,
 //   Return the menu item description
 // ----------------------------------------------------------------------------
 {
-    const char *ln;
+    cstring ln = nullptr;
 
     switch (menu_id)
     {
@@ -505,6 +614,7 @@ cstring menu_item_description(uint8_t          menu_id,
     case MI_48PGM_SAVE:         ln = "Save Program";    break;
     case MI_48STATE:            ln = "State >";         break;
     case MI_48STATE_LOAD:       ln = "Load State";      break;
+    case MI_48STATE_MERGE:      ln = "Merge State"; break;
     case MI_48STATE_SAVE:       ln = "Save State";      break;
     case MI_48STATE_CLEAN:      ln = "Clear state";     break;
     default:                    ln = NULL;              break;

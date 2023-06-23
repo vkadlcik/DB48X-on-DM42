@@ -321,12 +321,14 @@ bool input::key(int key, bool repeating)
     }
 
     // Hard-code system menu
+    // REVISIT: Shit should probably just be a regular RPL function
     if (!alpha && shift && key == KEY_0)
     {
         SET_ST(STAT_MENU);
         handle_menu(&application_menu, MENU_RESET, 0);
         CLR_ST(STAT_MENU);
         wait_for_key_release(-1);
+        shift = false;
         return true;
     }
 
@@ -2406,7 +2408,7 @@ static const byte defaultSecondShiftedCommand[2*input::NUM_KEYS] =
     OP2BYTES(KEY_3,     0),
     OP2BYTES(KEY_SUB,   0),
     OP2BYTES(KEY_EXIT,  0),
-    OP2BYTES(KEY_       0, 0),
+    OP2BYTES(KEY_0,     0),
     OP2BYTES(KEY_DOT,   0),
     OP2BYTES(KEY_RUN,   0),
     OP2BYTES(KEY_ADD,   0),

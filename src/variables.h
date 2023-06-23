@@ -120,6 +120,11 @@ struct directory : list
     //   Enumerate all the variables in the directory, return count of true
     // ------------------------------------------------------------------------
 
+    static bool render_name(symbol_p name, object_p obj, void *renderer_ptr);
+    // ------------------------------------------------------------------------
+    //   Render an entry in the directory
+    // ------------------------------------------------------------------------
+
 
     OBJECT_HANDLER(directory);
     OBJECT_PARSER(directory);

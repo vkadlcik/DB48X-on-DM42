@@ -134,7 +134,7 @@ OBJECT_PARSER_BODY(directory)
 }
 
 
-static bool directory_render_name(symbol_p name, object_p obj, void *arg)
+bool directory::render_name(symbol_p name, object_p obj, void *arg)
 // ----------------------------------------------------------------------------
 //    Render an item in the directory
 // ----------------------------------------------------------------------------
@@ -155,7 +155,7 @@ OBJECT_RENDERER_BODY(directory)
 {
     bool result = r.put("Directory {");
     r.indent();
-    if (result) result = enumerate(directory_render_name, &r);
+    if (result) result = enumerate(directory::render_name, &r);
     r.unindent();
     if (result) result = r.put("}");
     return r.size();

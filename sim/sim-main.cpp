@@ -75,6 +75,10 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif // QT version 6
 
+    QCoreApplication::setOrganizationName("DB48X Project");
+    QCoreApplication::setOrganizationDomain("48calc.org");
+    QCoreApplication::setApplicationName("DB48X");
+
     QApplication a(argc, argv);
     MainWindow w;
     w.show();

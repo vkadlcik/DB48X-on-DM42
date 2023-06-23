@@ -29,11 +29,13 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <QMainWindow>
-#include <QFile>
 #include "sim-rpl.h"
-#include "ui_sim-window.h"
 #include "tests.h"
+#include "ui_sim-window.h"
+
+#include <QAbstractEventDispatcher>
+#include <QFile>
+#include <QMainWindow>
 
 
 class TestsThread : public QThread
@@ -96,6 +98,14 @@ protected:
 
 signals:
     void keyResizeSignal(const QRect &rect);
+
 };
 
+
+template <typename F>
+static void postToThread(F && fun, QThread *thread = qApp->thread()) {
+   auto *obj = QAbstractEventDispatcher::instance(thread);
+   Q_ASSERT(obj);
+   QMetaObject::invokeMethod(obj, std::forward<F>(fun));
+}
 #endif // SIM_WINDOW_H

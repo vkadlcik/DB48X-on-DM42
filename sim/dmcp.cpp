@@ -41,7 +41,8 @@
 #include <sys/time.h>
 #include <target.h>
 
-#include <QDir>
+#include <QFileDialog>
+#include <QSettings>
 #include <iostream>
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -493,7 +494,7 @@ void lcd_set_buf_cleared(int val)
 }
 void lcd_switchFont(disp_stat_t * ds, int nr)
 {
-    record(lcd, "Select font %d", nr);
+    record(lcd, "Selected font %d", nr);
     if (nr >= 0 && nr <= (int) dmcp_fonts_count)
         ds->f = dmcp_fonts[nr];
 }
@@ -768,88 +769,44 @@ int file_selection_screen(const char   *title,
                           int           overwrite_check,
                           void         *data)
 {
-    uint menu_line = 0;
-    bool done = false;
+    int ret = 0;
 
     // Make things relative to the working directory
     if (*base_dir == '/' || *base_dir == '\\')
         base_dir++;
 
-    QDir dir(base_dir, QString("*") + QString(ext));
-    QStringList fileList = dir.entryList();
+    QString path;
+    bool done = false;
+
+    postToThread([&]{ // the functor captures parent and text by value
+        path =
+            disp_new
+            ? QFileDialog::getSaveFileName(nullptr,
+                                           title,
+                                           base_dir,
+                                           QString("*") + QString(ext),
+                                           nullptr,
+                                           overwrite_check
+                                           ? QFileDialog::Options()
+                                           : QFileDialog::DontConfirmOverwrite)
+            : QFileDialog::getOpenFileName(nullptr,
+                                           title,
+                                           base_dir,
+                                           QString("*") + QString(ext));
+        std::cout << "Selected path: " << path.toStdString() << "\n";
+        done = true;
+    });
 
     while (!done)
-    {
-        t24->xoffs = 0;
-        lcd_writeClr(t24);
-        lcd_writeClr(t20);
-        lcd_clear_buf();
-        lcd_putsR(t20, title);
+        sys_sleep();
 
-        uint files = fileList.length();
-        uint count = files + disp_new != 0;
-
-        for (uint8_t i = 0; i < count; i++)
-        {
-            cstring label = "";
-            if (i < files)
-                label = fileList[i].toStdString().c_str();
-            else
-                label = "<New File>";
-
-            t24->inv = i == menu_line;
-            lcd_printAt(t24, i+1, "%s", label);
-        }
-        lcd_refresh();
-
-        bool redraw = false;
-        while (!redraw)
-        {
-            while (key_empty())
-                sys_sleep();
-
-            int key = key_pop();
-            switch (key)
-            {
-            case KEY_UP:
-                if (menu_line > 0)
-                {
-                    menu_line--;
-                    redraw = true;
-                }
-                break;
-            case KEY_DOWN:
-                if (menu_line + 1 < count)
-                {
-                    menu_line++;
-                    redraw = true;
-                }
-                break;
-            case KEY_EXIT:
-                redraw = true;
-                done = true;
-                break;
-
-            case KEY_ENTER:
-            {
-                QString name = menu_line < files
-                    ? fileList[menu_line]
-                    : QString("new") + QString(ext);
-                QString path = dir.filePath(name);
-                std::cout << "Path=" << path.toStdString()
-                          << ", AbsPath=" << dir.absolutePath().toStdString()
-                          << ", Name=" << name.toStdString() << "\n";
-                sel_fn(path.toStdString().c_str(),
-                       name.toStdString().c_str(),
-                       data);
-                redraw = true;
-                break;
-            }
-            }
-        }
-    }
-
-    return 0;
+    std::cout << "Got path: " << path.toStdString() << "\n";
+    QFileInfo fi(path);
+    QString name = fi.fileName();
+    ret = sel_fn(path.toStdString().c_str(),
+                 name.toStdString().c_str(),
+                 data);
+    return ret;
 }
 
 int power_check_screen()
@@ -922,16 +879,24 @@ void disp_disk_info(const char *hdr)
 {
 }
 
-const char *reset_state_file = "";
 void set_reset_state_file(const char * str)
 {
-    reset_state_file = str;
+    QSettings settings;
+    settings.setValue("state", str);
+    std::cout << "Set saved state: " << str << "\n";
 }
 
 
 char *get_reset_state_file()
 {
-    return (char *) reset_state_file;
+    static char result[256];
+    QSettings settings;
+    QString file = settings.value("state").toString();
+    result[0] = 0;
+    if (!file.isNull())
+        strncpy(result, file.toStdString().c_str(), sizeof(result));
+    std::cout << "Saved state: " << result << "\n";
+    return result;
 }
 
 uint32_t reset_magic = 0;

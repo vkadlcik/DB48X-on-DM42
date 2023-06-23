@@ -328,6 +328,16 @@ static size_t render_num(renderer &r, integer_p num, uint base, cstring fmt)
 //   This is necessary because the arm-none-eabi-gcc printf can't do 64-bit
 //   I'm getting non-sensible output
 {
+    // If we render to a file, need to first render to scratchpad to be able to
+    // revert the digits in memory before writing
+    if (r.text() == nullptr)
+    {
+        renderer tmp;
+        size_t result = render_num(tmp, num, base, fmt);
+        r.put(tmp.text(), result);
+        return result;
+    }
+
     // Copy the '#' or '-' sign
     if (*fmt)
         r.put(*fmt++);

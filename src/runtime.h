@@ -93,6 +93,10 @@ struct runtime
     //   Assign the given memory range to the runtime
     // ------------------------------------------------------------------------
 
+    void reset();
+    // ------------------------------------------------------------------------
+    //   Reset to initial state
+    // ------------------------------------------------------------------------
 
     // Amount of space we want to keep between stack top and temporaries
     const uint redzone = 2*sizeof(object_p);;

@@ -207,6 +207,7 @@ bool input::end_edit()
     xshift  = false;
     last    = 0;
     clear_help();
+    RT.clear_error();
 
     size_t edlen = RT.editing();
     if (edlen)

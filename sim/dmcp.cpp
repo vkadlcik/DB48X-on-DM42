@@ -277,11 +277,18 @@ void lcd_clear_buf()
         lcd_buffer[i] = 0xFF;
 }
 
+static uint32_t last_warning = 0;
+
 inline void lcd_set_pixel(int x, int y)
 {
     if (x < 0 || x > LCD_W || y < 0 || y > LCD_H)
     {
-        record(lcd_warning, "Clearing pixel at (%d, %d)", x, y);
+        uint now = sys_current_ms();
+        if (now - last_warning > 1000)
+        {
+            record(lcd_warning, "Clearing pixel at (%d, %d)", x, y);
+            last_warning = now;
+        }
         return;
     }
     unsigned bo = y * LCD_SCANLINE + (LCD_W - x);
@@ -294,7 +301,12 @@ inline void lcd_clear_pixel(int x, int y)
 
     if (x < 0 || x > LCD_W || y < 0 || y > LCD_H)
     {
-        record(lcd_warning, "Setting pixel at (%d, %d)", x, y);
+        uint now = sys_current_ms();
+        if (now - last_warning > 1000)
+        {
+            record(lcd_warning, "Setting pixel at (%d, %d)", x, y);
+            last_warning = now;
+        }
         return;
     }
     unsigned bo = y * LCD_SCANLINE + (LCD_W - x);

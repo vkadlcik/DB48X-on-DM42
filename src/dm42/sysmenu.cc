@@ -97,7 +97,7 @@ void about_dialog()
     lcd_puts(t20, "DB48X v" PROGRAM_VERSION " (C) C. de Dinechin");
     t20->y += h2;
     lcd_puts(t20, "DMCP platform (C) SwissMicros GmbH");
-    lcd_puts(t20, "Intel Decimal Floating Point Library v2.0u1");
+    lcd_puts(t20, "Intel Decimal Floating Point Lib v2.0u1");
     lcd_puts(t20, "  (C) 2007-2018, Intel Corp.");
 
     t20->y = LCD_Y - lcd_lineHeight(t20);

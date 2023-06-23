@@ -112,10 +112,87 @@ void draw_power_off_image(int allow_errors)
     record(dmcp_notyet,
            "draw_power_off_image(%d) not implemented", allow_errors);
 }
+
+
 int handle_menu(const smenu_t * menu_id, int action, int cur_line)
 {
-    record(dmcp_notyet, "handle_menu(%p, %d, %d) not implemented",
-           menu_id, action, cur_line);
+    int menu_line = 0;
+    bool done = false;
+
+    while (!done)
+    {
+        t24->xoffs = 0;
+        lcd_writeClr(t24);
+        lcd_writeClr(t20);
+        lcd_clear_buf();
+        lcd_putsR(t20, menu_id->name);
+
+        char buf[80];
+        uint count = 0;
+        while (menu_id->items[count])
+            count++;
+
+        for (uint8_t i = 0; i < count; i++)
+        {
+            uint8_t mid = menu_id->items[i];
+            cstring label = menu_line_str_app(mid, buf, sizeof(buf));
+            if (!label)
+            {
+                label = "Unimplemented DMCP menu";
+                switch(mid)
+                {
+                case MI_MSC:            label = "Activate USB Disk"; break;
+                case MI_PGM_LOAD:       label = "Load Program"; break;
+                case MI_LOAD_QSPI:      label = "Load QSPI from FAT"; break;
+                case MI_SYSTEM_ENTER:   label = "System >"; break;
+                case MI_SET_TIME:       label = "Set Time >"; break;
+                case MI_SET_DATE:       label = "Set Date >"; break;
+                case MI_BEEP_MUTE:      label = "Beep Mute"; break;
+                case MI_SLOW_AUTOREP:   label = "Slow Autorepeat"; break;
+                case MI_DISK_INFO:      label = "Show Disk Info"; break;
+                }
+            }
+            t24->inv = i == menu_line;
+            lcd_printAt(t24, i+1, "%u. %s", i+1, label);
+        }
+        lcd_refresh();
+
+        bool redraw = false;
+        while (!redraw)
+        {
+            while (key_empty())
+                sys_sleep();
+
+            int key = key_pop();
+            switch (key)
+            {
+            case KEY_UP:
+                if (menu_line > 0)
+                {
+                    menu_line--;
+                    redraw = true;
+                }
+                break;
+            case KEY_DOWN:
+                if (menu_line + 1 < count)
+                {
+                    menu_line++;
+                    redraw = true;
+                }
+                break;
+            case KEY_EXIT:
+                redraw = true;
+                done = true;
+                break;
+
+            case KEY_ENTER:
+                run_menu_item_app(menu_id->items[menu_line]);
+                redraw = true;
+                break;
+            }
+        }
+    }
+
     return 0;
 }
 
@@ -478,11 +555,12 @@ int lcd_textWidth(disp_stat_t * ds, const char* text)
 void lcd_writeClr(disp_stat_t *ds)
 {
     record(lcd, "Clearing display state"); // Not sure this is what it does
-    ds->x      = ds->xoffs;
+    ds->x      = 0; // ds->xoffs;
     ds->y      = 0;
     ds->inv    = 0;
     ds->bgfill = 1;
     ds->lnfill = 1;
+    ds->newln  = 1;
     ds->xspc   = 1;
 }
 
@@ -668,13 +746,16 @@ int sys_timer_timeout(int timer_ix)
 
 void wait_for_key_press()
 {
-    record(dmcp_notyet, "wait_for_key_press not implemented");
+    wait_for_key_release(-1);
+    while (key_empty() || !key_pop())
+        sys_sleep();
 }
 void wait_for_key_release(int tout)
 {
     record(dmcp_notyet, "wait_for_key_release not implemented");
+    while (!key_empty() && key_pop())
+            sys_sleep();
 }
-
 
 int file_selection_screen(const char * title, const char * base_dir, const char * ext, file_sel_fn_t sel_fn,
                           int disp_new, int overwrite_check, void * data)

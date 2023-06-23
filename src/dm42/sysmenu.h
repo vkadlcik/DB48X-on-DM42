@@ -62,6 +62,7 @@ extern const smenu_t  program_menu;
 int                   menu_item_run(uint8_t mid);
 cstring               menu_item_description(uint8_t mid, char *, const int);
 bool                  load_state_file(cstring path);
+bool                  save_state_file(cstring path);
 
 
 #endif // SYSMENU_H

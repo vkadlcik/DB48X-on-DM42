@@ -30,6 +30,7 @@
 #include "sim-rpl.h"
 #include <dmcp.h>
 
+extern int key_remaining();
 
 RPLThread::RPLThread(QObject *parent) : QThread(parent)
 // ----------------------------------------------------------------------------
@@ -45,8 +46,8 @@ RPLThread::~RPLThread()
 {
     while (!isFinished())
     {
-        key_push(-1);
-        terminate();
+        if (key_remaining())
+            key_push(-1);
     }
 }
 

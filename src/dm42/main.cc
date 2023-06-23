@@ -276,6 +276,16 @@ extern "C" void program_main()
             reset_auto_off();
             key    = key_pop();
             hadKey = true;
+#if SIMULATOR
+            if (key == -1)
+            {
+                cstring path = get_reset_state_file();
+                printf("Exit: saving state to %s\n", path);
+                if (path && *path)
+                    save_state_file(path);
+                break;
+            }
+#endif // SIMULATOR
         }
         bool repeating = sys_timer_timeout(TIMER0);
         if (repeating)

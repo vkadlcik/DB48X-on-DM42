@@ -573,6 +573,19 @@ bool load_state_file(cstring path)
 }
 
 
+bool save_state_file(cstring path)
+// ----------------------------------------------------------------------------
+//   Save the state file directly
+// ----------------------------------------------------------------------------
+{
+    cstring name = path;
+    for (cstring p = path; *p; p++)
+        if (*p == '/' || *p == '\\')
+            name = p + 1;
+    return state_save_callback(path, name, nullptr) == 0;
+}
+
+
 int menu_item_run(uint8_t menu_id)
 // ----------------------------------------------------------------------------
 //   Callback to run a menu item

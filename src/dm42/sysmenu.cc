@@ -417,9 +417,9 @@ static int state_load_callback(cstring path, cstring name, void *merge)
         if (!danger_will_robinson("Loading DB48X state",
 
                                   "You are about to erase the current",
-                                  "calculator state to replace it with"
+                                  "calculator state to replace it with",
                                   "a new one",
-                                  ""
+                                  "",
                                   "WARNING: Current state will be lost"))
             return 0;
 

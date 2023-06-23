@@ -41,6 +41,9 @@
 #include <sys/time.h>
 #include <target.h>
 
+#include <QDir>
+#include <iostream>
+
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 RECORDER(dmcp,          64, "DMCP system calls");
@@ -116,7 +119,7 @@ void draw_power_off_image(int allow_errors)
 
 int handle_menu(const smenu_t * menu_id, int action, int cur_line)
 {
-    int menu_line = 0;
+    uint menu_line = 0;
     bool done = false;
 
     while (!done)
@@ -132,7 +135,7 @@ int handle_menu(const smenu_t * menu_id, int action, int cur_line)
         while (menu_id->items[count])
             count++;
 
-        for (uint8_t i = 0; i < count; i++)
+        for (uint i = 0; i < count; i++)
         {
             uint8_t mid = menu_id->items[i];
             cstring label = menu_line_str_app(mid, buf, sizeof(buf));
@@ -757,10 +760,95 @@ void wait_for_key_release(int tout)
             sys_sleep();
 }
 
-int file_selection_screen(const char * title, const char * base_dir, const char * ext, file_sel_fn_t sel_fn,
-                          int disp_new, int overwrite_check, void * data)
+int file_selection_screen(const char   *title,
+                          const char   *base_dir,
+                          const char   *ext,
+                          file_sel_fn_t sel_fn,
+                          int           disp_new,
+                          int           overwrite_check,
+                          void         *data)
 {
-    record(dmcp, "file_selection_screen not imlemented");
+    uint menu_line = 0;
+    bool done = false;
+
+    // Make things relative to the working directory
+    if (*base_dir == '/' || *base_dir == '\\')
+        base_dir++;
+
+    QDir dir(base_dir, QString("*") + QString(ext));
+    QStringList fileList = dir.entryList();
+
+    while (!done)
+    {
+        t24->xoffs = 0;
+        lcd_writeClr(t24);
+        lcd_writeClr(t20);
+        lcd_clear_buf();
+        lcd_putsR(t20, title);
+
+        uint files = fileList.length();
+        uint count = files + disp_new != 0;
+
+        for (uint8_t i = 0; i < count; i++)
+        {
+            cstring label = "";
+            if (i < files)
+                label = fileList[i].toStdString().c_str();
+            else
+                label = "<New File>";
+
+            t24->inv = i == menu_line;
+            lcd_printAt(t24, i+1, "%s", label);
+        }
+        lcd_refresh();
+
+        bool redraw = false;
+        while (!redraw)
+        {
+            while (key_empty())
+                sys_sleep();
+
+            int key = key_pop();
+            switch (key)
+            {
+            case KEY_UP:
+                if (menu_line > 0)
+                {
+                    menu_line--;
+                    redraw = true;
+                }
+                break;
+            case KEY_DOWN:
+                if (menu_line + 1 < count)
+                {
+                    menu_line++;
+                    redraw = true;
+                }
+                break;
+            case KEY_EXIT:
+                redraw = true;
+                done = true;
+                break;
+
+            case KEY_ENTER:
+            {
+                QString name = menu_line < files
+                    ? fileList[menu_line]
+                    : QString("new") + QString(ext);
+                QString path = dir.filePath(name);
+                std::cout << "Path=" << path.toStdString()
+                          << ", AbsPath=" << dir.absolutePath().toStdString()
+                          << ", Name=" << name.toStdString() << "\n";
+                sel_fn(path.toStdString().c_str(),
+                       name.toStdString().c_str(),
+                       data);
+                redraw = true;
+                break;
+            }
+            }
+        }
+    }
+
     return 0;
 }
 

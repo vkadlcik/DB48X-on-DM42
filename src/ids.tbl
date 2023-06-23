@@ -208,6 +208,7 @@ NAMED(Mem, "AvailableMemory")
 CMD(FreeMemory)
 CMD(SystemMemory)
 CMD(GarbageCollect)
+CMD(HomeDirectory)
 
 CMD(Ticks)
 CMD(Depth)

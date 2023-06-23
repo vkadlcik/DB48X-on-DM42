@@ -66,9 +66,23 @@ struct directory : list
     directory(id type = ID_directory): list(nullptr, 0, type)
     {}
 
+    directory(gcbytes bytes, size_t len, id type = ID_directory)
+        : list(bytes, len, type)
+    { }
+
     static size_t required_memory(id i)
     {
         return leb128size(i) + leb128size(0);
+    }
+
+    static size_t required_memory(id i, gcbytes UNUSED bytes, size_t len)
+    {
+        return text::required_memory(i, bytes, len);
+    }
+
+    static list *make(byte_p bytes, size_t len)
+    {
+        return (list *) text::make(bytes, len);
     }
 
     bool store(gcobj name, gcobj value);
@@ -91,7 +105,7 @@ struct directory : list
     //   Purge an entry from the directory, return purged size
     // ------------------------------------------------------------------------
 
-    size_t count()
+    size_t count() const
     // ------------------------------------------------------------------------
     //   Return the number of variables in the directory
     // ------------------------------------------------------------------------
@@ -101,7 +115,7 @@ struct directory : list
 
 
     typedef bool (*enumeration_fn)(symbol_p name, object_p obj, void *arg);
-    size_t enumerate(enumeration_fn callback, void *arg);
+    size_t enumerate(enumeration_fn callback, void *arg) const;
     // ------------------------------------------------------------------------
     //   Enumerate all the variables in the directory, return count of true
     // ------------------------------------------------------------------------

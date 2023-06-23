@@ -193,4 +193,17 @@ COMMAND_DECLARE(Ticks);
 // ----------------------------------------------------------------------------
 
 
+COMMAND(HomeDirectory)
+// ----------------------------------------------------------------------------
+//   Return the home directory
+// ----------------------------------------------------------------------------
+{
+    if (gcobj dir = (object *) RT.variables(0))
+        if (RT.push(dir))
+            return OK;
+    return ERROR;
+
+}
+
+
 #endif // COMMAND_H

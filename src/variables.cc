@@ -29,10 +29,12 @@
 
 #include "variables.h"
 
+#include "command.h"
 #include "integer.h"
 #include "list.h"
 #include "parser.h"
 #include "renderer.h"
+
 
 RECORDER(directory,       16, "Directories");
 RECORDER(directory_error, 16, "Errors from directories");
@@ -68,9 +70,81 @@ OBJECT_PARSER_BODY(directory)
 // ----------------------------------------------------------------------------
 //    Try to parse this as a directory
 // ----------------------------------------------------------------------------
-//    Directory should never be parsed, but do something sensible if it happens
+//    A directory has the following structure:
+//        Directory { Name1 Value1 Name2 Value2 ... }
 {
+    cstring ref = cstring(utf8(p.source));
+    size_t maxlen = p.length;
+    cstring label = "directory";
+    size_t len = strlen(label);
+    if (len <= maxlen
+        && strncasecmp(ref, label, len) == 0
+        && command::is_separator(utf8(ref + len)))
+    {
+        gcutf8 body = utf8(ref + len);
+        maxlen -= len;
+        if (gcobj obj = object::parse(body, maxlen))
+        {
+            if (obj->type() == ID_list)
+            {
+                // Check that we only have names in there
+                uint    count  = 0;
+                gcbytes bytes  = obj->payload();
+                byte_p  ptr    = bytes;
+                size_t  size   = leb128<size_t>(ptr);
+                gcbytes start  = ptr;
+                size_t  offset = 0;
+
+                // Loop on all objects inside the list
+                while (offset < size)
+                {
+                    object_p obj = object_p(byte_p(start) + offset);
+                    size_t   objsize = obj->size();
+
+                    if ((count & 1) == 0)
+                    {
+                        if (obj->type() != ID_symbol)
+                        {
+                            RT.error("Invalid name in directory").source(body);
+                            return ERROR;
+                        }
+                    }
+                    count++;
+
+                    // Loop on next object
+                    offset += objsize;
+                }
+
+                // We should have an even number of items here
+                if (count & 1)
+                {
+                    RT.error("Malformed directory").source(body);
+                    return SKIP;
+                }
+
+                // If we passed all these tests, build a directory
+                p.out = rt.make<directory>(ID_directory, start, size);
+                p.end = maxlen + len;
+                return OK;
+            }
+        }
+    }
+
     return SKIP;
+}
+
+
+static bool directory_render_name(symbol_p name, object_p obj, void *arg)
+// ----------------------------------------------------------------------------
+//    Render an item in the directory
+// ----------------------------------------------------------------------------
+{
+    renderer &r = *((renderer *) arg);
+    name->render(r);
+    r.indent();
+    obj->render(r);
+    r.unindent();
+    return true;
 }
 
 
@@ -79,7 +153,12 @@ OBJECT_RENDERER_BODY(directory)
 //   Render the directory into the given directory buffer
 // ----------------------------------------------------------------------------
 {
-    return r.put("Directory (internal)");
+    bool result = r.put("Directory {");
+    r.indent();
+    if (result) result = enumerate(directory_render_name, &r);
+    r.unindent();
+    if (result) result = r.put("}");
+    return r.size();
 }
 
 
@@ -250,7 +329,7 @@ size_t directory::purge(object_p ref)
 }
 
 
-size_t directory::enumerate(enumeration_fn callback, void *arg)
+size_t directory::enumerate(enumeration_fn callback, void *arg) const
 // ----------------------------------------------------------------------------
 //   Process all the variables in turn, return number of true values
 // ----------------------------------------------------------------------------

@@ -181,6 +181,12 @@ int read_key(int *k1, int *k2)
     *k2 = keyrd - keywr > 1 ? keys[(keywr - 2) % nkeys] : 0;
     return keyrd != keywr;
 }
+
+int runner_get_key(int *repeat)
+{
+    return repeat ? key_pop_last() :  key_pop();
+}
+
 void lcd_clear_buf()
 {
     record(lcd, "Clearing buffer");
@@ -747,12 +753,29 @@ void disp_disk_info(const char *hdr)
 {
 }
 
+const char *reset_state_file = "";
 void set_reset_state_file(const char * str)
 {
+    reset_state_file = str;
 }
 
 
 char *get_reset_state_file()
 {
-    return "";
+    return (char *) reset_state_file;
+}
+
+uint32_t reset_magic = 0;
+void set_reset_magic(uint32_t value)
+{
+    reset_magic = value;
+}
+
+void sys_reset()
+{
+}
+
+int is_menu_auto_off()
+{
+    return false;
 }

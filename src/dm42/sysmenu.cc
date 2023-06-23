@@ -29,10 +29,12 @@
 
 #include "sysmenu.h"
 
-#include "main.h"
-#include "types.h"
 #include "file.h"
+#include "main.h"
+#include "object.h"
 #include "renderer.h"
+#include "runtime.h"
+#include "types.h"
 
 #include <cstdio>
 #include <dmcp.h>
@@ -290,11 +292,30 @@ static int state_save_callback(const char *fpath,
     lcd_puts(t24, fname);
     lcd_refresh();
 
-    // Store the state file name
+    // Store the state file name so that we automatically reload it
     set_reset_state_file(fpath);
 
-    // Exit with appropriate code to force statefile save
-    return MAGIC_SAVE_STATE;
+    // Open save file name
+    file prog(fpath);
+    if (!prog.valid())
+    {
+        disp_disk_info("State save");
+        return 1;
+    }
+
+    // Save the stack
+    renderer render(&prog);
+    runtime &rt = runtime::RT;
+    uint depth = rt.depth();
+    while (depth > 0)
+    {
+        depth--;
+        object_p obj = rt.stack(depth);
+        obj->render(render, rt);
+        render.put('\n');
+    }
+
+    return 0;
 }
 
 

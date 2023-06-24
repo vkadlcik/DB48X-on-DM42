@@ -38,6 +38,7 @@ RECORDER(options, 32, "Information about command line options");
 
 bool run_tests = false;
 bool db48x_keyboard = false;
+extern uint wait_time;
 
 int main(int argc, char *argv[])
 // ----------------------------------------------------------------------------
@@ -67,6 +68,11 @@ int main(int argc, char *argv[])
             case 'd':
                 db48x_keyboard = true;
                 break;
+            case 'w':
+                if (argv[a][2])
+                    wait_time = atoi(argv[a]+2);
+                else if (a < argc)
+                    wait_time = atoi(argv[++a]);
             }
         }
     }

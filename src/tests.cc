@@ -39,7 +39,8 @@
 
 
 extern volatile int lcd_needsupdate;
-extern char stack0[80];
+extern char         stack0[80];
+extern uint         wait_time = 2;
 
 void tests::run(bool onlyCurrent)
 // ----------------------------------------------------------------------------
@@ -603,7 +604,7 @@ tests &tests::itest(tests::key k, bool release)
 
     // Wait for the RPL thread to process the keys (to be revisited on DM42)
     while (!key_remaining())
-        sys_delay(2);
+        sys_delay(wait_time);
 
     key_push(k);
     if (longpress)
@@ -612,12 +613,12 @@ tests &tests::itest(tests::key k, bool release)
         longpress = false;
         release = false;
     }
-    sys_delay(2);
+    sys_delay(wait_time);
 
     if (release && k != RELEASE)
     {
         while (!key_remaining())
-            sys_delay(2);
+            sys_delay(wait_time);
         key_push(RELEASE);
     }
 
@@ -924,8 +925,8 @@ tests &tests::clear()
     nokeys();
     key_push(CLEAR);
     while(!key_empty())
-        sys_delay(2);
-    sys_delay(2);
+        sys_delay(wait_time);
+    sys_delay(wait_time);
     return *this;
 }
 
@@ -947,7 +948,7 @@ tests &tests::nokeys()
 // ----------------------------------------------------------------------------
 {
     while (!key_empty())
-        sys_delay(2);
+        sys_delay(wait_time);
     return *this;
 }
 
@@ -958,7 +959,7 @@ tests &tests::refreshed()
 // ----------------------------------------------------------------------------
 {
     while (lcd_needsupdate == lcd_update)
-        sys_delay(2);
+        sys_delay(wait_time);
     return *this;
 }
 

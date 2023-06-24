@@ -353,7 +353,7 @@ struct runtime
     //   Protect a pointer against garbage collection
     // ------------------------------------------------------------------------
     {
-        gcptr(byte *ptr) : safe(ptr), next(RT.GCSafe)
+        gcptr(byte *ptr = nullptr) : safe(ptr), next(RT.GCSafe)
         {
             RT.GCSafe = this;
         }
@@ -391,7 +391,7 @@ struct runtime
     //   Protect a pointer against garbage collection
     // ------------------------------------------------------------------------
     {
-        gcp(Obj *obj): gcptr((byte *) obj) {}
+        gcp(Obj *obj = nullptr): gcptr((byte *) obj) {}
         ~gcp() {}
 
 #pragma GCC diagnostic push

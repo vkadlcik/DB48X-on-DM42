@@ -278,11 +278,10 @@ object::result program::execute(runtime &rt) const
 {
     byte  *p       = (byte *) payload();
     size_t len     = leb128<size_t>(p);
-    gcobj  first   = (object_p) p;
     result r       = OK;
     size_t objsize = 0;
 
-    for (gcobj obj = first; len > 0; obj += objsize, len -= objsize)
+    for (gcobj obj = object_p(p); len > 0; obj += objsize, len -= objsize)
     {
         objsize = obj->size();
         record(program, "Evaluating %+s at %p, size %u, %u remaining\n",
@@ -536,12 +535,11 @@ OBJECT_RENDERER_BODY(equation)
     size_t depth   = rt.depth();
     byte_p p       = payload();
     size_t size    = leb128<size_t>(p);
-    gcobj  first   = object_p(p);
     bool   ok      = true;
     size_t objsize = 0;
 
     // First push all things so that we have the outermost operators first
-    for (gcobj obj = first; ok && size; size -= objsize, obj += objsize)
+    for (gcobj obj = object_p(p); ok && size; size -= objsize, obj += objsize)
     {
         objsize = obj->size();
         ok = rt.push(obj);

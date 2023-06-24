@@ -935,13 +935,13 @@ MENU(ModesMenu,
      "Fix",     ID_Fix,
      "Sci",     ID_Sci,
      "Eng",     ID_Eng,
-     "Frac",    ID_Unimplemented,
+     "Use n/m", ID_Unimplemented,
 
-     "Auto ℂ",  ID_Unimplemented,
-     "Decimal", ID_Unimplemented,
+     "Frac .",  ID_DecimalDot,
+     "Frac ,",  ID_DecimalComma,
      "NumSpc",  ID_Unimplemented,
-     "StkFont", ID_Unimplemented,
-     "EdFont",  ID_Unimplemented,
+     "()",      ID_Unimplemented,
+     "KeepFrac",ID_Unimplemented,
 
      "Deg",     ID_Deg,
      "Rad",     ID_Rad,
@@ -953,7 +953,12 @@ MENU(ModesMenu,
      "Polar",   ID_Unimplemented,
      "Spheric", ID_Unimplemented,
      "iℂ",      ID_Unimplemented,
-     "()",      ID_Unimplemented);
+     "Auto ℂ",  ID_Unimplemented,
+
+     "cmd",     ID_LowerCase,
+     "CMD",     ID_UpperCase,
+     "Cmd",     ID_Capitalized,
+     "Command", ID_LongForm);
 
 
 MENU(IOMenu,

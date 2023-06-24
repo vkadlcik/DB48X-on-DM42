@@ -490,6 +490,10 @@ static int state_load_callback(cstring path, cstring name, void *merge)
                     wait_for_key_press();
                     return 1;
                 }
+
+                // Clone all objects on the stack so that we can purge
+                // the command-line above.
+                rt.clone_stack();
             }
             else
             {

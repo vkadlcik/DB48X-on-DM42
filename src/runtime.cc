@@ -694,6 +694,60 @@ object_p runtime::clone_if_dynamic(object_p obj)
 }
 
 
+object_p runtime::clone_stack(uint level)
+// ----------------------------------------------------------------------------
+//    Clone a stack level if dynamic, but also try to reuse lower stack
+// ----------------------------------------------------------------------------
+//    This is done after we load the state with the following intent:
+//    - Clone what is on the command-line so that we can purge it
+//    - In the frequent case where the same object is on the stack multiple
+//      times, chances are it is from a DUP or similar, so reunify the objects
+{
+    if (object_p obj = stack(level))
+    {
+        size_t size = obj->size();
+        record(runtime,
+               "Cloning stack level %u from %p size %u",
+               level, obj, size);
+        for (uint d = 0; d < level; d++)
+        {
+            if (object_p lower = stack(d))
+            {
+                if (lower->size() == size && memcmp(lower, obj, size) == 0)
+                {
+                    // Identical object, keep the lower one
+                    stack(level, lower);
+                    record(runtime, "  Level %u obj %p is a match", d, lower);
+                    return lower;
+                }
+            }
+        }
+
+        if (object_p clone = clone_if_dynamic(obj))
+        {
+            stack(level, clone);
+            record(runtime, "  cloned as %p", clone);
+            return clone;
+        }
+    }
+    return nullptr;
+}
+
+
+void runtime::clone_stack()
+// ----------------------------------------------------------------------------
+//   Clone all levels on the stack
+// ----------------------------------------------------------------------------
+{
+    uint depth = this->depth();
+    for (uint d = 0; d < depth; d++)
+    {
+        object_p ptr = clone_stack(d);
+        record(runtime, "Cloned stack level %d as %p", d, ptr);
+    }
+}
+
+
 
 // ============================================================================
 //

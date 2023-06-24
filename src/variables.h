@@ -147,7 +147,7 @@ struct VariablesMenu : menu
 // ----------------------------------------------------------------------------
 //   The variables menu is a bit special
 // ----------------------------------------------------------------------------
-//   The VariablesMenu is shows variables in the current menu
+//   The VariablesMenu shows variables in the current menu
 //   For each variable, the function key evaluates it, shift recalls it,
 //   and xshift stores it. In program mode, the function key shows the name
 //   for evaluation purpose, and shifted, shows it between quotes

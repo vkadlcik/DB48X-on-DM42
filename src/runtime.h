@@ -651,7 +651,7 @@ protected:
     object_p  HighMem;      // Top of available memory
 
     // Pointers that are GC-adjusted
-    gcptr    *GCSafe;
+    static gcptr *GCSafe;
 
 public:
     // The one and only runtime

@@ -38,6 +38,7 @@
 
 // The one and only runtime
 runtime runtime::RT(nullptr, 0);
+runtime::gcptr *runtime::GCSafe = nullptr;
 
 RECORDER(runtime,       16, "RPL runtime");
 RECORDER(runtime_error, 16, "RPL runtime error (anomalous behaviors)");
@@ -70,8 +71,7 @@ runtime::runtime(byte *mem, size_t size)
       StackTop(),
       StackBottom(),
       Returns(),
-      HighMem(),
-      GCSafe(nullptr)
+      HighMem()
 {
     if (mem)
         memory(mem, size);

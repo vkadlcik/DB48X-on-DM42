@@ -141,6 +141,20 @@ struct runtime
     //   Clone values in the stack that point to a global we will change
     // ------------------------------------------------------------------------
 
+    object_p clone_if_dynamic(object_p source);
+    // ------------------------------------------------------------------------
+    //   Clone value if it is in RAM (i.e. not a command::static_object)
+    // ------------------------------------------------------------------------
+
+    template<typename T>
+    T *clone_if_dynamic(T *source)
+    // ------------------------------------------------------------------------
+    //   Typed variant of the above
+    // ------------------------------------------------------------------------
+    {
+        object_p obj = source;
+        return (T *) clone_if_dynamic(obj);
+    }
 
 
     // ========================================================================

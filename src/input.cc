@@ -440,7 +440,7 @@ void input::menu(menu_p menu, uint page)
 //   Set menu and page
 // ----------------------------------------------------------------------------
 {
-    menuObject = menu;
+    menuObject = runtime::RT.clone_if_dynamic(menu);
     menuPage = page;
     if (menu)
         menu->update(page);

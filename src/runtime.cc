@@ -674,6 +674,26 @@ object_p runtime::clone_global(object_p global)
 }
 
 
+object_p runtime::clone_if_dynamic(object_p obj)
+// ----------------------------------------------------------------------------
+//   Clone object if it is in memory
+// ----------------------------------------------------------------------------
+//   This is useful to make a "small" copy of an object that currently lives in
+//   a larger object, making it possible to free the larger object.
+//   It will not clone a ROM-based object, e.g. the result of a
+//   command::static_object call.
+//   A use case is evaluating a menu:
+//   - If you do it from the keyboard, we can keep the ROM object
+//   - If you run from state load, this would force the whole command line to
+//     stay in memory until you use another menu, which is wasteful, since the
+//     command-line used to load the whole state may be quite large
+{
+    if (obj >= LowMem && obj <= HighMem)
+        obj = clone(obj);
+    return obj;
+}
+
+
 
 // ============================================================================
 //

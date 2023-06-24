@@ -286,9 +286,9 @@ MENU(AnglesMenu,
      "→Deg",    ID_Unimplemented,
      "→Rad",    ID_Unimplemented,
      "→Grad",   ID_Unimplemented,
-     "Deg",     ID_Unimplemented,
-     "Rad",     ID_Unimplemented,
-     "Grad",    ID_Unimplemented,
+     "Deg",     ID_Deg,
+     "Rad",     ID_Rad,
+     "Grad",    ID_Grad,
 
      "→Angle",  ID_Unimplemented,
      "→Polar",  ID_Unimplemented,
@@ -362,6 +362,7 @@ MENU(HyperbolicMenu,
      ID_asinh,  ID_acosh,       ID_atanh,
      ID_exp,    ID_expm1,
      ID_log,    ID_log1p);
+
 
 MENU(CircularMenu,
 // ----------------------------------------------------------------------------
@@ -930,10 +931,10 @@ MENU(ModesMenu,
 // ----------------------------------------------------------------------------
 //   Mode settings
 // ----------------------------------------------------------------------------
-     "Std",     ID_Unimplemented,
-     "Fix",     ID_Unimplemented,
-     "Sci",     ID_Unimplemented,
-     "Eng",     ID_Unimplemented,
+     "Std",     ID_Std,
+     "Fix",     ID_Fix,
+     "Sci",     ID_Sci,
+     "Eng",     ID_Eng,
      "Frac",    ID_Unimplemented,
 
      "Auto ℂ",  ID_Unimplemented,
@@ -942,10 +943,10 @@ MENU(ModesMenu,
      "StkFont", ID_Unimplemented,
      "EdFont",  ID_Unimplemented,
 
-     "Deg",     ID_Unimplemented,
-     "Rad",     ID_Unimplemented,
-     "Grad",    ID_Unimplemented,
-     "Angles",  ID_Unimplemented,
+     "Deg",     ID_Deg,
+     "Rad",     ID_Rad,
+     "Grad",    ID_Grad,
+     "Angles",  ID_AnglesMenu,
      "DMS",     ID_Unimplemented,
 
      "Rect",    ID_Unimplemented,

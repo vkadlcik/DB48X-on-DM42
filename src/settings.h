@@ -31,6 +31,8 @@
 
 #include <types.h>
 
+#include "command.h"
+
 struct settings
 // ----------------------------------------------------------------------------
 //    Internal representation of settings
@@ -78,14 +80,27 @@ struct settings
         LONG_FORM,              // Display the long form
     };
 
+    display nextDisplayMode()
+    {
+        switch(display_mode)
+        {
+        case NORMAL:    display_mode = SCI; break;
+        case SCI:       display_mode = FIX; break;
+        case FIX:       display_mode = ENG; break;
+        default:
+        case ENG:       display_mode = NORMAL; break;
+        }
+        return display_mode;
+    }
+
     angles nextAngleMode()
     {
         switch(angle_mode)
         {
         case DEGREES:   angle_mode = RADIANS; break;
         case RADIANS:   angle_mode = GRADS; break;
+        default:
         case GRADS:     angle_mode = DEGREES; break;
-        default:        angle_mode = DEGREES; break;
         }
         return angle_mode;
     }
@@ -104,5 +119,28 @@ public:
 
 
 extern settings Settings;
+
+COMMAND_DECLARE(Std);
+COMMAND_DECLARE(Fix);
+COMMAND_DECLARE(Sci);
+COMMAND_DECLARE(Eng);
+COMMAND_DECLARE(DisplayMode);
+COMMAND_DECLARE(CycleDisplayMode);
+
+COMMAND_DECLARE(Deg);
+COMMAND_DECLARE(Rad);
+COMMAND_DECLARE(Grad);
+COMMAND_DECLARE(AngleMode);
+COMMAND_DECLARE(CycleAngleMode);
+
+COMMAND_DECLARE(LowerCase);
+COMMAND_DECLARE(UpperCase);
+COMMAND_DECLARE(Capitalized);
+COMMAND_DECLARE(LongForm);
+COMMAND_DECLARE(CommandCaseMode);
+
+COMMAND_DECLARE(DecimalDot);
+COMMAND_DECLARE(DecimalComma);
+COMMAND_DECLARE(DecimalDisplayMode);
 
 #endif // SETTINGS_H

@@ -49,6 +49,7 @@
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
+#include "settings.h"
 #include "stack-cmds.h"
 #include "symbol.h"
 #include "text.h"

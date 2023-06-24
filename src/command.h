@@ -39,7 +39,7 @@
 
 #include "object.h"
 #include "runtime.h"
-#include "list.h"
+#  include "list.h"
 
 struct command : object
 // ----------------------------------------------------------------------------
@@ -204,6 +204,5 @@ COMMAND(HomeDirectory)
     return ERROR;
 
 }
-
 
 #endif // COMMAND_H

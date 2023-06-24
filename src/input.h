@@ -33,6 +33,7 @@
 #include "file.h"
 #include "graphics.h"
 #include "object.h"
+#include "runtime.h"
 #include "types.h"
 
 #include <string>
@@ -41,6 +42,7 @@
 struct runtime;
 struct menu;
 typedef const menu *menu_p;
+typedef gcp<const menu> menu_g;
 
 struct input
 // ----------------------------------------------------------------------------
@@ -159,7 +161,7 @@ protected:
     int    last;             // Last key
     int    stack;            // Vertical bottom of the stack
     coord  cx, cy;           // Cursor position on screen
-    menu_p menuObject;       // Current menu being shown
+    menu_g menuObject;       // Current menu being shown
     uint   menuPage;         // Current menu page
     uint   menuPages;        // Number of menu pages
     uint   menuHeight;       // Height of the menu

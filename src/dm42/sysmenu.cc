@@ -36,6 +36,7 @@
 #include "object.h"
 #include "renderer.h"
 #include "runtime.h"
+#include "settings.h"
 #include "types.h"
 #include "util.h"
 #include "variables.h"
@@ -328,8 +329,15 @@ static int state_save_callback(cstring fpath,
         return 1;
     }
 
-    // Save the contents of the global variables
+    // Always render things to disk using optimal precision and decimal dot
     renderer render(&prog);
+    uint disp = Settings. displayed;
+    char ds = Settings.decimalDot;
+    settings::display dm = Settings.display_mode;
+    Settings.display_mode = settings::NORMAL;
+    Settings.decimalDot = '.';
+
+    // Save global variables
     runtime &rt = runtime::RT;
     gcp<directory> home = rt.variables(0);
     home->enumerate(state_save_variable, &render);
@@ -348,6 +356,41 @@ static int state_save_callback(cstring fpath,
     if (menu_p menu = Input.menu())
         menu->render(render, rt);
 
+    // Restore the display mode we had
+    Settings.display_mode = dm;
+    Settings.decimalDot = ds;
+
+    // Save Decimal separator
+    switch(Settings.decimalDot)
+    {
+    default:
+    case '.':      render.put("DecimalDot"); break;
+    case ',':      render.put("DecimalComma"); break;
+    }
+    render.put('\n');
+
+    // Save current display setting
+    switch(dm)
+    {
+    default:
+    case settings::NORMAL:      render.put("STD"); break;
+    case settings::FIX:         render.printf("%u FIX", disp); break;
+    case settings::SCI:         render.printf("%u SCI", disp); break;
+    case settings::ENG:         render.printf("%u ENG", disp); break;
+    }
+    render.put('\n');
+
+    // Save current angle mode
+    switch(Settings.angle_mode)
+    {
+    default:
+    case settings::DEGREES:      render.put("DEG"); break;
+    case settings::RADIANS:      render.put("RAD"); break;
+    case settings::GRADS:        render.put("GRADn"); break;
+    }
+    render.put('\n');
+
+
     return 0;
 }
 
@@ -355,7 +398,7 @@ static int state_save_callback(cstring fpath,
 static int state_save()
 // ----------------------------------------------------------------------------
 //   Save a program to disk
-// ----------------------------------------------------------------------------
+// ------------------------------------------------------------1----------------
 {
     // Check if we have enough power to write flash disk
     if (power_check_screen())
@@ -475,7 +518,10 @@ static int state_load_callback(cstring path, cstring name, void *merge)
         gcutf8 editor = rt.close_editor();
         if (editor)
         {
+            char ds = Settings.decimalDot;
+            Settings.decimalDot = '.';
             gcp<const program> cmds = program::parse(editor, edlen);
+            Settings.decimalDot = ds;
             if (cmds)
             {
                 // We successfully parsed the line

@@ -129,7 +129,7 @@ OBJECT_PARSER_BODY(decimal128)
         s++;
 
     // Check decimal dot
-    bool hadDecimalDot = *s == Settings.decimalDot;
+    bool hadDecimalDot = *s == '.' || *s == ',';
     if (hadDecimalDot)
     {
         s++;

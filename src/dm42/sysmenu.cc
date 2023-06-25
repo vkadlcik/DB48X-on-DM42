@@ -367,7 +367,7 @@ static int state_save_callback(cstring fpath,
     switch(ds)
     {
     default:
-    case '.':      render.put("DecimalDot"); break;
+    case '.':      /* render.put("DecimalDot"); */ break;
     case ',':      render.put("DecimalComma"); break;
     }
     render.put('\n');
@@ -378,7 +378,7 @@ static int state_save_callback(cstring fpath,
     default:
     case settings::NORMAL:
         if (disp == settings::STD_DISPLAYED)
-                                render.put("STD");
+                                /* render.put("STD") */;
         else
                                 render.printf("%u SIG", disp); break;
     case settings::FIX:         render.printf("%u FIX", disp); break;
@@ -391,9 +391,9 @@ static int state_save_callback(cstring fpath,
     switch(Settings.angle_mode)
     {
     default:
-    case settings::DEGREES:      render.put("DEG"); break;
+    case settings::DEGREES:      /* render.put("DEG") */; break;
     case settings::RADIANS:      render.put("RAD"); break;
-    case settings::GRADS:        render.put("GRADn"); break;
+    case settings::GRADS:        render.put("GRAD"); break;
     }
     render.put('\n');
 

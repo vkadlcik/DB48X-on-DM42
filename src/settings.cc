@@ -48,6 +48,7 @@ COMMAND_BODY(Std)
 //   Switch to standard display mode
 // ----------------------------------------------------------------------------
 {
+    Settings.displayed = BID128_MAXDIGITS;
     Settings.display_mode = settings::NORMAL;
     return OK;
 }
@@ -103,6 +104,15 @@ COMMAND_BODY(Eng)
 }
 
 
+COMMAND_BODY(Sig)
+// ----------------------------------------------------------------------------
+//   Switch to significant display mode
+// ----------------------------------------------------------------------------
+{
+    return set_display_mode(settings::NORMAL);
+}
+
+
 COMMAND_BODY(CycleDisplayMode)
 // ----------------------------------------------------------------------------
 //   Cycle among the possible display modes
@@ -140,7 +150,11 @@ COMMAND_BODY(DisplayMode)
     switch(Settings.display_mode)
     {
     default:
-    case settings::NORMAL:      return settings_command("«STD»");
+    case settings::NORMAL:
+        if (disp == 34)
+                                return settings_command("«STD»", disp);
+        else
+                                return settings_command("«%u SIG»", disp);
     case settings::FIX:         return settings_command("«%u FIX»", disp);
     case settings::SCI:         return settings_command("«%u SCI»", disp);
     case settings::ENG:         return settings_command("«%u ENG»", disp);
@@ -267,7 +281,7 @@ COMMAND_BODY(DecimalDot)
 //  Switch to decimal dot
 // ----------------------------------------------------------------------------
 {
-    Settings.decimalDot = '.';
+    Settings.decimal_dot = '.';
     return OK;
 }
 
@@ -277,7 +291,7 @@ COMMAND_BODY(DecimalComma)
 //  Switch to decimal comma
 // ----------------------------------------------------------------------------
 {
-    Settings.decimalDot = ',';
+    Settings.decimal_dot = ',';
     return OK;
 }
 
@@ -287,7 +301,7 @@ COMMAND_BODY(DecimalDisplayMode)
 //   Return current decimal separator mode
 // ----------------------------------------------------------------------------
 {
-    switch(Settings.decimalDot)
+    switch(Settings.decimal_dot)
     {
     default:
     case '.':   return settings_command("«DecimalDot»");

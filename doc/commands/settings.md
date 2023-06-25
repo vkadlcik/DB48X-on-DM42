@@ -3,12 +3,13 @@
 The display mode controls how DB48X displays numbers. Regardless of the display
 mode, numbers are always stored with full precision.
 
-DB48X has four display modes:
+DB48X has five display mode (one more than the HP48)s:
 
 * [Standard mode](#StandardDisplay)
 * [Fixed mode](#FixedDisplay)
 * [Scientific mode](#ScientificDisplay)
 * [Engineering mode](#EngineeringDisplay))
+* [Significant digits mode](#SignificantDisplay))
 
 ## StandardDisplay (STD)
 
@@ -29,6 +30,14 @@ shows the specified number of decimal places.
 
 Display nunmbers as a mantissa with a sepcified number of digits, followed by an
 exponent that is a multiple of 3.
+
+## SignificantDisplay (SIG)
+
+Display up to the given number of digits without trailing zero. This mode is
+useful because DB48X can compute with large precision, and it may be useful to
+not see all digits. `StndardDisplay` is equivalent to `34 SignificantDisplay`,
+while `12 SignificantDisplay` should approximate the HP48 standard mode using
+12 significant digits.
 
 ## DisplayMode
 

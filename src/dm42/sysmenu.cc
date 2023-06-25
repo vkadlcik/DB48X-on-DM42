@@ -332,10 +332,11 @@ static int state_save_callback(cstring fpath,
     // Always render things to disk using optimal precision and decimal dot
     renderer render(&prog);
     uint disp = Settings. displayed;
-    char ds = Settings.decimalDot;
+    char ds = Settings.decimal_dot;
     settings::display dm = Settings.display_mode;
     Settings.display_mode = settings::NORMAL;
-    Settings.decimalDot = '.';
+    Settings.displayed = 34;
+    Settings.decimal_dot = '.';
 
     // Save global variables
     runtime &rt = runtime::RT;
@@ -355,13 +356,15 @@ static int state_save_callback(cstring fpath,
     // Save the current menu
     if (menu_p menu = Input.menu())
         menu->render(render, rt);
+    render.put('\n');
 
     // Restore the display mode we had
     Settings.display_mode = dm;
-    Settings.decimalDot = ds;
+    Settings.displayed = disp;
+    Settings.decimal_dot = ds;
 
     // Save Decimal separator
-    switch(Settings.decimalDot)
+    switch(ds)
     {
     default:
     case '.':      render.put("DecimalDot"); break;
@@ -373,7 +376,11 @@ static int state_save_callback(cstring fpath,
     switch(dm)
     {
     default:
-    case settings::NORMAL:      render.put("STD"); break;
+    case settings::NORMAL:
+        if (disp == BID128_MAXDIGITS)
+                                render.put("STD");
+        else
+                                render.printf("%u SIG", disp); break;
     case settings::FIX:         render.printf("%u FIX", disp); break;
     case settings::SCI:         render.printf("%u SCI", disp); break;
     case settings::ENG:         render.printf("%u ENG", disp); break;
@@ -518,10 +525,10 @@ static int state_load_callback(cstring path, cstring name, void *merge)
         gcutf8 editor = rt.close_editor();
         if (editor)
         {
-            char ds = Settings.decimalDot;
-            Settings.decimalDot = '.';
+            char ds = Settings.decimal_dot;
+            Settings.decimal_dot = '.';
             gcp<const program> cmds = program::parse(editor, edlen);
-            Settings.decimalDot = ds;
+            Settings.decimal_dot = ds;
             if (cmds)
             {
                 // We successfully parsed the line

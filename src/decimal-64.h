@@ -40,6 +40,7 @@
 
 #include "object.h"
 #include "runtime.h"
+#include "settings.h"
 
 #include <bid_conf.h>
 #include <bid_functions.h>
@@ -249,6 +250,6 @@ void bid64_mod(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
 void bid64_rem(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
 
 // Utlity common to all formats to format a number for display
-void decimal_format(char *out, size_t len, int digits);
+size_t decimal_format(char *buf, size_t len, bool editing);
 
 #endif // DECIMAL64_H

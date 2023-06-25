@@ -237,6 +237,7 @@ NAMED(Std, "StandardDisplay")
 NAMED(Fix, "FixedDisplay")
 NAMED(Sci, "ScientificDisplay")
 NAMED(Eng, "EngineeringDisplay")
+NAMED(Sig, "SignificantDisplay")
 CMD(DisplayMode)
 CMD(CycleDisplayMode)
 

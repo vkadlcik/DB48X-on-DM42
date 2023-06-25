@@ -308,8 +308,8 @@ OBJECT_PARSER_BODY(integer)
     // Check if we finish with something indicative of a fraction or real number
     if (!endp)
     {
-        if (*s == Settings.decimalDot ||
-            utf8_codepoint(s) == Settings.exponentChar)
+        if (*s == Settings.decimal_dot ||
+            utf8_codepoint(s) == Settings.exponent_char)
             return SKIP;
     }
 

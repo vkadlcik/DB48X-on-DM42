@@ -40,14 +40,16 @@ struct settings
 {
     settings()
         : precision(32),
-          displayed(20),
+          displayed(BID128_MAXDIGITS),
+          max_nonsci(9),
           display_mode(NORMAL),
-          decimalDot('.'),
-          exponentChar(L'⁳'),
+          decimal_dot('.'),
+          exponent_char(L'⁳'),
           angle_mode(DEGREES),
           base(16),
           wordsize(128),
-          command_fmt(LONG_FORM)
+          command_fmt(LONG_FORM),
+          show_decimal(true)
     {}
 
     enum angles
@@ -66,7 +68,7 @@ struct settings
     //   The display mode for numbers
     // ------------------------------------------------------------------------
     {
-        NORMAL, SCI, FIX, ENG
+        NORMAL, FIX, SCI, ENG
     };
 
     enum commands
@@ -84,9 +86,9 @@ struct settings
     {
         switch(display_mode)
         {
-        case NORMAL:    display_mode = SCI; break;
-        case SCI:       display_mode = FIX; break;
-        case FIX:       display_mode = ENG; break;
+        case NORMAL:    display_mode = FIX; break;
+        case FIX:       display_mode = SCI; break;
+        case SCI:       display_mode = ENG; break;
         default:
         case ENG:       display_mode = NORMAL; break;
         }
@@ -108,13 +110,15 @@ struct settings
 public:
     uint16_t precision;    // Internal precision for numbers
     uint16_t displayed;    // Number of displayed digits
+    uint16_t max_nonsci;   // Number of zeroes to display before expoonent shows
     display  display_mode; // Display mode
-    char     decimalDot;   // Character used for decimal separator
-    unicode  exponentChar; // The character used to represent exponents
+    char     decimal_dot;  // Character used for decimal separator
+    unicode  exponent_char;// The character used to represent exponents
     angles   angle_mode;   // Whether we compute in degrees, radians or grads
     uint8_t  base;         // The default base for #numbers
     uint16_t wordsize;     // Wordsize for binary numbers (in bits)
     commands command_fmt;  // How we prefer to display commands
+    bool     show_decimal; // Show decimal dot for integral real numbers
 };
 
 
@@ -124,6 +128,7 @@ COMMAND_DECLARE(Std);
 COMMAND_DECLARE(Fix);
 COMMAND_DECLARE(Sci);
 COMMAND_DECLARE(Eng);
+COMMAND_DECLARE(Sig);
 COMMAND_DECLARE(DisplayMode);
 COMMAND_DECLARE(CycleDisplayMode);
 

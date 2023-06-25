@@ -129,7 +129,7 @@ OBJECT_PARSER_BODY(decimal32)
         s++;
 
     // Check decimal dot
-    bool hadDecimalDot = *s == Settings.decimalDot;
+    bool hadDecimalDot = *s == '.' || *s == ',';
     if (hadDecimalDot)
     {
         s++;
@@ -158,7 +158,7 @@ OBJECT_PARSER_BODY(decimal32)
 
     // Check exponent
     utf8 exponent = nullptr;
-    if (*s == 'e' || *s == 'E' || utf8_codepoint(s) == Settings.exponentChar)
+    if (*s == 'e' || *s == 'E' || utf8_codepoint(s) == Settings.exponent_char)
     {
         s = utf8_next(s);
         exponent = s;
@@ -192,11 +192,11 @@ OBJECT_PARSER_BODY(decimal32)
     char *b = buf;
     for (utf8 u = source; u < s && b < buf+sizeof(buf) - 1; u++)
     {
-        if (*u == Settings.decimalDot)
+        if (*u == Settings.decimal_dot)
         {
             *b++ = '.';
         }
-        else if (utf8_codepoint(u) == Settings.exponentChar)
+        else if (utf8_codepoint(u) == Settings.exponent_char)
         {
             *b++ = 'E';
             u = utf8_next(u) - 1;
@@ -215,210 +215,244 @@ OBJECT_PARSER_BODY(decimal32)
     return OK;
 }
 
+// Max number of characters written by BID32
+// 1 sign
+// 34 digits
+// 1 exponent delimiater
+// 1 exponent sign
+// 4 exponent
+// 1 decimal separator
+// Total 42
+// However, even if 42 is the correct answer, this project is about the 48.
+// Also, the exponent can be UTF8 in the output, so that could be 3 more.
+#define MAXBIDCHAR 48
 
 // Trick to only put the decimal_format function inside decimal32.cc
 #if 32 == 64 + 64                      // Check if we are in decimal32.cc
 
-#define MAX_NEG_FILL    4               // Limit before switching to SCI
-
-static bool round_string(char *s, int digit, char rounding_digit)
-// ----------------------------------------------------------------------------
-//   Checks which digit was responsible for overflow
-// ----------------------------------------------------------------------------
-{
-    if (rounding_digit + 5 <= '9')
-        return false;
-
-    for (; digit >= 0; digit--)
-    {
-        if (s[digit] == '.')
-            continue; // Skip decimal point
-        s[digit]++;
-        if (s[digit] <= '9')
-            return false;
-        s[digit] -= 10;
-    }
-
-    return true;
-}
-
-
-void decimal_format(char *str, size_t len, int digits)
+size_t decimal_format(char *buf, size_t len, bool editing)
 // ----------------------------------------------------------------------------
 //   Format the number according to our preferences
 // ----------------------------------------------------------------------------
-//   This is largely inspired by the code in the DM42 SDKdemo
+//   The decimal32 library has a very peculiar way to emit text:
+//   it always uses scientific notation, and the mantissa is integral.
+//   For example, 123.45 is emitted as 12345E-2.
+//   However, it seems to carefully avoid exponent 0 for some reason,
+//   so 123 is emitted as 1230E-1, whereas 12,3 is emitted as 123E-1.
+//
+//   I used to have code lifted from the DM42 SDK here, but it was hard
+//   for me to comprehend and maintain, and I could not get it to do what
+//   I wanted for SCI and FIX modes.
 {
-    // First make a copy of the raw output of the library
-    char s[50];                 // Enough even for bid32
-    strcpy(s, str);             // Make a local copy first
+    // First make a copy of zany original input
+    char copy[MAXBIDCHAR];
+    strncpy(copy, buf, sizeof(copy));
 
-    settings::display mode = Settings.display_mode;
-    for (;;)
+    // Read settings
+    const settings &display = Settings;
+    auto mode       = editing ? display.NORMAL : display.display_mode;
+    int  digits     = editing ? BID32_MAXDIGITS : display.displayed;
+    int  max_nonsci = editing ? BID32_MAXDIGITS : display.max_nonsci;
+    bool showdec    = display.show_decimal;
+    char decimal    = display.decimal_dot; // Can be '.' or ','
+
+    bool overflow = false;
+    do
     {
-        char *ep = strchr(s, 'E');
-        if (!ep)
+        char *in = copy;
+        char *out = buf;
+        char *expptr = strchr(in, 'E');
+        if (!expptr)
         {
-            // No exponent -> expecting special number like Inf or NaN
-            // Just copy (we may have eliminated mantissa sign
-            if (strncasecmp(s, "+inf", sizeof("inf") - 1) == 0)
-                strncpy(str, "+∞", len);
-            else if (strncasecmp(s, "-inf", sizeof("inf") - 1) == 0)
-                strncpy(str, "-∞", len);
-            else
-                strncpy(str, s, len);
-            return;
+            // If there is no exponent, it's most likely a special number
+            // like an infinity or a NaN
+            if (strncasecmp(in, "+inf", sizeof("+inf") - 1) == 0)
+                strncpy(out, "∞", len);
+            else if (strncasecmp(in, "-inf", sizeof("-inf") - 1) == 0)
+                strncpy(out, "-∞", len);
+
+            // Otherwise, nothing to do, the buffer already is what we need
+            return strlen(out);
         }
 
-        int   ms     = s[0] == '-'; // Mantissa negative
-        int   mexp   = ep - s - 1;  // Mantissa exponent (e.g. 4 for +1234E+10)
-        bool  hasexp = true;
-        int   exp    = atoi(ep + 1) + mexp;
+        // The first character is always + or -. Skip the '+'
+        char sign = *in++;
+        bool negative = sign == '-';
+        if (negative)
+            out++;                  // Keep sign in copy
+        else if (sign != '+')       // Defensive coding in case + is not present
+            in--;
 
-        // Terminate mantissa string
-        char *mend   = ep - 1; // Mantissa end
-        char *mant   = s + 1;  // Mantissa string
+        // The exponent as given to us by the BID library
+        int bidexp = atoi(expptr + 1);
 
-        // Ignore mantissa trailing zeros
-        while (ep > mant && mend[0] == '0')
-            mend--;
-        *(++mend) = 0;
+        // Mantissa exponent, i.e. number of digits in mantissa (+1234E-1 -> 4)
+        int mexp = expptr - in - 1;
 
-        // Check if we need to display an exponent ("scientific" mode)
-        switch (mode)
+        // Actual exponent is the sum of the two, e.g. 1234E-1 is 1.234E3
+        int realexp = bidexp + mexp;
+
+        // BID curiously emits 123.0 as 1230E-1, not even in a consistent way
+        // (apparently, parsing "1." gives +1E+0, parsing "1.0" gives +10E-1...,
+        // all the way to "1.000" giving "1000E-4"...).
+        // This leads us to emit a useless trailing 0. Keep the 0 only for 0.0
+        char *last = expptr;
+        while (last > copy + 2 && last[-1] == '0')
         {
-        case settings::display::FIX:
-            if (exp <= 0 && Settings.displayed <= -exp)
-                break;           // Zero fill bigger than mode digits
+            last--;
+            mexp--;
+            bidexp++;
+        }
 
-        case settings::display::NORMAL:
+        // Position where we will emit the decimal dot when there is an exponent
+        int decpos = 1;
+
+        // Check if we need to switch to scientific notation in normal mode
+        // On the negative exponents, we switch when digits would be lost on
+        // display compared to actual digits. This is consistent with how HP
+        // calculators do it. e.g 1.234556789 when divided by 10 repeatedly
+        // switches to scientific notation at 1.23456789E-5, but 1.23 at
+        // 1.23E-11 and 1.2 at 1.2E-12 (on an HP50G with 12 digits).
+        // This is not symmetrical. Positive exponents switch at 1E12.
+        // Note that the behaviour here is purposely different than HP's
+        // when in FIX mode. In FIX 5, for example, 1.2345678E-5 is shown
+        // on HP50s as 0.00001, and is shown here as 1.23457E-5, which I believe
+        // is more useful.
+        // Also, since DB48X can compute on 34 digits, and counting zeroes
+        // can be annoying, there is a separate setting for when to switch
+        // to scientific notation.
+        bool hasexp = mode >= settings::display::SCI;
+        if (!hasexp)
         {
-            // Check if exponent is needed
-            int sz = exp;
-            if (exp >= (-MAX_NEG_FILL + 1))
+            if (realexp < 0)
             {
-                // Check number requires a 0. and zero padding after decimal
-                if (exp <= 0)
-                    sz += 2 - exp + 1;
-                if (ms)
-                    sz++;                // One place for sign
-                hasexp = sz > digits + 2;
+                int minexp = digits < max_nonsci ? digits : max_nonsci;
+                hasexp = mexp - realexp - 1 >= minexp;
             }
-            break;
-        }
-
-        case settings::display::SCI:
-        case settings::display::ENG:
-            // Here, we always have an exponent
-            break;
-        }
-
-        int digitsBeforePoint  = hasexp ? 1 : exp;
-        int mantissaLen = strlen(s + 1);       // Available mantissa digits
-
-        // Exponent correction for ENG mode
-        exp--; // fix for digitsBeforePoint==1
-        if (mode == settings::display::ENG)
-        {
-            // Lower the exponent to nearest multiple of 3
-            int adjust = exp >= 0 ? exp % 3 : 2 + (exp - 2) % 3;
-            exp -= adjust;
-            digitsBeforePoint += adjust;
-        }
-
-        int zeroFillAfterDot = max(0, -digitsBeforePoint);
-
-        // Prepare exponent
-        int elen;
-        if (hasexp)
-        {
-            // Do not interfere with mantissa end
-            ep++;
-            snprintf(ep, s + sizeof(s)-1 - ep, "%c%i", 'E', exp);
-            elen = strlen(ep);
-        }
-        else
-        {
-            ep[0] = 0;
-            elen  = 0;
-        }
-
-        //  // Frac digits available
-        int frac = mantissaLen - digitsBeforePoint;
-
-        // Add Mantissa
-        char *p = str;
-        if (ms)
-            *p++ = '-';
-
-        // Copy digits before point
-        char *mp = s + 1;
-        if (digitsBeforePoint > 0)
-        {
-            p = stpncpy(p, s + 1, digitsBeforePoint);
-            mp += min(digitsBeforePoint, (int) strlen(s+1));
-        }
-
-        // Add trailing zeros in integer part
-        for (int z = 0; z < -frac; z++)
-            *p++ = '0';
-        *p = 0;
-
-        // Available space for fraction
-        int avail = len - strlen(str) - elen;
-
-        // Add fractional part
-        digits = min(min(digits, frac), avail - 1 - (digitsBeforePoint > 0 ? 0 : 1));
-        if (digits > 0)
-        {
-            // We have digits and have room for at least one frac digit
-            p = stpcpy(p, digitsBeforePoint > 0 ? "." : "0.");
-            frac = max(0, frac);
-            for (int z = 0; z < zeroFillAfterDot; z++)
-                *p++ = '0';
-            digits -= zeroFillAfterDot;
-            int msz = min(frac, digits);
-            p = stpncpy(p, mp, msz);
-            mp += msz;
-            int trailingZeroes = max(digits + zeroFillAfterDot - frac, 0);
-            for (int z = 0; z < trailingZeroes; z++)
-                *p++ = '0';
-            *p = 0;
-        }
-
-        if (*mp)
-        {
-            // More mantissa digits rounding
-            int rix  = mp - s;
-            bool ovfl = round_string(str + ms, strlen(str + ms) - 1, s[rix]);
-            if (ovfl)
+            else
             {
-                // Retry -
-                snprintf(s,
-                         s + sizeof(s)-1 - ep,
-                         "%c1%c%c%i",
-                         ms ? '-' : '+',
-                         'E',
-                         exp < 0 ? '-' : '+',
-                         abs(exp + 1));
+                hasexp = realexp >= max_nonsci;
+                if (!hasexp)
+                    decpos = realexp + 1;
+            }
+        }
+
+        // Number of decimals to show is given number of digits for most modes
+        // (This counts *all* digits for standard / SIG mode)
+        int decimals = digits;
+
+        // Write leading zeroes if necessary
+        if (!hasexp && realexp < 0)
+        {
+            // HP RPL calculators don't show leading 0, i.e. 0.5 shows as .5,
+            // but this is only in STD mode, not in other modes.
+            // This is pure evil and inconsistent with all older HP calculators
+            // (which, granted, did not have STD mode) and later ones (Prime)
+            // So let's decide that 0.3 will show as 0.3 in STD mode and not .3
+            *out++ = '0';
+            decpos--;               // Don't emit the decimal separator twice
+
+            // Emit decimal dot and leading zeros on fractional part
+            *out++ = decimal;
+            for (int zeroes = realexp + 1; zeroes < 0; zeroes++)
+            {
+                *out++ = '0';
+                decimals--;
+            }
+        }
+
+        // Adjust exponent being displayed for engineering mode
+        int dispexp = realexp;
+        bool engmode = mode == display.ENG;
+        if (engmode)
+        {
+            int offset = dispexp >= 0 ? dispexp % 3 : (dispexp - 2) % 3 + 2;
+            decpos += offset;
+            dispexp -= offset;
+            decimals += 1;
+        }
+
+        // Copy significant digits, inserting decimal separator when needed
+        bool sigmode = mode == display.NORMAL;
+        while (in < last && decimals > 0)
+        {
+            *out++ = *in++;
+            decpos--;
+            if (decpos == 0 && (in < last || showdec))
+                *out++ = decimal;
+
+            // Count decimals after decimal separator, except in SIG mode
+            // where we count all significant digits being displayed
+            if (decpos < 0 || sigmode || engmode)
+                decimals--;
+        }
+
+        // Check if we need some rounding on what is being displayed
+        if (in < last && *in >= '5')
+        {
+            char *rptr = out;
+            bool rounding = true;
+            while (rounding && --rptr > buf)
+            {
+                if (*rptr >= '0')   // Do not convert '.' or '-'
+                {
+                    *rptr += 1;
+                    rounding = *rptr > '9';
+                    if (rounding)
+                        *rptr -= 10;
+                }
+            }
+
+            // If we ran past the first digit, we overflowed during rounding
+            // Need to re-run with the next larger exponent
+            // This can only occur with a conversion of 9.9999 to 1
+            if (rounding)
+            {
+                overflow = true;
+                snprintf(copy, sizeof(copy),
+                         "%c1E%d",
+                         negative ? '-' : '+',
+                         realexp + 1);
                 continue;
             }
-            if (mode == settings::display::NORMAL)
-            {
-                // Remove trailing zeros
-                int ix = strlen(str) - 1;
-                while (ix && str[ix] == '0')
-                    ix--;
-                if (str[ix] == '.')
-                    ix--;
-                str[ix + 1] = 0;
-            }
         }
 
-        // Add exponent
-        p = strcpy(p, ep);
-        break;
-    }
+        // Do not add trailing zeroes in standard mode
+        if (sigmode)
+        {
+            if (decpos > 0)
+                decimals = decpos;
+            else
+                decimals = 0;
+        }
+        else if (mode == display.FIX && decpos > 0)
+        {
+            decimals = digits + decpos;
+        }
+
+        // Add trailing zeroes if necessary
+        while (decimals > 0)
+        {
+            *out++ = '0';
+            decpos--;
+            if (decpos == 0)
+                *out++ = decimal;
+            decimals--;
+        }
+
+        // Add exponent if necessary
+        if (hasexp)
+        {
+            size_t sz = utf8_encode(display.exponent_char, (byte *) out);
+            out += sz;
+            size_t remaining = buf + MAXBIDCHAR - out;
+            size_t written = snprintf(out, remaining, "%d", dispexp);
+            out += written;
+        }
+        *out = 0;
+        return out - buf;
+    } while (overflow);
+    return 0;
 }
 #endif // In original decimal32.cc
 
@@ -432,38 +466,15 @@ OBJECT_RENDERER_BODY(decimal32)
     bid32 num = value();
 
     // Render in a separate buffer to avoid overflows
-    char buffer[50];            // bid32 with 34 digits takes at most 42 chars
-    byte expbuf[4];
-    bid32_to_string(buffer, &num.value);
-    record(decimal32, "Render raw output [%s]", buffer);
+    char buf[MAXBIDCHAR];
+    bid32_to_string(buf, &num.value);
+    record(decimal32, "Render raw output [%s]", buf);
 
-    int digits = r.editing() ? BID32_MAXDIGITS : Settings.displayed;
-    decimal_format(buffer, sizeof(buffer), digits);
-    record(decimal32, "Render formatted output [%s]", buffer);
-
-    // Adjust special characters
-    char *ep = nullptr;
-    for (char *p = buffer; *p && p < buffer + sizeof(buffer); p++)
-    {
-        if (*p == 'e' || *p == 'E')
-            ep = p;
-        else if (*p == '.')
-            *p = Settings.decimalDot;
-    }
-
-    if (ep)
-    {
-        *ep++ = 0;
-        utf8_encode(Settings.exponentChar, expbuf);
-    }
-    else
-    {
-        expbuf[0] = 0;
-        ep = (char *) "";
-    }
+    size_t sz = decimal_format(buf, sizeof(buf), r.editing());
+    record(decimal32, "Render formatted output [%s]", buf);
 
     // And return it to the caller
-    return r.printf("%s%s%s", buffer, expbuf, ep);
+    return r.put(buf, sz) ? sz : 0;
 }
 
 

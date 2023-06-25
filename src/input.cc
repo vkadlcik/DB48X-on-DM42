@@ -2501,12 +2501,12 @@ bool input::handle_functions(int key)
                 break;
 
             default:
+                // If we have the editor open, need to close it
+                if (!end_edit())
+                    return false;
                 break;
             }
 
-            // If we have the editor open, need to close it
-            if (!end_edit())
-                return false;
         }
         obj->execute();
         return true;

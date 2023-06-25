@@ -377,7 +377,7 @@ static int state_save_callback(cstring fpath,
     {
     default:
     case settings::NORMAL:
-        if (disp == BID128_MAXDIGITS)
+        if (disp == settings::STD_DISPLAYED)
                                 render.put("STD");
         else
                                 render.printf("%u SIG", disp); break;

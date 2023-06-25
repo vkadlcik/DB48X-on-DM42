@@ -48,7 +48,7 @@ COMMAND_BODY(Std)
 //   Switch to standard display mode
 // ----------------------------------------------------------------------------
 {
-    Settings.displayed = BID128_MAXDIGITS;
+    Settings.displayed = settings::STD_DISPLAYED;
     Settings.display_mode = settings::NORMAL;
     return OK;
 }

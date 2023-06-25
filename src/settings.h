@@ -38,9 +38,11 @@ struct settings
 //    Internal representation of settings
 // ----------------------------------------------------------------------------
 {
+    enum { STD_DISPLAYED = 20 };
+
     settings()
         : precision(32),
-          displayed(BID128_MAXDIGITS),
+          displayed(STD_DISPLAYED),
           max_nonsci(9),
           display_mode(NORMAL),
           decimal_dot('.'),

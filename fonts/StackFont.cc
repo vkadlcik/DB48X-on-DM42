@@ -4,7 +4,7 @@
 #include "target.h"
 
 extern const unsigned char StackFont_sparse_font_data[];
-const unsigned char StackFont_sparse_font_data[35939] QSPI =
+const unsigned char StackFont_sparse_font_data[35939] FONT_QSPI =
 {
 
     0xC1, 0x01, 0xDE, 0x98, 0x02, 0x24, 0x00, 0x01, 0x00, 0x1C, 0x01, 0x01, 0x00, 0x00, 0x0D, 0x01,

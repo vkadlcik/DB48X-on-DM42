@@ -64,6 +64,7 @@ SECTIONS
     *(.rodata.bid_multipliers2_binary128)
 /* ===== Addition by c3d =================== */
     *(.text.__bid128*)
+    *(.fonts)
 /* ======================== */
     . = ALIGN(8);
     _qspi_end = .;         /* define a global symbols at end of qspi */

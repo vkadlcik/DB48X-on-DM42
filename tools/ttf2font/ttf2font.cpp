@@ -578,7 +578,7 @@ void processFont(cstring fontName,
                 "extern const unsigned char %s_dense_font_data[];\n",
                 fontName);
         fprintf(output,
-                "const unsigned char %s_dense_font_data[%zu] QSPI =\n"
+                "const unsigned char %s_dense_font_data[%zu] FONT_QSPI =\n"
                 "{\n",
                 fontName, denseSize);
 
@@ -595,7 +595,7 @@ void processFont(cstring fontName,
                 "extern const unsigned char %s_sparse_font_data[];\n",
                 fontName);
         fprintf(output,
-                "const unsigned char %s_sparse_font_data[%zu] QSPI =\n"
+                "const unsigned char %s_sparse_font_data[%zu] FONT_QSPI =\n"
                 "{\n",
                 fontName, sparseSize);
 

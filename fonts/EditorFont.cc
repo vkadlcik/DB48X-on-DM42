@@ -4,7 +4,7 @@
 #include "target.h"
 
 extern const unsigned char EditorFont_sparse_font_data[];
-const unsigned char EditorFont_sparse_font_data[72703] QSPI =
+const unsigned char EditorFont_sparse_font_data[72703] FONT_QSPI =
 {
 
     0xC1, 0x01, 0xFA, 0xB7, 0x04, 0x36, 0x00, 0x01, 0x00, 0x2C, 0x01, 0x01, 0x00, 0x00, 0x0D, 0x01,

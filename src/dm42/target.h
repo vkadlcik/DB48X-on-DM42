@@ -62,9 +62,9 @@ extern surface Screen;
 
 // Put slow-changing data in the QSPI
 #if SIMULATOR
-#  define QSPI
+#  define FONT_QSPI
 #else
-#  define QSPI __attribute__((section(".qspi")))
+#  define FONT_QSPI __attribute__((section(".fonts")))
 #endif // SIMULATOR
 
 /*

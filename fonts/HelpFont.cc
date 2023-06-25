@@ -4,7 +4,7 @@
 #include "target.h"
 
 extern const unsigned char HelpFont_sparse_font_data[];
-const unsigned char HelpFont_sparse_font_data[14793] QSPI =
+const unsigned char HelpFont_sparse_font_data[14793] FONT_QSPI =
 {
 
     0xC1, 0x01, 0xC5, 0x73, 0x14, 0x00, 0x01, 0x00, 0x11, 0x01, 0x01, 0x00, 0x00, 0x0D, 0x01, 0x00,

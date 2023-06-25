@@ -299,8 +299,9 @@ extern "C" void program_main()
             // Redraw the LCD
             redraw_lcd();
 
-            // If user is typiing, we can GC to keep other things fast
-            runtime::RT.gc();
+            // If user is typing, we can GC to keep other things fast
+            // ... very bad idea: slows everything down a lot
+            // runtime::RT.gc();
 
             // Record the last keystroke
             last_keystroke_time = sys_current_ms();

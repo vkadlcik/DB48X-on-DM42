@@ -86,6 +86,12 @@ OBJECT_PARSER_BODY(command)
 // ----------------------------------------------------------------------------
 {
     id      i      = p.candidate;
+    bool    eq     = p.precedence;
+
+    // If we are parsing an equation, only accept algebraic command
+    if (eq && (i < FIRST_ALGEBRAIC || i > LAST_ALGEBRAIC))
+        return SKIP;
+
     id      found  = id(0);
     cstring ref    = cstring(utf8(p.source));
     size_t  maxlen = p.length;
@@ -111,7 +117,7 @@ OBJECT_PARSER_BODY(command)
             len = strlen(cmd);
             if (len <= maxlen
                 && strncasecmp(ref, cmd, len) == 0
-                && (len >= maxlen || is_separator(utf8(ref + len))))
+                && (len >= maxlen || eq || is_separator(utf8(ref + len))))
                 found = id(i);
         }
     }

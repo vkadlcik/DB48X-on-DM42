@@ -39,6 +39,7 @@
 
 
 RECORDER(list, 16, "Lists");
+RECORDER(list_parser, 16, "List parsing");
 RECORDER(list_errors, 16, "Errors processing lists");
 RECORDER(program, 16, "Program evaluation");
 
@@ -67,7 +68,6 @@ OBJECT_HANDLER_BODY(list)
         // Check if anyone else knows how to deal with it
         return DELEGATE(text);
     }
-
 }
 
 
@@ -85,8 +85,16 @@ object::result list::object_parser(id type,
 //   of complex objects, like { { A B { C D } } }
 {
     // We have to be careful that we may have to GC to make room for list
-    gcutf8  s     = p.source;
-    size_t  max   = p.length;
+    gcutf8 s          = p.source;
+    size_t max        = p.length;
+    gcobj  infix      = nullptr;
+    gcobj  prefix     = nullptr;
+    int    precedence = p.precedence;
+    int    lowest     = precedence;
+
+    record(list, "Parse %+s %lc%lc precedence %d length %u [%s]",
+           p.child ? "top-level" : "child", open, close, precedence, max,
+           utf8(s));
 
     // Check if we have the opening marker
     unicode cp  = 0;
@@ -107,6 +115,8 @@ object::result list::object_parser(id type,
             s = utf8_next(s);
             break;
         }
+        if (precedence && (cp == '\'' || cp == ')'))
+            break;
         if (cp == ' ' || cp == '\n' || cp == '\t')
         {
             s = utf8_next(s);
@@ -116,26 +126,144 @@ object::result list::object_parser(id type,
         // Parse an object
         size_t done = (byte *) s - (byte *) p.source;
         size_t length = max > done ? max - done : 0;
-        gcobj obj = object::parse(s, length);
+        gcobj obj = nullptr;
+
+        // For algebraic objects, check if we have or need parentheses
+        if (precedence > 0)
+        {
+            // Check if we see parentheses, or if we have `sin sin X`
+            bool parenthese = cp == '(';
+            if (parenthese  || infix || prefix)
+            {
+                int childp = (parenthese || !infix)
+                    ? 1
+                    : equation::precedence(infix) + 1;
+                parser child(p, s, childp);
+                unicode iopen = parenthese ? '(' : 0;
+                unicode iclose = parenthese ? ')' : 0;
+
+                record(list_parser, "%+s starting at offset %u '%s'",
+                       parenthese ? "Parenthese" : "Child",
+                       utf8(s) - utf8(p.source),
+                       utf8(s));
+                auto result = object_parser(type, child, rt, iopen, iclose);
+                if (result != OK)
+                    return result;
+                obj = child.out;
+                if (!obj)
+                    return ERROR;
+                length = child.end;
+                record(list_parser,
+                       "Child parsed as %t length %u", object_p(obj), length);
+            }
+        }
+
+        if (!obj)
+        {
+            obj = object::parse(s, length, precedence);
+            record(list_parser,
+                   "Item parsed as %t length %u", object_p(obj), length);
+        }
         if (!obj)
             return ERROR;
 
-        // Copy the parsed object to the scratch pad (may GC)
-        size_t objsize = obj->size();
-        byte *objcopy = rt.allocate(objsize);
-        if (!objcopy)
-            return ERROR;
-        memmove(objcopy, (byte *) obj, objsize);
+        if (precedence && obj->type() != ID_symbol)
+        {
+            // We are parsing an equation
+            if (precedence > 0)
+            {
+                // We just parsed an algebraic, e.g. 'sin', etc
+                // stash it and require parentheses for arguments
+                id type = obj->type();
+                if (!is_algebraic(type) && !is_symbolic(type))
+                {
+                    RT.prefix_expected_error();
+                    return ERROR;
+                }
+
+                // TODO: A symbol could be a function, need to deal with that
+                if (is_algebraic(type))
+                {
+                    prefix = obj;
+                    obj = nullptr;
+                    precedence = -999;
+                }
+            }
+            else
+            {
+                // We just parsed an infix, e.g. +, -, etc
+                // stash it, or exit loop if it has lower precedence
+                int objprec = equation::precedence(obj);
+                if (objprec < lowest)
+                    break;
+                if (!objprec)
+                {
+                    RT.infix_expected_error();
+                    return ERROR;
+                }
+                infix = obj;
+                precedence = -objprec;
+                obj = nullptr;
+            }
+        }
+
+        if (obj)
+        {
+            // Copy the parsed object to the scratch pad (may GC)
+            do
+            {
+                record(list_parser, "Copying %t to scratchpad", object_p(obj));
+
+                size_t objsize = obj->size();
+
+                // For equations, copy only the payload
+                if (precedence && obj->type() == ID_equation)
+                    obj = (object_p) equation_p(object_p(obj))->value(&objsize);
+
+                byte *objcopy = rt.allocate(objsize);
+                if (!objcopy)
+                    return ERROR;
+                memmove(objcopy, (byte *) obj, objsize);
+                if (prefix)
+                {
+                    obj = prefix;
+                    prefix = nullptr;
+                }
+                else
+                {
+                    obj = infix;
+                    infix = nullptr;
+                }
+            } while (obj);
+        }
 
         // Jump past what we parsed
         s = utf8(s) + length;
+
+        // For equations switch between infix and prefix
+        precedence = -precedence;
+    }
+
+    record(list, "Exiting parser at %s infix=%t prefix=%p",
+           utf8(s), object_p(infix), object_p(prefix));
+
+
+    // If we still have a pending opcode here, syntax error (e.g. '1+`)
+    if (infix || prefix)
+    {
+        if (infix)
+            RT.command(infix->fancy());
+        else if (prefix)
+            RT.command(prefix->fancy());
+        RT.argument_expected_error();
+        return ERROR;
     }
 
     // Check that we have a matching closing character
-    if (close && cp != close)
+    if (close && cp != close && !p.child)
     {
-        record(list_errors, "Missing terminator, got %u (%c) at %s",
-               cp, cp, (byte *) s);
+        record(list_errors, "Missing terminator, got %u (%c) not %u (%c) at %s",
+               cp, cp, close, close, utf8(s));
         rt.unterminated_error().source(p.source);
         return ERROR;
     }
@@ -146,6 +274,8 @@ object::result list::object_parser(id type,
     size_t  parsed  = utf8(s) - utf8(p.source);
     p.end           = parsed;
     p.out           = rt.make<list>(type, scratch, alloc);
+
+    record(list_parser, "Parsed as %t length %u", object_p(p.out), parsed);
 
     // Restore the scratchpad
     return OK;
@@ -396,7 +526,15 @@ OBJECT_PARSER_BODY(equation)
 //    Try to parse this as an equation
 // ----------------------------------------------------------------------------
 {
-    return list::object_parser(ID_equation, p, rt, '\'', '\'');
+    // If already parsing an equation, let upper parser deal with quote
+    if (p.precedence)
+        return SKIP;
+
+    p.precedence = 1;
+    auto result = list::object_parser(ID_equation, p, rt, '\'', '\'');
+    p.precedence = 0;
+
+    return result;
 }
 
 
@@ -583,7 +721,7 @@ symbol_p equation::symbol() const
 }
 
 
-inline size_t equation::size_in_equation(object_p obj)
+size_t equation::size_in_equation(object_p obj)
 // ----------------------------------------------------------------------------
 //   Size of an object in an equation
 // ----------------------------------------------------------------------------
@@ -648,6 +786,43 @@ size_t equation::required_memory(id type, uint arity, const gcobj args[], id op)
     size += leb128size(size);
     size += leb128size(type);
     return size;
+}
+
+
+int equation::precedence(id type)
+// ----------------------------------------------------------------------------
+//   Return the algebraic precedence associated to a given operation
+// ----------------------------------------------------------------------------
+{
+    switch(type)
+    {
+    case ID_And:
+    case ID_Or:
+    case ID_Xor:
+    case ID_NAnd:
+    case ID_NOr:        return 1;
+
+    case ID_Implies:
+    case ID_Equiv:
+    case ID_Excludes:   return 2;
+
+    case ID_TestSame:
+    case ID_TestLT:
+    case ID_TestEQ:
+    case ID_TestGT:
+    case ID_TestLE:
+    case ID_TestNE:
+    case ID_TestGE:     return 3;
+
+    case ID_add:
+    case ID_sub:        return 4;
+    case ID_mul:
+    case ID_div:
+    case ID_mod:
+    case ID_rem:        return 5;
+    case ID_pow:        return 6;
+    default:            return 0;
+    }
 }
 
 

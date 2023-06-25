@@ -40,7 +40,8 @@
 
 extern volatile int lcd_needsupdate;
 extern char         stack0[80];
-extern uint         wait_time = 2;
+
+uint         wait_time = 2;
 
 void tests::run(bool onlyCurrent)
 // ----------------------------------------------------------------------------

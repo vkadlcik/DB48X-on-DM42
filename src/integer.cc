@@ -101,11 +101,16 @@ OBJECT_PARSER_BODY(integer)
 
     if (*s == '-')
     {
+        // In an equation, '1+3' should interpret '+' as an infix command
+        if (p.precedence < 0)
+            return SKIP;
         type = ID_neg_integer;
         s++;
     }
     else if (*s == '+')
     {
+        if (p.precedence < 0)
+            return SKIP;
         s++;
     }
     else if (*s == '#')

@@ -195,12 +195,20 @@ CMD(erf)
 CMD(erfc)
 NAMED(tgamma, "Gamma")
 CMD(lgamma)
-#define LAST_ALGEBRAIC          ID_lgamma
 
 NAMED(cbrt, "∛")
 OP(pow, "^")
 NAMED(hypot, "Hypothenuse")
 CMD(norm)
+
+#define LAST_ALGEBRAIC          ID_norm
+
+
+// ============================================================================
+//
+//   Non-algebraic commands below (cannot go in equations)
+//
+// ============================================================================
 
 CMD(Purge)
 CMD(PurgeAll)

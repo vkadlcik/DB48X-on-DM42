@@ -301,10 +301,14 @@ struct object
     }
 
 
-    static object_p parse(utf8 source, size_t &size, runtime &rt = RT);
+    static object_p parse(utf8     source,
+                          size_t  &size,
+                          int      precedence = 0,
+                          runtime &rt         = RT);
     // ------------------------------------------------------------------------
     //  Try parsing the object as a top-level temporary
     // ------------------------------------------------------------------------
+    //  If precedence != 0, parse as an equation object with that precedence
 
 
     utf8 help(runtime &rt = RT) const

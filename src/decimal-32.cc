@@ -121,7 +121,12 @@ OBJECT_PARSER_BODY(decimal32)
 
     // Skip leading sign
     if (*s == '+' || *s == '-')
+    {
+        // In an equation, `1 + 3` should interpret `+` as an infix
+        if (p.precedence < 0)
+            return SKIP;
         s++;
+    }
 
     // Skip digits
     utf8 digits = s;

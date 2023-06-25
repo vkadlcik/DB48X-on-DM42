@@ -108,12 +108,16 @@ const cstring object::fancy_name[NUM_IDS] =
 };
 
 
-object_p object::parse(utf8 source, size_t &size, runtime &rt)
+object_p object::parse(utf8 source, size_t &size, int precedence, runtime &rt)
 // ----------------------------------------------------------------------------
 //  Try parsing the object as a top-level temporary
 // ----------------------------------------------------------------------------
+//  If precedence is set, then we are parsing inside an equation
+//  + if precedence > 0, then we are parsing an object of that precedence
+//  + if precedence < 0, then we are parsing an infix at that precedence
 {
-    record(parse, ">Parsing [%s] %u IDs to try", source, NUM_IDS);
+    record(parse, ">Parsing [%s] precedence %d, %u IDs to try",
+           source, precedence, NUM_IDS);
 
     // Skip spaces and newlines
     size_t skipped = 0;
@@ -123,7 +127,7 @@ object_p object::parse(utf8 source, size_t &size, runtime &rt)
         skipped++;
     }
 
-    parser p(source, size);
+    parser p(source, size, precedence);
     result r   = SKIP;
     utf8   err = nullptr;
     utf8   src = source;

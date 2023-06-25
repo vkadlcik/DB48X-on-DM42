@@ -127,6 +127,9 @@ struct equation : program
     symbol_p symbol() const;
     static size_t size_in_equation(object_p obj);
 
+    static int precedence(id type);
+    static int precedence(object_p obj) { return precedence(obj->type()); }
+
     OBJECT_HANDLER(equation);
     OBJECT_PARSER(equation);
     OBJECT_RENDERER(equation);

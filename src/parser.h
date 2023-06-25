@@ -39,15 +39,29 @@ struct parser
 {
     typedef object::id id;
 
-    parser(utf8 source, size_t length)
-        : candidate(), source(source), length(length), end(), out(nullptr) {}
+    parser(utf8 source, size_t length, int precedence = 0)
+        : candidate(),
+          source(source), length(length),
+          end(), out(nullptr),
+          precedence(precedence),
+          child(false) {}
 
-public:
+    parser(const parser &from, utf8 source, int precedence)
+        : candidate(),
+          source(source),
+          length(from.length - (source - from.source)),
+          end(), out(nullptr),
+          precedence(precedence),
+          child(true) {}
+
+    public:
     id          candidate;      // Candidate ID for lookup
     gcutf8      source;         // Text to parse
     size_t      length;         // Length to parse
     size_t      end;            // End position after parsing
     gcobj       out;            // Output object if any
+    int         precedence;     // Precedence level in equations
+    bool        child;
 };
 
 #endif // PARSER_H

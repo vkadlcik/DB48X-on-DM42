@@ -267,6 +267,7 @@ $(TARGET).pgm: $(BUILD)/$(TARGET).elf Makefile $(CRCFIX)
 	wc -c $@
 
 $(OBJECTS): $(DECIMAL_SOURCES)
+sim: $(DECIMAL_SOURCES)
 
 $(BUILD)/%.hex: $(BUILD)/%.elf | $(BUILD)
 	$(HEX) $< $@

@@ -129,32 +129,63 @@ object::result list::object_parser(id type,
         gcobj obj = nullptr;
 
         // For algebraic objects, check if we have or need parentheses
-        if (precedence > 0)
+        if (precedence)
         {
-            // Check if we see parentheses, or if we have `sin sin X`
-            bool parenthese = cp == '(';
-            if (parenthese  || infix || prefix)
+            if (precedence > 0)
             {
-                int childp = (parenthese || !infix)
-                    ? 1
-                    : equation::precedence(infix) + 1;
-                parser child(p, s, childp);
-                unicode iopen = parenthese ? '(' : 0;
-                unicode iclose = parenthese ? ')' : 0;
+                // Check if we see parentheses, or if we have `sin sin X`
+                bool parenthese = cp == '(';
+                if (parenthese  || infix || prefix)
+                {
+                    int childp = (parenthese || !infix)
+                        ? 1
+                        : equation::precedence(infix) + 1;
+                    parser child(p, s, childp);
+                    unicode iopen = parenthese ? '(' : 0;
+                    unicode iclose = parenthese ? ')' : 0;
 
-                record(list_parser, "%+s starting at offset %u '%s'",
-                       parenthese ? "Parenthese" : "Child",
-                       utf8(s) - utf8(p.source),
-                       utf8(s));
-                auto result = object_parser(type, child, rt, iopen, iclose);
-                if (result != OK)
-                    return result;
-                obj = child.out;
-                if (!obj)
-                    return ERROR;
-                length = child.end;
-                record(list_parser,
-                       "Child parsed as %t length %u", object_p(obj), length);
+                    record(list_parser, "%+s starting at offset %u '%s'",
+                           parenthese ? "Parenthese" : "Child",
+                           utf8(s) - utf8(p.source),
+                           utf8(s));
+                    auto result = object_parser(type, child, rt, iopen, iclose);
+                    if (result != OK)
+                        return result;
+                    obj = child.out;
+                    if (!obj)
+                        return ERROR;
+                    length = child.end;
+                    record(list_parser,
+                           "Child parsed as %t length %u", object_p(obj), length);
+                }
+            }
+            else // precedence < 0)
+            {
+                // Check special postfix notations
+                id cmd = id(0);
+                switch(cp)
+                {
+                case L'²':
+                    cmd = ID_sq;
+                    break;
+                case L'³':
+                    cmd = ID_cubed;
+                    break;
+                case L'⁻':
+                    if (utf8_codepoint(utf8_next(s)) == L'¹')
+                        cmd = ID_inv;
+                    break;
+                default:
+                    break;
+                }
+                if (cmd)
+                {
+                    utf8 cur = utf8(s);
+                    obj = command::static_object(cmd);
+                    length = cmd == ID_inv
+                        ? utf8_next(utf8_next(cur)) - cur
+                        : utf8_next(cur) - cur;
+                }
             }
         }
 
@@ -201,9 +232,12 @@ object::result list::object_parser(id type,
                     RT.infix_expected_error();
                     return ERROR;
                 }
-                infix = obj;
-                precedence = -objprec;
-                obj = nullptr;
+                if (objprec < 999)
+                {
+                    infix = obj;
+                    precedence = -objprec;
+                    obj = nullptr;
+                }
             }
         }
 
@@ -609,7 +643,7 @@ symbol_g equation::render(uint depth, int &precedence)
                 default:
                     break;
                 }
-                if (argp >= algebraic::SYMBOL)
+                if (argp >= algebraic::FUNCTION)
                     arg = space(arg);
                 return fn + arg;
             }
@@ -821,6 +855,11 @@ int equation::precedence(id type)
     case ID_mod:
     case ID_rem:        return 5;
     case ID_pow:        return 6;
+
+    case ID_inv:
+    case ID_sq:
+    case ID_cubed:      return 999;
+
     default:            return 0;
     }
 }

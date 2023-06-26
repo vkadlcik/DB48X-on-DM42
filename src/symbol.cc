@@ -34,9 +34,9 @@
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
+#include "utf8.h"
 #include "variables.h"
 
-#include <ctype.h>
 #include <stdio.h>
 
 
@@ -62,9 +62,6 @@ OBJECT_HANDLER_BODY(symbol)
     case PARSE:
     {
         // Make sure we check commands first
-        result r = (result) DELEGATE(command);
-        if (r == OK)
-            return r;
         return object_parser(OBJECT_PARSER_ARG(), rt);
     }
     case RENDER:
@@ -81,7 +78,39 @@ OBJECT_HANDLER_BODY(symbol)
         // Check if anyone else knows how to deal with it
         return DELEGATE(object);
     }
+}
 
+
+static inline bool is_valid_as_name_initial(unicode cp)
+// ----------------------------------------------------------------------------
+//   Check if character is valid as initial of a name
+// ----------------------------------------------------------------------------
+{
+    return (cp >= 'A' && cp <= 'Z')
+        || (cp >= 'a' && cp <= 'z')
+        || (cp >= 0x100 &&
+            (cp != L'÷' &&      // Exclude symbols you can't have in a name
+             cp != L'×' &&
+             cp != L'∂'));
+}
+
+
+static inline bool is_valid_in_name(unicode cp)
+// ----------------------------------------------------------------------------
+//   Check if character is valid in a name
+// ----------------------------------------------------------------------------
+{
+    return is_valid_as_name_initial(cp)
+        || (cp >= '0' && cp <= '9');
+}
+
+
+static inline bool is_valid_in_name(utf8 s)
+// ----------------------------------------------------------------------------
+//   Check if first character in a string is valid in a name
+// ----------------------------------------------------------------------------
+{
+    return is_valid_in_name(utf8_codepoint(s));
 }
 
 
@@ -93,13 +122,16 @@ OBJECT_PARSER_BODY(symbol)
     utf8 source = p.source;
     utf8 s      = source;
 
-    // First character must be alphabetic (TODO: Special HP alpha chars, e.g Σ
-    if (!isalpha(*s++))
+    // First character must be alphabetic
+    unicode cp = utf8_codepoint(s);
+    if (!is_valid_as_name_initial(cp))
         return SKIP;
+    s = utf8_next(s);
 
     // Other characters must be alphabetic
-    while (*s && isalnum(*s))
-        s++;
+    while (is_valid_in_name(s))
+        s = utf8_next(s);
+
 
     size_t parsed = s - source;
     gcutf8 text   = source;

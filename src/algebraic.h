@@ -73,12 +73,11 @@ struct algebraic : command
         MULTIPICATIVE   = 7,    // *, /
         POWER           = 9,    // ^
 
-        FUNCTION_POWER  = 44,   // X²
-
-        UNKNOWN         = 55,   // Unknown operator
-        PARENTHESES     = 77,   // Parentheses
-        SYMBOL          = 88,   // Names
-        FUNCTION        = 99,   // Functions, e.g. f(x)
+        UNKNOWN         = 10,   // Unknown operator
+        PARENTHESES     = 20,   // Parentheses
+        FUNCTION        = 30,   // Functions, e.g. f(x)
+        FUNCTION_POWER  = 40,   // X²
+        SYMBOL          = 50,   // Names
     };
 
     // Standard object interface

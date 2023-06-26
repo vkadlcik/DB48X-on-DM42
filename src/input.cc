@@ -1680,18 +1680,24 @@ bool input::noHelpForKey(int key)
 {
     bool editing  = RT.editing();
 
+    // Show help for Duplicate and Drop only if not editing
+    if (key == KEY_ENTER || key == KEY_BSP)
+        return editing;
+
     // No help in alpha mode
     if (alpha && key < KEY_F1)
         return true;
 
-    // No help for ENTER or BSP key while editing
-    if (editing && (key == KEY_ENTER || key == KEY_BSP ||
-                    key == KEY_UP || key == KEY_DOWN))
-        return true;
+    if (editing)
+    {
+        // No help for ENTER or BSP key while editing
+        if (key == KEY_ENTER || key == KEY_BSP || key == KEY_UP || key == KEY_DOWN)
+            return true;
 
-    // No help for A-F keys in hexadecimal entry mode
-    if (editing && (key >= KB_A && key <= KB_F) && mode == HEXADECIMAL)
-        return true;
+        // No help for A-F keys in hexadecimal entry mode
+        if (mode == HEXADECIMAL && (key >= KB_A && key <= KB_F))
+            return true;
+    }
 
     // No help for digits entry
     if (!shift && !xshift)
@@ -2510,6 +2516,7 @@ bool input::handle_functions(int key)
 
         }
         obj->execute();
+        alpha = false;
         return true;
     }
 

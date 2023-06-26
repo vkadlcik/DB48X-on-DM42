@@ -27,6 +27,7 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
+#include "object.h"
 #include "recorder.h"
 #include "sim-rpl.h"
 #include "sim-window.h"
@@ -40,6 +41,44 @@ bool run_tests = false;
 bool db48x_keyboard = false;
 extern uint wait_time;
 
+
+size_t recorder_render_object(intptr_t tracing,
+                              const char *UNUSED format,
+                              char *buffer, size_t size,
+                              uintptr_t arg)
+// ----------------------------------------------------------------------------
+//   Render a value during a recorder dump (%t format)
+// ----------------------------------------------------------------------------
+{
+    object_p value = object_p(arg);
+    size_t result = 0;
+    if (tracing)
+    {
+        if (value)
+        {
+            char tmp[80];
+            size_t sz =  value->render(tmp, sizeof(tmp)-1);
+            tmp[sz] = 0;
+            result = snprintf(buffer, size, "%p[%lu] %s[%s]",
+                              (void *) value,
+                              value->size(),
+                              value->fancy(),
+                              tmp);
+        }
+        else
+        {
+            result = snprintf(buffer, size, "0x0 <NULL>");
+        }
+    }
+    else
+    {
+        result = snprintf(buffer, size, "%p", (void *) value);
+    }
+    return result;
+}
+
+
+
 int main(int argc, char *argv[])
 // ----------------------------------------------------------------------------
 //   Main entry point for the simulator
@@ -50,6 +89,8 @@ int main(int argc, char *argv[])
     if (traces)
         recorder_trace_set(traces);
     recorder_dump_on_common_signals(0, 0);
+    recorder_configure_type('t', recorder_render_object);
+
     record(options,
            "Simulator invoked as %+s with %d arguments", argv[0], argc-1);
     for (int a = 1; a < argc; a++)

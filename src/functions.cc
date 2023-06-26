@@ -244,6 +244,16 @@ FUNCTION_BODY(cubed)
     if (r != SKIP)
         return r;
 
+    runtime &rt = RT;
+    gcobj x = rt.stack(0);
+    if (x->is_strictly_symbolic())
+    {
+        x = rt.make<equation>(ID_equation, 1, &x, ID_cubed);
+        if (x && rt.top(x))
+            return OK;
+        return ERROR;           // Out of memory
+    }
+
     run<Dup>();
     run<Dup>();
     run<mul>();

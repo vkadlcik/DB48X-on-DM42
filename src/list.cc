@@ -89,6 +89,7 @@ object::result list::object_parser(id type,
     size_t max        = p.length;
     gcobj  infix      = nullptr;
     gcobj  prefix     = nullptr;
+    bool   negate     = false;
     int    precedence = p.precedence;
     int    lowest     = precedence;
 
@@ -133,6 +134,15 @@ object::result list::object_parser(id type,
         {
             if (precedence > 0)
             {
+                // Check to see if we have a sign
+                if (cp == '-' || cp == '+')
+                {
+                    if (cp == '-')
+                        negate = !negate;
+                    s = utf8_next(s);
+                    continue;
+                }
+
                 // Check if we see parentheses, or if we have `sin sin X`
                 bool parenthese = cp == '(';
                 if (parenthese  || infix || prefix)
@@ -262,6 +272,11 @@ object::result list::object_parser(id type,
                 {
                     obj = prefix;
                     prefix = nullptr;
+                }
+                else if (negate)
+                {
+                    obj = command::static_object(ID_neg);
+                    negate = false;
                 }
                 else
                 {

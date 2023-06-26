@@ -97,8 +97,10 @@ OBJECT_PARSER_BODY(command)
     size_t  maxlen = p.length;
     size_t  len    = maxlen;
 
+    bool disambiguate = eq && (i == ID_sq || i == ID_cubed || i == ID_inv);
+
     cstring names[3] = { nullptr };
-    names[0] = cstring(object::fancy(i));
+    names[0] = disambiguate ? nullptr : cstring(object::fancy(i));
     names[1] = cstring(object::name(i));
     switch(i)
     {

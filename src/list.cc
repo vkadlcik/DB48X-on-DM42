@@ -147,9 +147,9 @@ object::result list::object_parser(id type,
                 bool parenthese = cp == '(';
                 if (parenthese  || infix || prefix)
                 {
-                    int childp = (parenthese || !infix)
-                        ? 1
-                        : equation::precedence(infix) + 1;
+                    int childp = parenthese ? 1
+                        : infix ? equation::precedence(infix) + 1
+                        : 999;
                     parser child(p, s, childp);
                     unicode iopen = parenthese ? '(' : 0;
                     unicode iclose = parenthese ? ')' : 0;

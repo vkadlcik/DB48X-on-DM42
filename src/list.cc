@@ -620,13 +620,16 @@ symbol_g equation::render(uint depth, int &precedence)
             case 1:
             {
                 // TODO: Prefix and postfix operators
-                int argp = 0;
-                symbol_g fn = obj->as_symbol(rt);
-                symbol_g arg = render(depth, argp);
-                if (argp < algebraic::SYMBOL)
+                int      argp = 0;
+                id       oid  = obj->type();
+                symbol_g fn   = obj->as_symbol(rt);
+                symbol_g arg  = render(depth, argp);
+                int      maxp =
+                    oid == ID_neg ? algebraic::FUNCTION : algebraic::SYMBOL;
+                if (argp < maxp)
                     arg = parentheses(arg);
                 precedence = algebraic::FUNCTION;
-                switch(obj->type())
+                switch(oid)
                 {
                 case ID_sq:
                     precedence = algebraic::FUNCTION_POWER;

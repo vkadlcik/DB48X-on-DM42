@@ -303,7 +303,8 @@ bool input::key(int key, bool repeating)
 
     if (RT.error())
     {
-        if (key == KEY_EXIT || key == KEY_ENTER || key == KEY_BSP)
+        if (key == KEY_EXIT || key == KEY_ENTER || key == KEY_BSP ||
+            key == KEY_UP || key == KEY_DOWN)
             RT.clear_error();
         else if (key)
             beep(2200, 75);

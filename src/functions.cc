@@ -221,7 +221,7 @@ FUNCTION_BODY(sq)
 
     runtime &rt = RT;
     gcobj x = rt.stack(0);
-    if (x->is_symbolic())
+    if (x->is_strictly_symbolic())
     {
         x = rt.make<equation>(ID_equation, 1, &x, ID_sq);
         if (x && rt.top(x))

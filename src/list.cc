@@ -743,6 +743,11 @@ OBJECT_RENDERER_BODY(equation)
 
     int precedence = 0;
     symbol_g result = render(depth, precedence);
+    if (size_t remove = rt.depth() - depth)
+    {
+        record(list_errors, "Malformed equation, %u removed", remove);
+        rt.drop(remove);
+    }
     if (!result)
         return 0;
 

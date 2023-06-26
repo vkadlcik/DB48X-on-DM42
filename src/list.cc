@@ -622,8 +622,6 @@ symbol_g equation::render(uint depth, int &precedence)
             {
             case SKIP:
                 // Non-algebraic in an equation, e.g. numbers
-                precedence = algebraic::UNKNOWN;
-                return obj->as_symbol(rt);
 
             case 0:
                 // Symbols

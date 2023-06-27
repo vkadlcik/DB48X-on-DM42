@@ -54,7 +54,17 @@ bool arithmetic::real_promotion(gcobj &x, gcobj &y)
         // If we got here, we failed an integer op, e.g. 2/3, promote to real
         return real_promotion(x) && real_promotion(y);
 
-    return xt < yt ? real_promotion(x, yt) : real_promotion(y, xt);
+    uint16_t prec  = Settings.precision;
+    id       minty = prec > BID64_MAXDIGITS ? ID_decimal128
+                   : prec > BID32_MAXDIGITS ? ID_decimal64
+                                            : ID_decimal32;
+    if (is_decimal(xt) && xt > minty)
+        minty = xt;
+    if (is_decimal(yt) && yt > minty)
+        minty = yt;
+
+    return (xt == minty || real_promotion(x, minty))
+        && (yt == minty || real_promotion(y, minty));
 }
 
 

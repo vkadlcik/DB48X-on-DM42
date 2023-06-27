@@ -125,9 +125,10 @@ object::result list::object_parser(id type,
         }
 
         // Parse an object
-        size_t done = (byte *) s - (byte *) p.source;
-        size_t length = max > done ? max - done : 0;
-        gcobj obj = nullptr;
+        size_t done    = (byte *) s - (byte *) p.source;
+        size_t length  = max > done ? max - done : 0;
+        gcobj  obj     = nullptr;
+        bool   postfix = false;
 
         // For algebraic objects, check if we have or need parentheses
         if (precedence)
@@ -195,6 +196,8 @@ object::result list::object_parser(id type,
                     length = cmd == ID_inv
                         ? utf8_next(utf8_next(cur)) - cur
                         : utf8_next(cur) - cur;
+                    postfix = true;
+                    precedence = -precedence; // Stay in postfix mode
                 }
             }
         }
@@ -208,7 +211,7 @@ object::result list::object_parser(id type,
         if (!obj)
             return ERROR;
 
-        if (precedence && obj->type() != ID_symbol)
+        if (precedence && !postfix && obj->type() != ID_symbol)
         {
             // We are parsing an equation
             if (precedence > 0)

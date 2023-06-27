@@ -34,8 +34,8 @@
 #include "menu.h"
 
 #include "input.h"
-#include "parser.h"
-#include "renderer.h"
+#include "settings.h"
+
 
 RECORDER(menu,          16, "RPL menu class");
 RECORDER(menu_error,    16, "Errors handling menus");
@@ -931,11 +931,11 @@ MENU(ModesMenu,
 // ----------------------------------------------------------------------------
 //   Mode settings
 // ----------------------------------------------------------------------------
-     "Std",     ID_Std,
-     "Fix",     ID_Fix,
-     "Sci",     ID_Sci,
-     "Eng",     ID_Eng,
-     "Sig",     ID_Sig,
+     Std::menu_label,   ID_Std,
+     Fix::menu_label,   ID_Fix,
+     Sci::menu_label,   ID_Sci,
+     Eng::menu_label,   ID_Eng,
+     Sig::menu_label,   ID_Sig,
 
      "Frac .",  ID_DecimalDot,
      "Frac ,",  ID_DecimalComma,

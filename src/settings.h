@@ -32,6 +32,7 @@
 #include <types.h>
 
 #include "command.h"
+#include "menu.h"
 
 struct settings
 // ----------------------------------------------------------------------------
@@ -126,28 +127,70 @@ public:
 
 extern settings Settings;
 
-COMMAND_DECLARE(Std);
-COMMAND_DECLARE(Fix);
-COMMAND_DECLARE(Sci);
-COMMAND_DECLARE(Eng);
-COMMAND_DECLARE(Sig);
+
+// Macro to defined a simple command handler for derived classes
+#define SETTINGS_COMMAND_DECLARE(derived)                       \
+struct derived : command                                        \
+{                                                               \
+    derived(id i = ID_##derived) : command(i) { }               \
+                                                                \
+    OBJECT_HANDLER(derived)                                     \
+    {                                                           \
+        switch(op)                                              \
+        {                                                       \
+        case EVAL:                                              \
+        case EXEC:                                              \
+            RT.command(fancy(ID_##derived));                    \
+            return ((derived *) obj)->evaluate();               \
+        case MENU_MARKER:                                       \
+            return ((derived *) obj)->marker();                 \
+        default:                                                \
+            return DELEGATE(command);                           \
+        }                                                       \
+    }                                                           \
+    static result evaluate();                                   \
+    static unicode marker();                                    \
+    static cstring menu_label(menu::info &mi);                  \
+}
+
+#define SETTINGS_COMMAND_BODY(derived, mkr)                     \
+    unicode derived::marker() { return mkr; }                   \
+    object::result derived::evaluate()
+
+#define SETTINGS_COMMAND_NOLABEL(derived, mkr)                  \
+    unicode derived::marker() { return mkr; }                   \
+    cstring derived::menu_label(menu::info UNUSED &mi)          \
+    {                                                           \
+        return #derived;                                        \
+    }                                                           \
+    object::result derived::evaluate()
+
+#define SETTINGS_COMMAND_LABEL(derived)                         \
+    cstring derived::menu_label(menu::info UNUSED &mi)
+
+
+SETTINGS_COMMAND_DECLARE(Std);
+SETTINGS_COMMAND_DECLARE(Fix);
+SETTINGS_COMMAND_DECLARE(Sci);
+SETTINGS_COMMAND_DECLARE(Eng);
+SETTINGS_COMMAND_DECLARE(Sig);
 COMMAND_DECLARE(DisplayMode);
 COMMAND_DECLARE(CycleDisplayMode);
 
-COMMAND_DECLARE(Deg);
-COMMAND_DECLARE(Rad);
-COMMAND_DECLARE(Grad);
+SETTINGS_COMMAND_DECLARE(Deg);
+SETTINGS_COMMAND_DECLARE(Rad);
+SETTINGS_COMMAND_DECLARE(Grad);
 COMMAND_DECLARE(AngleMode);
 COMMAND_DECLARE(CycleAngleMode);
 
-COMMAND_DECLARE(LowerCase);
-COMMAND_DECLARE(UpperCase);
-COMMAND_DECLARE(Capitalized);
-COMMAND_DECLARE(LongForm);
+SETTINGS_COMMAND_DECLARE(LowerCase);
+SETTINGS_COMMAND_DECLARE(UpperCase);
+SETTINGS_COMMAND_DECLARE(Capitalized);
+SETTINGS_COMMAND_DECLARE(LongForm);
 COMMAND_DECLARE(CommandCaseMode);
 
-COMMAND_DECLARE(DecimalDot);
-COMMAND_DECLARE(DecimalComma);
+SETTINGS_COMMAND_DECLARE(DecimalDot);
+SETTINGS_COMMAND_DECLARE(DecimalComma);
 COMMAND_DECLARE(DecimalDisplayMode);
 
 #endif // SETTINGS_H

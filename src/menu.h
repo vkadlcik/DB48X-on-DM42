@@ -99,6 +99,18 @@ struct menu : command
         return 1 + count(args...);
     }
 
+    // Dynamic menus
+    typedef cstring (*menu_label_fn)(info &mi);
+
+    template <typename... Args>
+    static uint count(menu_label_fn UNUSED lbl, id UNUSED action, Args... args)
+    {
+        return 1 + count(args...);
+    }
+
+    template <typename... Args>
+    static void items(info &mi, menu_label_fn label, id action, Args... args);
+
   public:
     OBJECT_HANDLER(menu);
 };
@@ -111,6 +123,17 @@ void menu::items(info &mi, cstring label, id type, Args... args)
 // ----------------------------------------------------------------------------
 {
     items(mi, label, type);
+    items(mi, args...);
+}
+
+
+template <typename... Args>
+void menu::items(info &mi, menu_label_fn lblfn, id type, Args... args)
+// ----------------------------------------------------------------------------
+//   Update menu items
+// ----------------------------------------------------------------------------
+{
+    items(mi, lblfn(mi), type);
     items(mi, args...);
 }
 

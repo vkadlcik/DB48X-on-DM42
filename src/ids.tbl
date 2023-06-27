@@ -246,30 +246,35 @@ NAMED(Fix, "FixedDisplay")
 NAMED(Sci, "ScientificDisplay")
 NAMED(Eng, "EngineeringDisplay")
 NAMED(Sig, "SignificantDisplay")
-CMD(DisplayMode)
-CMD(CycleDisplayMode)
 
 NAMED(Deg, "Degrees")
 NAMED(Rad, "Radians")
 NAMED(Grad, "Grads")
-CMD(AngleMode)
-CMD(CycleAngleMode)
 
 CMD(LowerCase)
 CMD(UpperCase)
 CMD(Capitalized)
 CMD(LongForm)
-CMD(CommandCaseMode)
 
 CMD(DecimalDot)
 CMD(DecimalComma)
-CMD(DecimalDisplayMode)
-
+CMD(NoTrailingDecimal)
+CMD(TrailingDecimal)
 CMD(Precision)
-CMD(PrecisionMode)
+CMD(StandardExponent)
+CMD(FancyExponent)
+CMD(ClassicExponent)
 
-CMD(NonSciRange)
-CMD(NonSciRangeMode)
+CMD(Base)
+NAMED(Bin, "Binary")
+NAMED(Oct, "Octal")
+NAMED(Dec, "Decimal")
+NAMED(Hex, "Hexadeimcal")
+
+NAMED(stws, "StoreWordSize")
+NAMED(rcws, "WordSize")
+
+CMD(Modes)
 
 
 // ============================================================================

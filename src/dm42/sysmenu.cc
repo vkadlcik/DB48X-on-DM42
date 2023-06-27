@@ -353,50 +353,13 @@ static int state_save_callback(cstring fpath,
         render.put('\n');
     }
 
-    // Save the current menu
-    if (menu_p menu = Input.menu())
-        menu->render(render, rt);
-    render.put('\n');
+    // Save current settings
+    Settings.save(render);
 
     // Restore the display mode we had
     Settings.display_mode = dm;
     Settings.displayed = disp;
     Settings.decimal_dot = ds;
-
-    // Save Decimal separator
-    switch(ds)
-    {
-    default:
-    case '.':      /* render.put("DecimalDot"); */ break;
-    case ',':      render.put("DecimalComma"); break;
-    }
-    render.put('\n');
-
-    // Save current display setting
-    switch(dm)
-    {
-    default:
-    case settings::NORMAL:
-        if (disp == settings::STD_DISPLAYED)
-                                /* render.put("STD") */;
-        else
-                                render.printf("%u SIG", disp); break;
-    case settings::FIX:         render.printf("%u FIX", disp); break;
-    case settings::SCI:         render.printf("%u SCI", disp); break;
-    case settings::ENG:         render.printf("%u ENG", disp); break;
-    }
-    render.put('\n');
-
-    // Save current angle mode
-    switch(Settings.angle_mode)
-    {
-    default:
-    case settings::DEGREES:      /* render.put("DEG") */; break;
-    case settings::RADIANS:      render.put("RAD"); break;
-    case settings::GRADS:        render.put("GRAD"); break;
-    }
-    render.put('\n');
-
 
     return 0;
 }

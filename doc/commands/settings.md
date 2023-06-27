@@ -1,3 +1,20 @@
+# Settings
+
+The calculator has a number of user-configurable settings:
+
+* [Display](#Display settings)
+* [Angles](#Angle settings)
+* [Command display](#Command display)
+* [Decimal separator](#Decimal separator settings)
+* [Precision](#Precision settings)
+* [Base](#Base settings)
+
+The current preferences can be retrieved and saved using the `Modes` command.
+
+## Modes
+
+Returns a program that will restore the current settings. This program can be saved into a variable to quickly restore a carefully crafted set of preferences. Note that the calculator automatically restores the mode when it [loads a state](#States).
+
 # Display settings
 
 The display mode controls how DB48X displays numbers. Regardless of the display
@@ -39,23 +56,26 @@ not see all digits. `StndardDisplay` is equivalent to `34 SignificantDisplay`,
 while `12 SignificantDisplay` should approximate the HP48 standard mode using
 12 significant digits.
 
-## DisplayMode
+## StandardExponent
 
-Returns a program that will restore the current display mode.
+Select the maximum exponent before switching to scientific notation. The default value is 9, meaning that display uses scientific notation for exponents outside of -9..9.
 
-## CycleDisplayMode
+## TrailingDecimal
 
-Cycle among the possible display modes, without changing the number of
-digits used for rounding.
+Display a trailing decimal separator to distinguish decimal from integer types. With this setting, `1.0` will display as `1.`. This can be disabled with [NoTrailingDecimal](#NoTrailingDecimal).
 
-## NonSciRange
 
-Select the maximum exponent before switching to scientific notation. The default value is 9.
+## NoTrailingDecimal
 
-## NonSciRangeMode
+Hide the trailing decimal separator for decimal values with no fractional part. In that mode, `1.0` and `1` will both display identically, although the internal representation is different, the former being a floating-point value while the latter is an integer value.
 
-Returns a program that will restore the current value for non-sci range.
+## FancyExponent
 
+Display the exponent in scientific mode using a fancy rendering that is visually similar to the normal mathematical notation.
+
+## ClassicExponent
+
+Display the exponent in scientific mode in a way reminiscent of classical HP48 calculators, for example `1.23E-4`.
 
 # Angle settings
 
@@ -79,14 +99,6 @@ Select radians as the angular unit. A full circle is 2π radians.
 ## Grads (GRAD)
 
 Select grads as the angular unit. A full circle is 400 grads.
-
-## AngleMode
-
-Returns a program that will restore the current angle mode.
-
-## CycleAngleMode
-
-Cycle among the three angle modes.
 
 
 # Command display
@@ -122,11 +134,6 @@ Display comands using the short form capitalized, for example `Sto`.
 
 Display comands using the long form, for example `Store`.
 
-## CommandCaseMode
-
-Return a program that will restore the command case mode.
-
-
 # Decimal separator settings
 
 The decimal separator can be either a dot (`1.23`) or a comma (`1,23`).
@@ -138,11 +145,6 @@ Select the dot as a decimal separator, e.g.  `1.23`
 ## DecimalComma
 
 Select the comma as a decimal separator, e.g.  `1,23`
-
-## DecimalDisplayMode
-
-Return a program that will restore the current decimal display mode.
-
 
 # Precision settings
 
@@ -158,6 +160,52 @@ In the current implementation, this selects one of three decimal formats:
 
 The intent in the long run is to allow arbitrary precision like in newRPL.
 
-## PrecisionMode
 
-Return a program that will restore the current precision.
+# Base settings
+
+Integer values can be reprecended in a number of different bases:
+
+* [Binary](#Binary) is base 2
+* [Ocgtal](#Octal) is base 8
+* [Decimal](#Decimal) is base 10
+* [Hexadecimal](#Hexadecimal) is base 16
+
+## Binary (BIN)
+
+Selects base 2
+
+## Octal (OCT)
+
+Selects base 8
+
+## Decimal (DEC)
+
+Selects base 10
+
+## Hexadecimal (HEX)
+
+Selects base 16
+
+## Base
+
+Select an arbitrary base for computations
+
+## StoreWordSize (STWS)
+
+Store the word size for binary computations
+
+## WordSize (RCWS)
+
+Recall the word size for binary computations
+
+
+# States
+
+The calculator can save and restore state in files with extension `.48S`.
+This feature is available through the `Setup` menu (Shift-`0`).
+
+The following information is stored in state files:
+
+* Global variables
+* Stack contents
+* Settings

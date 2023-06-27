@@ -29,10 +29,12 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <types.h>
-
 #include "command.h"
 #include "menu.h"
+#include "renderer.h"
+
+#include <types.h>
+
 
 struct settings
 // ----------------------------------------------------------------------------
@@ -42,15 +44,15 @@ struct settings
     enum { STD_DISPLAYED = 20 };
 
     settings()
-        : precision(32),
-          displayed(STD_DISPLAYED),
-          max_nonsci(9),
+        : precision(BID128_MAXDIGITS),
           display_mode(NORMAL),
+          displayed(STD_DISPLAYED),
           decimal_dot('.'),
           exponent_char(L'⁳'),
+          max_nonsci(9),
           angle_mode(DEGREES),
           base(16),
-          wordsize(128),
+          wordsize(64),
           command_fmt(LONG_FORM),
           show_decimal(true),
           fancy_exponent(true)
@@ -86,38 +88,17 @@ struct settings
         LONG_FORM,              // Display the long form
     };
 
-    display nextDisplayMode()
-    {
-        switch(display_mode)
-        {
-        case NORMAL:    display_mode = FIX; break;
-        case FIX:       display_mode = SCI; break;
-        case SCI:       display_mode = ENG; break;
-        default:
-        case ENG:       display_mode = NORMAL; break;
-        }
-        return display_mode;
-    }
 
-    angles nextAngleMode()
-    {
-        switch(angle_mode)
-        {
-        case DEGREES:   angle_mode = RADIANS; break;
-        case RADIANS:   angle_mode = GRADS; break;
-        default:
-        case GRADS:     angle_mode = DEGREES; break;
-        }
-        return angle_mode;
-    }
+    void save(renderer &out, bool show_defaults = false);
+
 
 public:
     uint16_t precision;         // Internal precision for numbers
-    uint16_t displayed;         // Number of displayed digits
-    uint16_t max_nonsci;        // Maximum exponent before switching to sci
     display  display_mode;      // Display mode
+    uint16_t displayed;         // Number of displayed digits
     char     decimal_dot;       // Character used for decimal separator
     unicode  exponent_char;     // The character used to represent exponents
+    uint16_t max_nonsci;        // Maximum exponent before switching to sci
     angles   angle_mode;        // Angle mode ( degrees, radians or grads)
     uint8_t  base;              // The default base for #numbers
     uint16_t wordsize;          // Wordsize for binary numbers (in bits)
@@ -143,6 +124,7 @@ struct derived : command                                        \
         case EVAL:                                              \
         case EXEC:                                              \
             RT.command(fancy(ID_##derived));                    \
+            Input.menuNeedsRefresh();                           \
             return ((derived *) obj)->evaluate();               \
         case MENU_MARKER:                                       \
             return ((derived *) obj)->marker();                 \
@@ -171,34 +153,39 @@ struct derived : command                                        \
     cstring derived::menu_label(menu::info UNUSED &mi)
 
 
+COMMAND_DECLARE(Modes);
+
 SETTINGS_COMMAND_DECLARE(Std);
 SETTINGS_COMMAND_DECLARE(Fix);
 SETTINGS_COMMAND_DECLARE(Sci);
 SETTINGS_COMMAND_DECLARE(Eng);
 SETTINGS_COMMAND_DECLARE(Sig);
-COMMAND_DECLARE(DisplayMode);
-COMMAND_DECLARE(CycleDisplayMode);
 
 SETTINGS_COMMAND_DECLARE(Deg);
 SETTINGS_COMMAND_DECLARE(Rad);
 SETTINGS_COMMAND_DECLARE(Grad);
-COMMAND_DECLARE(AngleMode);
-COMMAND_DECLARE(CycleAngleMode);
 
 SETTINGS_COMMAND_DECLARE(LowerCase);
 SETTINGS_COMMAND_DECLARE(UpperCase);
 SETTINGS_COMMAND_DECLARE(Capitalized);
 SETTINGS_COMMAND_DECLARE(LongForm);
-COMMAND_DECLARE(CommandCaseMode);
 
 SETTINGS_COMMAND_DECLARE(DecimalDot);
 SETTINGS_COMMAND_DECLARE(DecimalComma);
-COMMAND_DECLARE(DecimalDisplayMode);
-
+SETTINGS_COMMAND_DECLARE(NoTrailingDecimal);
+SETTINGS_COMMAND_DECLARE(TrailingDecimal);
 SETTINGS_COMMAND_DECLARE(Precision);
-COMMAND_DECLARE(PrecisionMode);
+SETTINGS_COMMAND_DECLARE(StandardExponent);
+SETTINGS_COMMAND_DECLARE(FancyExponent);
+SETTINGS_COMMAND_DECLARE(ClassicExponent);
 
-SETTINGS_COMMAND_DECLARE(NonSciRange);
-COMMAND_DECLARE(NonSciRangeMode);
+SETTINGS_COMMAND_DECLARE(Base);
+SETTINGS_COMMAND_DECLARE(Bin);
+SETTINGS_COMMAND_DECLARE(Oct);
+SETTINGS_COMMAND_DECLARE(Dec);
+SETTINGS_COMMAND_DECLARE(Hex);
+
+SETTINGS_COMMAND_DECLARE(stws);
+COMMAND_DECLARE(rcws);
 
 #endif // SETTINGS_H

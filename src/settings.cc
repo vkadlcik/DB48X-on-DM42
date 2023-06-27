@@ -30,12 +30,124 @@
 #include "settings.h"
 
 #include "command.h"
+#include "input.h"
 #include "integer.h"
+#include "menu.h"
 
 #include <cstdarg>
 #include <cstdlib>
+#include <random>
+#include <stdexcept>
 
 settings Settings;
+
+
+// ============================================================================
+//
+//   Save the current settings to a renderer
+//
+// ============================================================================
+
+void settings::save(renderer &out, bool show_defaults)
+// ----------------------------------------------------------------------------
+//   Save the current settings to the given renderer
+// ----------------------------------------------------------------------------
+{
+    // Save the current menu
+    if (menu_p menu = Input.menu())
+    {
+        menu->render(out, runtime::RT);
+        out.put('\n');
+    }
+
+    // Save current computation precision
+    if (precision != BID128_MAXDIGITS || show_defaults)
+        out.put("%u Precision\n", precision);
+
+    // Save current display setting
+    switch(display_mode)
+    {
+    case NORMAL:
+        if (displayed == settings::STD_DISPLAYED)
+        {
+            if (show_defaults)
+                out.put("%STD\n");
+        }
+        else    out.printf("%u SIG\n", displayed); break;
+    case FIX:   out.printf("%u FIX\n", displayed); break;
+    case SCI:   out.printf("%u SCI\n", displayed); break;
+    case ENG:   out.printf("%u ENG\n", displayed); break;
+    }
+
+    // Save Decimal separator
+    if (decimal_dot == ',')
+        out.put("DecimalComma\n");
+    else if (show_defaults)
+        out.put("DecimalDot\n");
+
+    // Save preferred exponent display mode
+    if (exponent_char != L'⁳' || !fancy_exponent)
+        out.put("ClassicExponent\n");
+    else if (show_defaults)
+        out.put("FancyExponent\n");
+
+    // Save preferred expenent for switching to scientfiic mode
+    if (max_nonsci != 9 || show_defaults)
+        out.printf("%u StandardExponent\n", max_nonsci);
+
+    // Save current angle mode
+    switch(angle_mode)
+    {
+    default:
+    case DEGREES:       if (show_defaults)      out.put("DEG\n"); break;
+    case RADIANS:                               out.put("RAD\n"); break;
+    case GRADS:                                 out.put("GRAD\n"); break;
+    }
+
+    // Save default base
+    if( base != 16 || show_defaults)
+        out.printf("%u Base\n", base);
+
+    // Save default word size
+    if (wordsize != 64 || show_defaults)
+        out.printf("%u WordSize\n", wordsize);
+
+    // Save default command format
+    switch(command_fmt)
+    {
+    default:
+    case LONG_FORM:     if (show_defaults)      out.put("LongForm\n");    break;
+    case LOWERCASE:                             out.put("lowercase\n");   break;
+    case UPPERCASE:                             out.put("UPPERCASE\n");   break;
+    case CAPITALIZED:                           out.put("Capitalized\n"); break;
+    }
+
+    // Check if we want to show 1.0 as 1 and not 1.
+    if (!show_decimal)
+        out.put("NoTrailingDecimal\n");
+    else if (show_defaults)
+        out.put("TrailingDecimal\n");
+}
+
+
+COMMAND_BODY(Modes)
+// ----------------------------------------------------------------------------
+//   Return a program that restores the current modes
+// ----------------------------------------------------------------------------
+{
+    renderer modes;
+    modes.put("«");
+    Settings.save(modes);
+    modes.put("»");
+
+    size_t size = modes.size();
+    gcutf8 code = modes.text();
+    if (gcobj program = object::parse(code, size))
+        if (runtime::RT.push(program))
+            return OK;
+    return ERROR;
+}
+
 
 
 // ============================================================================
@@ -63,7 +175,6 @@ SETTINGS_COMMAND_BODY(Std, IsStd() ? MARK : 0)
 {
     Settings.displayed = settings::STD_DISPLAYED;
     Settings.display_mode = settings::NORMAL;
-    Input.menuNeedsRefresh();
     return OK;
 }
 
@@ -90,7 +201,6 @@ static object::result set_display_mode(settings::display mode)
             Settings.displayed = std::min(disp, (uint) BID128_MAXDIGITS);
             Settings.display_mode = mode;
             runtime::RT.pop();
-            Input.menuNeedsRefresh();
             return object::OK;
         }
         else
@@ -193,57 +303,6 @@ SETTINGS_COMMAND_LABEL(Sig)
 }
 
 
-COMMAND_BODY(CycleDisplayMode)
-// ----------------------------------------------------------------------------
-//   Cycle among the possible display modes
-// ----------------------------------------------------------------------------
-{
-    Settings.nextDisplayMode();
-    Input.menuNeedsRefresh();
-    return OK;
-}
-
-
-static object::result settings_command(cstring format, ...)
-// ----------------------------------------------------------------------------
-//    Push a command restoring a given state
-// ----------------------------------------------------------------------------
-{
-    char buffer[80];
-    va_list va;
-    va_start(va, format);
-    size_t size = vsnprintf(buffer, sizeof(buffer), format, va);
-    va_end(va);
-
-    if (gcobj obj = object::parse(utf8(buffer), size))
-        if (runtime::RT.push(obj))
-            return object::OK;
-    return object::ERROR;
-}
-
-
-COMMAND_BODY(DisplayMode)
-// ----------------------------------------------------------------------------
-//   Return a program that restores the current display mode
-// ----------------------------------------------------------------------------
-{
-    uint disp = Settings. displayed;
-    switch(Settings.display_mode)
-    {
-    default:
-    case settings::NORMAL:
-        if (disp == 34)
-                                return settings_command("«STD»", disp);
-        else
-                                return settings_command("«%u SIG»", disp);
-    case settings::FIX:         return settings_command("«%u FIX»", disp);
-    case settings::SCI:         return settings_command("«%u SCI»", disp);
-    case settings::ENG:         return settings_command("«%u ENG»", disp);
-    }
-    return ERROR;
-}
-
-
 SETTINGS_COMMAND_NOLABEL(Deg,
                          Settings.angle_mode == settings::DEGREES ? MARK : 0)
 // ----------------------------------------------------------------------------
@@ -251,7 +310,6 @@ SETTINGS_COMMAND_NOLABEL(Deg,
 // ----------------------------------------------------------------------------
 {
     Settings.angle_mode = settings::DEGREES;
-    Input.menuNeedsRefresh();
     return OK;
 }
 
@@ -263,7 +321,6 @@ SETTINGS_COMMAND_NOLABEL(Rad,
 // ----------------------------------------------------------------------------
 {
     Settings.angle_mode = settings::RADIANS;
-    Input.menuNeedsRefresh();
     return OK;
 }
 
@@ -275,34 +332,6 @@ SETTINGS_COMMAND_NOLABEL(Grad,
 // ----------------------------------------------------------------------------
 {
     Settings.angle_mode = settings::GRADS;
-    Input.menuNeedsRefresh();
-    return OK;
-}
-
-
-COMMAND_BODY(AngleMode)
-// ----------------------------------------------------------------------------
-//   Return a program setting the current angle mode
-// ----------------------------------------------------------------------------
-{
-    switch(Settings.angle_mode)
-    {
-    default:
-    case settings::DEGREES:     return settings_command("«DEG»");
-    case settings::RADIANS:     return settings_command("«RAD»");
-    case settings::GRADS:       return settings_command("GRAD»");
-    }
-    return ERROR;
-}
-
-
-COMMAND_BODY(CycleAngleMode)
-// ----------------------------------------------------------------------------
-//   Cycle across possible angle modes
-// ----------------------------------------------------------------------------
-{
-    Settings.nextAngleMode();
-    Input.menuNeedsRefresh();
     return OK;
 }
 
@@ -314,7 +343,6 @@ SETTINGS_COMMAND_NOLABEL(LowerCase,
 // ----------------------------------------------------------------------------
 {
     Settings.command_fmt = settings::LOWERCASE;
-    Input.menuNeedsRefresh();
     return OK;
 }
 
@@ -326,7 +354,6 @@ SETTINGS_COMMAND_NOLABEL(UpperCase,
 // ----------------------------------------------------------------------------
 {
     Settings.command_fmt = settings::UPPERCASE;
-    Input.menuNeedsRefresh();
     return OK;
 }
 
@@ -338,7 +365,6 @@ SETTINGS_COMMAND_NOLABEL(Capitalized,
 // ----------------------------------------------------------------------------
 {
     Settings.command_fmt = settings::CAPITALIZED;
-    Input.menuNeedsRefresh();
     return OK;
 }
 
@@ -350,25 +376,7 @@ SETTINGS_COMMAND_NOLABEL(LongForm,
 // ----------------------------------------------------------------------------
 {
     Settings.command_fmt = settings::LONG_FORM;
-    Input.menuNeedsRefresh();
     return OK;
-}
-
-
-COMMAND_BODY(CommandCaseMode)
-// ----------------------------------------------------------------------------
-//   Return a program giving the current case mode
-// ----------------------------------------------------------------------------
-{
-    switch(Settings.command_fmt)
-    {
-    default:
-    case settings::LOWERCASE:   return settings_command("«LowerCase»");
-    case settings::UPPERCASE:   return settings_command("«UpperCase»");
-    case settings::CAPITALIZED: return settings_command("«Capitalized»");
-    case settings::LONG_FORM:   return settings_command("LongForm»");
-    }
-    return ERROR;
 }
 
 
@@ -378,7 +386,6 @@ SETTINGS_COMMAND_NOLABEL(DecimalDot, Settings.decimal_dot == '.' ? MARK : 0)
 // ----------------------------------------------------------------------------
 {
     Settings.decimal_dot = '.';
-    Input.menuNeedsRefresh();
     return OK;
 }
 
@@ -389,23 +396,27 @@ SETTINGS_COMMAND_NOLABEL(DecimalComma, Settings.decimal_dot == ',' ? MARK : 0)
 // ----------------------------------------------------------------------------
 {
     Settings.decimal_dot = ',';
-    Input.menuNeedsRefresh();
     return OK;
 }
 
 
-COMMAND_BODY(DecimalDisplayMode)
+SETTINGS_COMMAND_NOLABEL(TrailingDecimal, Settings.show_decimal ? MARK : 0)
 // ----------------------------------------------------------------------------
-//   Return current decimal separator mode
+//  Indicate that we want a trailing decimal separator
 // ----------------------------------------------------------------------------
 {
-    switch(Settings.decimal_dot)
-    {
-    default:
-    case '.':   return settings_command("«DecimalDot»");
-    case ',':   return settings_command("«DecimalComma»");
-    }
-    return ERROR;
+    Settings.show_decimal = true;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(NoTrailingDecimal, !Settings.show_decimal ? MARK : 0)
+// ----------------------------------------------------------------------------
+//  Indicate that we don't want a traiing decimal separator
+// ----------------------------------------------------------------------------
+{
+    Settings.show_decimal = false;
+    return OK;
 }
 
 
@@ -421,7 +432,6 @@ SETTINGS_COMMAND_BODY(Precision, 0)
             uint disp = digits->value<uint>();
             Settings.precision = std::min(disp, (uint) BID128_MAXDIGITS);
             runtime::RT.pop();
-            Input.menuNeedsRefresh();
             return object::OK;
         }
         else
@@ -445,16 +455,7 @@ SETTINGS_COMMAND_LABEL(Precision)
 }
 
 
-COMMAND_BODY(PrecisionMode)
-// ----------------------------------------------------------------------------
-//   Return current precision mode
-// ----------------------------------------------------------------------------
-{
-    return settings_command("«%u Precision»", Settings.precision);
-}
-
-
-SETTINGS_COMMAND_BODY(NonSciRange, 0)
+SETTINGS_COMMAND_BODY(StandardExponent, 0)
 // ----------------------------------------------------------------------------
 //   Setting the maximum exponent before switching to scientific mode
 // ----------------------------------------------------------------------------
@@ -466,7 +467,6 @@ SETTINGS_COMMAND_BODY(NonSciRange, 0)
             uint disp = digits->value<uint>();
             Settings.max_nonsci = std::min(disp, (uint) BID128_MAXDIGITS);
             runtime::RT.pop();
-            Input.menuNeedsRefresh();
             return object::OK;
         }
         else
@@ -478,9 +478,9 @@ SETTINGS_COMMAND_BODY(NonSciRange, 0)
 }
 
 
-SETTINGS_COMMAND_LABEL(NonSciRange)
+SETTINGS_COMMAND_LABEL(StandardExponent)
 // ----------------------------------------------------------------------------
-//   Return the label for the current precision
+//   Return the label for the current standard exponent
 // ----------------------------------------------------------------------------
 {
     // We can share the buffer here since only one mode is active
@@ -490,10 +490,148 @@ SETTINGS_COMMAND_LABEL(NonSciRange)
 }
 
 
-COMMAND_BODY(NonSciRangeMode)
+SETTINGS_COMMAND_NOLABEL(FancyExponent, Settings.fancy_exponent ? MARK : 0)
 // ----------------------------------------------------------------------------
-//   Return current non-sci range mode
+//   Setting the maximum exponent before switching to scientific mode
 // ----------------------------------------------------------------------------
 {
-    return settings_command("«%u NonSciRange»", Settings.precision);
+    Settings.fancy_exponent = true;
+    Settings.exponent_char = L'⁳';
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(ClassicExponent, !Settings.fancy_exponent ? MARK : 0)
+// ----------------------------------------------------------------------------
+//   Setting the maximum exponent before switching to scientific mode
+// ----------------------------------------------------------------------------
+{
+    Settings.fancy_exponent = false;
+    Settings.exponent_char = 'E';
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(Base, 0)
+// ----------------------------------------------------------------------------
+//   Setting the maximum exponent before switching to scientific mode
+// ----------------------------------------------------------------------------
+{
+    if (object_p size = runtime::RT.top())
+    {
+        if (integer_p digits = size->as<integer>())
+        {
+            uint base = digits->value<uint>();
+            runtime::RT.pop();
+            if (base >= 2 && base <= 36)
+            {
+                Settings.base = base;
+                return object::OK;
+            }
+            runtime::RT.invalid_base_error();
+        }
+        else
+        {
+            runtime::RT.type_error();
+        }
+    }
+    return object::ERROR;
+}
+
+
+SETTINGS_COMMAND_LABEL(Base)
+// ----------------------------------------------------------------------------
+//   Return the label for the current base
+// ----------------------------------------------------------------------------
+{
+    // We can share the buffer here since only one mode is active
+    static char buffer[12];
+    snprintf(buffer, sizeof(buffer), "Base %u", Settings.base);
+    return buffer;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(Bin, Settings.base == 2 ? MARK : 0)
+// ----------------------------------------------------------------------------
+//   Select binary mode
+// ----------------------------------------------------------------------------
+{
+    Settings.base = 2;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(Oct, Settings.base == 8 ? MARK : 0)
+// ----------------------------------------------------------------------------
+//   Select octal mode
+// ----------------------------------------------------------------------------
+{
+    Settings.base = 8;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(Dec, Settings.base == 10 ? MARK : 0)
+// ----------------------------------------------------------------------------
+//   Select decimalmode
+// ----------------------------------------------------------------------------
+{
+    Settings.base = 10;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(Hex, Settings.base == 16 ? MARK : 0)
+// ----------------------------------------------------------------------------
+//   Select hexadecimal mode
+// ----------------------------------------------------------------------------
+{
+    Settings.base = 16;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(stws, 0)
+// ----------------------------------------------------------------------------
+//   Setting the word size for binary computations
+// ----------------------------------------------------------------------------
+{
+    if (object_p size = runtime::RT.top())
+    {
+        if (integer_p digits = size->as<integer>())
+        {
+            uint ws = digits->value<uint>();
+            runtime::RT.pop();
+            Settings.wordsize = ws;
+            return OK;
+        }
+        else
+        {
+            runtime::RT.type_error();
+        }
+    }
+    return object::ERROR;
+}
+
+
+SETTINGS_COMMAND_LABEL(stws)
+// ----------------------------------------------------------------------------
+//   Return the label for the current word size
+// ----------------------------------------------------------------------------
+{
+    static char buffer[16];
+    snprintf(buffer, sizeof(buffer), "WordSz %u", Settings.wordsize);
+    return buffer;
+}
+
+
+COMMAND_BODY(rcws)
+// ----------------------------------------------------------------------------
+//  Recall the current wordsize
+// ----------------------------------------------------------------------------
+{
+    if (gcobj ws = integer::make(Settings.wordsize))
+        if (runtime::RT.push(ws))
+            return OK;
+    return ERROR;
 }

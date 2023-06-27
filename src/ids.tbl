@@ -265,6 +265,8 @@ CMD(DecimalDot)
 CMD(DecimalComma)
 CMD(DecimalDisplayMode)
 
+CMD(Precision)
+CMD(PrecisionMode)
 
 
 // ============================================================================

@@ -134,3 +134,22 @@ Select the comma as a decimal separator, e.g.  `1,23`
 ## DecimalDisplayMode
 
 Return a program that will restore the current decimal display mode.
+
+
+# Precision settings
+
+## Precision
+
+Set the default computation precision, given as a number of decimal digits. For example, `7 Precision` will ensure at least 7 decimal digits for compuation, and `1.0 3 /` will compute `0.3333333` in that case.
+
+In the current implementation, this selects one of three decimal formats:
+
+* The `decimal32` for up to 7 digits mantissa and an exponents up to 96
+* The `decimal64` for up to 16 digits mantissa and an exponents up to 384
+* The `decimal128` for up to 34 digits mantissa and an exponents up to 6144
+
+The intent in the long run is to allow arbitrary precision like in newRPL.
+
+## PrecisionMode
+
+Return a program that will restore the current precision.

@@ -958,7 +958,8 @@ MENU(ModesMenu,
      "cmd",     ID_LowerCase,
      "CMD",     ID_UpperCase,
      "Cmd",     ID_Capitalized,
-     "Command", ID_LongForm);
+     "Command", ID_LongForm,
+     Precision::menu_label, ID_Precision);
 
 
 MENU(IOMenu,

@@ -407,3 +407,48 @@ COMMAND_BODY(DecimalDisplayMode)
     }
     return ERROR;
 }
+
+
+SETTINGS_COMMAND_BODY(Precision, 0)
+// ----------------------------------------------------------------------------
+//   Setting the precision
+// ----------------------------------------------------------------------------
+{
+    if (object_p size = runtime::RT.top())
+    {
+        if (integer_p digits = size->as<integer>())
+        {
+            uint disp = digits->value<uint>();
+            Settings.precision = std::min(disp, (uint) BID128_MAXDIGITS);
+            runtime::RT.pop();
+            Input.menuNeedsRefresh();
+            return object::OK;
+        }
+        else
+        {
+            runtime::RT.type_error();
+        }
+    }
+    return object::ERROR;
+}
+
+
+SETTINGS_COMMAND_LABEL(Precision)
+// ----------------------------------------------------------------------------
+//   Return the label for the current precision
+// ----------------------------------------------------------------------------
+{
+    // We can share the buffer here since only one mode is active
+    static char buffer[12];
+    snprintf(buffer, sizeof(buffer), "Prec %u", Settings.precision);
+    return buffer;
+}
+
+
+COMMAND_BODY(PrecisionMode)
+// ----------------------------------------------------------------------------
+//   Return current precision mode
+// ----------------------------------------------------------------------------
+{
+    return settings_command("«%u Precision»", Settings.precision);
+}

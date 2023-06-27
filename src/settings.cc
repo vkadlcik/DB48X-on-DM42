@@ -33,6 +33,7 @@
 #include "integer.h"
 
 #include <cstdarg>
+#include <cstdlib>
 
 settings Settings;
 
@@ -85,7 +86,8 @@ static object::result set_display_mode(settings::display mode)
     {
         if (integer_p digits = size->as<integer>())
         {
-            Settings.displayed = digits->value<uint>();
+            uint disp = digits->value<uint>();
+            Settings.displayed = std::min(disp, (uint) BID128_MAXDIGITS);
             Settings.display_mode = mode;
             runtime::RT.pop();
             Input.menuNeedsRefresh();

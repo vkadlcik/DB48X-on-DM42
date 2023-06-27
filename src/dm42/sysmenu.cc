@@ -329,14 +329,12 @@ static int state_save_callback(cstring fpath,
         return 1;
     }
 
-    // Always render things to disk using optimal precision and decimal dot
+    // Always render things to disk using default settings
     renderer render(&prog);
-    uint disp = Settings. displayed;
-    char ds = Settings.decimal_mark;
-    settings::display dm = Settings.display_mode;
-    Settings.display_mode = settings::NORMAL;
-    Settings.displayed = 34;
-    Settings.decimal_mark = '.';
+    settings saved = Settings;
+    Settings = settings();
+    Settings.fancy_exponent = false;
+    Settings.standard_exp = 1;
 
     // Save global variables
     runtime &rt = runtime::RT;
@@ -354,12 +352,10 @@ static int state_save_callback(cstring fpath,
     }
 
     // Save current settings
-    Settings.save(render);
+    saved.save(render);
 
-    // Restore the display mode we had
-    Settings.display_mode = dm;
-    Settings.displayed = disp;
-    Settings.decimal_mark = ds;
+    // Restore the settings we had
+    Settings = saved;
 
     return 0;
 }

@@ -279,17 +279,17 @@ struct object
     //   Render the object into the scratchpad, then move into the editor
     // ------------------------------------------------------------------------
 
-    text_p as_text(bool equation = false, runtime &rt = RT) const;
+    text_p as_text(bool edit = true, bool eq = false, runtime &rt = RT) const;
     // ------------------------------------------------------------------------
     //   Return the object as text
     // ------------------------------------------------------------------------
 
-    symbol_p as_symbol(runtime &rt = RT) const
+    symbol_p as_symbol(bool editing, runtime &rt = RT) const
     // ------------------------------------------------------------------------
     //   Return the object as text
     // ------------------------------------------------------------------------
     {
-        return symbol_p(as_text(true, rt));
+        return symbol_p(as_text(editing, true, rt));
     }
 
     result insert(input *Input, runtime &rt = RT) const

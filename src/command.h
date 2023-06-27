@@ -175,7 +175,7 @@ COMMAND(ToText)
 // ----------------------------------------------------------------------------
 {
     if (gcobj obj = RT.top())
-        if (gcobj txt = obj->as_text())
+        if (gcobj txt = obj->as_text(false, false))
             if (RT.top(txt))
                 return OK;
     return ERROR;

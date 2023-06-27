@@ -610,7 +610,7 @@ symbol_g equation::space(symbol_g arg)
 }
 
 
-symbol_g equation::render(uint depth, int &precedence)
+symbol_g equation::render(uint depth, int &precedence, bool editing)
 // ----------------------------------------------------------------------------
 //   Render an object as a symbol at a given precedence
 // ----------------------------------------------------------------------------
@@ -631,15 +631,15 @@ symbol_g equation::render(uint depth, int &precedence)
                 precedence = algebraic::SYMBOL;
                 if (obj->type() == ID_symbol)
                     return symbol_p(object_p(obj));
-                return obj->as_symbol(rt);
+                return obj->as_symbol(editing, rt);
 
             case 1:
             {
                 // TODO: Prefix and postfix operators
                 int      argp = 0;
                 id       oid  = obj->type();
-                symbol_g fn   = obj->as_symbol(rt);
-                symbol_g arg  = render(depth, argp);
+                symbol_g fn   = obj->as_symbol(editing, rt);
+                symbol_g arg  = render(depth, argp, editing);
                 int      maxp =
                     oid == ID_neg ? algebraic::FUNCTION : algebraic::SYMBOL;
                 if (argp < maxp)
@@ -670,9 +670,9 @@ symbol_g equation::render(uint depth, int &precedence)
             case 2:
             {
                 int lprec = 0, rprec = 0;
-                symbol_g op = obj->as_symbol(rt);
-                symbol_g rtxt = render(depth, rprec);
-                symbol_g ltxt = render(depth, lprec);
+                symbol_g op = obj->as_symbol(editing, rt);
+                symbol_g rtxt = render(depth, rprec, editing);
+                symbol_g ltxt = render(depth, lprec, editing);
                 int prec = obj->precedence();
                 if (prec != algebraic::FUNCTION)
                 {
@@ -694,12 +694,12 @@ symbol_g equation::render(uint depth, int &precedence)
             break;
             default:
             {
-                symbol_g op = obj->as_symbol(rt);
+                symbol_g op = obj->as_symbol(editing, rt);
                 symbol_g args = nullptr;
                 for (int a = 0; a < arity; a++)
                 {
                     int prec = 0;
-                    symbol_g arg = render(depth, prec);
+                    symbol_g arg = render(depth, prec, editing);
                     if (a)
                         args = arg + symbol::make(';') + args;
                     else
@@ -745,7 +745,7 @@ OBJECT_RENDERER_BODY(equation)
     }
 
     int precedence = 0;
-    symbol_g result = render(depth, precedence);
+    symbol_g result = render(depth, precedence, r.editing());
     if (size_t remove = rt.depth() - depth)
     {
         record(list_errors, "Malformed equation, %u removed", remove);

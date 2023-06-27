@@ -256,10 +256,10 @@ size_t decimal_format(char *buf, size_t len, bool editing)
     const settings &display = Settings;
     auto mode       = editing ? display.NORMAL : display.display_mode;
     int  digits     = editing ? BID32_MAXDIGITS : display.displayed;
-    int  max_nonsci = editing ? BID32_MAXDIGITS : display.max_nonsci;
+    int  max_nonsci = display.standard_exp;
     bool showdec    = display.show_decimal;
     bool fancy      = !editing && display.fancy_exponent;
-    char decimal    = display.decimal_dot; // Can be '.' or ','
+    char decimal    = display.decimal_mark; // Can be '.' or ','
 
     static uint16_t fancy_digit[10] =
     {
@@ -454,7 +454,7 @@ size_t decimal_format(char *buf, size_t len, bool editing)
         // Add exponent if necessary
         if (hasexp)
         {
-            size_t sz = utf8_encode(display.exponent_char, (byte *) out);
+            size_t sz = utf8_encode(display.exponent_mark, (byte *) out);
             out += sz;
             size_t remaining = buf + MAXBIDCHAR - out;
             if (fancy)

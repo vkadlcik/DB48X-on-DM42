@@ -256,7 +256,7 @@ size_t decimal_format(char *buf, size_t len, bool editing)
     const settings &display = Settings;
     auto mode       = editing ? display.NORMAL : display.display_mode;
     int  digits     = editing ? BID128_MAXDIGITS : display.displayed;
-    int  max_nonsci = editing ? BID128_MAXDIGITS : display.standard_exp;
+    int  max_nonsci = display.standard_exp;
     bool showdec    = display.show_decimal;
     bool fancy      = !editing && display.fancy_exponent;
     char decimal    = display.decimal_mark; // Can be '.' or ','

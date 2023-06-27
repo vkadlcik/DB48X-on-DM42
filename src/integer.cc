@@ -342,9 +342,9 @@ static size_t render_num(renderer &r, integer_p num, uint base, cstring fmt)
 {
     // If we render to a file, need to first render to scratchpad to be able to
     // revert the digits in memory before writing
-    if (r.text() == nullptr)
+    if (r.file_save())
     {
-        renderer tmp;
+        renderer tmp(r.equation());
         size_t result = render_num(tmp, num, base, fmt);
         r.put(tmp.text(), result);
         return result;

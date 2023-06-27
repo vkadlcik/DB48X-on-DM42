@@ -206,7 +206,7 @@ cstring object::edit(runtime &rt) const
 }
 
 
-text_p object::as_text(bool equation, runtime &rt) const
+text_p object::as_text(bool edit, bool equation, runtime &rt) const
 // ----------------------------------------------------------------------------
 //   Render an object into a text
 // ----------------------------------------------------------------------------
@@ -215,7 +215,7 @@ text_p object::as_text(bool equation, runtime &rt) const
         return text_p(this);
 
     record(render, "Rendering %+s %p into text", name(), this);
-    renderer r(equation);
+    renderer r(equation, edit);
     size_t size = run(RENDER, rt, &r);
     record(render, "Rendered %+s as size %u [%s]", name(), size, r.text());
     if (!size)

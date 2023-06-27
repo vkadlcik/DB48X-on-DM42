@@ -135,7 +135,7 @@ struct equation : program
     OBJECT_RENDERER(equation);
 
 protected:
-    static symbol_g render(uint depth, int &precedence);
+    static symbol_g render(uint depth, int &precedence, bool edit);
     static symbol_g parentheses(symbol_g what);
     static symbol_g space(symbol_g what);
 };

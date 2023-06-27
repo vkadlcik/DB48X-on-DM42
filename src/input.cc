@@ -2520,7 +2520,8 @@ bool input::handle_functions(int key)
 
         }
         obj->execute();
-        alpha = false;
+        if (!imm)
+            alpha = false;
         return true;
     }
 

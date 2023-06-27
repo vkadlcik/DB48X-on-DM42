@@ -74,6 +74,7 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+    case ID_based_integer:
     {
         integer_p xi = integer_p(object_p(x));
         if (y->is_integer())
@@ -162,6 +163,7 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big)
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+    case ID_based_integer:
     {
         integer_p xi = integer_p(object_p(x));
         if (Settings.wordsize <= 64 && xi->native())

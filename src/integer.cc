@@ -126,6 +126,7 @@ OBJECT_PARSER_BODY(integer)
             // Prefer to accept B and D suffixes, but only if no
             // digit above was found in the base
             base     = Settings.base;
+            type     = ID_based_integer;
 
             uint max = 0;
             for (byte_p e = s; e < endp - 1; e++)
@@ -137,32 +138,37 @@ OBJECT_PARSER_BODY(integer)
             case 'b':
             case 'B':
                 if (max < 2)
+                {
                     base = 2;
+                    type = ID_bin_integer;
+                }
                 else
                     endp++;
                 break;
             case 'O':
-            case 'o': base = 8; break;
+            case 'o':
+                base = 8;
+                type = ID_oct_integer;
+                break;
             case 'd':
             case 'D':
                 if (max < 10)
+                {
                     base = 10;
+                    type = ID_dec_integer;
+                }
                 else
                     endp++;
                 break;
             case 'H':
-            case 'h': base = 16; break;
+            case 'h':
+                base = 16;
+                type = ID_hex_integer;
+                break;
             default:
                 // Use current default base
                 endp++;
                 break;
-            }
-            switch (base)
-            {
-            case 2: type = ID_bin_integer; break;
-            case 8: type = ID_oct_integer; break;
-            case 10: type = ID_dec_integer; break;
-            case 16: type = ID_hex_integer; break;
             }
             endp--;
             if (s >= endp)
@@ -227,12 +233,13 @@ OBJECT_PARSER_BODY(integer)
 
             switch (type)
             {
-            case ID_integer: type = ID_bignum; break;
-            case ID_neg_integer: type = ID_neg_bignum; break;
-            case ID_hex_integer: type = ID_hex_bignum; break;
-            case ID_dec_integer: type = ID_dec_bignum; break;
-            case ID_oct_integer: type = ID_oct_bignum; break;
-            case ID_bin_integer: type = ID_bin_bignum; break;
+            case ID_integer:       type = ID_bignum; break;
+            case ID_neg_integer:   type = ID_neg_bignum; break;
+            case ID_hex_integer:   type = ID_hex_bignum; break;
+            case ID_dec_integer:   type = ID_dec_bignum; break;
+            case ID_oct_integer:   type = ID_oct_bignum; break;
+            case ID_bin_integer:   type = ID_bin_bignum; break;
+            case ID_based_integer: type = ID_based_bignum; break;
             default: break;
             }
 
@@ -435,6 +442,16 @@ OBJECT_RENDERER_BODY(bin_integer)
 // ----------------------------------------------------------------------------
 {
     return render_num(r, this, 2, "#b");
+}
+
+
+template <>
+OBJECT_RENDERER_BODY(based_integer)
+// ----------------------------------------------------------------------------
+//   Render the based integer value into the given string buffer
+// ----------------------------------------------------------------------------
+{
+    return render_num(r, this, Settings.base, "#");
 }
 
 

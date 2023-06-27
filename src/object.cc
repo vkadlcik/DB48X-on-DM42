@@ -332,6 +332,7 @@ int object::as_truth() const
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+    case ID_based_integer:
         return *payload() != 0;
     case ID_bignum:
     case ID_neg_bignum:

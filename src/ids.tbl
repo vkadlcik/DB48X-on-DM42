@@ -72,13 +72,15 @@ ID(hex_integer)
 ID(dec_integer)
 ID(oct_integer)
 ID(bin_integer)
+ID(based_integer)
 
 #define FIRST_BIGNUM_TYPE       ID_hex_bignum
 ID(hex_bignum)
 ID(dec_bignum)
 ID(oct_bignum)
 ID(bin_bignum)
-#define LAST_BASED_TYPE         ID_dec_bignum
+ID(based_bignum)
+#define LAST_BASED_TYPE         ID_based_bignum
 
 #define FIRST_REAL_TYPE         ID_bignum
 #define FIRST_SYMBOLIC_TYPE     ID_bignum

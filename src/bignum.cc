@@ -268,6 +268,15 @@ OBJECT_RENDERER_BODY(bin_bignum)
 }
 
 
+template<>
+OBJECT_RENDERER_BODY(based_bignum)
+// ----------------------------------------------------------------------------
+//   Render the hexadecimal bignum value into the given string buffer
+// ----------------------------------------------------------------------------
+{
+    return render_num(r, this, Settings.base, "#");
+}
+
 
 // ============================================================================
 //

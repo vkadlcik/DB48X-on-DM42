@@ -223,6 +223,7 @@ using hex_bignum = special_bignum<object::ID_hex_bignum>;
 using oct_bignum = special_bignum<object::ID_oct_bignum>;
 using bin_bignum = special_bignum<object::ID_bin_bignum>;
 using dec_bignum = special_bignum<object::ID_dec_bignum>;
+using based_bignum = special_bignum<object::ID_based_bignum>;
 
 template <typename Int>
 bignum *bignum::make(Int value)

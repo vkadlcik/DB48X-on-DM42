@@ -47,6 +47,7 @@ object::result comparison::condition(bool &value, object_p cond)
         case ID_oct_integer:
         case ID_bin_integer:
         case ID_dec_integer:
+        case ID_based_integer:
         case ID_integer:
         case ID_neg_integer:
             value = integer_p(cond)->value<ularge>() != 0;

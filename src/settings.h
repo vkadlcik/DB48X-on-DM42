@@ -52,7 +52,8 @@ struct settings
           base(16),
           wordsize(128),
           command_fmt(LONG_FORM),
-          show_decimal(true)
+          show_decimal(true),
+          fancy_exponent(true)
     {}
 
     enum angles
@@ -111,17 +112,18 @@ struct settings
     }
 
 public:
-    uint16_t precision;    // Internal precision for numbers
-    uint16_t displayed;    // Number of displayed digits
-    uint16_t max_nonsci;   // Number of zeroes to display before expoonent shows
-    display  display_mode; // Display mode
-    char     decimal_dot;  // Character used for decimal separator
-    unicode  exponent_char;// The character used to represent exponents
-    angles   angle_mode;   // Whether we compute in degrees, radians or grads
-    uint8_t  base;         // The default base for #numbers
-    uint16_t wordsize;     // Wordsize for binary numbers (in bits)
-    commands command_fmt;  // How we prefer to display commands
-    bool     show_decimal; // Show decimal dot for integral real numbers
+    uint16_t precision;         // Internal precision for numbers
+    uint16_t displayed;         // Number of displayed digits
+    uint16_t max_nonsci;        // Maximum exponent before switching to sci
+    display  display_mode;      // Display mode
+    char     decimal_dot;       // Character used for decimal separator
+    unicode  exponent_char;     // The character used to represent exponents
+    angles   angle_mode;        // Angle mode ( degrees, radians or grads)
+    uint8_t  base;              // The default base for #numbers
+    uint16_t wordsize;          // Wordsize for binary numbers (in bits)
+    commands command_fmt;       // How we prefer to display commands
+    bool     show_decimal   :1; // Show decimal dot for integral real numbers
+    bool     fancy_exponent :1; // Show exponent with fancy superscripts
 };
 
 

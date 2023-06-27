@@ -223,14 +223,13 @@ OBJECT_PARSER_BODY(decimal64)
 // Max number of characters written by BID64
 // 1 sign
 // 34 digits
-// 1 exponent delimiater
+// 1 exponent delimiter
 // 1 exponent sign
 // 4 exponent
 // 1 decimal separator
 // Total 42
-// However, even if 42 is the correct answer, this project is about the 48.
-// Also, the exponent can be UTF8 in the output, so that could be 3 more.
-#define MAXBIDCHAR 48
+// The exponent can be UTF8 in the output, so that could be 6 more.
+#define MAXBIDCHAR 52
 
 // Trick to only put the decimal_format function inside decimal64.cc
 #if 64 == 64 + 64                      // Check if we are in decimal64.cc
@@ -259,7 +258,14 @@ size_t decimal_format(char *buf, size_t len, bool editing)
     int  digits     = editing ? BID64_MAXDIGITS : display.displayed;
     int  max_nonsci = editing ? BID64_MAXDIGITS : display.max_nonsci;
     bool showdec    = display.show_decimal;
+    bool fancy      = !editing && display.fancy_exponent;
     char decimal    = display.decimal_dot; // Can be '.' or ','
+
+    static uint16_t fancy_digit[10] =
+    {
+        L'⁰', L'¹', L'²', L'³', L'⁴',
+        L'⁵', L'⁶', L'⁷', L'⁸', L'⁹'
+    };
 
     bool overflow = false;
     do
@@ -451,8 +457,22 @@ size_t decimal_format(char *buf, size_t len, bool editing)
             size_t sz = utf8_encode(display.exponent_char, (byte *) out);
             out += sz;
             size_t remaining = buf + MAXBIDCHAR - out;
-            size_t written = snprintf(out, remaining, "%d", dispexp);
-            out += written;
+            if (fancy)
+            {
+                char expbuf[8];
+                size_t written = snprintf(expbuf, 8, "%d", dispexp);
+                for (uint e = 0; e < written; e++)
+                {
+                    char c = expbuf[e];
+                    unicode u = c == '-' ? L'⁻' : fancy_digit[c - '0'];
+                    out += utf8_encode(u, (byte *) out);
+                }
+            }
+            else
+            {
+                size_t written = snprintf(out, remaining, "%d", dispexp);
+                out += written;
+            }
         }
         *out = 0;
         return out - buf;

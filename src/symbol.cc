@@ -81,39 +81,6 @@ OBJECT_HANDLER_BODY(symbol)
 }
 
 
-static inline bool is_valid_as_name_initial(unicode cp)
-// ----------------------------------------------------------------------------
-//   Check if character is valid as initial of a name
-// ----------------------------------------------------------------------------
-{
-    return (cp >= 'A' && cp <= 'Z')
-        || (cp >= 'a' && cp <= 'z')
-        || (cp >= 0x100 &&
-            (cp != L'÷' &&      // Exclude symbols you can't have in a name
-             cp != L'×' &&
-             cp != L'∂'));
-}
-
-
-static inline bool is_valid_in_name(unicode cp)
-// ----------------------------------------------------------------------------
-//   Check if character is valid in a name
-// ----------------------------------------------------------------------------
-{
-    return is_valid_as_name_initial(cp)
-        || (cp >= '0' && cp <= '9');
-}
-
-
-static inline bool is_valid_in_name(utf8 s)
-// ----------------------------------------------------------------------------
-//   Check if first character in a string is valid in a name
-// ----------------------------------------------------------------------------
-{
-    return is_valid_in_name(utf8_codepoint(s));
-}
-
-
 OBJECT_PARSER_BODY(symbol)
 // ----------------------------------------------------------------------------
 //    Try to parse this as a symbol

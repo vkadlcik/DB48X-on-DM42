@@ -119,7 +119,9 @@ OBJECT_PARSER_BODY(command)
             len = strlen(cmd);
             if (len <= maxlen
                 && strncasecmp(ref, cmd, len) == 0
-                && (len >= maxlen || eq || is_separator(utf8(ref + len))))
+                && (len >= maxlen
+                    || (eq && !is_valid_as_name_initial(utf8(cmd)))
+                    || is_separator(utf8(ref + len))))
                 found = id(i);
         }
     }

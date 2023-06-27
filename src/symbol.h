@@ -42,6 +42,8 @@
 
 #include "object.h"
 #include "text.h"
+#include "utf8.h"
+
 
 struct symbol : text
 // ----------------------------------------------------------------------------
@@ -71,5 +73,47 @@ typedef const symbol *symbol_p;
 typedef gcp<const symbol> symbol_g;
 
 symbol_g operator+(symbol_g x, symbol_g y);
+
+
+inline bool is_valid_as_name_initial(unicode cp)
+// ----------------------------------------------------------------------------
+//   Check if character is valid as initial of a name
+// ----------------------------------------------------------------------------
+{
+    return (cp >= 'A' && cp <= 'Z')
+        || (cp >= 'a' && cp <= 'z')
+        || (cp >= 0x100 &&
+            (cp != L'÷' &&      // Exclude symbols you can't have in a name
+             cp != L'×' &&
+             cp != L'∂'));
+}
+
+
+inline bool is_valid_as_name_initial(utf8 s)
+// ----------------------------------------------------------------------------
+//   Check if first character in a string is valid in a name
+// ----------------------------------------------------------------------------
+{
+    return is_valid_as_name_initial(utf8_codepoint(s));
+}
+
+
+inline bool is_valid_in_name(unicode cp)
+// ----------------------------------------------------------------------------
+//   Check if character is valid in a name
+// ----------------------------------------------------------------------------
+{
+    return is_valid_as_name_initial(cp)
+        || (cp >= '0' && cp <= '9');
+}
+
+
+inline bool is_valid_in_name(utf8 s)
+// ----------------------------------------------------------------------------
+//   Check if first character in a string is valid in a name
+// ----------------------------------------------------------------------------
+{
+    return is_valid_in_name(utf8_codepoint(s));
+}
 
 #endif // SYMBOL_H

@@ -43,7 +43,7 @@ settings Settings;
 //
 // ============================================================================
 
-static const unicode MARK = L'■';
+static const unicode MARK = L'●'; // L'■';
 
 static inline bool IsStd()
 // ----------------------------------------------------------------------------

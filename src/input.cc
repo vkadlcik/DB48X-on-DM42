@@ -701,7 +701,7 @@ int input::draw_menus(uint time, uint &period, bool force)
                         bool alignLeft = menu_marker_align[plane][m];
                         marker = mark;
                         mkw = font->width(marker);
-                        mkx = alignLeft ? x - mw/2 : x + mw/2 - mkw;
+                        mkx = alignLeft ? x - mw/2 + 2 : x + mw/2 - mkw - 2;
                     }
                 }
 
@@ -1463,8 +1463,8 @@ bool input::draw_help()
                 if (last == '\n' && helpfile.peek() == ' ')
                 {
                     restyle = NORMAL;
-                    ch      = L'■'; // L'•';
-                    xleft   = r.x1 + 2 + font->width(utf8("■ "));
+                    ch      = L'●'; // L'■'; // L'•';
+                    xleft   = r.x1 + 2 + font->width(utf8("● "));
                     break;
                 }
                 // Fall-through

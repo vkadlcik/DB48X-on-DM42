@@ -2216,13 +2216,13 @@ bool input::handle_digits(int key)
             {
                 p = utf8_previous(p);
                 c = utf8_codepoint(p);
-                if ((c < '0' || c > '9') && c != (unicode) Settings.decimal_dot)
+                if ((c < '0' || c > '9') && c != (unicode) Settings.decimal_mark)
                     break;
             }
 
             if (p > ed)
                 p  = utf8_next(p);
-            if (c == 'e' || c == 'E' || c == Settings.exponent_char)
+            if (c == 'e' || c == 'E' || c == Settings.exponent_mark)
                 c  = utf8_codepoint(p);
 
             if (c             == '-' || c == '+')
@@ -2235,7 +2235,7 @@ bool input::handle_digits(int key)
         else if (key == KEY_E)
         {
             byte   buf[4];
-            size_t sz  = utf8_encode(Settings.exponent_char, buf);
+            size_t sz  = utf8_encode(Settings.exponent_mark, buf);
             cursor    += RT.insert(cursor, buf, sz);
             last       = 0;
             return true;
@@ -2247,7 +2247,7 @@ bool input::handle_digits(int key)
         if (c == '_')
             return false;
         if (c == '.')
-            c = Settings.decimal_dot;
+            c = Settings.decimal_mark;
         edit(c, DIRECT);
         repeat = true;
         return true;

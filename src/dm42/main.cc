@@ -300,7 +300,8 @@ extern "C" void program_main()
             handle_key(key, repeating);
 
             // Redraw the LCD
-            redraw_lcd();
+            if (key_empty())
+                redraw_lcd();
 
             // If user is typing, we can GC to keep other things fast
             // ... very bad idea: slows everything down a lot

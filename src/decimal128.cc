@@ -163,7 +163,7 @@ OBJECT_PARSER_BODY(decimal128)
 
     // Check exponent
     utf8 exponent = nullptr;
-    if (*s == 'e' || *s == 'E' || utf8_codepoint(s) == Settings.exponent_char)
+    if (*s == 'e' || *s == 'E' || utf8_codepoint(s) == Settings.exponent_mark)
     {
         s = utf8_next(s);
         exponent = s;
@@ -197,11 +197,11 @@ OBJECT_PARSER_BODY(decimal128)
     char *b = buf;
     for (utf8 u = source; u < s && b < buf+sizeof(buf) - 1; u++)
     {
-        if (*u == Settings.decimal_dot)
+        if (*u == Settings.decimal_mark)
         {
             *b++ = '.';
         }
-        else if (utf8_codepoint(u) == Settings.exponent_char)
+        else if (utf8_codepoint(u) == Settings.exponent_mark)
         {
             *b++ = 'E';
             u = utf8_next(u) - 1;
@@ -256,10 +256,10 @@ size_t decimal_format(char *buf, size_t len, bool editing)
     const settings &display = Settings;
     auto mode       = editing ? display.NORMAL : display.display_mode;
     int  digits     = editing ? BID128_MAXDIGITS : display.displayed;
-    int  max_nonsci = editing ? BID128_MAXDIGITS : display.max_nonsci;
+    int  max_nonsci = editing ? BID128_MAXDIGITS : display.standard_exp;
     bool showdec    = display.show_decimal;
     bool fancy      = !editing && display.fancy_exponent;
-    char decimal    = display.decimal_dot; // Can be '.' or ','
+    char decimal    = display.decimal_mark; // Can be '.' or ','
 
     static uint16_t fancy_digit[10] =
     {
@@ -454,7 +454,7 @@ size_t decimal_format(char *buf, size_t len, bool editing)
         // Add exponent if necessary
         if (hasexp)
         {
-            size_t sz = utf8_encode(display.exponent_char, (byte *) out);
+            size_t sz = utf8_encode(display.exponent_mark, (byte *) out);
             out += sz;
             size_t remaining = buf + MAXBIDCHAR - out;
             if (fancy)

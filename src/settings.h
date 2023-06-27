@@ -47,9 +47,9 @@ struct settings
         : precision(BID128_MAXDIGITS),
           display_mode(NORMAL),
           displayed(STD_DISPLAYED),
-          decimal_dot('.'),
-          exponent_char(L'⁳'),
-          max_nonsci(9),
+          decimal_mark('.'),
+          exponent_mark(L'⁳'),
+          standard_exp(9),
           angle_mode(DEGREES),
           base(16),
           wordsize(64),
@@ -96,9 +96,9 @@ public:
     uint16_t precision;         // Internal precision for numbers
     display  display_mode;      // Display mode
     uint16_t displayed;         // Number of displayed digits
-    char     decimal_dot;       // Character used for decimal separator
-    unicode  exponent_char;     // The character used to represent exponents
-    uint16_t max_nonsci;        // Maximum exponent before switching to sci
+    char     decimal_mark;      // Character used for decimal separator
+    unicode  exponent_mark;     // The character used to represent exponents
+    uint16_t standard_exp;      // Maximum exponent before switching to sci
     angles   angle_mode;        // Angle mode ( degrees, radians or grads)
     uint8_t  base;              // The default base for #numbers
     uint16_t wordsize;          // Wordsize for binary numbers (in bits)

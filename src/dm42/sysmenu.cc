@@ -332,11 +332,11 @@ static int state_save_callback(cstring fpath,
     // Always render things to disk using optimal precision and decimal dot
     renderer render(&prog);
     uint disp = Settings. displayed;
-    char ds = Settings.decimal_dot;
+    char ds = Settings.decimal_mark;
     settings::display dm = Settings.display_mode;
     Settings.display_mode = settings::NORMAL;
     Settings.displayed = 34;
-    Settings.decimal_dot = '.';
+    Settings.decimal_mark = '.';
 
     // Save global variables
     runtime &rt = runtime::RT;
@@ -359,7 +359,7 @@ static int state_save_callback(cstring fpath,
     // Restore the display mode we had
     Settings.display_mode = dm;
     Settings.displayed = disp;
-    Settings.decimal_dot = ds;
+    Settings.decimal_mark = ds;
 
     return 0;
 }
@@ -488,10 +488,10 @@ static int state_load_callback(cstring path, cstring name, void *merge)
         gcutf8 editor = rt.close_editor();
         if (editor)
         {
-            char ds = Settings.decimal_dot;
-            Settings.decimal_dot = '.';
+            char ds = Settings.decimal_mark;
+            Settings.decimal_mark = '.';
             gcp<const program> cmds = program::parse(editor, edlen);
-            Settings.decimal_dot = ds;
+            Settings.decimal_mark = ds;
             if (cmds)
             {
                 // We successfully parsed the line

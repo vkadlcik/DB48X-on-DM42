@@ -163,7 +163,7 @@ OBJECT_PARSER_BODY(decimal32)
 
     // Check exponent
     utf8 exponent = nullptr;
-    if (*s == 'e' || *s == 'E' || utf8_codepoint(s) == Settings.exponent_char)
+    if (*s == 'e' || *s == 'E' || utf8_codepoint(s) == Settings.exponent_mark)
     {
         s = utf8_next(s);
         exponent = s;
@@ -197,11 +197,11 @@ OBJECT_PARSER_BODY(decimal32)
     char *b = buf;
     for (utf8 u = source; u < s && b < buf+sizeof(buf) - 1; u++)
     {
-        if (*u == Settings.decimal_dot)
+        if (*u == Settings.decimal_mark)
         {
             *b++ = '.';
         }
-        else if (utf8_codepoint(u) == Settings.exponent_char)
+        else if (utf8_codepoint(u) == Settings.exponent_mark)
         {
             *b++ = 'E';
             u = utf8_next(u) - 1;

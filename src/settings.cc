@@ -80,20 +80,20 @@ void settings::save(renderer &out, bool show_defaults)
     }
 
     // Save Decimal separator
-    if (decimal_dot == ',')
+    if (decimal_mark == ',')
         out.put("DecimalComma\n");
     else if (show_defaults)
         out.put("DecimalDot\n");
 
     // Save preferred exponent display mode
-    if (exponent_char != L'⁳' || !fancy_exponent)
+    if (exponent_mark != L'⁳' || !fancy_exponent)
         out.put("ClassicExponent\n");
     else if (show_defaults)
         out.put("FancyExponent\n");
 
     // Save preferred expenent for switching to scientfiic mode
-    if (max_nonsci != 9 || show_defaults)
-        out.printf("%u StandardExponent\n", max_nonsci);
+    if (standard_exp != 9 || show_defaults)
+        out.printf("%u StandardExponent\n", standard_exp);
 
     // Save current angle mode
     switch(angle_mode)
@@ -380,22 +380,22 @@ SETTINGS_COMMAND_NOLABEL(LongForm,
 }
 
 
-SETTINGS_COMMAND_NOLABEL(DecimalDot, Settings.decimal_dot == '.' ? MARK : 0)
+SETTINGS_COMMAND_NOLABEL(DecimalDot, Settings.decimal_mark == '.' ? MARK : 0)
 // ----------------------------------------------------------------------------
 //  Switch to decimal dot
 // ----------------------------------------------------------------------------
 {
-    Settings.decimal_dot = '.';
+    Settings.decimal_mark = '.';
     return OK;
 }
 
 
-SETTINGS_COMMAND_NOLABEL(DecimalComma, Settings.decimal_dot == ',' ? MARK : 0)
+SETTINGS_COMMAND_NOLABEL(DecimalComma, Settings.decimal_mark == ',' ? MARK : 0)
 // ----------------------------------------------------------------------------
 //  Switch to decimal comma
 // ----------------------------------------------------------------------------
 {
-    Settings.decimal_dot = ',';
+    Settings.decimal_mark = ',';
     return OK;
 }
 
@@ -465,7 +465,7 @@ SETTINGS_COMMAND_BODY(StandardExponent, 0)
         if (integer_p digits = size->as<integer>())
         {
             uint disp = digits->value<uint>();
-            Settings.max_nonsci = std::min(disp, (uint) BID128_MAXDIGITS);
+            Settings.standard_exp = std::min(disp, (uint) BID128_MAXDIGITS);
             runtime::RT.pop();
             return object::OK;
         }
@@ -485,7 +485,7 @@ SETTINGS_COMMAND_LABEL(StandardExponent)
 {
     // We can share the buffer here since only one mode is active
     static char buffer[12];
-    snprintf(buffer, sizeof(buffer), "Exp %u", Settings.max_nonsci);
+    snprintf(buffer, sizeof(buffer), "Exp %u", Settings.standard_exp);
     return buffer;
 }
 
@@ -496,7 +496,7 @@ SETTINGS_COMMAND_NOLABEL(FancyExponent, Settings.fancy_exponent ? MARK : 0)
 // ----------------------------------------------------------------------------
 {
     Settings.fancy_exponent = true;
-    Settings.exponent_char = L'⁳';
+    Settings.exponent_mark = L'⁳';
     return OK;
 }
 
@@ -507,7 +507,7 @@ SETTINGS_COMMAND_NOLABEL(ClassicExponent, !Settings.fancy_exponent ? MARK : 0)
 // ----------------------------------------------------------------------------
 {
     Settings.fancy_exponent = false;
-    Settings.exponent_char = 'E';
+    Settings.exponent_mark = 'E';
     return OK;
 }
 

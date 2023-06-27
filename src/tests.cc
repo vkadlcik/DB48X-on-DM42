@@ -66,14 +66,14 @@ void tests::run(bool onlyCurrent)
                 Settings.precision,
                 Settings.displayed,
                 Settings.display_mode,
-                Settings.decimal_dot,
-                Settings.exponent_char,
+                Settings.decimal_mark,
+                Settings.exponent_mark,
                 Settings.angle_mode,
                 Settings.base,
                 Settings.command_fmt);
 
     Settings = settings();       // Reset to default settings
-    Settings.exponent_char = 'E'; // Standard E is easier for us to match
+    Settings.exponent_mark = 'E'; // Standard E is easier for us to match
 
     if (verbose)
         fprintf(stderr,
@@ -89,8 +89,8 @@ void tests::run(bool onlyCurrent)
                 Settings.precision,
                 Settings.displayed,
                 Settings.display_mode,
-                Settings.decimal_dot,
-                Settings.exponent_char,
+                Settings.decimal_mark,
+                Settings.exponent_mark,
                 Settings.angle_mode,
                 Settings.base,
                 Settings.command_fmt);

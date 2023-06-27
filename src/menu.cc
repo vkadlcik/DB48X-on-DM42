@@ -959,7 +959,16 @@ MENU(ModesMenu,
      "CMD",     ID_UpperCase,
      "Cmd",     ID_Capitalized,
      "Command", ID_LongForm,
-     Precision::menu_label, ID_Precision);
+     Precision::menu_label, ID_Precision,
+
+     NonSciRange::menu_label, ID_NonSciRange,
+     ID_NonSciRangeMode,
+     ID_DisplayMode,
+     ID_CycleDisplayMode,
+     ID_AngleMode,
+     ID_CycleAngleMode,
+     ID_CommandCaseMode,
+     ID_DecimalDisplayMode);
 
 
 MENU(IOMenu,

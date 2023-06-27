@@ -48,6 +48,14 @@ Returns a program that will restore the current display mode.
 Cycle among the possible display modes, without changing the number of
 digits used for rounding.
 
+## NonSciRange
+
+Select the maximum exponent before switching to scientific notation. The default value is 9.
+
+## NonSciRangeMode
+
+Returns a program that will restore the current value for non-sci range.
+
 
 # Angle settings
 

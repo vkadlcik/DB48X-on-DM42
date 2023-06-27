@@ -452,3 +452,48 @@ COMMAND_BODY(PrecisionMode)
 {
     return settings_command("«%u Precision»", Settings.precision);
 }
+
+
+SETTINGS_COMMAND_BODY(NonSciRange, 0)
+// ----------------------------------------------------------------------------
+//   Setting the maximum exponent before switching to scientific mode
+// ----------------------------------------------------------------------------
+{
+    if (object_p size = runtime::RT.top())
+    {
+        if (integer_p digits = size->as<integer>())
+        {
+            uint disp = digits->value<uint>();
+            Settings.max_nonsci = std::min(disp, (uint) BID128_MAXDIGITS);
+            runtime::RT.pop();
+            Input.menuNeedsRefresh();
+            return object::OK;
+        }
+        else
+        {
+            runtime::RT.type_error();
+        }
+    }
+    return object::ERROR;
+}
+
+
+SETTINGS_COMMAND_LABEL(NonSciRange)
+// ----------------------------------------------------------------------------
+//   Return the label for the current precision
+// ----------------------------------------------------------------------------
+{
+    // We can share the buffer here since only one mode is active
+    static char buffer[12];
+    snprintf(buffer, sizeof(buffer), "Exp %u", Settings.max_nonsci);
+    return buffer;
+}
+
+
+COMMAND_BODY(NonSciRangeMode)
+// ----------------------------------------------------------------------------
+//   Return current non-sci range mode
+// ----------------------------------------------------------------------------
+{
+    return settings_command("«%u NonSciRange»", Settings.precision);
+}

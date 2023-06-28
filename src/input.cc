@@ -2192,7 +2192,7 @@ bool input::handle_digits(int key)
 //    Handle alphabetic input
 // ----------------------------------------------------------------------------
 {
-    if (alpha || !key)
+    if (alpha || shift || xshift || !key)
         return false;
 
     static const char numbers[] =
@@ -2241,7 +2241,7 @@ bool input::handle_digits(int key)
             return true;
         }
     }
-    if (!shift && !xshift && (key > KEY_CHS && key < KEY_F1))
+    if (key > KEY_CHS && key < KEY_F1)
     {
         char c  = numbers[key-1];
         if (c == '_')

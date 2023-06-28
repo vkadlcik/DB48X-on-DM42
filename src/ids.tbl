@@ -276,6 +276,11 @@ NAMED(Hex, "Hexadeimcal")
 NAMED(stws, "StoreWordSize")
 NAMED(rcws, "WordSize")
 
+CMD(ResultFontSize)
+CMD(StackFontSize)
+CMD(EditorFontSize)
+CMD(EditorMultilineFontSize)
+
 CMD(Modes)
 
 
@@ -329,6 +334,7 @@ MENU(FlagsMenu)
 MENU(LastThingsMenu)
 MENU(CharsMenu)
 MENU(ModesMenu)
+MENU(FontsMenu)
 MENU(IOMenu)
 MENU(TimeMenu)
 MENU(PlotMenu)

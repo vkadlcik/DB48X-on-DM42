@@ -862,7 +862,6 @@ void input::draw_editor()
     utf8   ed   = RT.editor();
     size_t len  = RT.editing();
     utf8   last = ed + len;
-    font_p font = EditorFont;
 
     if (!len)
     {
@@ -870,6 +869,9 @@ void input::draw_editor()
         stack = LCD_H - menuHeight;
         return;
     }
+
+    // Select font
+    font_p font = Settings.editor_font();
 
     // Count rows and colums
     int  rows   = 1;            // Number of rows in editor
@@ -888,7 +890,7 @@ void input::draw_editor()
         if (*p == '\n')
             rows++;
     if (rows > 2)
-        font = StackFont;
+        font = Settings.editor_ml_font();
 
     rows = 1;
     for (utf8 p = ed; p < last; p = utf8_next(p))
@@ -1065,7 +1067,7 @@ int input::draw_cursor(uint time, uint &period, bool force)
 
     // Select editor font
     utf8   ed     = RT.editor();
-    font_p edFont = EditorFont;
+    font_p edFont = Settings.editor_font();
     size_t len    = RT.editing();
     utf8   last   = ed + len;
     uint   rows   = 1;

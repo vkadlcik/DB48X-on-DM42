@@ -55,7 +55,11 @@ struct settings
           wordsize(64),
           command_fmt(LONG_FORM),
           show_decimal(true),
-          fancy_exponent(true)
+          fancy_exponent(true),
+          result_sz(STACK),
+          stack_sz(STACK),
+          editor_sz(EDITOR),
+          editor_ml_sz(STACK)
     {}
 
     enum angles
@@ -89,7 +93,26 @@ struct settings
     };
 
 
+    enum font_id
+    // ------------------------------------------------------------------------
+    //  Selection of font size for the stack
+    // ------------------------------------------------------------------------
+    {
+        EDITOR, STACK, HELP,
+        LIB28, LIB25, LIB22, LIB20, LIB18, LIB17,
+        SKR24, SKR18,
+        FREE42,
+        NUM_FONTS
+    };
+
+    font_p font(font_id sz);
+    font_p result_font()        { return font(result_sz); }
+    font_p stack_font()         { return font(stack_sz); }
+    font_p editor_font()        { return font(editor_sz); }
+    font_p editor_ml_font()     { return font(editor_ml_sz); }
+
     void save(renderer &out, bool show_defaults = false);
+
 
 
 public:
@@ -105,6 +128,10 @@ public:
     commands command_fmt;       // How we prefer to display commands
     bool     show_decimal   :1; // Show decimal dot for integral real numbers
     bool     fancy_exponent :1; // Show exponent with fancy superscripts
+    font_id  result_sz;         // Size for stack top
+    font_id  stack_sz;          // Size for other stack levels
+    font_id  editor_sz;         // Size for normal editor
+    font_id  editor_ml_sz;      // Size for editor in multi-line mode
 };
 
 
@@ -187,5 +214,10 @@ SETTINGS_COMMAND_DECLARE(Hex);
 
 SETTINGS_COMMAND_DECLARE(stws);
 COMMAND_DECLARE(rcws);
+
+SETTINGS_COMMAND_DECLARE(ResultFontSize);
+SETTINGS_COMMAND_DECLARE(StackFontSize);
+SETTINGS_COMMAND_DECLARE(EditorFontSize);
+SETTINGS_COMMAND_DECLARE(EditorMultilineFontSize);
 
 #endif // SETTINGS_H

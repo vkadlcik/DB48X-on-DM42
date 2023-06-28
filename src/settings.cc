@@ -30,6 +30,7 @@
 #include "settings.h"
 
 #include "command.h"
+#include "font.h"
 #include "input.h"
 #include "integer.h"
 #include "menu.h"
@@ -127,6 +128,16 @@ void settings::save(renderer &out, bool show_defaults)
         out.put("NoTrailingDecimal\n");
     else if (show_defaults)
         out.put("TrailingDecimal\n");
+
+    // Font size
+    if (result_sz != STACK || show_defaults)
+        out.printf("%u ResultFontSize\n", result_sz);
+    if (stack_sz != STACK || show_defaults)
+        out.printf("%u StackFontSize\n", result_sz);
+    if (editor_sz != EDITOR || show_defaults)
+        out.printf("%u EditorFontSize\n", result_sz);
+    if (editor_ml_sz != STACK || show_defaults)
+        out.printf("%u EditorMultilineFontSize\n", result_sz);
 }
 
 
@@ -148,6 +159,32 @@ COMMAND_BODY(Modes)
     return ERROR;
 }
 
+
+font_p settings::font(font_id size)
+// ----------------------------------------------------------------------------
+//   Return a font based on a font size
+// ----------------------------------------------------------------------------
+{
+    switch (size)
+    {
+    case EDITOR:        return EditorFont;
+    default:
+    case STACK:         return StackFont;
+    case HELP:          return HelpFont;
+
+    case LIB17:         return LibMonoFont10x17;
+    case LIB18:         return LibMonoFont11x18;
+    case LIB20:         return LibMonoFont12x20;
+    case LIB22:         return LibMonoFont14x22;
+    case LIB25:         return LibMonoFont17x25;
+    case LIB28:         return LibMonoFont17x28;
+
+    case SKR18:         return SkrMono13x18;
+    case SKR24:         return SkrMono18x24;
+
+    case FREE42:        return Free42Font;
+    }
+}
 
 
 // ============================================================================
@@ -635,3 +672,43 @@ COMMAND_BODY(rcws)
             return OK;
     return ERROR;
 }
+
+
+#define FONT_SIZE_SETTING(id, field, label)             \
+SETTINGS_COMMAND_BODY(id, 0)                            \
+{                                                       \
+    if (object_p size = runtime::RT.top())              \
+    {                                                   \
+        if (integer_p value = size->as<integer>())      \
+        {                                               \
+            uint fs = value->value<uint>();             \
+            if (fs < (uint) settings::NUM_FONTS)        \
+            {                                           \
+                runtime::RT.pop();                      \
+                Settings.field = settings::font_id(fs); \
+                return OK;                              \
+            }                                           \
+            runtime::RT.domain_error();                 \
+        }                                               \
+        else                                            \
+        {                                               \
+            runtime::RT.type_error();                   \
+        }                                               \
+    }                                                   \
+    return object::ERROR;                               \
+}                                                       \
+                                                        \
+                                                        \
+static char id##_buffer[16];                            \
+SETTINGS_COMMAND_LABEL(id)                              \
+{                                                       \
+    snprintf(id##_buffer, sizeof(id##_buffer),          \
+             label " %u", Settings.field);              \
+    return id##_buffer;                                 \
+}
+
+
+FONT_SIZE_SETTING(ResultFontSize, result_sz, "Result")
+FONT_SIZE_SETTING(StackFontSize, stack_sz, "Stack")
+FONT_SIZE_SETTING(EditorFontSize, editor_sz, "Edit")
+FONT_SIZE_SETTING(EditorMultilineFontSize, editor_ml_sz, "BigEdit")

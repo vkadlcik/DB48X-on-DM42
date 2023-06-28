@@ -34,6 +34,7 @@
 #include "renderer.h"
 #include "runtime.h"
 #include "target.h"
+#include "settings.h"
 
 #include <dmcp.h>
 
@@ -71,13 +72,17 @@ void stack::draw_stack()
 //   Draw the stack on screen
 // ----------------------------------------------------------------------------
 {
-    size  lineHeight = StackFont->height();
-    coord top        = HeaderFont->height() + 2;
-    coord bottom     = Input.stack_screen_bottom() - 1;
-    uint  depth      = RT.depth();
-    uint  digits     = countDigits(depth);
-    coord hdrx       = StackFont->width('0') * digits + 2;
-    size  avail      = LCD_W - hdrx - 5;
+    font_p font       = Settings.result_font();
+    font_p hdrfont    = HeaderFont;
+    font_p idxfont    = HelpFont;
+    size   lineHeight = font->height();
+    size   idxHeight  = idxfont->height();
+    coord  top        = hdrfont->height() + 2;
+    coord  bottom     = Input.stack_screen_bottom() - 1;
+    uint   depth      = RT.depth();
+    uint   digits     = countDigits(depth);
+    coord  hdrx       = idxfont->width('0') * digits + 2;
+    size   avail      = LCD_W - hdrx - 5;
 
     Screen.fill(0, top, LCD_W, bottom - 1, pattern::white);
     if (!depth)
@@ -93,9 +98,10 @@ void stack::draw_stack()
         Screen.fill(0, bottom, LCD_W, bottom, pattern::gray50);
 
     char buf[80];
+    coord y = bottom;
     for (uint level = 0; level < depth; level++)
     {
-        coord y = bottom - (level + 1) * lineHeight;
+        y -= lineHeight;
         if (y + lineHeight  <= top)
             break;
 
@@ -103,9 +109,10 @@ void stack::draw_stack()
         coord yb   = y + lineHeight-1;
         Screen.clip(0, ytop, LCD_W, yb);
 
+        size idxOffset = (lineHeight - idxHeight) / 2;
         snprintf(buf, sizeof(buf), "%d", level + 1);
-        size w = StackFont->width(utf8(buf));
-        Screen.text(hdrx - w, y, utf8(buf), StackFont);
+        size w = idxfont->width(utf8(buf));
+        Screen.text(hdrx - w, y + idxOffset, utf8(buf), idxfont);
 
         gcobj  obj  = RT.stack(level);
         renderer r(buf, sizeof(buf) - 1, true);
@@ -122,25 +129,28 @@ void stack::draw_stack()
         }
 #endif
 
-        w = StackFont->width(utf8(buf));
+        w = font->width(utf8(buf));
         if (w > avail)
         {
             unicode sep   = L'…';
             coord   x     = hdrx + 5;
             coord   split = 200;
-            coord   skip  = StackFont->width(sep);
+            coord   skip  = font->width(sep);
 
             Screen.clip(x, ytop, split, yb);
-            Screen.text(x, y, utf8(buf), StackFont);
+            Screen.text(x, y, utf8(buf), font);
             Screen.clip(split, ytop, split + skip, yb);
-            Screen.glyph(split, y, sep, StackFont, pattern::gray50);
+            Screen.glyph(split, y, sep, font, pattern::gray50);
             Screen.clip(split+skip, y, LCD_W, yb);
-            Screen.text(LCD_W - w, y, utf8(buf), StackFont);
+            Screen.text(LCD_W - w, y, utf8(buf), font);
         }
         else
         {
-            Screen.text(LCD_W - w, y, utf8(buf), StackFont);
+            Screen.text(LCD_W - w, y, utf8(buf), font);
         }
+
+        font = Settings.stack_font();
+        lineHeight = font->height();
     }
     Screen.clip(clip);
 

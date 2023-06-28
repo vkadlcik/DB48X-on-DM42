@@ -967,6 +967,13 @@ MENU(ModesMenu,
      "1.0→1.", ID_TrailingDecimal,
      "1.0→1",  ID_NoTrailingDecimal);
 
+MENU(FontsMenu,
+     ResultFontSize::menu_label,                ID_ResultFontSize,
+     StackFontSize::menu_label,                 ID_StackFontSize,
+     EditorFontSize::menu_label,                ID_EditorFontSize,
+     EditorMultilineFontSize::menu_label,       ID_EditorMultilineFontSize);
+
+
 
 MENU(IOMenu,
 // ----------------------------------------------------------------------------

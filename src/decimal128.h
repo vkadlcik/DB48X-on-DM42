@@ -70,17 +70,19 @@ struct decimal128 : object
 
     decimal128(uint64_t value, id type = ID_decimal128): object(type)
     {
+        BID_UINT64 bval = BID_UINT64(value);
         bid128 num;
-        bid128_from_uint64(&num.value, &value);
+        bid128_from_uint64(&num.value, &bval);
         byte *p = payload();
         memcpy(p, &num, sizeof(num));
     }
 
     decimal128(uint64_t value, bool neg, id type = ID_decimal128): object(type)
     {
+        BID_UINT64 bval = BID_UINT64(value);
         bid128 num, negated;
         byte *p = payload();
-        bid128_from_uint64(&num.value, &value);
+        bid128_from_uint64(&num.value, &bval);
         if (neg)
             bid128_negate(&negated.value, &num.value);
         memcpy(p, neg ? &negated : &num, sizeof(num));
@@ -88,8 +90,9 @@ struct decimal128 : object
 
     decimal128(int64_t value, id type = ID_decimal128): object(type)
     {
+        BID_SINT64 bval = BID_SINT64(value);
         bid128 num;
-        bid128_from_int64(&num.value, &value);
+        bid128_from_int64(&num.value, &bval);
         byte *p = payload();
         memcpy(p, &num, sizeof(num));
     }

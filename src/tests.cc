@@ -627,7 +627,7 @@ tests &tests::itest(tests::key k, bool release)
 }
 
 
-tests &tests::itest(uint value)
+tests &tests::itest(unsigned int value)
 // ----------------------------------------------------------------------------
 //    Test a numerical value
 // ----------------------------------------------------------------------------
@@ -651,27 +651,51 @@ tests &tests::itest(int value)
 }
 
 
-tests &tests::itest(ularge value)
+tests &tests::itest(unsigned long value)
 // ----------------------------------------------------------------------------
 //    Test a numerical value
 // ----------------------------------------------------------------------------
 {
     char buffer[32];
-    snprintf(buffer, sizeof(buffer), "%llu", (unsigned long long) value);
+    snprintf(buffer, sizeof(buffer), "%lu", value);
     itest(cstring(buffer));
     return shifts(false, false, false, false);
 }
 
 
-tests &tests::itest(large value)
+tests &tests::itest(long long value)
 // ----------------------------------------------------------------------------
 //   Test a signed numerical value
 // ----------------------------------------------------------------------------
 {
     if (value < 0)
-        return itest(ularge(-value), CHS);
+        return itest(-value, CHS);
     else
-        return itest(ularge(value));
+        return itest(value);
+}
+
+
+tests &tests::itest(unsigned long long value)
+// ----------------------------------------------------------------------------
+//    Test a numerical value
+// ----------------------------------------------------------------------------
+{
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "%llu", value);
+    itest(cstring(buffer));
+    return shifts(false, false, false, false);
+}
+
+
+tests &tests::itest(long value)
+// ----------------------------------------------------------------------------
+//   Test a signed numerical value
+// ----------------------------------------------------------------------------
+{
+    if (value < 0)
+        return itest(-value, CHS);
+    else
+        return itest(value);
 }
 
 
@@ -1006,7 +1030,7 @@ tests &tests::expect(int output)
 }
 
 
-tests &tests::expect(uint output)
+tests &tests::expect(unsigned int output)
 // ----------------------------------------------------------------------------
 //   Check that the output matches an integer value
 // ----------------------------------------------------------------------------
@@ -1017,7 +1041,29 @@ tests &tests::expect(uint output)
 }
 
 
-tests &tests::expect(large output)
+tests &tests::expect(long output)
+// ----------------------------------------------------------------------------
+//   Check that the output matches an integer value
+// ----------------------------------------------------------------------------
+{
+    char num[32];
+    snprintf(num, sizeof(num), "%ld", output);
+    return expect(num);
+}
+
+
+tests &tests::expect(unsigned long output)
+// ----------------------------------------------------------------------------
+//   Check that the output matches an integer value
+// ----------------------------------------------------------------------------
+{
+    char num[32];
+    snprintf(num, sizeof(num), "%lu", output);
+    return expect(num);
+}
+
+
+tests &tests::expect(long long output)
 // ----------------------------------------------------------------------------
 //   Check that the output matches an integer value
 // ----------------------------------------------------------------------------
@@ -1028,7 +1074,7 @@ tests &tests::expect(large output)
 }
 
 
-tests &tests::expect(ularge output)
+tests &tests::expect(unsigned long long output)
 // ----------------------------------------------------------------------------
 //   Check that the output matches an integer value
 // ----------------------------------------------------------------------------

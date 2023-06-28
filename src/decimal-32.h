@@ -70,17 +70,19 @@ struct decimal32 : object
 
     decimal32(uint64_t value, id type = ID_decimal32): object(type)
     {
+        BID_UINT64 bval = BID_UINT64(value);
         bid32 num;
-        bid32_from_uint64(&num.value, &value);
+        bid32_from_uint64(&num.value, &bval);
         byte *p = payload();
         memcpy(p, &num, sizeof(num));
     }
 
     decimal32(uint64_t value, bool neg, id type = ID_decimal32): object(type)
     {
+        BID_UINT64 bval = BID_UINT64(value);
         bid32 num, negated;
         byte *p = payload();
-        bid32_from_uint64(&num.value, &value);
+        bid32_from_uint64(&num.value, &bval);
         if (neg)
             bid32_negate(&negated.value, &num.value);
         memcpy(p, neg ? &negated : &num, sizeof(num));
@@ -88,8 +90,9 @@ struct decimal32 : object
 
     decimal32(int64_t value, id type = ID_decimal32): object(type)
     {
+        BID_SINT64 bval = BID_SINT64(value);
         bid32 num;
-        bid32_from_int64(&num.value, &value);
+        bid32_from_int64(&num.value, &bval);
         byte *p = payload();
         memcpy(p, &num, sizeof(num));
     }

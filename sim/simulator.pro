@@ -86,7 +86,8 @@ DEFINES += SIMULATOR
 debug:DEFINES += DEBUG
 
 # For DMCP headers
-DEFINES += __packed= _WCHAR_T_DEFINED
+DEFINES += __packed=
+macx:DEFINES += _WCHAR_T_DEFINED
 
 # COnfigure Intel Decimal Floating Point Library
 DEFINES += 	DECIMAL_CALL_BY_REFERENCE                       \

@@ -201,10 +201,12 @@ protected:
 
     // Used to build the tests
     tests &itest(key k, bool release = true);
-    tests &itest(uint value);
+    tests &itest(unsigned int value);
     tests &itest(int value);
-    tests &itest(ularge value);
-    tests &itest(large value);
+    tests &itest(unsigned long value);
+    tests &itest(long value);
+    tests &itest(unsigned long long value);
+    tests &itest(long long value);
     tests &itest(char c);
     tests &itest(cstring alpha);
     tests &itest(WAIT delay);
@@ -223,9 +225,11 @@ protected:
     tests &wait(uint ms);
     tests &expect(cstring output);
     tests &expect(int output);
-    tests &expect(uint output);
-    tests &expect(large output);
-    tests &expect(ularge output);
+    tests &expect(unsigned int output);
+    tests &expect(long output);
+    tests &expect(unsigned long output);
+    tests &expect(long long output);
+    tests &expect(unsigned long long output);
     tests &match(cstring regexp);
     tests &type(object::id ty);
     tests &shift(bool s);

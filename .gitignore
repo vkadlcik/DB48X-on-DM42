@@ -21,3 +21,5 @@
 /tools/forcecrc32/.build/
 /tools/forcecrc32/.logs/
 /tools/forcecrc32/forcecrc32
+/sim/gcc111libbid.a
+/sim/simulator

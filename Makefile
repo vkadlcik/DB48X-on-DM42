@@ -57,13 +57,15 @@ install-help: help/$(TARGET).md
 	cp -v help/$(TARGET).md $(MOUNTPOINT)help/
 
 
-sim: sim/simulator.mak recorder/config.h help/$(TARGET).md .ALWAYS
+sim: sim/simulator.mak sim/gcc111libbid.a recorder/config.h help/$(TARGET).md .ALWAYS
 	cd sim; make -f $(<F)
 sim/simulator.mak: sim/simulator.pro
 	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(OPT)
 ttf2font: $(TOOLS)/ttf2fonts/ttf2fonts
 $(TOOLS)/ttf2fonts/ttf2fonts: $(TOOLS)/ttf2font/ttf2font.cpp $(TOOLS)/ttf2font/Makefile
 	cd $(TOOLS)/ttf2font; $(MAKE)
+sim/gcc111libbid.a: sim/gcc111libbid-$(shell uname)-$(shell uname -m).a
+	cp $< $@
 
 #BASE_FONT=fonts/C43StandardFont.ttf
 BASE_FONT=fonts/FogSans-ddd.ttf

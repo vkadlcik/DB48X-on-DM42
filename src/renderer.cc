@@ -35,7 +35,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <wctype.h>
 
 renderer::~renderer()
 // ----------------------------------------------------------------------------
@@ -86,6 +86,42 @@ bool renderer::put(char c)
     }
     return true;
 }
+
+
+bool renderer::put(settings::commands format, utf8 text)
+// ----------------------------------------------------------------------------
+//   Render a command with proper capitalization
+// ----------------------------------------------------------------------------
+{
+    bool result = true;
+    switch(format)
+    {
+    case settings::commands::LOWERCASE:
+        for (utf8 s = text; *s; s = utf8_next(s))
+            result = put(unicode(towlower(utf8_codepoint(s))));
+        break;
+
+    case settings::commands::UPPERCASE:
+        for (utf8 s = text; *s; s = utf8_next(s))
+            result = put(unicode(towupper(utf8_codepoint(s))));
+        break;
+
+    case settings::commands::CAPITALIZED:
+        for (utf8 s = text; *s; s = utf8_next(s))
+            result = put(unicode(s == text
+                                 ? towupper(utf8_codepoint(s))
+                                 : towlower(utf8_codepoint(s))));
+        break;
+
+    case settings::commands::LONG_FORM:
+        for (cstring p = cstring(text); *p; p++)
+            result = put(*p);
+        break;
+    }
+
+    return result;
+}
+
 
 
 size_t renderer::printf(const char *format, ...)

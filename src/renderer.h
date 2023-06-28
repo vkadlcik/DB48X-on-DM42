@@ -29,6 +29,7 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
+#include "settings.h"
 #include "types.h"
 #include "utf8.h"
 
@@ -73,8 +74,7 @@ struct renderer
     }
     bool   put(utf8 s)                  { return put(cstring(s)); }
     bool   put(utf8 s, size_t len)      { return put(cstring(s), len); }
-
-
+    bool   put(settings::commands fmt, utf8 s);
 
     bool   editing() const              { return edit; }
     bool   equation() const             { return eq; }

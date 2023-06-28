@@ -34,6 +34,7 @@
 #include "input.h"
 #include "integer.h"
 #include "menu.h"
+#include "renderer.h"
 
 #include <cstdarg>
 #include <cstdlib>

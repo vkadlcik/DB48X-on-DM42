@@ -31,10 +31,11 @@
 
 #include "command.h"
 #include "menu.h"
-#include "renderer.h"
 
 #include <types.h>
 
+
+struct renderer;
 
 struct settings
 // ----------------------------------------------------------------------------

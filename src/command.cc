@@ -158,28 +158,12 @@ OBJECT_RENDERER_BODY(command)
             if (utf8_length(fancy) == 1)
                 format = settings::commands::LONG_FORM;
 
-        switch(format)
-        {
-        case settings::commands::LOWERCASE:
-            for (cstring p = id_name[ty]; *p; p++)
-                r.put(char(tolower(*p)));
-            break;
-
-        case settings::commands::UPPERCASE:
-            for (cstring p = id_name[ty]; *p; p++)
-                r.put(char(toupper(*p)));
-            break;
-
-        case settings::commands::CAPITALIZED:
-            for (cstring p = id_name[ty], p0 = p; *p; p++)
-                r.put(p == p0 ? char(toupper(*p)) : *p);
-            break;
-
-        case settings::commands::LONG_FORM:
-            for (cstring p = fancy_name[ty]; *p; p++)
-                r.put(*p);
-        }
+        utf8 text = utf8(format == settings::commands::LONG_FORM
+                         ? fancy_name[ty]
+                         : id_name[ty]);
+        r.put(format, text);
     }
+
     record(command, "Render %u as [%s]", ty, (cstring) r.text());
     return r.size();
 }

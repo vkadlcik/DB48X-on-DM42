@@ -261,10 +261,11 @@ intptr_t loop::object_renderer(renderer &r,
     gcobj  first  = object_p(p);
     gcobj  second = nseps == 3 ? first->skip() : nullptr;
     uint   sep    = 0;
+    auto   format = Settings.command_fmt;
 
     // Write the header, e.g. "DO", and indent condition
     r.put('\n');
-    r.put(separators[sep++]);
+    r.put(format, utf8(separators[sep++]));
     r.indent();
 
     // Emit the first object (e.g. condition in do-until)
@@ -275,14 +276,14 @@ intptr_t loop::object_renderer(renderer &r,
     {
         // Emit separator after condition
         r.unindent();
-        r.put(separators[sep++]);
+        r.put(format, utf8(separators[sep++]));
         r.indent();
         second->render(r, rt);
     }
 
     // Emit closing separator
     r.unindent();
-    r.put(separators[sep++]);
+    r.put(format, utf8(separators[sep++]));
 
     return r.size();
 }

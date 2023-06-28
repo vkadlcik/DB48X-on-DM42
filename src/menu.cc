@@ -283,12 +283,12 @@ MENU(AnglesMenu,
 // ----------------------------------------------------------------------------
 //   Operations on angles
 // ----------------------------------------------------------------------------
-     "→Deg",    ID_Unimplemented,
-     "→Rad",    ID_Unimplemented,
-     "→Grad",   ID_Unimplemented,
      "Deg",     ID_Deg,
      "Rad",     ID_Rad,
      "Grad",    ID_Grad,
+     "→Deg",    ID_Unimplemented,
+     "→Rad",    ID_Unimplemented,
+     "→Grad",   ID_Unimplemented,
 
      "→Angle",  ID_Unimplemented,
      "→Polar",  ID_Unimplemented,
@@ -965,7 +965,9 @@ MENU(ModesMenu,
      "1.2x10³²", ID_FancyExponent,
      "1.2E32", ID_ClassicExponent,
      "1.0→1.", ID_TrailingDecimal,
-     "1.0→1",  ID_NoTrailingDecimal);
+     "1.0→1",  ID_NoTrailingDecimal,
+
+     "Fonts",   ID_FontsMenu);
 
 MENU(FontsMenu,
      ResultFontSize::menu_label,                ID_ResultFontSize,

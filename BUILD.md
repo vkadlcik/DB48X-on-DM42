@@ -19,15 +19,35 @@ Each variant can be built in `debug` or `release` mode.
 
 The project has the following pre-requisites:
 
-* `make`, `bash`, `dd`, `sed`, `tac`, `printf` and `find`
+* `make`, `bash`, `dd`, `sed`, `tac`, `printf` and `find`.
 
 * Firmware builds require the `arm-none-eabi-gcc` GNU toolchain, which can be
   downloaded [from the ARM site](https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads)
   or installed directly on many platforms.
 
+  * Fedora: `dnf install arm-none-eabi-gcc arm-none-eabi-gcc-cs-c++ arm-none-eabi-newlib`
+
+  * MacOS: `brew install arm-none-eabi-gcc`
+
 * Simulator builds require `g++` or `clang`, as well as Qt6 (Qt5 is likely to
   work as well).
 
+  * Fedora: `dnf install qt-devel qt6-qtbase-devel qt6-qtdeclarative-devel`
+
+  * MacOS: `brew install qt`
+
+* The FreeType development libraries (we use that to build the DM48 fonts)
+
+  * Fedora: `dnf install freetype-devel`
+
+  * MacOS: `brew install freetype`
+
+* The [Intel® Decimal Floating-Point Math Library][intel], which unfortunately
+  does not appear to have any Intel-endorsed publicy available `git`
+  repository. Pre-build libraries for the DM42, as well as for Mac / Apple
+  Silicon and Linux / x86 are in this repository.
+
+[intel]: https://www.intel.com/content/www/us/en/developer/articles/tool/intel-decimal-floating-point-math-library.html
 
 
 ## Build

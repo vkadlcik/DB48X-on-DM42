@@ -654,6 +654,7 @@ int input::draw_menus(uint time, uint &period, bool force)
         for (int m = 0; m < NUM_SOFTKEYS; m++)
         {
             int x = (2 * m + 1) * mw / 2 + (m * sp) / 5 + 2;
+            int mcw = mw;
             rect mrect(x - mw/2-1, my, x + mw/2, my+mh-1);
             Screen.fill(mrect, pattern::white);
 
@@ -679,7 +680,6 @@ int input::draw_menus(uint time, uint &period, bool force)
                 coord   mkw    = 0;
                 coord   mkx    = 0;
 
-                Screen.clip(mrect);
                 size_t len = 0;
                 if (*label == object::ID_symbol)
                 {
@@ -694,6 +694,7 @@ int input::draw_menus(uint time, uint &period, bool force)
                 }
 
                 // Check if we have a marker from VariablesMenu
+                rect trect = mrect;
                 if (!help)
                 {
                     if (unicode mark = menu_marker[plane][m])
@@ -701,15 +702,26 @@ int input::draw_menus(uint time, uint &period, bool force)
                         bool alignLeft = menu_marker_align[plane][m];
                         marker = mark;
                         mkw = font->width(marker);
-                        mkx = alignLeft ? x - mw/2 + 2 : x + mw/2 - mkw - 2;
+                        mkx = alignLeft ? x - mw / 2 + 2 : x + mw / 2 - mkw - 2;
+                        mcw -= mkw;
+                        if (alignLeft)
+                        {
+                            x += mkw;
+                            trect.x1 += mkw;
+                        }
+                        else
+                        {
+                            trect.x2 -= mkw;
+                        }
                     }
                 }
 
+                Screen.clip(trect);
                 size tw = font->width(label, len);
-                if (tw > mw)
+                if (tw > mcw)
                 {
                     dirtyMenu  = true;
-                    x         -= mw/2 - 5 + menuShift % (tw - mw + 10);
+                    x         -= mw/2 - 5 + menuShift % (tw - mcw + 10);
                 }
                 else
                 {
@@ -718,7 +730,10 @@ int input::draw_menus(uint time, uint &period, bool force)
                 coord ty = mrect.y1 - 3;
                 Screen.text(x, ty, label, len, font, color);
                 if (marker)
-                    Screen.glyph(mkx, ty - 2 * (marker == L'◥'), marker, font, color);
+                {
+                    Screen.clip(mrect);
+                    Screen.glyph(mkx, ty - 2*(marker==L'◥'), marker, font, color);
+                }
                 Screen.clip(clip);
             }
         }

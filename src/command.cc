@@ -38,6 +38,7 @@
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
+#include "symbol.h"
 #include "utf8.h"
 
 #include <ctype.h>
@@ -146,10 +147,18 @@ OBJECT_RENDERER_BODY(command)
 //   Render the command into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    id     ty     = type();
+    id ty = type();
     if (ty < NUM_IDS)
     {
-        switch(Settings.command_fmt)
+        auto format = Settings.command_fmt;
+
+        // Ensure that we display + as `+` irrespective of mode
+        utf8 fancy = utf8(fancy_name[ty]);
+        if (!is_valid_as_name_initial(utf8_codepoint(fancy)))
+            if (utf8_length(fancy) == 1)
+                format = settings::commands::LONG_FORM;
+
+        switch(format)
         {
         case settings::commands::LOWERCASE:
             for (cstring p = id_name[ty]; *p; p++)

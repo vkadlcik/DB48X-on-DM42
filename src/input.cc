@@ -705,27 +705,22 @@ int input::draw_menus(uint time, uint &period, bool force)
                         mkx = alignLeft ? x - mw / 2 + 2 : x + mw / 2 - mkw - 2;
                         mcw -= mkw;
                         if (alignLeft)
-                        {
-                            x += mkw;
                             trect.x1 += mkw;
-                        }
                         else
-                        {
                             trect.x2 -= mkw;
-                        }
                     }
                 }
 
                 Screen.clip(trect);
                 size tw = font->width(label, len);
-                if (tw > mcw)
+                if (tw + 2 >= mcw)
                 {
                     dirtyMenu  = true;
-                    x         -= mw/2 - 5 + menuShift % (tw - mcw + 10);
+                    x = trect.x1 - menuShift % (tw - mcw + 5);
                 }
                 else
                 {
-                    x = x - tw / 2;
+                    x = (trect.x1 + trect.x2 - tw) / 2;
                 }
                 coord ty = mrect.y1 - 3;
                 Screen.text(x, ty, label, len, font, color);

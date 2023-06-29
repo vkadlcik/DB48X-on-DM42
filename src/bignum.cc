@@ -544,7 +544,7 @@ bignum_g bignum::multiply(bignum_g yg, bignum_g xg, id ty)
         }
     }
 
-    size_t sz = xs + ys;
+    size_t sz = needed;
     while (sz > 0 && buffer[sz-1] == 0)
         sz--;
     gcbytes buf = buffer;

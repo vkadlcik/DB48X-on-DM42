@@ -352,3 +352,70 @@ int object::as_truth() const
     }
     return -1;
 }
+
+
+#if SIMULATOR
+cstring object::debug() const
+// ----------------------------------------------------------------------------
+//   Render an object from the debugger
+// ----------------------------------------------------------------------------
+{
+    renderer r(false, true, true);
+    run(object::RENDER, runtime::RT, &r);
+    r.put(char(0));
+    return cstring(r.text());
+}
+
+
+cstring debug(object_p object)
+// ----------------------------------------------------------------------------
+//    Print an object pointer, for use in the debugger
+// ----------------------------------------------------------------------------
+{
+    return object ? object->debug() : nullptr;
+}
+
+
+cstring debug(gcobj object)
+// ----------------------------------------------------------------------------
+//   Same from an object_g
+// ----------------------------------------------------------------------------
+{
+    return object ? object->debug() : nullptr;
+}
+
+
+cstring debug(object *object)
+// ----------------------------------------------------------------------------
+//   Same from an object *
+// ----------------------------------------------------------------------------
+{
+    return object ? object->debug() : nullptr;
+}
+
+
+cstring debug(uint level)
+// ----------------------------------------------------------------------------
+//   Read a stack level
+// ----------------------------------------------------------------------------
+{
+    if (gcobj obj = runtime::RT.stack(level))
+    {
+        // We call both the gcobj and object * variants so linker keeps them
+        if (cstring result = obj->debug())
+            return result;
+        else if (object *op = (object *) object_p(obj))
+            return debug(op);
+    }
+    return nullptr;
+}
+
+
+cstring debug()
+// ----------------------------------------------------------------------------
+//   Read top of stack
+// ----------------------------------------------------------------------------
+{
+    return debug(0U);
+}
+#endif // SIMULATOR

@@ -739,6 +739,11 @@ protected:
     static const cstring    id_name[NUM_IDS];
     static const cstring    fancy_name[NUM_IDS];
     static runtime         &RT;
+
+#if SIMULATOR
+public:
+    cstring debug() const;
+#endif
 };
 
 

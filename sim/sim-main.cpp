@@ -78,6 +78,9 @@ size_t recorder_render_object(intptr_t tracing,
 }
 
 
+// Ensure linker keeps debug code
+extern cstring debug();
+
 
 int main(int argc, char *argv[])
 // ----------------------------------------------------------------------------
@@ -90,6 +93,11 @@ int main(int argc, char *argv[])
         recorder_trace_set(traces);
     recorder_dump_on_common_signals(0, 0);
     recorder_configure_type('t', recorder_render_object);
+
+    // This is just to link otherwise unused code intended for use in debugger
+    if (traces && traces[0] == char(0xFF))
+        if (cstring result = debug())
+            record(options, "Strange input %s", result);
 
     record(options,
            "Simulator invoked as %+s with %d arguments", argv[0], argc-1);
@@ -129,5 +137,6 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
+
     return a.exec();
 }

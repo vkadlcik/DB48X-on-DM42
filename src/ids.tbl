@@ -199,7 +199,8 @@ NAMED(tgamma, "Gamma")
 CMD(lgamma)
 
 NAMED(cbrt, "∛")
-OP(pow, "^")
+OP(pow, "↑")
+ALIAS(pow, "^")
 NAMED(hypot, "Hypothenuse")
 CMD(norm)
 

@@ -349,11 +349,18 @@ static size_t render_num(renderer &r, integer_p num, uint base, cstring fmt)
     // revert the digits in memory before writing
     if (r.file_save())
     {
-        renderer tmp(r.equation());
+        renderer tmp(r.equation(), r.editing(), r.stack());
         size_t result = render_num(tmp, num, base, fmt);
         r.put(tmp.text(), result);
         return result;
     }
+
+    // Check which kind of spacing to use
+    bool based = *fmt == '#';
+    uint spacing = based ? Settings.spacing_based : Settings.spacing_mantissa;
+    unicode space = based ? Settings.space_based : Settings.space;
+    if (r.editing())
+        spacing = 0;
 
     // Copy the '#' or '-' sign
     if (*fmt)
@@ -364,26 +371,25 @@ static size_t render_num(renderer &r, integer_p num, uint base, cstring fmt)
     ularge n      = num->value<ularge>();
 
     // Keep dividing by the base until we get 0
+    uint sep = 0;
     do
     {
         ularge digit = n % base;
         n /= base;
         char c = (digit < 10) ? digit + '0' : digit + ('A' - 10);
         r.put(c);
+
+        if (n && ++sep == spacing)
+        {
+            sep = 0;
+            r.put(space);
+        }
     } while (n);
 
     // Revert the digits
-    char *dest  = (char *) r.text();
-    char *first = dest + findex;
-    char *last  = dest + r.size() - 1;
-    while (first < last)
-    {
-        char tmp = *first;
-        *first   = *last;
-        *last    = tmp;
-        last--;
-        first++;
-    }
+    byte *dest  = (byte *) r.text();
+    bool multibyte = spacing && space > 0xFF;
+    utf8_reverse(dest + findex, dest + r.size(), multibyte);
 
     // Add suffix
     if (*fmt)

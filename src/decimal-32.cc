@@ -228,8 +228,9 @@ OBJECT_PARSER_BODY(decimal32)
 // 4 exponent
 // 1 decimal separator
 // Total 42
-// The exponent can be UTF8 in the output, so that could be 6 more.
-#define MAXBIDCHAR 52
+// Intermediate spacing could double the mantissa
+// Spacing can be unicode, only 3 byte encoding for now, so 4 bytes per digit
+#define MAXBIDCHAR 256
 
 // Trick to only put the decimal_format function inside decimal32.cc
 #if 32 == 64 + 64                      // Check if we are in decimal32.cc
@@ -254,12 +255,15 @@ size_t decimal_format(char *buf, size_t len, bool editing)
 
     // Read settings
     const settings &display = Settings;
-    auto mode       = editing ? display.NORMAL : display.display_mode;
-    int  digits     = editing ? BID32_MAXDIGITS : display.displayed;
-    int  max_nonsci = display.standard_exp;
-    bool showdec    = display.show_decimal;
-    bool fancy      = !editing && display.fancy_exponent;
-    char decimal    = display.decimal_mark; // Can be '.' or ','
+    auto            mode    = editing ? display.NORMAL : display.display_mode;
+    int             digits  = editing ? BID32_MAXDIGITS : display.displayed;
+    int             std_exp = display.standard_exp;
+    bool            showdec = display.show_decimal;
+    unicode         space   = display.space;
+    uint            mant_spc = editing ? 0 : display.spacing_mantissa;
+    uint            frac_spc = editing ? 0 : display.spacing_fraction;
+    bool            fancy   = !editing && display.fancy_exponent;
+    char            decimal = display.decimal_mark; // Can be '.' or ','
 
     static uint16_t fancy_digit[10] =
     {
@@ -337,16 +341,19 @@ size_t decimal_format(char *buf, size_t len, bool editing)
         {
             if (realexp < 0)
             {
-                int minexp = digits < max_nonsci ? digits : max_nonsci;
+                int minexp = digits < std_exp ? digits : std_exp;
                 hasexp = mexp - realexp - 1 >= minexp;
             }
             else
             {
-                hasexp = realexp >= max_nonsci;
+                hasexp = realexp >= std_exp;
                 if (!hasexp)
                     decpos = realexp + 1;
             }
         }
+
+        // Position where we emit spacing
+        uint sep = mant_spc ? (~mant_spc-decpos) % mant_spc : 0;
 
         // Number of decimals to show is given number of digits for most modes
         // (This counts *all* digits for standard / SIG mode)
@@ -365,9 +372,15 @@ size_t decimal_format(char *buf, size_t len, bool editing)
 
             // Emit decimal dot and leading zeros on fractional part
             *out++ = decimal;
+            sep = 0;
             for (int zeroes = realexp + 1; zeroes < 0; zeroes++)
             {
                 *out++ = '0';
+                if (++sep == frac_spc)
+                {
+                    out += utf8_encode(space, (byte *) out);
+                    sep = 0;
+                }
                 decimals--;
             }
         }
@@ -380,6 +393,7 @@ size_t decimal_format(char *buf, size_t len, bool editing)
             int offset = dispexp >= 0 ? dispexp % 3 : (dispexp - 2) % 3 + 2;
             decpos += offset;
             dispexp -= offset;
+            sep += offset;
             decimals += 1;
         }
 
@@ -389,8 +403,24 @@ size_t decimal_format(char *buf, size_t len, bool editing)
         {
             *out++ = *in++;
             decpos--;
-            if (decpos == 0 && (in < last || showdec))
+
+            // Insert spacing on the left of the decimal mark
+            bool more = in < last;
+            uint limit = !more      ? 0
+                       : decpos < 0 ? frac_spc
+                       : decpos > 0 ? mant_spc
+                                    : 0;
+            if (++sep == limit)
+            {
+                out += utf8_encode(space, (byte *) out);
+                sep = 0;
+            }
+
+            if (decpos == 0 && (more || showdec))
+            {
                 *out++ = decimal;
+                sep = 0;
+            }
 
             // Count decimals after decimal separator, except in SIG mode
             // where we count all significant digits being displayed
@@ -405,7 +435,7 @@ size_t decimal_format(char *buf, size_t len, bool editing)
             bool rounding = true;
             while (rounding && --rptr > buf)
             {
-                if (*rptr >= '0')   // Do not convert '.' or '-'
+                if (*rptr >= '0' && *rptr <= '9')   // Do not convert '.' or '-'
                 {
                     *rptr += 1;
                     rounding = *rptr > '9';

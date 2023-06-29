@@ -139,6 +139,37 @@ void settings::save(renderer &out, bool show_defaults)
         out.printf("%u EditorFontSize\n", result_sz);
     if (editor_ml_sz != STACK || show_defaults)
         out.printf("%u EditorMultilineFontSize\n", result_sz);
+
+    // Number spacing
+    if (spacing_mantissa != 3 || show_defaults)
+        out.printf("%u MantissaSpacing\n", spacing_mantissa);
+    if (spacing_fraction != 3 || show_defaults)
+        out.printf("%u FractionSpacing\n", spacing_fraction);
+    if (spacing_based != 4 || show_defaults)
+        out.printf("%u BasedSpacing\n", spacing_based);
+
+    switch (space)
+    {
+    default:
+    case SPACE_DEFAULT:
+        if (show_defaults)
+                                out.put("NumberSpaces\n");      break;
+    case '.': case ',':         out.put("NumberDotOrComma\n");  break;
+    case L'’':                  out.put("NumberTicks\n");       break;
+    case '_':                   out.put("NumberUnderscore\n");  break;
+    }
+
+    switch (space_based)
+    {
+    default:
+    case SPACE_DEFAULT:
+        if (show_defaults)
+                                out.put("BasedSpaces\n");       break;
+    case '.': case ',':         out.put("BasedDotOrComma\n");   break;
+    case L'’':                  out.put("BasedTicks\n");        break;
+    case '_':                   out.put("BasedUnderscore\n");   break;
+    }
+
 }
 
 
@@ -194,8 +225,6 @@ font_p settings::font(font_id size)
 //
 // ============================================================================
 
-static const unicode MARK = L'●'; // L'■';
-
 static inline bool IsStd()
 // ----------------------------------------------------------------------------
 //   Check if the current settings is Std
@@ -206,7 +235,7 @@ static inline bool IsStd()
 }
 
 
-SETTINGS_COMMAND_BODY(Std, IsStd() ? MARK : 0)
+SETTINGS_COMMAND_BODY(Std, IsStd())
 // ----------------------------------------------------------------------------
 //   Switch to standard display mode
 // ----------------------------------------------------------------------------
@@ -266,7 +295,7 @@ static cstring get_display_mode(settings::display mode, cstring label)
 }
 
 
-SETTINGS_COMMAND_BODY(Fix, Settings.display_mode == settings::FIX ? MARK : 0)
+SETTINGS_COMMAND_BODY(Fix, Settings.display_mode == settings::FIX)
 // ----------------------------------------------------------------------------
 //   Switch to fixed display mode
 // ----------------------------------------------------------------------------
@@ -284,7 +313,7 @@ SETTINGS_COMMAND_LABEL(Fix)
 }
 
 
-SETTINGS_COMMAND_BODY(Sci, Settings.display_mode == settings::SCI ? MARK : 0)
+SETTINGS_COMMAND_BODY(Sci, Settings.display_mode == settings::SCI)
 // ----------------------------------------------------------------------------
 //   Switch to scientific display mode
 // ----------------------------------------------------------------------------
@@ -302,7 +331,7 @@ SETTINGS_COMMAND_LABEL(Sci)
 }
 
 
-SETTINGS_COMMAND_BODY(Eng, Settings.display_mode == settings::ENG ? MARK : 0)
+SETTINGS_COMMAND_BODY(Eng, Settings.display_mode == settings::ENG)
 // ----------------------------------------------------------------------------
 //   Switch to engineering display mode
 // ----------------------------------------------------------------------------
@@ -323,7 +352,7 @@ SETTINGS_COMMAND_LABEL(Eng)
 SETTINGS_COMMAND_BODY(Sig,
                       Settings.display_mode == settings::NORMAL
                       && Settings.displayed != settings::STD_DISPLAYED
-                      ? MARK : 0)
+                     )
 // ----------------------------------------------------------------------------
 //   Switch to significant display mode
 // ----------------------------------------------------------------------------
@@ -342,7 +371,7 @@ SETTINGS_COMMAND_LABEL(Sig)
 
 
 SETTINGS_COMMAND_NOLABEL(Deg,
-                         Settings.angle_mode == settings::DEGREES ? MARK : 0)
+                         Settings.angle_mode == settings::DEGREES)
 // ----------------------------------------------------------------------------
 //   Switch to degrees
 // ----------------------------------------------------------------------------
@@ -353,7 +382,7 @@ SETTINGS_COMMAND_NOLABEL(Deg,
 
 
 SETTINGS_COMMAND_NOLABEL(Rad,
-                         Settings.angle_mode == settings::RADIANS ? MARK : 0)
+                         Settings.angle_mode == settings::RADIANS)
 // ----------------------------------------------------------------------------
 //   Switch to radians
 // ----------------------------------------------------------------------------
@@ -364,7 +393,7 @@ SETTINGS_COMMAND_NOLABEL(Rad,
 
 
 SETTINGS_COMMAND_NOLABEL(Grad,
-                         Settings.angle_mode == settings::GRADS ? MARK : 0)
+                         Settings.angle_mode == settings::GRADS)
 // ----------------------------------------------------------------------------
 //   Switch to grads
 // ----------------------------------------------------------------------------
@@ -375,7 +404,7 @@ SETTINGS_COMMAND_NOLABEL(Grad,
 
 
 SETTINGS_COMMAND_NOLABEL(LowerCase,
-                         Settings.command_fmt == settings::LOWERCASE ? MARK : 0)
+                         Settings.command_fmt == settings::LOWERCASE)
 // ----------------------------------------------------------------------------
 //   Switch to lowercase command display
 // ----------------------------------------------------------------------------
@@ -386,7 +415,7 @@ SETTINGS_COMMAND_NOLABEL(LowerCase,
 
 
 SETTINGS_COMMAND_NOLABEL(UpperCase,
-                         Settings.command_fmt == settings::UPPERCASE ? MARK : 0)
+                         Settings.command_fmt == settings::UPPERCASE)
 // ----------------------------------------------------------------------------
 //  Switch to uppercase command display
 // ----------------------------------------------------------------------------
@@ -397,7 +426,7 @@ SETTINGS_COMMAND_NOLABEL(UpperCase,
 
 
 SETTINGS_COMMAND_NOLABEL(Capitalized,
-                         Settings.command_fmt==settings::CAPITALIZED ? MARK : 0)
+                         Settings.command_fmt==settings::CAPITALIZED)
 // ----------------------------------------------------------------------------
 //  Switch to capitalized command display
 // ----------------------------------------------------------------------------
@@ -408,7 +437,7 @@ SETTINGS_COMMAND_NOLABEL(Capitalized,
 
 
 SETTINGS_COMMAND_NOLABEL(LongForm,
-                         Settings.command_fmt==settings::LONG_FORM ? MARK : 0)
+                         Settings.command_fmt==settings::LONG_FORM)
 // ----------------------------------------------------------------------------
 //   Switch to long-form command display
 // ----------------------------------------------------------------------------
@@ -418,27 +447,35 @@ SETTINGS_COMMAND_NOLABEL(LongForm,
 }
 
 
-SETTINGS_COMMAND_NOLABEL(DecimalDot, Settings.decimal_mark == '.' ? MARK : 0)
+SETTINGS_COMMAND_NOLABEL(DecimalDot, Settings.decimal_mark == '.')
 // ----------------------------------------------------------------------------
 //  Switch to decimal dot
 // ----------------------------------------------------------------------------
 {
     Settings.decimal_mark = '.';
+    if (Settings.space == '.')
+        Settings.space = ',';
+    if (Settings.space_based == '.')
+        Settings.space_based = ',';
     return OK;
 }
 
 
-SETTINGS_COMMAND_NOLABEL(DecimalComma, Settings.decimal_mark == ',' ? MARK : 0)
+SETTINGS_COMMAND_NOLABEL(DecimalComma, Settings.decimal_mark == ',')
 // ----------------------------------------------------------------------------
 //  Switch to decimal comma
 // ----------------------------------------------------------------------------
 {
     Settings.decimal_mark = ',';
+    if (Settings.space == ',')
+        Settings.space = '.';
+    if (Settings.space_based == ',')
+        Settings.space_based = '.';
     return OK;
 }
 
 
-SETTINGS_COMMAND_NOLABEL(TrailingDecimal, Settings.show_decimal ? MARK : 0)
+SETTINGS_COMMAND_NOLABEL(TrailingDecimal, Settings.show_decimal)
 // ----------------------------------------------------------------------------
 //  Indicate that we want a trailing decimal separator
 // ----------------------------------------------------------------------------
@@ -448,7 +485,7 @@ SETTINGS_COMMAND_NOLABEL(TrailingDecimal, Settings.show_decimal ? MARK : 0)
 }
 
 
-SETTINGS_COMMAND_NOLABEL(NoTrailingDecimal, !Settings.show_decimal ? MARK : 0)
+SETTINGS_COMMAND_NOLABEL(NoTrailingDecimal, !Settings.show_decimal)
 // ----------------------------------------------------------------------------
 //  Indicate that we don't want a traiing decimal separator
 // ----------------------------------------------------------------------------
@@ -528,7 +565,7 @@ SETTINGS_COMMAND_LABEL(StandardExponent)
 }
 
 
-SETTINGS_COMMAND_NOLABEL(FancyExponent, Settings.fancy_exponent ? MARK : 0)
+SETTINGS_COMMAND_NOLABEL(FancyExponent, Settings.fancy_exponent)
 // ----------------------------------------------------------------------------
 //   Setting the maximum exponent before switching to scientific mode
 // ----------------------------------------------------------------------------
@@ -539,7 +576,7 @@ SETTINGS_COMMAND_NOLABEL(FancyExponent, Settings.fancy_exponent ? MARK : 0)
 }
 
 
-SETTINGS_COMMAND_NOLABEL(ClassicExponent, !Settings.fancy_exponent ? MARK : 0)
+SETTINGS_COMMAND_NOLABEL(ClassicExponent, !Settings.fancy_exponent)
 // ----------------------------------------------------------------------------
 //   Setting the maximum exponent before switching to scientific mode
 // ----------------------------------------------------------------------------
@@ -589,7 +626,7 @@ SETTINGS_COMMAND_LABEL(Base)
 }
 
 
-SETTINGS_COMMAND_NOLABEL(Bin, Settings.base == 2 ? MARK : 0)
+SETTINGS_COMMAND_NOLABEL(Bin, Settings.base == 2)
 // ----------------------------------------------------------------------------
 //   Select binary mode
 // ----------------------------------------------------------------------------
@@ -599,7 +636,7 @@ SETTINGS_COMMAND_NOLABEL(Bin, Settings.base == 2 ? MARK : 0)
 }
 
 
-SETTINGS_COMMAND_NOLABEL(Oct, Settings.base == 8 ? MARK : 0)
+SETTINGS_COMMAND_NOLABEL(Oct, Settings.base == 8)
 // ----------------------------------------------------------------------------
 //   Select octal mode
 // ----------------------------------------------------------------------------
@@ -609,7 +646,7 @@ SETTINGS_COMMAND_NOLABEL(Oct, Settings.base == 8 ? MARK : 0)
 }
 
 
-SETTINGS_COMMAND_NOLABEL(Dec, Settings.base == 10 ? MARK : 0)
+SETTINGS_COMMAND_NOLABEL(Dec, Settings.base == 10)
 // ----------------------------------------------------------------------------
 //   Select decimalmode
 // ----------------------------------------------------------------------------
@@ -619,7 +656,7 @@ SETTINGS_COMMAND_NOLABEL(Dec, Settings.base == 10 ? MARK : 0)
 }
 
 
-SETTINGS_COMMAND_NOLABEL(Hex, Settings.base == 16 ? MARK : 0)
+SETTINGS_COMMAND_NOLABEL(Hex, Settings.base == 16)
 // ----------------------------------------------------------------------------
 //   Select hexadecimal mode
 // ----------------------------------------------------------------------------
@@ -713,3 +750,154 @@ FONT_SIZE_SETTING(ResultFontSize, result_sz, "Result")
 FONT_SIZE_SETTING(StackFontSize, stack_sz, "Stack")
 FONT_SIZE_SETTING(EditorFontSize, editor_sz, "Edit")
 FONT_SIZE_SETTING(EditorMultilineFontSize, editor_ml_sz, "BigEdit")
+
+
+#define SPACING_SIZE_SETTING(id, field, label)          \
+SETTINGS_COMMAND_BODY(id, 0)                            \
+{                                                       \
+    if (object_p size = runtime::RT.top())              \
+    {                                                   \
+        if (integer_p value = size->as<integer>())      \
+        {                                               \
+            uint fs = value->value<uint>();             \
+            if (fs < 10)                                \
+            {                                           \
+                runtime::RT.pop();                      \
+                Settings.field = fs;                    \
+                return OK;                              \
+            }                                           \
+            runtime::RT.domain_error();                 \
+        }                                               \
+        else                                            \
+        {                                               \
+            runtime::RT.type_error();                   \
+        }                                               \
+    }                                                   \
+    return object::ERROR;                               \
+}                                                       \
+                                                        \
+                                                        \
+static char id##_buffer[16];                            \
+SETTINGS_COMMAND_LABEL(id)                              \
+{                                                       \
+    snprintf(id##_buffer, sizeof(id##_buffer),          \
+             label " %u", Settings.field);              \
+    return id##_buffer;                                 \
+}
+
+
+COMMAND_BODY(NumberSpacing)
+// ----------------------------------------------------------------------------
+//  Set same spacing for both mantissa and fraction
+// ----------------------------------------------------------------------------
+{
+    if (object_p size = runtime::RT.top())
+    {
+        if (integer_p value = size->as<integer>())
+        {
+            uint fs = value->value<uint>();
+            if (fs < 10)
+            {
+                runtime::RT.pop();
+                Settings.spacing_mantissa = fs;
+                Settings.spacing_fraction = fs;
+                return OK;
+            }
+            runtime::RT.domain_error();
+        }
+        else
+        {
+            runtime::RT.type_error();
+        }
+    }
+    return object::ERROR;
+
+}
+
+SPACING_SIZE_SETTING(MantissaSpacing, spacing_mantissa, "Mant")
+SPACING_SIZE_SETTING(FractionSpacing, spacing_fraction, "Frac")
+SPACING_SIZE_SETTING(BasedSpacing, spacing_based, "Based")
+
+SETTINGS_COMMAND_NOLABEL(NumberSpaces,
+                         Settings.space == settings::SPACE_DEFAULT)
+// ----------------------------------------------------------------------------
+//   Select a space as number separator
+// ----------------------------------------------------------------------------
+{
+    Settings.space = settings::SPACE_DEFAULT;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(NumberDotOrComma,
+                         Settings.space == '.' || Settings.space == ',')
+// ----------------------------------------------------------------------------
+//   Select a dot or comma as number separator
+// ----------------------------------------------------------------------------
+{
+    Settings.space = Settings.decimal_mark == '.' ? ',' : '.';
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(NumberTicks, Settings.space == L'’')
+// ----------------------------------------------------------------------------
+//   Select a tick as number separator
+// ----------------------------------------------------------------------------
+{
+    Settings.space = L'’';
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(NumberUnderscore, Settings.space == '_')
+// ----------------------------------------------------------------------------
+//   Select an underscore as number separator
+// ----------------------------------------------------------------------------
+{
+    Settings.space = '_';
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(BasedSpaces,
+                         Settings.space_based == settings::SPACE_DEFAULT)
+// ----------------------------------------------------------------------------
+//   Select a space as based number separator
+// ----------------------------------------------------------------------------
+{
+    Settings.space_based = settings::SPACE_DEFAULT;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(BasedDotOrComma,
+                         Settings.space_based == '.'
+                         || Settings.space_based == ',')
+// ----------------------------------------------------------------------------
+//   Select a dot or comma as based number separator
+// ----------------------------------------------------------------------------
+{
+    Settings.space_based = Settings.decimal_mark == '.' ? ',' : '.';
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(BasedTicks, Settings.space_based == L'’')
+// ----------------------------------------------------------------------------
+//   Select a tick as based number separator
+// ----------------------------------------------------------------------------
+{
+    Settings.space_based = L'’';
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(BasedUnderscore, Settings.space_based == '_')
+// ----------------------------------------------------------------------------
+//   Select an underscore as based number separator
+// ----------------------------------------------------------------------------
+{
+    Settings.space_based = '_';
+    return OK;
+}

@@ -229,4 +229,60 @@ inline uint utf8_length(utf8 text)
     return result;
 }
 
+
+inline void utf8_reverse(byte *start, byte *end, bool multibyte = true)
+// ----------------------------------------------------------------------------
+//   Reverse a utf8-encded string
+// ----------------------------------------------------------------------------
+{
+    byte *first = start;
+    byte *last  = end - 1;
+    while (first < last)
+    {
+        byte tmp = *first;
+        *first   = *last;
+        *last    = tmp;
+        last--;
+        first++;
+    }
+
+    if (multibyte)
+    {
+        for (byte *p = start; p < end; p++)
+        {
+            if (is_utf8_first(*p))
+            {
+                if (p > start && is_utf8_next(p[-1]))
+                {
+                    if (p > start + 1 && is_utf8_next(p[-2]))
+                    {
+                        if (p > start + 2 && is_utf8_next(p[-3]))
+                        {
+                            byte tmp = p[0];
+                            p[0] = p[-3];
+                            p[-3] = tmp;
+                            tmp = p[-1];
+                            p[-1] = p[-2];
+                            p[-2] = tmp;
+                        }
+                        else
+                        {
+                            byte tmp = p[0];
+                            p[0] = p[-2];
+                            p[-2] = tmp;
+                        }
+                    }
+                    else
+                    {
+                        byte tmp = p[0];
+                        p[0] = p[-1];
+                        p[-1] = tmp;
+                    }
+                }
+            }
+        }
+    }
+
+}
+
 #endif // UTF8_H

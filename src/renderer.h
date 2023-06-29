@@ -78,6 +78,7 @@ struct renderer
 
     bool   editing() const              { return edit; }
     bool   equation() const             { return eq; }
+    bool   stack() const                { return flat; }
     file * file_save() const            { return saving; }
     size_t size() const                 { return written; }
     utf8   text() const;

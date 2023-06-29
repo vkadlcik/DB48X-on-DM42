@@ -281,6 +281,20 @@ CMD(StackFontSize)
 CMD(EditorFontSize)
 CMD(EditorMultilineFontSize)
 
+CMD(NumberSpacing)
+CMD(MantissaSpacing)
+CMD(FractionSpacing)
+CMD(BasedSpacing)
+
+CMD(NumberSpaces)
+CMD(NumberDotOrComma)
+CMD(NumberTicks)
+CMD(NumberUnderscore)
+CMD(BasedSpaces)
+CMD(BasedDotOrComma)
+CMD(BasedTicks)
+CMD(BasedUnderscore)
+
 CMD(Modes)
 
 

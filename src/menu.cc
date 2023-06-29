@@ -967,7 +967,22 @@ MENU(ModesMenu,
      "1.0→1.", ID_TrailingDecimal,
      "1.0→1",  ID_NoTrailingDecimal,
 
-     "Fonts",   ID_FontsMenu);
+     "1 000",  ID_NumberSpaces,
+     Settings.decimal_mark == '.' ? "1,000." : "1.000,",  ID_NumberDotOrComma,
+     "1'000",  ID_NumberTicks,
+     "1_000",  ID_NumberUnderscore,
+     "Fonts",  ID_FontsMenu,
+
+     "#1 000", ID_BasedSpaces,
+     Settings.decimal_mark == '.' ? "#1,000" : "#1.000",  ID_BasedDotOrComma,
+     "#1'000", ID_BasedTicks,
+     "#1_000", ID_BasedUnderscore,
+     ID_Modes,
+
+     "NumSpc", ID_NumberSpacing,
+     MantissaSpacing::menu_label, ID_MantissaSpacing,
+     FractionSpacing::menu_label, ID_FractionSpacing,
+     BasedSpacing::menu_label,    ID_BasedSpacing);
 
 MENU(FontsMenu,
      ResultFontSize::menu_label,                ID_ResultFontSize,

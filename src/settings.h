@@ -44,12 +44,31 @@ struct settings
 {
     enum { STD_DISPLAYED = 20 };
 
+    enum
+    {
+        // Try hard to make source code unreadable
+        SPACE_3_PER_EM          = L' ',
+        SPACE_4_PER_EM          = L' ',
+        SPACE_6_PER_EM          = L' ',
+        SPACE_THIN              = L' ',
+        SPACE_MEDIUM_MATH       = L' ',
+
+        SPACE_DEFAULT           = SPACE_MEDIUM_MATH,
+
+        MARK                    = L'●', // L'■'
+    };
+
     settings()
         : precision(BID128_MAXDIGITS),
           display_mode(NORMAL),
           displayed(STD_DISPLAYED),
+          spacing_mantissa(3),
+          spacing_fraction(3),
+          spacing_based(4),
           decimal_mark('.'),
           exponent_mark(L'⁳'),
+          space(SPACE_DEFAULT),
+          space_based(SPACE_DEFAULT),
           standard_exp(9),
           angle_mode(DEGREES),
           base(16),
@@ -119,9 +138,14 @@ struct settings
 public:
     uint16_t precision;         // Internal precision for numbers
     display  display_mode;      // Display mode
-    uint16_t displayed;         // Number of displayed digits
+    uint8_t  displayed;         // Number of displayed digits
+    uint8_t  spacing_mantissa;  // Spacing for the mantissa (0 = none)
+    uint8_t  spacing_fraction;  // Spacing for the fraction (0 = none)
+    uint8_t  spacing_based;     // Spacing for based numbers
     char     decimal_mark;      // Character used for decimal separator
     unicode  exponent_mark;     // The character used to represent exponents
+    unicode  space;             // Space to use for normal numbers
+    unicode  space_based;       // Space to use for based numbers
     uint16_t standard_exp;      // Maximum exponent before switching to sci
     angles   angle_mode;        // Angle mode ( degrees, radians or grads)
     uint8_t  base;              // The default base for #numbers
@@ -165,16 +189,16 @@ struct derived : command                                        \
     static cstring menu_label(menu::info &mi);                  \
 }
 
-#define SETTINGS_COMMAND_BODY(derived, mkr)                     \
-    unicode derived::marker() { return mkr; }                   \
+#define SETTINGS_COMMAND_BODY(derived, mkr)                             \
+    unicode derived::marker() { return mkr ? settings::MARK : 0; }      \
     object::result derived::evaluate()
 
-#define SETTINGS_COMMAND_NOLABEL(derived, mkr)                  \
-    unicode derived::marker() { return mkr; }                   \
-    cstring derived::menu_label(menu::info UNUSED &mi)          \
-    {                                                           \
-        return #derived;                                        \
-    }                                                           \
+#define SETTINGS_COMMAND_NOLABEL(derived, mkr)                          \
+    unicode derived::marker() { return mkr ? settings::MARK : 0; }      \
+    cstring derived::menu_label(menu::info UNUSED &mi)                  \
+    {                                                                   \
+        return #derived;                                                \
+    }                                                                   \
     object::result derived::evaluate()
 
 #define SETTINGS_COMMAND_LABEL(derived)                         \
@@ -220,5 +244,19 @@ SETTINGS_COMMAND_DECLARE(ResultFontSize);
 SETTINGS_COMMAND_DECLARE(StackFontSize);
 SETTINGS_COMMAND_DECLARE(EditorFontSize);
 SETTINGS_COMMAND_DECLARE(EditorMultilineFontSize);
+
+COMMAND_DECLARE(NumberSpacing);
+SETTINGS_COMMAND_DECLARE(MantissaSpacing);
+SETTINGS_COMMAND_DECLARE(FractionSpacing);
+SETTINGS_COMMAND_DECLARE(BasedSpacing);
+
+SETTINGS_COMMAND_DECLARE(NumberSpaces);
+SETTINGS_COMMAND_DECLARE(NumberDotOrComma);
+SETTINGS_COMMAND_DECLARE(NumberTicks);
+SETTINGS_COMMAND_DECLARE(NumberUnderscore);
+SETTINGS_COMMAND_DECLARE(BasedSpaces);
+SETTINGS_COMMAND_DECLARE(BasedDotOrComma);
+SETTINGS_COMMAND_DECLARE(BasedTicks);
+SETTINGS_COMMAND_DECLARE(BasedUnderscore);
 
 #endif // SETTINGS_H

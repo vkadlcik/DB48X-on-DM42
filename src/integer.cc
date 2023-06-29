@@ -277,11 +277,16 @@ OBJECT_PARSER_BODY(integer)
         else
             s--;
 
-        // Check if we parse a fraction
-        number = big ? object_p(bresult) : rt.make<integer>(type, result);
+        // Create the intermediate result, which may GC
+        {
+            gcutf8 gs = s;
+            number = big ? object_p(bresult) : rt.make<integer>(type, result);
+            s = gs;
+        }
         if (!number)
             return ERROR;
 
+        // Check if we parse a fraction
         if (is_fraction)
         {
             is_fraction = false;

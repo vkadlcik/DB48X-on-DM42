@@ -661,3 +661,24 @@ cstring menu_item_description(uint8_t          menu_id,
 
     return ln;
 }
+
+
+void power_off()
+// ----------------------------------------------------------------------------
+//   Power off the calculator
+// ----------------------------------------------------------------------------
+{
+    SET_ST(STAT_PGM_END);
+}
+
+
+void system_setup()
+// ----------------------------------------------------------------------------
+//   Invoke the system setup
+// ----------------------------------------------------------------------------
+{
+    SET_ST(STAT_MENU);
+    handle_menu(&application_menu, MENU_RESET, 0);
+    CLR_ST(STAT_MENU);
+    wait_for_key_release(-1);
+}

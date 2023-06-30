@@ -277,6 +277,16 @@ void input::clear_help()
 }
 
 
+void input::clear_menu()
+// ----------------------------------------------------------------------------
+//   Clear the menu
+// ----------------------------------------------------------------------------
+{
+    menuObject = nullptr;
+    menus(0, nullptr, nullptr);
+}
+
+
 bool input::key(int key, bool repeating)
 // ----------------------------------------------------------------------------
 //   Process an input key
@@ -308,29 +318,6 @@ bool input::key(int key, bool repeating)
             RT.clear_error();
         else if (key)
             beep(2200, 75);
-        return true;
-    }
-
-    // Hard-code OFF
-    if (shift && key == KEY_EXIT)
-    {
-        // Power off
-        SET_ST(STAT_PGM_END);
-        shift = false;          // Make sure we don't have shift when waking up
-        last = 0;
-        clear_help();           // Otherwise shutdown images don't work
-        return true;
-    }
-
-    // Hard-code system menu
-    // REVISIT: Shit should probably just be a regular RPL function
-    if (!alpha && shift && key == KEY_0)
-    {
-        SET_ST(STAT_MENU);
-        handle_menu(&application_menu, MENU_RESET, 0);
-        CLR_ST(STAT_MENU);
-        wait_for_key_release(-1);
-        shift = false;
         return true;
     }
 
@@ -2026,6 +2013,9 @@ bool input::handle_editing(int key)
         }
         case KEY_EXIT:
             // Clear error if there is one, else clear editor
+            if (shift || xshift)
+                return false;
+
             if (RT.error())
                 RT.clear_error();
             else
@@ -2101,9 +2091,10 @@ bool input::handle_editing(int key)
             }
             break;
         case KEY_EXIT:
-            if (shift)
-                SET_ST(STAT_PGM_END);
+            if (shift || xshift)
+                return false;
             alpha = false;
+            clear_menu();
             return true;
         case KEY_DOWN:
             // Key down to edit last object on stack
@@ -2374,8 +2365,8 @@ static const byte defaultShiftedCommand[2*input::NUM_KEYS] =
     OP2BYTES(KEY_2,     0),
     OP2BYTES(KEY_3,     menu::ID_ProgramMenu),
     OP2BYTES(KEY_SUB,   menu::ID_IOMenu),
-    OP2BYTES(KEY_EXIT,  0),
-    OP2BYTES(KEY_0,     0),
+    OP2BYTES(KEY_EXIT,  command::ID_Off),
+    OP2BYTES(KEY_0,     command::ID_SystemSetup),
     OP2BYTES(KEY_DOT,   0),
     OP2BYTES(KEY_RUN,   0),
     OP2BYTES(KEY_ADD,   menu::ID_Catalog),

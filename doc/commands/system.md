@@ -106,6 +106,11 @@ Force a garbage collection
 ## USBFWUPDATE
 
 
-## OFF
+## PowerOff (OFF)
+
 Turn calculator off programmatically
 
+
+## SystemSetup
+
+Display the built-in system setup

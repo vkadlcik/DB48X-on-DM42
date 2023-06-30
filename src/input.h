@@ -124,6 +124,7 @@ struct input
 
     uint        shift_plane()   { return xshift ? 2 : shift ? 1 : 0; }
     void        clear_help();
+    void        clear_menu();
     object_p    object_for_key(int key);
     void        edit(unicode c, modes m);
     result      edit(utf8 s, size_t len, modes m, int off = 0);

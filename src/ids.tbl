@@ -224,6 +224,8 @@ CMD(HomeDirectory)
 CMD(Ticks)
 CMD(Depth)
 
+
+
 // ============================================================================
 //
 //    Loops
@@ -355,7 +357,6 @@ MENU(TimeMenu)
 MENU(PlotMenu)
 
 
-
 // ============================================================================
 //
 //   Special menus and menu commands
@@ -364,6 +365,8 @@ MENU(PlotMenu)
 
 CMD(VariablesMenu)
 CMD(Catalog)
+NAMED(Off, "PowerOff")
+CMD(SystemSetup)
 
 CMD(Unimplemented)
 #define LAST_COMMAND            ID_Unimplemented

@@ -61,7 +61,7 @@ static void redraw_lcd()
 // ----------------------------------------------------------------------------
 {
     uint period = 60000;
-    uint now = sys_current_ms();
+    uint now    = sys_current_ms();
 
     // Draw the header
     Screen.fill(0, 0, LCD_W, HeaderFont->height() + 1, pattern::black);
@@ -80,7 +80,7 @@ static void redraw_lcd()
     }
     Input.draw_error();
 
-    // Refres the screen
+    // Refresh the screen
     lcd_refresh_lines(0, LCD_H);
 
     // Refresh screen moving elements after 0.1s
@@ -94,8 +94,10 @@ static void redraw_periodics()
 //   Redraw the elements that move
 // ----------------------------------------------------------------------------
 {
-    uint period = 60000;         // Default refresh is one minute
-    uint now = sys_current_ms();
+    uint period      = 60000; // Default refresh is one minute
+    uint now         = sys_current_ms();
+    uint dawdle_time = now - last_keystroke_time;
+    bool dawdling    = dawdle_time > 10000;
 
     int cy = Input.draw_cursor(now, period, false);
     if (cy >= 0)
@@ -107,16 +109,15 @@ static void redraw_periodics()
     if (cy >= 0)
         lcd_refresh_lines(cy, LCD_H - cy);
 
-    uint dawdle_time = sys_current_ms() - last_keystroke_time;
-    if (dawdle_time > 180000)           // If inactive for 3 minutes
+    // Slow things down if inactive for long enough
+    if (dawdling)                       // If inactive for 3 minutes
         period = 60000;                 // Only upate screen every minute
     else if (dawdle_time > 60000)       // If inactive for 1 minute
         period = 10000;                 // Onlyi update screen every 10s
-    if (dawdle_time > 10000)            // If inactive for 10 seconds
+    else if (dawdle_time > 10000)       // If inactive for 10 seconds
         period = 3000;                  // Only upate screen every 3 second
 
     // Refresh screen moving elements after 0.1s
-    sys_timer_disable(TIMER1);
     sys_timer_start(TIMER1, period);
 }
 
@@ -134,10 +135,6 @@ static void handle_key(int key, bool repeating)
     // Key repeat timer
     if (Input.repeating())
         sys_timer_start(TIMER0, repeating ? 80 : 500);
-
-    // Refresh screen moving elements after 0.1s
-    sys_timer_disable(TIMER1);
-    sys_timer_start(TIMER1, 100);
 }
 
 
@@ -243,19 +240,30 @@ extern "C" void program_main()
                 lcd_set_buf_cleared(0); // Mark no buffer change region
                 draw_power_off_image(0);
 
-                LCD_power_off(0);
+                sys_critical_start();
                 SET_ST(STAT_SUSPENDED);
+                LCD_power_off(0);
                 SET_ST(STAT_OFF);
+                sys_critical_end();
             }
             // Already in OFF -> just continue to sleep above
             continue;
         }
 
+        // Check power change or wakeup
+        if (ST(STAT_CLK_WKUP_FLAG))
+        {
+            CLR_ST(STAT_CLK_WKUP_FLAG);
+            continue;
+        }
+        if (ST(STAT_POWER_CHANGE))
+        {
+            CLR_ST(STAT_POWER_CHANGE);
+            continue;
+        }
+
         // Well, we are woken-up
         SET_ST(STAT_RUNNING);
-
-        // We definitely reached active state, clear suspended flag
-        CLR_ST(STAT_SUSPENDED);
 
         // Get up from OFF state
         if (ST(STAT_OFF))
@@ -268,9 +276,14 @@ extern "C" void program_main()
             CLR_ST(STAT_OFF);
 
             // Check if we need to redraw
-            if (!lcd_get_buf_cleared())
+            if (lcd_get_buf_cleared())
+                redraw_lcd();
+            else
                 lcd_forced_refresh();
         }
+
+        // We definitely reached active state, clear suspended flag
+        CLR_ST(STAT_SUSPENDED);
 
         // Key is ready -> clear auto off timer
         bool hadKey = false;
@@ -299,13 +312,9 @@ extern "C" void program_main()
         {
             handle_key(key, repeating);
 
-            // Redraw the LCD
+            // Redraw the LCD unless there is some type-ahead
             if (key_empty())
                 redraw_lcd();
-
-            // If user is typing, we can GC to keep other things fast
-            // ... very bad idea: slows everything down a lot
-            // runtime::RT.gc();
 
             // Record the last keystroke
             last_keystroke_time = sys_current_ms();

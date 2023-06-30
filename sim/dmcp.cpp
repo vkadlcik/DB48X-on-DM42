@@ -737,6 +737,14 @@ void sys_sleep()
     CLR_ST(STAT_SUSPENDED | STAT_OFF | STAT_PGM_END);
 }
 
+void sys_critical_start()
+{
+}
+
+void sys_critical_end()
+{
+}
+
 void sys_timer_disable(int timer_ix)
 {
     timers[timer_ix].enabled = false;

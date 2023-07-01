@@ -30,6 +30,6 @@
 // ****************************************************************************
 
 #define PROGRAM_NAME    "DB48X"
-#define PROGRAM_VERSION "0.0.1"
+#define PROGRAM_VERSION DB48X_VERSION
 
 #endif // MAIN_H

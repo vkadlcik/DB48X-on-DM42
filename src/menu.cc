@@ -563,7 +563,8 @@ MENU(ProgramMenu,
 
      "Objects", ID_ObjectMenu,
      "Lists",   ID_ListMenu,
-     "Flags",   ID_FlagsMenu);
+     "Flags",   ID_FlagsMenu,
+                ID_Version);
 
 
 MENU(TestsMenu,

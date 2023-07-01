@@ -224,7 +224,25 @@ COMMAND(HomeDirectory)
         if (RT.push(dir))
             return OK;
     return ERROR;
+}
 
+
+COMMAND(Version)
+// ----------------------------------------------------------------------------
+//   Return a version string
+// ----------------------------------------------------------------------------
+{
+    const utf8 version_text = (utf8)
+        "DB48X " DB48X_VERSION "\n"
+        "A modern implementation of\n"
+        "Reverse Polish Lisp (RPL)\n"
+        "and a tribute to\n"
+        "Bill Hewlett and Dave Packard\n"
+        "© 2022-2023 Christophe de Dinechin";
+    if (text_g version = text::make(version_text))
+        if (RT.push(object_p(version)))
+            return OK;
+    return ERROR;
 }
 
 #endif // COMMAND_H

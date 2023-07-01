@@ -33,6 +33,7 @@ CRCFIX = $(TOOLS)/forcecrc32/forcecrc32
 FLASH=$(BUILD)/$(TARGET)_flash.bin
 QSPI =$(BUILD)/$(TARGET)_qspi.bin
 
+VERSION=$(shell git describe --dirty=Z | sed -e 's/^v//g')
 
 
 #==============================================================================
@@ -162,6 +163,7 @@ DEFINES += \
 	DECIMAL_GLOBAL_ROUNDING_ACCESS_FUNCTIONS \
 	DECIMAL_GLOBAL_EXCEPTION_FLAGS \
 	DECIMAL_GLOBAL_EXCEPTION_FLAGS_ACCESS_FUNCTIONS \
+	DB48X_VERSION=\"$(VERSION)\" \
 	$(DEFINES_$(OPT))
 DEFINES_debug=DEBUG
 DEFINES_release=RELEASE

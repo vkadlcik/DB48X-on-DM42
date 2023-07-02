@@ -282,7 +282,40 @@ inline void utf8_reverse(byte *start, byte *end, bool multibyte = true)
             }
         }
     }
+}
 
+
+inline bool utf8_whitespace(unicode cp)
+// ----------------------------------------------------------------------------
+//   Check if something is a whitespace
+// ----------------------------------------------------------------------------
+{
+    return cp == ' ' || cp == '\n' || cp == '\t';
+}
+
+
+inline size_t utf8_skip_whitespace(utf8 &s, size_t size = ~0U)
+// ----------------------------------------------------------------------------
+//   Skip whitespace at given string
+// ----------------------------------------------------------------------------
+//   Since we only have ASCII whitespace for now, can use ++ safely
+{
+    size_t skipped = 0;
+    while (skipped < size && utf8_whitespace(*s))
+    {
+        s++;
+        skipped++;
+    }
+    return skipped;
+}
+
+
+inline bool utf8_more(utf8 start, utf8 current, size_t size)
+// ----------------------------------------------------------------------------
+//   Check if we have more input to process
+// ----------------------------------------------------------------------------
+{
+    return size_t(current - start) < size;
 }
 
 #endif // UTF8_H

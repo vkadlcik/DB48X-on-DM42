@@ -162,7 +162,7 @@ object::result loop::object_parser(id       type,
 
     // Loop over the two or three separators
     for (uint step = 0;
-         step < steps && size_t(utf8(src) - utf8(p.source)) < max;
+         step < steps && utf8_more(p.source, src, max);
          step++)
     {
         cstring  sep   = cstring(separators[step]);
@@ -171,11 +171,11 @@ object::result loop::object_parser(id       type,
         scribble scr   = rt;
 
         // Scan the body of the loop
-        while (!found && size_t(utf8(src) - utf8(p.source)) < max)
+        while (!found && utf8_more(p.source, src, max))
         {
             // Skip spaces
             unicode cp = utf8_codepoint(src);
-            if (cp == ' ' || cp == '\n' || cp == '\t')
+            if (utf8_whitespace(cp))
             {
                 src = utf8_next(src);
                 continue;

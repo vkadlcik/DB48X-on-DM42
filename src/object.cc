@@ -120,13 +120,7 @@ object_p object::parse(utf8 source, size_t &size, int precedence, runtime &rt)
            source, precedence, NUM_IDS);
 
     // Skip spaces and newlines
-    size_t skipped = 0;
-    while (skipped < size
-           && (*source == ' ' || *source == '\n' || *source == '\t'))
-    {
-        source++;
-        skipped++;
-    }
+    size_t skipped = utf8_skip_whitespace(source);
     if (skipped >= size)
         return nullptr;
 

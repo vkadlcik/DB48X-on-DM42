@@ -42,6 +42,7 @@ struct comparison : arithmetic
     static result condition(bool &value, object_p cond);
     static result compare(int *cmp, object_p left, object_p right);
     static result compare(comparison_fn cmp);
+    static result is_same(bool derefNames);
 
     template <typename Cmp> static result evaluate();
 };
@@ -85,5 +86,8 @@ COMPARISON_DECLARE(TestNE, cmp != 0);
 struct TestSame;
 template <> object::result comparison::evaluate<TestSame>();
 COMPARISON_DECLARE(TestSame, cmp == 0);
+struct same;
+template <> object::result comparison::evaluate<same>();
+COMPARISON_DECLARE(same, cmp == 0);
 
 #endif // COMPARE_H

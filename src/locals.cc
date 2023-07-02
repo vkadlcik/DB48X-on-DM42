@@ -399,9 +399,7 @@ object::result local::evaluate(runtime &rt) const
 //   Evaluate a local by fetching it from locals area and putting it on stack
 // ----------------------------------------------------------------------------
 {
-    byte_p p = payload();
-    uint index = leb128(p);
-    if (gcobj obj = rt.local(index))
+    if (gcobj obj = recall(rt))
         if (rt.push(obj))
             return OK;
     return ERROR;
@@ -413,9 +411,7 @@ object::result local::execute(runtime &rt) const
 //   Execute a local by fetching it from locals and executing it
 // ----------------------------------------------------------------------------
 {
-    byte_p p = payload();
-    uint index = leb128(p);
-    if (gcobj obj = rt.local(index))
+    if (gcobj obj = recall(rt))
         return obj->execute(rt);
     return ERROR;
 }

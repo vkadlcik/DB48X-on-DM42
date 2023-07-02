@@ -142,3 +142,26 @@ symbol_g operator+(symbol_g x, symbol_g y)
     }
     return concat;
 }
+
+
+object_p symbol::recall(bool noerror, runtime &rt) const
+// ----------------------------------------------------------------------------
+//   Recall the value associated with the symbol
+// ----------------------------------------------------------------------------
+{
+    directory *dir = rt.variables(0);
+    if (object_p found = dir->recall(this))
+        return found;
+    return noerror ? this : nullptr;
+}
+
+
+bool symbol::store(gcobj value, runtime &rt) const
+// ----------------------------------------------------------------------------
+//   Store something in the value associated with the symbol
+// ----------------------------------------------------------------------------
+{
+    directory *dir = rt.variables(0);
+    gcobj name = this;
+    return dir->store(name, value);
+}

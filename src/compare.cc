@@ -33,6 +33,7 @@
 #include "decimal-64.h"
 #include "decimal128.h"
 #include "integer.h"
+#include "locals.h"
 
 object::result comparison::condition(bool &value, object_p cond)
 // ----------------------------------------------------------------------------
@@ -81,7 +82,7 @@ object::result comparison::evaluate()
 //   The actual evaluation for all binary operators
 // ----------------------------------------------------------------------------
 {
-        return compare(Cmp::make_result);
+    return compare(Cmp::make_result);
 }
 
 
@@ -225,11 +226,12 @@ object::result comparison::compare(comparison_fn comparator)
 }
 
 
-template<>
-object::result comparison::evaluate<TestSame>()
+object::result comparison::is_same(bool names)
 // ----------------------------------------------------------------------------
-//   For "same", we want the same type, no promotion
+//   Check if two objects are strictly identical
 // ----------------------------------------------------------------------------
+//   If 'names' is true, evaluate names (behavior of '==' aka TestSame)
+//   If 'names' is false, do not evaluate names (behavior of 'same')
 {
     object_p y = RT.stack(1);
     object_p x = RT.stack(0);
@@ -240,6 +242,33 @@ object::result comparison::evaluate<TestSame>()
     bool same = false;
     id xt = x->type();
     id yt = y->type();
+
+    if (names && xt != yt)
+    {
+        if (xt == ID_symbol)
+        {
+            x = ((symbol_p) x)->recall();
+            xt = x->type();
+        }
+        else if (xt == ID_local)
+        {
+            x = ((local_p) x)->recall();
+            xt = x->type();
+        }
+
+        if (yt == ID_symbol)
+        {
+            y = ((symbol_p) y)->recall();
+            yt = y->type();
+        }
+        else if (yt == ID_local)
+        {
+            y = ((local_p) y)->recall();
+            yt = y->type();
+        }
+
+    }
+
     if (xt == yt)
     {
         size_t xs = x->size();
@@ -253,6 +282,26 @@ object::result comparison::evaluate<TestSame>()
     if (RT.push(command::static_object(type)))
         return OK;
     return ERROR;
+}
+
+
+    template<>
+object::result comparison::evaluate<TestSame>()
+// ----------------------------------------------------------------------------
+//   For "==", we want the same type, no promotion, but evaluate names
+// ----------------------------------------------------------------------------
+{
+    return is_same(true);
+}
+
+
+template<>
+object::result comparison::evaluate<same>()
+// ----------------------------------------------------------------------------
+//   For "same", we want the same type, no promotion
+// ----------------------------------------------------------------------------
+{
+    return is_same(false);
 }
 
 

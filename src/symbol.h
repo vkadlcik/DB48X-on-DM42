@@ -64,6 +64,9 @@ struct symbol : text
         return RT.make<symbol>(ID_symbol, utf8(s), strlen(s));
     }
 
+    object_p recall(bool noerror = true, runtime &rt = RT) const;
+    bool     store(gcobj obj, runtime &rt = RT) const;
+
     OBJECT_HANDLER(symbol);
     OBJECT_PARSER(symbol);
     OBJECT_RENDERER(symbol);

@@ -64,7 +64,7 @@
   a local name.
  */
 
-#  include "list.h"
+#include "list.h"
 
 
 struct locals : program
@@ -116,6 +116,16 @@ struct local : object
     {
         byte_p p = payload();
         return leb128<size_t>(p);
+    }
+
+    object_p recall(runtime &rt = RT) const
+    {
+        return rt.local(index());
+    }
+
+    bool store(gcobj obj, runtime &rt = RT) const
+    {
+        return rt.local(index(), obj);
     }
 
     result execute(runtime &rt = RT) const;

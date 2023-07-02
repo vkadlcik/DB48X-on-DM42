@@ -118,7 +118,7 @@ object::result list::object_parser(id type,
         }
         if (precedence && (cp == '\'' || cp == ')'))
             break;
-        if (cp == ' ' || cp == '\n' || cp == '\t')
+        if (utf8_whitespace(cp))
         {
             s = utf8_next(s);
             continue;
@@ -329,7 +329,7 @@ object::result list::object_parser(id type,
 
     record(list_parser, "Parsed as %t length %u", object_p(p.out), parsed);
 
-    // Restore the scratchpad
+    // Return success
     return OK;
 }
 

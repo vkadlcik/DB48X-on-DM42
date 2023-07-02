@@ -59,6 +59,7 @@ SOURCES +=                                      \
         ../src/arithmetic.cc                    \
         ../src/functions.cc                     \
         ../src/variables.cc                     \
+        ../src/locals.cc                        \
         ../src/catalog.cc                       \
         ../src/menu.cc                          \
         ../src/list.cc                          \

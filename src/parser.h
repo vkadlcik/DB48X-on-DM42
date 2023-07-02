@@ -54,7 +54,7 @@ struct parser
           precedence(precedence),
           child(true) {}
 
-    public:
+public:
     id          candidate;      // Candidate ID for lookup
     gcutf8      source;         // Text to parse
     size_t      length;         // Length to parse

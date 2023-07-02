@@ -43,6 +43,7 @@
 #include "input.h"
 #include "integer.h"
 #include "list.h"
+#include "locals.h"
 #include "logical.h"
 #include "loops.h"
 #include "menu.h"
@@ -123,6 +124,7 @@ object_p object::parse(utf8 source, size_t &size, int precedence, runtime &rt)
     size_t skipped = utf8_skip_whitespace(source);
     if (skipped >= size)
         return nullptr;
+    size -= skipped;
 
     parser p(source, size, precedence);
     result r   = SKIP;

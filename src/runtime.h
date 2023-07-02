@@ -399,6 +399,7 @@ struct runtime
 
         operator byte  *() const                { return safe; }
         operator byte *&()                      { return safe; }
+        byte *&Safe()                           { return safe; }
         operator bool()                         { return safe != nullptr; }
         operator int()                          = delete;
         gcptr &operator =(const gcptr &o)       { safe = o.safe; return *this; }
@@ -432,6 +433,7 @@ struct runtime
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
         operator Obj *() const          { return (Obj *) safe; }
         operator Obj *&()               { return (Obj *&) safe; }
+        Obj *&Safe()                    { return (Obj *&) safe; }
         Obj operator *() const          { return *((Obj *) safe); }
         Obj &operator *()               { return *((Obj *) safe); }
         Obj *operator ->() const        { return (Obj *) safe; }
@@ -542,6 +544,34 @@ struct runtime
     {
         return Undos - Stack;
     }
+
+
+
+    // ========================================================================
+    //
+    //   Local variables
+    //
+    // ========================================================================
+
+    object_p local(uint index);
+    // ------------------------------------------------------------------------
+    //   Fetch local at given index
+    // ------------------------------------------------------------------------
+
+    bool local(uint index, object_p obj);
+    // ------------------------------------------------------------------------
+    //   Set a local in the local stack
+    // ------------------------------------------------------------------------
+
+    bool locals(size_t count);
+    // ------------------------------------------------------------------------
+    //   Allocate the given number of locals from stack
+    // ------------------------------------------------------------------------
+
+    bool unlocals(size_t count);
+    // ------------------------------------------------------------------------
+    //    Free the number of locals
+    // ------------------------------------------------------------------------
 
 
 

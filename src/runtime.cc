@@ -91,7 +91,7 @@ void runtime::memory(byte *memory, size_t size)
     // Stuff at top of memory
     Returns = HighMem;                          // No return stack
     Directories = Returns - 1;                  // Make room for one path
-    Locals = Returns;                           // No locals
+    Locals = Directories;                       // No locals
     Undos = Locals;                             // No undos
     Stack = Locals;                             // Empty stack
 
@@ -772,7 +772,7 @@ bool runtime::push(gcp<const object> obj)
     ASSERT(obj && "Pushing a NULL object");
 
     // This may cause garbage collection, hence the need to adjust
-    if (available(sizeof(obj)) < sizeof(obj))
+    if (available(sizeof(void *)) < sizeof(void *))
         return false;
     *(--Stack) = obj;
     return true;
@@ -908,6 +908,104 @@ bool runtime::drop(uint count)
     Stack += count;
     return true;
 }
+
+
+
+// ============================================================================
+//
+//   Local variables
+//
+// ============================================================================
+
+object_p runtime::local(uint index)
+// ----------------------------------------------------------------------------
+//   Fetch local at given index
+// ----------------------------------------------------------------------------
+{
+    size_t count = Directories - Locals;
+    if (index >= count)
+    {
+        invalid_local_error();
+        return nullptr;
+    }
+    return Locals[index];
+}
+
+
+bool runtime::local(uint index, object_p obj)
+// ----------------------------------------------------------------------------
+//   Set a local in the local stack
+// ----------------------------------------------------------------------------
+{
+    size_t count = Directories - Locals;
+    if (index >= count)
+    {
+        invalid_local_error();
+        return false;
+    }
+    Locals[index] = obj;
+    return true;
+}
+
+
+bool runtime::locals(size_t count)
+// ----------------------------------------------------------------------------
+//   Allocate the given number of locals from stack
+// ----------------------------------------------------------------------------
+{
+    // We need that many arguments
+    if (count > depth())
+    {
+        missing_argument_error();
+        return false;
+    }
+
+    // Check if we have the memory
+    size_t req = count * sizeof(void *);
+    if (available(req) < req)
+        return false;
+
+    // Move pointers down
+    Stack -= count;
+    Undos -= count;
+    Locals -= count;
+    size_t moving = Locals - Stack;
+    for (size_t i = 0; i < moving; i++)
+        Stack[i] = Stack[i + count];
+
+    // In `→ X Y « X Y - X Y +`, X is level 1 of the stack, Y is level 0
+    for (size_t var = 0; var < count; var++)
+        Locals[count - 1 - var] = *Stack++;
+
+    return true;
+}
+
+
+bool runtime::unlocals(size_t count)
+// ----------------------------------------------------------------------------
+//    Free the given number of locals
+// ----------------------------------------------------------------------------
+{
+    // Sanity check on what we remove
+    if (count > size_t(Directories - Locals))
+    {
+        invalid_local_error();
+        return false;
+    }
+
+    // Move pointers up
+    object_p *oldp = Locals;
+    Stack += count;
+    Undos += count;
+    Locals += count;
+    object_p *newp = Locals;
+    size_t moving = Locals - Stack;
+    for (size_t i = 0; i < moving; i++)
+        *(--newp) = *(--oldp);
+
+    return true;
+}
+
 
 
 

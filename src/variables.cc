@@ -32,6 +32,7 @@
 #include "command.h"
 #include "integer.h"
 #include "list.h"
+#include "locals.h"
 #include "parser.h"
 #include "renderer.h"
 
@@ -394,6 +395,14 @@ COMMAND_BODY(Sto)
     object_p y = RT.stack(1);
     if (x && y)
     {
+        if (x->type() == ID_local)
+        {
+            local_p local = (local_p) x;
+            size_t index = local->index();
+            if (RT.local(index, y))
+                return OK;
+            return ERROR;
+        }
         symbol_p name = x->as_name();
         if (!name)
         {
@@ -422,6 +431,15 @@ COMMAND_BODY(Rcl)
     object_p x = RT.stack(0);
     if (!x)
         return ERROR;
+    if (x->type() == ID_local)
+    {
+        local_p local = (local_p) x;
+        size_t index = local->index();
+        if (gcobj obj = RT.local(index))
+            if (RT.push(obj))
+                return OK;
+        return ERROR;
+    }
     symbol_p name = x->as_name();
     if (!name)
     {

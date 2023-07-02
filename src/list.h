@@ -64,7 +64,7 @@ struct list : text
     OBJECT_PARSER(list);
     OBJECT_RENDERER(list);
 
-protected:
+public:
     // Shared code for parsing and rendering, taking delimiters as input
     intptr_t object_renderer(renderer &r, runtime &rt,
                              unicode open, unicode close) const;

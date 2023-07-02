@@ -59,8 +59,9 @@ install-help: help/$(TARGET).md
 
 sim: sim/simulator.mak sim/gcc111libbid.a recorder/config.h help/$(TARGET).md .ALWAYS
 	cd sim; make -f $(<F)
-sim/simulator.mak: sim/simulator.pro
-	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(OPT)
+sim/simulator.mak: sim/simulator.pro Makefile
+	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(OPT) DEFINES+=DB48X_VERSION=\\\\\\\"$(VERSION)\\\\\\\"
+
 ttf2font: $(TOOLS)/ttf2fonts/ttf2fonts
 $(TOOLS)/ttf2fonts/ttf2fonts: $(TOOLS)/ttf2font/ttf2font.cpp $(TOOLS)/ttf2font/Makefile
 	cd $(TOOLS)/ttf2font; $(MAKE)

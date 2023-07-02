@@ -52,5 +52,7 @@ ERROR(invalid_name,             "Invalid name")
 ERROR(undefined_name,           "Undefined name")
 ERROR(recursion,                "Too many call")
 ERROR(return_without_caller,    "Return without a caller")
+ERROR(invalid_local,            "Invalid local")
+ERROR(malformed_directory,      "Malformed directory")
 
 #undef ERROR

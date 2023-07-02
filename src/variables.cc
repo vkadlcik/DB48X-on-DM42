@@ -118,7 +118,7 @@ OBJECT_PARSER_BODY(directory)
                 // We should have an even number of items here
                 if (count & 1)
                 {
-                    RT.error("Malformed directory").source(body);
+                    RT.malformed_directory_error().source(body);
                     return SKIP;
                 }
 

@@ -33,7 +33,8 @@ CRCFIX = $(TOOLS)/forcecrc32/forcecrc32
 FLASH=$(BUILD)/$(TARGET)_flash.bin
 QSPI =$(BUILD)/$(TARGET)_qspi.bin
 
-VERSION=$(shell git describe --dirty=Z | sed -e 's/^v//g')
+VERSION=$(shell git describe --dirty=Z --abbrev=5| sed -e 's/^v//g' -e 's/-g/-/g')
+VERSION_H=src/dm42/version.h
 
 
 #==============================================================================
@@ -43,7 +44,7 @@ VERSION=$(shell git describe --dirty=Z | sed -e 's/^v//g')
 #==============================================================================
 
 # default action: build all
-all: $(TARGET).pgm help/$(TARGET).md
+all: $(TARGET).pgm help/$(TARGET).md $(VERSION_H)
 
 # installation steps
 install: install-pgm install-qspi install-help
@@ -59,8 +60,8 @@ install-help: help/$(TARGET).md
 
 sim: sim/simulator.mak sim/gcc111libbid.a recorder/config.h help/$(TARGET).md .ALWAYS
 	cd sim; make -f $(<F)
-sim/simulator.mak: sim/simulator.pro Makefile
-	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(OPT) DEFINES+=DB48X_VERSION=\\\\\\\"$(VERSION)\\\\\\\"
+sim/simulator.mak: sim/simulator.pro Makefile $(VERSION_H)
+	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(OPT)
 
 ttf2font: $(TOOLS)/ttf2fonts/ttf2fonts
 $(TOOLS)/ttf2fonts/ttf2fonts: $(TOOLS)/ttf2font/ttf2font.cpp $(TOOLS)/ttf2font/Makefile
@@ -71,6 +72,12 @@ sim/gcc111libbid.a: sim/gcc111libbid-$(shell uname)-$(shell uname -m).a
 dist: all
 	mv build/release/$(TARGET)_qspi.bin  .
 	tar cvfz v$(VERSION).tgz $(TARGET).pgm $(TARGET)_qspi.bin help/ STATE/
+
+$(VERSION_H): Makefile $(BUILD)/version-$(VERSION).h
+	cp $(BUILD)/version-$(VERSION).h $@
+$(BUILD)/version-$(VERSION).h:
+	echo "#define DB48X_VERSION \"$(VERSION)\"" > $@
+
 
 #BASE_FONT=fonts/C43StandardFont.ttf
 BASE_FONT=fonts/FogSans-ddd.ttf
@@ -167,7 +174,6 @@ DEFINES += \
 	DECIMAL_GLOBAL_ROUNDING_ACCESS_FUNCTIONS \
 	DECIMAL_GLOBAL_EXCEPTION_FLAGS \
 	DECIMAL_GLOBAL_EXCEPTION_FLAGS_ACCESS_FUNCTIONS \
-	DB48X_VERSION=\"$(VERSION)\" \
 	$(DEFINES_$(OPT))
 DEFINES_debug=DEBUG
 DEFINES_release=RELEASE

@@ -137,112 +137,16 @@ struct Unimplemented : command
     }
 };
 
-
-COMMAND(Eval)
-// ----------------------------------------------------------------------------
-//   Evaluate an object
-// ----------------------------------------------------------------------------
-{
-    if (object_p x = RT.pop())
-        return x->execute();
-    return ERROR;
-}
-
-COMMAND(True)
-// ----------------------------------------------------------------------------
-//   Evaluate as self
-// ----------------------------------------------------------------------------
-{
-    if (RT.push(command::static_object(ID_True)))
-        return OK;
-    return ERROR;
-}
-
-COMMAND(False)
-// ----------------------------------------------------------------------------
-//   Evaluate as self
-// ----------------------------------------------------------------------------
-{
-    if (RT.push(command::static_object(ID_False)))
-        return OK;
-    return ERROR;
-}
-
-
-COMMAND(ToText)
-// ----------------------------------------------------------------------------
-//   Convert an object to text
-// ----------------------------------------------------------------------------
-{
-    if (gcobj obj = RT.top())
-        if (gcobj txt = obj->as_text(false, false))
-            if (RT.top(txt))
-                return OK;
-    return ERROR;
-}
-
-
-COMMAND_DECLARE(SelfInsert);
-// ----------------------------------------------------------------------------
-//   Insert the label associated to a menu
-// ----------------------------------------------------------------------------
-
-COMMAND_DECLARE(Ticks);
-// ----------------------------------------------------------------------------
-//   Measure number of milliseconds
-// ----------------------------------------------------------------------------
-
-
-COMMAND(Off)
-// ----------------------------------------------------------------------------
-//   Switch the calculator off
-// ----------------------------------------------------------------------------
-{
-    extern void power_off();
-    power_off();
-    return OK;
-}
-
-
-COMMAND(SystemSetup)
-// ----------------------------------------------------------------------------
-//   Select the system menu
-// ----------------------------------------------------------------------------
-{
-    extern void system_setup();
-    system_setup();
-    return OK;
-}
-
-
-COMMAND(HomeDirectory)
-// ----------------------------------------------------------------------------
-//   Return the home directory
-// ----------------------------------------------------------------------------
-{
-    if (gcobj dir = (object *) RT.variables(0))
-        if (RT.push(dir))
-            return OK;
-    return ERROR;
-}
-
-
-COMMAND(Version)
-// ----------------------------------------------------------------------------
-//   Return a version string
-// ----------------------------------------------------------------------------
-{
-    const utf8 version_text = (utf8)
-        "DB48X " DB48X_VERSION "\n"
-        "A modern implementation of\n"
-        "Reverse Polish Lisp (RPL)\n"
-        "and a tribute to\n"
-        "Bill Hewlett and Dave Packard\n"
-        "© 2022-2023 Christophe de Dinechin";
-    if (text_g version = text::make(version_text))
-        if (RT.push(object_p(version)))
-            return OK;
-    return ERROR;
-}
+// Various global commands
+COMMAND_DECLARE(Eval);          // Evaluate an object
+COMMAND_DECLARE(True);          // Evaluate as self
+COMMAND_DECLARE(False);         // Evaluate as self
+COMMAND_DECLARE(ToText);        // Convert an object to text
+COMMAND_DECLARE(SelfInsert);    // Enter menu label in the editor
+COMMAND_DECLARE(Ticks);         // Return number of ticks
+COMMAND_DECLARE(Off);           // Switch the calculator off
+COMMAND_DECLARE(SystemSetup);   // Select the system menu
+COMMAND_DECLARE(HomeDirectory); // Return the home directory
+COMMAND_DECLARE(Version);       // Return a version string
 
 #endif // COMMAND_H

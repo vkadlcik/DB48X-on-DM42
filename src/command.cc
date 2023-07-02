@@ -40,6 +40,7 @@
 #include "settings.h"
 #include "symbol.h"
 #include "utf8.h"
+#include "version.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -317,6 +318,55 @@ bool command::stack(int32_t *result, uint level)
 }
 
 
+
+// ============================================================================
+//
+//   Command implementations
+//
+// ============================================================================
+
+COMMAND_BODY(Eval)
+// ----------------------------------------------------------------------------
+//   Evaluate an object
+// ----------------------------------------------------------------------------
+{
+    if (object_p x = RT.pop())
+        return x->execute();
+    return ERROR;
+}
+
+COMMAND_BODY(True)
+// ----------------------------------------------------------------------------
+//   Evaluate as self
+// ----------------------------------------------------------------------------
+{
+    if (RT.push(command::static_object(ID_True)))
+        return OK;
+    return ERROR;
+}
+
+COMMAND_BODY(False)
+// ----------------------------------------------------------------------------
+//   Evaluate as self
+// ----------------------------------------------------------------------------
+{
+    if (RT.push(command::static_object(ID_False)))
+        return OK;
+    return ERROR;
+}
+
+
+COMMAND_BODY(ToText)
+// ----------------------------------------------------------------------------
+//   Convert an object to text
+// ----------------------------------------------------------------------------
+{
+    if (gcobj obj = RT.top())
+        if (gcobj txt = obj->as_text(false, false))
+            if (RT.top(txt))
+                return OK;
+    return ERROR;
+}
 COMMAND_BODY(SelfInsert)
 // ----------------------------------------------------------------------------
 //   Find the label associated to the menu and enter it in the editor
@@ -343,6 +393,60 @@ COMMAND_BODY(Ticks)
     uint ticks = sys_current_ms();
     if (integer_p ti = RT.make<integer>(ID_integer, ticks))
         if (RT.push(ti))
+            return OK;
+    return ERROR;
+}
+
+
+
+COMMAND_BODY(Off)
+// ----------------------------------------------------------------------------
+//   Switch the calculator off
+// ----------------------------------------------------------------------------
+{
+    extern void power_off();
+    power_off();
+    return OK;
+}
+
+
+COMMAND_BODY(SystemSetup)
+// ----------------------------------------------------------------------------
+//   Select the system menu
+// ----------------------------------------------------------------------------
+{
+    extern void system_setup();
+    system_setup();
+    return OK;
+}
+
+
+COMMAND_BODY(HomeDirectory)
+// ----------------------------------------------------------------------------
+//   Return the home directory
+// ----------------------------------------------------------------------------
+{
+    if (gcobj dir = (object *) RT.variables(0))
+        if (RT.push(dir))
+            return OK;
+    return ERROR;
+}
+
+
+COMMAND_BODY(Version)
+// ----------------------------------------------------------------------------
+//   Return a version string
+// ----------------------------------------------------------------------------
+{
+    const utf8 version_text = (utf8)
+        "DB48X " DB48X_VERSION "\n"
+        "A modern implementation of\n"
+        "Reverse Polish Lisp (RPL)\n"
+        "and a tribute to\n"
+        "Bill Hewlett and Dave Packard\n"
+        "© 2022-2023 Christophe de Dinechin";
+    if (text_g version = text::make(version_text))
+        if (RT.push(object_p(version)))
             return OK;
     return ERROR;
 }

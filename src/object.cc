@@ -121,11 +121,14 @@ object_p object::parse(utf8 source, size_t &size, int precedence, runtime &rt)
 
     // Skip spaces and newlines
     size_t skipped = 0;
-    while (*source == ' ' || *source == '\n' || *source == '\t')
+    while (skipped < size
+           && (*source == ' ' || *source == '\n' || *source == '\t'))
     {
         source++;
         skipped++;
     }
+    if (skipped >= size)
+        return nullptr;
 
     parser p(source, size, precedence);
     result r   = SKIP;

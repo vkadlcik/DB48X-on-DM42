@@ -539,7 +539,7 @@ void runtime::remove(size_t offset, size_t len)
 }
 
 
-utf8 runtime::close_editor()
+utf8 runtime::close_editor(bool convert)
 // ----------------------------------------------------------------------------
 //   Close the editor and encapsulate its content into a string
 // ----------------------------------------------------------------------------
@@ -562,6 +562,7 @@ utf8 runtime::close_editor()
     record(editor, "Closing editor size %u at %p [%s]", Editing, ed, str);
 
     // Write the string header
+    text_p obj = text_p(ed);
     ed = leb128(ed, object::ID_text);
     ed = leb128(ed, Editing + 1);
 
@@ -570,6 +571,14 @@ utf8 runtime::close_editor()
 
     // We are no longer editing
     Editing = 0;
+
+    // Import special characters
+    if (convert)
+    {
+        text_p imported = obj->import();
+        if (imported != obj)
+            str = (char *) imported->value();
+    }
 
     // Return a pointer to a valid C string safely wrapped in a RPL string
     return utf8(str);

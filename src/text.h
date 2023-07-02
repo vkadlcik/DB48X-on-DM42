@@ -101,6 +101,7 @@ struct text : object
         return (utf8) p;
     }
 
+    text_p import() const;      // Import text containing << or >> or ->
 
     OBJECT_HANDLER(text);
     OBJECT_PARSER(text);

@@ -206,7 +206,7 @@ struct runtime
     // ------------------------------------------------------------------------
 
 
-    utf8 close_editor();
+    utf8 close_editor(bool convert = false);
     // ------------------------------------------------------------------------
     //   Close the editor and encapsulate its content in a temporary string
     // ------------------------------------------------------------------------

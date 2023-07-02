@@ -481,7 +481,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
     size_t edlen = rt.editing();
     if (edlen)
     {
-        gcutf8 editor = rt.close_editor();
+        gcutf8 editor = rt.close_editor(true);
         if (editor)
         {
             char ds = Settings.decimal_mark;

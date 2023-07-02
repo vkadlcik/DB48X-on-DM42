@@ -152,3 +152,68 @@ text_g operator*(text_g x, uint y)
     }
     return result;
 }
+
+
+static cstring conversions[] =
+// ----------------------------------------------------------------------------
+//   Conversion from standard ASCII to HP-48 characters
+// ----------------------------------------------------------------------------
+{
+    "<<", "«",
+    ">>", "»",
+    "->", "→"
+};
+
+
+text_p text::import() const
+// ----------------------------------------------------------------------------
+//    Convert text containing sequences such as -> or <<
+// ----------------------------------------------------------------------------
+{
+    text_p   result  = this;
+    size_t   sz      = 0;
+    gcutf8   txt     = value(&sz);
+    gcmbytes replace;
+    scribble scr(RT);
+    size_t   rcount = sizeof(conversions) / sizeof(conversions[0]);
+
+    for (size_t o = 0; o < sz; o++)
+    {
+        bool replaced = false;
+        for (uint r = 0; r < rcount && !replaced; r += 2)
+        {
+            size_t olen = strlen(conversions[r]);
+            if (!strncmp(conversions[r], cstring(txt.Safe()) + o, olen))
+            {
+                size_t rlen = strlen(conversions[r+1]);
+                if (!replace)
+                {
+                    replace = RT.allocate(o);
+                    if (!replace)
+                        return result;
+                    memmove(replace.Safe(), txt.Safe(), o);
+                }
+                byte *cp = RT.allocate(rlen);
+                if (!cp)
+                    return result;
+                memcpy(cp, conversions[r+1], rlen);
+                replaced = true;
+                o += olen-1;
+            }
+        }
+
+        if (!replaced && replace)
+        {
+            byte *cp = RT.allocate(1);
+            if (!cp)
+                return result;
+            *cp = utf8(txt)[o];
+        }
+    }
+
+    if (replace)
+        if (text_p ok = make(replace.Safe(), scr.growth()))
+            result = ok;
+
+    return result;
+}

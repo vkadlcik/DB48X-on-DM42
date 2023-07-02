@@ -28,6 +28,7 @@
 // ****************************************************************************
 
 ERROR(unimplemented,            "Not yet implemented")
+ERROR(missing_argument,         "Too few arguments")
 ERROR(invalid_object,           "Invalid object")
 ERROR(out_of_memory,            "Out of memory")
 ERROR(syntax,                   "Syntax error")
@@ -49,5 +50,7 @@ ERROR(unterminated,             "Unterminated")
 ERROR(no_directory,             "No directory")
 ERROR(invalid_name,             "Invalid name")
 ERROR(undefined_name,           "Undefined name")
+ERROR(recursion,                "Too many call")
+ERROR(return_without_caller,    "Return without a caller")
 
 #undef ERROR

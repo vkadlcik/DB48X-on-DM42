@@ -31,22 +31,32 @@
 //   Layout in memory is as follows
 //
 //      HighMem         End of usable memory
-//        [Pointer to object in local variable N in outermost program]
-//        [ ... ]
-//        [Pointer to object in local variable 1 in outermost program]
-//        [Number of local variables above, may be 0]
-//        [Pointer to next object to evaluate in outermost program]
-//        [... the same as the above for inner objects being evaluated ...]
-//        [Number of local variables in currently evaluating program, may be 0]
-//      Returns         Top of return stack
+//        [Pointer to return address N]
+//        [... intermediate return addresses ...]
+//        [Pointer to return address 0]
+//      Returns
 //        [Pointer to outermost directory in path]
 //        [ ... intermediate directory pointers ...]
 //        [Pointer to innermost directory in path]
-//      StackBottom     Bottom of stack
+//      Directories     Bottom of stack, start of global
+//        [Local N]
+//        [...]
+//        [Local 0]
+//      Locals
+//        [undo N]
+//        [...]
+//        [undo 1, a list captured from the stack]
+//      Undos
 //        [User stack]
-//      StackTop        Top of stack
+//      Stack        Top of stack
+//        .
+//        .
+//        .
 //        [Free, may be temporarily written prior to being put in scratch]
-//      +Scratch        Binary scratch pad (to assemble objects like lists)
+//        .
+//        .
+//        .
+//      Scratch         Binary scratch pad (to assemble objects like lists)
 //        [Scratchpad allocated area]
 //      Editor          The text editor
 //        [Text editor contents]
@@ -57,10 +67,11 @@
 //      LowMem          Bottom of memory
 //
 //   When allocating a temporary, we move 'Temporaries' up
-//   When allocating stuff on the stack, we move StackTop down
-//   Everything above StackTop is word-aligned
+//   When allocating stuff on the stack, we move Stack down
+//   Everything above Stack is word-aligned
 //   Everything below Temporaries is byte-aligned
 //   Stack elements point to temporaries, globals or robjects (read-only)
+//   Everything above Stack is pointers to garbage-collected RPL objects
 
 #include "recorder.h"
 #include "types.h"
@@ -330,7 +341,6 @@ struct runtime
             Scratch = 0;
     }
 
-
     object_p temporary()
     // ------------------------------------------------------------------------
     //   Make a temporary from the scratchpad
@@ -458,6 +468,24 @@ struct runtime
 
     // ========================================================================
     //
+    //   Return stack
+    //
+    // ========================================================================
+
+    void call(gcp<const object> callee);
+    // ------------------------------------------------------------------------
+    //   Push the current object on the RPL stack
+    // ------------------------------------------------------------------------
+
+    void ret();
+    // ------------------------------------------------------------------------
+    //   Return from an RPL call
+    // ------------------------------------------------------------------------
+
+
+
+    // ========================================================================
+    //
     //   Stack
     //
     // ========================================================================
@@ -512,7 +540,7 @@ struct runtime
     //   Return the stack depth
     // ------------------------------------------------------------------------
     {
-        return StackBottom - StackTop;
+        return Undos - Stack;
     }
 
 
@@ -528,28 +556,10 @@ struct runtime
     //   Current directory for global variables
     // ------------------------------------------------------------------------
     {
-        if (depth >= (uint) (Returns - StackBottom))
+        if (depth >= (uint) ((object_p *) Returns - Directories))
             return nullptr;
-        return (directory *) StackBottom[depth];
+        return (directory *) Directories[depth];
     }
-
-
-    // ========================================================================
-    //
-    //   Return stack
-    //
-    // ========================================================================
-
-    void call(gcp<const object> callee);
-    // ------------------------------------------------------------------------
-    //   Push the current object on the RPL stack
-    // ------------------------------------------------------------------------
-
-    void ret();
-    // ------------------------------------------------------------------------
-    //   Return from an RPL call
-    // ------------------------------------------------------------------------
-
 
 
     // ========================================================================
@@ -669,10 +679,12 @@ protected:
     object_p  Temporaries;  // Temporaries (must be valid objects)
     size_t    Editing;      // Text editor (utf8 encoded)
     size_t    Scratch;      // Scratch pad (may be invalid objects)
-    object_p *StackTop;     // Top of user stack
-    object_p *StackBottom;  // Bottom of user stack
-    object_p *Returns;      // Return stack
-    object_p  HighMem;      // Top of available memory
+    object_p *Stack;        // Top of user stack
+    object_p *Undos;        // Start of Undos area, end of stack
+    object_p *Locals;       // Start of locals, end of undos
+    object_p *Directories;  // Start of directories, end of returns
+    object_p *Returns;      // Start of return stack, end of locals
+    object_p *HighMem;      // End of available memory
 
     // Pointers that are GC-adjusted
     static gcptr *GCSafe;
@@ -764,51 +776,6 @@ Obj *runtime::make(const Args &... args)
     // Find the required type for this object
     typename Obj::id type = Obj::static_type();
     return make<Obj>(type, args...);
-}
-
-
-template<typename T, typename ...Args>
-byte *runtime::append(const T& t, Args... args)
-// ------------------------------------------------------------------------
-//   Append multiple objects to the scratchpad
-// ------------------------------------------------------------------------
-{
-    byte *first = append(t);
-    if (first && append(args...))
-        return first;
-    return nullptr;         // One of the allocations failed
-}
-
-
-template <typename Int>
-byte *runtime::encode(Int value)
-// ------------------------------------------------------------------------
-//   Add an LEB128-encoded value to the scratchpad
-// ------------------------------------------------------------------------
-{
-    size_t sz = leb128size(value);
-    byte *ptr = allocate(sz);
-    if (ptr)
-        leb128(ptr, value);
-    return ptr;
-}
-
-
-template <typename Int, typename ...Args>
-byte *runtime::encode(Int value, Args... args)
-// ------------------------------------------------------------------------
-//   Add an LEB128-encoded value to the scratchpad
-// ------------------------------------------------------------------------
-{
-    size_t sz = leb128size(value);
-    byte *ptr = allocate(sz);
-    if (ptr)
-    {
-        leb128(ptr, value);
-        if (!encode(args...))
-            return nullptr;
-    }
-    return ptr;
 }
 
 

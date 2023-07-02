@@ -68,8 +68,10 @@ runtime::runtime(byte *mem, size_t size)
       Temporaries(),
       Editing(),
       Scratch(),
-      StackTop(),
-      StackBottom(),
+      Stack(),
+      Undos(),
+      Locals(),
+      Directories(),
       Returns(),
       HighMem()
 {
@@ -84,22 +86,23 @@ void runtime::memory(byte *memory, size_t size)
 // ----------------------------------------------------------------------------
 {
     LowMem = (object_p) memory;
-    HighMem = (object_p) (memory + size);
+    HighMem = (object_p *) (memory + size);
 
     // Stuff at top of memory
-    Returns = (object_p*) HighMem - 1;                  // Locals for top level
-    *Returns = (object_p) 0;                            // 0 local variables
-    StackBottom = (object_p*) Returns - 1;
-    StackTop = (object_p*) StackBottom;                 // Empty stack
+    Returns = HighMem;                          // No return stack
+    Directories = Returns - 1;                  // Make room for one path
+    Locals = Returns;                           // No locals
+    Undos = Locals;                             // No undos
+    Stack = Locals;                             // Empty stack
 
     // Stuff at bottom of memory
     Globals = LowMem;
     directory_p home = new((void *) Globals) directory();   // Home directory
-    *StackBottom = (object_p) home;                     // Current search path
-    Globals = home->skip();                             // Globals after home
-    Temporaries = Globals;                              // Area for temporaries
-    Editing = 0;                                        // No editor
-    Scratch = 0;                                        // No scratchpad
+    *Directories = (object_p) home;             // Current search path
+    Globals = home->skip();                     // Globals after home
+    Temporaries = Globals;                      // Area for temporaries
+    Editing = 0;                                // No editor
+    Scratch = 0;                                // No scratchpad
 
     record(runtime, "Memory %p-%p size %u (%uK)",
            LowMem, HighMem, size, size>>10);
@@ -111,7 +114,7 @@ void runtime::reset()
 //   Reset the runtime to initial state
 // ----------------------------------------------------------------------------
 {
-    memory((byte *) LowMem, HighMem - LowMem);
+    memory((byte *) LowMem, (byte_p) HighMem - (byte_p) LowMem);
 }
 
 
@@ -129,7 +132,7 @@ size_t runtime::available()
 // ----------------------------------------------------------------------------
 {
     size_t aboveTemps = Editing + Scratch + redzone;
-    return (byte *) StackTop - (byte *) Temporaries - aboveTemps;
+    return (byte *) Stack - (byte *) Temporaries - aboveTemps;
 }
 
 
@@ -143,7 +146,7 @@ size_t runtime::available(size_t size)
         gc();
         size_t avail = available();
         if (avail < size)
-            error("Out of memory");
+            out_of_memory_error();
         return avail;
     }
     return size;
@@ -192,7 +195,7 @@ bool runtime::integrity_test()
 // ----------------------------------------------------------------------------
 {
     runtime &rt = runtime::RT;
-    return integrity_test(rt.Globals,rt.Temporaries,rt.StackTop,rt.StackBottom);
+    return integrity_test(rt.Globals,rt.Temporaries,rt.Stack,rt.Returns);
 }
 
 
@@ -239,7 +242,7 @@ void runtime::dump_object_list(cstring  message)
 {
     runtime &rt = runtime::RT;
     dump_object_list(message,
-                     rt.Globals, rt.Temporaries, rt.StackTop, rt.StackBottom);
+                     rt.Globals, rt.Temporaries, rt.Stack, rt.Returns);
 }
 
 
@@ -299,31 +302,33 @@ size_t runtime::gc()
     record(gc, "Garbage collection, available %u, range %p-%p",
            available(), first, last);
 #ifdef SIMULATOR
-    if (!integrity_test(first, last, StackTop, StackBottom))
+    if (!integrity_test(first, last, Stack, Returns))
     {
         record(gc_errors, "Integrity test failed pre-collection");
         RECORDER_TRACE(gc) = 1;
         dump_object_list("Pre-collection failure",
-                         first, last, StackTop, StackBottom);
-        integrity_test(first, last, StackTop, StackBottom);
+                         first, last, Stack, Returns);
+        integrity_test(first, last, Stack, Returns);
         recorder_dump();
     }
     if (RECORDER_TRACE(gc) > 1)
         dump_object_list("Pre-collection",
-                         first, last, StackTop, StackBottom);
+                         first, last, Stack, Returns);
 #endif // SIMULATOR
 
+    object_p *firstobjptr = Stack;
+    object_p *lastobjptr = HighMem;
     for (object_p obj = first; obj < last; obj = next)
     {
         bool found = false;
         next = obj->skip();
         record(gc_details, "Scanning object %p (ends at %p)", obj, next);
-        for (object_p *s = StackTop; s < StackBottom && !found; s++)
+        for (object_p *s = firstobjptr; s < lastobjptr && !found; s++)
         {
             found = *s >= obj && *s < next;
             if (found)
                 record(gc_details, "Found %p at stack level %u",
-                       obj, s - StackTop);
+                       obj, s - firstobjptr);
         }
         if (!found)
         {
@@ -375,18 +380,18 @@ size_t runtime::gc()
 
 
 #ifdef SIMULATOR
-    if (!integrity_test(Globals, Temporaries, StackTop, StackBottom))
+    if (!integrity_test(Globals, Temporaries, Stack, Returns))
     {
         record(gc_errors, "Integrity test failed post-collection");
         RECORDER_TRACE(gc) = 2;
         dump_object_list("Post-collection failure",
-                         first, last, StackTop, StackBottom);
+                         first, last, Stack, Returns);
         recorder_dump();
     }
     if (RECORDER_TRACE(gc) > 1)
         dump_object_list("Post-collection",
                          (object_p) Globals, Temporaries,
-                         StackTop, StackBottom);
+                         Stack, Returns);
 #endif // SIMULATOR
 
     record(gc, "Garbage collection done, purged %u, available %u",
@@ -412,7 +417,7 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
     memmove((byte *) to, (byte *) from, size);
 
     // Adjust the protected pointers
-    object_p last = scratch ? (object_p) StackTop : from + size;
+    object_p last = scratch ? (object_p) Stack : from + size;
     record(gc_details, "Adjustment range is %p-%p, %+s",
            from, last, scratch ? "scratch" : "no scratch");
     for (gcptr *p = GCSafe; p; p = p->next)
@@ -430,12 +435,14 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
         return;
 
     // Adjust the stack pointers
-    for (object_p *s = StackTop; s < StackBottom; s++)
+    object_p *firstobjptr = Stack;
+    object_p *lastobjptr = Returns;
+    for (object_p *s = firstobjptr; s < lastobjptr; s++)
     {
         if (*s >= from && *s < last)
         {
             record(gc_details, "Adjusting stack level %u from %p to %p",
-                   s - StackTop, *s, *s + delta);
+                   s - firstobjptr, *s, *s + delta);
             *s += delta;
         }
     }
@@ -661,7 +668,9 @@ object_p runtime::clone_global(object_p global)
 // ----------------------------------------------------------------------------
 {
     object_p cloned = nullptr;
-    for (object_p *s = StackTop; s < StackBottom; s++)
+    object_p *begin = Stack;
+    object_p *end = Returns;
+    for (object_p *s = begin; s < end; s++)
     {
         if (*s == global)
         {
@@ -688,7 +697,7 @@ object_p runtime::clone_if_dynamic(object_p obj)
 //     stay in memory until you use another menu, which is wasteful, since the
 //     command-line used to load the whole state may be quite large
 {
-    if (obj >= LowMem && obj <= HighMem)
+    if (obj >= LowMem && obj <= object_p(HighMem))
         obj = clone(obj);
     return obj;
 }
@@ -765,7 +774,7 @@ bool runtime::push(gcp<const object> obj)
     // This may cause garbage collection, hence the need to adjust
     if (available(sizeof(obj)) < sizeof(obj))
         return false;
-    *(--StackTop) = obj;
+    *(--Stack) = obj;
     return true;
 }
 
@@ -775,12 +784,12 @@ object_p runtime::top()
 //   Return the top of the runtime stack
 // ----------------------------------------------------------------------------
 {
-    if (StackTop >= StackBottom)
+    if (Stack >= Undos)
     {
-        error("Too few arguments");
+        missing_argument_error();
         return nullptr;
     }
-    return *StackTop;
+    return *Stack;
 }
 
 
@@ -791,12 +800,12 @@ bool runtime::top(object_p obj)
 {
     ASSERT(obj && "Putting a NULL object on top of stack");
 
-    if (StackTop >= StackBottom)
+    if (Stack >= Undos)
     {
-        error("Too few arguments");
+        missing_argument_error();
         return false;
     }
-    *StackTop = obj;
+    *Stack = obj;
     return true;
 }
 
@@ -806,12 +815,12 @@ object_p runtime::pop()
 //   Pop the top-level object from the stack, or return NULL
 // ----------------------------------------------------------------------------
 {
-    if (StackTop >= StackBottom)
+    if (Stack >= Undos)
     {
-        error("Too few arguments");
+        missing_argument_error();
         return nullptr;
     }
-    return *StackTop++;
+    return *Stack++;
 }
 
 
@@ -822,10 +831,10 @@ object_p runtime::stack(uint idx)
 {
     if (idx >= depth())
     {
-        error("Too few arguments");
+        missing_argument_error();
         return nullptr;
     }
-    return StackTop[idx];
+    return Stack[idx];
 }
 
 
@@ -836,10 +845,10 @@ bool runtime::stack(uint idx, object_p obj)
 {
     if (idx >= depth())
     {
-        error("Too few arguments");
+        missing_argument_error();
         return false;
     }
-    StackTop[idx] = obj;
+    Stack[idx] = obj;
     return true;
 }
 
@@ -854,12 +863,12 @@ bool runtime::roll(uint idx)
         idx--;
         if (idx >= depth())
         {
-            error("Too few arguments");
+            missing_argument_error();
             return false;
         }
-        object_p s = StackTop[idx];
-        memmove(StackTop + 1, StackTop, idx * sizeof(*StackTop));
-        *StackTop = s;
+        object_p s = Stack[idx];
+        memmove(Stack + 1, Stack, idx * sizeof(*Stack));
+        *Stack = s;
     }
     return true;
 }
@@ -875,12 +884,12 @@ bool runtime::rolld(uint idx)
         idx--;
         if (idx >= depth())
         {
-            error("Too few arguments");
+            missing_argument_error();
             return false;
         }
-        object_p s = *StackTop;
-        memmove(StackTop, StackTop + 1, idx * sizeof(*StackTop));
-        StackTop[idx] = s;
+        object_p s = *Stack;
+        memmove(Stack, Stack + 1, idx * sizeof(*Stack));
+        Stack[idx] = s;
     }
     return true;
 }
@@ -893,10 +902,10 @@ bool runtime::drop(uint count)
 {
     if (count > depth())
     {
-        error("Too few arguments");
+        missing_argument_error();
         return false;
     }
-    StackTop += count;
+    Stack += count;
     return true;
 }
 
@@ -915,12 +924,12 @@ void runtime::call(gcp<const object> callee)
 {
     if (available(sizeof(callee)) < sizeof(callee))
     {
-        error("Too many calls");
+        recursion_error();
         return;
     }
-    StackTop--;
-    StackBottom--;
-    for (object_p *s = StackBottom; s < StackTop; s++)
+    Stack--;
+    Locals--;
+    for (object_p *s = Locals; s < Stack; s++)
         s[0] = s[1];
     *(--Returns) = Code;
     Code = callee;
@@ -934,13 +943,13 @@ void runtime::ret()
 {
     if ((byte *) Returns >= (byte *) HighMem)
     {
-        error("Return without a caller");
+        return_without_caller_error();
         return;
     }
     Code = *Returns++;
-    StackTop++;
-    StackBottom++;
-    for (object_p *s = StackTop; s > StackTop; s--)
+    Stack++;
+    Locals++;
+    for (object_p *s = Stack; s > Stack; s--)
         s[0] = s[-1];
 }
 

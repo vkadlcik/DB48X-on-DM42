@@ -293,26 +293,9 @@ struct runtime
     // ------------------------------------------------------------------------
 
 
-    byte *append(size_t sz, byte *bytes);
+    byte *append(size_t sz, byte_p bytes);
     // ------------------------------------------------------------------------
     //   Append some bytes at end of scratch pad
-    // ------------------------------------------------------------------------
-
-
-    template<typename T>
-    byte *append(const T& t)
-    // ------------------------------------------------------------------------
-    //   Append an object to the scratchpad
-    // ------------------------------------------------------------------------
-    {
-        return append(sizeof(t), &t);
-    }
-
-
-    template<typename T, typename ...Args>
-    byte *append(const T& t, Args... args);
-    // ------------------------------------------------------------------------
-    //   Append multiple objects to the scratchpad
     // ------------------------------------------------------------------------
 
 

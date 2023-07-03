@@ -642,7 +642,7 @@ byte *runtime::allocate(size_t sz)
 }
 
 
-byte *runtime::append(size_t sz, byte *bytes)
+byte *runtime::append(size_t sz, byte_p bytes)
 // ----------------------------------------------------------------------------
 //   Append some bytes at end of scratch pad
 // ----------------------------------------------------------------------------

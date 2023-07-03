@@ -55,9 +55,9 @@ struct list : text
         return text::required_memory(i, bytes, len);
     }
 
-    static list *make(byte_p bytes, size_t len)
+    static list *make(gcbytes bytes, size_t len)
     {
-        return (list *) text::make(bytes, len);
+        return RT.make<list>(bytes, len);
     }
 
     OBJECT_HANDLER(list);

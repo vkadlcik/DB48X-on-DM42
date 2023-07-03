@@ -227,6 +227,7 @@ CMD(HomeDirectory)
 
 CMD(Ticks)
 CMD(Depth)
+NAMED(ToList, "→List")
 
 
 

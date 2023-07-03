@@ -939,3 +939,48 @@ OBJECT_RENDERER_BODY(array)
 {
     return list::object_renderer(r, rt, '[', ']');
 }
+
+
+
+// ============================================================================
+//
+//   Command implementation
+//
+// ============================================================================
+
+COMMAND_BODY(ToList)
+// ----------------------------------------------------------------------------
+//   Convert elements to a list
+// ----------------------------------------------------------------------------
+{
+    uint32_t depth = 0;
+    if (stack(&depth))
+    {
+        if (RT.depth() < depth + 1)
+        {
+            RT.missing_argument_error();
+            return ERROR;
+        }
+
+        if (RT.pop())
+        {
+            scribble scr(RT);
+            for (uint i = 0; i < depth; i++)
+            {
+                if (gcobj obj = RT.stack(depth - 1 - i))
+                {
+                    size_t objsz = obj->size();
+                    byte_p objp = byte_p(obj);
+                    if (!RT.append(objsz, objp))
+                        return ERROR;
+                }
+            }
+            gcobj list = list::make(scr.scratch(), scr.growth());
+            if (!RT.drop(depth))
+                return ERROR;
+            if (RT.push(list))
+                return OK;
+        }
+    }
+    return ERROR;
+}

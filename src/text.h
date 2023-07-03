@@ -65,7 +65,7 @@ struct text : object
     static text *make(utf8 str, size_t len)
     {
         gcutf8 gcstr = str;
-        return RT.make<text>(gcstr, len);
+        return rt.make<text>(gcstr, len);
     }
 
     static text *make(utf8 str)
@@ -80,7 +80,7 @@ struct text : object
 
     size_t length() const
     {
-        byte *p = payload();
+        byte_p p = payload();
         return leb128<size_t>(p);
     }
 
@@ -94,7 +94,7 @@ struct text : object
 
     utf8 value(size_t *size = nullptr) const
     {
-        byte  *p   = payload();
+        byte_p p   = payload();
         size_t len = leb128<size_t>(p);
         if (size)
             *size = len;
@@ -103,9 +103,11 @@ struct text : object
 
     text_p import() const;      // Import text containing << or >> or ->
 
-    OBJECT_HANDLER(text);
-    OBJECT_PARSER(text);
-    OBJECT_RENDERER(text);
+public:
+    OBJECT_DECL(text);
+    PARSE_DECL(text);
+    SIZE_DECL(text);
+    RENDER_DECL(text);
 };
 
 typedef const text     *text_p;

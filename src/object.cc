@@ -59,8 +59,6 @@
 #include <stdio.h>
 
 
-runtime &object::RT = runtime::RT;
-
 RECORDER(object,         16, "Operations on objects");
 RECORDER(parse,          16, "Parsing objects");
 RECORDER(parse_attempts,256, "Attempts parsing an object");
@@ -71,45 +69,34 @@ RECORDER(object_errors,  16, "Runtime errors on objects");
 RECORDER(assert_error,   16, "Assertion failures");
 
 
-// Define dummy opcode classes
-#define OPCODE(n)       struct n : object {};
-#define ID(n)
-#include "ids.tbl"
-
-
-const object::handler_fn object::handler[NUM_IDS] =
+const object::dispatch object::handler[NUM_IDS] =
 // ----------------------------------------------------------------------------
-//   The list of all possible handler
+//   Table of handlers for each object type
 // ----------------------------------------------------------------------------
 {
-#define ID(id)  [ID_##id] = (handler_fn) id::object_handler,
+#define ID(id)          NAMED(id,#id)
+#define CMD(id)         ID(id)
+#define NAMED(id, label)                                        \
+    [ID_##id] = {                                               \
+        .name        = #id,                                     \
+        .fancy       = label,                                   \
+        .size        = (size_fn)        id::do_size,            \
+        .parse       = (parse_fn)       id::do_parse,           \
+        .help        = (help_fn)        id::do_help,            \
+        .evaluate    = (evaluate_fn)    id::do_evaluate,        \
+        .execute     = (execute_fn)     id::do_execute,         \
+        .render      = (render_fn)      id::do_render,          \
+        .insert      = (insert_fn)      id::do_insert,          \
+        .menu        = (menu_fn)        id::do_menu,            \
+        .menu_marker = (menu_marker_fn) id::do_menu_marker,     \
+        .arity       = id::ARITY,                               \
+        .precedence  = id::PRECEDENCE                           \
+    },
 #include "ids.tbl"
 };
 
 
-const cstring object::id_name[NUM_IDS] =
-// ----------------------------------------------------------------------------
-//   The long name of all objects or commands
-// ----------------------------------------------------------------------------
-{
-#define ID(id)                  #id,
-#include "ids.tbl"
-};
-
-
-const cstring object::fancy_name[NUM_IDS] =
-// ----------------------------------------------------------------------------
-//   The long name of all objects or commands
-// ----------------------------------------------------------------------------
-{
-#define ID(id)                  #id,
-#define CMD(id)                 #id,
-#define NAMED(id, name)         name,
-#include "ids.tbl"
-};
-
-
-object_p object::parse(utf8 source, size_t &size, int precedence, runtime &rt)
+object_p object::parse(utf8 source, size_t &size, int precedence)
 // ----------------------------------------------------------------------------
 //  Try parsing the object as a top-level temporary
 // ----------------------------------------------------------------------------
@@ -138,7 +125,7 @@ object_p object::parse(utf8 source, size_t &size, int precedence, runtime &rt)
         uint candidate = (i + ID_symbol + 1) % NUM_IDS;
         p.candidate = id(candidate);
         record(parse_attempts, "Trying [%s] against %+s", src, name(id(i)));
-        r = (result) handler[candidate](rt, PARSE, &p, nullptr, nullptr);
+        r = handler[candidate].parse(p);
         if (r != SKIP)
             record(parse_attempts, "Result for ID %+s was %+s (%d) for [%s]",
                    name(p.candidate), name(r), r, utf8(p.source));
@@ -157,47 +144,34 @@ object_p object::parse(utf8 source, size_t &size, int precedence, runtime &rt)
     if (r == SKIP)
     {
         if (err)
-            RT.error(err).source(src);
+            rt.error(err).source(src);
         else
-            RT.syntax_error().source(p.source);
+            rt.syntax_error().source(p.source);
     }
 
     return r == OK ? p.out : nullptr;
 }
 
 
-size_t object::render(char *output, size_t length, runtime &rt) const
+size_t object::render(char *output, size_t length) const
 // ----------------------------------------------------------------------------
 //   Render the object in a text buffer
 // ----------------------------------------------------------------------------
 {
     record(render, "Rendering %+s %p into %p", name(), this, output);
     renderer r(output, length);
-    return run(RENDER, rt, &r);
+    return render(r);
 }
 
 
-size_t object::render(renderer &r, runtime &rt) const
-// ----------------------------------------------------------------------------
-//   Render the object in a text buffer
-// ----------------------------------------------------------------------------
-{
-    record(render, "Rendering %+s %p into existing %p", name(), this, &r);
-    size_t pre = r.size();
-    size_t sz = run(RENDER, rt, &r);
-    record(render, "Rendered %+s as size %u [%s]", name(), sz, r.text() + pre);
-    return sz;
-}
-
-
-cstring object::edit(runtime &rt) const
+cstring object::edit() const
 // ----------------------------------------------------------------------------
 //   Render an object into the scratchpad, then move it into editor
 // ----------------------------------------------------------------------------
 {
     record(render, "Rendering %+s %p into editor", name(), this);
     renderer r;
-    size_t size = run(RENDER, rt, &r);
+    size_t size = render(r);
     record(render, "Rendered %+s as size %u [%s]", name(), size, r.text());
     if (size)
         rt.edit();
@@ -205,7 +179,7 @@ cstring object::edit(runtime &rt) const
 }
 
 
-text_p object::as_text(bool edit, bool equation, runtime &rt) const
+text_p object::as_text(bool edit, bool equation) const
 // ----------------------------------------------------------------------------
 //   Render an object into a text
 // ----------------------------------------------------------------------------
@@ -215,7 +189,7 @@ text_p object::as_text(bool edit, bool equation, runtime &rt) const
 
     record(render, "Rendering %+s %p into text", name(), this);
     renderer r(equation, edit);
-    size_t size = run(RENDER, rt, &r);
+    size_t size = render(r);
     record(render, "Rendered %+s as size %u [%s]", name(), size, r.text());
     if (!size)
         return nullptr;
@@ -242,61 +216,92 @@ void object::object_error(id type, object_p ptr)
 }
 
 
-OBJECT_HANDLER_BODY(object)
+
+// ============================================================================
+//
+//   Default implementations for the object protocol
+//
+// ============================================================================
+
+PARSE_BODY(object)
 // ----------------------------------------------------------------------------
-//   Default handler for object
+//   By default, cannot parse an object
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        rt.invalid_object_error();
-        return ERROR;
-    case SIZE:
-        return payload - obj;
-    case PARSE:
-        // Default is to not be parseable
-        return SKIP;
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case INSERT:
-        return ((input *) arg)->edit(obj->fancy(), input::PROGRAM);
-    case HELP:
-        return (intptr_t) "Unknown";
-    case MENU_MARKER:
-        return 0;
-    case ARITY:
-        return SKIP;
-    case PRECEDENCE:
-        return algebraic::UNKNOWN;
-    default:
-        return SKIP;
-    }
+    return SKIP;
 }
 
 
-OBJECT_PARSER_BODY(object)
+HELP_BODY(object)
 // ----------------------------------------------------------------------------
-//   Parser for the object type
+//   Default help topic for an object is the fancy name
 // ----------------------------------------------------------------------------
-//   This would only be called if a derived class forgets to implement a parser
 {
-    p.out = nullptr;
-    p.end = 0;
-    rt.invalid_object_error().source(p.source);
-    return ERROR;
+    return o->fancy();
 }
 
 
-OBJECT_RENDERER_BODY(object)
+EVAL_BODY(object)
 // ----------------------------------------------------------------------------
-//   Render the object to buffer starting at begin
+//   Show an error if we attempt to evaluate an object
 // ----------------------------------------------------------------------------
-//   Returns number of bytes needed - If larger than end - begin, retry
 {
-    rt.invalid_object_error();
-    return r.printf("<Unknown %p>", this);
+    return rt.push(o) ? OK : ERROR;
+}
+
+
+EXEC_BODY(object)
+// ----------------------------------------------------------------------------
+//   The default execution is to evaluate
+// ----------------------------------------------------------------------------
+{
+    return o->evaluate();
+}
+
+
+SIZE_BODY(object)
+// ----------------------------------------------------------------------------
+//   The default size is just the ID
+// ----------------------------------------------------------------------------
+{
+    return ptrdiff(o->payload(), o);
+}
+
+
+RENDER_BODY(object)
+// ----------------------------------------------------------------------------
+//  The default for rendering is to print a pointer
+// ----------------------------------------------------------------------------
+{
+    r.printf("Internal:%s[%p]", name(o->type()), o);
+    return r.size();
+}
+
+
+INSERT_BODY(object)
+// ----------------------------------------------------------------------------
+//   Default insertion is as a program object
+// ----------------------------------------------------------------------------
+{
+    return i.edit(o->fancy(), i.PROGRAM);
+}
+
+
+MENU_BODY(object)
+// ----------------------------------------------------------------------------
+//   No operation on menus by default
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
+MARKER_BODY(object)
+// ----------------------------------------------------------------------------
+//   No menu marker by default
+// ----------------------------------------------------------------------------
+{
+    return 0;
 }
 
 
@@ -347,7 +352,7 @@ int object::as_truth() const
     case ID_decimal32:
         return !decimal32_p(this)->is_zero();
     default:
-        RT.type_error();
+        rt.type_error();
     }
     return -1;
 }
@@ -360,7 +365,7 @@ cstring object::debug() const
 // ----------------------------------------------------------------------------
 {
     renderer r(false, true, true);
-    run(object::RENDER, runtime::RT, &r);
+    render(r);
     r.put(char(0));
     return cstring(r.text());
 }
@@ -398,7 +403,7 @@ cstring debug(uint level)
 //   Read a stack level
 // ----------------------------------------------------------------------------
 {
-    if (gcobj obj = runtime::RT.stack(level))
+    if (gcobj obj = rt.stack(level))
     {
         // We call both the gcobj and object * variants so linker keeps them
         if (cstring result = obj->debug())

@@ -64,8 +64,6 @@ RECORDER(help,  16, "On-line help");
 
 #define NUM_TOPICS      (sizeof(topics) / sizeof(topics[0]))
 
-runtime &input::RT = runtime::RT;
-
 input::input()
 // ----------------------------------------------------------------------------
 //   Initialize the input
@@ -122,13 +120,13 @@ void input::edit(unicode c, modes m)
 // ----------------------------------------------------------------------------
 {
     // If already editing, keep current mode
-    if (RT.editing())
+    if (rt.editing())
         m = mode;
 
     byte utf8buf[4];
     uint savec = cursor;
     size_t len = utf8_encode(c, utf8buf);
-    cursor += RT.insert(cursor, utf8buf, len);
+    cursor += rt.insert(cursor, utf8buf, len);
 
     // Test delimiters
     unicode closing = 0;
@@ -144,12 +142,12 @@ void input::edit(unicode c, modes m)
     }
     if (closing)
     {
-        byte *ed = RT.editor();
+        byte *ed = rt.editor();
         if (mode == PROGRAM || mode == ALGEBRAIC || mode == DIRECT)
             if (savec > 0 && ed[savec] != ' ')
-                cursor += RT.insert(savec, ' ');
+                cursor += rt.insert(savec, ' ');
         len = utf8_encode(closing, utf8buf);
-        RT.insert(cursor, utf8buf, len);
+        rt.insert(cursor, utf8buf, len);
     }
 
     mode = m;
@@ -161,21 +159,21 @@ object::result input::edit(utf8 text, size_t len, modes m, int offset)
 //   Enter the given text on the command line
 // ----------------------------------------------------------------------------
 {
-    bool editing = RT.editing();
-    byte *ed = RT.editor();
+    bool editing = rt.editing();
+    byte *ed = rt.editor();
 
     if (!editing)
         cursor = 0;
     else if ((mode != ALGEBRAIC || m != ALGEBRAIC) && ed[cursor] != ' ')
-        cursor += RT.insert(cursor, ' ');
+        cursor += rt.insert(cursor, ' ');
 
-    size_t added = RT.insert(cursor, text, len);
+    size_t added = rt.insert(cursor, text, len);
     cursor += added;
 
     if (mode != ALGEBRAIC || m != ALGEBRAIC)
-        cursor += RT.insert(cursor, ' ');
+        cursor += rt.insert(cursor, ' ');
     else
-        cursor += RT.insert(cursor, utf8("()"), 2) - 1;
+        cursor += rt.insert(cursor, utf8("()"), 2) - 1;
 
     // Offset from beginning or end of inserted text
     if (offset > 0 && cursor > len)
@@ -207,12 +205,12 @@ bool input::end_edit()
     xshift  = false;
     last    = 0;
     clear_help();
-    RT.clear_error();
+    rt.clear_error();
 
-    size_t edlen = RT.editing();
+    size_t edlen = rt.editing();
     if (edlen)
     {
-        gcutf8 editor = RT.close_editor();
+        gcutf8 editor = rt.close_editor();
         if (editor)
         {
             gcp<const program> cmds = program::parse(editor, edlen);
@@ -225,11 +223,11 @@ bool input::end_edit()
             else
             {
                 // Move cursor to error if there is one
-                utf8 pos = RT.source();
+                utf8 pos = rt.source();
                 utf8 ed = editor;
                 if (pos >= editor && pos <= ed + edlen)
                     cursor = pos - ed;
-                if (!RT.edit(ed, edlen))
+                if (!rt.edit(ed, edlen))
                     cursor = 0;
                 beep(3300, 100);
                 return false;
@@ -246,7 +244,7 @@ void input::clear_editor()
 //   Clear the editor either after edit, or when pressing EXIT
 // ----------------------------------------------------------------------------
 {
-    RT.clear();
+    rt.clear();
     cursor    = 0;
     xoffset   = 0;
     alpha     = false;
@@ -303,7 +301,6 @@ bool input::key(int key, bool repeating)
     if (key == tests::CLEAR)
     {
         clear_editor();
-        runtime &rt = runtime::RT;
         while (rt.depth())
             rt.pop();
         rt.clear_error();
@@ -311,11 +308,11 @@ bool input::key(int key, bool repeating)
     }
 #endif // SIMULATOR
 
-    if (RT.error())
+    if (rt.error())
     {
         if (key == KEY_EXIT || key == KEY_ENTER || key == KEY_BSP ||
             key == KEY_UP || key == KEY_DOWN)
-            RT.clear_error();
+            rt.clear_error();
         else if (key)
             beep(2200, 75);
         return true;
@@ -330,7 +327,7 @@ bool input::key(int key, bool repeating)
         handle_functions(key) ||
         key == 0;
 
-    if (RT.editing())
+    if (rt.editing())
         updateMode();
 
     if (!skey && last != KEY_SHIFT)
@@ -376,7 +373,7 @@ void input::updateMode()
 //   Scan the command line to check what the state is at the cursor
 // ----------------------------------------------------------------------------
 {
-    utf8 ed    = RT.editor();
+    utf8 ed    = rt.editor();
     utf8 last  = ed + cursor;
     uint progs = 0;
     uint lists = 0;
@@ -428,7 +425,7 @@ void input::menu(menu_p menu, uint page)
 //   Set menu and page
 // ----------------------------------------------------------------------------
 {
-    menuObject = runtime::RT.clone_if_dynamic(menu);
+    menuObject = rt.clone_if_dynamic(menu);
     menuPage = page;
     if (menu)
         menu->update(page);
@@ -825,7 +822,7 @@ int input::draw_battery(uint time, uint &period, bool force)
     // Temporary - Display some internal information
     static unsigned counter = 0;
     snprintf(buffer, sizeof(buffer), "%c %uR %uB %uB", longpress ? 'L' : ' ',
-             counter++, (uint) RT.available(),
+             counter++, (uint) rt.available(),
              sys_free_mem());
     Screen.fill(50, 0, 200, HeaderFont->height() + 1, pattern::black);
     Screen.text(50, 1, utf8(buffer), HeaderFont, pattern::white);
@@ -841,8 +838,8 @@ void input::draw_editor()
 // ----------------------------------------------------------------------------
 {
     // Get the editor area
-    utf8   ed   = RT.editor();
-    size_t len  = RT.editing();
+    utf8   ed   = rt.editor();
+    size_t len  = rt.editing();
     utf8   last = ed + len;
 
     if (!len)
@@ -949,7 +946,7 @@ void input::draw_editor()
 
     // Draw the area that fits on the screen
     int  lineHeight      = font->height();
-    int  errorHeight     = RT.error() ? LCD_H / 3 : 0;
+    int  errorHeight     = rt.error() ? LCD_H / 3 : 0;
     int  top             = HeaderFont->height() + errorHeight + 2;
     int  bottom          = LCD_H - menuHeight;
     int  availableHeight = bottom - top;
@@ -1035,7 +1032,7 @@ int input::draw_cursor(uint time, uint &period, bool force)
 //   This function returns the cursor vertical position for screen refresh
 {
     // Do not draw if not editing or if help is being displayed
-    if (!RT.editing() || showingHelp())
+    if (!rt.editing() || showingHelp())
         return -1;
 
     static uint lastT = 0;
@@ -1048,9 +1045,9 @@ int input::draw_cursor(uint time, uint &period, bool force)
         blink = true;
 
     // Select editor font
-    utf8   ed     = RT.editor();
+    utf8   ed     = rt.editor();
     font_p edFont = Settings.editor_font();
-    size_t len    = RT.editing();
+    size_t len    = rt.editing();
     utf8   last   = ed + len;
     uint   rows   = 1;
     for (utf8 p = ed; p < last; p = utf8_next(p))
@@ -1127,7 +1124,7 @@ void input::draw_command()
 //   Draw the current command
 // ----------------------------------------------------------------------------
 {
-    if (command && !RT.error())
+    if (command && !rt.error())
     {
         font_p font = HelpCodeFont;
         size   w = font->width(command);
@@ -1145,7 +1142,7 @@ void input::draw_error()
 //   Draw the error message if there is one
 // ----------------------------------------------------------------------------
 {
-    if (utf8 err = RT.error())
+    if (utf8 err = rt.error())
     {
         const int border = 4;
         coord     top    = HeaderFont->height() + 10;
@@ -1162,7 +1159,7 @@ void input::draw_error()
         r.inset(2);
 
         Screen.clip(r);
-        if (utf8 cmd = RT.command())
+        if (utf8 cmd = rt.command())
         {
             coord x = Screen.text(r.x1, r.y1, cmd, ErrorFont);
             Screen.text(x, r.y1, utf8(" error:"), ErrorFont);
@@ -1266,7 +1263,7 @@ void input::load_help(utf8 topic)
     {
         static char buffer[50];
         snprintf(buffer, sizeof(buffer), "No help for %s", topic);
-        RT.error(buffer);
+        rt.error(buffer);
     }
 }
 
@@ -1677,7 +1674,7 @@ bool input::noHelpForKey(int key)
 //   Return true if key requires immediate action, no help displayed
 // ----------------------------------------------------------------------------
 {
-    bool editing  = RT.editing();
+    bool editing  = rt.editing();
 
     // Show help for Duplicate and Drop only if not editing
     if (key == KEY_ENTER || key == KEY_BSP)
@@ -1718,7 +1715,7 @@ bool input::handle_help(int &key)
     if (!showingHelp())
     {
         // Exit if we are editing or entering digits
-        bool editing  = RT.editing();
+        bool editing  = rt.editing();
         if (last == KEY_SHIFT)
             return false;
 
@@ -1742,7 +1739,7 @@ bool input::handle_help(int &key)
                     {
                         helpfile.open(HELPFILE_NAME);
                         load_help(htopic);
-                        if (RT.error())
+                        if (rt.error())
                         {
                             key  = 0; // Do not execute a function if no help
                             last = 0;
@@ -1913,7 +1910,7 @@ bool input::handle_editing(int key)
 // ----------------------------------------------------------------------------
 {
     bool   consumed = false;
-    size_t editing  = RT.editing();
+    size_t editing  = rt.editing();
 
     // Some editing keys that do not depend on data entry mode
     if (!alpha)
@@ -1964,17 +1961,17 @@ bool input::handle_editing(int key)
             if (shift && cursor < editing)
             {
                 // Shift + Backspace = Delete to right of cursor
-                utf8 ed              = RT.editor();
+                utf8 ed              = rt.editor();
                 uint after           = utf8_next(ed, cursor, editing);
-                RT.remove(cursor, after - cursor);
+                rt.remove(cursor, after - cursor);
             }
             else if (!shift && cursor > 0)
             {
                 // Backspace = Erase on left of cursor
-                utf8 ed      = RT.editor();
+                utf8 ed      = rt.editor();
                 uint before  = cursor;
                 cursor       = utf8_previous(ed, cursor);
-                RT.remove(cursor, before - cursor);
+                rt.remove(cursor, before - cursor);
             }
             else
             {
@@ -1983,7 +1980,7 @@ bool input::handle_editing(int key)
                 beep(4400, 50);
             }
             // Do not stop editing if we delete last character
-            if (!RT.editing())
+            if (!rt.editing())
                 edit(' ', DIRECT);
             last = 0;
             return true;
@@ -2016,8 +2013,8 @@ bool input::handle_editing(int key)
             if (shift || xshift)
                 return false;
 
-            if (RT.error())
-                RT.clear_error();
+            if (rt.error())
+                rt.clear_error();
             else
                 clear_editor();
             return true;
@@ -2034,7 +2031,7 @@ bool input::handle_editing(int key)
             }
             else if (cursor > 0)
             {
-                utf8 ed = RT.editor();
+                utf8 ed = rt.editor();
                 cursor  = utf8_previous(ed, cursor);
             }
             else
@@ -2055,7 +2052,7 @@ bool input::handle_editing(int key)
             }
             else if (cursor < editing)
             {
-                utf8 ed = RT.editor();
+                utf8 ed = rt.editor();
                 cursor = utf8_next(ed, cursor, editing);
             }
             else
@@ -2100,9 +2097,9 @@ bool input::handle_editing(int key)
             // Key down to edit last object on stack
             if (!shift && !xshift && !alpha)
             {
-                if (RT.depth())
+                if (rt.depth())
                 {
-                    if (object_p obj = RT.pop())
+                    if (object_p obj = rt.pop())
                     {
                         obj->edit();
                         return true;
@@ -2123,7 +2120,7 @@ bool input::handle_alpha(int key)
 //    Handle alphabetic input
 // ----------------------------------------------------------------------------
 {
-    bool editing = RT.editing();
+    bool editing = rt.editing();
     bool hex = editing && mode == HEXADECIMAL && key >= KB_A && key <= KB_F;
     if (!alpha || !key || ((key == KEY_ENTER || key == KEY_BSP) && !xshift) ||
         (key >= KEY_F1 && key <= KEY_F6))
@@ -2207,12 +2204,12 @@ bool input::handle_digits(int key)
         "_123_"
         "_0.__";
 
-    if (RT.editing())
+    if (rt.editing())
     {
         if (key == KEY_CHS)
         {
             // Special case for change of sign
-            byte    *ed = RT.editor();
+            byte    *ed = rt.editor();
             utf8 p      = ed + cursor;
             unicode  c  = 0;
             while (p > ed)
@@ -2231,7 +2228,7 @@ bool input::handle_digits(int key)
             if (c             == '-' || c == '+')
                 *((byte *) p)  = '+' + '-' - c;
             else
-                cursor        += RT.insert(p - ed, '-');
+                cursor        += rt.insert(p - ed, '-');
             last               = 0;
             return true;
         }
@@ -2239,7 +2236,7 @@ bool input::handle_digits(int key)
         {
             byte   buf[4];
             size_t sz  = utf8_encode(Settings.exponent_mark, buf);
-            cursor    += RT.insert(cursor, buf, sz);
+            cursor    += rt.insert(cursor, buf, sz);
             last       = 0;
             return true;
         }
@@ -2486,7 +2483,7 @@ bool input::handle_functions(int key)
         evaluating = key;
         object::id ty = obj->type();
         bool imm = ty >= object::FIRST_IMMEDIATE && ty <= object::LAST_COMMAND;
-        if (RT.editing() && !imm)
+        if (rt.editing() && !imm)
         {
             if (key == KEY_ENTER || key == KEY_BSP)
                 return false;
@@ -2497,7 +2494,7 @@ bool input::handle_functions(int key)
                 size_t size  = 0;
                 if (currentWord(start, size))
                 {
-                    RT.remove(start, size);
+                    rt.remove(start, size);
                     cursor = start;
                 }
             }
@@ -2506,12 +2503,12 @@ bool input::handle_functions(int key)
             {
             case PROGRAM:
                 if (obj->is_command())
-                    return obj->insert(this) != object::ERROR;
+                    return obj->insert(*this) != object::ERROR;
                 break;
 
             case ALGEBRAIC:
                 if (obj->is_algebraic())
-                    return obj->insert(this) != object::ERROR;
+                    return obj->insert(*this) != object::ERROR;
                 break;
 
             default:
@@ -2540,7 +2537,7 @@ bool input::currentWord(size_t &start, size_t &size)
     utf8 sed = nullptr;
     bool result = currentWord(sed, size);
     if (result)
-        start = sed - RT.editor();
+        start = sed - rt.editor();
     return result;
 }
 
@@ -2550,9 +2547,9 @@ bool input::currentWord(utf8 &start, size_t &size)
 //   Find the word under the cursor in the editor, if there is one
 // ----------------------------------------------------------------------------
 {
-    if (size_t sz = RT.editing())
+    if (size_t sz = rt.editing())
     {
-        byte *ed = RT.editor();
+        byte *ed = rt.editor();
         uint  c  = cursor;
         c = utf8_previous(ed, c);
         while (c > 0 && !command::is_separator_or_digit(ed + c))

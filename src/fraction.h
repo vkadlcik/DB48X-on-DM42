@@ -65,7 +65,7 @@ struct fraction : object
         : object(type)
     {
         // This is written so that it works with integer_g and bignum_g
-        byte *p = payload();
+        byte *p = (byte *) payload();
         byte_p np = n->payload();
         byte_p dp = d->payload();
         size_t ns = n->skip() - object_p(np);
@@ -84,27 +84,18 @@ struct fraction : object
             + d->size() - leb128size(d->type());
     }
 
-    size_t size(byte_p payload) const
-    // ------------------------------------------------------------------------
-    //   Return the size of an LEB128-encoded fraction
-    // ------------------------------------------------------------------------
-    {
-        // LEB-128 encoded numerator and denominator
-        size_t ns = leb128size(payload);
-        payload += ns;
-        size_t ds = leb128size(payload);
-        payload += ds;
-        return payload - byte_p(this);
-    }
-
     bignum_g numerator() const;
     bignum_g denominator() const;
     integer_g numerator(int) const;
     integer_g denominator(int) const;
 
     static fraction_g make(integer_g n, integer_g d);
-    OBJECT_HANDLER(fraction);
-    OBJECT_RENDERER(fraction);
+
+public:
+    OBJECT_DECL(fraction);
+    SIZE_DECL(fraction);
+    RENDER_DECL(fraction);
+    PREC_DECL(MULTIPLICATIVE);
 };
 
 
@@ -115,13 +106,10 @@ struct neg_fraction : fraction
 {
     neg_fraction(integer_g num, integer_g den, id type = ID_neg_fraction)
         : fraction(num, den, type) {}
-    OBJECT_HANDLER(neg_fraction)
-    {
-        if (op == RENDER)
-            return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-        return DELEGATE(fraction);
-    }
-    OBJECT_RENDERER(neg_fraction);
+
+public:
+    OBJECT_DECL(neg_fraction);
+    RENDER_DECL(neg_fraction);
 };
 
 struct big_fraction : fraction
@@ -149,24 +137,13 @@ struct big_fraction : fraction
 
     static fraction_g make(bignum_g n, bignum_g d);
 
-    size_t size(byte_p payload) const
-    // ------------------------------------------------------------------------
-    //   Return the size of a fraction
-    // ------------------------------------------------------------------------
-    {
-        // Bignum-encoded numerator and denominator
-        size_t ns = leb128<size_t>(payload);
-        payload += ns;
-        size_t ds = leb128<size_t>(payload);
-        payload += ds;
-        return payload - byte_p(this);
-    }
-
     bignum_g numerator() const;
     bignum_g denominator() const;
 
-    OBJECT_HANDLER(big_fraction);
-    OBJECT_RENDERER(big_fraction);
+public:
+    OBJECT_DECL(big_fraction);
+    SIZE_DECL(big_fraction);
+    RENDER_DECL(big_fraction);
 };
 
 
@@ -177,13 +154,9 @@ struct neg_big_fraction : big_fraction
 {
     neg_big_fraction(bignum_g num, bignum_g den, id type = ID_neg_big_fraction)
         : big_fraction(num, den, type) {}
-    OBJECT_HANDLER(neg_big_fraction)
-    {
-        if (op == RENDER)
-            return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-        return DELEGATE(big_fraction);
-    }
-    OBJECT_RENDERER(neg_big_fraction);
+public:
+    OBJECT_DECL(neg_big_fraction);
+    RENDER_DECL(neg_big_fraction);
 };
 
 fraction_g operator+(fraction_g x, fraction_g y);

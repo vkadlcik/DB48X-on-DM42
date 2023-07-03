@@ -159,7 +159,7 @@ void program_init()
     size_t size = 2048;
 #endif
     byte *memory = (byte *) malloc(size);
-    runtime::RT.memory(memory, size);
+    rt.memory(memory, size);
 
     // The following is just to link the same set of functions as DM42
     if (memory == (byte *) program_init)

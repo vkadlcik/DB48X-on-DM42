@@ -31,6 +31,7 @@
 
 #include "algebraic.h"
 #include "parser.h"
+#include "precedence.h"
 #include "renderer.h"
 #include "runtime.h"
 #include "utf8.h"
@@ -39,43 +40,15 @@
 
 
 RECORDER(list, 16, "Lists");
-RECORDER(list_parser, 16, "List parsing");
+RECORDER(list_parse, 16, "List parsing");
 RECORDER(list_errors, 16, "Errors processing lists");
 RECORDER(program, 16, "Program evaluation");
 
 
-OBJECT_HANDLER_BODY(list)
-// ----------------------------------------------------------------------------
-//    Handle commands for lists
-// ----------------------------------------------------------------------------
-{
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        // List values evaluate as self
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "list";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(text);
-    }
-}
-
-
-object::result list::object_parser(id type,
-                                   parser  &p,
-                                   runtime &rt,
-                                   unicode open,
-                                   unicode close)
+object::result list::list_parse(id type,
+                                parser  &p,
+                                unicode open,
+                                unicode close)
 // ----------------------------------------------------------------------------
 //   Generic parser for sequences (list, program, etc)
 // ----------------------------------------------------------------------------
@@ -107,8 +80,8 @@ object::result list::object_parser(id type,
         s = utf8_next(s);
     }
 
-    scribble scr = rt;
-    while (size_t(utf8(s) - utf8(p.source)) < max)
+    scribble scr;
+    while (utf8_more(p.source, s, max))
     {
         cp = utf8_codepoint(s);
         if (cp == close)
@@ -155,18 +128,18 @@ object::result list::object_parser(id type,
                     unicode iopen = parenthese ? '(' : 0;
                     unicode iclose = parenthese ? ')' : 0;
 
-                    record(list_parser, "%+s starting at offset %u '%s'",
+                    record(list_parse, "%+s starting at offset %u '%s'",
                            parenthese ? "Parenthese" : "Child",
                            utf8(s) - utf8(p.source),
                            utf8(s));
-                    auto result = object_parser(type, child, rt, iopen, iclose);
+                    auto result = list_parse(type, child, iopen, iclose);
                     if (result != OK)
                         return result;
                     obj = child.out;
                     if (!obj)
                         return ERROR;
                     length = child.end;
-                    record(list_parser,
+                    record(list_parse,
                            "Child parsed as %t length %u", object_p(obj), length);
                 }
             }
@@ -205,7 +178,7 @@ object::result list::object_parser(id type,
         if (!obj)
         {
             obj = object::parse(s, length, precedence);
-            record(list_parser,
+            record(list_parse,
                    "Item parsed as %t length %u", object_p(obj), length);
         }
         if (!obj)
@@ -221,7 +194,7 @@ object::result list::object_parser(id type,
                 id type = obj->type();
                 if (!is_algebraic(type) && !is_symbolic(type))
                 {
-                    RT.prefix_expected_error();
+                    rt.prefix_expected_error();
                     return ERROR;
                 }
 
@@ -242,7 +215,7 @@ object::result list::object_parser(id type,
                     break;
                 if (!objprec)
                 {
-                    RT.infix_expected_error();
+                    rt.infix_expected_error();
                     return ERROR;
                 }
                 if (objprec < 999)
@@ -259,7 +232,7 @@ object::result list::object_parser(id type,
             // Copy the parsed object to the scratch pad (may GC)
             do
             {
-                record(list_parser, "Copying %t to scratchpad", object_p(obj));
+                record(list_parse, "Copying %t to scratchpad", object_p(obj));
 
                 size_t objsize = obj->size();
 
@@ -304,10 +277,10 @@ object::result list::object_parser(id type,
     if (infix || prefix)
     {
         if (infix)
-            RT.command(infix->fancy());
+            rt.command(infix->fancy());
         else if (prefix)
-            RT.command(prefix->fancy());
-        RT.argument_expected_error();
+            rt.command(prefix->fancy());
+        rt.argument_expected_error();
         return ERROR;
     }
 
@@ -327,15 +300,14 @@ object::result list::object_parser(id type,
     p.end           = parsed;
     p.out           = rt.make<list>(type, scratch, alloc);
 
-    record(list_parser, "Parsed as %t length %u", object_p(p.out), parsed);
+    record(list_parse, "Parsed as %t length %u", object_p(p.out), parsed);
 
     // Return success
     return OK;
 }
 
 
-intptr_t list::object_renderer(renderer &r, runtime &rt,
-                               unicode open, unicode close) const
+intptr_t list::list_render(renderer &r, unicode open, unicode close) const
 // ----------------------------------------------------------------------------
 //   Render the list into the given buffer
 // ----------------------------------------------------------------------------
@@ -362,7 +334,7 @@ intptr_t list::object_renderer(renderer &r, runtime &rt,
         size_t   objsize = obj->size();
 
         // Render the object in what remains (may GC)
-        obj->render(r, rt);
+        obj->render(r);
 
         // Loop on next object
         offset += objsize;
@@ -379,21 +351,21 @@ intptr_t list::object_renderer(renderer &r, runtime &rt,
 }
 
 
-OBJECT_PARSER_BODY(list)
+PARSE_BODY(list)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an list
 // ----------------------------------------------------------------------------
 {
-    return object_parser(ID_list, p, rt, '{', '}');
+    return list_parse(ID_list, p, '{', '}');
 }
 
 
-OBJECT_RENDERER_BODY(list)
+RENDER_BODY(list)
 // ----------------------------------------------------------------------------
 //   Render the list into the given list buffer
 // ----------------------------------------------------------------------------
 {
-    return object_renderer(r, rt, '{', '}');
+    return o->list_render(r, '{', '}');
 }
 
 
@@ -404,61 +376,21 @@ OBJECT_RENDERER_BODY(list)
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(program)
+EVAL_BODY(program)
 // ----------------------------------------------------------------------------
-//    Handle commands for programs
+//   Normal evaluation from a program places it on stack
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-        // Execute the program
-        return obj->execute(rt);
-    case EVAL:
-        // A normal evaluation (not from ID_eval) just places program on stack
-        // e.g.: from command line, or « « 1 + 2 » »
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "program";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(list);
-    }
+    return rt.push(o) ? OK : ERROR;
 }
 
 
-OBJECT_PARSER_BODY(program)
+EXEC_BODY(program)
 // ----------------------------------------------------------------------------
-//    Try to parse this as a program
-// ----------------------------------------------------------------------------
-{
-    return list::object_parser(ID_program, p, rt, L'«', L'»');
-}
-
-
-OBJECT_RENDERER_BODY(program)
-// ----------------------------------------------------------------------------
-//   Render the program into the given program buffer
+//   Execution of a program evaluates all items in turn
 // ----------------------------------------------------------------------------
 {
-    return list::object_renderer(r, rt, L'«', L'»');
-}
-
-
-object::result program::execute(runtime &rt) const
-// ----------------------------------------------------------------------------
-//   We evaluate a program by evaluating all the objects in it
-// ----------------------------------------------------------------------------
-//   This is called directly from the 'eval' command
-{
-    byte  *p       = (byte *) payload();
+    byte  *p       = (byte *) o->payload();
     size_t len     = leb128<size_t>(p);
     result r       = OK;
     size_t objsize = 0;
@@ -470,10 +402,28 @@ object::result program::execute(runtime &rt) const
                obj->fancy(), (object_p) obj, objsize, len);
         if (interrupted() || r != OK)
             break;
-        r = obj->evaluate(rt);
+        r = obj->evaluate();
     }
 
     return r;
+}
+
+
+PARSE_BODY(program)
+// ----------------------------------------------------------------------------
+//    Try to parse this as a program
+// ----------------------------------------------------------------------------
+{
+    return list_parse(ID_program, p, L'«', L'»');
+}
+
+
+RENDER_BODY(program)
+// ----------------------------------------------------------------------------
+//   Render the program into the given program buffer
+// ----------------------------------------------------------------------------
+{
+    return o->list_render(r, L'«', L'»');
 }
 
 
@@ -484,7 +434,7 @@ program_p program::parse(utf8 source, size_t size)
 {
     record(program, ">Parsing command line [%s]", source);
     parser p(source, size);
-    result r = list::object_parser(ID_program, p, RT, 0, 0);
+    result r = list_parse(ID_program, p, 0, 0);
     record(program, "<Command line [%s], end at %u, result %p",
            utf8(p.source), p.end, object_p(p.out));
     if (r != OK)
@@ -504,39 +454,32 @@ program_p program::parse(utf8 source, size_t size)
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(block)
+EVAL_BODY(block)
 // ----------------------------------------------------------------------------
-//    Handle commands for blocks
+//   Normal evaluation of a block executes it
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        return obj->execute(rt);
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return SKIP;
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "block";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(program);
-    }
+    return do_execute(o);
 }
 
 
-OBJECT_RENDERER_BODY(block)
+PARSE_BODY(block)
+// ----------------------------------------------------------------------------
+//  Blocks are parsed in structures like loops, not directly
+// ----------------------------------------------------------------------------
+{
+    return SKIP;
+}
+
+
+RENDER_BODY(block)
 // ----------------------------------------------------------------------------
 //   Render the program into the given program buffer
 // ----------------------------------------------------------------------------
 {
-    return list::object_renderer(r, rt, 0, 0);
+    return o->list_render(r, 0, 0);
 }
+
 
 
 // ============================================================================
@@ -545,35 +488,16 @@ OBJECT_RENDERER_BODY(block)
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(equation)
+EVAL_BODY(equation)
 // ----------------------------------------------------------------------------
-//    Handle commands for equations
+//   Normal evaluation of an equation executes it
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-        return obj->execute(rt);
-    case EVAL:
-        // Equations evaluate like programs
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "program";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(program);
-    }
+    return do_execute(o);
 }
 
 
-OBJECT_PARSER_BODY(equation)
+PARSE_BODY(equation)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an equation
 // ----------------------------------------------------------------------------
@@ -583,7 +507,7 @@ OBJECT_PARSER_BODY(equation)
         return SKIP;
 
     p.precedence = 1;
-    auto result = list::object_parser(ID_equation, p, rt, '\'', '\'');
+    auto result = list_parse(ID_equation, p, '\'', '\'');
     p.precedence = 0;
 
     return result;
@@ -615,7 +539,6 @@ symbol_g equation::render(uint depth, int &precedence, bool editing)
 //   Render an object as a symbol at a given precedence
 // ----------------------------------------------------------------------------
 {
-    runtime &rt = RT;
     while (rt.depth() > depth)
     {
         if (gcobj obj = rt.pop())
@@ -623,46 +546,42 @@ symbol_g equation::render(uint depth, int &precedence, bool editing)
             int arity = obj->arity();
             switch(arity)
             {
-            case SKIP:
-                // Non-algebraic in an equation, e.g. numbers
-
             case 0:
-                // Symbols
-                precedence = algebraic::SYMBOL;
+                // Symbols and other non-algebraics, e.g. numbers
+                precedence = precedence::SYMBOL;
                 if (obj->type() == ID_symbol)
                     return symbol_p(object_p(obj));
-                return obj->as_symbol(editing, rt);
+                return obj->as_symbol(editing);
 
             case 1:
             {
-                // TODO: Prefix and postfix operators
                 int      argp = 0;
                 id       oid  = obj->type();
-                symbol_g fn   = obj->as_symbol(editing, rt);
+                symbol_g fn   = obj->as_symbol(editing);
                 symbol_g arg  = render(depth, argp, editing);
                 int      maxp =
-                    oid == ID_neg ? algebraic::FUNCTION : algebraic::SYMBOL;
+                    oid == ID_neg ? precedence::FUNCTION : precedence::SYMBOL;
                 if (argp < maxp)
                     arg = parentheses(arg);
-                precedence = algebraic::FUNCTION;
+                precedence = precedence::FUNCTION;
                 switch(oid)
                 {
                 case ID_sq:
-                    precedence = algebraic::FUNCTION_POWER;
+                    precedence = precedence::FUNCTION_POWER;
                     return arg + symbol::make("²");
                 case ID_cubed:
-                    precedence = algebraic::FUNCTION_POWER;
+                    precedence = precedence::FUNCTION_POWER;
                     return arg + symbol::make("³");
                 case ID_neg:
-                    precedence = algebraic::ADDITIVE;
+                    precedence = precedence::ADDITIVE;
                     return symbol::make('-') + arg;
                 case ID_inv:
-                    precedence = algebraic::FUNCTION_POWER;
+                    precedence = precedence::FUNCTION_POWER;
                     return arg + symbol::make("⁻¹");
                 default:
                     break;
                 }
-                if (argp >= algebraic::FUNCTION)
+                if (argp >= precedence::FUNCTION)
                     arg = space(arg);
                 return fn + arg;
             }
@@ -670,11 +589,11 @@ symbol_g equation::render(uint depth, int &precedence, bool editing)
             case 2:
             {
                 int lprec = 0, rprec = 0;
-                symbol_g op = obj->as_symbol(editing, rt);
+                symbol_g op = obj->as_symbol(editing);
                 symbol_g rtxt = render(depth, rprec, editing);
                 symbol_g ltxt = render(depth, lprec, editing);
                 int prec = obj->precedence();
-                if (prec != algebraic::FUNCTION)
+                if (prec != precedence::FUNCTION)
                 {
                     if (lprec < prec)
                         ltxt = parentheses(ltxt);
@@ -687,14 +606,14 @@ symbol_g equation::render(uint depth, int &precedence, bool editing)
                 {
                     symbol_g arg = ltxt + symbol::make(';') + rtxt;
                     arg = parentheses(arg);
-                    precedence = algebraic::FUNCTION;
+                    precedence = precedence::FUNCTION;
                     return op + arg;
                 }
             }
             break;
             default:
             {
-                symbol_g op = obj->as_symbol(editing, rt);
+                symbol_g op = obj->as_symbol(editing);
                 symbol_g args = nullptr;
                 for (int a = 0; a < arity; a++)
                 {
@@ -706,7 +625,7 @@ symbol_g equation::render(uint depth, int &precedence, bool editing)
                         args = arg;
                 }
                 args = parentheses(args);
-                precedence = algebraic::FUNCTION;
+                precedence = precedence::FUNCTION;
                 return op + args;
             }
             }
@@ -717,14 +636,14 @@ symbol_g equation::render(uint depth, int &precedence, bool editing)
 }
 
 
-OBJECT_RENDERER_BODY(equation)
+RENDER_BODY(equation)
 // ----------------------------------------------------------------------------
 //   Render the program into the given program buffer
 // ----------------------------------------------------------------------------
 //   1 2 3 5 * + - 2 3 * +
 {
     size_t depth   = rt.depth();
-    byte_p p       = payload();
+    byte_p p       = o->payload();
     size_t size    = leb128<size_t>(p);
     bool   ok      = true;
     size_t objsize = 0;
@@ -797,7 +716,7 @@ equation::equation(uint arity, const gcobj args[], id op, id type)
 // ----------------------------------------------------------------------------
     : program(nullptr, 0, type)
 {
-    byte *p = payload();
+    byte *p = (byte *) payload();
 
     // Compute the size of the program
     size_t size = 0;
@@ -896,48 +815,21 @@ int equation::precedence(id type)
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(array)
-// ----------------------------------------------------------------------------
-//    Handle commands for arrays
-// ----------------------------------------------------------------------------
-{
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        // Programs evaluate by evaluating all elements in sequence
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "program";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(program);
-    }
-}
-
-
-OBJECT_PARSER_BODY(array)
+PARSE_BODY(array)
 // ----------------------------------------------------------------------------
 //    Try to parse this as a program
 // ----------------------------------------------------------------------------
 {
-    return list::object_parser(ID_array, p, rt, '[', ']');
+    return list::list_parse(ID_array, p, '[', ']');
 }
 
 
-OBJECT_RENDERER_BODY(array)
+RENDER_BODY(array)
 // ----------------------------------------------------------------------------
 //   Render the program into the given program buffer
 // ----------------------------------------------------------------------------
 {
-    return list::object_renderer(r, rt, '[', ']');
+    return o->list_render(r, '[', ']');
 }
 
 
@@ -956,29 +848,29 @@ COMMAND_BODY(ToList)
     uint32_t depth = 0;
     if (stack(&depth))
     {
-        if (RT.depth() < depth + 1)
+        if (rt.depth() < depth + 1)
         {
-            RT.missing_argument_error();
+            rt.missing_argument_error();
             return ERROR;
         }
 
-        if (RT.pop())
+        if (rt.pop())
         {
-            scribble scr(RT);
+            scribble scr;
             for (uint i = 0; i < depth; i++)
             {
-                if (gcobj obj = RT.stack(depth - 1 - i))
+                if (gcobj obj = rt.stack(depth - 1 - i))
                 {
                     size_t objsz = obj->size();
                     byte_p objp = byte_p(obj);
-                    if (!RT.append(objsz, objp))
+                    if (!rt.append(objsz, objp))
                         return ERROR;
                 }
             }
             gcobj list = list::make(scr.scratch(), scr.growth());
-            if (!RT.drop(depth))
+            if (!rt.drop(depth))
                 return ERROR;
-            if (RT.push(list))
+            if (rt.push(list))
                 return OK;
         }
     }

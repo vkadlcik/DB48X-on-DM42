@@ -99,9 +99,10 @@
 //    increase the size of the object too much.
 
 
-#include "types.h"
 #include "leb128.h"
+#include "precedence.h"
 #include "recorder.h"
+#include "types.h"
 
 struct runtime;
 struct parser;
@@ -111,6 +112,7 @@ struct symbol;
 struct program;
 struct input;
 struct text;
+struct menu_info;
 
 RECORDER_DECLARE(object);
 RECORDER_DECLARE(parse);
@@ -154,31 +156,51 @@ struct object
 
     // ========================================================================
     //
-    //   Object command protocol
+    //   Object protocol
     //
     // ========================================================================
 
-    enum opcode : unsigned
-    // ------------------------------------------------------------------------
-    //  The commands that all handlers must deal with
-    // ------------------------------------------------------------------------
-    {
-#define OPCODE(n)       n = ID_##n,
-#define ID(n)
-#include "ids.tbl"
-    };
-
     enum result
-    // ------------------------------------------------------------------------
-    //   Common return values for handlers
-    // ------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------
+    //   Return values for parsing
+    // ----------------------------------------------------------------------------
     {
-        OK    = 0,              // Command ran successfully
-        SKIP  = -1,             // Command not for this handler, try next
-        ERROR = -2,             // Error processing the command
-        WARN  = -3,             // Possible error (if no object succeeds)
+        OK,                     // Command ran successfully
+        SKIP,                   // Command not for this handler, try next
+        ERROR,                  // Error processing the command
+        WARN ,                  // Possible error (if no object succeeds)
     };
 
+
+    typedef size_t      (*size_fn)(object_p o);
+    typedef result      (*parse_fn)(parser &p);
+    typedef utf8        (*help_fn)(object_p o);
+    typedef result      (*evaluate_fn)(object_p o);
+    typedef result      (*execute_fn)(object_p o);
+    typedef size_t      (*render_fn)(object_p o, renderer &p);
+    typedef result      (*insert_fn)(object_p o, input &i);
+    typedef bool        (*menu_fn)(object_p o, menu_info &m);
+    typedef unicode     (*menu_marker_fn)(object_p o);
+
+    struct dispatch
+    // ----------------------------------------------------------------------------
+    //   Operations that can be run on an object
+    // ----------------------------------------------------------------------------
+    {
+        cstring        name;            // Basic (compatibility) name
+        cstring        fancy;           // Fancy name
+        size_fn        size;            // Compute object size in bytes
+        parse_fn       parse;           // Parse an object
+        help_fn        help;            // Return help topic
+        evaluate_fn    evaluate;        // Evaluate the object
+        execute_fn     execute;         // Execute the object
+        render_fn      render;          // Render the object as text
+        insert_fn      insert;          // Insert object in editor
+        menu_fn        menu;            // Build menu entries
+        menu_marker_fn menu_marker;     // Show marker
+        uint           arity;           // Number of input arguments
+        uint           precedence;      // Precedence in equations
+    };
 
 
     // ========================================================================
@@ -195,6 +217,7 @@ struct object
         return leb128size(i);
     }
 
+
     id type() const
     // ------------------------------------------------------------------------
     //   Return the type of the object
@@ -203,35 +226,51 @@ struct object
         byte *ptr = (byte *) this;
         id ty = (id) leb128(ptr);
         if (ty > NUM_IDS)
+        {
             object_error(ty, this);
+            ty = ID_object;
+        }
         return ty;
     }
 
-    size_t size(runtime &rt = RT) const
+
+    const dispatch &ops() const
+    // ------------------------------------------------------------------------
+    //   Return the handlers for the current object
+    // ------------------------------------------------------------------------
+    {
+        return handler[type()];
+    }
+
+
+    size_t size() const
     // ------------------------------------------------------------------------
     //  Compute the size of the object by calling the handler with SIZE
     // ------------------------------------------------------------------------
     {
-        return (size_t) run(SIZE, rt);
+        return ops().size(this);
     }
 
-    object_p skip(runtime &rt = RT) const
+
+    object_p skip() const
     // ------------------------------------------------------------------------
     //  Return the pointer to the next object in memory by skipping its size
     // ------------------------------------------------------------------------
     {
-        return this + size(rt);
+        return this + size();
     }
 
-    byte * payload() const
+
+    byte_p payload() const
     // ------------------------------------------------------------------------
     //  Return the object's payload, i.e. first byte after ID
     // ------------------------------------------------------------------------
     {
-        byte *ptr = (byte *) this;
+        byte_p ptr = (byte_p) this;
         leb128(ptr);            // Skip ID
         return ptr;
     }
+
 
     static void object_error(id type, const object *ptr);
     // ------------------------------------------------------------------------
@@ -246,86 +285,89 @@ struct object
     //
     // ========================================================================
 
-    result evaluate(runtime &rt = RT) const
+    result evaluate() const
     // ------------------------------------------------------------------------
     //  Evaluate an object by calling the handler
     // ------------------------------------------------------------------------
     {
         record(eval, "Evaluating %+s %p", name(), this);
-        return (result) run(EVAL, rt);
+        return ops().evaluate(this);
     }
 
-    result execute(runtime &rt = RT) const
+
+    result execute() const
     // ------------------------------------------------------------------------
     //   Execute the object, i.e. run programs and equations
     // ------------------------------------------------------------------------
     {
-        record(eval, "Evaluating %+s %p", name(), this);
-        return (result) run(EXEC, rt);
+        record(eval, "Executing %+s %p", name(), this);
+        return ops().execute(this);
     }
 
-    size_t render(char *output, size_t length, runtime &rt = RT) const;
+
+    size_t render(renderer &r) const
+    // ------------------------------------------------------------------------
+    //   Render the object into an existing renderer
+    // ------------------------------------------------------------------------
+    {
+        record(render, "Rendering %+s %p into %p", name(), this, &r);
+        return ops().render(this, r);
+    }
+
+
+    size_t render(char *output, size_t length) const;
     // ------------------------------------------------------------------------
     //   Render the object into a static buffer
     // ------------------------------------------------------------------------
 
-    size_t render(renderer &r, runtime &rt = RT) const;
-    // ------------------------------------------------------------------------
-    //   Render the object into an existing renderer
-    // ------------------------------------------------------------------------
 
-    cstring edit(runtime &rt = RT) const;
+    cstring edit() const;
     // ------------------------------------------------------------------------
     //   Render the object into the scratchpad, then move into the editor
     // ------------------------------------------------------------------------
 
-    text_p as_text(bool edit = true, bool eq = false, runtime &rt = RT) const;
+
+    text_p as_text(bool edit = true, bool eq = false) const;
     // ------------------------------------------------------------------------
     //   Return the object as text
     // ------------------------------------------------------------------------
 
-    symbol_p as_symbol(bool editing, runtime &rt = RT) const
+
+    symbol_p as_symbol(bool editing) const
     // ------------------------------------------------------------------------
     //   Return the object as text
     // ------------------------------------------------------------------------
     {
-        return symbol_p(as_text(editing, true, rt));
+        return symbol_p(as_text(editing, true));
     }
 
-    result insert(input *Input, runtime &rt = RT) const
+
+    result insert(input &i) const
     // ------------------------------------------------------------------------
-    //   Insert in the editor at cursor position
+    //   Insert in the editor at cursor position, with possible offset
     // ------------------------------------------------------------------------
     {
-        return (object::result) run(INSERT, rt, Input);
+        return ops().insert(this, i);
     }
 
 
     static object_p parse(utf8     source,
                           size_t  &size,
-                          int      precedence = 0,
-                          runtime &rt         = RT);
+                          int      precedence = 0);
     // ------------------------------------------------------------------------
     //  Try parsing the object as a top-level temporary
     // ------------------------------------------------------------------------
     //  If precedence != 0, parse as an equation object with that precedence
 
 
-    utf8 help(runtime &rt = RT) const
+    utf8 help() const
     // ------------------------------------------------------------------------
     //   Return the help topic for the given object
     // ------------------------------------------------------------------------
     {
-        return (utf8) run(HELP, rt);
+        return ops().help(this);
     }
 
-    static cstring name(opcode op)
-    // ------------------------------------------------------------------------
-    //   Return the name for a given ID
-    // ------------------------------------------------------------------------
-    {
-        return cstring(name(id(op)));
-    }
 
     static cstring name(result r)
     // ------------------------------------------------------------------------
@@ -338,8 +380,8 @@ struct object
         case SKIP:      return "SKIP";
         case ERROR:     return "ERROR";
         case WARN:      return "WARN";
+        default:        return "<Unknown>";
         }
-        return "<Unknown>";
     }
 
 
@@ -348,7 +390,7 @@ struct object
     //   Return the name for a given ID
     // ------------------------------------------------------------------------
     {
-        return utf8(i < NUM_IDS ? id_name[i] : "<invalid ID>");
+        return utf8(i < NUM_IDS ? handler[i].name : "<invalid ID>");
     }
 
 
@@ -357,7 +399,7 @@ struct object
     //   Return the fancy name for a given ID
     // ------------------------------------------------------------------------
     {
-        return utf8(i < NUM_IDS ? fancy_name[i] : "<Invalid ID>");
+        return utf8(i < NUM_IDS ? handler[i].fancy : "<Invalid ID>");
     }
 
 
@@ -384,7 +426,7 @@ struct object
     //   Marker in menus
     // ------------------------------------------------------------------------
     {
-        return (unicode) run(MENU_MARKER);
+        return ops().menu_marker(this);
     }
 
 
@@ -557,21 +599,21 @@ struct object
     }
 
 
-    intptr_t arity() const
+    uint arity() const
     // ------------------------------------------------------------------------
     //   Return the arity for arithmetic operators
     // ------------------------------------------------------------------------
     {
-        return run(ARITY);
+        return ops().arity;
     }
 
 
-    intptr_t precedence() const
+    uint precedence() const
     // ------------------------------------------------------------------------
     //   Return the arity for arithmetic operators
     // ------------------------------------------------------------------------
     {
-        return run(PRECEDENCE);
+        return ops().precedence;
     }
 
 
@@ -610,119 +652,37 @@ struct object
     // ------------------------------------------------------------------------
 
 
-
     // ========================================================================
     //
-    //    Low-level function dispatch
+    //    Default implementations for object interface
     //
     // ========================================================================
 
-    static intptr_t run(id       type,
-                        opcode   op  = EVAL,
-                        runtime &rt  = RT,
-                        void    *arg = nullptr)
-    // ------------------------------------------------------------------------
-    //  Run a command without an object
-    // ------------------------------------------------------------------------
-    {
-        if (type >= NUM_IDS)
-        {
-            record(object_errors, "Static run op %+s with id %u, max %u",
-                   name(op), type, NUM_IDS);
-            object_error(type, (object_p) "Static");
-            return ERROR;
-        }
-        record(run, "Static run %+s cmd %+s", name(type), name(op));
-        return handler[type](rt, op, arg, nullptr, nullptr);
-    }
+#define OBJECT_DECL(D)  static id       static_type() { return ID_##D; }
+#define PARSE_DECL(D)   static result   do_parse(parser &p UNUSED)
+#define HELP_DECL(D)    static utf8     do_help(const D *o UNUSED)
+#define EVAL_DECL(D)    static result   do_evaluate(const D *o UNUSED)
+#define EXEC_DECL(D)    static result   do_execute(const D *o UNUSED)
+#define SIZE_DECL(D)    static size_t   do_size(const D *o UNUSED)
+#define RENDER_DECL(D)  static size_t   do_render(const D *o UNUSED,renderer &r UNUSED)
+#define INSERT_DECL(D)  static result   do_insert(const D *o UNUSED, input &i UNUSED)
+#define MENU_DECL(D)    static bool     do_menu(const D *o UNUSED, menu_info &mi UNUSED)
+#define MARKER_DECL(D)  static unicode  do_menu_marker(const D *o UNUSED)
+#define ARITY_DECL(A)   enum { ARITY = A }
+#define PREC_DECL(P)    enum { PRECEDENCE = precedence::P }
 
-    intptr_t run(opcode op, runtime &rt = RT, void *arg = nullptr) const
-    // ------------------------------------------------------------------------
-    //  Run an arbitrary command on the object
-    // ------------------------------------------------------------------------
-    {
-        byte *ptr = (byte *) this;
-        id type = (id) leb128(ptr); // Don't use type() to update payload
-        if (type >= NUM_IDS)
-        {
-            record(object_errors,
-                   "Dynamic run op %+s at %p with id %u, max %u",
-                   name(op), this, type, NUM_IDS);
-            object_error(type, this);
-            return -1;
-        }
-        record(run, "Dynamic run %+s op %+s", name(type), name(op));
-        return handler[type](rt, op, arg, this, (object_p ) ptr);
-    }
-
-    template <typename Obj>
-    static intptr_t run(opcode     op,
-                        void      *arg     = nullptr,
-                        const Obj *obj     = nullptr,
-                        object_p   payload = nullptr,
-                        runtime   &rt      = Obj::RT)
-    // -------------------------------------------------------------------------
-    //   Directly call the object handler for a type (no indirection)
-    // -------------------------------------------------------------------------
-    {
-        record(run, "Direct %+s op %+s", name(Obj::static_type()), name(op));
-        return Obj::object_handler(rt, op, arg, obj, payload);
-    }
-
-    template <typename Obj>
-    static intptr_t run()
-    // -------------------------------------------------------------------------
-    //   Directly call the object evaluate (no indirection)
-    // -------------------------------------------------------------------------
-    {
-        record(run, "Evaluate %+s", name(Obj::static_type()));
-        return Obj::evaluate();
-    }
-
-protected:
-#define OBJECT_PARSER(type)                                             \
-    static result object_parser(parser UNUSED &p, runtime & UNUSED rt = RT)
-
-#define OBJECT_PARSER_BODY(type)                            \
-    object::result type::object_parser(parser UNUSED &p, runtime &UNUSED rt)
-
-#define OBJECT_PARSER_ARG()     (*((parser *) arg))
-
-#define OBJECT_RENDERER(type)                           \
-    intptr_t object_renderer(renderer &r, runtime &UNUSED rt = RT) const
-
-#define OBJECT_RENDERER_BODY(type)                              \
-    intptr_t type::object_renderer(renderer &r, runtime &UNUSED rt) const
-
-#define OBJECT_RENDERER_ARG()   (*((renderer *) arg))
-
-    // The actual work is done here
-#define OBJECT_HANDLER_NO_ID(type)                                    \
-    static intptr_t object_handler(runtime    &UNUSED rt,             \
-                                   opcode      UNUSED op,             \
-                                   void       *UNUSED arg,            \
-                                   const type *UNUSED obj,            \
-                                   object_p    UNUSED payload)
-
-#define OBJECT_HANDLER(type)                            \
-    static id static_type() { return ID_##type; }       \
-    OBJECT_HANDLER_NO_ID(type)
-
-#define OBJECT_HANDLER_BODY(type)                                       \
-    intptr_t type::object_handler(runtime      &UNUSED rt,              \
-                                  opcode        UNUSED op,              \
-                                  void         *UNUSED arg,             \
-                                  const type   *UNUSED obj,             \
-                                  object_p      UNUSED payload)
-
-  // The default object handlers
-  OBJECT_PARSER(object);
-  OBJECT_RENDERER(object);
-  OBJECT_HANDLER_NO_ID(object);
-
-
-#define DELEGATE(base)                                          \
-    base::object_handler(rt, op, arg, (base *) obj, payload)
+    OBJECT_DECL(object);
+    PARSE_DECL(object);
+    HELP_DECL(object);
+    EVAL_DECL(object);
+    EXEC_DECL(object);
+    SIZE_DECL(object);
+    RENDER_DECL(object);
+    INSERT_DECL(object);
+    MENU_DECL(object);
+    MARKER_DECL(object);
+    ARITY_DECL(0);
+    PREC_DECL(NONE);
 
     template <typename T, typename U>
     static intptr_t ptrdiff(T *t, U *u)
@@ -732,13 +692,7 @@ protected:
 
 
 protected:
-    typedef intptr_t (*handler_fn)(runtime &rt,
-                                   opcode op, void *arg,
-                                   object_p obj, object_p payload);
-    static const handler_fn handler[NUM_IDS];
-    static const cstring    id_name[NUM_IDS];
-    static const cstring    fancy_name[NUM_IDS];
-    static runtime         &RT;
+    static const dispatch   handler[NUM_IDS];
 
 #if SIMULATOR
 public:
@@ -746,5 +700,24 @@ public:
 #endif
 };
 
+#define PARSE_BODY(D)   object::result D::do_parse(parser &p UNUSED)
+#define HELP_BODY(D)    utf8           D::do_help(const D *o UNUSED)
+#define EVAL_BODY(D)    object::result D::do_evaluate(const D *o UNUSED)
+#define EXEC_BODY(D)    object::result D::do_execute(const D *o UNUSED)
+#define SIZE_BODY(D)    size_t         D::do_size(const D *o UNUSED)
+#define RENDER_BODY(D)  size_t         D::do_render(const D *o UNUSED, renderer &r UNUSED)
+#define INSERT_BODY(D)  object::result D::do_insert(const D *o UNUSED, input &i UNUSED)
+#define MENU_BODY(D)    bool           D::do_menu(const D *o UNUSED, menu_info &mi UNUSED)
+#define MARKER_BODY(D)  unicode        D::do_menu_marker(const D *o UNUSED)
+
+template <typename RPL>
+object::result run()
+// ----------------------------------------------------------------------------
+//  Run a given RPL opcode directly
+// ----------------------------------------------------------------------------
+{
+    const RPL *obj = (const RPL *) RPL::static_object(RPL::static_type());
+    return RPL::do_evaluate(obj);
+}
 
 #endif // OBJECT_H

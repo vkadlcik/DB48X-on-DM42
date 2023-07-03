@@ -63,23 +63,14 @@ struct derived : function                                               \
                                                                         \
     static constexpr auto bid128_op = bid128_##derived;                 \
                                                                         \
-    OBJECT_HANDLER(derived)                                             \
+public:                                                                 \
+    OBJECT_DECL(derived);                                               \
+    ARITY_DECL(1);                                                      \
+    PREC_DECL(FUNCTION);                                                \
+    EVAL_DECL(derived)                                                  \
     {                                                                   \
-        switch(op)                                                      \
-        {                                                               \
-        case EVAL:                                                      \
-        case EXEC:                                                      \
-            RT.command(fancy(ID_##derived));                            \
-            return evaluate<derived>();                                 \
-        case SIZE:                                                      \
-            return byte_p(payload) - byte_p(obj);                       \
-        case ARITY:                                                     \
-            return 1;                                                   \
-        case PRECEDENCE:                                                \
-            return algebraic::FUNCTION;                                 \
-        default:                                                        \
-            return DELEGATE(function);                                  \
-        }                                                               \
+        rt.command(fancy(ID_##derived));                                \
+        return evaluate<derived>();                                     \
     }                                                                   \
 }
 
@@ -122,26 +113,17 @@ struct derived : function                                               \
 {                                                                       \
     derived(id i = ID_##derived) : function(i) {}                       \
                                                                         \
-    static result evaluate();                                           \
-                                                                        \
-    OBJECT_HANDLER(derived)                                             \
+public:                                                                 \
+    OBJECT_DECL(derived);                                               \
+    ARITY_DECL(1);                                                      \
+    PREC_DECL(FUNCTION);                                                \
+    EVAL_DECL(derived)                                                  \
     {                                                                   \
-        switch(op)                                                      \
-        {                                                               \
-        case EVAL:                                                      \
-        case EXEC:                                                      \
-            RT.command(fancy(ID_##derived));                            \
-            return evaluate();                                          \
-        case SIZE:                                                      \
-            return byte_p(payload) - byte_p(obj);                       \
-        case ARITY:                                                     \
-            return 1;                                                   \
-        case PRECEDENCE:                                                \
-            return algebraic::FUNCTION;                                 \
-        default:                                                        \
-            return DELEGATE(function);                                  \
-        }                                                               \
+        rt.command(fancy(ID_##derived));                                \
+        return evaluate();                                              \
     }                                                                   \
+public:                                                                 \
+    static result evaluate();                                           \
 };                                                                      \
 template<> object::result function::evaluate<struct derived>()
 

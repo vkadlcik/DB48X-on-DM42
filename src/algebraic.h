@@ -64,24 +64,7 @@ struct algebraic : command
     typedef void (*bid64_fn) (BID_UINT64  *res, BID_UINT64  *x);
     typedef void (*bid32_fn) (BID_UINT32  *res, BID_UINT32  *x);
 
-    // Precedence for the various operators
-    enum
-    {
-        LOGICAL         = 1,    // and, or, xor
-        RELATIONAL      = 3,    // <, >, =, etc
-        ADDITIVE        = 5,    // +, -
-        MULTIPICATIVE   = 7,    // *, /
-        POWER           = 9,    // ^
-
-        UNKNOWN         = 10,   // Unknown operator
-        PARENTHESES     = 20,   // Parentheses
-        FUNCTION        = 30,   // Functions, e.g. f(x)
-        FUNCTION_POWER  = 40,   // X²
-        SYMBOL          = 50,   // Names
-    };
-
-    // Standard object interface
-    OBJECT_HANDLER_NO_ID(algebraic);
+    INSERT_DECL(algebraic);
 };
 
 #endif // ALGEBRAIC_H

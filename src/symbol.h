@@ -41,6 +41,7 @@
 //
 
 #include "object.h"
+#include "precedence.h"
 #include "text.h"
 #include "utf8.h"
 
@@ -56,20 +57,24 @@ struct symbol : text
 
     static gcp<const symbol> make(char c)
     {
-        return RT.make<symbol>(ID_symbol, utf8(&c), 1);
+        return rt.make<symbol>(ID_symbol, utf8(&c), 1);
     }
 
     static gcp<const symbol> make(cstring s)
     {
-        return RT.make<symbol>(ID_symbol, utf8(s), strlen(s));
+        return rt.make<symbol>(ID_symbol, utf8(s), strlen(s));
     }
 
-    object_p recall(bool noerror = true, runtime &rt = RT) const;
-    bool     store(gcobj obj, runtime &rt = RT) const;
+    object_p recall(bool noerror = true) const;
+    bool     store(gcobj obj) const;
 
-    OBJECT_HANDLER(symbol);
-    OBJECT_PARSER(symbol);
-    OBJECT_RENDERER(symbol);
+public:
+    OBJECT_DECL(symbol);
+    PARSE_DECL(symbol);
+    EVAL_DECL(symbol);
+    EXEC_DECL(symbol);
+    RENDER_DECL(symbol);
+    PREC_DECL(SYMBOL);
 };
 
 typedef const symbol *symbol_p;

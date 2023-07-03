@@ -58,13 +58,13 @@ struct decimal64 : object
     {
         bid64 num;
         bid64_from_string(&num.value, (cstring) value);
-        byte *p = payload();
+        byte *p = (byte *) payload();
         memcpy(p, &num, sizeof(num));
     }
 
     decimal64(const bid64 &value, id type = ID_decimal64): object(type)
     {
-        byte *p = payload();
+        byte *p = (byte *) payload();
         memcpy(p, &value, sizeof(value));
     }
 
@@ -73,7 +73,7 @@ struct decimal64 : object
         BID_UINT64 bval = BID_UINT64(value);
         bid64 num;
         bid64_from_uint64(&num.value, &bval);
-        byte *p = payload();
+        byte *p = (byte *) payload();
         memcpy(p, &num, sizeof(num));
     }
 
@@ -81,7 +81,7 @@ struct decimal64 : object
     {
         BID_UINT64 bval = BID_UINT64(value);
         bid64 num, negated;
-        byte *p = payload();
+        byte *p = (byte *) payload();
         bid64_from_uint64(&num.value, &bval);
         if (neg)
             bid64_negate(&negated.value, &num.value);
@@ -93,7 +93,7 @@ struct decimal64 : object
         BID_SINT64 bval = BID_SINT64(value);
         bid64 num;
         bid64_from_int64(&num.value, &bval);
-        byte *p = payload();
+        byte *p = (byte *) payload();
         memcpy(p, &num, sizeof(num));
     }
 
@@ -102,7 +102,7 @@ struct decimal64 : object
         bid64 num;
         // Bug in the BID library, which uses int and not int32_t
         bid64_from_uint32(&num.value, (uint *) &value);
-        byte *p = payload();
+        byte *p = (byte *) payload();
         memcpy(p, &num, sizeof(num));
     }
 
@@ -111,7 +111,7 @@ struct decimal64 : object
         bid64 num;
         // Bug in the BID library, which uses int and not int32_t
         bid64_from_int32(&num.value, (int *) &value);
-        byte *p = payload();
+        byte *p = (byte *) payload();
         memcpy(p, &num, sizeof(num));
     }
 
@@ -122,7 +122,7 @@ struct decimal64 : object
     {
         bid64 num;
         bid64_to_bid64(&num.value, (BID_UINT64 *) &value.value);
-        byte *p = payload();
+        byte *p = (byte *) payload();
         memcpy(p, &num, sizeof(num));
     }
 #endif
@@ -132,7 +132,7 @@ struct decimal64 : object
     {
         bid64 num;
         bid32_to_bid64(&num.value, (BID_UINT32 *) &value.value);
-        byte *p = payload();
+        byte *p = (byte *) payload();
         memcpy(p, &num, sizeof(num));
     }
 #endif
@@ -152,7 +152,7 @@ struct decimal64 : object
     bid64 value() const
     {
         bid64 result;
-        byte *p = payload();
+        byte_p p = payload();
         memcpy(&result, p, sizeof(result));
         return result;
     }
@@ -241,9 +241,11 @@ struct decimal64 : object
         return is_negative_or_zero(value());
     }
 
-    OBJECT_HANDLER(decimal64);
-    OBJECT_PARSER(decimal64);
-    OBJECT_RENDERER(decimal64);
+public:
+    OBJECT_DECL(decimal64);
+    PARSE_DECL(decimal64);
+    SIZE_DECL(decimal64);
+    RENDER_DECL(decimal64);
 };
 
 typedef const decimal64 *decimal64_p;

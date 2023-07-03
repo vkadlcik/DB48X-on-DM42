@@ -34,31 +34,33 @@
 #include "symbol.h"
 
 
+struct menu_info
+// ----------------------------------------------------------------------------
+//  Info filled by the menu() interface
+// ----------------------------------------------------------------------------
+{
+    uint page;   // In:  Page index
+    uint skip;   // Int: Items to skip
+    uint pages;  // Out: Total number of pages
+    uint index;  // Out: Last index written
+    uint plane;  // Out: Last plane filled
+    uint planes; // Out: Planes the menu wants
+};
+
+
 struct menu : command
 // ----------------------------------------------------------------------------
 //   An RPL menu object, can define menu keys
 // ----------------------------------------------------------------------------
 {
-    // Constructor
-    menu(id type = ID_menu) : command(type)
-    {
-    }
+    menu(id type = ID_menu) : command(type)     { }
 
-    // Info returned from the MENU opcode
-    struct info
-    {
-        uint page;   // In:  Page index
-        uint skip;   // Int: Items to skip
-        uint pages;  // Out: Total number of pages
-        uint index;  // Out: Last index written
-        uint plane;  // Out: Last plane filled
-        uint planes; // Out: Planes the menu wants
-    };
+    typedef menu_info info;
 
     result update(uint page = 0) const
     {
         info mi = { .page = page };
-        return (result) run(MENU, RT, &mi);
+        return ops().menu(this, mi) ? OK : ERROR;
     }
 
     static void items_init(info &mi, uint nitems, uint planes = 2);
@@ -111,8 +113,10 @@ struct menu : command
     template <typename... Args>
     static void items(info &mi, menu_label_fn label, id action, Args... args);
 
-  public:
-    OBJECT_HANDLER(menu);
+public:
+    OBJECT_DECL(menu);
+    EVAL_DECL(menu);
+    MARKER_DECL(menu);
 };
 
 
@@ -186,15 +190,16 @@ COMMAND(MenuFirstPage)
 }
 
 #define ID(i)
-#define MENU(SysMenu)                                                \
-  struct SysMenu : menu                                              \
-  /* ------------------------------------------------------------ */ \
-  /*   Create a system menu                                       */ \
-  /* ------------------------------------------------------------ */ \
-  {                                                                  \
-      SysMenu(id type = ID_##SysMenu) : menu(type) { }               \
-      OBJECT_HANDLER(SysMenu);                                       \
-  };
+#define MENU(SysMenu)                                                   \
+struct SysMenu : menu                                                   \
+/* ------------------------------------------------------------ */      \
+/*   Create a system menu                                       */      \
+/* ------------------------------------------------------------ */      \
+{                                                                       \
+    SysMenu(id type = ID_##SysMenu) : menu(type) { }                    \
+    OBJECT_DECL(SysMenu);                                               \
+    MENU_DECL(SysMenu);                                                 \
+};
 #include "ids.tbl"
 
 

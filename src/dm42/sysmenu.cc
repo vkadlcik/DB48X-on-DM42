@@ -337,7 +337,6 @@ static int state_save_callback(cstring fpath,
     Settings.standard_exp = 1;
 
     // Save global variables
-    runtime &rt = runtime::RT;
     gcp<directory> home = rt.variables(0);
     home->enumerate(state_save_variable, &render);
 
@@ -347,7 +346,7 @@ static int state_save_callback(cstring fpath,
     {
         depth--;
         object_p obj = rt.stack(depth);
-        obj->render(render, rt);
+        obj->render(render);
         render.put('\n');
     }
 
@@ -440,7 +439,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
             return 0;
 
         // Clear the state
-        runtime::RT.reset();
+        rt.reset();
 
         set_reset_state_file(path);
 
@@ -465,7 +464,6 @@ static int state_load_callback(cstring path, cstring name, void *merge)
     }
 
     // Loop on the input file and process it as if it was being typed
-    runtime &rt = runtime::RT;
     uint bytes = 0;
     rt.clear();
 

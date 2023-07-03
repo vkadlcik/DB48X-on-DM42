@@ -66,7 +66,7 @@ struct integer : object
     template <typename Int>
     integer(Int value, id type = ID_integer): object(type)
     {
-        byte *p = payload();
+        byte *p = (byte *) payload();
         leb128(p, value);
     }
 
@@ -78,7 +78,7 @@ struct integer : object
 
     integer(gcbytes ptr, size_t size, id type = ID_integer): object(type)
     {
-        byte *p = payload();
+        byte *p = (byte *) payload();
         memmove(p, byte_p(ptr), size);
     }
 
@@ -90,7 +90,7 @@ struct integer : object
     template <typename Int>
     Int value() const
     {
-        byte *p = payload();
+        byte *p = (byte *) payload();
         return leb128<Int>(p);
     }
 
@@ -117,9 +117,11 @@ struct integer : object
     static bool native(byte_p x)        { return leb128size(x) <= NATIVE; }
     bool native() const                 { return native(payload()); }
 
-    OBJECT_HANDLER(integer);
-    OBJECT_PARSER(integer);
-    OBJECT_RENDERER(integer);
+public:
+    OBJECT_DECL(integer);
+    PARSE_DECL(integer);
+    SIZE_DECL(integer);
+    RENDER_DECL(integer);
 };
 
 
@@ -132,24 +134,18 @@ struct special_integer : integer
     template <typename Int>
     special_integer(Int value, id type = Type): integer(value, type) {}
 
-    static id static_type() { return Type; }
-    OBJECT_HANDLER_NO_ID(special_integer)
-    {
-        if (op == RENDER)
-            return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-        if (op == PARSE)
-            return SKIP;        // We do all integer types in integer handler
-        return DELEGATE(integer);
-    }
-    OBJECT_RENDERER(special_integer);
+public:
+    static id static_type()             { return Type; }
+    PARSE_DECL(special_integer)         { return SKIP; }
+    RENDER_DECL(special_integer);
 };
 
-using neg_integer = special_integer<object::ID_neg_integer>;
-using hex_integer = special_integer<object::ID_hex_integer>;
-using oct_integer = special_integer<object::ID_oct_integer>;
-using bin_integer = special_integer<object::ID_bin_integer>;
-using dec_integer = special_integer<object::ID_dec_integer>;
-using hex_integer = special_integer<object::ID_hex_integer>;
+using neg_integer   = special_integer<object::ID_neg_integer>;
+using hex_integer   = special_integer<object::ID_hex_integer>;
+using oct_integer   = special_integer<object::ID_oct_integer>;
+using bin_integer   = special_integer<object::ID_bin_integer>;
+using dec_integer   = special_integer<object::ID_dec_integer>;
+using hex_integer   = special_integer<object::ID_hex_integer>;
 using based_integer = special_integer<object::ID_based_integer>;
 
 template <typename Int>
@@ -158,7 +154,7 @@ integer *integer::make(Int value)
 //   Make an integer with the correct sign
 // ----------------------------------------------------------------------------
 {
-    return value < 0 ? RT.make<neg_integer>(-value) : RT.make<integer>(value);
+    return value < 0 ? rt.make<neg_integer>(-value) : rt.make<integer>(value);
 }
 
 #endif // INTEGER_H

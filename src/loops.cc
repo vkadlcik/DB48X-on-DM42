@@ -49,15 +49,38 @@ RECORDER(loop, 16, "Loops");
 RECORDER(loop_errors, 16, "Errors processing loops");
 
 
+
+SIZE_BODY(loop)
+// ----------------------------------------------------------------------------
+//   Compute size for a loop
+// ----------------------------------------------------------------------------
+{
+    object_p p = object_p(o->payload());
+    p = p->skip();
+    return ptrdiff(p, o);
+}
+
+
 loop::loop(gcobj body, id type)
 // ----------------------------------------------------------------------------
 //   Constructor for loops
 // ----------------------------------------------------------------------------
     : command(type)
 {
-    byte *p = payload();
+    byte *p = (byte *) payload();
     size_t bsize = body->size();
     memmove(p, byte_p(body), bsize);
+}
+
+
+SIZE_BODY(conditional_loop)
+// ----------------------------------------------------------------------------
+//   Compute size for a conditional loop
+// ----------------------------------------------------------------------------
+{
+    object_p p = object_p(o->payload());
+    p = p->skip()->skip();
+    return ptrdiff(p, o);
 }
 
 
@@ -68,19 +91,19 @@ conditional_loop::conditional_loop(gcobj first, gcobj second, id type)
     : loop(first, type)
 {
     size_t fsize = first->size();
-    byte *p = payload() + fsize;
+    byte *p = (byte *) payload() + fsize;
     size_t ssize = second->size();
     memmove(p, byte_p(second), ssize);
 }
 
 
 
-object::result conditional_loop::condition(bool &value) const
+object::result conditional_loop::condition(bool &value)
 // ----------------------------------------------------------------------------
 //   Check if the stack is a true condition
 // ----------------------------------------------------------------------------
 {
-    if (object_p cond = RT.pop())
+    if (object_p cond = rt.pop())
         return comparison::condition(value, cond);
     return ERROR;
 }
@@ -88,7 +111,6 @@ object::result conditional_loop::condition(bool &value) const
 
 object::result loop::object_parser(id       type,
                                    parser  &p,
-                                   runtime &rt,
                                    cstring  open,
                                    cstring  close)
 // ----------------------------------------------------------------------------
@@ -96,12 +118,11 @@ object::result loop::object_parser(id       type,
 // ----------------------------------------------------------------------------
 {
     cstring seps[] = { open, close };
-    return loop::object_parser(type, p, rt, 2, seps);
+    return loop::object_parser(type, p, 2, seps);
 }
 
 
 intptr_t loop::object_renderer(renderer &r,
-                               runtime  &rt,
                                cstring   open,
                                cstring   close) const
 // ----------------------------------------------------------------------------
@@ -109,13 +130,12 @@ intptr_t loop::object_renderer(renderer &r,
 // ----------------------------------------------------------------------------
 {
     cstring seps[] = { open, close };
-    return loop::object_renderer(r, rt, 2, seps);
+    return loop::object_renderer(r, 2, seps);
 }
 
 
 object::result conditional_loop::object_parser(id       type,
                                                parser  &p,
-                                               runtime &rt,
                                                cstring  open,
                                                cstring  middle,
                                                cstring  close)
@@ -124,12 +144,11 @@ object::result conditional_loop::object_parser(id       type,
 // ----------------------------------------------------------------------------
 {
     cstring seps[] = { open, middle, close };
-    return loop::object_parser(type, p, rt, 3, seps);
+    return loop::object_parser(type, p, 3, seps);
 }
 
 
 intptr_t conditional_loop::object_renderer(renderer &r,
-                                           runtime  &rt,
                                            cstring   open,
                                            cstring   middle,
                                            cstring   close) const
@@ -138,14 +157,13 @@ intptr_t conditional_loop::object_renderer(renderer &r,
 // ----------------------------------------------------------------------------
 {
     cstring seps[] = { open, middle, close };
-    return loop::object_renderer(r, rt, 3, seps);
+    return loop::object_renderer(r, 3, seps);
 }
 
 
 
 object::result loop::object_parser(id       type,
                                    parser  &p,
-                                   runtime &rt,
                                    uint     steps,
                                    cstring  separators[])
 // ----------------------------------------------------------------------------
@@ -168,7 +186,7 @@ object::result loop::object_parser(id       type,
         cstring  sep   = cstring(separators[step]);
         size_t   len   = strlen(sep);
         bool     found = false;
-        scribble scr   = rt;
+        scribble scr;
 
         // Scan the body of the loop
         while (!found && utf8_more(p.source, src, max))
@@ -216,7 +234,7 @@ object::result loop::object_parser(id       type,
         if (!found)
         {
             // If we did not find the terminator, we reached end of text
-            RT.unterminated_error().source(p.source);
+            rt.unterminated_error().source(p.source);
             return ERROR;
         }
         else if (step == 0)
@@ -247,7 +265,6 @@ object::result loop::object_parser(id       type,
 
 
 intptr_t loop::object_renderer(renderer &r,
-                               runtime  &rt,
                                uint      nseps,
                                cstring   separators[]) const
 // ----------------------------------------------------------------------------
@@ -269,7 +286,7 @@ intptr_t loop::object_renderer(renderer &r,
     r.indent();
 
     // Emit the first object (e.g. condition in do-until)
-    first->render(r, rt);
+    first->render(r);
 
     // Emit the second object if there is one
     if (second)
@@ -278,7 +295,7 @@ intptr_t loop::object_renderer(renderer &r,
         r.unindent();
         r.put(format, utf8(separators[sep++]));
         r.indent();
-        second->render(r, rt);
+        second->render(r);
     }
 
     // Emit closing separator
@@ -296,60 +313,55 @@ intptr_t loop::object_renderer(renderer &r,
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(DoUntil)
+PARSE_BODY(DoUntil)
 // ----------------------------------------------------------------------------
-//    Handle commands for do..until..end
+//  Parser for do-unti loops
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        return obj->execute(rt);
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return conditional_loop::object_parser(ID_DoUntil,
-                                               OBJECT_PARSER_ARG(), rt,
-                                               "do", "until", "end");
-    case RENDER:
-        return obj->conditional_loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
-                                                      "do", "until", "end");
-
-    case INSERT:
-        return ((input *) arg)->edit(utf8("do  until  end"), input::PROGRAM, 3);
-
-    case HELP:
-        return (intptr_t) "DoUntilLoop";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(loop);
-    }
+    return conditional_loop::object_parser(ID_DoUntil, p,
+                                           "do", "until", "end");
 }
 
 
-object::result DoUntil::execute(runtime &rt) const
+RENDER_BODY(DoUntil)
+// ----------------------------------------------------------------------------
+//   Renderer for do-until loop
+// ----------------------------------------------------------------------------
+{
+    return o->object_renderer(r, "do", "until", "end");
+}
+
+
+INSERT_BODY(DoUntil)
+// ----------------------------------------------------------------------------
+//   Insert a do-until loop in the editor
+// ----------------------------------------------------------------------------
+{
+    return i.edit(utf8("do  until  end"), input::PROGRAM, 3);
+}
+
+
+EVAL_BODY(DoUntil)
 // ----------------------------------------------------------------------------
 //   Evaluate a do..until..end loop
 // ----------------------------------------------------------------------------
 //   In this loop, the body comes first
 {
-    byte  *p       = (byte *) payload();
+    byte  *p       = (byte *) o->payload();
     gcobj  body    = object_p(p);
     gcobj  cond    = body->skip();
     result r       = OK;
 
     while (!interrupted() && r == OK)
     {
-        r = body->evaluate(rt);
+        r = body->evaluate();
         if (r != OK)
             break;
-        r = cond->evaluate(rt);
+        r = cond->evaluate();
         if (r != OK)
             break;
         bool test = false;
-        r = condition(test);
+        r = o->condition(test);
         if (r != OK || test)
             break;
     }
@@ -363,47 +375,41 @@ object::result DoUntil::execute(runtime &rt) const
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(WhileRepeat)
+PARSE_BODY(WhileRepeat)
 // ----------------------------------------------------------------------------
-//    Handle commands for while..repeat..end
+//  Parser for while loops
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        return obj->execute(rt);
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return conditional_loop::object_parser(ID_WhileRepeat,
-                                               OBJECT_PARSER_ARG(), rt,
-                                               "while", "repeat", "end");
-    case RENDER:
-        return obj->conditional_loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
-                                                      "while", "repeat", "end");
-
-    case INSERT:
-        return ((input *) arg)->edit(utf8("while  repeat  end"),
-                                     input::PROGRAM, 6);
-
-    case HELP:
-        return (intptr_t) "WhileRepeat";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(loop);
-    }
+    return conditional_loop::object_parser(ID_WhileRepeat, p,
+                                           "while", "repeat", "end");
 }
 
 
-object::result WhileRepeat::execute(runtime &rt) const
+RENDER_BODY(WhileRepeat)
+// ----------------------------------------------------------------------------
+//   Renderer for while loop
+// ----------------------------------------------------------------------------
+{
+    return o->object_renderer(r, "while", "repeat", "end");
+}
+
+
+INSERT_BODY(WhileRepeat)
+// ----------------------------------------------------------------------------
+//   Insert a while loop in the editor
+// ----------------------------------------------------------------------------
+{
+    return i.edit(utf8("while  repeat  end"), input::PROGRAM, 6);
+}
+
+
+EVAL_BODY(WhileRepeat)
 // ----------------------------------------------------------------------------
 //   Evaluate a while..repeat..end loop
 // ----------------------------------------------------------------------------
 //   In this loop, the condition comes first
 {
-    byte  *p       = (byte *) payload();
+    byte  *p       = (byte *) o->payload();
     gcobj  cond    = object_p(p);
     gcobj  body    = cond->skip();
     result r       = OK;
@@ -417,7 +423,7 @@ object::result WhileRepeat::execute(runtime &rt) const
         r = condition(test);
         if (r != OK || !test)
             break;
-        r = body->evaluate(rt);
+        r = body->evaluate();
     }
     return r;
 }
@@ -430,38 +436,34 @@ object::result WhileRepeat::execute(runtime &rt) const
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(StartNext)
+PARSE_BODY(StartNext)
 // ----------------------------------------------------------------------------
-//    Handle commands for for..next loop
+//  Parser for start-next loops
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        return obj->execute(rt);
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return loop::object_parser(ID_StartNext, OBJECT_PARSER_ARG(), rt,
-                                   "start", "next");
-    case RENDER:
-        return obj->loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
-                                          "start", "next");
-    case INSERT:
-        return ((input *) arg)->edit(utf8("start  next"), input::PROGRAM, 6);
-
-    case HELP:
-        return (intptr_t) "StartNextLoop";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(loop);
-    }
+    return object_parser(ID_StartNext, p, "start", "next");
 }
 
 
-object::result loop::counted(gcobj body, runtime &rt, bool stepping)
+RENDER_BODY(StartNext)
+// ----------------------------------------------------------------------------
+//   Renderer for start-next loop
+// ----------------------------------------------------------------------------
+{
+    return o->object_renderer(r, "start", "next");
+}
+
+
+INSERT_BODY(StartNext)
+// ----------------------------------------------------------------------------
+//   Insert a start-next loop in the editor
+// ----------------------------------------------------------------------------
+{
+    return i.edit(utf8("start  next"), input::PROGRAM, 6);
+}
+
+
+object::result loop::counted(gcobj body, bool stepping)
 // ----------------------------------------------------------------------------
 //   Evaluate a counted loop
 // ----------------------------------------------------------------------------
@@ -479,13 +481,13 @@ object::result loop::counted(gcobj body, runtime &rt, bool stepping)
     integer_p istart = start->as<integer>();
     if (!ifinish || !istart)
     {
-        RT.type_error();
+        rt.type_error();
         return ERROR;
     }
 
     // Pop them from the stack
-    RT.pop();
-    RT.pop();
+    rt.pop();
+    rt.pop();
 
     ularge incr = 1;
     ularge cnt  = istart->value<ularge>();
@@ -498,13 +500,13 @@ object::result loop::counted(gcobj body, runtime &rt, bool stepping)
             break;
         if (stepping)
         {
-            object_p step = RT.pop();
+            object_p step = rt.pop();
             if (!step)
                 return ERROR;
             integer_p istep = step->as<integer>();
             if (!istep)
             {
-                RT.type_error();
+                rt.type_error();
                 return ERROR;
             }
             incr = istep->value<ularge>();
@@ -517,14 +519,14 @@ object::result loop::counted(gcobj body, runtime &rt, bool stepping)
 }
 
 
-object::result StartNext::execute(runtime &rt) const
+EVAL_BODY(StartNext)
 // ----------------------------------------------------------------------------
 //   Evaluate a for..next loop
 // ----------------------------------------------------------------------------
 {
-    byte    *p    = (byte *) payload();
+    byte    *p    = (byte *) o->payload();
     object_p body = object_p(p);
-    return counted(body, rt, false);
+    return counted(body, false);
 }
 
 
@@ -534,46 +536,41 @@ object::result StartNext::execute(runtime &rt) const
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(StartStep)
+PARSE_BODY(StartStep)
 // ----------------------------------------------------------------------------
-//    Handle commands for for..step loop
+//  Parser for start-step loops
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        return obj->execute(rt);
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return loop::object_parser(ID_StartStep, OBJECT_PARSER_ARG(), rt,
-                                   "start", "step");
-    case RENDER:
-        return obj->loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
-                                          "start", "step");
-
-    case INSERT:
-        return ((input *) arg)->edit(utf8("start  step"), input::PROGRAM, 6);
-
-    case HELP:
-        return (intptr_t) "StartStepLoop";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(loop);
-    }
+    return object_parser(ID_StartStep, p, "start", "step");
 }
 
 
-object::result StartStep::execute(runtime &rt) const
+RENDER_BODY(StartStep)
+// ----------------------------------------------------------------------------
+//   Renderer for start-step loop
+// ----------------------------------------------------------------------------
+{
+    return o->object_renderer(r, "start", "step");
+}
+
+
+INSERT_BODY(StartStep)
+// ----------------------------------------------------------------------------
+//   Insert a start-step loop in the editor
+// ----------------------------------------------------------------------------
+{
+    return i.edit(utf8("start  step"), input::PROGRAM, 6);
+}
+
+
+EVAL_BODY(StartStep)
 // ----------------------------------------------------------------------------
 //   Evaluate a for..step loop
 // ----------------------------------------------------------------------------
 {
-    byte    *p    = (byte *) payload();
+    byte    *p    = (byte *) o->payload();
     object_p body = object_p(p);
-    return counted(body, rt, true);
+    return counted(body, true);
 }
 
 
@@ -584,46 +581,41 @@ object::result StartStep::execute(runtime &rt) const
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(ForNext)
+PARSE_BODY(ForNext)
 // ----------------------------------------------------------------------------
-//    Handle commands for for..next loop
+//  Parser for for-next loops
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        return obj->execute(rt);
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return loop::object_parser(ID_ForNext, OBJECT_PARSER_ARG(), rt,
-                                   "for", "next");
-    case RENDER:
-        return obj->loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
-                                          "for", "next");
-
-    case INSERT:
-        return ((input *) arg)->edit(utf8("for  next"), input::PROGRAM, 4);
-
-    case HELP:
-        return (intptr_t) "ForNextLoop";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(loop);
-    }
+    return object_parser(ID_ForNext, p, "for", "next");
 }
 
 
-object::result ForNext::execute(runtime &rt) const
+RENDER_BODY(ForNext)
+// ----------------------------------------------------------------------------
+//   Renderer for for-next loop
+// ----------------------------------------------------------------------------
+{
+    return o->object_renderer(r, "for", "next");
+}
+
+
+INSERT_BODY(ForNext)
+// ----------------------------------------------------------------------------
+//   Insert a for-next loop in the editor
+// ----------------------------------------------------------------------------
+{
+    return i.edit(utf8("for  next"), input::PROGRAM, 4);
+}
+
+
+EVAL_BODY(ForNext)
 // ----------------------------------------------------------------------------
 //   Evaluate a for..next loop
 // ----------------------------------------------------------------------------
 {
-    byte    *p    = (byte *) payload();
+    byte    *p    = (byte *) o->payload();
     object_p body = object_p(p);
-    return counted(body, rt, false);
+    return counted(body, false);
 }
 
 
@@ -634,43 +626,39 @@ object::result ForNext::execute(runtime &rt) const
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(ForStep)
+PARSE_BODY(ForStep)
 // ----------------------------------------------------------------------------
-//    Handle commands for for..step loop
+//  Parser for for-step loops
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        return obj->execute(rt);
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return loop::object_parser(ID_ForStep, OBJECT_PARSER_ARG(), rt,
-                                   "for", "step");
-    case RENDER:
-        return obj->loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
-                                          "for", "step");
-    case INSERT:
-        return ((input *) arg)->edit(utf8("for  step"), input::PROGRAM, 4);
-
-    case HELP:
-        return (intptr_t) "ForStepLoop";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(loop);
-    }
+    return object_parser(ID_ForStep, p, "for", "step");
 }
 
 
-object::result ForStep::execute(runtime &rt) const
+RENDER_BODY(ForStep)
+// ----------------------------------------------------------------------------
+//   Renderer for for-step loop
+// ----------------------------------------------------------------------------
+{
+    return o->object_renderer(r, "for", "step");
+}
+
+
+INSERT_BODY(ForStep)
+// ----------------------------------------------------------------------------
+//   Insert a for-step loop in the editor
+// ----------------------------------------------------------------------------
+{
+    return i.edit(utf8("for  step"), input::PROGRAM, 4);
+}
+
+
+EVAL_BODY(ForStep)
 // ----------------------------------------------------------------------------
 //   Evaluate a for..step loop
 // ----------------------------------------------------------------------------
 {
-    byte    *p    = (byte *) payload();
+    byte    *p    = (byte *) o->payload();
     object_p body = object_p(p);
-    return counted(body, rt, true);
+    return counted(body, true);
 }

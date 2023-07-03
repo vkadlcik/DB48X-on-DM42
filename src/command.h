@@ -54,14 +54,11 @@ struct command : object
     //   Return the arg at a given level on the stack, or default value
     // ------------------------------------------------------------------------
     {
-        const Obj *obj = RT.stack(level);
+        const Obj *obj = rt.stack(level);
         if (obj && obj->type() == Obj::static_type())
             return (Obj *) obj;
         return def;
     }
-
-    // Overload command to adjust based on settings
-    cstring name();
 
     // Get a static command pointer for a given command
     static object_p static_object(id i);
@@ -76,37 +73,39 @@ struct command : object
     static bool stack(uint32_t *result, uint level = 0);
     static bool stack(int32_t  *result, uint level = 0);
 
-    // Standard object interface
-    OBJECT_PARSER(command);
-    OBJECT_RENDERER(command);
-    OBJECT_HANDLER_NO_ID(command);
+    // Execute a command
+    static result evaluate()    { return OK; }
 
+public:
+    PARSE_DECL(command);
+    RENDER_DECL(command);
 };
 
 
 // Macro to defined a simple command handler for derived classes
-#define COMMAND_DECLARE(derived)                                \
-struct derived : command                                        \
-    {                                                           \
-        derived(id i = ID_##derived) : command(i) { }           \
-                                                                \
-        OBJECT_HANDLER(derived)                                 \
-        {                                                       \
-            if (op == EVAL || op == EXEC)                       \
-            {                                                   \
-                RT.command(fancy(ID_##derived));                \
-                return ((derived *) obj)->evaluate();           \
-            }                                                   \
-            return DELEGATE(command);                           \
-        }                                                       \
-        static result evaluate();                               \
-    }
+#define COMMAND_DECLARE(derived)                        \
+struct derived : command                                \
+{                                                       \
+    derived(id i = ID_##derived) : command(i) { }       \
+                                                        \
+    OBJECT_DECL(derived);                               \
+    EVAL_DECL(derived)                                  \
+    {                                                   \
+        rt.command(fancy(ID_##derived));                \
+        return evaluate();                              \
+    }                                                   \
+    EXEC_DECL(derived)                                  \
+    {                                                   \
+        return do_evaluate(o);                          \
+    }                                                   \
+    static result evaluate();                           \
+}
 
-#define COMMAND_BODY(derived)                   \
+#define COMMAND_BODY(derived)                           \
     object::result derived::evaluate()
 
-#define COMMAND(derived)                        \
-    COMMAND_DECLARE(derived);                   \
+#define COMMAND(derived)                                \
+    COMMAND_DECLARE(derived);                           \
     inline COMMAND_BODY(derived)
 
 
@@ -123,17 +122,17 @@ struct Unimplemented : command
 // ----------------------------------------------------------------------------
 {
     Unimplemented(id i = ID_Unimplemented) : command(i) { }
-    OBJECT_HANDLER(Unimplemented)
-    {
-        if (op == EVAL || op == EXEC)
-        {
-            RT.unimplemented_error();
-            return ERROR;
-        }
-        if (op == MENU_MARKER)
-            return L'░';
 
-        return DELEGATE(command);
+    OBJECT_DECL(Unimplemented);
+    EXEC_DECL(Unimplemented)
+    {
+        rt.unimplemented_error();
+        return ERROR;
+    }
+
+    MARKER_DECL(Unimplemented)
+    {
+        return L'░';
     }
 };
 

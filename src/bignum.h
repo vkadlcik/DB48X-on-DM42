@@ -112,7 +112,7 @@ struct bignum : text
     bignum(Int value, id type = ID_bignum)
         : text((utf8) &value, bytesize(value), type)
     {
-        byte *p = payload();
+        byte *p = (byte *) payload();
         size_t sz = leb128<size_t>(p);
         for (uint i = 0; i < sz; i++)
             p[i] = byte(value >> (8 * i));
@@ -174,10 +174,6 @@ struct bignum : text
     template <typename Int>
     static bignum *make(Int value);
 
-    OBJECT_HANDLER(bignum);
-    OBJECT_PARSER(bignum);
-    OBJECT_RENDERER(bignum);
-
 public:
     // Arithmetic internal routines
     static int compare(bignum_g x, bignum_g y, bool magnitude = false);
@@ -196,6 +192,11 @@ public:
     static bignum_g multiply(bignum_g y, bignum_g x, id ty);
     static bool quorem(bignum_g y, bignum_g x, id ty, bignum_g *q, bignum_g *r);
     static bignum_g pow(bignum_g y, bignum_g x);
+
+public:
+    OBJECT_DECL(bignum);
+    PARSE_DECL(bignum);
+    RENDER_DECL(bignum);
 };
 
 
@@ -208,21 +209,17 @@ struct special_bignum : bignum
     template <typename Int>
     special_bignum(Int value, id type = Type): bignum(value, type) {}
 
+public:
+    // Can't use the OBJECT_DECL and RENDER_DECL macros here
     static id static_type() { return Type; }
-    OBJECT_HANDLER_NO_ID(special_bignum)
-    {
-        if (op == RENDER)
-            return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-        return DELEGATE(bignum);
-    }
-    OBJECT_RENDERER(special_bignum);
+    static size_t do_render(const special_bignum *o, renderer &r);
 };
 
-using neg_bignum = special_bignum<object::ID_neg_bignum>;
-using hex_bignum = special_bignum<object::ID_hex_bignum>;
-using oct_bignum = special_bignum<object::ID_oct_bignum>;
-using bin_bignum = special_bignum<object::ID_bin_bignum>;
-using dec_bignum = special_bignum<object::ID_dec_bignum>;
+using neg_bignum   = special_bignum<object::ID_neg_bignum>;
+using hex_bignum   = special_bignum<object::ID_hex_bignum>;
+using oct_bignum   = special_bignum<object::ID_oct_bignum>;
+using bin_bignum   = special_bignum<object::ID_bin_bignum>;
+using dec_bignum   = special_bignum<object::ID_dec_bignum>;
 using based_bignum = special_bignum<object::ID_based_bignum>;
 
 template <typename Int>
@@ -231,7 +228,7 @@ bignum *bignum::make(Int value)
 //   Make an bignum with the correct sign
 // ----------------------------------------------------------------------------
 {
-    return value < 0 ? RT.make<neg_bignum>(-value) : RT.make<bignum>(value);
+    return value < 0 ? rt.make<neg_bignum>(-value) : rt.make<bignum>(value);
 }
 
 
@@ -311,7 +308,6 @@ bignum_g bignum::binary(Op op, bignum_g xg, bignum_g yg, id ty)
 // ----------------------------------------------------------------------------
 //   This uses the scratch pad AND can cause garbage collection
 {
-    runtime &rt = RT;
     size_t xs = 0;
     size_t ys = 0;
     byte_p x = xg->value(&xs);
@@ -394,7 +390,6 @@ bignum_g bignum::unary(Op op, bignum_g xg)
 // ----------------------------------------------------------------------------
 //   This uses the scratch pad AND can cause garbage collection
 {
-    runtime &rt = RT;
     size_t xs = 0;
     byte_p x = xg->value(&xs);
     id xt = xg->type();

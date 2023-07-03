@@ -42,31 +42,17 @@
 
 RECORDER(integer, 16, "Integers");
 
-OBJECT_HANDLER_BODY(integer)
+SIZE_BODY(integer)
 // ----------------------------------------------------------------------------
-//    Handle commands for integers
+//   Compute size for all integers
 // ----------------------------------------------------------------------------
 {
-    record(integer, "Command %+s on %p", name(op), obj);
-    switch (op)
-    {
-    case EXEC:
-    case EVAL:
-        // Integer values evaluate as self
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE: return ptrdiff(payload, obj) + leb128size(payload);
-    case PARSE: return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER: return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP: return (intptr_t) "integer";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(object);
-    }
+    byte_p p = o->payload();
+    return ptrdiff(p, o) + leb128size(p);
 }
 
 
-OBJECT_PARSER_BODY(integer)
+PARSE_BODY(integer)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an integer
 // ----------------------------------------------------------------------------
@@ -399,80 +385,80 @@ static size_t render_num(renderer &r, integer_p num, uint base, cstring fmt)
 }
 
 
-OBJECT_RENDERER_BODY(integer)
+RENDER_BODY(integer)
 // ----------------------------------------------------------------------------
 //   Render the integer into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    size_t result = render_num(r, this, 10, "");
+    size_t result = render_num(r, o, 10, "");
     return result;
 }
 
 
 template <>
-OBJECT_RENDERER_BODY(neg_integer)
+RENDER_BODY(neg_integer)
 // ----------------------------------------------------------------------------
 //   Render the negative integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, this, 10, "-");
+    return render_num(r, o, 10, "-");
 }
 
 
 template <>
-OBJECT_RENDERER_BODY(hex_integer)
+RENDER_BODY(hex_integer)
 // ----------------------------------------------------------------------------
 //   Render the hexadecimal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, this, 16, "#h");
+    return render_num(r, o, 16, "#h");
 }
 
 template <>
-OBJECT_RENDERER_BODY(dec_integer)
+RENDER_BODY(dec_integer)
 // ----------------------------------------------------------------------------
 //   Render the decimal based number
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, this, 10, "#d");
+    return render_num(r, o, 10, "#d");
 }
 
 template <>
-OBJECT_RENDERER_BODY(oct_integer)
+RENDER_BODY(oct_integer)
 // ----------------------------------------------------------------------------
 //   Render the octal integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, this, 8, "#o");
+    return render_num(r, o, 8, "#o");
 }
 
 template <>
-OBJECT_RENDERER_BODY(bin_integer)
+RENDER_BODY(bin_integer)
 // ----------------------------------------------------------------------------
 //   Render the binary integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, this, 2, "#b");
+    return render_num(r, o, 2, "#b");
 }
 
 
 template <>
-OBJECT_RENDERER_BODY(based_integer)
+RENDER_BODY(based_integer)
 // ----------------------------------------------------------------------------
 //   Render the based integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, this, Settings.base, "#");
+    return render_num(r, o, Settings.base, "#");
 }
 
 
-OBJECT_RENDERER_BODY(fraction)
+RENDER_BODY(fraction)
 // ----------------------------------------------------------------------------
 //   Render the fraction as 'num/den'
 // ----------------------------------------------------------------------------
 {
-    integer_g n = numerator(1);
-    integer_g d = denominator(1);
+    integer_g n = o->numerator(1);
+    integer_g d = o->denominator(1);
     render_num(r, n, 10, "");
     r.put('/');
     render_num(r, d, 10, "");
@@ -480,13 +466,13 @@ OBJECT_RENDERER_BODY(fraction)
 }
 
 
-OBJECT_RENDERER_BODY(neg_fraction)
+RENDER_BODY(neg_fraction)
 // ----------------------------------------------------------------------------
 //   Render the fraction as '-num/den'
 // ----------------------------------------------------------------------------
 {
-    integer_g n = numerator(1);
-    integer_g d = denominator(1);
+    integer_g n = o->numerator(1);
+    integer_g d = o->denominator(1);
     render_num(r, n, 10, "-/");
     render_num(r, d, 10, "");
     return r.size();

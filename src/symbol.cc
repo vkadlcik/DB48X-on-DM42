@@ -40,48 +40,31 @@
 #include <stdio.h>
 
 
-OBJECT_HANDLER_BODY(symbol)
+EVAL_BODY(symbol)
 // ----------------------------------------------------------------------------
-//    Handle commands for symbols
+//   Evaluate a symbol by looking it up
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-        if (directory_p cat = rt.variables(0))
-            if (object_p found = cat->recall(obj))
-                return found->execute();
-        return rt.push(obj) ? OK : ERROR;
-    case EVAL:
-        if (directory_p cat = rt.variables(0))
-            if (object_p found = cat->recall(obj))
-                return found->evaluate();
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-    {
-        // Make sure we check commands first
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    }
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case ARITY:
-        return 0;
-    case PRECEDENCE:
-        return algebraic::SYMBOL;
-
-    case HELP:
-        return (intptr_t) "symbols";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(object);
-    }
+    if (directory_p dir = rt.variables(0))
+        if (object_p found = dir->recall(o))
+            return found->evaluate();
+    return rt.push(o) ? OK : ERROR;
 }
 
 
-OBJECT_PARSER_BODY(symbol)
+EXEC_BODY(symbol)
+// ----------------------------------------------------------------------------
+//   Evaluate a symbol by looking it up and executing result
+// ----------------------------------------------------------------------------
+{
+    if (directory_p dir = rt.variables(0))
+        if (object_p found = dir->recall(o))
+            return found->execute();
+    return rt.push(o) ? OK : ERROR;
+}
+
+
+PARSE_BODY(symbol)
 // ----------------------------------------------------------------------------
 //    Try to parse this as a symbol
 // ----------------------------------------------------------------------------
@@ -109,13 +92,13 @@ OBJECT_PARSER_BODY(symbol)
 }
 
 
-OBJECT_RENDERER_BODY(symbol)
+RENDER_BODY(symbol)
 // ----------------------------------------------------------------------------
 //   Render the symbol into the given symbol buffer
 // ----------------------------------------------------------------------------
 {
     size_t len = 0;
-    utf8   txt = value(&len);
+    utf8   txt = o->value(&len);
     r.put(txt, len);
     return r.size();
 }
@@ -130,7 +113,6 @@ symbol_g operator+(symbol_g x, symbol_g y)
         return y;
     if (!y)
         return x;
-    runtime &rt = runtime::RT;
     size_t sx = 0, sy = 0;
     utf8 tx = x->value(&sx);
     utf8 ty = y->value(&sy);
@@ -144,7 +126,7 @@ symbol_g operator+(symbol_g x, symbol_g y)
 }
 
 
-object_p symbol::recall(bool noerror, runtime &rt) const
+object_p symbol::recall(bool noerror) const
 // ----------------------------------------------------------------------------
 //   Recall the value associated with the symbol
 // ----------------------------------------------------------------------------
@@ -156,7 +138,7 @@ object_p symbol::recall(bool noerror, runtime &rt) const
 }
 
 
-bool symbol::store(gcobj value, runtime &rt) const
+bool symbol::store(gcobj value) const
 // ----------------------------------------------------------------------------
 //   Store something in the value associated with the symbol
 // ----------------------------------------------------------------------------

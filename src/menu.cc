@@ -40,28 +40,23 @@
 RECORDER(menu,          16, "RPL menu class");
 RECORDER(menu_error,    16, "Errors handling menus");
 
-OBJECT_HANDLER_BODY(menu)
+
+EVAL_BODY(menu)
 // ----------------------------------------------------------------------------
-//    Handle commands for menus
+//   Evaluating a menu puts it in the interface's menus
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        Input.menu(obj);
-        return OK;
-    case SIZE:
-        return leb128size(obj->type());
-    case MENU:
-        record(menu_error, "Invalid menu %u", obj->type());
-        return ERROR;
-    case MENU_MARKER:
-        return L'◥';
+    Input.menu(o);
+    return OK;
+}
 
-    default:
-        return DELEGATE(command);
-    }
+
+MARKER_BODY(menu)
+// ----------------------------------------------------------------------------
+//   A menu has a mark to identify it
+// ----------------------------------------------------------------------------
+{
+    return L'◥';
 }
 
 
@@ -171,22 +166,17 @@ void menu::items(info &mi, cstring label, object_p action)
 //
 // ============================================================================
 
-#define MENU(SysMenu, ...)                                           \
-  OBJECT_HANDLER_BODY(SysMenu)                                       \
-  /* ------------------------------------------------------------ */ \
-  /*   Create a system menu                                       */ \
-  /* ------------------------------------------------------------ */ \
-  {                                                                  \
-      if (op == MENU)                                                \
-      {                                                              \
-          info &mi     = *((info *) arg);                            \
-          uint  nitems = count(__VA_ARGS__);                         \
-          items_init(mi, nitems, 2);                                 \
-          items(mi, ##__VA_ARGS__);                                  \
-          return OK;                                                 \
-      }                                                              \
-      return DELEGATE(menu);                                         \
-  }
+#define MENU(SysMenu, ...)                                              \
+    MENU_BODY(SysMenu)                                                  \
+    /* ------------------------------------------------------------ */  \
+    /*   Create a system menu                                       */  \
+    /* ------------------------------------------------------------ */  \
+    {                                                                   \
+        uint  nitems = count(__VA_ARGS__);                              \
+        items_init(mi, nitems, 2);                                      \
+        items(mi, ##__VA_ARGS__);                                       \
+        return true;                                                    \
+    }
 
 
 

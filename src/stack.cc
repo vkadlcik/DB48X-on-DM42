@@ -40,7 +40,6 @@
 
 
 stack    Stack;
-runtime &stack::RT = runtime::RT;
 
 using coord        = graphics::coord;
 using size         = graphics::size;
@@ -79,7 +78,7 @@ void stack::draw_stack()
     size   idxHeight  = idxfont->height();
     coord  top        = hdrfont->height() + 2;
     coord  bottom     = Input.stack_screen_bottom() - 1;
-    uint   depth      = RT.depth();
+    uint   depth      = rt.depth();
     uint   digits     = countDigits(depth);
     coord  hdrx       = idxfont->width('0') * digits + 2;
     size   avail      = LCD_W - hdrx - 5;
@@ -88,13 +87,13 @@ void stack::draw_stack()
     if (!depth)
         return;
 
-    utf8 saveError = RT.error();
-    utf8 saveSrc   = RT.source();
-    utf8 saveCmd   = RT.command();
+    utf8 saveError = rt.error();
+    utf8 saveSrc   = rt.source();
+    utf8 saveCmd   = rt.command();
     rect clip      = Screen.clip();
 
     Screen.fill(hdrx, top, hdrx, bottom, pattern::gray50);
-    if (RT.editing())
+    if (rt.editing())
         Screen.fill(0, bottom, LCD_W, bottom, pattern::gray50);
 
     char buf[80];
@@ -114,7 +113,7 @@ void stack::draw_stack()
         size w = idxfont->width(utf8(buf));
         Screen.text(hdrx - w, y + idxOffset, utf8(buf), idxfont);
 
-        gcobj  obj  = RT.stack(level);
+        gcobj  obj  = rt.stack(level);
         renderer r(buf, sizeof(buf) - 1, true);
         size_t len = obj->render(r);
         if (len >= sizeof(buf))
@@ -155,5 +154,5 @@ void stack::draw_stack()
     Screen.clip(clip);
 
     // Clear any error raised during rendering
-    RT.error(saveError).source(saveSrc).command(saveCmd);
+    rt.error(saveError).source(saveSrc).command(saveCmd);
 }

@@ -92,10 +92,12 @@ struct font : object
     }
     fuint height() const;
 
-
-    OBJECT_HANDLER(font);
-    OBJECT_PARSER(font);
-    OBJECT_RENDERER(font);
+public:
+    SIZE_DECL(font)
+    {
+        byte_p p = o->payload();
+        return ptrdiff(p, o) + leb128<size_t>(p);
+    }
 };
 typedef const font *font_p;
 
@@ -133,7 +135,7 @@ struct dmcp_font : font
 {
     dmcp_font(fint index, id type = ID_dense_font): font(type)
     {
-        byte *p = payload();
+        byte_p p = payload();
         leb128(p, index);
     }
     static size_t required_memory(id i, fint index)
@@ -142,7 +144,7 @@ struct dmcp_font : font
     }
 
     static id static_type() { return ID_dmcp_font; }
-    fint index() const      { byte *p = payload(); return leb128<fint>(p); }
+    fint index() const      { byte_p p = payload(); return leb128<fint>(p); }
 
     bool glyph(unicode codepoint, glyph_info &g) const;
     fuint height();

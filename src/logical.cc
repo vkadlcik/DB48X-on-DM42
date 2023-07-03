@@ -40,7 +40,6 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
 //   Evaluation for binary logical operations
 // ----------------------------------------------------------------------------
 {
-    runtime &rt = RT;
     gcobj y = rt.stack(1);
     gcobj x = rt.stack(0);
     if (!x || !y)
@@ -133,7 +132,6 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big)
 //   Evaluation for unary logical operations
 // ----------------------------------------------------------------------------
 {
-    runtime &rt = RT;
     gcobj x = rt.stack(0);
     if (!x)
         return ERROR;

@@ -187,7 +187,6 @@ protected:
   uint16_t        menu_marker[NUM_PLANES][NUM_SOFTKEYS];
   bool            menu_marker_align[NUM_PLANES][NUM_SOFTKEYS];
   file            helpfile;
-  static runtime &RT;
   friend struct tests;
   friend struct runtime;
 };

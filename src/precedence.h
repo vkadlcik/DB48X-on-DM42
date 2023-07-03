@@ -1,12 +1,12 @@
-#ifndef CATALOG_H
-#define CATALOG_H
+#ifndef PRECEDENCE_H
+#define PRECEDENCE_H
 // ****************************************************************************
-//  catalog.h                                                  DB48X project
+//  precedence.h                                                 DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Auto-completion menu (Catalog)
+//     Define operator precedence
 //
 //
 //
@@ -16,7 +16,7 @@
 //
 //
 // ****************************************************************************
-//   (C) 2022 Christophe de Dinechin <christophe@dinechin.org>
+//   (C) 2023 Christophe de Dinechin <christophe@dinechin.org>
 //   This software is licensed under the terms outlined in LICENSE.txt
 // ****************************************************************************
 //   This file is part of DB48X.
@@ -29,22 +29,23 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include "menu.h"
-#include "command.h"
-
-struct Catalog : menu
+enum precedence
 // ----------------------------------------------------------------------------
-//   The catalog of functions, as shown by the 'Catalog' menu
+// Precedence for the various operators
 // ----------------------------------------------------------------------------
 {
-    Catalog(id type = ID_Catalog): menu(type) {}
+    NONE                = 0,    // No precedence
+    LOGICAL             = 1,    // and, or, xor
+    RELATIONAL          = 3,    // <, >, =, etc
+    ADDITIVE            = 5,    // +, -
+    MULTIPLICATIVE      = 7,    // *, /
+    POWER               = 9,    // ^
 
-    static uint count_commands();
-    static void list_commands(info &mi);
-
-public:
-    OBJECT_DECL(Catalog);
-    MENU_DECL(Catalog);
+    UNKNOWN             = 10,   // Unknown operator
+    PARENTHESES         = 20,   // Parentheses
+    FUNCTION            = 30,   // Functions, e.g. f(x)
+    FUNCTION_POWER      = 40,   // X²
+    SYMBOL              = 50,   // Names
 };
 
-#endif // CATALOG_H
+#endif // PRECEDENCE_H

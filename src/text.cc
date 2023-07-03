@@ -36,35 +36,19 @@
 #include <stdio.h>
 
 
-OBJECT_HANDLER_BODY(text)
+SIZE_BODY(text)
 // ----------------------------------------------------------------------------
-//    Handle commands for texts
+//   Compute the size of a text (and all objects with a size at beginning)
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        // Text values evaluate as self
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "text";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(object);
-    }
-
+    byte_p p = o->payload();
+    size_t sz = leb128<size_t>(p);
+    p += sz;
+    return ptrdiff(p, o);
 }
 
 
-OBJECT_PARSER_BODY(text)
+PARSE_BODY(text)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an text
 // ----------------------------------------------------------------------------
@@ -96,13 +80,13 @@ OBJECT_PARSER_BODY(text)
 }
 
 
-OBJECT_RENDERER_BODY(text)
+RENDER_BODY(text)
 // ----------------------------------------------------------------------------
 //   Render the text into the given text buffer
 // ----------------------------------------------------------------------------
 {
     size_t  len = 0;
-    utf8 txt = value(&len);
+    utf8 txt = o->value(&len);
     r.put('"');
     r.put(txt, len);
     r.put('"');
@@ -119,7 +103,6 @@ text_g operator+(text_g x, text_g y)
         return y;
     if (!y)
         return x;
-    runtime &rt = runtime::RT;
     size_t sx = 0, sy = 0;
     utf8 tx = x->value(&sx);
     utf8 ty = y->value(&sy);
@@ -138,7 +121,6 @@ text_g operator*(text_g x, uint y)
 //    Repeat the text a given number of times
 // ----------------------------------------------------------------------------
 {
-    runtime &rt = runtime::RT;
     text_g result = rt.make<text>(text::ID_text, x->value(), 0);
     while (y)
     {
@@ -170,12 +152,12 @@ text_p text::import() const
 //    Convert text containing sequences such as -> or <<
 // ----------------------------------------------------------------------------
 {
-    text_p   result  = this;
-    size_t   sz      = 0;
-    gcutf8   txt     = value(&sz);
-    gcmbytes replace;
-    scribble scr(RT);
+    text_p   result = this;
+    size_t   sz     = 0;
+    gcutf8   txt    = value(&sz);
     size_t   rcount = sizeof(conversions) / sizeof(conversions[0]);
+    gcmbytes replace;
+    scribble scr;
 
     for (size_t o = 0; o < sz; o++)
     {
@@ -188,12 +170,12 @@ text_p text::import() const
                 size_t rlen = strlen(conversions[r+1]);
                 if (!replace)
                 {
-                    replace = RT.allocate(o);
+                    replace = rt.allocate(o);
                     if (!replace)
                         return result;
                     memmove(replace.Safe(), txt.Safe(), o);
                 }
-                byte *cp = RT.allocate(rlen);
+                byte *cp = rt.allocate(rlen);
                 if (!cp)
                     return result;
                 memcpy(cp, conversions[r+1], rlen);
@@ -204,7 +186,7 @@ text_p text::import() const
 
         if (!replaced && replace)
         {
-            byte *cp = RT.allocate(1);
+            byte *cp = rt.allocate(1);
             if (!cp)
                 return result;
             *cp = utf8(txt)[o];

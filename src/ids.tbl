@@ -406,23 +406,6 @@ ID(sparse_font)
 ID(dmcp_font)
 
 
-// ============================================================================
-//
-//    Internal IDs used as opcode for the handler
-//
-// ============================================================================
-
-OPCODE(EVAL)                    // Evaluation, no program execution
-OPCODE(EXEC)                    // Evaluation, program execution
-OPCODE(SIZE)                    // Size in byte for object
-OPCODE(PARSE)                   // Parse this object class
-OPCODE(RENDER)                  // Render object as text in a buffer
-OPCODE(INSERT)                  // Insert in editor
-OPCODE(HELP)                    // Help topic for this object
-OPCODE(MENU)                    // Insert menu entries (menu objects only)
-OPCODE(MENU_MARKER)             // Menu marker for object (e.g. directory)
-OPCODE(ARITY)                   // Return arity for an arithmetic operation
-OPCODE(PRECEDENCE)              // Return precedence for arithmetic operations
 
 #undef ID
 #undef OP
@@ -430,4 +413,3 @@ OPCODE(PRECEDENCE)              // Return precedence for arithmetic operations
 #undef MENU
 #undef NAMED
 #undef ALIAS
-#undef OPCODE

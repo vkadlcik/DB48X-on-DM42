@@ -114,39 +114,24 @@ struct derived : arithmetic                                             \
     static constexpr auto bid64_op = bid64_##derived;                   \
     static constexpr auto bid128_op = bid128_##derived;                 \
                                                                         \
-    OBJECT_HANDLER(derived)                                             \
+    ARITY_DECL(2);                                                      \
+    PREC_DECL(Precedence);                                              \
+    EVAL_DECL(derived)                                                  \
     {                                                                   \
-        switch(op)                                                      \
-        {                                                               \
-        case EVAL:                                                      \
-        case EXEC:                                                      \
-            RT.command(fancy(ID_##derived));                            \
-            return derived::evaluate();                                 \
-        case SIZE:                                                      \
-            return byte_p(payload) - byte_p(obj);                       \
-        case ARITY:                                                     \
-            return 2;                                                   \
-        case PRECEDENCE:                                                \
-            return Precedence;                                          \
-        default:                                                        \
-            return DELEGATE(arithmetic);                                \
-        }                                                               \
-    }                                                                   \
-    static result evaluate()                                            \
-    {                                                                   \
+        rt.command(fancy(ID_##derived));                                \
         return arithmetic::evaluate<derived>();                         \
     }                                                                   \
 }
 
 
-ARITHMETIC_DECLARE(add, algebraic::ADDITIVE);
-ARITHMETIC_DECLARE(sub, algebraic::ADDITIVE);
-ARITHMETIC_DECLARE(mul, algebraic::MULTIPICATIVE);
-ARITHMETIC_DECLARE(div, algebraic::MULTIPICATIVE);
-ARITHMETIC_DECLARE(mod, algebraic::MULTIPICATIVE);
-ARITHMETIC_DECLARE(rem, algebraic::MULTIPICATIVE);
-ARITHMETIC_DECLARE(pow, algebraic::POWER);
-ARITHMETIC_DECLARE(hypot, algebraic::FUNCTION);
+ARITHMETIC_DECLARE(add, ADDITIVE);
+ARITHMETIC_DECLARE(sub, ADDITIVE);
+ARITHMETIC_DECLARE(mul, MULTIPLICATIVE);
+ARITHMETIC_DECLARE(div, MULTIPLICATIVE);
+ARITHMETIC_DECLARE(mod, MULTIPLICATIVE);
+ARITHMETIC_DECLARE(rem, MULTIPLICATIVE);
+ARITHMETIC_DECLARE(pow, POWER);
+ARITHMETIC_DECLARE(hypot, FUNCTION);
 
 void bid64_hypot(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
 void bid32_hypot(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);

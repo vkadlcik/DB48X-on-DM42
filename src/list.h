@@ -57,19 +57,18 @@ struct list : text
 
     static list *make(gcbytes bytes, size_t len)
     {
-        return RT.make<list>(bytes, len);
+        return rt.make<list>(bytes, len);
     }
-
-    OBJECT_HANDLER(list);
-    OBJECT_PARSER(list);
-    OBJECT_RENDERER(list);
 
 public:
     // Shared code for parsing and rendering, taking delimiters as input
-    intptr_t object_renderer(renderer &r, runtime &rt,
-                             unicode open, unicode close) const;
-    static result object_parser(id type, parser UNUSED &p, runtime &rt,
-                                unicode open, unicode close);
+    static result list_parse(id type, parser &p, unicode open, unicode close);
+    intptr_t      list_render(renderer &r, unicode open, unicode close) const;
+
+public:
+    OBJECT_DECL(list);
+    PARSE_DECL(list);
+    RENDER_DECL(list);
 };
 typedef const list *list_p;
 
@@ -82,13 +81,15 @@ struct program : list
     program(gcbytes bytes, size_t len, id type = ID_program)
         : list(bytes, len, type) {}
 
-    result           execute(runtime &rt = RT) const;
     static bool      interrupted(); // Program interrupted e.g. by EXIT key
     static program_p parse(utf8 source, size_t size);
 
-    OBJECT_HANDLER(program);
-    OBJECT_PARSER(program);
-    OBJECT_RENDERER(program);
+public:
+    OBJECT_DECL(program);
+    PARSE_DECL(program);
+    RENDER_DECL(program);
+    EVAL_DECL(program);
+    EXEC_DECL(program);
 };
 typedef const program *program_p;
 
@@ -101,8 +102,11 @@ struct block : program
     block(gcbytes bytes, size_t len, id type = ID_block)
         : program(bytes, len, type) {}
 
-    OBJECT_HANDLER(block);
-    OBJECT_RENDERER(block);
+public:
+    OBJECT_DECL(block);
+    PARSE_DECL(block);
+    RENDER_DECL(block);
+    EVAL_DECL(block);
 };
 typedef const block *block_p;
 
@@ -130,14 +134,16 @@ struct equation : program
     static int precedence(id type);
     static int precedence(object_p obj) { return precedence(obj->type()); }
 
-    OBJECT_HANDLER(equation);
-    OBJECT_PARSER(equation);
-    OBJECT_RENDERER(equation);
-
 protected:
     static symbol_g render(uint depth, int &precedence, bool edit);
     static symbol_g parentheses(symbol_g what);
     static symbol_g space(symbol_g what);
+
+public:
+    OBJECT_DECL(equation);
+    PARSE_DECL(equation);
+    RENDER_DECL(equation);
+    EVAL_DECL(equation);
 };
 typedef const equation *equation_p;
 
@@ -150,9 +156,10 @@ struct array : list
     array(gcbytes bytes, size_t len, id type = ID_array)
         : list(bytes, len, type) {}
 
-    OBJECT_HANDLER(array);
-    OBJECT_PARSER(array);
-    OBJECT_RENDERER(array);
+public:
+    OBJECT_DECL(array);
+    PARSE_DECL(array);
+    RENDER_DECL(array);
 };
 typedef const array *array_p;
 

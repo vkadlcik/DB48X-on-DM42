@@ -48,7 +48,7 @@ bignum::bignum(integer_g value, id type)
 // ----------------------------------------------------------------------------
     : text(value->payload(), bytesize(value), type)
 {
-    byte *p = payload();
+    byte *p = (byte *) payload();
     size_t sz = leb128<size_t>(p);
     if (sz)
     {
@@ -98,39 +98,11 @@ integer_p bignum::as_integer() const
     for (uint i = 0; i < size; i++)
         value |= ularge(p[i]) << (i * 8);
     id ty = type() == ID_neg_bignum ? ID_neg_integer : ID_integer;
-    return RT.make<integer>(ty, value);
+    return rt.make<integer>(ty, value);
 }
 
 
-OBJECT_HANDLER_BODY(bignum)
-// ----------------------------------------------------------------------------
-//    Handle commands for bignums
-// ----------------------------------------------------------------------------
-{
-    record(bignum, "Command %+s on %p", name(op), obj);
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        // Bignum values evaluate as self
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "bignum";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(text);
-    }
-}
-
-
-OBJECT_PARSER_BODY(bignum)
+PARSE_BODY(bignum)
 // ----------------------------------------------------------------------------
 //    Bignums are parsed by integer parser, so we can skip here
 // ----------------------------------------------------------------------------
@@ -158,8 +130,6 @@ static size_t render_num(renderer &r,
         r.put(tmp.text(), result);
         return result;
     }
-
-    runtime &rt = runtime::RT;
 
     // Copy the '#' or '-' sign
     if (*fmt)
@@ -211,70 +181,70 @@ static size_t render_num(renderer &r,
 }
 
 
-OBJECT_RENDERER_BODY(bignum)
+RENDER_BODY(bignum)
 // ----------------------------------------------------------------------------
 //   Render the bignum into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    size_t result = render_num(r, this, 10, "");
+    size_t result = render_num(r, o, 10, "");
     return result;
 }
 
 
 template<>
-OBJECT_RENDERER_BODY(neg_bignum)
+RENDER_BODY(neg_bignum)
 // ----------------------------------------------------------------------------
 //   Render the negative bignum value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, this, 10, "-");
+    return render_num(r, o, 10, "-");
 }
 
 
 template<>
-OBJECT_RENDERER_BODY(hex_bignum)
+RENDER_BODY(hex_bignum)
 // ----------------------------------------------------------------------------
 //   Render the hexadecimal bignum value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, this, 16, "#h");
+    return render_num(r, o, 16, "#h");
 }
 
 template<>
-OBJECT_RENDERER_BODY(dec_bignum)
+RENDER_BODY(dec_bignum)
 // ----------------------------------------------------------------------------
 //   Render the decimal based number
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, this, 10, "#d");
+    return render_num(r, o, 10, "#d");
 }
 
 template<>
-OBJECT_RENDERER_BODY(oct_bignum)
+RENDER_BODY(oct_bignum)
 // ----------------------------------------------------------------------------
 //   Render the octal bignum value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, this, 8, "#o");
+    return render_num(r, o, 8, "#o");
 }
 
 template<>
-OBJECT_RENDERER_BODY(bin_bignum)
+RENDER_BODY(bin_bignum)
 // ----------------------------------------------------------------------------
 //   Render the binary bignum value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, this, 2, "#b");
+    return render_num(r, o, 2, "#b");
 }
 
 
 template<>
-OBJECT_RENDERER_BODY(based_bignum)
+RENDER_BODY(based_bignum)
 // ----------------------------------------------------------------------------
 //   Render the hexadecimal bignum value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, this, Settings.base, "#");
+    return render_num(r, o, Settings.base, "#");
 }
 
 
@@ -379,7 +349,6 @@ bignum_g operator-(bignum_g xg)
 //   Negate the input value
 // ----------------------------------------------------------------------------
 {
-    runtime &rt = runtime::RT;
     object::id xt = xg->type();
     size_t xs = 0;
     byte_p x = xg->value(&xs);
@@ -400,7 +369,6 @@ bignum_g operator~(bignum_g x)
 //   Boolean not
 // ----------------------------------------------------------------------------
 {
-    runtime &rt = runtime::RT;
     object::id xt = x->type();
 
     // For bignum and neg_bignum, do a 0/1 logical not
@@ -495,7 +463,6 @@ bignum_g bignum::multiply(bignum_g yg, bignum_g xg, id ty)
 //   Perform multiply operation on the two big nums, with result type ty
 // ----------------------------------------------------------------------------
 {
-    runtime &rt = runtime::RT;
     size_t xs = 0;
     size_t ys = 0;
     byte_p x = xg->value(&xs);                // Read sizes and pointers
@@ -572,7 +539,6 @@ bool bignum::quorem(bignum_g yg, bignum_g xg, id ty, bignum_g *q, bignum_g *r)
 // ----------------------------------------------------------------------------
 //   Result is placed in scratchpad, the function returns the size in bytes
 {
-    runtime &rt = runtime::RT;
     if (!xg)
     {
         rt.zero_divide_error();
@@ -727,13 +693,13 @@ bignum_g bignum::pow(bignum_g y, bignum_g xg)
 }
 
 
-OBJECT_RENDERER_BODY(big_fraction)
+RENDER_BODY(big_fraction)
 // ----------------------------------------------------------------------------
 //   Render the fraction as 'num/den'
 // ----------------------------------------------------------------------------
 {
-    bignum_g n = numerator();
-    bignum_g d = denominator();
+    bignum_g n = o->numerator();
+    bignum_g d = o->denominator();
     render_num(r, n, 10, "");
     r.put('/');
     render_num(r, d, 10, "");
@@ -741,13 +707,13 @@ OBJECT_RENDERER_BODY(big_fraction)
 }
 
 
-OBJECT_RENDERER_BODY(neg_big_fraction)
+RENDER_BODY(neg_big_fraction)
 // ----------------------------------------------------------------------------
 //   Render the fraction as '-num/den'
 // ----------------------------------------------------------------------------
 {
-    bignum_g n = numerator();
-    bignum_g d = denominator();
+    bignum_g n = o->numerator();
+    bignum_g d = o->denominator();
     render_num(r, n, 10, "-/");
     render_num(r, d, 10, "");
     return r.size();

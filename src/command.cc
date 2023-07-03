@@ -49,40 +49,7 @@ RECORDER(command,       16, "RPL Commands");
 RECORDER(command_error, 16, "Errors processing a command");
 
 
-
-OBJECT_HANDLER_BODY(command)
-// ----------------------------------------------------------------------------
-//    RPL handler for commands
-// ----------------------------------------------------------------------------
-{
-    record(command, "Command %+s on %p", object::name(op), obj);
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        record(command_error, "Invoked default command handler");
-        rt.unimplemented_error();
-        return ERROR;
-    case SIZE:
-        // Commands have no payload
-        return ptrdiff(payload, obj);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case INSERT:
-        return ((input *) arg)->edit(obj->fancy(), input::PROGRAM);
-    case HELP:
-        return (intptr_t) obj->fancy();
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(object);
-    }
-}
-
-
-OBJECT_PARSER_BODY(command)
+PARSE_BODY(command)
 // ----------------------------------------------------------------------------
 //    Try to parse this as a command, using either short or long name
 // ----------------------------------------------------------------------------
@@ -103,7 +70,7 @@ OBJECT_PARSER_BODY(command)
 
     cstring names[3] = { nullptr };
     names[0] = disambiguate ? nullptr : cstring(object::fancy(i));
-    names[1] = cstring(object::name(i));
+    names[1] = cstring(name(i));
     switch(i)
     {
 #define ALIAS(base, name)                                               \
@@ -130,7 +97,7 @@ OBJECT_PARSER_BODY(command)
 
     record(command,
            "Parsing [%s] with id %u %+s (%+s), found %u len %u",
-           ref, i, object::name(i), object::fancy(i), found, len);
+           ref, i, name(i), fancy(i), found, len);
 
     if (!found)
         return SKIP;
@@ -143,25 +110,24 @@ OBJECT_PARSER_BODY(command)
 }
 
 
-OBJECT_RENDERER_BODY(command)
+RENDER_BODY(command)
 // ----------------------------------------------------------------------------
 //   Render the command into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    id ty = type();
+    id ty = o->type();
     if (ty < NUM_IDS)
     {
         auto format = Settings.command_fmt;
 
         // Ensure that we display + as `+` irrespective of mode
-        utf8 fancy = utf8(fancy_name[ty]);
-        if (!is_valid_as_name_initial(utf8_codepoint(fancy)))
-            if (utf8_length(fancy) == 1)
+        utf8 fname = fancy(ty);
+        if (!is_valid_as_name_initial(utf8_codepoint(fname)))
+            if (utf8_length(fname) == 1)
                 format = settings::commands::LONG_FORM;
 
         utf8 text = utf8(format == settings::commands::LONG_FORM
-                         ? fancy_name[ty]
-                         : id_name[ty]);
+                         ? fname : name(ty));
         r.put(format, text);
     }
 
@@ -183,6 +149,9 @@ object_p command::static_object(id i)
     object::ID_##id < 0x80 ? 0 : ((object::ID_##id) >> 7),
 #include "ids.tbl"
     };
+
+    if (i >= NUM_IDS)
+        i = ID_object;
 
     return (object_p) (cmds + 2 * i);
 }
@@ -239,7 +208,7 @@ bool command::stack(uint32_t *result, uint level)
 //   Get an unsigned value from the stack
 // ----------------------------------------------------------------------------
 {
-    if (object_p d = RT.stack(level))
+    if (object_p d = rt.stack(level))
     {
         id type = d->type();
         switch(type)
@@ -269,7 +238,7 @@ bool command::stack(uint32_t *result, uint level)
             return true;
         }
         default:
-            RT.type_error();
+            rt.type_error();
         }
     }
     return false;
@@ -281,7 +250,7 @@ bool command::stack(int32_t *result, uint level)
 //   Get a signed value from the stack
 // ----------------------------------------------------------------------------
 {
-    if (object_p d = RT.stack(level))
+    if (object_p d = rt.stack(level))
     {
         id type = d->type();
         switch(type)
@@ -311,7 +280,7 @@ bool command::stack(int32_t *result, uint level)
             return true;
         }
         default:
-            RT.type_error();
+            rt.type_error();
         }
     }
     return false;
@@ -330,7 +299,7 @@ COMMAND_BODY(Eval)
 //   Evaluate an object
 // ----------------------------------------------------------------------------
 {
-    if (object_p x = RT.pop())
+    if (object_p x = rt.pop())
         return x->execute();
     return ERROR;
 }
@@ -340,7 +309,7 @@ COMMAND_BODY(True)
 //   Evaluate as self
 // ----------------------------------------------------------------------------
 {
-    if (RT.push(command::static_object(ID_True)))
+    if (rt.push(command::static_object(ID_True)))
         return OK;
     return ERROR;
 }
@@ -350,7 +319,7 @@ COMMAND_BODY(False)
 //   Evaluate as self
 // ----------------------------------------------------------------------------
 {
-    if (RT.push(command::static_object(ID_False)))
+    if (rt.push(command::static_object(ID_False)))
         return OK;
     return ERROR;
 }
@@ -361,9 +330,9 @@ COMMAND_BODY(ToText)
 //   Convert an object to text
 // ----------------------------------------------------------------------------
 {
-    if (gcobj obj = RT.top())
+    if (gcobj obj = rt.top())
         if (gcobj txt = obj->as_text(false, false))
-            if (RT.top(txt))
+            if (rt.top(txt))
                 return OK;
     return ERROR;
 }
@@ -391,8 +360,8 @@ COMMAND_BODY(Ticks)
 // ----------------------------------------------------------------------------
 {
     uint ticks = sys_current_ms();
-    if (integer_p ti = RT.make<integer>(ID_integer, ticks))
-        if (RT.push(ti))
+    if (integer_p ti = rt.make<integer>(ID_integer, ticks))
+        if (rt.push(ti))
             return OK;
     return ERROR;
 }
@@ -426,8 +395,8 @@ COMMAND_BODY(HomeDirectory)
 //   Return the home directory
 // ----------------------------------------------------------------------------
 {
-    if (gcobj dir = (object *) RT.variables(0))
-        if (RT.push(dir))
+    if (gcobj dir = (object *) rt.variables(0))
+        if (rt.push(dir))
             return OK;
     return ERROR;
 }
@@ -446,7 +415,7 @@ COMMAND_BODY(Version)
         "Bill Hewlett and Dave Packard\n"
         "© 2022-2023 Christophe de Dinechin";
     if (text_g version = text::make(version_text))
-        if (RT.push(object_p(version)))
+        if (rt.push(object_p(version)))
             return OK;
     return ERROR;
 }

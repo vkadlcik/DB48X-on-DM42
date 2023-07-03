@@ -38,8 +38,8 @@ COMMAND(Dup)
 //   Implement the RPL "dup" command, duplicate top of stack
 // ----------------------------------------------------------------------------
 {
-    if (gcobj top = RT.top())
-        if (RT.push(top))
+    if (gcobj top = rt.top())
+        if (rt.push(top))
             return OK;
     return ERROR;
 }
@@ -50,10 +50,10 @@ COMMAND(Dup2)
 //   Implement the RPL "dup2" command, duplicate two elements at top of stack
 // ----------------------------------------------------------------------------
 {
-    if (gcobj y = RT.stack(1))
-        if (gcobj x = RT.stack(0))
-            if (RT.push(y))
-                if (RT.push(x))
+    if (gcobj y = rt.stack(1))
+        if (gcobj x = rt.stack(0))
+            if (rt.push(y))
+                if (rt.push(x))
                     return OK;
     return ERROR;
 }
@@ -67,11 +67,11 @@ COMMAND(DupN)
     uint32_t depth = 0;
     if (stack(&depth))
     {
-        if (RT.pop())
+        if (rt.pop())
         {
             for (uint i = 0; i < depth; i++)
-                if (object_p obj = RT.stack(depth-1))
-                    if (!RT.push(obj))
+                if (object_p obj = rt.stack(depth-1))
+                    if (!rt.push(obj))
                         return ERROR;
             return OK;
         }
@@ -85,7 +85,7 @@ COMMAND(Drop)
 //   Implement the RPL "drop" command, remove top of stack
 // ----------------------------------------------------------------------------
 {
-    if (RT.drop())
+    if (rt.drop())
         return OK;
     return ERROR;
 }
@@ -96,7 +96,7 @@ COMMAND(Drop2)
 //   Implement the Drop2 command, remove two elements from the stack
 // ----------------------------------------------------------------------------
 {
-    if (RT.drop(2))
+    if (rt.drop(2))
         return OK;
     return ERROR;
 }
@@ -109,8 +109,8 @@ COMMAND(DropN)
 {
     uint32_t depth = 0;
     if (stack(&depth))
-        if (RT.pop())
-            if (RT.drop(depth))
+        if (rt.pop())
+            if (rt.drop(depth))
                 return OK;
     return ERROR;
 }
@@ -121,8 +121,8 @@ COMMAND(Over)
 //   Implement the Over command, getting object from level 2
 // ----------------------------------------------------------------------------
 {
-    if (object_p o = RT.stack(1))
-        if (RT.push(o))
+    if (object_p o = rt.stack(1))
+        if (rt.push(o))
             return OK;
     return ERROR;
 }
@@ -135,8 +135,8 @@ COMMAND(Pick)
 {
     uint32_t depth = 0;
     if (stack(&depth))
-        if (object_p obj = RT.stack(depth))
-            if (RT.top(obj))
+        if (object_p obj = rt.stack(depth))
+            if (rt.top(obj))
                 return OK;
     return ERROR;
 }
@@ -149,8 +149,8 @@ COMMAND(Roll)
 {
     uint32_t depth = 0;
     if (stack(&depth))
-        if (RT.pop())
-            if (RT.roll(depth))
+        if (rt.pop())
+            if (rt.roll(depth))
                 return OK;
     return ERROR;
 }
@@ -163,8 +163,8 @@ COMMAND(RollD)
 {
     uint32_t depth = 0;
     if (stack(&depth))
-        if (RT.pop())
-            if (RT.rolld(depth))
+        if (rt.pop())
+            if (rt.rolld(depth))
                 return OK;
     return ERROR;
 }
@@ -175,7 +175,7 @@ COMMAND(Rot)
 //   Implement the RollD command, moving objects from first level up
 // ----------------------------------------------------------------------------
 {
-    if (RT.roll(3))
+    if (rt.roll(3))
         return OK;
     return ERROR;
 }
@@ -186,12 +186,12 @@ COMMAND(Swap)
 //   Implement the RPL "swap" command, swap the two top elements
 // ----------------------------------------------------------------------------
 {
-    object_p x = RT.stack(0);
-    object_p y = RT.stack(1);
+    object_p x = rt.stack(0);
+    object_p y = rt.stack(1);
     if (x && y)
     {
-        RT.stack(0, y);
-        RT.stack(1, x);
+        rt.stack(0, y);
+        rt.stack(1, x);
         return OK;
     }
     return ERROR;
@@ -202,9 +202,9 @@ COMMAND(Depth)
 //   Return the depth of the stack
 // ----------------------------------------------------------------------------
 {
-    uint ticks = RT.depth();
-    if (integer_p ti = RT.make<integer>(ID_integer, ticks))
-        if (RT.push(ti))
+    uint ticks = rt.depth();
+    if (integer_p ti = rt.make<integer>(ID_integer, ticks))
+        if (rt.push(ti))
             return OK;
     return ERROR;
 }

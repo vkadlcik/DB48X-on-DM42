@@ -869,7 +869,6 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
     nokeys();
 
     // Check that we are not displaying an error message
-    runtime &rt = runtime::RT;
     if (rt.error())
     {
         explain("Unexpected error message [", rt.error(), "] "
@@ -1186,8 +1185,8 @@ tests &tests::editing()
 // ----------------------------------------------------------------------------
 {
     ready();
-    return check(runtime::RT.editing(),
-                 "Expected to be editing, got length ", runtime::RT.editing());
+    return check(rt.editing(),
+                 "Expected to be editing, got length ", rt.editing());
 }
 
 
@@ -1197,9 +1196,9 @@ tests &tests::editing(size_t length)
 // ----------------------------------------------------------------------------
 {
     ready();
-    return check(runtime::RT.editing() == length,
+    return check(rt.editing() == length,
                  "Expected editing length to be ", length,
-                 " got ", runtime::RT.editing());
+                 " got ", rt.editing());
 }
 
 
@@ -1209,7 +1208,6 @@ tests &tests::editor(cstring text)
 // ----------------------------------------------------------------------------
 {
     ready();
-    runtime &rt = runtime::RT;
     byte_p   ed = rt.editor();
     size_t   sz = rt.editing();
 
@@ -1250,7 +1248,6 @@ tests &tests::error(cstring msg)
 // ----------------------------------------------------------------------------
 {
     ready();
-    runtime &rt  = runtime::RT;
     utf8     err = rt.error();
 
     if (!msg && err)
@@ -1270,7 +1267,6 @@ tests &tests::command(cstring ref)
 // ----------------------------------------------------------------------------
 {
     ready();
-    runtime &rt  = runtime::RT;
     utf8     cmd = rt.command();
 
     if (!ref && cmd)
@@ -1291,7 +1287,6 @@ tests &tests::source(cstring ref)
 // ----------------------------------------------------------------------------
 {
     ready();
-    runtime &rt  = runtime::RT;
     utf8     src = rt.source();
 
     if (!ref && src)

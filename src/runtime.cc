@@ -37,7 +37,7 @@
 
 
 // The one and only runtime
-runtime runtime::RT(nullptr, 0);
+runtime rt(nullptr, 0);
 runtime::gcptr *runtime::GCSafe = nullptr;
 
 RECORDER(runtime,       16, "RPL runtime");
@@ -194,7 +194,6 @@ bool runtime::integrity_test()
 //   Check all the objects in a given range
 // ----------------------------------------------------------------------------
 {
-    runtime &rt = runtime::RT;
     return integrity_test(rt.Globals,rt.Temporaries,rt.Stack,rt.Returns);
 }
 
@@ -240,7 +239,6 @@ void runtime::dump_object_list(cstring  message)
 //   Dump object list for the runtime
 // ----------------------------------------------------------------------------
 {
-    runtime &rt = runtime::RT;
     dump_object_list(message,
                      rt.Globals, rt.Temporaries, rt.Stack, rt.Returns);
 }
@@ -267,13 +265,13 @@ runtime::gcptr::~gcptr()
 // ----------------------------------------------------------------------------
 {
     gcptr *last = nullptr;
-    if (this == RT.GCSafe)
+    if (this == rt.GCSafe)
     {
-        RT.GCSafe = next;
+        rt.GCSafe = next;
         return;
     }
 
-    for (gcptr *gc = RT.GCSafe; gc; gc = gc->next)
+    for (gcptr *gc = rt.GCSafe; gc; gc = gc->next)
     {
         if (gc == this)
         {

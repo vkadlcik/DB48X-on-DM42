@@ -69,7 +69,7 @@ object::result comparison::condition(bool &value, object_p cond)
             value = false;
             return OK;
         default:
-            RT.type_error();
+            rt.type_error();
         }
     }
     return ERROR;
@@ -204,8 +204,8 @@ object::result comparison::compare(comparison_fn comparator)
 //   Compare items from the stack
 // ----------------------------------------------------------------------------
 {
-    object_p y = RT.stack(1);
-    object_p x = RT.stack(0);
+    object_p y = rt.stack(1);
+    object_p x = rt.stack(0);
     if (!x || !y)
         return ERROR;
 
@@ -213,14 +213,14 @@ object::result comparison::compare(comparison_fn comparator)
     result r = compare(&cmp, y, x);
     if (r != OK)
     {
-        RT.type_error();
+        rt.type_error();
         return r;
     }
 
-    RT.pop();
-    RT.pop();
+    rt.pop();
+    rt.pop();
     id type = comparator(cmp) ? ID_True : ID_False;
-    if (RT.push(command::static_object(type)))
+    if (rt.push(command::static_object(type)))
         return OK;
     return ERROR;
 }
@@ -233,8 +233,8 @@ object::result comparison::is_same(bool names)
 //   If 'names' is true, evaluate names (behavior of '==' aka TestSame)
 //   If 'names' is false, do not evaluate names (behavior of 'same')
 {
-    object_p y = RT.stack(1);
-    object_p x = RT.stack(0);
+    object_p y = rt.stack(1);
+    object_p x = rt.stack(0);
     if (!x || !y)
         return ERROR;
 
@@ -276,10 +276,10 @@ object::result comparison::is_same(bool names)
         if (xs == ys)
             same = memcmp(x, y, xs) == 0;
     }
-    RT.pop();
-    RT.pop();
+    rt.pop();
+    rt.pop();
     id type = same ? ID_True : ID_False;
-    if (RT.push(command::static_object(type)))
+    if (rt.push(command::static_object(type)))
         return OK;
     return ERROR;
 }

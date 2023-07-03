@@ -346,7 +346,7 @@ inline bool div::integer_ok(object::id &xt, object::id &yt,
     // Check divid by zero
     if (xv == 0)
     {
-        RT.zero_divide_error();
+        rt.zero_divide_error();
         return false;
     }
 
@@ -379,7 +379,7 @@ inline bool div::bignum_ok(bignum_g &x, bignum_g &y)
 {
     if (!x)
     {
-        RT.zero_divide_error();
+        rt.zero_divide_error();
         return false;
     }
     bignum_g q = nullptr;
@@ -406,7 +406,7 @@ inline bool div::fraction_ok(fraction_g &x, fraction_g &y)
 {
     if (!x->numerator())
     {
-        RT.zero_divide_error();
+        rt.zero_divide_error();
         return false;
     }
     x = y / x;
@@ -423,7 +423,7 @@ inline bool mod::integer_ok(object::id &xt, object::id &yt,
     // Check divid by zero
     if (xv == 0)
     {
-        RT.zero_divide_error();
+        rt.zero_divide_error();
         return false;
     }
 
@@ -468,7 +468,7 @@ inline bool mod::fraction_ok(fraction_g &x, fraction_g &y)
 {
     if (!x->numerator())
     {
-        RT.zero_divide_error();
+        rt.zero_divide_error();
         return false;
     }
     x = y % x;
@@ -485,7 +485,7 @@ inline bool rem::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
     // Check divid by zero
     if (xv == 0)
     {
-        RT.zero_divide_error();
+        rt.zero_divide_error();
         return false;
     }
 
@@ -512,7 +512,7 @@ inline bool rem::fraction_ok(fraction_g &x, fraction_g &y)
 {
     if (!x->numerator())
     {
-        RT.zero_divide_error();
+        rt.zero_divide_error();
         return false;
     }
     x = y % x;
@@ -529,7 +529,7 @@ inline bool pow::integer_ok(object::id &xt, object::id &yt,
     // Check divid by zero
     if (xv == 0 && yv == 0)
     {
-        RT.undefined_operation_error();
+        rt.undefined_operation_error();
         return false;
     }
 
@@ -633,14 +633,13 @@ object::result arithmetic::evaluate(id             op,
 //   Shared code for all forms of evaluation
 // ----------------------------------------------------------------------------
 {
-    gcobj x = RT.stack(0);
-    gcobj y = RT.stack(1);
+    gcobj x = rt.stack(0);
+    gcobj y = rt.stack(1);
     if (!x || !y)
         return ERROR;
 
     id xt = x->type();
     id yt = y->type();
-    runtime &rt = runtime::RT;
 
     /* Integer types */
     bool ok = false;

@@ -42,9 +42,6 @@ struct stack
 
     void draw_stack();
 
-protected:
-    static runtime &RT;
-
 public:
 #ifdef SIMULATOR
     char stack0[80];

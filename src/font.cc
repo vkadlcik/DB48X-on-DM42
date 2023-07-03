@@ -45,53 +45,6 @@ RECORDER(dmcp_fonts,    16, "Information about DMCP fonts");
 RECORDER(fonts_error,   16, "Information about fonts");
 
 
-OBJECT_HANDLER_BODY(font)
-// ----------------------------------------------------------------------------
-//    Handler for font objects
-// ----------------------------------------------------------------------------
-{
-    record(fonts, "Command %+s on %p", name(op), obj);
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        // Font values evaluate as self
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return ptrdiff(payload, obj) + leb128<size_t>(payload);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(object);
-    }
-
-}
-
-
-OBJECT_PARSER_BODY(font)
-// ----------------------------------------------------------------------------
-//    Try to parse this as a font object
-// ----------------------------------------------------------------------------
-{
-    record(fonts, "Cannot parse a font (yet)");
-    return SKIP;
-}
-
-
-OBJECT_RENDERER_BODY(font)
-// ----------------------------------------------------------------------------
-//   Render the integer into the given string buffer
-// ----------------------------------------------------------------------------
-{
-    r.put("Font (internal)");
-    return r.size();
-}
-
-
 static const byte dmcpFontRPL[]
 // ----------------------------------------------------------------------------
 //   RPL object representing the various DMCP fonts
@@ -179,7 +132,7 @@ struct font_cache
     //   Data in the cache
     // ------------------------------------------------------------------------
     {
-        void set(byte *bitmap, fint x, fint y, fuint w, fuint h, fuint a)
+        void set(byte_p bitmap, fint x, fint y, fuint w, fuint h, fuint a)
         {
             this->bitmap = bitmap;
             this->x = x;
@@ -255,7 +208,7 @@ struct font_cache
     }
 
 
-    bool set(fint glyph, byte *bm, fint x, fint y, fuint w, fuint h, fuint a)
+    bool set(fint glyph, byte_p bm, fint x, fint y, fuint w, fuint h, fuint a)
     // ------------------------------------------------------------------------
     //   Set the offset of the glyph in the font
     // ------------------------------------------------------------------------
@@ -283,7 +236,7 @@ font::fuint sparse_font::height()
 // ----------------------------------------------------------------------------
 {
     // Scan the font data
-    byte         *p      = payload();
+    byte_p        p      = payload();
     size_t UNUSED size   = leb128<size_t>(p);
     fuint         height = leb128<fuint>(p);
     return height;
@@ -296,9 +249,9 @@ bool sparse_font::glyph(unicode codepoint, glyph_info &g) const
 // ----------------------------------------------------------------------------
 {
     // Scan the font data
-    byte         *p      = payload();
-    size_t UNUSED size   = leb128<size_t>(p);
-    fuint         height = leb128<fuint>(p);
+    byte_p            p      = payload();
+    size_t UNUSED     size   = leb128<size_t>(p);
+    fuint             height = leb128<fuint>(p);
 
     // Check if cached
     font_cache::data *data = FontCache.cachedFont() == this
@@ -381,7 +334,7 @@ font::fuint dense_font::height()
 // ----------------------------------------------------------------------------
 {
     // Scan the font data
-    byte         *p      = payload();
+    byte_p        p      = payload();
     size_t UNUSED size   = leb128<size_t>(p);
     fuint         height = leb128<fuint>(p);
     return height;
@@ -394,11 +347,11 @@ bool dense_font::glyph(unicode codepoint, glyph_info &g) const
 // ----------------------------------------------------------------------------
 {
     // Scan the font data
-    byte         *p      = payload();
-    size_t UNUSED size   = leb128<size_t>(p);
-    fuint         height = leb128<fuint>(p);
-    fuint         width  = leb128<fuint>(p);
-    byte         *bitmap = p;
+    byte_p            p          = payload();
+    size_t UNUSED     size       = leb128<size_t>(p);
+    fuint             height     = leb128<fuint>(p);
+    fuint             width      = leb128<fuint>(p);
+    byte_p            bitmap     = p;
 
     // Check if cached
     font_cache::data *data = FontCache.cachedFont() == this

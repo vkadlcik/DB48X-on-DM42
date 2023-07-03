@@ -48,6 +48,21 @@ static ularge gcd(ularge a, ularge b)
 }
 
 
+SIZE_BODY(fraction)
+// ----------------------------------------------------------------------------
+//   Return the size of an LEB128-encoded fraction
+// ----------------------------------------------------------------------------
+{
+    // LEB-128 encoded numerator and denominator
+    byte_p p = o->payload();
+    size_t ns = leb128size(p);
+    p += ns;
+    size_t ds = leb128size(p);
+    p += ds;
+    return ptrdiff(p, o);
+}
+
+
 fraction_g fraction::make(integer_g n, integer_g d)
 // ----------------------------------------------------------------------------
 //   Create a reduced fraction from n and d
@@ -61,7 +76,6 @@ fraction_g fraction::make(integer_g n, integer_g d)
         n = integer::make(nv / cd);
         d = integer::make(dv / cd);
     }
-    runtime &rt = runtime::RT;
     bool neg = (n->type() == ID_neg_integer) != (d->type() == ID_neg_integer);
     id ty = neg ? ID_neg_fraction : ID_fraction;
     return rt.make<fraction>(ty, n, d);
@@ -80,7 +94,7 @@ bignum_g fraction::numerator() const
     ty = (ty == ID_neg_fraction) ? ID_neg_bignum : ID_bignum;
     byte_p p = payload();
     ularge nv = leb128<ularge>(p);
-    return RT.make<bignum>(ty, nv);
+    return rt.make<bignum>(ty, nv);
 }
 
 
@@ -96,7 +110,7 @@ bignum_g fraction::denominator() const
     byte_p p = payload();
     size_t nv = leb128<ularge>(p);
     size_t dv = leb128<ularge>(p) + 0 * nv;
-    return RT.make<bignum>(ID_bignum, dv);
+    return rt.make<bignum>(ID_bignum, dv);
 }
 
 
@@ -108,7 +122,7 @@ integer_g fraction::numerator(int) const
     id ty = (type() == ID_neg_fraction) ? ID_neg_integer : ID_integer;
     byte_p p = payload();
     ularge nv = leb128<ularge>(p);
-    return RT.make<integer>(ty, nv);
+    return rt.make<integer>(ty, nv);
 }
 
 
@@ -120,39 +134,10 @@ integer_g fraction::denominator(int) const
     byte_p p = payload();
     size_t nv = leb128<ularge>(p);
     size_t dv = leb128<ularge>(p) + 0 * nv;
-    return RT.make<integer>(ID_integer, dv);
+    return rt.make<integer>(ID_integer, dv);
 }
 
 
-OBJECT_HANDLER_BODY(fraction)
-// ----------------------------------------------------------------------------
-//  Handle commands for fractions
-// ----------------------------------------------------------------------------
-{
-    record(fraction, "Command %+s on %p", name(op), obj);
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        // Integer values evaluate as self
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return obj->size(byte_p(payload));
-    case PARSE:
-        return SKIP;            // This is done in integer class
-    case RENDER:
-        // Note that the renderer is in integer.cc
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "fraction";
-    case PRECEDENCE:
-        return algebraic::MULTIPICATIVE;
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(object);
-    }
-}
 
 
 // ============================================================================
@@ -161,33 +146,20 @@ OBJECT_HANDLER_BODY(fraction)
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(big_fraction)
+SIZE_BODY(big_fraction)
 // ----------------------------------------------------------------------------
-//  Handle commands for fractions using bignum as a representation
+//   Big fractions use size and whole bytes
 // ----------------------------------------------------------------------------
 {
-    record(fraction, "Command %+s on %p", name(op), obj);
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        // Integer values evaluate as self
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return obj->size(byte_p(payload));
-    case PARSE:
-        return SKIP;            // This is done in integer class
-    case RENDER:
-        // Note that the renderer is in integer.cc
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "fraction";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(object);
-    }
+    // Bignum-encoded numerator and denominator
+    byte_p p = o->payload();
+    size_t ns = leb128<size_t>(p);
+    p += ns;
+    size_t ds = leb128<size_t>(p);
+    p += ds;
+    return ptrdiff(p, o);
 }
+
 
 bignum_g big_fraction::numerator() const
 // ------------------------------------------------------------------------
@@ -197,7 +169,7 @@ bignum_g big_fraction::numerator() const
     id ty = type() == ID_neg_big_fraction ? ID_neg_bignum : ID_bignum;
     byte_p p = payload();
     size_t ns = leb128<size_t>(p);
-    return RT.make<bignum>(ty, p, ns);
+    return rt.make<bignum>(ty, p, ns);
 }
 
 
@@ -210,7 +182,7 @@ bignum_g big_fraction::denominator() const
     size_t ns = leb128<size_t>(p);
     p += ns;
     size_t ds = leb128<size_t>(p);
-    return RT.make<bignum>(ID_bignum, p, ds);
+    return rt.make<bignum>(ID_bignum, p, ds);
 }
 
 
@@ -240,8 +212,6 @@ fraction_g big_fraction::make(bignum_g n, bignum_g d)
         n = n / cd;
         d = d / cd;
     }
-    runtime &rt = runtime::RT;
-
     // Check if numerator and denominator are small enough to use LEB128
     if (integer_g ni = (integer *) n->as_integer())
         if (integer_g di = (integer *) d->as_integer())

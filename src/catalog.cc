@@ -35,26 +35,16 @@
 #include <stdlib.h>
 
 
-OBJECT_HANDLER_BODY(Catalog)
+MENU_BODY(Catalog)
 // ----------------------------------------------------------------------------
 //   Process the MENU command for Catalog
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case MENU:
-    {
-        info &mi     = *((info *) arg);
-        uint  nitems = count_commands();
-        items_init(mi, nitems, 1);
-        Input.autoCompleteMenu();
-        list_commands(mi);
-        return OK;
-    }
-    default:
-        return DELEGATE(menu);
-
-    }
+    uint  nitems = count_commands();
+    items_init(mi, nitems, 1);
+    Input.autoCompleteMenu();
+    list_commands(mi);
+    return OK;
 }
 
 
@@ -85,15 +75,14 @@ static void initialize_sorted_ids()
 }
 
 
-static bool matches(utf8 start, size_t size, cstring name)
+static bool matches(utf8 start, size_t size, utf8 name)
 // ----------------------------------------------------------------------------
 //   Check if what was typed matches the name
 // ----------------------------------------------------------------------------
 {
-    utf8 ref   = utf8(name);
     bool found = true;
     for (uint i = 0; found && i < size; i++)
-        found = tolower(start[i]) == tolower(ref[i]);
+        found = tolower(start[i]) == tolower(name[i]);
     return found;
 }
 
@@ -113,10 +102,10 @@ uint Catalog::count_commands()
 
     for (uint i = 0; i < NUM_COMMANDS; i++)
     {
-        uint sorted = sorted_ids[i];
-        if (!filter                                     ||
-            matches(start, size, id_name[sorted])       ||
-            matches(start, size, fancy_name[sorted]))
+        id sorted = sorted_ids[i];
+        if (!filter                             ||
+            matches(start, size, name(sorted))  ||
+            matches(start, size, fancy(sorted)))
             count++;
     }
 
@@ -135,11 +124,12 @@ void Catalog::list_commands(info &mi)
 
     for (uint i = 0; i < NUM_COMMANDS; i++)
     {
-        object::id sorted = sorted_ids[i];
-        if (!filter                                     ||
-            matches(start, size, id_name[sorted])       ||
-            matches(start, size, fancy_name[sorted]))
-            menu::items(mi, fancy_name[sorted], command::static_object(sorted));
+        id sorted = sorted_ids[i];
+        if (!filter                                  ||
+            matches(start, size, name(sorted))       ||
+            matches(start, size, fancy(sorted)))
+            menu::items(mi, cstring(fancy(sorted)),
+                        command::static_object(sorted));
     }
     Input.menuNeedsRefresh();
 }

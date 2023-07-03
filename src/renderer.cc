@@ -42,7 +42,6 @@ renderer::~renderer()
 //   When we used the scratchpad, free memory used
 // ----------------------------------------------------------------------------
 {
-    runtime &rt = runtime::RT;
     if (!target)
         rt.free(written);
 }
@@ -71,7 +70,6 @@ bool renderer::put(char c)
     }
     else
     {
-        runtime &rt = runtime::RT;
         byte *p = rt.allocate(1);
         if (!p)
             return false;
@@ -161,7 +159,6 @@ size_t renderer::printf(const char *format, ...)
     else
     {
         // Write in the scratchpad
-        runtime &rt = runtime::RT;
         char buf[32];
         va_list va;
         va_start(va, format);
@@ -201,7 +198,6 @@ utf8 renderer::text() const
         return (utf8) target;
     if (saving)
         return nullptr;
-    runtime &rt = runtime::RT;
 #ifdef SIMULATOR
     *rt.scratchpad() = 0;
 #endif // SIMULATOR

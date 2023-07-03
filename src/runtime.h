@@ -91,6 +91,12 @@ RECORDER_DECLARE(errors);
 RECORDER_DECLARE(gc);
 RECORDER_DECLARE(editor);
 
+// The one and only runtime
+struct runtime;
+extern runtime rt;
+
+
+
 struct runtime
 // ----------------------------------------------------------------------------
 //   The RPL runtime information
@@ -370,13 +376,13 @@ struct runtime
     //   Protect a pointer against garbage collection
     // ------------------------------------------------------------------------
     {
-        gcptr(byte *ptr = nullptr) : safe(ptr), next(RT.GCSafe)
+        gcptr(byte *ptr = nullptr) : safe(ptr), next(rt.GCSafe)
         {
-            RT.GCSafe = this;
+            rt.GCSafe = this;
         }
-        gcptr(const gcptr &o): safe(o.safe), next(RT.GCSafe)
+        gcptr(const gcptr &o): safe(o.safe), next(rt.GCSafe)
         {
-            RT.GCSafe = this;
+            rt.GCSafe = this;
         }
         ~gcptr();
 
@@ -701,12 +707,7 @@ protected:
 
     // Pointers that are GC-adjusted
     static gcptr *GCSafe;
-
-public:
-    // The one and only runtime
-    static runtime RT;
 };
-
 
 template<typename T>
 using gcp = runtime::gcp<T>;
@@ -733,7 +734,7 @@ inline Obj *make(Args &... args)
 //    Create an object in the runtime
 // ----------------------------------------------------------------------------
 {
-    return runtime::RT.make<Obj>(args...);
+    return rt.make<Obj>(args...);
 }
 
 
@@ -797,7 +798,7 @@ struct scribble
 //   Temporary area using the scratchpad
 // ----------------------------------------------------------------------------
 {
-    scribble(runtime &rt) : rt(rt), allocated(rt.allocated())
+    scribble(): allocated(rt.allocated())
     {
     }
     ~scribble()
@@ -819,7 +820,6 @@ struct scribble
     }
 
 private:
-    runtime &rt;
     size_t  allocated;
 };
 

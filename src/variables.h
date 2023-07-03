@@ -126,9 +126,10 @@ struct directory : list
     // ------------------------------------------------------------------------
 
 
-    OBJECT_HANDLER(directory);
-    OBJECT_PARSER(directory);
-    OBJECT_RENDERER(directory);
+public:
+    OBJECT_DECL(directory);
+    PARSE_DECL(directory);
+    RENDER_DECL(directory);
 };
 
 typedef const directory *directory_p;
@@ -158,7 +159,8 @@ struct VariablesMenu : menu
     static void list_variables(info &mi);
 
 public:
-    OBJECT_HANDLER(VariablesMenu);
+    OBJECT_DECL(VariablesMenu);
+    MENU_DECL(VariablesMenu);
 };
 
 COMMAND_DECLARE(VariablesMenuExecute);

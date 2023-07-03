@@ -29,6 +29,7 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
+#include "types.h"
 #include <cstdint>
 
 template <typename Int = uint, typename Data>

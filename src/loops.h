@@ -53,25 +53,22 @@ struct loop : command
         return leb128size(i) + body->size();
     }
 
-    static intptr_t size(object_p obj, object_p payload)
-    {
-        payload = payload->skip();
-        return ptrdiff(payload, obj);
-    }
-
     static bool interrupted()   { return program::interrupted(); }
 
 protected:
     // Shared code for parsing and rendering, taking delimiters as input
-    intptr_t object_renderer(renderer &r, runtime &rt,
+    intptr_t object_renderer(renderer &r,
                              uint nsep, cstring seps[]) const;
-    static result object_parser(id type, parser UNUSED &p, runtime &rt,
+    static result object_parser(id type, parser UNUSED &p,
                                 uint nsep, cstring seps[]);
-    intptr_t object_renderer(renderer &r, runtime &rt,
+    intptr_t object_renderer(renderer &r,
                              cstring beg, cstring end) const;
-    static result object_parser(id type, parser UNUSED &p, runtime &rt,
+    static result object_parser(id type, parser UNUSED &p,
                                 cstring beg, cstring end);
-    static result counted(gcobj body, runtime &rt, bool stepping);
+    static result counted(gcobj body, bool stepping);
+
+public:
+    SIZE_DECL(loop);
 };
 
 
@@ -81,26 +78,23 @@ struct conditional_loop : loop
 // ----------------------------------------------------------------------------
 {
     conditional_loop(gcobj condition, gcobj body, id type);
-    result condition(bool &value) const;
+    static result condition(bool &value);
 
     static size_t required_memory(id i, gcobj condition, gcobj body)
     {
         return leb128size(i) + condition->size() + body->size();
     }
 
-    static intptr_t size(object_p obj, object_p payload)
-    {
-        payload = payload->skip()->skip();
-        return ptrdiff(payload, obj);
-    }
-
 protected:
     // Shared code for parsing and rendering, taking delimiters as input
-    intptr_t object_renderer(renderer &r, runtime &rt,
+    intptr_t object_renderer(renderer &r,
                              cstring beg, cstring mid, cstring end) const;
-    static result object_parser(id type, parser UNUSED &p, runtime &rt,
+    static result object_parser(id type, parser UNUSED &p,
                                 cstring beg, cstring mid, cstring end);
-    static result counted(gcobj body, runtime &rt, bool stepping);
+    static result counted(gcobj body, bool stepping);
+
+public:
+    SIZE_DECL(conditional_loop);
 };
 
 
@@ -112,10 +106,12 @@ struct DoUntil : conditional_loop
     DoUntil(gcobj condition, gcobj body, id type)
         : conditional_loop(condition, body, type) {}
 
-    result execute(runtime &rt) const;
-    OBJECT_HANDLER(DoUntil);
-    OBJECT_PARSER(DoUntil);
-    OBJECT_RENDERER(DoUntil);
+public:
+    OBJECT_DECL(DoUntil);
+    PARSE_DECL(DoUntil);
+    EVAL_DECL(DoUntil);
+    RENDER_DECL(DoUntil);
+    INSERT_DECL(DoUntil);
 };
 
 
@@ -127,10 +123,12 @@ struct WhileRepeat : conditional_loop
     WhileRepeat(gcobj condition, gcobj body, id type)
         : conditional_loop(condition, body, type) {}
 
-    result execute(runtime &rt) const;
-    OBJECT_HANDLER(WhileRepeat);
-    OBJECT_PARSER(WhileRepeat);
-    OBJECT_RENDERER(WhileRepeat);
+public:
+    OBJECT_DECL(WhileRepeat);
+    PARSE_DECL(WhileRepeat);
+    EVAL_DECL(WhileRepeat);
+    RENDER_DECL(WhileRepeat);
+    INSERT_DECL(WhileRepeat);
 };
 
 
@@ -141,10 +139,12 @@ struct StartNext : loop
 {
     StartNext(gcobj body, id type): loop(body, type) {}
 
-    result execute(runtime &rt) const;
-    OBJECT_HANDLER(StartNext);
-    OBJECT_PARSER(StartNext);
-    OBJECT_RENDERER(StartNext);
+public:
+    OBJECT_DECL(StartNext);
+    PARSE_DECL(StartNext);
+    EVAL_DECL(StartNext);
+    RENDER_DECL(StartNext);
+    INSERT_DECL(StartNext);
 };
 
 
@@ -155,10 +155,12 @@ struct StartStep : StartNext
 {
     StartStep(gcobj body, id type): StartNext(body, type) {}
 
-    result execute(runtime &rt) const;
-    OBJECT_HANDLER(StartStep);
-    OBJECT_PARSER(StartStep);
-    OBJECT_RENDERER(StartStep);
+public:
+    OBJECT_DECL(StartStep);
+    PARSE_DECL(StartStep);
+    EVAL_DECL(StartStep);
+    RENDER_DECL(StartStep);
+    INSERT_DECL(StartStep);
 };
 
 
@@ -169,10 +171,12 @@ struct ForNext : StartNext
 {
     ForNext(gcobj body, id type): StartNext(body, type) {}
 
-    result execute(runtime &rt) const;
-    OBJECT_HANDLER(ForNext);
-    OBJECT_PARSER(ForNext);
-    OBJECT_RENDERER(ForNext);
+public:
+    OBJECT_DECL(ForNext);
+    PARSE_DECL(ForNext);
+    EVAL_DECL(ForNext);
+    RENDER_DECL(ForNext);
+    INSERT_DECL(ForNext);
 };
 
 
@@ -183,10 +187,12 @@ struct ForStep : ForNext
 {
     ForStep(gcobj body, id type): ForNext(body, type) {}
 
-    result execute(runtime &rt) const;
-    OBJECT_HANDLER(ForStep);
-    OBJECT_PARSER(ForStep);
-    OBJECT_RENDERER(ForStep);
+public:
+    OBJECT_DECL(ForStep);
+    PARSE_DECL(ForStep);
+    EVAL_DECL(ForStep);
+    RENDER_DECL(ForStep);
+    INSERT_DECL(ForStep);
 };
 
 #endif // LOOPS_H

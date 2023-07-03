@@ -58,7 +58,7 @@ void settings::save(renderer &out, bool show_defaults)
     // Save the current menu
     if (menu_p menu = Input.menu())
     {
-        menu->render(out, runtime::RT);
+        menu->render(out);
         out.put('\n');
     }
 
@@ -186,7 +186,7 @@ COMMAND_BODY(Modes)
     size_t size = modes.size();
     gcutf8 code = modes.text();
     if (gcobj program = object::parse(code, size))
-        if (runtime::RT.push(program))
+        if (rt.push(program))
             return OK;
     return ERROR;
 }
@@ -260,19 +260,19 @@ static object::result set_display_mode(settings::display mode)
 //   Set a mode with a given number of digits
 // ----------------------------------------------------------------------------
 {
-    if (object_p size = runtime::RT.top())
+    if (object_p size = rt.top())
     {
         if (integer_p digits = size->as<integer>())
         {
             uint disp = digits->value<uint>();
             Settings.displayed = std::min(disp, (uint) BID128_MAXDIGITS);
             Settings.display_mode = mode;
-            runtime::RT.pop();
+            rt.pop();
             return object::OK;
         }
         else
         {
-            runtime::RT.type_error();
+            rt.type_error();
         }
     }
     return object::ERROR;
@@ -500,18 +500,18 @@ SETTINGS_COMMAND_BODY(Precision, 0)
 //   Setting the precision
 // ----------------------------------------------------------------------------
 {
-    if (object_p size = runtime::RT.top())
+    if (object_p size = rt.top())
     {
         if (integer_p digits = size->as<integer>())
         {
             uint disp = digits->value<uint>();
             Settings.precision = std::min(disp, (uint) BID128_MAXDIGITS);
-            runtime::RT.pop();
+            rt.pop();
             return object::OK;
         }
         else
         {
-            runtime::RT.type_error();
+            rt.type_error();
         }
     }
     return object::ERROR;
@@ -535,18 +535,18 @@ SETTINGS_COMMAND_BODY(StandardExponent, 0)
 //   Setting the maximum exponent before switching to scientific mode
 // ----------------------------------------------------------------------------
 {
-    if (object_p size = runtime::RT.top())
+    if (object_p size = rt.top())
     {
         if (integer_p digits = size->as<integer>())
         {
             uint disp = digits->value<uint>();
             Settings.standard_exp = std::min(disp, (uint) BID128_MAXDIGITS);
-            runtime::RT.pop();
+            rt.pop();
             return object::OK;
         }
         else
         {
-            runtime::RT.type_error();
+            rt.type_error();
         }
     }
     return object::ERROR;
@@ -592,22 +592,22 @@ SETTINGS_COMMAND_BODY(Base, 0)
 //   Setting the maximum exponent before switching to scientific mode
 // ----------------------------------------------------------------------------
 {
-    if (object_p size = runtime::RT.top())
+    if (object_p size = rt.top())
     {
         if (integer_p digits = size->as<integer>())
         {
             uint base = digits->value<uint>();
-            runtime::RT.pop();
+            rt.pop();
             if (base >= 2 && base <= 36)
             {
                 Settings.base = base;
                 return object::OK;
             }
-            runtime::RT.invalid_base_error();
+            rt.invalid_base_error();
         }
         else
         {
-            runtime::RT.type_error();
+            rt.type_error();
         }
     }
     return object::ERROR;
@@ -671,18 +671,18 @@ SETTINGS_COMMAND_BODY(stws, 0)
 //   Setting the word size for binary computations
 // ----------------------------------------------------------------------------
 {
-    if (object_p size = runtime::RT.top())
+    if (object_p size = rt.top())
     {
         if (integer_p digits = size->as<integer>())
         {
             uint ws = digits->value<uint>();
-            runtime::RT.pop();
+            rt.pop();
             Settings.wordsize = ws;
             return OK;
         }
         else
         {
-            runtime::RT.type_error();
+            rt.type_error();
         }
     }
     return object::ERROR;
@@ -706,7 +706,7 @@ COMMAND_BODY(rcws)
 // ----------------------------------------------------------------------------
 {
     if (gcobj ws = integer::make(Settings.wordsize))
-        if (runtime::RT.push(ws))
+        if (rt.push(ws))
             return OK;
     return ERROR;
 }
@@ -715,22 +715,22 @@ COMMAND_BODY(rcws)
 #define FONT_SIZE_SETTING(id, field, label)             \
 SETTINGS_COMMAND_BODY(id, 0)                            \
 {                                                       \
-    if (object_p size = runtime::RT.top())              \
+    if (object_p size = rt.top())                       \
     {                                                   \
         if (integer_p value = size->as<integer>())      \
         {                                               \
             uint fs = value->value<uint>();             \
             if (fs < (uint) settings::NUM_FONTS)        \
             {                                           \
-                runtime::RT.pop();                      \
+                rt.pop();                               \
                 Settings.field = settings::font_id(fs); \
                 return OK;                              \
             }                                           \
-            runtime::RT.domain_error();                 \
+            rt.domain_error();                          \
         }                                               \
         else                                            \
         {                                               \
-            runtime::RT.type_error();                   \
+            rt.type_error();                            \
         }                                               \
     }                                                   \
     return object::ERROR;                               \
@@ -755,22 +755,22 @@ FONT_SIZE_SETTING(EditorMultilineFontSize, editor_ml_sz, "BigEdit")
 #define SPACING_SIZE_SETTING(id, field, label)          \
 SETTINGS_COMMAND_BODY(id, 0)                            \
 {                                                       \
-    if (object_p size = runtime::RT.top())              \
+    if (object_p size = rt.top())                       \
     {                                                   \
         if (integer_p value = size->as<integer>())      \
         {                                               \
             uint fs = value->value<uint>();             \
             if (fs < 10)                                \
             {                                           \
-                runtime::RT.pop();                      \
+                rt.pop();                               \
                 Settings.field = fs;                    \
                 return OK;                              \
             }                                           \
-            runtime::RT.domain_error();                 \
+            rt.domain_error();                          \
         }                                               \
         else                                            \
         {                                               \
-            runtime::RT.type_error();                   \
+            rt.type_error();                            \
         }                                               \
     }                                                   \
     return object::ERROR;                               \
@@ -791,23 +791,23 @@ COMMAND_BODY(NumberSpacing)
 //  Set same spacing for both mantissa and fraction
 // ----------------------------------------------------------------------------
 {
-    if (object_p size = runtime::RT.top())
+    if (object_p size = rt.top())
     {
         if (integer_p value = size->as<integer>())
         {
             uint fs = value->value<uint>();
             if (fs < 10)
             {
-                runtime::RT.pop();
+                rt.pop();
                 Settings.spacing_mantissa = fs;
                 Settings.spacing_fraction = fs;
                 return OK;
             }
-            runtime::RT.domain_error();
+            rt.domain_error();
         }
         else
         {
-            runtime::RT.type_error();
+            rt.type_error();
         }
     }
     return object::ERROR;

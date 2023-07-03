@@ -75,11 +75,11 @@ struct locals : program
     locals(gcbytes bytes, size_t len, id type = ID_locals)
         : program(bytes, len, type) {}
 
-    result execute(runtime &rt = RT) const;
-
-    OBJECT_HANDLER(locals);
-    OBJECT_PARSER(locals);
-    OBJECT_RENDERER(locals);
+public:
+    OBJECT_DECL(locals);
+    PARSE_DECL(locals);
+    EXEC_DECL(locals);
+    RENDER_DECL(locals);
 };
 typedef const locals *locals_p;
 typedef gcp<const locals> locals_g;
@@ -92,7 +92,7 @@ struct local : object
 {
     local(uint index, id type = ID_local): object(type)
     {
-        byte *p = payload();
+        byte *p = (byte *) payload();
         leb128(p, index);
     }
 
@@ -103,7 +103,7 @@ struct local : object
 
     local(gcbytes ptr, size_t size, id type = ID_local): object(type)
     {
-        byte *p = payload();
+        byte *p = (byte *) payload();
         memmove(p, byte_p(ptr), size);
     }
 
@@ -118,22 +118,23 @@ struct local : object
         return leb128<size_t>(p);
     }
 
-    object_p recall(runtime &rt = RT) const
+    object_p recall() const
     {
         return rt.local(index());
     }
 
-    bool store(gcobj obj, runtime &rt = RT) const
+    bool store(gcobj obj) const
     {
         return rt.local(index(), obj);
     }
 
-    result execute(runtime &rt = RT) const;
-    result evaluate(runtime &rt = RT) const;
-
-    OBJECT_HANDLER(local);
-    OBJECT_RENDERER(local);
-    OBJECT_PARSER(local);
+public:
+    OBJECT_DECL(local);
+    PARSE_DECL(local);
+    EVAL_DECL(local);
+    EXEC_DECL(local);
+    SIZE_DECL(local);
+    RENDER_DECL(local);
 };
 typedef const local *local_p;
 typedef gcp<const local> local_g;

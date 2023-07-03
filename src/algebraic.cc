@@ -46,27 +46,12 @@ RECORDER(algebraic,       16, "RPL Algebraics");
 RECORDER(algebraic_error, 16, "Errors processing a algebraic");
 
 
-OBJECT_HANDLER_BODY(algebraic)
+INSERT_BODY(algebraic)
 // ----------------------------------------------------------------------------
-//    RPL handler for algebraics
+//   Enter data in algebraic mode
 // ----------------------------------------------------------------------------
 {
-    record(algebraic, "Algebraic %+s on %p", object::name(op), obj);
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        record(algebraic_error, "Invoked default algebraic handler");
-        rt.unimplemented_error();
-        return ERROR;
-
-    case INSERT:
-        return ((input *) arg)->edit(obj->fancy(), input::ALGEBRAIC);
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(command);
-    }
+    return i.edit(o->fancy(), i.ALGEBRAIC);
 }
 
 
@@ -81,7 +66,6 @@ bool algebraic::real_promotion(gcobj &x, object::id type)
 
     record(algebraic, "Real promotion of %p from %+s to %+s",
            (object_p) x, object::name(xt), object::name(type));
-    runtime &rt = runtime::RT;
     switch(xt)
     {
     case ID_integer:
@@ -241,7 +225,7 @@ object::id algebraic::bignum_promotion(gcobj &x)
     if (ty != xt)
     {
         integer_g i = (integer *) object_p(x);
-        x = RT.make<bignum>(ty, i);
+        x = rt.make<bignum>(ty, i);
     }
     return ty;
 }

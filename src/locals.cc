@@ -45,33 +45,6 @@ locals_stack *locals_stack::stack = nullptr;
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(locals)
-// ----------------------------------------------------------------------------
-//    Handle commands for locals object
-// ----------------------------------------------------------------------------
-{
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        // Execute the program
-        return obj->execute(rt);
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "locals";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(program);
-    }
-}
-
-
 static inline bool is_program_separator(unicode cp)
 // ----------------------------------------------------------------------------
 //   Check if a given unicode character can begin a program object
@@ -83,7 +56,7 @@ static inline bool is_program_separator(unicode cp)
 }
 
 
-OBJECT_PARSER_BODY(locals)
+PARSE_BODY(locals)
 // ----------------------------------------------------------------------------
 //    Try to parse this as a block with locals
 // ----------------------------------------------------------------------------
@@ -101,7 +74,7 @@ OBJECT_PARSER_BODY(locals)
         return SKIP;
 
     // Parse the names
-    scribble scr(rt);
+    scribble scr;
     size_t   names  = 0;
     gcmbytes countp = rt.scratchpad();
     byte     encoding[4];
@@ -178,10 +151,10 @@ OBJECT_PARSER_BODY(locals)
     object::result result = ERROR;
     switch(cp)
     {
-    case L'«':  result = program::object_parser(p, rt);  break;
-    case  '\'': result = equation::object_parser(p, rt); break;
-    case '{':   result = list::object_parser(p, rt);     break;
-    default:                                             break;
+    case L'«':  result = program ::do_parse(p); break;
+    case  '\'': result = equation::do_parse(p); break;
+    case '{':   result = list    ::do_parse(p); break;
+    default:                                    break;
     }
     if (result != OK)
         return result;
@@ -206,13 +179,13 @@ OBJECT_PARSER_BODY(locals)
 }
 
 
-OBJECT_RENDERER_BODY(locals)
+RENDER_BODY(locals)
 // ----------------------------------------------------------------------------
 //   Render the program into the given program buffer
 // ----------------------------------------------------------------------------
 {
     // Skip object size
-    gcbytes p = payload();
+    gcbytes p = o->payload();
     size_t  objsize = leb128<size_t>(p.Safe());
     (void) objsize;
 
@@ -234,16 +207,16 @@ OBJECT_RENDERER_BODY(locals)
 
     // Render object (which should be a program, an equation or a list)
     object_p obj = object_p(p.Safe());
-    return obj->render(r, rt);
+    return obj->render(r);
 }
 
 
-object::result locals::execute(runtime &rt) const
+EXEC_BODY(locals)
 // ----------------------------------------------------------------------------
 //   Evaluate a program with locals
 // ----------------------------------------------------------------------------
 {
-    gcobj  p       = object_p(payload());
+    gcobj  p       = object_p(o->payload());
     size_t len     = leb128<size_t>(p.Safe());
     (void) len;
 
@@ -260,7 +233,7 @@ object::result locals::execute(runtime &rt) const
     }
 
     // Execute result
-    result res = p->execute(rt);
+    result res = p->execute();
 
     // Remove locals
     rt.unlocals(names);
@@ -277,36 +250,17 @@ object::result locals::execute(runtime &rt) const
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(local)
+SIZE_BODY(local)
 // ----------------------------------------------------------------------------
-//    Handle commands for local object
+//  Compute size for a local object
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case EXEC:
-        // Evaluate the local value
-        return obj->evaluate(rt);
-    case EVAL:
-        // Execute the local value
-        return obj->execute(rt);
-    case SIZE:
-        return ptrdiff(payload, obj) + leb128size(payload);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "local";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(program);
-    }
+    byte_p p = o->payload();
+    return ptrdiff(p, o) + leb128size(p);
 }
 
 
-OBJECT_PARSER_BODY(local)
+PARSE_BODY(local)
 // ----------------------------------------------------------------------------
 //    Check if we have local names, and check if there is a match
 // ----------------------------------------------------------------------------
@@ -354,12 +308,12 @@ OBJECT_PARSER_BODY(local)
 }
 
 
-OBJECT_RENDERER_BODY(local)
+RENDER_BODY(local)
 // ----------------------------------------------------------------------------
 //   Render a local name
 // ----------------------------------------------------------------------------
 {
-    gcbytes p = payload();
+    gcbytes p = o->payload();
     uint index = leb128<uint>(p.Safe());
 
     for (locals_stack *f = locals_stack::current(); f; f = f->enclosing())
@@ -394,24 +348,24 @@ OBJECT_RENDERER_BODY(local)
 }
 
 
-object::result local::evaluate(runtime &rt) const
+EVAL_BODY(local)
 // ----------------------------------------------------------------------------
 //   Evaluate a local by fetching it from locals area and putting it on stack
 // ----------------------------------------------------------------------------
 {
-    if (gcobj obj = recall(rt))
+    if (gcobj obj = o->recall())
         if (rt.push(obj))
             return OK;
     return ERROR;
 }
 
 
-object::result local::execute(runtime &rt) const
+EXEC_BODY(local)
 // ----------------------------------------------------------------------------
 //   Execute a local by fetching it from locals and executing it
 // ----------------------------------------------------------------------------
 {
-    if (gcobj obj = recall(rt))
-        return obj->execute(rt);
+    if (gcobj obj = o->recall())
+        return obj->execute();
     return ERROR;
 }

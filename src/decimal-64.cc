@@ -74,41 +74,21 @@ decimal64::decimal64(bignum_p num, id type)
     }
     if (num->type() == ID_neg_bignum)
         bid64_negate(&result.value, &result.value);
-    byte *p = payload();
+    byte *p = (byte *) payload();
     memcpy(p, &result, sizeof(result));
 }
 
 
-OBJECT_HANDLER_BODY(decimal64)
+SIZE_BODY(decimal64)
 // ----------------------------------------------------------------------------
-//    Handle commands for decimal64s
+//    Compute size for a decimal64 payload
 // ----------------------------------------------------------------------------
 {
-    record(decimal64, "Command %+s on %p", name(op), obj);
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        // Decimal64 values evaluate as self
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return ptrdiff(payload, obj) + sizeof(bid64);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "decimal";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(object);
-    }
-
+    return ptrdiff(o->payload(), o) + sizeof(bid64);
 }
 
 
-OBJECT_PARSER_BODY(decimal64)
+PARSE_BODY(decimal64)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an decimal64
 // ----------------------------------------------------------------------------
@@ -512,13 +492,13 @@ size_t decimal_format(char *buf, size_t len, bool editing)
 #endif // In original decimal64.cc
 
 
-OBJECT_RENDERER_BODY(decimal64)
+RENDER_BODY(decimal64)
 // ----------------------------------------------------------------------------
 //   Render the decimal64 into the given string buffer
 // ----------------------------------------------------------------------------
 {
     // Align the value
-    bid64 num = value();
+    bid64 num = o->value();
 
     // Render in a separate buffer to avoid overflows
     char buf[MAXBIDCHAR];

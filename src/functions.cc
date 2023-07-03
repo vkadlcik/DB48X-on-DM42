@@ -40,12 +40,11 @@ object::result function::evaluate(id op, bid128_fn op128)
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------
 {
-    gcobj x = RT.stack(0);
+    gcobj x = rt.stack(0);
     if (!x)
         return ERROR;
 
     id xt = x->type();
-    runtime &rt = runtime::RT;
     if (is_integer(xt))
     {
         // Do not accept sin(#123h)
@@ -107,7 +106,6 @@ static object::result symbolic(object::id type)
 //   Check if the function's argument is symbolic, if so process it as is
 // ----------------------------------------------------------------------------
 {
-    runtime &rt = runtime::RT;
     gcobj x = rt.stack(0);
     if (!x)
         return object::ERROR;
@@ -128,7 +126,7 @@ FUNCTION_BODY(abs)
 //   Implementation of 'abs'
 // ----------------------------------------------------------------------------
 {
-    gcobj x = RT.stack(0);
+    gcobj x = rt.stack(0);
     if (!x)
         return ERROR;
 
@@ -141,8 +139,8 @@ FUNCTION_BODY(abs)
     {
         integer_p i = integer_p(object_p(x));
         ularge magnitude = i->value<ularge>();
-        integer_p ai = RT.make<integer>(ID_integer, magnitude);
-        if (ai && RT.top(ai))
+        integer_p ai = rt.make<integer>(ID_integer, magnitude);
+        if (ai && rt.top(ai))
             return OK;
         return ERROR;           // Out of memory
     }
@@ -183,8 +181,8 @@ FUNCTION_BODY(inv)
 
     // Apparently there is a div function getting in the way, see man div(3)
     using div = struct div;
-    integer_p one = RT.make<integer>(ID_integer, 1);
-    if (RT.push(one)             &&
+    integer_p one = rt.make<integer>(ID_integer, 1);
+    if (rt.push(one)             &&
         run<Swap>() == OK        &&
         run<div>()  == OK)
         return OK;
@@ -201,8 +199,8 @@ FUNCTION_BODY(neg)
     if (r != SKIP)
         return r;
 
-    integer_p zero = RT.make<integer>(ID_integer, 0);
-    if (RT.push(zero)           &&
+    integer_p zero = rt.make<integer>(ID_integer, 0);
+    if (rt.push(zero)           &&
         run<Swap>() == OK       &&
         run<sub>()  == OK)
         return OK;
@@ -219,7 +217,6 @@ FUNCTION_BODY(sq)
     if (r != SKIP)
         return r;
 
-    runtime &rt = RT;
     gcobj x = rt.stack(0);
     if (x->is_strictly_symbolic())
     {
@@ -244,7 +241,6 @@ FUNCTION_BODY(cubed)
     if (r != SKIP)
         return r;
 
-    runtime &rt = RT;
     gcobj x = rt.stack(0);
     if (x->is_strictly_symbolic())
     {

@@ -56,17 +56,13 @@ struct derived : comparison                                             \
 {                                                                       \
     derived(id i = ID_##derived) : comparison(i) {}                     \
                                                                         \
-    static uint arity()             { return 2; }                       \
-    static uint precedence()        { return 1; }                       \
+    ARITY_DECL(2);                                                      \
+    PREC_DECL(RELATIONAL);                                              \
                                                                         \
-    OBJECT_HANDLER(derived)                                             \
+    EVAL_DECL(derived)                                                  \
     {                                                                   \
-        if (op == EVAL || op == EXEC)                                   \
-        {                                                               \
-            RT.command(fancy(ID_##derived));                            \
-            return comparison::evaluate<derived>();                     \
-        }                                                               \
-        return DELEGATE(arithmetic);                                    \
+        rt.command(fancy(ID_##derived));                                \
+        return comparison::evaluate<derived>();                         \
     }                                                                   \
     static bool make_result(int cmp)    { return condition; }           \
     static result evaluate()                                            \

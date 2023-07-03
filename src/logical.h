@@ -66,18 +66,15 @@ struct derived : logical                                                \
 {                                                                       \
     derived(id i = ID_##derived) : logical(i) {}                        \
                                                                         \
-    static uint arity()             { return 2; }                       \
-    static uint precedence()        { return 0; }                       \
-                                                                        \
-    OBJECT_HANDLER(derived)                                             \
+    OBJECT_DECL(derived);                                               \
+    ARITY_DECL(2);                                                      \
+    PREC_DECL(LOGICAL);                                                 \
+    EVAL_DECL(derived)                                                  \
     {                                                                   \
-        if (op == EVAL || op == EXEC)                                   \
-        {                                                               \
-            RT.command(fancy(ID_##derived));                            \
-            return logical::evaluate<derived>();                        \
-        }                                                               \
-        return DELEGATE(arithmetic);                                    \
+        rt.command(fancy(ID_##derived));                                \
+        return evaluate<derived>();                                     \
     }                                                                   \
+                                                                        \
     static ularge    native(ularge Y, ularge X)        { return code; } \
     static bignum_g  bignum(bignum_g Y, bignum_g X)    { return code; } \
 }
@@ -91,17 +88,13 @@ struct derived : logical                                                \
 {                                                                       \
     derived(id i = ID_##derived) : logical(i) {}                        \
                                                                         \
-    static uint arity()             { return 1; }                       \
-    static uint precedence()        { return 0; }                       \
-                                                                        \
-    OBJECT_HANDLER(derived)                                             \
+    OBJECT_DECL(derived);                                               \
+    ARITY_DECL(1);                                                      \
+    PREC_DECL(NONE);                                                    \
+    EVAL_DECL(derived)                                                  \
     {                                                                   \
-        if (op == EVAL || op == EXEC)                                   \
-        {                                                               \
-            RT.command(fancy(ID_##derived));                            \
-            return logical::evaluate<derived>();                        \
-        }                                                               \
-        return DELEGATE(arithmetic);                                    \
+        rt.command(fancy(ID_##derived));                                \
+        return evaluate<derived>();                                     \
     }                                                                   \
     static ularge    native(ularge X)           { return code; }        \
     static bignum_g  bignum(bignum_g X)         { return code; }        \

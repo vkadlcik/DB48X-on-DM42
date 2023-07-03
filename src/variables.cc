@@ -40,34 +40,8 @@
 RECORDER(directory,       16, "Directories");
 RECORDER(directory_error, 16, "Errors from directories");
 
-OBJECT_HANDLER_BODY(directory)
-// ----------------------------------------------------------------------------
-//    Handle commands for directorys
-// ----------------------------------------------------------------------------
-{
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        // Directorys evaluate as self
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return size(obj, payload);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "directory";
 
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(list);
-    }
-}
-
-
-OBJECT_PARSER_BODY(directory)
+PARSE_BODY(directory)
 // ----------------------------------------------------------------------------
 //    Try to parse this as a directory
 // ----------------------------------------------------------------------------
@@ -106,7 +80,7 @@ OBJECT_PARSER_BODY(directory)
                     {
                         if (obj->type() != ID_symbol)
                         {
-                            RT.error("Invalid name in directory").source(body);
+                            rt.error("Invalid name in directory").source(body);
                             return ERROR;
                         }
                     }
@@ -119,7 +93,7 @@ OBJECT_PARSER_BODY(directory)
                 // We should have an even number of items here
                 if (count & 1)
                 {
-                    RT.malformed_directory_error().source(body);
+                    rt.malformed_directory_error().source(body);
                     return SKIP;
                 }
 
@@ -149,14 +123,14 @@ bool directory::render_name(symbol_p name, object_p obj, void *arg)
 }
 
 
-OBJECT_RENDERER_BODY(directory)
+RENDER_BODY(directory)
 // ----------------------------------------------------------------------------
 //   Render the directory into the given directory buffer
 // ----------------------------------------------------------------------------
 {
     bool result = r.put("Directory {");
     r.indent();
-    if (result) result = enumerate(directory::render_name, &r);
+    if (result) result = o->enumerate(directory::render_name, &r);
     r.unindent();
     if (result) result = r.put("}");
     return r.size();
@@ -170,7 +144,6 @@ bool directory::store(gcobj name, gcobj value)
 //    Note that the directory itself should never move because of GC
 //    That's because it normally should reside in the globals area
 {
-    runtime &rt     = runtime::RT;
     object_p header = (object_p) payload();
     object_p body   = header;
     size_t   old    = leb128<size_t>(body);     // Old size of directory
@@ -298,7 +271,6 @@ size_t directory::purge(object_p ref)
         size_t vs = value->size();
         size_t purged = ns + vs;
 
-        runtime &rt = runtime::RT;
         rt.move_globals(name, name + purged);
 
         size_t old = object::size();
@@ -383,37 +355,37 @@ COMMAND_BODY(Sto)
 //   Store a global variable into current directory
 // ----------------------------------------------------------------------------
 {
-    directory *dir = RT.variables(0);
+    directory *dir = rt.variables(0);
     if (!dir)
     {
-        RT.no_directory_error();
+        rt.no_directory_error();
         return ERROR;
     }
 
     // Check that we have two objects in the stack
-    object_p x = RT.stack(0);
-    object_p y = RT.stack(1);
+    object_p x = rt.stack(0);
+    object_p y = rt.stack(1);
     if (x && y)
     {
         if (x->type() == ID_local)
         {
             local_p local = (local_p) x;
             size_t index = local->index();
-            if (RT.local(index, y))
+            if (rt.local(index, y))
                 return OK;
             return ERROR;
         }
         symbol_p name = x->as_name();
         if (!name)
         {
-            RT.invalid_name_error();
+            rt.invalid_name_error();
             return ERROR;
         }
 
         if (dir->store(name, y))
         {
-            RT.drop();
-            RT.drop();
+            rt.drop();
+            rt.drop();
             return OK;
         }
     }
@@ -428,32 +400,32 @@ COMMAND_BODY(Rcl)
 //   Recall a global variable from current directory
 // ----------------------------------------------------------------------------
 {
-    object_p x = RT.stack(0);
+    object_p x = rt.stack(0);
     if (!x)
         return ERROR;
     if (x->type() == ID_local)
     {
         local_p local = (local_p) x;
         size_t index = local->index();
-        if (gcobj obj = RT.local(index))
-            if (RT.push(obj))
+        if (gcobj obj = rt.local(index))
+            if (rt.push(obj))
                 return OK;
         return ERROR;
     }
     symbol_p name = x->as_name();
     if (!name)
     {
-        RT.invalid_name_error();
+        rt.invalid_name_error();
         return ERROR;
     }
 
     // Lookup all directorys, starting with innermost one
     directory *dir = nullptr;
-    for (uint depth = 0; (dir = RT.variables(depth)); depth++)
+    for (uint depth = 0; (dir = rt.variables(depth)); depth++)
     {
         if (object_p value = dir->recall(name))
         {
-            if (RT.top(value))
+            if (rt.top(value))
                 return OK;
             return ERROR;       // Out of memory, cannot happen?
 
@@ -461,7 +433,7 @@ COMMAND_BODY(Rcl)
     }
 
     // Otherwise, return an error
-    RT.undefined_name_error();
+    rt.undefined_name_error();
     return ERROR;
 }
 
@@ -471,22 +443,22 @@ COMMAND_BODY(Purge)
 //   Purge a global variable from current directory
 // ----------------------------------------------------------------------------
 {
-    object_p x = RT.stack(0);
+    object_p x = rt.stack(0);
     if (!x)
         return ERROR;
     symbol_p name = x->as_name();
     if (!name)
     {
-        RT.invalid_name_error();
+        rt.invalid_name_error();
         return ERROR;
     }
-    RT.pop();
+    rt.pop();
 
     // Lookup all directorys, starting with innermost one
-    directory *dir = RT.variables(0);
+    directory *dir = rt.variables(0);
     if (!dir)
     {
-        RT.no_directory_error();
+        rt.no_directory_error();
         return ERROR;
     }
 
@@ -501,20 +473,20 @@ COMMAND_BODY(PurgeAll)
 //   Purge a global variable from current directory and enclosing directories
 // ----------------------------------------------------------------------------
 {
-    object_p x = RT.stack(0);
+    object_p x = rt.stack(0);
     if (!x)
         return ERROR;
     symbol_p name = x->as_name();
     if (!name)
     {
-        RT.invalid_name_error();
+        rt.invalid_name_error();
         return ERROR;
     }
-    RT.pop();
+    rt.pop();
 
     // Lookup all directorys, starting with innermost one, and purge there
     directory *dir = nullptr;
-    for (uint depth = 0; (dir = RT.variables(depth)); depth++)
+    for (uint depth = 0; (dir = rt.variables(depth)); depth++)
         dir->purge(name);
 
     return OK;
@@ -527,7 +499,7 @@ COMMAND_BODY(Mem)
 // ----------------------------------------------------------------------------
 //    The HP48 manual specifies that mem performs garbage collection
 {
-    RT.gc();
+    rt.gc();
     run<FreeMemory>();
     return OK;
 }
@@ -538,9 +510,9 @@ COMMAND_BODY(GarbageCollect)
 //   Run the garbage collector
 // ----------------------------------------------------------------------------
 {
-    size_t saved = RT.gc();
-    integer_p result = RT.make<integer>(ID_integer, saved);
-    return RT.push(result) ? OK : ERROR;
+    size_t saved = rt.gc();
+    integer_p result = rt.make<integer>(ID_integer, saved);
+    return rt.push(result) ? OK : ERROR;
 }
 
 
@@ -549,9 +521,9 @@ COMMAND_BODY(FreeMemory)
 //   Return amount of free memory (available without garbage collection)
 // ----------------------------------------------------------------------------
 {
-    size_t available = RT.available();
-    integer_p result = RT.make<integer>(ID_integer, available);
-    return RT.push(result) ? OK : ERROR;
+    size_t available = rt.available();
+    integer_p result = rt.make<integer>(ID_integer, available);
+    return rt.push(result) ? OK : ERROR;
 }
 
 
@@ -561,8 +533,8 @@ COMMAND_BODY(SystemMemory)
 // ----------------------------------------------------------------------------
 {
     size_t mem = sys_free_mem();
-    integer_p result = RT.make<integer>(ID_integer, mem);
-    return RT.push(result) ? OK : ERROR;
+    integer_p result = rt.make<integer>(ID_integer, mem);
+    return rt.push(result) ? OK : ERROR;
 }
 
 
@@ -573,25 +545,15 @@ COMMAND_BODY(SystemMemory)
 //
 // ============================================================================
 
-OBJECT_HANDLER_BODY(VariablesMenu)
+MENU_BODY(VariablesMenu)
 // ----------------------------------------------------------------------------
 //   Process the MENU command for VariablesMenu
 // ----------------------------------------------------------------------------
 {
-    switch(op)
-    {
-    case MENU:
-    {
-        info &mi     = *((info *) arg);
-        uint  nitems = count_variables();
-        items_init(mi, nitems, 1);
-        list_variables(mi);
-        return OK;
-    }
-    default:
-        return DELEGATE(menu);
-
-    }
+    uint  nitems = count_variables();
+    items_init(mi, nitems, 1);
+    list_variables(mi);
+    return OK;
 }
 
 
@@ -600,10 +562,10 @@ uint VariablesMenu::count_variables()
 //    Count the variables in the current directory
 // ----------------------------------------------------------------------------
 {
-    directory *dir = RT.variables(0);
+    directory *dir = rt.variables(0);
     if (!dir)
     {
-        RT.no_directory_error();
+        rt.no_directory_error();
         return 0;
     }
     return dir->count();
@@ -650,10 +612,10 @@ void VariablesMenu::list_variables(info &mi)
 //   Fill the menu with variable names
 // ----------------------------------------------------------------------------
 {
-    directory *dir = RT.variables(0);
+    directory *dir = rt.variables(0);
     if (!dir)
     {
-        RT.no_directory_error();
+        rt.no_directory_error();
         return;
     }
 
@@ -689,7 +651,6 @@ static object::result insert_cmd(int key, cstring before, cstring after)
 {
     if (symbol_p name = Input.label(key - KEY_F1))
     {
-        runtime &rt     = runtime::RT;
         uint     cursor = Input.cursorPosition();
         size_t   length = 0;
         utf8     text   = name->value(&length);
@@ -712,12 +673,12 @@ COMMAND_BODY(VariablesMenuExecute)
 // ----------------------------------------------------------------------------
 {
     int key = Input.evaluating;
-    if (RT.editing())
+    if (rt.editing())
         return insert_cmd(key, "", " ");
 
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))
-            if (directory *dir = RT.variables(0))
+            if (directory *dir = rt.variables(0))
                 if (object_p value = dir->recall(name))
                     return value->execute();
 
@@ -731,14 +692,14 @@ COMMAND_BODY(VariablesMenuRecall)
 // ----------------------------------------------------------------------------
 {
     int key = Input.evaluating;
-    if (RT.editing())
+    if (rt.editing())
         return insert_cmd(key, "'", "' Recall ");
 
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))
-            if (directory *dir = RT.variables(0))
+            if (directory *dir = rt.variables(0))
                 if (object_p value = dir->recall(name))
-                    if (RT.push(value))
+                    if (rt.push(value))
                         return OK;
 
     return ERROR;
@@ -751,13 +712,13 @@ COMMAND_BODY(VariablesMenuStore)
 // ----------------------------------------------------------------------------
 {
     int key = Input.evaluating;
-    if (RT.editing())
+    if (rt.editing())
         return insert_cmd(key, "'", "' Store ");
 
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = Input.label(key - KEY_F1))
-            if (directory *dir = RT.variables(0))
-                if (object_p value = RT.pop())
+            if (directory *dir = rt.variables(0))
+                if (object_p value = rt.pop())
                     if (dir->store(name, value))
                         return OK;
 

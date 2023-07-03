@@ -164,44 +164,47 @@ extern settings Settings;
 
 
 // Macro to defined a simple command handler for derived classes
-#define SETTINGS_COMMAND_DECLARE(derived)                       \
-struct derived : command                                        \
-{                                                               \
-    derived(id i = ID_##derived) : command(i) { }               \
-                                                                \
-    OBJECT_HANDLER(derived)                                     \
-    {                                                           \
-        switch(op)                                              \
-        {                                                       \
-        case EVAL:                                              \
-        case EXEC:                                              \
-            RT.command(fancy(ID_##derived));                    \
-            Input.menuNeedsRefresh();                           \
-            return ((derived *) obj)->evaluate();               \
-        case MENU_MARKER:                                       \
-            return ((derived *) obj)->marker();                 \
-        default:                                                \
-            return DELEGATE(command);                           \
-        }                                                       \
-    }                                                           \
-    static result evaluate();                                   \
-    static unicode marker();                                    \
-    static cstring menu_label(menu::info &mi);                  \
-}
+#define SETTINGS_COMMAND_DECLARE(derived)               \
+    struct derived : command                            \
+    {                                                   \
+        derived(id i = ID_##derived) : command(i) {}    \
+                                                        \
+        OBJECT_DECL(derived);                           \
+        EVAL_DECL(derived)                              \
+        {                                               \
+            rt.command(fancy(ID_##derived));            \
+            Input.menuNeedsRefresh();                   \
+            return evaluate();                          \
+        }                                               \
+        EXEC_DECL(derived)                              \
+        {                                               \
+            return do_evaluate(o);                      \
+        }                                               \
+        MARKER_DECL(derived);                           \
+                                                        \
+        static result  evaluate();                      \
+        static cstring menu_label(menu::info &mi);      \
+    }
 
-#define SETTINGS_COMMAND_BODY(derived, mkr)                             \
-    unicode derived::marker() { return mkr ? settings::MARK : 0; }      \
+#define SETTINGS_COMMAND_BODY(derived, mkr)     \
+    MARKER_BODY(derived)                        \
+    {                                           \
+        return mkr ? settings::MARK : 0;        \
+    }                                           \
     object::result derived::evaluate()
 
-#define SETTINGS_COMMAND_NOLABEL(derived, mkr)                          \
-    unicode derived::marker() { return mkr ? settings::MARK : 0; }      \
-    cstring derived::menu_label(menu::info UNUSED &mi)                  \
-    {                                                                   \
-        return #derived;                                                \
-    }                                                                   \
+#define SETTINGS_COMMAND_NOLABEL(derived, mkr)          \
+    MARKER_BODY(derived)                                \
+    {                                                   \
+        return mkr ? settings::MARK : 0;                \
+    }                                                   \
+    cstring derived::menu_label(menu::info UNUSED &mi)  \
+    {                                                   \
+        return #derived;                                \
+    }                                                   \
     object::result derived::evaluate()
 
-#define SETTINGS_COMMAND_LABEL(derived)                         \
+#define SETTINGS_COMMAND_LABEL(derived)                 \
     cstring derived::menu_label(menu::info UNUSED &mi)
 
 

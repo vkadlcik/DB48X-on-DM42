@@ -74,41 +74,21 @@ decimal128::decimal128(bignum_p num, id type)
     }
     if (num->type() == ID_neg_bignum)
         bid128_negate(&result.value, &result.value);
-    byte *p = payload();
+    byte *p = (byte *) payload();
     memcpy(p, &result, sizeof(result));
 }
 
 
-OBJECT_HANDLER_BODY(decimal128)
+SIZE_BODY(decimal128)
 // ----------------------------------------------------------------------------
-//    Handle commands for decimal128s
+//    Compute size for a decimal128 payload
 // ----------------------------------------------------------------------------
 {
-    record(decimal128, "Command %+s on %p", name(op), obj);
-    switch(op)
-    {
-    case EXEC:
-    case EVAL:
-        // Decimal128 values evaluate as self
-        return rt.push(obj) ? OK : ERROR;
-    case SIZE:
-        return ptrdiff(payload, obj) + sizeof(bid128);
-    case PARSE:
-        return object_parser(OBJECT_PARSER_ARG(), rt);
-    case RENDER:
-        return obj->object_renderer(OBJECT_RENDERER_ARG(), rt);
-    case HELP:
-        return (intptr_t) "decimal";
-
-    default:
-        // Check if anyone else knows how to deal with it
-        return DELEGATE(object);
-    }
-
+    return ptrdiff(o->payload(), o) + sizeof(bid128);
 }
 
 
-OBJECT_PARSER_BODY(decimal128)
+PARSE_BODY(decimal128)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an decimal128
 // ----------------------------------------------------------------------------
@@ -512,13 +492,13 @@ size_t decimal_format(char *buf, size_t len, bool editing)
 #endif // In original decimal128.cc
 
 
-OBJECT_RENDERER_BODY(decimal128)
+RENDER_BODY(decimal128)
 // ----------------------------------------------------------------------------
 //   Render the decimal128 into the given string buffer
 // ----------------------------------------------------------------------------
 {
     // Align the value
-    bid128 num = value();
+    bid128 num = o->value();
 
     // Render in a separate buffer to avoid overflows
     char buf[MAXBIDCHAR];

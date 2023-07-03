@@ -378,10 +378,10 @@ OBJECT_HANDLER_BODY(WhileRepeat)
     case PARSE:
         return conditional_loop::object_parser(ID_WhileRepeat,
                                                OBJECT_PARSER_ARG(), rt,
-                                               "while", "end", "repeat");
+                                               "while", "repeat", "end");
     case RENDER:
         return obj->conditional_loop::object_renderer(OBJECT_RENDERER_ARG(), rt,
-                                                      "while", "end", "repeat");
+                                                      "while", "repeat", "end");
 
     case INSERT:
         return ((input *) arg)->edit(utf8("while  repeat  end"),
@@ -415,7 +415,7 @@ object::result WhileRepeat::execute(runtime &rt) const
             break;
         bool test = false;
         r = condition(test);
-        if (r != OK || test)
+        if (r != OK || !test)
             break;
         r = body->evaluate(rt);
     }

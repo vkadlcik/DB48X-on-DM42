@@ -115,7 +115,7 @@ DB48X has four command spelling modes:
 
 * [Lowercase](#LowerCase): Display `sto`
 * [Uppercase](#UpperCase): Display `STO`
-* [Cappitalized](#Capitalized): Display `Sto`
+* [Capitalized](#Capitalized): Display `Sto`
 * [Long form](#LongForm): Display `Store`
 
 ## LowerCase

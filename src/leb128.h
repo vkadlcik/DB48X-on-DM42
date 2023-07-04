@@ -55,6 +55,21 @@ inline Int leb128(Data *&p)
 }
 
 
+template<>
+inline uint16_t leb128<uint16_t, byte>(byte *&bp)
+// ----------------------------------------------------------------------------
+//   Return the leb128 value at pointer
+// ----------------------------------------------------------------------------
+{
+    if (bp[0] < 0x80)
+        return *bp++;
+    uint16_t b1 = *bp++ & 0x7F;
+    uint16_t b2 = *bp++ << 7;
+    return b1 | b2;
+}
+
+
+
 template<typename Data, typename Int = uint>
 inline Data *leb128(Data *p, Int value)
 // ----------------------------------------------------------------------------
@@ -98,6 +113,18 @@ inline size_t leb128size(Data *ptr)
     byte *p = s;
     do { } while (*p++ & 0x80);
     return p - s;
+}
+
+
+template<typename Data>
+inline Data *leb128skip(Data *ptr)
+// ----------------------------------------------------------------------------
+//   Skip LEB128 data
+// ----------------------------------------------------------------------------
+{
+    const byte *p = (const byte *) ptr;
+    while ((*p++) & 0x80);
+    return (Data *) p;
 }
 
 #endif // LEB128_H

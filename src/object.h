@@ -224,7 +224,7 @@ struct object
     // ------------------------------------------------------------------------
     {
         byte *ptr = (byte *) this;
-        id ty = (id) leb128(ptr);
+        id ty = (id) leb128<uint16_t>(ptr);
         if (ty > NUM_IDS)
         {
             object_error(ty, this);
@@ -266,9 +266,7 @@ struct object
     //  Return the object's payload, i.e. first byte after ID
     // ------------------------------------------------------------------------
     {
-        byte_p ptr = (byte_p) this;
-        leb128(ptr);            // Skip ID
-        return ptr;
+        return byte_p(leb128skip(this));
     }
 
 

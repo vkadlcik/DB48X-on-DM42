@@ -1,4 +1,4 @@
-######################################
+#x######################################
 # target
 ######################################
 TARGET = DB48X
@@ -6,11 +6,13 @@ TARGET = DB48X
 ######################################
 # building variables
 ######################################
-ifdef DEBUG
-OPT=debug
-else
 OPT=release
-endif
+# Alternatives (on the command line)
+# OPT=debug	-g
+# OPT=small	-Os
+# OPT=fastest	-O4 -Ofast
+# OPT=faster	-O3
+# OPT=fast	-O2
 
 # Warning: macOSX only
 MOUNTPOINT=/Volumes/DM42/
@@ -61,7 +63,13 @@ install-help: help/$(TARGET).md
 sim: sim/simulator.mak sim/gcc111libbid.a recorder/config.h help/$(TARGET).md .ALWAYS
 	cd sim; make -f $(<F)
 sim/simulator.mak: sim/simulator.pro Makefile $(VERSION_H)
-	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(OPT)
+	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(QMAKE_$(OPT))
+QMAKE_debug=debug
+QMAKE_release=release
+QMAKE_small=release
+QMAKE_fast=release
+QMAKE_faster=release
+QMAKE_fastest=release
 
 ttf2font: $(TOOLS)/ttf2fonts/ttf2fonts
 $(TOOLS)/ttf2fonts/ttf2fonts: $(TOOLS)/ttf2font/ttf2font.cpp $(TOOLS)/ttf2font/Makefile
@@ -94,6 +102,14 @@ debug-%:
 	$(MAKE) $* OPT=debug
 release-%:
 	$(MAKE) $* OPT=release
+small-%:
+	$(MAKE) $* OPT=small
+fast-%:
+	$(MAKE) $* OPT=fast
+faster-%:
+	$(MAKE) $* OPT=faster
+fastest-%:
+	$(MAKE) $* OPT=fastest
 
 
 ######################################
@@ -178,6 +194,10 @@ DEFINES += \
 	$(DEFINES_$(OPT))
 DEFINES_debug=DEBUG
 DEFINES_release=RELEASE
+DEFINES_small=RELEASE
+DEFINES_fast=RELEASE
+DEFINES_faster=RELEASE
+DEFINES_fastes=RELEASE
 
 C_DEFS += $(DEFINES:%=-D%)
 
@@ -223,7 +243,11 @@ DBGFLAGS = $(DBGFLAGS_$(OPT))
 DBGFLAGS_debug = -g
 
 CFLAGS_debug += -O0 -DDEBUG
-CFLAGS_release += -O4 -Ofast
+CFLAGS_release += -O3
+CFLAGS_small += -Os
+CFLAGS_fast += -O2
+CFLAGS_faster += -O3
+CFLAGS_fastest += -O4
 
 CFLAGS  += $(DBGFLAGS)
 LDFLAGS += $(DBGFLAGS)

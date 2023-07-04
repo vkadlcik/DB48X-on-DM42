@@ -785,7 +785,7 @@ object::result arithmetic::evaluate()
 //   The evaluator for arithmetic operations
 // ----------------------------------------------------------------------------
 {
-    return evaluate(Op::static_type(),
+    return evaluate(Op::static_id,
                     Op::bid128_op,
                     Op::bid64_op,
                     Op::bid32_op,

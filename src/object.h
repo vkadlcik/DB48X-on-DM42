@@ -261,6 +261,16 @@ struct object
     }
 
 
+    template <typename Obj>
+    static byte_p payload(const Obj *p)
+    // ------------------------------------------------------------------------
+    //  Return the object's payload, i.e. first byte after ID
+    // ------------------------------------------------------------------------
+    //  When we can, use the static type to know how many bytes to skip
+    {
+        return byte_p(p) + (Obj::static_id < 0x80 ? 1 : 2);
+    }
+
     byte_p payload() const
     // ------------------------------------------------------------------------
     //  Return the object's payload, i.e. first byte after ID
@@ -620,7 +630,7 @@ struct object
     //   Type-safe cast (note: only for exact type match)
     // ------------------------------------------------------------------------
     {
-        if (type() == Obj::static_type())
+        if (type() == Obj::static_id)
             return (const Obj *) this;
         return nullptr;
     }
@@ -656,7 +666,7 @@ struct object
     //
     // ========================================================================
 
-#define OBJECT_DECL(D)  static id       static_type() { return ID_##D; }
+#define OBJECT_DECL(D)  static const id static_id = ID_##D;
 #define PARSE_DECL(D)   static result   do_parse(parser &p UNUSED)
 #define HELP_DECL(D)    static utf8     do_help(const D *o UNUSED)
 #define EVAL_DECL(D)    static result   do_evaluate(const D *o UNUSED)
@@ -714,7 +724,7 @@ object::result run()
 //  Run a given RPL opcode directly
 // ----------------------------------------------------------------------------
 {
-    const RPL *obj = (const RPL *) RPL::static_object(RPL::static_type());
+    const RPL *obj = (const RPL *) RPL::static_object(RPL::static_id);
     return RPL::do_evaluate(obj);
 }
 

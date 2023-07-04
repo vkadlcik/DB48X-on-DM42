@@ -87,7 +87,7 @@ struct bignum : text
 
     static size_t bytesize(integer_p i)
     {
-        byte_p p = i->payload();
+        byte_p p = payload(i);
         size_t bitsize = 0;
         while (*p & 0x80)
         {
@@ -112,7 +112,7 @@ struct bignum : text
     bignum(Int value, id type = ID_bignum)
         : text((utf8) &value, bytesize(value), type)
     {
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         size_t sz = leb128<size_t>(p);
         for (uint i = 0; i < sz; i++)
             p[i] = byte(value >> (8 * i));

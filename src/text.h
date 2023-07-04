@@ -51,7 +51,7 @@ struct text : object
     text(gcutf8 source, size_t len, id type = ID_text): object(type)
     {
         utf8 s = (utf8) source;
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         p = leb128(p, len);
         while (len--)
             *p++ = *s++;
@@ -80,7 +80,7 @@ struct text : object
 
     size_t length() const
     {
-        byte_p p = payload();
+        byte_p p = payload(this);
         return leb128<size_t>(p);
     }
 
@@ -94,7 +94,7 @@ struct text : object
 
     utf8 value(size_t *size = nullptr) const
     {
-        byte_p p   = payload();
+        byte_p p   = payload(this);
         size_t len = leb128<size_t>(p);
         if (size)
             *size = len;

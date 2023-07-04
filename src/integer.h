@@ -66,7 +66,7 @@ struct integer : object
     template <typename Int>
     integer(Int value, id type = ID_integer): object(type)
     {
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         leb128(p, value);
     }
 
@@ -78,7 +78,7 @@ struct integer : object
 
     integer(gcbytes ptr, size_t size, id type = ID_integer): object(type)
     {
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         memmove(p, byte_p(ptr), size);
     }
 
@@ -90,12 +90,12 @@ struct integer : object
     template <typename Int>
     Int value() const
     {
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         return leb128<Int>(p);
     }
 
     operator bool() const               { return !is_zero(); }
-    bool is_zero() const                { return *payload() == 0; }
+    bool is_zero() const                { return *payload(this) == 0; }
     template<typename Int>
     bool operator==(Int x)              { return value<Int>() == x; }
     template<typename Int>
@@ -115,7 +115,7 @@ struct integer : object
     // Up to 63 bits, we use native functions, it's faster
     enum { NATIVE = 64 / 7 };
     static bool native(byte_p x)        { return leb128size(x) <= NATIVE; }
-    bool native() const                 { return native(payload()); }
+    bool native() const                 { return native(payload(this)); }
 
 public:
     OBJECT_DECL(integer);

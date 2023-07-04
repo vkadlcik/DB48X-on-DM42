@@ -58,13 +58,13 @@ struct decimal64 : object
     {
         bid64 num;
         bid64_from_string(&num.value, (cstring) value);
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         memcpy(p, &num, sizeof(num));
     }
 
     decimal64(const bid64 &value, id type = ID_decimal64): object(type)
     {
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         memcpy(p, &value, sizeof(value));
     }
 
@@ -73,7 +73,7 @@ struct decimal64 : object
         BID_UINT64 bval = BID_UINT64(value);
         bid64 num;
         bid64_from_uint64(&num.value, &bval);
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         memcpy(p, &num, sizeof(num));
     }
 
@@ -93,7 +93,7 @@ struct decimal64 : object
         BID_SINT64 bval = BID_SINT64(value);
         bid64 num;
         bid64_from_int64(&num.value, &bval);
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         memcpy(p, &num, sizeof(num));
     }
 
@@ -102,7 +102,7 @@ struct decimal64 : object
         bid64 num;
         // Bug in the BID library, which uses int and not int32_t
         bid64_from_uint32(&num.value, (uint *) &value);
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         memcpy(p, &num, sizeof(num));
     }
 
@@ -111,7 +111,7 @@ struct decimal64 : object
         bid64 num;
         // Bug in the BID library, which uses int and not int32_t
         bid64_from_int32(&num.value, (int *) &value);
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         memcpy(p, &num, sizeof(num));
     }
 
@@ -122,7 +122,7 @@ struct decimal64 : object
     {
         bid64 num;
         bid64_to_bid64(&num.value, (BID_UINT64 *) &value.value);
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         memcpy(p, &num, sizeof(num));
     }
 #endif
@@ -132,7 +132,7 @@ struct decimal64 : object
     {
         bid64 num;
         bid32_to_bid64(&num.value, (BID_UINT32 *) &value.value);
-        byte *p = (byte *) payload();
+        byte *p = (byte *) payload(this);
         memcpy(p, &num, sizeof(num));
     }
 #endif
@@ -152,7 +152,7 @@ struct decimal64 : object
     bid64 value() const
     {
         bid64 result;
-        byte_p p = payload();
+        byte_p p = payload(this);
         memcpy(&result, p, sizeof(result));
         return result;
     }

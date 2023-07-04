@@ -97,7 +97,7 @@ object::result function::evaluate()
 //   Evaluation for a given function
 // ----------------------------------------------------------------------------
 {
-    return evaluate(Func::static_type(), Func::bid128_op);
+    return evaluate(Func::static_id, Func::bid128_op);
 }
 
 

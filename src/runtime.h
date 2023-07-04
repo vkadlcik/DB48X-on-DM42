@@ -788,7 +788,7 @@ Obj *runtime::make(const Args &... args)
 // ----------------------------------------------------------------------------
 {
     // Find the required type for this object
-    typename Obj::id type = Obj::static_type();
+    typename Obj::id type = Obj::static_id;
     return make<Obj>(type, args...);
 }
 

@@ -442,4 +442,26 @@ bignum_g bignum::unary(Op op, bignum_g xg)
     return result;
 }
 
+
+inline object::id bignum::product_type(id yt, id xt)
+// ----------------------------------------------------------------------------
+//   Return the type of the product of x and y
+// ----------------------------------------------------------------------------
+{
+    switch(xt)
+    {
+    case ID_bignum:
+        if (yt == ID_neg_bignum)
+            return ID_neg_bignum;
+        return ID_bignum;
+    case ID_neg_bignum:
+        if (yt == ID_neg_bignum)
+            return ID_bignum;
+        return ID_neg_bignum;
+    default:
+        return xt;
+    }
+}
+
+
 #endif // BIGNUM_H

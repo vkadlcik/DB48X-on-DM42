@@ -219,10 +219,11 @@ CPUFLAGS += -mthumb -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16
 ASFLAGS = $(CPUFLAGS) $(AS_DEFS) $(AS_INCLUDES) $(ASFLAGS_$(OPT)) -Wall -fdata-sections -ffunction-sections
 CFLAGS  = $(CPUFLAGS) $(C_DEFS) $(C_INCLUDES) $(CFLAGS_$(OPT)) -Wall -fdata-sections -ffunction-sections
 CFLAGS += -Wno-misleading-indentation
-DBGFLAGS = -g
+DBGFLAGS = $(DBGFLAGS_$(OPT))
+DBGFLAGS_debug = -g
 
 CFLAGS_debug += -O0 -DDEBUG
-CFLAGS_release += -O4 -Os
+CFLAGS_release += -O4 -Ofast
 
 CFLAGS  += $(DBGFLAGS)
 LDFLAGS += $(DBGFLAGS)

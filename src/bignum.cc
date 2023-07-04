@@ -323,27 +323,6 @@ inline object::id bignum::opposite_type(id type)
 }
 
 
-inline object::id bignum::product_type(id yt, id xt)
-// ----------------------------------------------------------------------------
-//   Return the type of the product of x and y
-// ----------------------------------------------------------------------------
-{
-    switch(xt)
-    {
-    case ID_bignum:
-        if (yt == ID_neg_bignum)
-            return ID_neg_bignum;
-        return ID_bignum;
-    case ID_neg_bignum:
-        if (yt == ID_neg_bignum)
-            return ID_bignum;
-        return ID_neg_bignum;
-    default:
-        return xt;
-    }
-}
-
-
 bignum_g operator-(bignum_g xg)
 // ----------------------------------------------------------------------------
 //   Negate the input value

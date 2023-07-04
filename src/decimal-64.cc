@@ -231,7 +231,7 @@ size_t decimal_format(char *buf, size_t len, bool editing)
 {
     // First make a copy of zany original input
     char copy[MAXBIDCHAR];
-    strncpy(copy, buf, sizeof(copy));
+    strncpy(copy, buf, sizeof(copy)-1);
 
     // Read settings
     const settings &display = Settings;

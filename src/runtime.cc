@@ -345,12 +345,23 @@ size_t runtime::gc()
             object_p *lastf = functions + count;
             for (object_p *p = functions; p < lastf && !found; p++)
             {
-                found = *p >= obj && *p <= next;
+                found = *p >= obj && *p < next;
                 if (found)
                     record(gc_details, "Found %p in input function table %u",
                            obj, p - functions);
             }
         }
+        if (!found)
+        {
+            // Check if some of the error information was user-supplied
+            utf8 start = utf8(obj);
+            utf8 end = utf8(next);
+            found = (Error         >= start && Error         < end)
+                ||  (ErrorSource   >= start && ErrorSource   < end)
+                ||  (ErrorCommand  >= start && ErrorCommand  < end)
+                ||  (Input.command >= start && Input.command < end);
+        }
+
         if (found)
         {
             // Move object to free space
@@ -458,6 +469,18 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
             *p += delta;
         }
     }
+
+    // Adjust error messages
+    utf8 start = utf8(from);
+    utf8 end = utf8(last);
+    if (Error >= start && Error < end)
+        Error += delta;
+    if (ErrorSource >= start && ErrorSource < end)
+        ErrorSource += delta;
+    if (ErrorCommand >= start && ErrorCommand < end)
+        ErrorCommand += delta;
+    if (Input.command >= start && Input.command < end)
+        Input.command += delta;
 }
 
 

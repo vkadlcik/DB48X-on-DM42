@@ -666,6 +666,15 @@ struct runtime
         return ErrorCommand;
     }
 
+
+    bool is_user_command(utf8 cmd)
+    // ------------------------------------------------------------------------
+    //   Check if the command is a user-defined command
+    // ------------------------------------------------------------------------
+    {
+        return cmd >= utf8(LowMem) && cmd < utf8(HighMem);
+    }
+
     void clear_error()
     // ------------------------------------------------------------------------
     //   Clear error state

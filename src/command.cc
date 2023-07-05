@@ -304,27 +304,6 @@ COMMAND_BODY(Eval)
     return ERROR;
 }
 
-COMMAND_BODY(True)
-// ----------------------------------------------------------------------------
-//   Evaluate as self
-// ----------------------------------------------------------------------------
-{
-    if (rt.push(command::static_object(ID_True)))
-        return OK;
-    return ERROR;
-}
-
-COMMAND_BODY(False)
-// ----------------------------------------------------------------------------
-//   Evaluate as self
-// ----------------------------------------------------------------------------
-{
-    if (rt.push(command::static_object(ID_False)))
-        return OK;
-    return ERROR;
-}
-
-
 COMMAND_BODY(ToText)
 // ----------------------------------------------------------------------------
 //   Convert an object to text

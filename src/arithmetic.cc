@@ -35,6 +35,7 @@
 #include "decimal128.h"
 #include "fraction.h"
 #include "integer.h"
+#include "list.h"
 #include "runtime.h"
 #include "settings.h"
 #include "text.h"
@@ -43,7 +44,7 @@
 RECORDER(arithmetic,            16, "Arithmetic");
 RECORDER(arithmetic_error,      16, "Errors from arithmetic code");
 
-bool arithmetic::real_promotion(gcobj &x, gcobj &y)
+bool arithmetic::real_promotion(algebraic_g &x, algebraic_g &y)
 // ----------------------------------------------------------------------------
 //   Promote x or y to the largest of both types
 // ----------------------------------------------------------------------------
@@ -71,7 +72,7 @@ bool arithmetic::real_promotion(gcobj &x, gcobj &y)
 }
 
 
-fraction_g arithmetic::fraction_promotion(gcobj &x)
+fraction_g arithmetic::fraction_promotion(algebraic_g &x)
 // ----------------------------------------------------------------------------
 //  Check if we can promote the number to a fraction
 // ----------------------------------------------------------------------------
@@ -81,14 +82,14 @@ fraction_g arithmetic::fraction_promotion(gcobj &x)
         return fraction_g((fraction *) object_p(x));
     if (ty >= ID_integer && ty <= ID_neg_integer)
     {
-        integer_g n = (integer *) object_p(x);
+        integer_g n = integer_p(object_p(x));
         integer_g d = integer::make(1);
         fraction_g f = fraction::make(n, d);
         return f;
     }
     if (ty >= ID_bignum && ty <= ID_neg_bignum)
     {
-        bignum_g n = (bignum *) object_p(x);
+        bignum_g n = bignum_p(object_p(x));
         bignum_g d = bignum::make(1);
         fraction_g f = big_fraction::make(n, d);
         return f;
@@ -98,7 +99,7 @@ fraction_g arithmetic::fraction_promotion(gcobj &x)
 
 
 template<>
-inline bool arithmetic::non_numeric<add>(gcobj &x, gcobj & y,
+inline bool arithmetic::non_numeric<add>(algebraic_g &x, algebraic_g & y,
                                          object::id &xt, object::id &yt)
 // ----------------------------------------------------------------------------
 //   Deal with non-numerical data types for addition
@@ -112,7 +113,7 @@ inline bool arithmetic::non_numeric<add>(gcobj &x, gcobj & y,
     {
         text_g xs = x->as<text>();
         text_g ys = y->as<text>();
-        x = object_p(ys + xs);
+        x = algebraic_p(xs + ys);
         return true;
     }
 
@@ -127,19 +128,15 @@ inline bool add::integer_ok(object::id &xt, object::id &yt,
 //   Check if adding two integers works or if we need to promote to real
 // ----------------------------------------------------------------------------
 {
-    // If one of the two objects is a based number, always used integer add
-    if (!is_real(xt) || !is_real(yt))
-    {
-        xv = yv + xv;
-        return true;
-    }
-
     // For integer types of the same sign, promote to real if we overflow
     if ((xt == ID_neg_integer) == (yt == ID_neg_integer))
     {
         ularge sum = xv + yv;
-        if (sum < xv || sum < yv)
+
+        // Do not promot to real if we have based numbers as input
+        if ((sum < xv || sum < yv) && is_real(xt) && is_real(yt))
             return false;
+
         xv = sum;
         // Here, the type of x is the type of the result
         return true;
@@ -149,7 +146,7 @@ inline bool add::integer_ok(object::id &xt, object::id &yt,
     if (!is_real(xt))
     {
         // Based numbers keep the base of the number in X
-        xv = yv - xv;
+        xv = xv - yv;
     }
     else if (yv >= xv)
     {
@@ -171,7 +168,7 @@ inline bool add::bignum_ok(bignum_g &x, bignum_g &y)
 //   We can always add two big integers (memory permitting)
 // ----------------------------------------------------------------------------
 {
-    x = y + x;
+    x = x + y;
     return byte_p(x) != nullptr;
 }
 
@@ -181,7 +178,7 @@ inline bool add::fraction_ok(fraction_g &x, fraction_g &y)
 //   We can always add two fractions
 // ----------------------------------------------------------------------------
 {
-    x = y + x;
+    x = x + y;
     return byte_p(x) != nullptr;
 }
 
@@ -192,22 +189,16 @@ inline bool sub::integer_ok(object::id &xt, object::id &yt,
 //   Check if subtracting two integers works or if we need to promote to real
 // ----------------------------------------------------------------------------
 {
-    // If one of the two objects is a based number, always used integer sub
-    if (!is_real(xt) || !is_real(yt))
-    {
-        xv = yv - xv;
-        return true;
-    }
-
     // For integer types of opposite sign, promote to real if we overflow
     if ((xt == ID_neg_integer) != (yt == ID_neg_integer))
     {
         ularge sum = xv + yv;
-        if (sum < xv || sum < yv)
+        if ((sum < xv || sum < yv) && is_real(xt) && is_real(yt))
             return false;
         xv = sum;
-        // The type of yt gives us the correct sign for the difference
-        xt = yt;
+
+        // The type of x gives us the correct sign for the difference:
+        //   -2 - 3 is -5, 2 - (-3) is 5:
         return true;
     }
 
@@ -215,18 +206,18 @@ inline bool sub::integer_ok(object::id &xt, object::id &yt,
     if (!is_real(xt))
     {
         // Based numbers keep the base of the number in X
-        xv = yv - xv;
+        xv = xv - yv;
     }
-    else if (yv > xv)
+    else if (yv >= xv)
     {
-        // Case of (-3) - (-2) or (+3) - (+2): Keep the sign of X
+        // Case of (+3) - (+4) or (-3) - (-4): Change the sign of X
         xv = yv - xv;
+        xt = (xv == 0 || xt == ID_neg_integer) ? ID_integer : ID_neg_integer;
     }
     else
     {
-        // Case of (+3) - (+4) or (-3) - (-4): Change the sign of X
+        // Case of (-3) - (-2) or (+3) - (+2): Keep the sign of X
         xv = xv - yv;
-        xt = (xv == 0 || xt == ID_neg_integer) ? ID_integer : ID_neg_integer;
     }
     return true;
 }
@@ -237,7 +228,7 @@ inline bool sub::bignum_ok(bignum_g &x, bignum_g &y)
 //   We can always subtract two big integers (memory permitting)
 // ----------------------------------------------------------------------------
 {
-    x = y - x;
+    x = x - y;
     return byte_p(x) != nullptr;
 }
 
@@ -247,16 +238,16 @@ inline bool sub::fraction_ok(fraction_g &x, fraction_g &y)
 //   We can always subtract two fractions (memory permitting)
 // ----------------------------------------------------------------------------
 {
-    x = y - x;
+    x = x - y;
     return byte_p(x) != nullptr;
 }
 
 
 template <>
-inline bool arithmetic::non_numeric<mul>(gcobj &UNUSED      x,
-                                         gcobj &UNUSED      y,
-                                         object::id &UNUSED xt,
-                                         object::id &UNUSED yt)
+inline bool arithmetic::non_numeric<mul>(algebraic_g &x,
+                                         algebraic_g &y,
+                                         object::id  &xt,
+                                         object::id  &yt)
 // ----------------------------------------------------------------------------
 //   Deal with non-numerical data types for multiplication
 // ----------------------------------------------------------------------------
@@ -269,7 +260,7 @@ inline bool arithmetic::non_numeric<mul>(gcobj &UNUSED      x,
         text_g xs = x->as<text>();
         integer_p ys = y->as<integer>();
         uint yn = ys->value<uint>();
-        x = object_p(xs * yn);
+        x = algebraic_p(xs * yn);
         xt = text::ID_text;
         return true;
     }
@@ -279,11 +270,10 @@ inline bool arithmetic::non_numeric<mul>(gcobj &UNUSED      x,
         integer_p xs = x->as<integer>();
         uint xn = xs->value<uint>();
         text_g ys = y->as<text>();
-        x = object_p(ys * xn);
+        x = algebraic_p(ys * xn);
         xt = text::ID_text;
         return true;
     }
-
 
     // Not yet implemented
     return false;
@@ -299,7 +289,7 @@ inline bool mul::integer_ok(object::id &xt, object::id &yt,
     // If one of the two objects is a based number, always used integer mul
     if (!is_real(xt) || !is_real(yt))
     {
-        xv = yv * xv;
+        xv = xv * yv;
         return true;
     }
 
@@ -322,7 +312,7 @@ inline bool mul::bignum_ok(bignum_g &x, bignum_g &y)
 //   We can always multiply two big integers (memory permitting)
 // ----------------------------------------------------------------------------
 {
-    x = y * x;
+    x = x * y;
     return byte_p(x) != nullptr;
 }
 
@@ -332,7 +322,7 @@ inline bool mul::fraction_ok(fraction_g &x, fraction_g &y)
 //   We can always multiply two fractions (memory permitting)
 // ----------------------------------------------------------------------------
 {
-    x = y * x;
+    x = x * y;
     return byte_p(x) != nullptr;
 }
 
@@ -343,8 +333,8 @@ inline bool div::integer_ok(object::id &xt, object::id &yt,
 //   Check if dividing two integers works or if we need to promote to real
 // ----------------------------------------------------------------------------
 {
-    // Check divid by zero
-    if (xv == 0)
+    // Check divide by zero
+    if (yv == 0)
     {
         rt.zero_divide_error();
         return false;
@@ -353,16 +343,16 @@ inline bool div::integer_ok(object::id &xt, object::id &yt,
     // If one of the two objects is a based number, always used integer div
     if (!is_real(xt) || !is_real(yt))
     {
-        xv = yv / xv;
+        xv = xv / yv;
         return true;
     }
 
     // Check if there is a remainder - If so, switch to fraction
-    if (yv % xv)
+    if (xv % yv)
         return false;
 
     // Perform the division
-    xv = yv / xv;
+    xv = xv / yv;
 
     // Check the sign of the ratio
     xt = (xt == ID_neg_integer) == (yt == ID_neg_integer)
@@ -377,15 +367,15 @@ inline bool div::bignum_ok(bignum_g &x, bignum_g &y)
 //   Division works if there is no remainder
 // ----------------------------------------------------------------------------
 {
-    if (!x)
+    if (!y)
     {
         rt.zero_divide_error();
         return false;
     }
     bignum_g q = nullptr;
     bignum_g r = nullptr;
-    id type = bignum::product_type(y->type(), x->type());
-    bool result = bignum::quorem(y, x, type, &q, &r);
+    id type = bignum::product_type(x->type(), y->type());
+    bool result = bignum::quorem(x, y, type, &q, &r);
     if (result)
         result = bignum_p(r) != nullptr;
     if (result)
@@ -393,7 +383,7 @@ inline bool div::bignum_ok(bignum_g &x, bignum_g &y)
         if (r->is_zero())
             x = q;                  // Integer result
         else
-            x = (bignum *) fraction_p(big_fraction::make(y, x)); // Wrong-cast
+            x = bignum_p(fraction_p(big_fraction::make(x, y))); // Wrong-cast
     }
     return result;
 }
@@ -404,12 +394,12 @@ inline bool div::fraction_ok(fraction_g &x, fraction_g &y)
 //   Division of fractions, except division by zero
 // ----------------------------------------------------------------------------
 {
-    if (!x->numerator())
+    if (!y->numerator())
     {
         rt.zero_divide_error();
         return false;
     }
-    x = y / x;
+    x = x / y;
     return byte_p(x) != nullptr;
 }
 
@@ -420,8 +410,8 @@ inline bool mod::integer_ok(object::id &xt, object::id &yt,
 //   The modulo of two integers is always an integer
 // ----------------------------------------------------------------------------
 {
-    // Check divid by zero
-    if (xv == 0)
+    // Check divide by zero
+    if (yv == 0)
     {
         rt.zero_divide_error();
         return false;
@@ -430,14 +420,14 @@ inline bool mod::integer_ok(object::id &xt, object::id &yt,
     // If one of the two objects is a based number, always used integer mod
     if (!is_real(xt) || !is_real(yt))
     {
-        xv = yv % xv;
+        xv = xv % yv;
         return true;
     }
 
     // Perform the modulo
-    xv = yv % xv;
+    xv = xv % yv;
     if (xt == ID_neg_integer)
-        xv = yv - xv;
+        xv = xv - yv;
 
     // The resulting type is always positive
     xt = ID_integer;
@@ -450,13 +440,13 @@ inline bool mod::bignum_ok(bignum_g &x, bignum_g &y)
 //   Modulo always works except divide by zero
 // ----------------------------------------------------------------------------
 {
-    bignum_g r = y % x;
+    bignum_g r = x % y;
     if (byte_p(r) == nullptr)
         return false;
-    if (x->type() == ID_neg_bignum)
+    if (y->type() == ID_neg_bignum)
         x = y - r;
     else
-        x = y;
+        x = r;
     return byte_p(x) != nullptr;
 }
 
@@ -466,12 +456,12 @@ inline bool mod::fraction_ok(fraction_g &x, fraction_g &y)
 //   Modulo of fractions, except division by zero
 // ----------------------------------------------------------------------------
 {
-    if (!x->numerator())
+    if (!y->numerator())
     {
         rt.zero_divide_error();
         return false;
     }
-    x = y % x;
+    x = x % y;
     return byte_p(x) != nullptr;
 }
 
@@ -482,15 +472,15 @@ inline bool rem::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
 //   The reminder of two integers is always an integer
 // ----------------------------------------------------------------------------
 {
-    // Check divid by zero
-    if (xv == 0)
+    // Check divide by zero
+    if (yv == 0)
     {
         rt.zero_divide_error();
         return false;
     }
 
     // The type of the result is always the type of x
-    xv = yv % xv;
+    xv = xv % yv;
     return true;
 }
 
@@ -500,7 +490,7 @@ inline bool rem::bignum_ok(bignum_g &x, bignum_g &y)
 //   Remainder always works except divide by zero
 // ----------------------------------------------------------------------------
 {
-    x = y % x;
+    x = x % y;
     return byte_p(x) != nullptr;
 }
 
@@ -510,12 +500,12 @@ inline bool rem::fraction_ok(fraction_g &x, fraction_g &y)
 //   Modulo of fractions, except division by zero
 // ----------------------------------------------------------------------------
 {
-    if (!x->numerator())
+    if (!y->numerator())
     {
         rt.zero_divide_error();
         return false;
     }
-    x = y % x;
+    x = x % y;
     return byte_p(x) != nullptr;
 }
 
@@ -526,36 +516,38 @@ inline bool pow::integer_ok(object::id &xt, object::id &yt,
 //   Compute Y^X
 // ----------------------------------------------------------------------------
 {
-    // Check divid by zero
+    // Check 0^0
     if (xv == 0 && yv == 0)
     {
         rt.undefined_operation_error();
         return false;
     }
 
-    // Check the type of the result
+    // Cannot raise to a negative power as integer
     if (yt == ID_neg_integer)
-        xt = (xv & 1) ? ID_neg_integer : ID_integer;
-    else
-        xt = yt;
+        return false;
+
+    // Check the type of the result
+    if (xt == ID_neg_integer)
+        xt = (yv & 1) ? ID_neg_integer : ID_integer;
 
     // Compute result, check that it does not overflow
     ularge r = 1;
-    while (xv)
+    while (yv)
     {
-        if (xv & 1)
+        if (yv & 1)
         {
-            ularge p = r * yv;
-            if (p < r || p < yv)
+            ularge p = r * xv;
+            if (p < r || p < xv)
                 return false;   // Integer overflow
             r = p;
         }
-        xv /= 2;
+        yv /= 2;
 
-        ularge nyv = yv * yv;
-        if (xv && nyv < yv)
+        ularge nxv = xv * xv;
+        if (yv && nxv < xv)
             return false;       // Integer overflow
-        yv = nyv;
+        xv = nxv;
     }
 
     xv = r;
@@ -571,7 +563,7 @@ inline bool pow::bignum_ok(bignum_g &x, bignum_g &y)
     // Compute result, check that it does not overflow
     if (x->type() == ID_neg_integer)
         return false;
-    x = bignum::pow(y, x);
+    x = bignum::pow(x, y);
     return byte_p(x) != nullptr;
 }
 
@@ -621,23 +613,20 @@ inline bool hypot::fraction_ok(fraction_g &UNUSED x, fraction_g &UNUSED y)
 //
 // ============================================================================
 
-object::result arithmetic::evaluate(id             op,
-                                    bid128_fn      op128,
-                                    bid64_fn       op64,
-                                    bid32_fn       op32,
-                                    integer_fn     integer_ok,
-                                    bignum_fn      bignum_ok,
-                                    fraction_fn    fraction_ok,
-                                    non_numeric_fn non_numeric)
+algebraic_g arithmetic::evaluate(id             op,
+                                 algebraic_g    x,
+                                 algebraic_g    y,
+                                 bid128_fn      op128,
+                                 bid64_fn       op64,
+                                 bid32_fn       op32,
+                                 integer_fn     integer_ok,
+                                 bignum_fn      bignum_ok,
+                                 fraction_fn    fraction_ok,
+                                 non_numeric_fn non_numeric)
 // ----------------------------------------------------------------------------
-//   Shared code for all forms of evaluation
+//   Shared code for all forms of evaluation, does not use the RPL stack
 // ----------------------------------------------------------------------------
 {
-    gcobj x = rt.stack(0);
-    gcobj y = rt.stack(1);
-    if (!x || !y)
-        return ERROR;
-
     id xt = x->type();
     id yt = y->type();
 
@@ -649,8 +638,8 @@ object::result arithmetic::evaluate(id             op,
         if (!is_bignum(xt) && !is_bignum(yt))
         {
             /* Perform conversion of integer values to the same base */
-            integer *xi = (integer *) (object_p) x;
-            integer *yi = (integer *) (object_p) y;
+            integer_p xi = integer_p(object_p(x));
+            integer_p yi = integer_p(object_p(y));
             if (xi->native() && yi->native())
             {
                 ularge xv = xi->value<ularge>();
@@ -662,7 +651,7 @@ object::result arithmetic::evaluate(id             op,
                 }
             }
             if (rt.error())
-                return ERROR;
+                return nullptr;
         }
 
         if (!ok)
@@ -673,20 +662,21 @@ object::result arithmetic::evaluate(id             op,
                 yt = bignum_promotion(y);
 
             // Proceed with big integers if native did not fit
-            bignum_g xg = (bignum *) object_p(x);
-            bignum_g yg = (bignum *) object_p(y);
+            bignum_g xg = bignum_p(object_p(x));
+            bignum_g yg = bignum_p(object_p(y));
             if (bignum_ok(xg, yg))
             {
                 x = bignum_p(xg);
                 ok = object_p(x) != nullptr;
             }
             if (rt.error())
-                return ERROR;
+                return nullptr;
         }
     }
 
     /* Fraction types */
-    if (!ok)
+    if (!ok && (x->is_fraction() || y->is_fraction() ||
+                (op == ID_div && x->is_fractionable() && y->is_fractionable())))
     {
         if (fraction_g xf = fraction_promotion(x))
         {
@@ -695,14 +685,14 @@ object::result arithmetic::evaluate(id             op,
                 ok = fraction_ok(xf, yf);
                 if (ok)
                 {
-                    x = (object *) fraction_p(xf);
+                    x = algebraic_p(fraction_p(xf));
                     ok = object_p(x);
                     if (ok)
                     {
                         bignum_g d = xf->denominator();
                         if (*d == 1)
                         {
-                            x = (object *) bignum_p(xf->numerator());
+                            x = algebraic_p(bignum_p(xf->numerator()));
                             ok = object_p(x);
                         }
                     }
@@ -723,7 +713,7 @@ object::result arithmetic::evaluate(id             op,
             bid32 xv = x->as<decimal32>()->value();
             bid32 yv = y->as<decimal32>()->value();
             bid32 res;
-            op32(&res.value, &yv.value, &xv.value);
+            op32(&res.value, &xv.value, &yv.value);
             x = rt.make<decimal32>(ID_decimal32, res);
             ok = true;
             break;
@@ -733,7 +723,7 @@ object::result arithmetic::evaluate(id             op,
             bid64 xv = x->as<decimal64>()->value();
             bid64 yv = y->as<decimal64>()->value();
             bid64 res;
-            op64(&res.value, &yv.value, &xv.value);
+            op64(&res.value, &xv.value, &yv.value);
             x = rt.make<decimal64>(ID_decimal64, res);
             ok = true;
             break;
@@ -743,7 +733,7 @@ object::result arithmetic::evaluate(id             op,
             bid128 xv = x->as<decimal128>()->value();
             bid128 yv = y->as<decimal128>()->value();
             bid128 res;
-            op128(&res.value, &yv.value, &xv.value);
+            op128(&res.value, &xv.value, &yv.value);
             x = rt.make<decimal128>(ID_decimal128, res);
             ok = true;
             break;
@@ -758,31 +748,82 @@ object::result arithmetic::evaluate(id             op,
 
     if (!ok && x->is_symbolic() && y->is_symbolic())
     {
-        gcobj args[2] = { y, x };
+        algebraic_g args[2] = { x, y };
         x = rt.make<equation>(ID_equation, 2, args, op);
         if (!x)
-            return ERROR;
+            return nullptr;
         ok = true;
     }
 
-    if (ok)
-    {
-        rt.drop();
-        if (rt.top(x))
-            return OK;
-    }
-    else
+    if (!ok)
     {
         rt.type_error();
+        return nullptr;
     }
+
+    return x;
+}
+
+
+object::result arithmetic::evaluate(id             op,
+                                    bid128_fn      op128,
+                                    bid64_fn       op64,
+                                    bid32_fn       op32,
+                                    integer_fn     integer_ok,
+                                    bignum_fn      bignum_ok,
+                                    fraction_fn    fraction_ok,
+                                    non_numeric_fn non_numeric)
+// ----------------------------------------------------------------------------
+//   Shared code for all forms of evaluation using the RPL stack
+// ----------------------------------------------------------------------------
+{
+    // Fetch arguments from the stack
+    algebraic_g y = (algebraic_p) rt.stack(1);
+    if (!y)
+        return ERROR;
+    algebraic_g x = (algebraic_p) rt.stack(0);
+    if (!x)
+        return ERROR;
+
+    // Evaluate the operation
+    algebraic_g r = evaluate(op, y, x, op128, op64, op32,
+                             integer_ok, bignum_ok, fraction_ok, non_numeric);
+
+    // If result is valid, drop second argument and push result on stack
+    if (r)
+    {
+        rt.drop();
+        if (rt.top(r))
+            return OK;
+    }
+
     return ERROR;
 }
 
 
 template <typename Op>
+algebraic_g arithmetic::evaluate(algebraic_g x, algebraic_g y)
+// ----------------------------------------------------------------------------
+//   Evaluate
+// ----------------------------------------------------------------------------
+{
+    return evaluate(Op::static_id,
+                    x, y,
+                    Op::bid128_op,
+                    Op::bid64_op,
+                    Op::bid32_op,
+                    Op::integer_ok,
+                    Op::bignum_ok,
+                    Op::fraction_ok,
+                    non_numeric<Op>);
+}
+
+
+
+template <typename Op>
 object::result arithmetic::evaluate()
 // ----------------------------------------------------------------------------
-//   The evaluator for arithmetic operations
+//   The stack-based evaluator for arithmetic operations
 // ----------------------------------------------------------------------------
 {
     return evaluate(Op::static_id,
@@ -863,7 +904,7 @@ void bid32_hypot(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py)
 
 // ============================================================================
 //
-//   Instatiations
+//   Instantiations
 //
 // ============================================================================
 
@@ -875,3 +916,46 @@ template object::result arithmetic::evaluate<struct mod>();
 template object::result arithmetic::evaluate<struct rem>();
 template object::result arithmetic::evaluate<struct pow>();
 template object::result arithmetic::evaluate<struct hypot>();
+
+
+
+// ============================================================================
+//
+//   C++ wrappers
+//
+// ============================================================================
+
+algebraic_g operator+(algebraic_g x, algebraic_g y)
+// ----------------------------------------------------------------------------
+//   Addition
+// ----------------------------------------------------------------------------
+{
+    return add::evaluate(x, y);
+}
+
+
+algebraic_g operator-(algebraic_g x, algebraic_g y)
+// ----------------------------------------------------------------------------
+//   Subtraction
+// ----------------------------------------------------------------------------
+{
+    return sub::evaluate(x, y);
+}
+
+
+algebraic_g operator*(algebraic_g x, algebraic_g y)
+// ----------------------------------------------------------------------------
+//   Multiplication
+// ----------------------------------------------------------------------------
+{
+    return mul::evaluate(x, y);
+}
+
+
+algebraic_g operator/(algebraic_g x, algebraic_g y)
+// ----------------------------------------------------------------------------
+//   Division
+// ----------------------------------------------------------------------------
+{
+    return div::evaluate(x, y);
+}

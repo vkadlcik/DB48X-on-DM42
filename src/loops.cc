@@ -104,7 +104,14 @@ object::result conditional_loop::condition(bool &value)
 // ----------------------------------------------------------------------------
 {
     if (object_p cond = rt.pop())
-        return comparison::condition(value, cond);
+    {
+        int truth = cond->as_truth(true);
+        if (truth >= 0)
+        {
+            value = (bool) truth;
+            return OK;
+        }
+    }
     return ERROR;
 }
 

@@ -35,46 +35,6 @@
 #include "integer.h"
 #include "locals.h"
 
-object::result comparison::condition(bool &value, object_p cond)
-// ----------------------------------------------------------------------------
-//   Check if an object is true or false
-// ----------------------------------------------------------------------------
-{
-    if (cond)
-    {
-        switch(cond->type())
-        {
-        case ID_hex_integer:
-        case ID_oct_integer:
-        case ID_bin_integer:
-        case ID_dec_integer:
-        case ID_based_integer:
-        case ID_integer:
-        case ID_neg_integer:
-            value = integer_p(cond)->value<ularge>() != 0;
-            return OK;
-        case ID_decimal128:
-            value = !decimal128_p(cond)->is_zero();
-            return OK;
-        case ID_decimal64:
-            value = !decimal64_p(cond)->is_zero();
-            return OK;
-        case ID_decimal32:
-            value = !decimal32_p(cond)->is_zero();
-            return OK;
-        case ID_True:
-            value = true;
-            return OK;
-        case ID_False:
-            value = false;
-            return OK;
-        default:
-            rt.type_error();
-        }
-    }
-    return ERROR;
-}
-
 
 template <typename Cmp>
 object::result comparison::evaluate()
@@ -82,44 +42,66 @@ object::result comparison::evaluate()
 //   The actual evaluation for all binary operators
 // ----------------------------------------------------------------------------
 {
-    return compare(Cmp::make_result);
+    return compare(Cmp::make_result, Cmp::static_id);
 }
 
 
-object::result comparison::compare(int *cmp, object_p left, object_p right)
+template <typename Cmp>
+algebraic_g comparison::evaluate(algebraic_g x, algebraic_g y)
+// ----------------------------------------------------------------------------
+//   The actual evaluation for all binary operators
+// ----------------------------------------------------------------------------
+{
+    return compare(Cmp::make_result, Cmp::static_id, x, y);
+}
+
+
+bool comparison::compare(int *cmp, algebraic_g x, algebraic_g y)
 // ----------------------------------------------------------------------------
 //   Compare objects left and right, return -1, 0 or +1
 // ----------------------------------------------------------------------------
 {
-    gcobj y = left;
-    gcobj x = right;
+    // Check if we had some error earlier, if so propagate
     if (!x || !y)
-        return ERROR;
-
+        return false;
     id xt = x->type();
     id yt = y->type();
 
     /* Integer types */
     bool ok = false;
 
-    if (!ok && is_integer(xt) && is_integer(yt))
+    if (is_integer(xt) && is_integer(yt))
     {
+        // Check if this is a bignum comparison
+        if (is_bignum(xt) || is_bignum(yt))
+        {
+            if (!is_bignum(xt))
+                xt = bignum_promotion(x);
+            if (!is_bignum(yt))
+                yt = bignum_promotion(y);
+            bignum_g xb = bignum_p(x.Safe());
+            bignum_g yb = bignum_p(y.Safe());
+            int cmpval = bignum::compare(xb, yb);
+            *cmp = cmpval < 0 ? -1 : cmpval > 0 ? 1 : 0;
+            return true;
+        }
+
         // Check if we have a neg_integer vs another integer type
         if ((xt == ID_neg_integer) != (yt == ID_neg_integer))
         {
-            *cmp = xt == ID_neg_integer ? 1 : -1;
-            return OK;
+            *cmp = xt == ID_neg_integer ? -1 : 1;
+            return true;
         }
 
         integer_p xi     = integer_p(object_p(x));
         integer_p yi     = integer_p(object_p(y));
         ularge    xv     = xi->value<ularge>();
         ularge    yv     = yi->value<ularge>();
-        int       cmpval = yv < xv ? -1 : yv > xv ? 1 : 0;
+        int       cmpval = xv < yv ? -1 : xv > yv ? 1 : 0;
         if (xt == ID_neg_integer)
             cmpval = -cmpval;
         *cmp = cmpval;
-        return OK;
+        return true;
     }
 
     /* Real data types */
@@ -135,40 +117,40 @@ object::result comparison::compare(int *cmp, object_p left, object_p right)
         {
             bid32 xv = decimal32_p(object_p(x))->value();
             bid32 yv = decimal32_p(object_p(y))->value();
-            bid32_quiet_unordered(&rlt, &yv.value, &xv.value);
+            bid32_quiet_unordered(&rlt, &xv.value, &yv.value);
             if (rlt)
-                return ERROR;
-            bid32_quiet_less(&rlt, &yv.value, &xv.value);
-            bid32_quiet_greater(&rgt, &yv.value, &xv.value);
+                return false;
+            bid32_quiet_less(&rlt, &xv.value, &yv.value);
+            bid32_quiet_greater(&rgt, &xv.value, &yv.value);
             break;
         }
         case ID_decimal64:
         {
             bid64 xv = decimal64_p(object_p(x))->value();
             bid64 yv = decimal64_p(object_p(y))->value();
-            bid64_quiet_unordered(&rlt, &yv.value, &xv.value);
+            bid64_quiet_unordered(&rlt, &xv.value, &yv.value);
             if (rlt)
-                return ERROR;
-            bid64_quiet_less(&rlt, &yv.value, &xv.value);
-            bid64_quiet_greater(&rgt, &yv.value, &xv.value);
+                return false;
+            bid64_quiet_less(&rlt, &xv.value, &yv.value);
+            bid64_quiet_greater(&rgt, &xv.value, &yv.value);
             break;
         }
         case ID_decimal128:
         {
             bid128 xv = decimal128_p(object_p(x))->value();
             bid128 yv = decimal128_p(object_p(y))->value();
-            bid128_quiet_unordered(&rlt, &yv.value, &xv.value);
+            bid128_quiet_unordered(&rlt, &xv.value, &yv.value);
             if (rlt)
-                return ERROR;
-            bid128_quiet_less(&rlt, &yv.value, &xv.value);
-            bid128_quiet_greater(&rgt, &yv.value, &xv.value);
+                return false;
+            bid128_quiet_less(&rlt, &xv.value, &yv.value);
+            bid128_quiet_greater(&rgt, &xv.value, &yv.value);
             break;
         }
         default:
-            return ERROR;
+            return false;
         }
         *cmp = rgt - rlt;
-        return OK;
+        return true;
     }
 
     if (!ok && xt == ID_text && yt == ID_text)
@@ -183,46 +165,70 @@ object::result comparison::compare(int *cmp, object_p left, object_p right)
         // REVISIT: Unicode sorting?
         for (uint k = 0; k < l; k++)
         {
-            if (int d = ys[k] - xs[k])
+            if (int d = xs[k] - ys[k])
             {
                 *cmp = (d > 0) - (d < 0);
-                return OK;
+                return true;
             }
         }
 
-        *cmp = (yl > xl) - (yl < xl);
-        return OK;
+        *cmp = (xl > yl) - (xl < yl);
+        return true;
     }
 
     // All other cases are errors
-   return ERROR;
+    return false;
 }
 
 
-object::result comparison::compare(comparison_fn comparator)
+object::result comparison::compare(comparison_fn comparator, id op)
 // ----------------------------------------------------------------------------
 //   Compare items from the stack
 // ----------------------------------------------------------------------------
 {
-    object_p y = rt.stack(1);
-    object_p x = rt.stack(0);
+    object_p x = rt.stack(1);
+    object_p y = rt.stack(0);
     if (!x || !y)
         return ERROR;
-
-    int cmp = 0;
-    result r = compare(&cmp, y, x);
-    if (r != OK)
+    if (!x->is_algebraic() || !y->is_algebraic())
     {
         rt.type_error();
-        return r;
+        return ERROR;
     }
 
-    rt.pop();
-    rt.pop();
-    id type = comparator(cmp) ? ID_True : ID_False;
-    if (rt.push(command::static_object(type)))
-        return OK;
+    algebraic_g xa = algebraic_p(x);
+    algebraic_g ya = algebraic_p(y);
+    algebraic_g ra = compare(comparator, op, xa, ya);
+
+    if (ra)
+        if (rt.drop(2))
+            if (rt.push(ra.Safe()))
+                return OK;
+
     return ERROR;
+}
+
+
+algebraic_g comparison::compare(comparison_fn comparator,
+                                id            op,
+                                algebraic_g   x,
+                                algebraic_g   y)
+// ----------------------------------------------------------------------------
+//   Compare two algebraic values without using the stack
+// ----------------------------------------------------------------------------
+{
+    int cmp = 0;
+    if (compare(&cmp, x, y))
+    {
+        // Could evaluate the result, return True or False
+        id type = comparator(cmp) ? ID_True : ID_False;
+        return algebraic_p(command::static_object(type));
+    }
+
+    // Otherwise, need to build an equation with the comparison
+    algebraic_g args[2] = { x, y };
+    equation_p eq = rt.make<equation>(ID_equation, 2, args, op);
+    return eq;
 }
 
 
@@ -285,7 +291,7 @@ object::result comparison::is_same(bool names)
 }
 
 
-    template<>
+template<>
 object::result comparison::evaluate<TestSame>()
 // ----------------------------------------------------------------------------
 //   For "==", we want the same type, no promotion, but evaluate names
@@ -309,7 +315,7 @@ object::result comparison::evaluate<same>()
 
 // ============================================================================
 //
-//   Instatiations
+//   Instantiations
 //
 // ============================================================================
 
@@ -319,3 +325,92 @@ template object::result comparison::evaluate<TestEQ>();
 template object::result comparison::evaluate<TestGT>();
 template object::result comparison::evaluate<TestGE>();
 template object::result comparison::evaluate<TestNE>();
+
+
+
+// ============================================================================
+//
+//    Commands for True and False
+//
+// ============================================================================
+
+COMMAND_BODY(True)
+// ----------------------------------------------------------------------------
+//   Evaluate as self
+// ----------------------------------------------------------------------------
+{
+    if (rt.push(command::static_object(ID_True)))
+        return OK;
+    return ERROR;
+}
+
+COMMAND_BODY(False)
+// ----------------------------------------------------------------------------
+//   Evaluate as self
+// ----------------------------------------------------------------------------
+{
+    if (rt.push(command::static_object(ID_False)))
+        return OK;
+    return ERROR;
+}
+
+
+
+// ============================================================================
+//
+//   C++ interface
+//
+// ============================================================================
+
+algebraic_g operator==(algebraic_g x, algebraic_g y)
+// ----------------------------------------------------------------------------
+//   Equality operation on algebraic objects
+// ----------------------------------------------------------------------------
+{
+    return TestEQ::evaluate(x, y);
+}
+
+
+algebraic_g operator<=(algebraic_g x, algebraic_g y)
+// ----------------------------------------------------------------------------
+//   Less or equal operation on algebraic objects
+// ----------------------------------------------------------------------------
+{
+    return TestLE::evaluate(x, y);
+}
+
+
+algebraic_g operator>=(algebraic_g x, algebraic_g y)
+// ----------------------------------------------------------------------------
+//   Gretter or equal operation on algebraic objects
+// ----------------------------------------------------------------------------
+{
+    return TestGE::evaluate(x, y);
+}
+
+
+algebraic_g operator!=(algebraic_g x, algebraic_g y)
+// ----------------------------------------------------------------------------
+//   Inequality operation on algebraic objects
+// ----------------------------------------------------------------------------
+{
+    return TestNE::evaluate(x, y);
+}
+
+
+algebraic_g operator<(algebraic_g x, algebraic_g y)
+// ----------------------------------------------------------------------------
+//   Less  operation on algebraic objects
+// ----------------------------------------------------------------------------
+{
+    return TestLT::evaluate(x, y);
+}
+
+
+algebraic_g operator>(algebraic_g x, algebraic_g y)
+// ----------------------------------------------------------------------------
+//   Gretter operation on algebraic objects
+// ----------------------------------------------------------------------------
+{
+    return TestGT::evaluate(x, y);
+}

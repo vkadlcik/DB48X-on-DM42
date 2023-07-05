@@ -125,8 +125,14 @@ struct equation : program
     }
 
     // Building equations from arguments
-    equation(uint arity, const gcobj args[], id op, id type = ID_equation);
-    static size_t required_memory(id i, uint arity, const gcobj args[], id op);
+    equation(uint              arity,
+             const algebraic_g args[],
+             id                op,
+             id                type = ID_equation);
+    static size_t required_memory(id                i,
+                                  uint              arity,
+                                  const algebraic_g args[],
+                                  id                op);
 
     symbol_p symbol() const;
     static size_t size_in_equation(object_p obj);

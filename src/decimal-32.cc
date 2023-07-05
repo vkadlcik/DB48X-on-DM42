@@ -52,7 +52,7 @@ decimal32::decimal32(bignum_p num, id type)
 // ----------------------------------------------------------------------------
 //   Create a decimal32 from a bignum value
 // ----------------------------------------------------------------------------
-    : object(type)
+    : algebraic(type)
 {
     bid32 result;
     bid32 mul;

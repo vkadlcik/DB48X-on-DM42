@@ -39,7 +39,6 @@
 
 #include "object.h"
 #include "runtime.h"
-#  include "list.h"
 
 struct command : object
 // ----------------------------------------------------------------------------
@@ -83,10 +82,10 @@ public:
 
 
 // Macro to defined a simple command handler for derived classes
-#define COMMAND_DECLARE_SPECIAL(derived, special)       \
-struct derived : command                                \
+#define COMMAND_DECLARE_SPECIAL(derived, base, special) \
+struct derived : base                                   \
 {                                                       \
-    derived(id i = ID_##derived) : command(i) { }       \
+    derived(id i = ID_##derived) : base(i) { }          \
                                                         \
     OBJECT_DECL(derived);                               \
     EVAL_DECL(derived)                                  \
@@ -103,7 +102,7 @@ struct derived : command                                \
 }
 
 #define COMMAND_DECLARE(derived)                        \
-    COMMAND_DECLARE_SPECIAL(derived, )
+    COMMAND_DECLARE_SPECIAL(derived, command, )
 
 #define COMMAND_BODY(derived)                   \
     object::result derived::evaluate()
@@ -142,8 +141,6 @@ struct Unimplemented : command
 
 // Various global commands
 COMMAND_DECLARE(Eval);          // Evaluate an object
-COMMAND_DECLARE(True);          // Evaluate as self
-COMMAND_DECLARE(False);         // Evaluate as self
 COMMAND_DECLARE(ToText);        // Convert an object to text
 COMMAND_DECLARE(SelfInsert);    // Enter menu label in the editor
 COMMAND_DECLARE(Ticks);         // Return number of ticks

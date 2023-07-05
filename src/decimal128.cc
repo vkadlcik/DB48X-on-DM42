@@ -52,7 +52,7 @@ decimal128::decimal128(bignum_p num, id type)
 // ----------------------------------------------------------------------------
 //   Create a decimal128 from a bignum value
 // ----------------------------------------------------------------------------
-    : object(type)
+    : algebraic(type)
 {
     bid128 result;
     bid128 mul;

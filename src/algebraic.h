@@ -39,6 +39,10 @@
 
 #include "command.h"
 
+struct algebraic;
+typedef const algebraic *algebraic_p;
+typedef gcp<const algebraic> algebraic_g;
+
 struct algebraic : command
 // ----------------------------------------------------------------------------
 //   Shared logic for all algebraics
@@ -53,11 +57,11 @@ struct algebraic : command
     static uint precedence()            { return 1; }
 
     // Promotion of integer / fractions to real
-    static bool real_promotion(gcobj &x, object::id type);
-    static id   real_promotion(gcobj &x);
+    static bool real_promotion(algebraic_g &x, object::id type);
+    static id   real_promotion(algebraic_g &x);
 
     // Promotion of integer to bignum
-    static id   bignum_promotion(gcobj &x);
+    static id   bignum_promotion(algebraic_g &x);
 
     // Function pointers used by generic evaluation code
     typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x);
@@ -66,5 +70,6 @@ struct algebraic : command
 
     INSERT_DECL(algebraic);
 };
+
 
 #endif // ALGEBRAIC_H

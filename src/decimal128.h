@@ -38,7 +38,7 @@
 //   unnecessary.
 
 
-#include "object.h"
+#include "algebraic.h"
 #include "runtime.h"
 #include "settings.h"
 
@@ -49,12 +49,12 @@
 struct bignum;
 typedef const bignum *bignum_p;
 
-struct decimal128 : object
+struct decimal128 : algebraic
 // ----------------------------------------------------------------------------
 //    Floating-point numbers in 128-bit decimal128 representation
 // ----------------------------------------------------------------------------
 {
-    decimal128(gcstring value, id type = ID_decimal128): object(type)
+    decimal128(gcstring value, id type = ID_decimal128): algebraic(type)
     {
         bid128 num;
         bid128_from_string(&num.value, (cstring) value);
@@ -62,13 +62,13 @@ struct decimal128 : object
         memcpy(p, &num, sizeof(num));
     }
 
-    decimal128(const bid128 &value, id type = ID_decimal128): object(type)
+    decimal128(const bid128 &value, id type = ID_decimal128): algebraic(type)
     {
         byte *p = (byte *) payload(this);
         memcpy(p, &value, sizeof(value));
     }
 
-    decimal128(uint64_t value, id type = ID_decimal128): object(type)
+    decimal128(uint64_t value, id type = ID_decimal128): algebraic(type)
     {
         BID_UINT64 bval = BID_UINT64(value);
         bid128 num;
@@ -77,7 +77,7 @@ struct decimal128 : object
         memcpy(p, &num, sizeof(num));
     }
 
-    decimal128(uint64_t value, bool neg, id type = ID_decimal128): object(type)
+    decimal128(uint64_t value, bool neg, id ty = ID_decimal128): algebraic(ty)
     {
         BID_UINT64 bval = BID_UINT64(value);
         bid128 num, negated;
@@ -88,7 +88,7 @@ struct decimal128 : object
         memcpy(p, neg ? &negated : &num, sizeof(num));
     }
 
-    decimal128(int64_t value, id type = ID_decimal128): object(type)
+    decimal128(int64_t value, id type = ID_decimal128): algebraic(type)
     {
         BID_SINT64 bval = BID_SINT64(value);
         bid128 num;
@@ -97,7 +97,7 @@ struct decimal128 : object
         memcpy(p, &num, sizeof(num));
     }
 
-    decimal128(uint32_t value, id type = ID_decimal128): object(type)
+    decimal128(uint32_t value, id type = ID_decimal128): algebraic(type)
     {
         bid128 num;
         // Bug in the BID library, which uses int and not int32_t
@@ -106,7 +106,7 @@ struct decimal128 : object
         memcpy(p, &num, sizeof(num));
     }
 
-    decimal128(int32_t value, id type = ID_decimal128): object(type)
+    decimal128(int32_t value, id type = ID_decimal128): algebraic(type)
     {
         bid128 num;
         // Bug in the BID library, which uses int and not int32_t
@@ -118,7 +118,7 @@ struct decimal128 : object
     decimal128(bignum_p value, id type = ID_decimal128);
 
 #if 128 > 64
-    decimal128(const bid64 &value, id type = ID_decimal128): object(type)
+    decimal128(const bid64 &value, id type = ID_decimal128): algebraic(type)
     {
         bid128 num;
         bid64_to_bid128(&num.value, (BID_UINT64 *) &value.value);
@@ -128,7 +128,7 @@ struct decimal128 : object
 #endif
 
 #if 128 > 32
-    decimal128(const bid32 &value, id type = ID_decimal128): object(type)
+    decimal128(const bid32 &value, id type = ID_decimal128): algebraic(type)
     {
         bid128 num;
         bid32_to_bid128(&num.value, (BID_UINT32 *) &value.value);

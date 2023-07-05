@@ -39,12 +39,15 @@ struct comparison : arithmetic
     comparison(id i): arithmetic(i) {}
 
     typedef bool (*comparison_fn)(int cmp);
-    static result condition(bool &value, object_p cond);
-    static result compare(int *cmp, object_p left, object_p right);
-    static result compare(comparison_fn cmp);
+    static bool compare(int *cmp, algebraic_g left, algebraic_g right);
+    static result compare(comparison_fn cmp, id op);
+    static algebraic_g compare(comparison_fn cmp, id op,
+                               algebraic_g x, algebraic_g y);
     static result is_same(bool derefNames);
 
-    template <typename Cmp> static result evaluate();
+    template <typename Cmp> static result      evaluate();
+    template <typename Cmp> static algebraic_g evaluate(algebraic_g x,
+                                                        algebraic_g y);
 };
 
 
@@ -69,6 +72,10 @@ struct derived : comparison                                             \
     {                                                                   \
         return comparison::evaluate<derived>();                         \
     }                                                                   \
+    static algebraic_g evaluate(algebraic_g x, algebraic_g y)           \
+    {                                                                   \
+        return comparison::evaluate<derived>(x, y);                     \
+    }                                                                   \
 }
 
 COMPARISON_DECLARE(TestLT, cmp <  0 );
@@ -85,5 +92,24 @@ COMPARISON_DECLARE(TestSame, cmp == 0);
 struct same;
 template <> object::result comparison::evaluate<same>();
 COMPARISON_DECLARE(same, cmp == 0);
+
+// Truth results
+COMMAND_DECLARE_SPECIAL(True,  algebraic, );          // Evaluate as self
+COMMAND_DECLARE_SPECIAL(False, algebraic, );         // Evaluate as self
+
+
+
+// ============================================================================
+//
+//   C++ interface for comparisons
+//
+// ============================================================================
+
+algebraic_g operator==(algebraic_g x, algebraic_g y);
+algebraic_g operator<=(algebraic_g x, algebraic_g y);
+algebraic_g operator>=(algebraic_g x, algebraic_g y);
+algebraic_g operator <(algebraic_g x, algebraic_g y);
+algebraic_g operator >(algebraic_g x, algebraic_g y);
+algebraic_g operator!=(algebraic_g x, algebraic_g y);
 
 #endif // COMPARE_H

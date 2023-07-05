@@ -52,7 +52,7 @@ decimal64::decimal64(bignum_p num, id type)
 // ----------------------------------------------------------------------------
 //   Create a decimal64 from a bignum value
 // ----------------------------------------------------------------------------
-    : object(type)
+    : algebraic(type)
 {
     bid64 result;
     bid64 mul;

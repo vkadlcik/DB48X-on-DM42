@@ -32,15 +32,15 @@
 #include "arithmetic.h"
 #include "decimal128.h"
 #include "integer.h"
+#include "list.h"
 #include "stack-cmds.h"
-
 
 object::result function::evaluate(id op, bid128_fn op128)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------
 {
-    gcobj x = rt.stack(0);
+    algebraic_g x = algebraic_p(rt.stack(0));
     if (!x)
         return ERROR;
 
@@ -78,7 +78,7 @@ object::result function::evaluate(id op, bid128_fn op128)
     // If things did not work with real number, try an equation
     if (x->is_symbolic())
     {
-        gcobj arg[1] = { x };
+        algebraic_g arg[1] = { x };
         x = rt.make<equation>(ID_equation, 1, arg, op);
         if (x && rt.top(x))
             return OK;
@@ -106,7 +106,7 @@ static object::result symbolic(object::id type)
 //   Check if the function's argument is symbolic, if so process it as is
 // ----------------------------------------------------------------------------
 {
-    gcobj x = rt.stack(0);
+    algebraic_g x = algebraic_p(rt.stack(0));
     if (!x)
         return object::ERROR;
     if (x->is_strictly_symbolic())
@@ -217,7 +217,7 @@ FUNCTION_BODY(sq)
     if (r != SKIP)
         return r;
 
-    gcobj x = rt.stack(0);
+    algebraic_g x = algebraic_p(rt.stack(0));
     if (x->is_strictly_symbolic())
     {
         x = rt.make<equation>(ID_equation, 1, &x, ID_sq);
@@ -241,7 +241,7 @@ FUNCTION_BODY(cubed)
     if (r != SKIP)
         return r;
 
-    gcobj x = rt.stack(0);
+    algebraic_g x = algebraic_p(rt.stack(0));
     if (x->is_strictly_symbolic())
     {
         x = rt.make<equation>(ID_equation, 1, &x, ID_cubed);

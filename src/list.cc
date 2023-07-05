@@ -710,7 +710,7 @@ size_t equation::size_in_equation(object_p obj)
 }
 
 
-equation::equation(uint arity, const gcobj args[], id op, id type)
+equation::equation(uint arity, const algebraic_g args[], id op, id type)
 // ----------------------------------------------------------------------------
 //   Build an equation from N arguments
 // ----------------------------------------------------------------------------
@@ -751,7 +751,10 @@ equation::equation(uint arity, const gcobj args[], id op, id type)
 }
 
 
-size_t equation::required_memory(id type, uint arity, const gcobj args[], id op)
+size_t equation::required_memory(id                type,
+                                 uint              arity,
+                                 const algebraic_g args[],
+                                 id                op)
 // ----------------------------------------------------------------------------
 //   Size of an equation object with N arguments
 // ----------------------------------------------------------------------------

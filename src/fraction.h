@@ -46,14 +46,14 @@
 
 struct fraction;
 typedef const fraction *fraction_p;
-typedef gcp<fraction> fraction_g;
+typedef gcp<const fraction> fraction_g;
 
 struct big_fraction;
 typedef const big_fraction *big_fraction_p;
-typedef gcp<big_fraction> big_fraction_g;
+typedef gcp<const big_fraction> big_fraction_g;
 
 
-struct fraction : object
+struct fraction : algebraic
 // ----------------------------------------------------------------------------
 //   A fraction is a ratio of two integers
 // ----------------------------------------------------------------------------
@@ -62,7 +62,7 @@ struct fraction : object
     // ------------------------------------------------------------------------
     //   Constructs a fraction from two integers or two bignums
     // ------------------------------------------------------------------------
-        : object(type)
+        : algebraic(type)
     {
         // This is written so that it works with integer_g and bignum_g
         byte *p = (byte *) payload();

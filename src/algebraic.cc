@@ -55,12 +55,12 @@ INSERT_BODY(algebraic)
 }
 
 
-bool algebraic::real_promotion(gcobj &x, object::id type)
+bool algebraic::real_promotion(algebraic_g &x, object::id type)
 // ----------------------------------------------------------------------------
 //   Promote the value x to the given type
 // ----------------------------------------------------------------------------
 {
-    object::id xt = x->type();
+    id xt = x->type();
     if (xt == type)
         return true;
 
@@ -188,7 +188,7 @@ bool algebraic::real_promotion(gcobj &x, object::id type)
 }
 
 
-object::id algebraic::real_promotion(gcobj &x)
+object::id algebraic::real_promotion(algebraic_g &x)
 // ----------------------------------------------------------------------------
 //   Promote the value x to a type selected based on preferences
 // ----------------------------------------------------------------------------
@@ -202,7 +202,7 @@ object::id algebraic::real_promotion(gcobj &x)
 }
 
 
-object::id algebraic::bignum_promotion(gcobj &x)
+object::id algebraic::bignum_promotion(algebraic_g &x)
 // ----------------------------------------------------------------------------
 //   Promote the value x to the corresponding bignum
 // ----------------------------------------------------------------------------

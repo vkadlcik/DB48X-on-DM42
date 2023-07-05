@@ -51,6 +51,7 @@
 //
 
 
+#include "algebraic.h"
 #include "decimal128.h"
 #include "integer.h"
 #include "object.h"
@@ -62,7 +63,7 @@
 
 struct bignum;
 typedef const bignum *bignum_p;
-typedef gcp<bignum> bignum_g;
+typedef gcp<const bignum> bignum_g;
 
 
 struct bignum : text

@@ -318,7 +318,7 @@ symbol_p object::as_name() const
 }
 
 
-int object::as_truth() const
+int object::as_truth(bool error) const
 // ----------------------------------------------------------------------------
 //   Get the logical value for an object, or -1 if invalid
 // ----------------------------------------------------------------------------
@@ -337,14 +337,14 @@ int object::as_truth() const
     case ID_dec_integer:
     case ID_hex_integer:
     case ID_based_integer:
-        return *payload() != 0;
+        return !(integer_p(this)->is_zero());
     case ID_bignum:
     case ID_neg_bignum:
     case ID_bin_bignum:
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
-        return payload()[1] != 0; // Check if the size is not zero
+        return !(bignum_p(this)->is_zero());
     case ID_decimal128:
         return !decimal128_p(this)->is_zero();
     case ID_decimal64:
@@ -352,7 +352,8 @@ int object::as_truth() const
     case ID_decimal32:
         return !decimal32_p(this)->is_zero();
     default:
-        rt.type_error();
+        if (error)
+            rt.type_error();
     }
     return -1;
 }

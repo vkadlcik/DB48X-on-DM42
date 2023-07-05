@@ -490,6 +490,24 @@ struct object
     }
 
 
+    bool is_fractionable() const
+    // -------------------------------------------------------------------------
+    //   Check if an object is a fraction or an integer
+    // -------------------------------------------------------------------------
+    {
+        return is_fractionable(type());
+    }
+
+
+    static bool is_fractionable(id ty)
+    // -------------------------------------------------------------------------
+    //   Check if a type is a fraction or a non-based integer
+    // -------------------------------------------------------------------------
+    {
+        return ty >= FIRST_REAL_TYPE && ty <= LAST_FRACTION_TYPE;
+    }
+
+
     bool is_fraction() const
     // -------------------------------------------------------------------------
     //   Check if an object is an integer
@@ -654,7 +672,7 @@ struct object
     // ------------------------------------------------------------------------
 
 
-    int as_truth() const;
+    int as_truth(bool error = true) const;
     // ------------------------------------------------------------------------
     //   Return 0 or 1 if this is a logical value, -1 and type error otherwise
     // ------------------------------------------------------------------------

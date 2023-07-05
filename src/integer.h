@@ -49,22 +49,23 @@
 //
 //   See bignum.h for the 8-bit big-num implementation
 
-#include "object.h"
+#include "algebraic.h"
 #include "runtime.h"
 #include "settings.h"
 
+
 struct integer;
 typedef const integer *integer_p;
-typedef gcp<integer> integer_g;
+typedef gcp<const integer> integer_g;
 
 
-struct integer : object
+struct integer : algebraic
 // ----------------------------------------------------------------------------
 //    Represent integer objects
 // ----------------------------------------------------------------------------
 {
     template <typename Int>
-    integer(Int value, id type = ID_integer): object(type)
+    integer(Int value, id type = ID_integer): algebraic(type)
     {
         byte *p = (byte *) payload(this);
         leb128(p, value);
@@ -76,7 +77,7 @@ struct integer : object
         return leb128size(i) + leb128size(value);
     }
 
-    integer(gcbytes ptr, size_t size, id type = ID_integer): object(type)
+    integer(gcbytes ptr, size_t size, id type = ID_integer): algebraic(type)
     {
         byte *p = (byte *) payload(this);
         memmove(p, byte_p(ptr), size);

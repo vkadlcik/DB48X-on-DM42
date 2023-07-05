@@ -38,17 +38,19 @@
 //
 //   On most texts, this format uses 3 bytes less than on the HP48.
 
-#include "object.h"
+#include "algebraic.h"
 #include "runtime.h"
 #include "text.h"
 
 
-struct text : object
+struct text : algebraic
 // ----------------------------------------------------------------------------
 //    Represent text objects
 // ----------------------------------------------------------------------------
+//    We derive from 'algebraic' because many algebraic objects
+//    derive from text (equation, symbol and local variables notably)
 {
-    text(gcutf8 source, size_t len, id type = ID_text): object(type)
+    text(gcutf8 source, size_t len, id type = ID_text): algebraic(type)
     {
         utf8 s = (utf8) source;
         byte *p = (byte *) payload(this);

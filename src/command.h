@@ -83,7 +83,7 @@ public:
 
 
 // Macro to defined a simple command handler for derived classes
-#define COMMAND_DECLARE(derived)                        \
+#define COMMAND_DECLARE_SPECIAL(derived, special)       \
 struct derived : command                                \
 {                                                       \
     derived(id i = ID_##derived) : command(i) { }       \
@@ -98,10 +98,14 @@ struct derived : command                                \
     {                                                   \
         return do_evaluate(o);                          \
     }                                                   \
+    special                                             \
     static result evaluate();                           \
 }
 
-#define COMMAND_BODY(derived)                           \
+#define COMMAND_DECLARE(derived)                        \
+    COMMAND_DECLARE_SPECIAL(derived, )
+
+#define COMMAND_BODY(derived)                   \
     object::result derived::evaluate()
 
 #define COMMAND(derived)                                \

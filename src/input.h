@@ -108,6 +108,7 @@ struct input
     void        draw_error();
     bool        draw_help();
     void        draw_command();
+    void        draw_user_command(utf8 cmd, size_t sz);
 
     int         draw_menus(uint time, uint &period, bool force);
     int         draw_battery(uint time, uint &period, bool force);
@@ -181,14 +182,14 @@ protected:
     bool   autoComplete : 1; // Menu is auto-complete
 
 protected:
-  // Key mappings
-  object_p        function[NUM_PLANES][NUM_KEYS];
-  cstring         menu_label[NUM_PLANES][NUM_SOFTKEYS];
-  uint16_t        menu_marker[NUM_PLANES][NUM_SOFTKEYS];
-  bool            menu_marker_align[NUM_PLANES][NUM_SOFTKEYS];
-  file            helpfile;
-  friend struct tests;
-  friend struct runtime;
+    // Key mappings
+    object_p function[NUM_PLANES][NUM_KEYS];
+    cstring  menu_label[NUM_PLANES][NUM_SOFTKEYS];
+    uint16_t menu_marker[NUM_PLANES][NUM_SOFTKEYS];
+    bool     menu_marker_align[NUM_PLANES][NUM_SOFTKEYS];
+    file     helpfile;
+    friend struct tests;
+    friend struct runtime;
 };
 
 

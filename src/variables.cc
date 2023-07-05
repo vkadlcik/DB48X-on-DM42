@@ -677,10 +677,21 @@ COMMAND_BODY(VariablesMenuExecute)
         return insert_cmd(key, "", " ");
 
     if (key >= KEY_F1 && key <= KEY_F6)
+    {
         if (symbol_p name = Input.label(key - KEY_F1))
+        {
             if (directory *dir = rt.variables(0))
+            {
                 if (object_p value = dir->recall(name))
+                {
+                    size_t sz = 0;
+                    utf8 help = name->value(&sz);
+                    Input.draw_user_command(help, sz);
                     return value->execute();
+                }
+            }
+        }
+    }
 
     return ERROR;
 }

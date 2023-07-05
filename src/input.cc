@@ -1127,13 +1127,43 @@ void input::draw_command()
     if (command && !rt.error())
     {
         font_p font = HelpCodeFont;
-        size   w = font->width(command);
-        size   h = font->height();
+        size   w    = font->width(command);
+        size   h    = font->height();
         coord  x    = 25;
         coord  y    = HeaderFont->height() + 6;
-        Screen.fill(x-2, y, x + w + 1, y + h, pattern::black);
+
+        Screen.fill(x-2, y-1, x + w + 2, y + h + 1, pattern::black);
         Screen.text(x, y, command, font, pattern::white);
     }
+}
+
+
+void input::draw_user_command(utf8 cmd, size_t len)
+// ----------------------------------------------------------------------------
+//   Draw the current command
+// ----------------------------------------------------------------------------
+{
+    font_p font = HelpCodeFont;
+    size   w    = command ? font->width(command) : 0;
+    size   h    = font->height();
+    coord  x    = 25;
+    coord  y    = HeaderFont->height() + 6;
+
+    // Erase normal command
+    Screen.fill(x-2, y-1, x + w + 2, y + h + 1, pattern::gray50);
+
+    // Draw user command
+    size nw = font->width(cmd, len);
+    if (nw > w)
+        w = nw;
+
+    // User-defined command, display in white
+    Screen.fill(x-2, y-1, x + w + 2, y + h + 1, pattern::black);
+    Screen.fill(x-1, y, x + w + 1, y + h, pattern::white);
+    Screen.text(x + (w - nw) / 2, y, cmd, len, font, pattern::black);
+
+    // Update screen
+    lcd_refresh_lines(y - 1, h + 2);
 }
 
 
@@ -1760,7 +1790,6 @@ bool input::handle_help(int &key)
             if (!noHelpForKey(last))
                 key = last;     // Time to evaluate
             last    = 0;
-            command = nullptr;
         }
 
         // Help keyboard movements only applies when help is shown

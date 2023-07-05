@@ -10,9 +10,11 @@ OPT=release
 # Alternatives (on the command line)
 # OPT=debug	-g
 # OPT=small	-Os
-# OPT=fastest	-O4 -Ofast
-# OPT=faster	-O3
 # OPT=fast	-O2
+# OPT=faster	-O3
+# OPT=fastest	-O4 -Ofast
+# Experimentally, O2 performs best on DM42
+# (see https://github.com/c3d/DB48X-on-DM42/issues/66)
 
 # Warning: macOSX only
 MOUNTPOINT=/Volumes/DM42/
@@ -243,7 +245,7 @@ DBGFLAGS = $(DBGFLAGS_$(OPT))
 DBGFLAGS_debug = -g
 
 CFLAGS_debug += -O0 -DDEBUG
-CFLAGS_release += -O3
+CFLAGS_release += -O2
 CFLAGS_small += -Os
 CFLAGS_fast += -O2
 CFLAGS_faster += -O3

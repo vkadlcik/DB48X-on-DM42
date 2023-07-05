@@ -43,13 +43,20 @@ struct function : algebraic
 protected:
     static result evaluate(id op, bid128_fn op128);
     // ------------------------------------------------------------------------
-    //   The actual evaluation for all binary operators
+    //   Stack-based evaluation for all functions implemented in BID library
     // ------------------------------------------------------------------------
 
-    template <typename Op> static result evaluate();
+    static algebraic_g evaluate(algebraic_g x, id op, bid128_fn op128);
     // ------------------------------------------------------------------------
-    //   The actual evaluation for all binary operators
+    //   C++ evaluation for all functions implemented in BID library
     // ------------------------------------------------------------------------
+
+    typedef algebraic_g (*algebraic_fn)(algebraic_g x);
+    static result evaluate(algebraic_fn fn);
+    // ------------------------------------------------------------------------
+    //  Evaluate on the stack function a function doing the evaluation
+    // ------------------------------------------------------------------------
+
 };
 
 
@@ -70,7 +77,15 @@ public:                                                                 \
     EVAL_DECL(derived)                                                  \
     {                                                                   \
         rt.command(fancy(ID_##derived));                                \
-        return evaluate<derived>();                                     \
+        return evaluate();                                              \
+    }                                                                   \
+    static result evaluate()                                            \
+    {                                                                   \
+        return function::evaluate(ID_##derived, bid128_op);             \
+    }                                                                   \
+    static algebraic_g evaluate(algebraic_g x)                          \
+    {                                                                   \
+        return function::evaluate(x, ID_##derived, bid128_op);          \
     }                                                                   \
 }
 
@@ -123,12 +138,15 @@ public:                                                                 \
         return evaluate();                                              \
     }                                                                   \
 public:                                                                 \
-    static result evaluate();                                           \
-};                                                                      \
-template<> object::result function::evaluate<struct derived>()
+    static result evaluate()                                            \
+    {                                                                   \
+        return function::evaluate(evaluate);                            \
+    }                                                                   \
+    static algebraic_g evaluate(algebraic_g x);                         \
+};
 
 #define FUNCTION_BODY(derived)                  \
-object::result derived::evaluate()
+algebraic_g derived::evaluate(algebraic_g x)
 
 FUNCTION(abs);
 FUNCTION(norm);

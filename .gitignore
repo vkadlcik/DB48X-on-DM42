@@ -23,3 +23,7 @@
 /tools/forcecrc32/forcecrc32
 /sim/gcc111libbid.a
 /sim/simulator
+/src/dm42/version.h
+/.cache/
+/*.bin
+/*.tgz

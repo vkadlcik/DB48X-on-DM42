@@ -690,7 +690,7 @@ algebraic_g arithmetic::evaluate(id             op,
                     if (ok)
                     {
                         bignum_g d = xf->denominator();
-                        if (*d == 1)
+                        if (d->is(1))
                         {
                             x = algebraic_p(bignum_p(xf->numerator()));
                             ok = object_p(x);

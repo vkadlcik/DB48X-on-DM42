@@ -157,20 +157,20 @@ struct bignum : text
     // Creating a small integer from a bignum, or return nullptr
     integer_p as_integer() const;
 
-    operator bool() const               { return !is_zero(); }
-    bool is_zero() const                { return length() == 0; }
-    template<typename Int>
-    bool operator==(Int x)              { return value<Int>() == x; }
-    template<typename Int>
-    bool operator!=(Int x)              { return value<Int>() != x; }
-    template<typename Int>
-    bool operator< (Int x)              { return value<Int>() <  x; }
-    template<typename Int>
-    bool operator<=(Int x)              { return value<Int>() <= x; }
-    template<typename Int>
-    bool operator> (Int x)              { return value<Int>() >  x; }
-    template<typename Int>
-    bool operator>=(Int x)              { return value<Int>() >= x; }
+    // Check if it matches a given value
+    bool is_zero() const        { return length() == 0; }
+    bool is(ularge test) const
+    {
+        size_t size = 0;
+        byte_p data = value(&size);
+        for (size_t i = 0; i < size; i++)
+        {
+            if (data[i] != byte(test))
+                return false;
+            test >>= 8;
+        }
+        return true;
+    }
 
     template <typename Int>
     static bignum *make(Int value);

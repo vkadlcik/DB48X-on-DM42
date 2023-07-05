@@ -191,7 +191,7 @@ static bignum_g gcd(bignum_g a, bignum_g b)
 //   Compute the greatest common denominator between a and b
 // ----------------------------------------------------------------------------
 {
-    while (*b)
+    while (!b->is_zero())
     {
         bignum_g na = b;
         b = a % b;
@@ -207,7 +207,7 @@ fraction_g big_fraction::make(bignum_g n, bignum_g d)
 // ----------------------------------------------------------------------------
 {
     bignum_g cd = gcd(n, d);
-    if (*cd != 1)
+    if (!cd->is(1))
     {
         n = n / cd;
         d = d / cd;

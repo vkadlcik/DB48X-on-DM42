@@ -85,7 +85,7 @@ dist: all
 
 $(VERSION_H): Makefile $(BUILD)/version-$(VERSION).h
 	cp $(BUILD)/version-$(VERSION).h $@
-$(BUILD)/version-$(VERSION).h:
+$(BUILD)/version-$(VERSION).h: $(BUILD)
 	echo "#define DB48X_VERSION \"$(VERSION)\"" > $@
 
 

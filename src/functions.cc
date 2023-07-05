@@ -35,6 +35,25 @@
 #include "list.h"
 
 
+
+bool function::should_be_symbolic(id type)
+// ----------------------------------------------------------------------------
+//   Check if we should treat the type symbolically
+// ----------------------------------------------------------------------------
+{
+    return is_strictly_symbolic(type) || is_fraction(type);
+}
+
+
+algebraic_g function::symbolic(id op, algebraic_g x)
+// ----------------------------------------------------------------------------
+//    Check if we should process this function symbolically
+// ----------------------------------------------------------------------------
+{
+    return rt.make<equation>(ID_equation, 1, &x, op);
+}
+
+
 object::result function::evaluate(id op, bid128_fn op128)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
@@ -50,6 +69,7 @@ object::result function::evaluate(id op, bid128_fn op128)
 }
 
 
+
 algebraic_g function::evaluate(algebraic_g x, id op, bid128_fn op128)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
@@ -59,6 +79,9 @@ algebraic_g function::evaluate(algebraic_g x, id op, bid128_fn op128)
         return nullptr;
 
     id xt = x->type();
+    if (should_be_symbolic(xt))
+        return symbolic(op, x);
+
     if (is_integer(xt))
     {
         // Do not accept sin(#123h)
@@ -124,10 +147,10 @@ FUNCTION_BODY(abs)
 // ----------------------------------------------------------------------------
 //   Special case where we don't need to promote argument to decimal128
 {
-    if (x->is_strictly_symbolic())
-        return rt.make<equation>(ID_equation, 1, &x, ID_abs);
-
     id xt = x->type();
+    if (should_be_symbolic(xt))
+        return symbolic(ID_abs, x);
+
     if (xt == ID_neg_integer  ||
         xt == ID_neg_bignum   ||
         xt == ID_neg_fraction ||
@@ -156,8 +179,9 @@ FUNCTION_BODY(norm)
 //   Implementation of 'norm'
 // ----------------------------------------------------------------------------
 {
-    if (x->is_strictly_symbolic())
-        return rt.make<equation>(ID_equation, 1, &x, ID_norm);
+    id xt = x->type();
+    if (should_be_symbolic(xt))
+        return symbolic(ID_norm, x);
 
     return abs::evaluate(x);
 }
@@ -169,7 +193,7 @@ FUNCTION_BODY(inv)
 // ----------------------------------------------------------------------------
 {
     if (x->is_strictly_symbolic())
-        return rt.make<equation>(ID_equation, 1, &x, ID_inv);
+        return symbolic(ID_inv, x);
 
     // Apparently there is a div function getting in the way, see man div(3)
     algebraic_g one = rt.make<integer>(ID_integer, 1);
@@ -183,7 +207,7 @@ FUNCTION_BODY(neg)
 // ----------------------------------------------------------------------------
 {
     if (x->is_strictly_symbolic())
-        return rt.make<equation>(ID_equation, 1, &x, ID_neg);
+        return symbolic(ID_neg, x);
 
     algebraic_g zero = rt.make<integer>(ID_integer, 0);
     return zero - x;

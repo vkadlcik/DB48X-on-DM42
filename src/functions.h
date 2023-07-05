@@ -57,6 +57,15 @@ protected:
     //  Evaluate on the stack function a function doing the evaluation
     // ------------------------------------------------------------------------
 
+    static bool should_be_symbolic(id type);
+    // ------------------------------------------------------------------------
+    //   Check if we should process it symbolically
+    // ------------------------------------------------------------------------
+
+    static algebraic_g symbolic(id op, algebraic_g x);
+    // ------------------------------------------------------------------------
+    //   Process it symbolically
+    // ------------------------------------------------------------------------
 };
 
 

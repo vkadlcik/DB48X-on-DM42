@@ -1,9 +1,58 @@
-1
-2
-3
-4
-5
-6
-'X+1'
-« 1 X + »
-ModesMenu
+« Ticks 0 
+do
+	8 Swap 1 + 
+	while
+		Duplicate2 
+		do
+			1 -
+		until
+			Duplicate2 5 + Pick - abs Duplicate2 - × not
+		end
+	repeat
+		Drop 
+		while
+			Swap Duplicate 1 same
+		repeat
+			-
+		end 1 - Swap
+	end Drop
+until
+	Duplicate 8 same
+end →List Ticks Rot - »
+'NQueens' STO
+
+« Ticks 0 1 1000 
+start
+	Drop 0 
+	do
+		8 Swap 1 + 
+		while
+			Duplicate2 
+			do
+				1 -
+			until
+				Duplicate2 5 + Pick - abs Duplicate2 - × not
+			end
+		repeat
+			Drop 
+			while
+				Swap Duplicate 1 same
+			repeat
+				-
+			end 1 - Swap
+		end Drop
+	until
+		Duplicate 8 same
+	end →List
+next Ticks Rot - »
+'SLOWQ' STO
+
+« 1 Swap 
+while
+	Duplicate 0 same not
+repeat
+	Swap Over × Swap 1 -
+end Drop »
+'Fact' STO
+
+VariablesMenu

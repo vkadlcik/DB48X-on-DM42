@@ -472,7 +472,7 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
 
     // Adjust error messages
     utf8 start = utf8(from);
-    utf8 end = utf8(last);
+    utf8 end   = utf8(last);
     if (Error >= start && Error < end)
         Error += delta;
     if (ErrorSource >= start && ErrorSource < end)

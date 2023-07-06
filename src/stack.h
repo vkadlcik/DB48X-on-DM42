@@ -31,6 +31,8 @@
 
 #include "object.h"
 
+#include <string>
+
 struct runtime;
 
 struct stack
@@ -42,14 +44,63 @@ struct stack
 
     void draw_stack();
 
+#if SIMULATOR
 public:
-#ifdef SIMULATOR
-    char stack0[80];
-    object::id stack0type;
+    struct data
+    // ------------------------------------------------------------------------
+    //   Record the output of the stack for testing purpose
+    // ------------------------------------------------------------------------
+    {
+        object::id  type;
+        std::string output;
+    } history[8];
+
+    void output(object::id type, utf8 stack0, size_t len)
+    {
+        data *ptr = history + writer % (sizeof(history) / sizeof(*history));
+        ptr->type = type;
+        ptr->output = std::string(cstring(stack0), len);
+        writer++;
+    }
+
+    uint available()
+    {
+        return writer - reader;
+    }
+
+    utf8 recorded()
+    {
+        if (reader >= writer)
+            return nullptr;
+        data *ptr = history + reader % (sizeof(history) / sizeof(*history));
+        return utf8(ptr->output.c_str());
+    }
+
+    object::id type()
+    {
+        if (reader >= writer)
+            return object::ID_object;
+        data *ptr = history + reader % (sizeof(history) / sizeof(*history));
+        return ptr->type;
+    }
+
+    void consume()
+    {
+        reader++;
+    }
+
+    void catch_up()
+    {
+        reader = writer;
+    }
+
+    uint writer;
+    uint reader;
 #endif
-    uint refresh;
 };
 
 extern stack Stack;
+
+RECORDER_DECLARE(tests);
 
 #endif // STACK_H

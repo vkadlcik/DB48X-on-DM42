@@ -41,15 +41,19 @@
 
 stack    Stack;
 
-using coord        = graphics::coord;
-using size         = graphics::size;
+using coord = graphics::coord;
+using size  = graphics::size;
 
+
+RECORDER(tests, 16, "Information about tests");
 
 stack::stack()
 // ----------------------------------------------------------------------------
 //   Constructor does nothing at the moment
 // ----------------------------------------------------------------------------
-    : refresh(0)
+#if SIMULATOR
+    : history(), writer(0), reader(0)
+#endif
 {
 }
 
@@ -96,8 +100,12 @@ void stack::draw_stack()
     if (rt.editing())
         Screen.fill(0, bottom, LCD_W, bottom, pattern::gray50);
 
-    char buf[80];
+    char buf[8];
     coord y = bottom;
+#ifdef SIMULATOR
+    if (depth == 0)
+        output(object::ID_object, nullptr, 0);
+#endif
     for (uint level = 0; level < depth; level++)
     {
         y -= lineHeight;
@@ -114,38 +122,37 @@ void stack::draw_stack()
         Screen.text(hdrx - w, y + idxOffset, utf8(buf), idxfont);
 
         object_g obj = rt.stack(level);
-        renderer r(buf, sizeof(buf) - 1, true);
+        renderer r;
         size_t   len = obj->render(r);
-        if (len >= sizeof(buf))
-            len = sizeof(buf) - 1;
-        buf[len]  = 0;
+        utf8     out = r.text();
 #ifdef SIMULATOR
         if (level == 0)
         {
-            strncpy(stack0, buf, sizeof(stack0));
-            stack0type = obj->type();
-            refresh++;
+            output(obj->type(), out, len);
+            record(tests,
+                   "X-reg %+s size %u %s", object::name(obj->type()), len, out);
         }
 #endif
 
-        w = font->width(utf8(buf));
+        w = font->width(out, len);
         if (w > avail)
         {
             unicode sep   = L'…';
             coord   x     = hdrx + 5;
             coord   split = 200;
-            coord   skip  = font->width(sep);
+            coord   skip  = font->width(sep) * 3 / 2;
+            size    offs  = lineHeight / 5;
 
             Screen.clip(x, ytop, split, yb);
-            Screen.text(x, y, utf8(buf), font);
+            Screen.text(x, y, out, len, font);
             Screen.clip(split, ytop, split + skip, yb);
-            Screen.glyph(split, y, sep, font, pattern::gray50);
+            Screen.glyph(split + skip/8, y - offs, sep, font, pattern::gray50);
             Screen.clip(split+skip, y, LCD_W, yb);
-            Screen.text(LCD_W - w, y, utf8(buf), font);
+            Screen.text(LCD_W - w, y, out, len, font);
         }
         else
         {
-            Screen.text(LCD_W - w, y, utf8(buf), font);
+            Screen.text(LCD_W - w, y, out, len, font);
         }
 
         font = Settings.stack_font();

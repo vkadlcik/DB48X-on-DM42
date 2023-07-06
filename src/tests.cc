@@ -31,6 +31,7 @@
 
 #include "dmcp.h"
 #include "input.h"
+#include "recorder.h"
 #include "settings.h"
 #include "stack.h"
 
@@ -39,9 +40,9 @@
 
 
 extern volatile int lcd_needsupdate;
-extern char         stack0[80];
 
-uint         wait_time = 2;
+uint         wait_time  = 10;
+uint         delay_time = 2;
 
 void tests::run(bool onlyCurrent)
 // ----------------------------------------------------------------------------
@@ -123,14 +124,30 @@ void tests::reset_settings()
 // ----------------------------------------------------------------------------
 {
     begin("Reset settings");
-    step("Numerical settings").test("StandardDisplay", ENTER).noerr();
-    step("Switching to degrees").test("Degrees", ENTER).noerr();
-    step("Using long form for commands").test("LongForm", ENTER).noerr();
-    step("Using dot as fractional mark").test("DecimalDot", ENTER).noerr();
-    step("Setting trailing decimal").test("TrailingDecimal", ENTER).noerr();
-    step("Using default 34-digit precision").test("34 Precision", ENTER).noerr();
-    step("Using 1E10, not ancy exponent").test("ClassicExponent", ENTER).noerr();
-    step("Using 64-bit word size").test("64 WordSize", ENTER).noerr();
+    step("Numerical settings")
+        .test("StandardDisplay", ENTER)
+        .noerr();
+    step("Switching to degrees")
+        .test("Degrees", ENTER)
+        .noerr();
+    step("Using long form for commands")
+        .test("LongForm", ENTER)
+        .noerr();
+    step("Using dot as fractional mark")
+        .test("DecimalDot", ENTER)
+        .noerr();
+    step("Setting trailing decimal")
+        .test("TrailingDecimal", ENTER)
+        .noerr();
+    step("Using default 34-digit precision")
+        .test("34 Precision", ENTER)
+        .noerr();
+    step("Using 1E10, not fancy unicode exponent")
+        .test("ClassicExponent", ENTER)
+        .noerr();
+    step("Using 64-bit word size")
+        .test("64 StoreWordSize", ENTER)
+        .noerr();
     step("Disable spacing")
         .test("0 NumberSpacing", ENTER).noerr()
         .test("0 MantissaSpacing", ENTER).noerr()
@@ -477,7 +494,8 @@ tests &tests::istep(cstring name)
 // ----------------------------------------------------------------------------
 {
     lcd_update = lcd_needsupdate;
-    refresh = Stack.refresh;
+    record(tests, "Step %+s, catching up", name);
+    Stack.catch_up();
     sname = name;
     if (sindex++)
     {
@@ -502,7 +520,6 @@ tests &tests::position(cstring sourceFile, uint sourceLine)
 {
     file = sourceFile;
     line = sourceLine;
-    refresh = Stack.refresh;
     return *this;
 }
 
@@ -597,7 +614,8 @@ tests &tests::itest(tests::key k, bool release)
 {
     extern int key_remaining();
 
-    refresh = Stack.refresh;
+    // Catch up with stack output
+    Stack.catch_up();
 
     // Check for special key sequences
     switch(k)
@@ -628,7 +646,7 @@ tests &tests::itest(tests::key k, bool release)
 
     // Wait for the RPL thread to process the keys (to be revisited on DM42)
     while (!key_remaining())
-        sys_delay(wait_time);
+        sys_delay(delay_time);
 
     key_push(k);
     if (longpress)
@@ -637,12 +655,12 @@ tests &tests::itest(tests::key k, bool release)
         longpress = false;
         release = false;
     }
-    sys_delay(wait_time);
+    sys_delay(delay_time);
 
     if (release && k != RELEASE)
     {
         while (!key_remaining())
-            sys_delay(wait_time);
+            sys_delay(delay_time);
         key_push(RELEASE);
     }
 
@@ -972,8 +990,8 @@ tests &tests::clear()
     nokeys();
     key_push(CLEAR);
     while(!key_empty())
-        sys_delay(wait_time);
-    sys_delay(wait_time);
+        sys_delay(delay_time);
+    sys_delay(delay_time);
     return *this;
 }
 
@@ -995,7 +1013,7 @@ tests &tests::nokeys()
 // ----------------------------------------------------------------------------
 {
     while (!key_empty())
-        sys_delay(wait_time);
+        sys_delay(delay_time);
     return *this;
 }
 
@@ -1005,8 +1023,26 @@ tests &tests::refreshed()
 //    Wait until the screen was updated by the calculator
 // ----------------------------------------------------------------------------
 {
+    record(tests, "Waiting for refresh");
+
+    // Wait for a screen redraw
     while (lcd_needsupdate == lcd_update)
-        sys_delay(wait_time);
+        sys_delay(delay_time);
+
+    // Wait for a stack update
+    uint32_t start = sys_current_ms();
+    while (!Stack.available() && sys_current_ms() - start < wait_time)
+        sys_delay(delay_time);
+
+    // Check that we have latest stack update
+    while(Stack.available() > 1)
+        Stack.consume();
+
+    record(tests,
+           "Refreshed, needs=%u update=%u available=%u",
+           lcd_needsupdate, lcd_update, Stack.available());
+    lcd_update = lcd_needsupdate;
+
     return *this;
 }
 
@@ -1016,6 +1052,7 @@ tests &tests::wait(uint ms)
 //   Force a delay after the calculator was ready
 // ----------------------------------------------------------------------------
 {
+    record(tests, "Waiting %u ms", ms);
     sys_delay(ms);
     return *this;
 }
@@ -1026,16 +1063,21 @@ tests &tests::expect(cstring output)
 //   Check that the output at first level of stack matches the string
 // ----------------------------------------------------------------------------
 {
+    record(tests, "Expecting [%+s]", output);
     ready();
     cindex++;
-    if (refresh != Stack.refresh)
+    if (utf8 out = Stack.recorded())
     {
-        if (strncmp(output, Stack.stack0, sizeof(Stack.stack0)) == 0)
+        record(tests, "Comparing [%s] to [%+s] %+s",
+               out, output,
+               strcmp(output, cstring(out)) == 0 ? "OK" : "FAIL");
+        if (strcmp(output, cstring(out)) == 0)
             return *this;
         explain("Expected output [", output, "], "
-                "got [", Stack.stack0, "] instead");
+                "got [", cstring(out), "] instead");
         return fail();
     }
+    record(tests, "No output");
     explain("Expected output [", output, "] but got no stack change");
     return fail();
 }
@@ -1114,21 +1156,21 @@ tests &tests::match(cstring restr)
 {
     ready();
     cindex++;
-    if (refresh != Stack.refresh)
+    if (utf8 out = Stack.recorded())
     {
         regex_t    re;
         regmatch_t rm;
 
         regcomp(&re, restr, REG_EXTENDED | REG_ICASE);
         bool ok =
-            regexec(&re, Stack.stack0, 1, &rm, 0) == 0 &&
+            regexec(&re, cstring(out), 1, &rm, 0) == 0 &&
             rm.rm_so == 0 &&
-            Stack.stack0[rm.rm_eo] == 0;
+            out[rm.rm_eo] == 0;
         regfree(&re);
         if (ok)
             return *this;
         explain("Expected output matching [", restr, "], "
-                "got [", Stack.stack0, "]");
+                "got [", out, "]");
         return fail();
     }
     explain("Expected output matching [", restr, "] but stack not updated");
@@ -1143,9 +1185,9 @@ tests &tests::type(object::id ty)
 {
     ready();
     cindex++;
-    if (refresh != Stack.refresh)
+    if (utf8 out = Stack.recorded())
     {
-        object::id tty = Stack.stack0type;
+        object::id tty = Stack.type();
         if (tty == ty)
             return *this;
         explain("Expected type ", object::name(ty), " (", int(ty), ")"

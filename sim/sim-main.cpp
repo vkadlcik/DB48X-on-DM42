@@ -40,6 +40,7 @@ RECORDER(options, 32, "Information about command line options");
 bool run_tests = false;
 bool db48x_keyboard = false;
 extern uint wait_time;
+extern uint delay_time;
 
 
 size_t recorder_render_object(intptr_t tracing,
@@ -114,7 +115,7 @@ int main(int argc, char *argv[])
             case 'T':
                 run_tests = true;
                 break;
-            case 'd':
+            case 'k':
                 db48x_keyboard = true;
                 break;
             case 'w':
@@ -122,6 +123,13 @@ int main(int argc, char *argv[])
                     wait_time = atoi(argv[a]+2);
                 else if (a < argc)
                     wait_time = atoi(argv[++a]);
+                break;
+            case 'd':
+                if (argv[a][2])
+                    delay_time = atoi(argv[a]+2);
+                else if (a < argc)
+                    delay_time = atoi(argv[++a]);
+                break;
             }
         }
     }

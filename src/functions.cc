@@ -50,7 +50,7 @@ algebraic_g function::symbolic(id op, algebraic_g &x)
 //    Check if we should process this function symbolically
 // ----------------------------------------------------------------------------
 {
-    return rt.make<equation>(ID_equation, 1, &x, op);
+    return rt.make<equation>(ID_equation, op, x);
 }
 
 
@@ -117,7 +117,7 @@ algebraic_g function::evaluate(algebraic_g &x, id op, bid128_fn op128)
     // If things did not work with real number, try an equation
     if (x->is_strictly_symbolic())
     {
-        x = rt.make<equation>(ID_equation, 1, &x, op);
+        x = rt.make<equation>(ID_equation, op, x);
         return x;
     }
 
@@ -220,7 +220,7 @@ FUNCTION_BODY(sq)
 // ----------------------------------------------------------------------------
 {
     if (x->is_strictly_symbolic())
-        return rt.make<equation>(ID_equation, 1, &x, ID_sq);
+        return rt.make<equation>(ID_equation, ID_sq, x);
     return x * x;
 }
 
@@ -231,6 +231,6 @@ FUNCTION_BODY(cubed)
 // ----------------------------------------------------------------------------
 {
     if (x->is_strictly_symbolic())
-        return rt.make<equation>(ID_equation, 1, &x, ID_cubed);
+        return rt.make<equation>(ID_equation, ID_cubed, x);
     return x * x * x;
 }

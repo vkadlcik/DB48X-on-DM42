@@ -710,59 +710,108 @@ size_t equation::size_in_equation(object_p obj)
 }
 
 
-equation::equation(uint arity, const algebraic_g args[], id op, id type)
+equation::equation(id op, const algebraic_g &arg, id type)
 // ----------------------------------------------------------------------------
-//   Build an equation from N arguments
+//   Build an equation from one argument
 // ----------------------------------------------------------------------------
     : program(nullptr, 0, type)
 {
     byte *p = (byte *) payload();
 
     // Compute the size of the program
-    size_t size = 0;
-    for (uint i = 0; i < arity; i++)
-        size += size_in_equation(args[i]);
-    size += leb128size(op);
+    size_t size =  leb128size(op) + size_in_equation(arg);
 
     // Write the size of the program
     p = leb128(p, size);
 
     // Write the arguments
-    for (uint i = 0; i < arity; i++)
+    size_t objsize = 0;
+    byte_p objptr = nullptr;
+    if (arg->type() == ID_equation)
     {
-        object_p obj = args[i];
-        size_t objsize = 0;
-        byte_p objptr = nullptr;
-        if (obj->type() == ID_equation)
-        {
-            objptr = equation_p(obj)->value(&objsize);
-        }
-        else
-        {
-            objsize = obj->size();
-            objptr = byte_p(obj);
-        }
-        memmove(p, objptr, objsize);
-        p += objsize;
+        objptr = equation_p(algebraic_p(arg))->value(&objsize);
     }
+    else
+    {
+        objsize = arg->size();
+        objptr = byte_p(arg);
+    }
+    memmove(p, objptr, objsize);
+    p += objsize;
 
-    // Write the last opcode
+    // Write the opcode
     p = leb128(p, op);
 }
 
 
-size_t equation::required_memory(id                type,
-                                 uint              arity,
-                                 const algebraic_g args[],
-                                 id                op)
+size_t equation::required_memory(id type, id op, const algebraic_g &arg)
 // ----------------------------------------------------------------------------
-//   Size of an equation object with N arguments
+//   Size of an equation object with one argument
 // ----------------------------------------------------------------------------
 {
-    size_t size = 0;
-    for (uint i = 0; i < arity; i++)
-        size += size_in_equation(args[i]);
-    size += leb128size(op);
+    size_t size = leb128size(op) + size_in_equation(arg);
+    size += leb128size(size);
+    size += leb128size(type);
+    return size;
+}
+
+
+equation::equation(id op, const algebraic_g &x, const algebraic_g &y, id type)
+// ----------------------------------------------------------------------------
+//   Build an equation from two arguments
+// ----------------------------------------------------------------------------
+    : program(nullptr, 0, type)
+{
+    byte *p = (byte *) payload();
+
+    // Compute the size of the program
+    size_t size =  leb128size(op) + size_in_equation(x) + size_in_equation(y);
+
+    // Write the size of the program
+    p = leb128(p, size);
+
+    // Write the first argument
+    size_t objsize = 0;
+    byte_p objptr = nullptr;
+    if (x->type() == ID_equation)
+    {
+        objptr = equation_p(algebraic_p(x))->value(&objsize);
+    }
+    else
+    {
+        objsize = x->size();
+        objptr = byte_p(x);
+    }
+    memmove(p, objptr, objsize);
+    p += objsize;
+
+    // Write the second argument
+    if (y->type() == ID_equation)
+    {
+        objptr = equation_p(algebraic_p(y))->value(&objsize);
+    }
+    else
+    {
+        objsize = y->size();
+        objptr = byte_p(y);
+    }
+    memmove(p, objptr, objsize);
+    p += objsize;
+
+    // Write the opcode
+    p = leb128(p, op);
+}
+
+
+size_t equation::required_memory(id                 type,
+                                 id                 op,
+                                 const algebraic_g &x,
+                                 const algebraic_g &y)
+// ----------------------------------------------------------------------------
+//   Size of an equation object with one argument
+// ----------------------------------------------------------------------------
+{
+    size_t size = leb128size(op) + size_in_equation(x) + size_in_equation(y);
     size += leb128size(size);
     size += leb128size(type);
     return size;

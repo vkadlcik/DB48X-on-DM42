@@ -124,15 +124,11 @@ struct equation : program
         return program::required_memory(i, bytes, len);
     }
 
-    // Building equations from arguments
-    equation(uint              arity,
-             const algebraic_g args[],
-             id                op,
-             id                type = ID_equation);
-    static size_t required_memory(id                i,
-                                  uint              arity,
-                                  const algebraic_g args[],
-                                  id                op);
+    // Building equations from one or two arguments
+    equation(id op, const algebraic_g &arg, id type = ID_equation);
+    static size_t required_memory(id i, id op, const algebraic_g &arg);
+    equation(id op, const algebraic_g &x, const algebraic_g &y, id type = ID_equation);
+    static size_t required_memory(id i, id op, const algebraic_g &x, const algebraic_g &y);
 
     symbol_p symbol() const;
     static size_t size_in_equation(object_p obj);

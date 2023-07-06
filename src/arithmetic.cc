@@ -754,8 +754,7 @@ algebraic_g arithmetic::evaluate(id             op,
 
     if (!ok && x->is_symbolic() && y->is_symbolic())
     {
-        algebraic_g args[2] = { x, y };
-        x = rt.make<equation>(ID_equation, 2, args, op);
+        x = rt.make<equation>(ID_equation, op, x, y);
         if (!x)
             return nullptr;
         ok = true;

@@ -40,6 +40,9 @@
 #include "settings.h"
 #include "text.h"
 
+#include <bit>
+#include <bitset>
+
 
 RECORDER(arithmetic,            16, "Arithmetic");
 RECORDER(arithmetic_error,      16, "Errors from arithmetic code");
@@ -286,17 +289,20 @@ inline bool mul::integer_ok(object::id &xt, object::id &yt,
 //   Check if multiplying two integers works or if we need to promote to real
 // ----------------------------------------------------------------------------
 {
-    // If one of the two objects is a based number, always used integer mul
+    // If one of the two objects is a based number, always use integer mul
     if (!is_real(xt) || !is_real(yt))
     {
         xv = xv * yv;
         return true;
     }
 
+    // Check if there is an overflow
+    // Can's use std::countl_zero yet (-std=c++20 breaks DMCP)
+    if (std::__countl_zero(xv) + std::__countl_zero(yv) < int(8*sizeof(ularge)))
+        return false;
+
     // Check if the multiplication generates a larger result. Is this correct?
     ularge product = xv * yv;
-    if (product < xv || product < yv)
-        return false;
 
     // Check the sign of the product
     xt = (xt == ID_neg_integer) == (yt == ID_neg_integer)

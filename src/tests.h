@@ -54,6 +54,7 @@ struct tests
     void current();
 
     // Individual test categories
+    void reset_settings();
     void shift_logic();
     void keyboard_entry();
     void data_types();

@@ -98,6 +98,7 @@ void tests::run(bool onlyCurrent)
     current();
     if (!onlyCurrent)
     {
+        reset_settings();
         shift_logic();
         keyboard_entry();
         data_types();
@@ -113,6 +114,28 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     test(39916800, ENTER, 12, ENTER);
+}
+
+
+void tests::reset_settings()
+// ----------------------------------------------------------------------------
+//   Use settings that make the results predictable on screen
+// ----------------------------------------------------------------------------
+{
+    begin("Reset settings");
+    step("Numerical settings").test("StandardDisplay", ENTER).noerr();
+    step("Switching to degrees").test("Degrees", ENTER).noerr();
+    step("Using long form for commands").test("LongForm", ENTER).noerr();
+    step("Using dot as fractional mark").test("DecimalDot", ENTER).noerr();
+    step("Setting trailing decimal").test("TrailingDecimal", ENTER).noerr();
+    step("Using default 34-digit precision").test("34 Precision", ENTER).noerr();
+    step("Using 1E10, not ancy exponent").test("ClassicExponent", ENTER).noerr();
+    step("Using 64-bit word size").test("64 WordSize", ENTER).noerr();
+    step("Disable spacing")
+        .test("0 NumberSpacing", ENTER).noerr()
+        .test("0 MantissaSpacing", ENTER).noerr()
+        .test("0 FractionSpacing", ENTER).noerr()
+        .test("0 BasedSpacing", ENTER).noerr();
 }
 
 

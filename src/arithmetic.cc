@@ -614,8 +614,8 @@ inline bool hypot::fraction_ok(fraction_g &UNUSED x, fraction_g &UNUSED y)
 // ============================================================================
 
 algebraic_g arithmetic::evaluate(id             op,
-                                 algebraic_g    x,
-                                 algebraic_g    y,
+                                 algebraic_g &  x,
+                                 algebraic_g &  y,
                                  bid128_fn      op128,
                                  bid64_fn       op64,
                                  bid32_fn       op32,
@@ -802,7 +802,7 @@ object::result arithmetic::evaluate(id             op,
 
 
 template <typename Op>
-algebraic_g arithmetic::evaluate(algebraic_g x, algebraic_g y)
+algebraic_g arithmetic::evaluate(algebraic_g &x, algebraic_g &y)
 // ----------------------------------------------------------------------------
 //   Evaluate
 // ----------------------------------------------------------------------------

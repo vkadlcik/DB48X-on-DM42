@@ -86,8 +86,8 @@ protected:
     // ------------------------------------------------------------------------
 
     static algebraic_g evaluate(id             op,
-                                algebraic_g    x,
-                                algebraic_g    y,
+                                algebraic_g &  x,
+                                algebraic_g &  y,
                                 bid128_fn      op128,
                                 bid64_fn       op64,
                                 bid32_fn       op32,
@@ -96,7 +96,7 @@ protected:
                                 fraction_fn    fraction_ok,
                                 non_numeric_fn non_numeric);
     template <typename Op>
-    static algebraic_g evaluate(algebraic_g x, algebraic_g y);
+    static algebraic_g evaluate(algebraic_g &x, algebraic_g &y);
     // ------------------------------------------------------------------------
     //   C++ wrapper for the operation
     // ------------------------------------------------------------------------
@@ -138,7 +138,7 @@ struct derived : arithmetic                                             \
         rt.command(fancy(ID_##derived));                                \
         return arithmetic::evaluate<derived>();                         \
     }                                                                   \
-    static algebraic_g evaluate(algebraic_g x, algebraic_g y)           \
+    static algebraic_g evaluate(algebraic_g &x, algebraic_g &y)         \
     {                                                                   \
         return arithmetic::evaluate<derived>(x,y);                      \
     }                                                                   \

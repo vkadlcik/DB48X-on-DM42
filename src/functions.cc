@@ -45,7 +45,7 @@ bool function::should_be_symbolic(id type)
 }
 
 
-algebraic_g function::symbolic(id op, algebraic_g x)
+algebraic_g function::symbolic(id op, algebraic_g &x)
 // ----------------------------------------------------------------------------
 //    Check if we should process this function symbolically
 // ----------------------------------------------------------------------------
@@ -70,7 +70,7 @@ object::result function::evaluate(id op, bid128_fn op128)
 
 
 
-algebraic_g function::evaluate(algebraic_g x, id op, bid128_fn op128)
+algebraic_g function::evaluate(algebraic_g &x, id op, bid128_fn op128)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------

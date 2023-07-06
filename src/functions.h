@@ -46,12 +46,12 @@ protected:
     //   Stack-based evaluation for all functions implemented in BID library
     // ------------------------------------------------------------------------
 
-    static algebraic_g evaluate(algebraic_g x, id op, bid128_fn op128);
+    static algebraic_g evaluate(algebraic_g &x, id op, bid128_fn op128);
     // ------------------------------------------------------------------------
     //   C++ evaluation for all functions implemented in BID library
     // ------------------------------------------------------------------------
 
-    typedef algebraic_g (*algebraic_fn)(algebraic_g x);
+    typedef algebraic_g (*algebraic_fn)(algebraic_g &x);
     static result evaluate(algebraic_fn fn);
     // ------------------------------------------------------------------------
     //  Evaluate on the stack function a function doing the evaluation
@@ -62,7 +62,7 @@ protected:
     //   Check if we should process it symbolically
     // ------------------------------------------------------------------------
 
-    static algebraic_g symbolic(id op, algebraic_g x);
+    static algebraic_g symbolic(id op, algebraic_g &x);
     // ------------------------------------------------------------------------
     //   Process it symbolically
     // ------------------------------------------------------------------------
@@ -92,7 +92,7 @@ public:                                                                 \
     {                                                                   \
         return function::evaluate(ID_##derived, bid128_op);             \
     }                                                                   \
-    static algebraic_g evaluate(algebraic_g x)                          \
+    static algebraic_g evaluate(algebraic_g &x)                         \
     {                                                                   \
         return function::evaluate(x, ID_##derived, bid128_op);          \
     }                                                                   \
@@ -151,11 +151,11 @@ public:                                                                 \
     {                                                                   \
         return function::evaluate(evaluate);                            \
     }                                                                   \
-    static algebraic_g evaluate(algebraic_g x);                         \
+    static algebraic_g evaluate(algebraic_g &x);                        \
 };
 
 #define FUNCTION_BODY(derived)                  \
-algebraic_g derived::evaluate(algebraic_g x)
+algebraic_g derived::evaluate(algebraic_g &x)
 
 FUNCTION(abs);
 FUNCTION(norm);

@@ -123,7 +123,7 @@ struct local : object
         return rt.local(index());
     }
 
-    bool store(gcobj obj) const
+    bool store(object_g obj) const
     {
         return rt.local(index(), obj);
     }

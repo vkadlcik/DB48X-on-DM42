@@ -61,7 +61,7 @@ SIZE_BODY(loop)
 }
 
 
-loop::loop(gcobj body, id type)
+loop::loop(object_g body, id type)
 // ----------------------------------------------------------------------------
 //   Constructor for loops
 // ----------------------------------------------------------------------------
@@ -84,7 +84,7 @@ SIZE_BODY(conditional_loop)
 }
 
 
-conditional_loop::conditional_loop(gcobj first, gcobj second, id type)
+conditional_loop::conditional_loop(object_g first, object_g second, id type)
 // ----------------------------------------------------------------------------
 //   Constructor for conditional loops
 // ----------------------------------------------------------------------------
@@ -182,8 +182,8 @@ object::result loop::object_parser(id       type,
     // We have to be careful that we may have to GC to make room for loop
     gcutf8   src  = p.source;
     size_t   max  = p.length;
-    gcobj    obj1 = nullptr;
-    gcobj    obj2 = nullptr;
+    object_g obj1 = nullptr;
+    object_g obj2 = nullptr;
 
     // Loop over the two or three separators
     for (uint step = 0;
@@ -221,9 +221,9 @@ object::result loop::object_parser(id       type,
                 return SKIP;
 
             // Parse an object
-            size_t done = utf8(src) - utf8(p.source);
-            size_t length = max > done ? max - done : 0;
-            gcobj obj = object::parse(src, length);
+            size_t   done   = utf8(src) - utf8(p.source);
+            size_t   length = max > done ? max - done : 0;
+            object_g obj    = object::parse(src, length);
             if (!obj)
                 return ERROR;
 
@@ -279,13 +279,13 @@ intptr_t loop::object_renderer(renderer &r,
 // ----------------------------------------------------------------------------
 {
     // Source objects
-    byte_p p      = payload();
+    byte_p   p      = payload();
 
     // Isolate condition and body
-    gcobj  first  = object_p(p);
-    gcobj  second = nseps == 3 ? first->skip() : nullptr;
-    uint   sep    = 0;
-    auto   format = Settings.command_fmt;
+    object_g first  = object_p(p);
+    object_g second = nseps == 3 ? first->skip() : nullptr;
+    uint     sep    = 0;
+    auto     format = Settings.command_fmt;
 
     // Write the header, e.g. "DO", and indent condition
     r.put('\n');
@@ -354,10 +354,10 @@ EVAL_BODY(DoUntil)
 // ----------------------------------------------------------------------------
 //   In this loop, the body comes first
 {
-    byte  *p       = (byte *) o->payload();
-    gcobj  body    = object_p(p);
-    gcobj  cond    = body->skip();
-    result r       = OK;
+    byte    *p    = (byte *) o->payload();
+    object_g body = object_p(p);
+    object_g cond = body->skip();
+    result   r    = OK;
 
     while (!interrupted() && r == OK)
     {
@@ -416,10 +416,10 @@ EVAL_BODY(WhileRepeat)
 // ----------------------------------------------------------------------------
 //   In this loop, the condition comes first
 {
-    byte  *p       = (byte *) o->payload();
-    gcobj  cond    = object_p(p);
-    gcobj  body    = cond->skip();
-    result r       = OK;
+    byte    *p    = (byte *) o->payload();
+    object_g cond = object_p(p);
+    object_g body = cond->skip();
+    result   r    = OK;
 
     while (!interrupted() && r == OK)
     {
@@ -470,7 +470,7 @@ INSERT_BODY(StartNext)
 }
 
 
-object::result loop::counted(gcobj body, bool stepping)
+object::result loop::counted(object_g body, bool stepping)
 // ----------------------------------------------------------------------------
 //   Evaluate a counted loop
 // ----------------------------------------------------------------------------

@@ -47,10 +47,10 @@ struct loop : command
 //    Loop structures
 // ----------------------------------------------------------------------------
 {
-    loop(gcobj body, id type);
+    loop(object_g body, id type);
     result condition(bool &value) const;
 
-    static size_t required_memory(id i, gcobj body)
+    static size_t required_memory(id i, object_g body)
     {
         return leb128size(i) + body->size();
     }
@@ -67,7 +67,7 @@ protected:
                              cstring beg, cstring end) const;
     static result object_parser(id type, parser UNUSED &p,
                                 cstring beg, cstring end);
-    static result counted(gcobj body, bool stepping);
+    static result counted(object_g body, bool stepping);
 
 public:
     SIZE_DECL(loop);
@@ -79,10 +79,10 @@ struct conditional_loop : loop
 //    Loop structures
 // ----------------------------------------------------------------------------
 {
-    conditional_loop(gcobj condition, gcobj body, id type);
+    conditional_loop(object_g condition, object_g body, id type);
     static result condition(bool &value);
 
-    static size_t required_memory(id i, gcobj condition, gcobj body)
+    static size_t required_memory(id i, object_g condition, object_g body)
     {
         return leb128size(i) + condition->size() + body->size();
     }
@@ -93,7 +93,7 @@ protected:
                              cstring beg, cstring mid, cstring end) const;
     static result object_parser(id type, parser UNUSED &p,
                                 cstring beg, cstring mid, cstring end);
-    static result counted(gcobj body, bool stepping);
+    static result counted(object_g body, bool stepping);
 
 public:
     SIZE_DECL(conditional_loop);
@@ -105,7 +105,7 @@ struct DoUntil : conditional_loop
 //   do...until...end loop
 // ----------------------------------------------------------------------------
 {
-    DoUntil(gcobj condition, gcobj body, id type)
+    DoUntil(object_g condition, object_g body, id type)
         : conditional_loop(condition, body, type) {}
 
 public:
@@ -122,7 +122,7 @@ struct WhileRepeat : conditional_loop
 //   while...repeat...end loop
 // ----------------------------------------------------------------------------
 {
-    WhileRepeat(gcobj condition, gcobj body, id type)
+    WhileRepeat(object_g condition, object_g body, id type)
         : conditional_loop(condition, body, type) {}
 
 public:
@@ -139,7 +139,7 @@ struct StartNext : loop
 //   start..next loop
 // ----------------------------------------------------------------------------
 {
-    StartNext(gcobj body, id type): loop(body, type) {}
+    StartNext(object_g body, id type): loop(body, type) {}
 
 public:
     OBJECT_DECL(StartNext);
@@ -155,7 +155,7 @@ struct StartStep : StartNext
 //   start..step loop
 // ----------------------------------------------------------------------------
 {
-    StartStep(gcobj body, id type): StartNext(body, type) {}
+    StartStep(object_g body, id type): StartNext(body, type) {}
 
 public:
     OBJECT_DECL(StartStep);
@@ -171,7 +171,7 @@ struct ForNext : StartNext
 //   for..next loop
 // ----------------------------------------------------------------------------
 {
-    ForNext(gcobj body, id type): StartNext(body, type) {}
+    ForNext(object_g body, id type): StartNext(body, type) {}
 
 public:
     OBJECT_DECL(ForNext);
@@ -187,7 +187,7 @@ struct ForStep : ForNext
 //   for..step loop
 // ----------------------------------------------------------------------------
 {
-    ForStep(gcobj body, id type): ForNext(body, type) {}
+    ForStep(object_g body, id type): ForNext(body, type) {}
 
 public:
     OBJECT_DECL(ForStep);

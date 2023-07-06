@@ -59,7 +59,7 @@ public:
     gcutf8      source;         // Text to parse
     size_t      length;         // Length to parse
     size_t      end;            // End position after parsing
-    gcobj       out;            // Output object if any
+    object_g    out;            // Output object if any
     int         precedence;     // Precedence level in equations
     bool        child;
 };

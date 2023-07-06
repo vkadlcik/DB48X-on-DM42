@@ -185,7 +185,7 @@ COMMAND_BODY(Modes)
 
     size_t size = modes.size();
     gcutf8 code = modes.text();
-    if (gcobj program = object::parse(code, size))
+    if (object_g program = object::parse(code, size))
         if (rt.push(program))
             return OK;
     return ERROR;
@@ -705,7 +705,7 @@ COMMAND_BODY(rcws)
 //  Recall the current wordsize
 // ----------------------------------------------------------------------------
 {
-    if (gcobj ws = integer::make(Settings.wordsize))
+    if (object_g ws = integer::make(Settings.wordsize))
         if (rt.push(ws))
             return OK;
     return ERROR;

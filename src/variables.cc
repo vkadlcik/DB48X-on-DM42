@@ -58,7 +58,7 @@ PARSE_BODY(directory)
     {
         gcutf8 body = utf8(ref + len);
         maxlen -= len;
-        if (gcobj obj = object::parse(body, maxlen))
+        if (object_g obj = object::parse(body, maxlen))
         {
             if (obj->type() == ID_list)
             {
@@ -137,7 +137,7 @@ RENDER_BODY(directory)
 }
 
 
-bool directory::store(gcobj name, gcobj value)
+bool directory::store(object_g name, object_g value)
 // ----------------------------------------------------------------------------
 //    Store an object in the directory
 // ----------------------------------------------------------------------------
@@ -150,10 +150,10 @@ bool directory::store(gcobj name, gcobj value)
     size_t   now    = old;                      // Updated size
     size_t   vs     = value->size();            // Size of value
 
-    if (gcobj existing = lookup(name))
+    if (object_g existing = lookup(name))
     {
         // Replace an existing entry
-        gcobj evalue = existing->skip();
+        object_g evalue = existing->skip();
         size_t es = evalue->size();
         if (vs > es)
         {
@@ -407,7 +407,7 @@ COMMAND_BODY(Rcl)
     {
         local_p local = (local_p) x;
         size_t index = local->index();
-        if (gcobj obj = rt.local(index))
+        if (object_g obj = rt.local(index))
             if (rt.push(obj))
                 return OK;
         return ERROR;

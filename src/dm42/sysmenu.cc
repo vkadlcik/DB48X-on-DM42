@@ -295,7 +295,7 @@ static bool state_save_variable(symbol_p name, object_p obj, void *renderer_ptr)
     renderer &r = *((renderer *) renderer_ptr);
 
     symbol_g  n = name;
-    gcobj     o = obj;
+    object_g  o = obj;
 
     o->render(r);
     r.put("\n'");

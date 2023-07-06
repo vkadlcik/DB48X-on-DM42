@@ -160,7 +160,7 @@ PARSE_BODY(locals)
         return result;
 
     // Copy the program to the scratchpad
-    gcobj pgm = p.out;
+    object_g pgm = p.out;
     if (!pgm)
         return ERROR;
     sz = pgm->size();
@@ -216,8 +216,8 @@ EXEC_BODY(locals)
 //   Evaluate a program with locals
 // ----------------------------------------------------------------------------
 {
-    gcobj  p       = object_p(o->payload());
-    size_t len     = leb128<size_t>(p.Safe());
+    object_g p   = object_p(o->payload());
+    size_t   len = leb128<size_t>(p.Safe());
     (void) len;
 
     // Copy local values from stack
@@ -353,7 +353,7 @@ EVAL_BODY(local)
 //   Evaluate a local by fetching it from locals area and putting it on stack
 // ----------------------------------------------------------------------------
 {
-    if (gcobj obj = o->recall())
+    if (object_g obj = o->recall())
         if (rt.push(obj))
             return OK;
     return ERROR;
@@ -365,7 +365,7 @@ EXEC_BODY(local)
 //   Execute a local by fetching it from locals and executing it
 // ----------------------------------------------------------------------------
 {
-    if (gcobj obj = o->recall())
+    if (object_g obj = o->recall())
         return obj->execute();
     return ERROR;
 }

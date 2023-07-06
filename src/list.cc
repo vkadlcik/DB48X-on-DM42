@@ -58,13 +58,13 @@ object::result list::list_parse(id type,
 //   of complex objects, like { { A B { C D } } }
 {
     // We have to be careful that we may have to GC to make room for list
-    gcutf8 s          = p.source;
-    size_t max        = p.length;
-    gcobj  infix      = nullptr;
-    gcobj  prefix     = nullptr;
-    bool   negate     = false;
-    int    precedence = p.precedence;
-    int    lowest     = precedence;
+    gcutf8   s          = p.source;
+    size_t   max        = p.length;
+    object_g infix      = nullptr;
+    object_g prefix     = nullptr;
+    bool     negate     = false;
+    int      precedence = p.precedence;
+    int      lowest     = precedence;
 
     record(list, "Parse %+s %lc%lc precedence %d length %u [%s]",
            p.child ? "top-level" : "child", open, close, precedence, max,
@@ -98,10 +98,10 @@ object::result list::list_parse(id type,
         }
 
         // Parse an object
-        size_t done    = (byte *) s - (byte *) p.source;
-        size_t length  = max > done ? max - done : 0;
-        gcobj  obj     = nullptr;
-        bool   postfix = false;
+        size_t   done    = (byte *) s - (byte *) p.source;
+        size_t   length  = max > done ? max - done : 0;
+        object_g obj     = nullptr;
+        bool     postfix = false;
 
         // For algebraic objects, check if we have or need parentheses
         if (precedence)
@@ -395,7 +395,7 @@ EXEC_BODY(program)
     result r       = OK;
     size_t objsize = 0;
 
-    for (gcobj obj = object_p(p); len > 0; obj += objsize, len -= objsize)
+    for (object_g obj = object_p(p); len > 0; obj += objsize, len -= objsize)
     {
         objsize = obj->size();
         record(program, "Evaluating %+s at %p, size %u, %u remaining\n",
@@ -541,7 +541,7 @@ symbol_g equation::render(uint depth, int &precedence, bool editing)
 {
     while (rt.depth() > depth)
     {
-        if (gcobj obj = rt.pop())
+        if (object_g obj = rt.pop())
         {
             int arity = obj->arity();
             switch(arity)
@@ -649,7 +649,7 @@ RENDER_BODY(equation)
     size_t objsize = 0;
 
     // First push all things so that we have the outermost operators first
-    for (gcobj obj = object_p(p); ok && size; size -= objsize, obj += objsize)
+    for (object_g obj = object_p(p); ok && size; size -= objsize, obj += objsize)
     {
         objsize = obj->size();
         ok = rt.push(obj);
@@ -911,7 +911,7 @@ COMMAND_BODY(ToList)
             scribble scr;
             for (uint i = 0; i < depth; i++)
             {
-                if (gcobj obj = rt.stack(depth - 1 - i))
+                if (object_g obj = rt.stack(depth - 1 - i))
                 {
                     size_t objsz = obj->size();
                     byte_p objp = byte_p(obj);
@@ -919,7 +919,7 @@ COMMAND_BODY(ToList)
                         return ERROR;
                 }
             }
-            gcobj list = list::make(scr.scratch(), scr.growth());
+            object_g list = list::make(scr.scratch(), scr.growth());
             if (!rt.drop(depth))
                 return ERROR;
             if (rt.push(list))

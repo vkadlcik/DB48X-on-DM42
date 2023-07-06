@@ -66,7 +66,7 @@ struct symbol : text
     }
 
     object_p recall(bool noerror = true) const;
-    bool     store(gcobj obj) const;
+    bool     store(object_g obj) const;
 
 public:
     OBJECT_DECL(symbol);

@@ -727,8 +727,8 @@ using gcbytes   = gcp<const byte>;
 using gcmbytes  = gcp<byte>;
 using gcutf8    = gcp<const byte>;
 using gcmutf8   = gcp<byte>;
-using gcobj     = gcp<const object>;
 
+using object_g  = gcp<const object>;
 
 
 // ============================================================================

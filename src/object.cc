@@ -381,7 +381,7 @@ cstring debug(object_p object)
 }
 
 
-cstring debug(gcobj object)
+cstring debug(object_g object)
 // ----------------------------------------------------------------------------
 //   Same from an object_g
 // ----------------------------------------------------------------------------
@@ -404,9 +404,9 @@ cstring debug(uint level)
 //   Read a stack level
 // ----------------------------------------------------------------------------
 {
-    if (gcobj obj = rt.stack(level))
+    if (object_g obj = rt.stack(level))
     {
-        // We call both the gcobj and object * variants so linker keeps them
+        // We call both the object_g and object * variants so linker keeps them
         if (cstring result = obj->debug())
             return result;
         else if (object *op = (object *) object_p(obj))

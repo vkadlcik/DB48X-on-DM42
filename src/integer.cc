@@ -62,8 +62,8 @@ PARSE_BODY(integer)
     id         type        = ID_integer;
     const byte NODIGIT     = (byte) -1;
     bool       is_fraction = false;
-    gcobj      number      = nullptr;
-    gcobj      numerator   = nullptr;
+    object_g   number      = nullptr;
+    object_g   numerator   = nullptr;
 
     record(integer, "Parsing [%s]", (utf8) p.source);
 

@@ -138,12 +138,12 @@ object_p symbol::recall(bool noerror) const
 }
 
 
-bool symbol::store(gcobj value) const
+bool symbol::store(object_g value) const
 // ----------------------------------------------------------------------------
 //   Store something in the value associated with the symbol
 // ----------------------------------------------------------------------------
 {
     directory *dir = rt.variables(0);
-    gcobj name = this;
+    object_g name = this;
     return dir->store(name, value);
 }

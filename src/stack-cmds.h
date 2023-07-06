@@ -38,7 +38,7 @@ COMMAND(Dup)
 //   Implement the RPL "dup" command, duplicate top of stack
 // ----------------------------------------------------------------------------
 {
-    if (gcobj top = rt.top())
+    if (object_g top = rt.top())
         if (rt.push(top))
             return OK;
     return ERROR;
@@ -50,8 +50,8 @@ COMMAND(Dup2)
 //   Implement the RPL "dup2" command, duplicate two elements at top of stack
 // ----------------------------------------------------------------------------
 {
-    if (gcobj y = rt.stack(1))
-        if (gcobj x = rt.stack(0))
+    if (object_g y = rt.stack(1))
+        if (object_g x = rt.stack(0))
             if (rt.push(y))
                 if (rt.push(x))
                     return OK;

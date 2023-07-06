@@ -113,9 +113,9 @@ void stack::draw_stack()
         size w = idxfont->width(utf8(buf));
         Screen.text(hdrx - w, y + idxOffset, utf8(buf), idxfont);
 
-        gcobj  obj  = rt.stack(level);
+        object_g obj = rt.stack(level);
         renderer r(buf, sizeof(buf) - 1, true);
-        size_t len = obj->render(r);
+        size_t   len = obj->render(r);
         if (len >= sizeof(buf))
             len = sizeof(buf) - 1;
         buf[len]  = 0;

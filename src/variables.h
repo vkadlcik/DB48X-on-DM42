@@ -85,7 +85,7 @@ struct directory : list
         return (list *) text::make(bytes, len);
     }
 
-    bool store(gcobj name, gcobj value);
+    bool store(object_g name, object_g value);
     // ------------------------------------------------------------------------
     //    Store an object in the directory
     // ------------------------------------------------------------------------

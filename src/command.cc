@@ -309,8 +309,8 @@ COMMAND_BODY(ToText)
 //   Convert an object to text
 // ----------------------------------------------------------------------------
 {
-    if (gcobj obj = rt.top())
-        if (gcobj txt = obj->as_text(false, false))
+    if (object_g obj = rt.top())
+        if (object_g txt = obj->as_text(false, false))
             if (rt.top(txt))
                 return OK;
     return ERROR;
@@ -374,7 +374,7 @@ COMMAND_BODY(HomeDirectory)
 //   Return the home directory
 // ----------------------------------------------------------------------------
 {
-    if (gcobj dir = (object *) rt.variables(0))
+    if (object_g dir = (object *) rt.variables(0))
         if (rt.push(dir))
             return OK;
     return ERROR;

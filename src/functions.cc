@@ -50,6 +50,8 @@ algebraic_g function::symbolic(id op, algebraic_g &x)
 //    Check if we should process this function symbolically
 // ----------------------------------------------------------------------------
 {
+    if (!x)
+        return x;
     return rt.make<equation>(ID_equation, op, x);
 }
 
@@ -147,6 +149,9 @@ FUNCTION_BODY(abs)
 // ----------------------------------------------------------------------------
 //   Special case where we don't need to promote argument to decimal128
 {
+    if (!x)
+        return x;
+
     id xt = x->type();
     if (should_be_symbolic(xt))
         return symbolic(ID_abs, x);
@@ -179,6 +184,9 @@ FUNCTION_BODY(norm)
 //   Implementation of 'norm'
 // ----------------------------------------------------------------------------
 {
+    if (!x)
+        return x;
+
     id xt = x->type();
     if (should_be_symbolic(xt))
         return symbolic(ID_norm, x);
@@ -192,6 +200,8 @@ FUNCTION_BODY(inv)
 //   Invert is implemented as 1/x
 // ----------------------------------------------------------------------------
 {
+    if (!x)
+        return x;
     if (x->is_strictly_symbolic())
         return symbolic(ID_inv, x);
 
@@ -206,6 +216,8 @@ FUNCTION_BODY(neg)
 //   Negate is implemented as 0-x
 // ----------------------------------------------------------------------------
 {
+    if (!x)
+        return x;
     if (x->is_strictly_symbolic())
         return symbolic(ID_neg, x);
 
@@ -219,6 +231,8 @@ FUNCTION_BODY(sq)
 //   Square is implemented using a multiplication
 // ----------------------------------------------------------------------------
 {
+    if (!x)
+        return x;
     if (x->is_strictly_symbolic())
         return rt.make<equation>(ID_equation, ID_sq, x);
     return x * x;
@@ -230,6 +244,8 @@ FUNCTION_BODY(cubed)
 //   Cubed is implemented as "dup dup mul mul"
 // ----------------------------------------------------------------------------
 {
+    if (!x)
+        return x;
     if (x->is_strictly_symbolic())
         return rt.make<equation>(ID_equation, ID_cubed, x);
     return x * x * x;

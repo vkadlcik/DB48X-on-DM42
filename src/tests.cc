@@ -294,6 +294,26 @@ void tests::data_types()
     test(CLEAR, SHIFT, RUNSTOP, 1, ADD, "sin", ENTER)
         .type(object::ID_program).expect(prgm);
 
+    step("equation");
+    cstring eqn = "'X+1'";
+    test(CLEAR, XEQ, X, ENTER, KEY1, ADD)
+        .type(object::ID_equation).expect(eqn);
+    cstring eqn2 = "'sin(X+1)'";
+    test(SIN)
+        .type(object::ID_equation).expect(eqn2);
+    test(DOWN, ENTER)
+        .type(object::ID_equation).expect(eqn2);
+    step("equation parsing and simplification");
+    test(CLEAR, "'(((A))+(B))-(C+D)'", ENTER)
+        .type(object::ID_equation).expect("'A+B-(C+D)'");
+    step("equation fancy rendering");
+    test(CLEAR,
+         XEQ, X, ENTER, INV,
+         XEQ, Y, ENTER, SHIFT, SQRT,
+         XEQ, Z, ENTER, "CUBED", ENTER,
+         ADD, ADD)
+        .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)'");
+
     clear();
 }
 

@@ -314,6 +314,9 @@ void tests::data_types()
          XEQ, Z, ENTER, "CUBED", ENTER,
          ADD, ADD)
         .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)'");
+    step("equation fancy parsing");
+    test(CLEAR, "'X⁻¹+(Y²+Z³)'")
+        .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)'");
 
     step("fractions");
     test(CLEAR, "1/3", ENTER)

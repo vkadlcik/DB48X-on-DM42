@@ -303,7 +303,7 @@ $(TARGET).pgm: $(BUILD)/$(TARGET).elf Makefile $(CRCFIX)
 	$(OBJCOPY) --only-section   .qspi -O binary  $<  $(QSPI)
 	$(OBJCOPY) --only-section   .qspi -O ihex    $<  $(QSPI:.bin=.hex)
 	$(TOOLS)/adjust_crc $(CRCFIX) $(QSPI)
-	$(TOOLS)/check_qspi_crc $(TARGET) $(BUILD)/$(TARGET)_qspi.bin src/qspi_crc.h || ( $(MAKE) clean && $(MAKE))
+	$(TOOLS)/check_qspi_crc $(TARGET) $(BUILD)/$(TARGET)_qspi.bin src/qspi_crc.h || ( $(MAKE) clean && exit 1)
 	$(TOOLS)/add_pgm_chsum $(BUILD)/$(TARGET)_flash.bin $@
 	$(SIZE) $<
 	wc -c $@

@@ -114,7 +114,8 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    test(39916800, ENTER, 12, ENTER);
+    test(CLEAR, "-80/60", ENTER)
+        .type(object::ID_neg_fraction).expect("-4/3");
 }
 
 
@@ -314,6 +315,14 @@ void tests::data_types()
          ADD, ADD)
         .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)'");
 
+    step("fractions");
+    test(CLEAR, "1/3", ENTER)
+        .type(object::ID_fraction).expect("1/3");
+    test(CLEAR, "20/60", ENTER)
+        .type(object::ID_fraction).expect("1/3");
+    test(CLEAR, "-80/60", ENTER)
+        .type(object::ID_neg_fraction).expect("-4/3");
+
     clear();
 }
 
@@ -455,9 +464,9 @@ void tests::arithmetic()
 
     step("Division with fractional output");
     test(CLEAR, 1, ENTER, 3, DIV)
-        .match("1/3");
+        .expect("1/3");
     test(CLEAR, 2, ENTER, 5, DIV)
-        .match("2/5");
+        .expect("2/5");
 }
 
 

@@ -71,12 +71,12 @@ fraction_g fraction::make(integer_g n, integer_g d)
     ularge nv = n->value<ularge>();
     ularge dv = d->value<ularge>();
     ularge cd = gcd(nv, dv);
+    bool neg = (n->type() == ID_neg_integer) != (d->type() == ID_neg_integer);
     if (cd > 1)
     {
         n = integer::make(nv / cd);
         d = integer::make(dv / cd);
     }
-    bool neg = (n->type() == ID_neg_integer) != (d->type() == ID_neg_integer);
     id ty = neg ? ID_neg_fraction : ID_fraction;
     return rt.make<fraction>(ty, n, d);
 }

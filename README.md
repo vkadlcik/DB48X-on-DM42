@@ -17,6 +17,9 @@ and the [HP Prime](https://en.wikipedia.org/wiki/HP_Prime)
 (at least the G1, since the G2 seems a bit more locked down), maybe others.
 The basis for that work can be found in the [DB48X](../db48x) project.
 
+This project was presented at [FOSDEM 2023][fosdem]
+
+[fosdem]: https://fosdem.org/2023/schedule/event/reversepolishlisp/
 
 ## Why name the project DB48X?
 

@@ -326,7 +326,7 @@ void tests::data_types()
     test(CLEAR, "-80/60", ENTER)
         .type(object::ID_neg_fraction).expect("-4/3");
 
-    step("Large integeers");
+    step("Large integers");
     cstring b = "123456789012345678901234567890123456789012345678901234567890";
     cstring mb = "-123456789012345678901234567890123456789012345678901234567890";
     test(CLEAR, b, ENTER)
@@ -478,6 +478,18 @@ void tests::arithmetic()
         .expect("1/3");
     test(CLEAR, 2, ENTER, 5, DIV)
         .expect("2/5");
+
+    step("Manual computation of 100!");
+    test(CLEAR, 1, ENTER);
+    for (uint i = 1; i <= 100; i++)
+        test(i, MUL);
+    expect("9332621544394415268169923885626670049071596826438162146859296389521"
+           "7599993229915608941463976156518286253697920827223758251185210916864"
+           "0000000000000000000000");
+    step("Manual division by all factors of 100!");
+    for(uint i = 1; i <= 100; i++)
+        test(i * 997 % 101, DIV);
+    expect(1);
 }
 
 

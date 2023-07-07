@@ -295,7 +295,7 @@ void tests::data_types()
     test(CLEAR, SHIFT, RUNSTOP, 1, ADD, "sin", ENTER)
         .type(object::ID_program).expect(prgm);
 
-    step("equation");
+    step("Equation");
     cstring eqn = "'X+1'";
     test(CLEAR, XEQ, X, ENTER, KEY1, ADD)
         .type(object::ID_equation).expect(eqn);
@@ -304,7 +304,7 @@ void tests::data_types()
         .type(object::ID_equation).expect(eqn2);
     test(DOWN, ENTER)
         .type(object::ID_equation).expect(eqn2);
-    step("equation parsing and simplification");
+    step("Equation parsing and simplification");
     test(CLEAR, "'(((A))+(B))-(C+D)'", ENTER)
         .type(object::ID_equation).expect("'A+B-(C+D)'");
     step("equation fancy rendering");
@@ -314,17 +314,25 @@ void tests::data_types()
          XEQ, Z, ENTER, "CUBED", ENTER,
          ADD, ADD)
         .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)'");
-    step("equation fancy parsing from editor");
+    step("Equation fancy parsing from editor");
     test(DOWN, "   ", ENTER)
         .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)'");
 
-    step("fractions");
+    step("Fractions");
     test(CLEAR, "1/3", ENTER)
         .type(object::ID_fraction).expect("1/3");
     test(CLEAR, "20/60", ENTER)
         .type(object::ID_fraction).expect("1/3");
     test(CLEAR, "-80/60", ENTER)
         .type(object::ID_neg_fraction).expect("-4/3");
+
+    step("Large integeers");
+    cstring b = "123456789012345678901234567890123456789012345678901234567890";
+    cstring mb = "-123456789012345678901234567890123456789012345678901234567890";
+    test(CLEAR, b, ENTER)
+        .type(object::ID_bignum).expect(b);
+    test(CHS)
+        .type(object::ID_neg_bignum).expect(mb);
 
     clear();
 }

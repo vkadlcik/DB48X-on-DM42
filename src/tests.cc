@@ -616,6 +616,7 @@ tests &tests::itest(tests::key k, bool release)
 
     // Catch up with stack output
     Stack.catch_up();
+    lcd_update = lcd_needsupdate;
 
     // Check for special key sequences
     switch(k)
@@ -1013,7 +1014,11 @@ tests &tests::nokeys()
 // ----------------------------------------------------------------------------
 {
     while (!key_empty())
+    {
+        lcd_update = lcd_needsupdate;
+        Stack.catch_up();
         sys_delay(delay_time);
+    }
     return *this;
 }
 

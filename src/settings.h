@@ -173,7 +173,7 @@ extern settings Settings;
         EVAL_DECL(derived)                              \
         {                                               \
             rt.command(fancy(ID_##derived));            \
-            Input.menuNeedsRefresh();                   \
+            ui.menuNeedsRefresh();                   \
             return evaluate();                          \
         }                                               \
         EXEC_DECL(derived)                              \

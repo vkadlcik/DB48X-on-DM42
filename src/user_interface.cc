@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  input.cc                                                      DB48X project
+//  user_interface.cc                                            DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Input to the calculator
+//     User interface for the calculator
 //
 //
 //
@@ -27,7 +27,7 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include "input.h"
+#include "user_interface.h"
 
 #include "arithmetic.h"
 #include "command.h"
@@ -50,10 +50,10 @@
 #include <stdio.h>
 #include <unistd.h>
 
-// The primary input of the calculator
-input    Input;
+// The primary user interface of the calculator
+user_interface    ui;
 
-RECORDER(input, 16, "Input processing");
+RECORDER(user_interface, 16, "ui processing");
 RECORDER(help,  16, "On-line help");
 
 #if SIMULATOR
@@ -64,9 +64,9 @@ RECORDER(help,  16, "On-line help");
 
 #define NUM_TOPICS      (sizeof(topics) / sizeof(topics[0]))
 
-input::input()
+user_interface::user_interface()
 // ----------------------------------------------------------------------------
-//   Initialize the input
+//   Initialize the user interface
 // ----------------------------------------------------------------------------
     : command(),
       help(-1u),
@@ -114,7 +114,7 @@ input::input()
 }
 
 
-void input::edit(unicode c, modes m)
+void user_interface::edit(unicode c, modes m)
 // ----------------------------------------------------------------------------
 //   Begin editing with a given character
 // ----------------------------------------------------------------------------
@@ -154,7 +154,7 @@ void input::edit(unicode c, modes m)
 }
 
 
-object::result input::edit(utf8 text, size_t len, modes m, int offset)
+object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
 // ----------------------------------------------------------------------------
 //   Enter the given text on the command line
 // ----------------------------------------------------------------------------
@@ -186,7 +186,7 @@ object::result input::edit(utf8 text, size_t len, modes m, int offset)
 }
 
 
-object::result input::edit(utf8 text, modes m, int offset)
+object::result user_interface::edit(utf8 text, modes m, int offset)
 // ----------------------------------------------------------------------------
 //   Edit a null-terminated text
 // ----------------------------------------------------------------------------
@@ -195,7 +195,7 @@ object::result input::edit(utf8 text, modes m, int offset)
 }
 
 
-bool input::end_edit()
+bool user_interface::end_edit()
 // ----------------------------------------------------------------------------
 //   Clear the editor
 // ----------------------------------------------------------------------------
@@ -239,7 +239,7 @@ bool input::end_edit()
 }
 
 
-void input::clear_editor()
+void user_interface::clear_editor()
 // ----------------------------------------------------------------------------
 //   Clear the editor either after edit, or when pressing EXIT
 // ----------------------------------------------------------------------------
@@ -257,7 +257,7 @@ void input::clear_editor()
 }
 
 
-void input::clear_help()
+void user_interface::clear_help()
 // ----------------------------------------------------------------------------
 //   Clear help data
 // ----------------------------------------------------------------------------
@@ -275,7 +275,7 @@ void input::clear_help()
 }
 
 
-void input::clear_menu()
+void user_interface::clear_menu()
 // ----------------------------------------------------------------------------
 //   Clear the menu
 // ----------------------------------------------------------------------------
@@ -285,7 +285,7 @@ void input::clear_menu()
 }
 
 
-bool input::key(int key, bool repeating)
+bool user_interface::key(int key, bool repeating)
 // ----------------------------------------------------------------------------
 //   Process an input key
 // ----------------------------------------------------------------------------
@@ -293,7 +293,8 @@ bool input::key(int key, bool repeating)
     int skey = key;
 
     longpress = key && repeating;
-    record(input, "Key %d shifts %d longpress", key, shift_plane(), longpress);
+    record(user_interface,
+           "Key %d shifts %d longpress", key, shift_plane(), longpress);
     repeat = false;
 
 #if SIMULATOR
@@ -347,7 +348,7 @@ bool input::key(int key, bool repeating)
 }
 
 
-void input::assign(int key, uint plane, object_p code)
+void user_interface::assign(int key, uint plane, object_p code)
 // ----------------------------------------------------------------------------
 //   Assign an object to a given key
 // ----------------------------------------------------------------------------
@@ -357,7 +358,7 @@ void input::assign(int key, uint plane, object_p code)
 }
 
 
-object_p input::assigned(int key, uint plane)
+object_p user_interface::assigned(int key, uint plane)
 // ----------------------------------------------------------------------------
 //   Assign an object to a given key
 // ----------------------------------------------------------------------------
@@ -368,7 +369,7 @@ object_p input::assigned(int key, uint plane)
 }
 
 
-void input::updateMode()
+void user_interface::updateMode()
 // ----------------------------------------------------------------------------
 //   Scan the command line to check what the state is at the cursor
 // ----------------------------------------------------------------------------
@@ -420,7 +421,7 @@ void input::updateMode()
 }
 
 
-void input::menu(menu_p menu, uint page)
+void user_interface::menu(menu_p menu, uint page)
 // ----------------------------------------------------------------------------
 //   Set menu and page
 // ----------------------------------------------------------------------------
@@ -433,7 +434,7 @@ void input::menu(menu_p menu, uint page)
 }
 
 
-menu_p input::menu()
+menu_p user_interface::menu()
 // ----------------------------------------------------------------------------
 //   Return the current menu
 // ----------------------------------------------------------------------------
@@ -442,7 +443,7 @@ menu_p input::menu()
 }
 
 
-uint input::page()
+uint user_interface::page()
 // ----------------------------------------------------------------------------
 //   Return the currently displayed page
 // ----------------------------------------------------------------------------
@@ -451,7 +452,7 @@ uint input::page()
 }
 
 
-void input::page(uint p)
+void user_interface::page(uint p)
 // ----------------------------------------------------------------------------
 //   Set the menu page to display
 // ----------------------------------------------------------------------------
@@ -462,7 +463,7 @@ void input::page(uint p)
 }
 
 
-uint input::pages()
+uint user_interface::pages()
 // ----------------------------------------------------------------------------
 //   Return number of menu pages
 // ----------------------------------------------------------------------------
@@ -471,7 +472,7 @@ uint input::pages()
 }
 
 
-void input::pages(uint p)
+void user_interface::pages(uint p)
 // ----------------------------------------------------------------------------
 //   Return number of menu pages
 // ----------------------------------------------------------------------------
@@ -480,7 +481,7 @@ void input::pages(uint p)
 }
 
 
-void input::menus(uint count, cstring labels[], object_p function[])
+void user_interface::menus(uint count, cstring labels[], object_p function[])
 // ----------------------------------------------------------------------------
 //   Assign all menus at once
 // ----------------------------------------------------------------------------
@@ -497,7 +498,7 @@ void input::menus(uint count, cstring labels[], object_p function[])
 }
 
 
-void input::menu(uint menu_id, cstring label, object_p fn)
+void user_interface::menu(uint menu_id, cstring label, object_p fn)
 // ----------------------------------------------------------------------------
 //   Assign one menu item
 // ----------------------------------------------------------------------------
@@ -516,7 +517,7 @@ void input::menu(uint menu_id, cstring label, object_p fn)
 }
 
 
-void input::menu(uint id, symbol_p label, object_p fn)
+void user_interface::menu(uint id, symbol_p label, object_p fn)
 // ----------------------------------------------------------------------------
 //   The drawing of menus recognizes symbols
 // ----------------------------------------------------------------------------
@@ -525,7 +526,7 @@ void input::menu(uint id, symbol_p label, object_p fn)
 }
 
 
-void input::marker(uint menu_id, unicode mark, bool alignLeft)
+void user_interface::marker(uint menu_id, unicode mark, bool alignLeft)
 // ----------------------------------------------------------------------------
 //   Record that we have a menu marker for this menu
 // ----------------------------------------------------------------------------
@@ -541,7 +542,7 @@ void input::marker(uint menu_id, unicode mark, bool alignLeft)
 }
 
 
-symbol_p input::label(uint menu_id)
+symbol_p user_interface::label(uint menu_id)
 // ----------------------------------------------------------------------------
 //   Return the label for a given menu ID
 // ----------------------------------------------------------------------------
@@ -553,7 +554,7 @@ symbol_p input::label(uint menu_id)
 }
 
 
-cstring input::labelText(uint menu_id)
+cstring user_interface::labelText(uint menu_id)
 // ----------------------------------------------------------------------------
 //   Return the label for a given menu ID
 // ----------------------------------------------------------------------------
@@ -565,7 +566,7 @@ cstring input::labelText(uint menu_id)
 }
 
 
-uint input::menuPlanes()
+uint user_interface::menuPlanes()
 // ----------------------------------------------------------------------------
 //   Count menu planes
 // ----------------------------------------------------------------------------
@@ -591,7 +592,7 @@ uint input::menuPlanes()
 }
 
 
-int input::draw_menus(uint time, uint &period, bool force)
+int user_interface::draw_menus(uint time, uint &period, bool force)
 // ----------------------------------------------------------------------------
 //   Draw the softkey menus
 // ----------------------------------------------------------------------------
@@ -725,7 +726,7 @@ int input::draw_menus(uint time, uint &period, bool force)
 }
 
 
-void input::draw_annunciators()
+void user_interface::draw_annunciators()
 // ----------------------------------------------------------------------------
 //    Draw the annunciators for Shift, Alpha, etc
 // ----------------------------------------------------------------------------
@@ -772,7 +773,7 @@ void input::draw_annunciators()
 }
 
 
-int input::draw_battery(uint time, uint &period, bool force)
+int user_interface::draw_battery(uint time, uint &period, bool force)
 // ----------------------------------------------------------------------------
 //    Draw the battery information
 // ----------------------------------------------------------------------------
@@ -832,7 +833,7 @@ int input::draw_battery(uint time, uint &period, bool force)
 }
 
 
-void input::draw_editor()
+void user_interface::draw_editor()
 // ----------------------------------------------------------------------------
 //   Draw the editor
 // ----------------------------------------------------------------------------
@@ -1025,7 +1026,7 @@ void input::draw_editor()
 }
 
 
-int input::draw_cursor(uint time, uint &period, bool force)
+int user_interface::draw_cursor(uint time, uint &period, bool force)
 // ----------------------------------------------------------------------------
 //   Draw the cursor at the location
 // ----------------------------------------------------------------------------
@@ -1119,7 +1120,7 @@ int input::draw_cursor(uint time, uint &period, bool force)
 }
 
 
-void input::draw_command()
+void user_interface::draw_command()
 // ----------------------------------------------------------------------------
 //   Draw the current command
 // ----------------------------------------------------------------------------
@@ -1138,7 +1139,7 @@ void input::draw_command()
 }
 
 
-void input::draw_user_command(utf8 cmd, size_t len)
+void user_interface::draw_user_command(utf8 cmd, size_t len)
 // ----------------------------------------------------------------------------
 //   Draw the current command
 // ----------------------------------------------------------------------------
@@ -1167,7 +1168,7 @@ void input::draw_user_command(utf8 cmd, size_t len)
 }
 
 
-void input::draw_error()
+void user_interface::draw_error()
 // ----------------------------------------------------------------------------
 //   Draw the error message if there is one
 // ----------------------------------------------------------------------------
@@ -1206,7 +1207,7 @@ void input::draw_error()
 
 
 
-void input::load_help(utf8 topic)
+void user_interface::load_help(utf8 topic)
 // ----------------------------------------------------------------------------
 //   Find the help message associated with the topic
 // ----------------------------------------------------------------------------
@@ -1347,7 +1348,7 @@ static coord draw_word(coord   x,
 }
 
 
-bool input::draw_help()
+bool user_interface::draw_help()
 // ----------------------------------------------------------------------------
 //    Draw the help content
 // ----------------------------------------------------------------------------
@@ -1699,7 +1700,7 @@ bool input::draw_help()
 }
 
 
-bool input::noHelpForKey(int key)
+bool user_interface::noHelpForKey(int key)
 // ----------------------------------------------------------------------------
 //   Return true if key requires immediate action, no help displayed
 // ----------------------------------------------------------------------------
@@ -1737,7 +1738,7 @@ bool input::noHelpForKey(int key)
 
 
 
-bool input::handle_help(int &key)
+bool user_interface::handle_help(int &key)
 // ----------------------------------------------------------------------------
 //   Handle help keys when showing help
 // ----------------------------------------------------------------------------
@@ -1888,7 +1889,7 @@ bool input::handle_help(int &key)
 }
 
 
-bool input::handle_shifts(int key)
+bool user_interface::handle_shifts(int key)
 // ----------------------------------------------------------------------------
 //   Handle status changes in shift keys
 // ----------------------------------------------------------------------------
@@ -1933,7 +1934,7 @@ bool input::handle_shifts(int key)
 }
 
 
-bool input::handle_editing(int key)
+bool user_interface::handle_editing(int key)
 // ----------------------------------------------------------------------------
 //   Some keys always deal with editing
 // ----------------------------------------------------------------------------
@@ -1980,7 +1981,7 @@ bool input::handle_editing(int key)
 
     if (editing)
     {
-        record(input, "Editing key %d", key);
+        record(user_interface, "Editing key %d", key);
         switch (key)
         {
         case KEY_BSP:
@@ -2144,9 +2145,9 @@ bool input::handle_editing(int key)
 }
 
 
-bool input::handle_alpha(int key)
+bool user_interface::handle_alpha(int key)
 // ----------------------------------------------------------------------------
-//    Handle alphabetic input
+//    Handle alphabetic user_interface
 // ----------------------------------------------------------------------------
 {
     bool editing = rt.editing();
@@ -2216,9 +2217,9 @@ bool input::handle_alpha(int key)
 }
 
 
-bool input::handle_digits(int key)
+bool user_interface::handle_digits(int key)
 // ----------------------------------------------------------------------------
-//    Handle alphabetic input
+//    Handle alphabetic user_interface
 // ----------------------------------------------------------------------------
 {
     if (alpha || shift || xshift || !key)
@@ -2292,7 +2293,7 @@ bool input::handle_digits(int key)
 //
 // ============================================================================
 
-static const byte defaultUnshiftedCommand[2*input::NUM_KEYS] =
+static const byte defaultUnshiftedCommand[2*user_interface::NUM_KEYS] =
 // ----------------------------------------------------------------------------
 //   RPL code for the commands assigned by default to each key
 // ----------------------------------------------------------------------------
@@ -2353,7 +2354,7 @@ static const byte defaultUnshiftedCommand[2*input::NUM_KEYS] =
 };
 
 
-static const byte defaultShiftedCommand[2*input::NUM_KEYS] =
+static const byte defaultShiftedCommand[2*user_interface::NUM_KEYS] =
 // ----------------------------------------------------------------------------
 //   RPL code for the commands assigned by default to shifted keys
 // ----------------------------------------------------------------------------
@@ -2410,7 +2411,7 @@ static const byte defaultShiftedCommand[2*input::NUM_KEYS] =
 };
 
 
-static const byte defaultSecondShiftedCommand[2*input::NUM_KEYS] =
+static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
 // ----------------------------------------------------------------------------
 //   RPL code for the commands assigned by default to long-shifted keys
 // ----------------------------------------------------------------------------
@@ -2467,7 +2468,7 @@ static const byte defaultSecondShiftedCommand[2*input::NUM_KEYS] =
 };
 
 
-static const byte *const defaultCommand[input::NUM_PLANES] =
+static const byte *const defaultCommand[user_interface::NUM_PLANES] =
 // ----------------------------------------------------------------------------
 //   Pointers to the default commands
 // ----------------------------------------------------------------------------
@@ -2478,7 +2479,7 @@ static const byte *const defaultCommand[input::NUM_PLANES] =
 };
 
 
-object_p input::object_for_key(int key)
+object_p user_interface::object_for_key(int key)
 // ----------------------------------------------------------------------------
 //    Return the object for a given key
 // ----------------------------------------------------------------------------
@@ -2498,7 +2499,7 @@ object_p input::object_for_key(int key)
 }
 
 
-bool input::handle_functions(int key)
+bool user_interface::handle_functions(int key)
 // ----------------------------------------------------------------------------
 //   Check if we have one of the soft menu functions
 // ----------------------------------------------------------------------------
@@ -2506,7 +2507,7 @@ bool input::handle_functions(int key)
     if (!key)
         return false;
 
-    record(input, "Handle function for key %d (plane %d) ", key, shift_plane());
+    record(user_interface, "Handle function for key %d (plane %d) ", key, shift_plane());
     if (object_p obj = object_for_key(key))
     {
         evaluating = key;
@@ -2558,7 +2559,7 @@ bool input::handle_functions(int key)
 }
 
 
-bool input::currentWord(size_t &start, size_t &size)
+bool user_interface::currentWord(size_t &start, size_t &size)
 // ----------------------------------------------------------------------------
 //   REturn position of word under the cursor if there is one
 // ----------------------------------------------------------------------------
@@ -2571,7 +2572,7 @@ bool input::currentWord(size_t &start, size_t &size)
 }
 
 
-bool input::currentWord(utf8 &start, size_t &size)
+bool user_interface::currentWord(utf8 &start, size_t &size)
 // ----------------------------------------------------------------------------
 //   Find the word under the cursor in the editor, if there is one
 // ----------------------------------------------------------------------------

@@ -626,21 +626,21 @@ void VariablesMenu::list_variables(info &mi)
     mi.plane  = 1;
     mi.planes = 2;
     mi.skip   = skip;
-    mi.index  = mi.plane * input::NUM_SOFTKEYS;
+    mi.index  = mi.plane * ui.NUM_SOFTKEYS;
     dir->enumerate(recall_variable, &mi);
     mi.plane  = 2;
     mi.planes = 3;
-    mi.index  = mi.plane * input::NUM_SOFTKEYS;
+    mi.index  = mi.plane * ui.NUM_SOFTKEYS;
     mi.skip   = skip;
     dir->enumerate(store_variable, &mi);
 
-    for (uint k = 0; k < input::NUM_SOFTKEYS - (mi.pages > 1); k++)
+    for (uint k = 0; k < ui.NUM_SOFTKEYS - (mi.pages > 1); k++)
     {
-        Input.marker(k + 1 * input::NUM_SOFTKEYS, L'▶', false);
-        Input.marker(k + 2 * input::NUM_SOFTKEYS, L'▶', true);
+        ui.marker(k + 1 * ui.NUM_SOFTKEYS, L'▶', false);
+        ui.marker(k + 2 * ui.NUM_SOFTKEYS, L'▶', true);
     }
 
-    Input.menuNeedsRefresh();
+    ui.menuNeedsRefresh();
 }
 
 
@@ -649,9 +649,9 @@ static object::result insert_cmd(int key, cstring before, cstring after)
 //   Insert the name associated with the key if editing
 // ----------------------------------------------------------------------------
 {
-    if (symbol_p name = Input.label(key - KEY_F1))
+    if (symbol_p name = ui.label(key - KEY_F1))
     {
-        uint     cursor = Input.cursorPosition();
+        uint     cursor = ui.cursorPosition();
         size_t   length = 0;
         utf8     text   = name->value(&length);
 
@@ -659,7 +659,7 @@ static object::result insert_cmd(int key, cstring before, cstring after)
         cursor += rt.insert(cursor, text, length);
         cursor += rt.insert(cursor, utf8(after));
 
-        Input.cursorPosition(cursor);
+        ui.cursorPosition(cursor);
 
         return object::OK;
     }
@@ -672,13 +672,13 @@ COMMAND_BODY(VariablesMenuExecute)
 //   Recall a variable from the VariablesMenu
 // ----------------------------------------------------------------------------
 {
-    int key = Input.evaluating;
+    int key = ui.evaluating;
     if (rt.editing())
         return insert_cmd(key, "", " ");
 
     if (key >= KEY_F1 && key <= KEY_F6)
     {
-        if (symbol_p name = Input.label(key - KEY_F1))
+        if (symbol_p name = ui.label(key - KEY_F1))
         {
             if (directory *dir = rt.variables(0))
             {
@@ -686,7 +686,7 @@ COMMAND_BODY(VariablesMenuExecute)
                 {
                     size_t sz = 0;
                     utf8 help = name->value(&sz);
-                    Input.draw_user_command(help, sz);
+                    ui.draw_user_command(help, sz);
                     return value->execute();
                 }
             }
@@ -702,12 +702,12 @@ COMMAND_BODY(VariablesMenuRecall)
 //   Recall a variable from the VariablesMenu
 // ----------------------------------------------------------------------------
 {
-    int key = Input.evaluating;
+    int key = ui.evaluating;
     if (rt.editing())
         return insert_cmd(key, "'", "' Recall ");
 
     if (key >= KEY_F1 && key <= KEY_F6)
-        if (symbol_p name = Input.label(key - KEY_F1))
+        if (symbol_p name = ui.label(key - KEY_F1))
             if (directory *dir = rt.variables(0))
                 if (object_p value = dir->recall(name))
                     if (rt.push(value))
@@ -722,12 +722,12 @@ COMMAND_BODY(VariablesMenuStore)
 //   Store a variable from the VariablesMenu
 // ----------------------------------------------------------------------------
 {
-    int key = Input.evaluating;
+    int key = ui.evaluating;
     if (rt.editing())
         return insert_cmd(key, "'", "' Store ");
 
     if (key >= KEY_F1 && key <= KEY_F6)
-        if (symbol_p name = Input.label(key - KEY_F1))
+        if (symbol_p name = ui.label(key - KEY_F1))
             if (directory *dir = rt.variables(0))
                 if (object_p value = rt.pop())
                     if (dir->store(name, value))

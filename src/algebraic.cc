@@ -31,7 +31,7 @@
 
 #include "arithmetic.h"
 #include "bignum.h"
-#include "input.h"
+#include "user_interface.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
@@ -51,7 +51,7 @@ INSERT_BODY(algebraic)
 //   Enter data in algebraic mode
 // ----------------------------------------------------------------------------
 {
-    return i.edit(o->fancy(), i.ALGEBRAIC);
+    return ui.edit(o->fancy(), ui.ALGEBRAIC);
 }
 
 

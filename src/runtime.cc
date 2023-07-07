@@ -29,7 +29,7 @@
 
 #include "runtime.h"
 
-#include "input.h"
+#include "user_interface.h"
 #include "object.h"
 #include "variables.h"
 
@@ -340,14 +340,14 @@ size_t runtime::gc()
         }
         if (!found)
         {
-            object_p *functions = &Input.function[0][0];
-            size_t count = input::NUM_PLANES * input::NUM_KEYS;
+            object_p *functions = &ui.function[0][0];
+            size_t count = ui.NUM_PLANES * ui.NUM_KEYS;
             object_p *lastf = functions + count;
             for (object_p *p = functions; p < lastf && !found; p++)
             {
                 found = *p >= obj && *p < next;
                 if (found)
-                    record(gc_details, "Found %p in input function table %u",
+                    record(gc_details, "Found %p in user_interface function table %u",
                            obj, p - functions);
             }
         }
@@ -359,7 +359,7 @@ size_t runtime::gc()
             found = (Error         >= start && Error         < end)
                 ||  (ErrorSource   >= start && ErrorSource   < end)
                 ||  (ErrorCommand  >= start && ErrorCommand  < end)
-                ||  (Input.command >= start && Input.command < end);
+                ||  (ui.command    >= start && ui.command    < end);
         }
 
         if (found)
@@ -456,15 +456,15 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
         }
     }
 
-    // Adjust the input function pointers
-    object_p *functions = &Input.function[0][0];
-    size_t count = input::NUM_PLANES * input::NUM_KEYS;
-    object_p *lastf = functions + count;
+    // Adjust the user_interface function pointers
+    object_p *functions = &ui.function[0][0];
+    size_t    count     = ui.NUM_PLANES * ui.NUM_KEYS;
+    object_p *lastf     = functions + count;
     for (object_p *p = functions; p < lastf; p++)
     {
         if (*p >= from && *p < last)
         {
-            record(gc_details, "Adjusting input function %u from %p to %p",
+            record(gc_details, "Adjusting user_interface function %u from %p to %p",
                    p - functions, *p, *p + delta);
             *p += delta;
         }
@@ -479,8 +479,8 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
         ErrorSource += delta;
     if (ErrorCommand >= start && ErrorCommand < end)
         ErrorCommand += delta;
-    if (Input.command >= start && Input.command < end)
-        Input.command += delta;
+    if (ui.command >= start && ui.command < end)
+        ui.command += delta;
 }
 
 

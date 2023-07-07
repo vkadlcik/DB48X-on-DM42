@@ -30,7 +30,7 @@
 #include "sysmenu.h"
 
 #include "file.h"
-#include "input.h"
+#include "user_interface.h"
 #include "list.h"
 #include "main.h"
 #include "object.h"
@@ -517,9 +517,9 @@ static int state_load_callback(cstring path, cstring name, void *merge)
                 wait_for_key_press();
 
                 if (pos >= editor && pos <= ed + edlen)
-                    Input.cursorPosition(pos - ed);
+                    ui.cursorPosition(pos - ed);
                 if (!rt.edit(ed, edlen))
-                    Input.cursorPosition(0);
+                    ui.cursorPosition(0);
 
                 return 1;
             }

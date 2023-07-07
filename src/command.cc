@@ -32,7 +32,7 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
-#include "input.h"
+#include "user_interface.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
@@ -320,14 +320,14 @@ COMMAND_BODY(SelfInsert)
 //   Find the label associated to the menu and enter it in the editor
 // ----------------------------------------------------------------------------
 {
-    int key = Input.evaluating;
+    int key = ui.evaluating;
     if (key >= KEY_F1 && key <= KEY_F6)
     {
-        uint plane = Input.shift_plane();
-        uint menu_idx = key - KEY_F1 + plane * input::NUM_SOFTKEYS;
-        if (cstring lbl = Input.labelText(menu_idx))
+        uint plane = ui.shift_plane();
+        uint menu_idx = key - KEY_F1 + plane * ui.NUM_SOFTKEYS;
+        if (cstring lbl = ui.labelText(menu_idx))
             for (utf8 p = utf8(lbl); *p; p = utf8_next(p))
-                Input.edit(utf8_codepoint(p), input::PROGRAM);
+                ui.edit(utf8_codepoint(p), ui.PROGRAM);
     }
     return OK;
 }

@@ -33,7 +33,7 @@
 #include "dm42/sysmenu.h"
 #include "font.h"
 #include "graphics.h"
-#include "input.h"
+#include "user_interface.h"
 #include "list.h"
 #include "num.h"
 #include "stack.h"
@@ -67,18 +67,18 @@ static void redraw_lcd()
     Screen.fill(0, 0, LCD_W, HeaderFont->height() + 1, pattern::black);
     Screen.text(4, 0, utf8(PROGRAM_NAME), HeaderFont, pattern::white);
 
-    // Draw the various components handled by input
-    Input.draw_annunciators();
-    Input.draw_battery(now, period, true);
-    Input.draw_menus(now, period, true);
-    if (!Input.draw_help())
+    // Draw the various components handled by the user interface
+    ui.draw_annunciators();
+    ui.draw_battery(now, period, true);
+    ui.draw_menus(now, period, true);
+    if (!ui.draw_help())
     {
-        Input.draw_editor();
-        Input.draw_cursor(now, period, true);
+        ui.draw_editor();
+        ui.draw_cursor(now, period, true);
         Stack.draw_stack();
-        Input.draw_command();
+        ui.draw_command();
     }
-    Input.draw_error();
+    ui.draw_error();
 
     // Refresh the screen
     lcd_refresh_lines(0, LCD_H);
@@ -99,13 +99,13 @@ static void redraw_periodics()
     uint dawdle_time = now - last_keystroke_time;
     bool dawdling    = dawdle_time > 10000;
 
-    int cy = Input.draw_cursor(now, period, false);
+    int cy = ui.draw_cursor(now, period, false);
     if (cy >= 0)
         lcd_refresh_lines(cy, EditorFont->height());
-    cy = Input.draw_battery(now, period, false);
+    cy = ui.draw_battery(now, period, false);
     if (cy >= 0)
         lcd_refresh_lines(cy, HeaderFont->height());
-    cy = Input.draw_menus(now, period, false);
+    cy = ui.draw_menus(now, period, false);
     if (cy >= 0)
         lcd_refresh_lines(cy, LCD_H - cy);
 
@@ -124,16 +124,16 @@ static void redraw_periodics()
 
 static void handle_key(int key, bool repeating)
 // ----------------------------------------------------------------------------
-//   Handle all input keys
+//   Handle all user-interface keys
 // ----------------------------------------------------------------------------
 {
     sys_timer_disable(TIMER0);
-    bool consumed = Input.key(key, repeating);
+    bool consumed = ui.key(key, repeating);
     if (!consumed)
         beep(1835, 125);
 
     // Key repeat timer
-    if (Input.repeating())
+    if (ui.repeating())
         sys_timer_start(TIMER0, repeating ? 80 : 500);
 }
 

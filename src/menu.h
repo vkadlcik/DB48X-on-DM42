@@ -30,7 +30,7 @@
 // ****************************************************************************
 
 #include "command.h"
-#include "input.h"
+#include "user_interface.h"
 #include "symbol.h"
 
 
@@ -165,7 +165,7 @@ COMMAND(MenuNextPage)
 //   Select the next page in the menu
 // ----------------------------------------------------------------------------
 {
-    Input.page(Input.page() + 1);
+    ui.page(ui.page() + 1);
     return OK;
 }
 
@@ -175,7 +175,7 @@ COMMAND(MenuPreviousPage)
 //   Select the previous page in the menu
 // ----------------------------------------------------------------------------
 {
-    Input.page(Input.page() - 1);
+    ui.page(ui.page() - 1);
     return OK;
 }
 
@@ -185,7 +185,7 @@ COMMAND(MenuFirstPage)
 //   Select the previous page in the menu
 // ----------------------------------------------------------------------------
 {
-    Input.page(0);
+    ui.page(0);
     return OK;
 }
 

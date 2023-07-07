@@ -33,7 +33,7 @@
 
 #include "menu.h"
 
-#include "input.h"
+#include "user_interface.h"
 #include "settings.h"
 
 
@@ -46,7 +46,7 @@ EVAL_BODY(menu)
 //   Evaluating a menu puts it in the interface's menus
 // ----------------------------------------------------------------------------
 {
-    Input.menu(o);
+    ui.menu(o);
     return OK;
 }
 
@@ -65,7 +65,7 @@ void menu::items_init(info &mi, uint nitems, uint planes)
 //   Initialize the info structure
 // ----------------------------------------------------------------------------
 {
-    uint page0 = planes * input::NUM_SOFTKEYS;
+    uint page0 = planes * ui.NUM_SOFTKEYS;
     mi.planes  = planes;
     mi.plane   = 0;
     mi.index   = 0;
@@ -77,12 +77,12 @@ void menu::items_init(info &mi, uint nitems, uint planes)
     }
     else
     {
-        uint perpage = planes * (input::NUM_SOFTKEYS - 1);
+        uint perpage = planes * (ui.NUM_SOFTKEYS - 1);
         mi.skip = mi.page * perpage;
         mi.pages = (nitems + perpage - 1) / perpage;
     }
-    Input.menus(0, nullptr, nullptr);
-    Input.pages(mi.pages);
+    ui.menus(0, nullptr, nullptr);
+    ui.pages(mi.pages);
 }
 
 
@@ -115,25 +115,25 @@ void menu::items(info &mi, cstring label, object_p action)
                 // Insert next and previous keys in menu
                 if (mi.planes >= 2)
                 {
-                    Input.menu(1 * input::NUM_SOFTKEYS - 1, "▶",
+                    ui.menu(1 * ui.NUM_SOFTKEYS - 1, "▶",
                                command::static_object(ID_MenuNextPage));
-                    Input.menu(2 * input::NUM_SOFTKEYS - 1, "◀︎",
+                    ui.menu(2 * ui.NUM_SOFTKEYS - 1, "◀︎",
                                command::static_object(ID_MenuPreviousPage));
                 }
-                else if (Input.shift_plane())
+                else if (ui.shift_plane())
                 {
-                    Input.menu(1 * input::NUM_SOFTKEYS - 1, "◀︎",
+                    ui.menu(1 * ui.NUM_SOFTKEYS - 1, "◀︎",
                                command::static_object(ID_MenuPreviousPage));
                 }
                 else
                 {
-                    Input.menu(1 * input::NUM_SOFTKEYS - 1, "▶",
+                    ui.menu(1 * ui.NUM_SOFTKEYS - 1, "▶",
                                command::static_object(ID_MenuNextPage));
 
                 }
             }
 
-            if ((idx + 1) % input::NUM_SOFTKEYS == 0)
+            if ((idx + 1) % ui.NUM_SOFTKEYS == 0)
             {
                 mi.plane++;
                 idx = mi.index++;
@@ -141,17 +141,17 @@ void menu::items(info &mi, cstring label, object_p action)
                     return;
             }
         }
-        if (idx < input::NUM_SOFTKEYS * mi.planes)
+        if (idx < ui.NUM_SOFTKEYS * mi.planes)
         {
-            Input.menu(idx, label, action);
+            ui.menu(idx, label, action);
             if (action)
             {
                 if (unicode mark = action->marker())
                 {
                     if ((int) mark < 0)
-                        Input.marker(idx, -mark, true);
+                        ui.marker(idx, -mark, true);
                     else
-                        Input.marker(idx, mark, false);
+                        ui.marker(idx, mark, false);
                 }
             }
         }

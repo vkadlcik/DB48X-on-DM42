@@ -38,7 +38,7 @@ SOURCES +=                                      \
         ../src/dm42/main.cc                     \
 	../src/util.cc                          \
 	../src/renderer.cc                      \
-	../src/input.cc                         \
+	../src/user_interface.cc                \
 	../src/file.cc                          \
 	../src/stack.cc                         \
 	../src/settings.cc                      \

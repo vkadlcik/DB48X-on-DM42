@@ -31,7 +31,7 @@
 
 #include "command.h"
 #include "font.h"
-#include "input.h"
+#include "user_interface.h"
 #include "integer.h"
 #include "menu.h"
 #include "renderer.h"
@@ -56,7 +56,7 @@ void settings::save(renderer &out, bool show_defaults)
 // ----------------------------------------------------------------------------
 {
     // Save the current menu
-    if (menu_p menu = Input.menu())
+    if (menu_p menu = ui.menu())
     {
         menu->render(out);
         out.put('\n');

@@ -1,12 +1,12 @@
 #ifndef INPUT_H
 #define INPUT_H
 // ****************************************************************************
-//  input.h                                                       DB48X project
+//  user_interface.h                                             DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    Calculator input
+//    Calculator user interface
 //
 //
 //
@@ -44,16 +44,16 @@ struct menu;
 typedef const menu *menu_p;
 typedef gcp<const menu> menu_g;
 
-struct input
+struct user_interface
 // ----------------------------------------------------------------------------
-//    Calculator input state
+//    Calculator user_interface state
 // ----------------------------------------------------------------------------
 {
-    input();
+    user_interface();
 
     enum modes
     // ------------------------------------------------------------------------
-    //   Current input mode
+    //   Current user_interface mode
     // ------------------------------------------------------------------------
     {
         STACK,                  // Showing the stack, not editing
@@ -195,7 +195,7 @@ protected:
 
 enum { TIMER0, TIMER1, TIMER2, TIMER3 };
 
-extern input Input;
+extern user_interface ui;
 
 
 #endif // INPUT_H

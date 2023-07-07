@@ -63,7 +63,7 @@
 //    - RENDER: Render an object as text
 //    - HELP:   Return the name of the help topic associated to the object
 //
-//    Note: PARSE is the only opcode that does not take an object as input
+//    Note: PARSE is the only opcode that does not take an object as user_interface
 //
 //    The handler is not exactly equivalent to the user command.
 //    It may present an internal interface that is more convenient for C code.
@@ -110,7 +110,7 @@ struct renderer;
 struct object;
 struct symbol;
 struct program;
-struct input;
+struct user_interface;
 struct text;
 struct menu_info;
 
@@ -178,7 +178,7 @@ struct object
     typedef result      (*evaluate_fn)(object_p o);
     typedef result      (*execute_fn)(object_p o);
     typedef size_t      (*render_fn)(object_p o, renderer &p);
-    typedef result      (*insert_fn)(object_p o, input &i);
+    typedef result      (*insert_fn)(object_p o, user_interface &i);
     typedef bool        (*menu_fn)(object_p o, menu_info &m);
     typedef unicode     (*menu_marker_fn)(object_p o);
 
@@ -350,7 +350,7 @@ struct object
     }
 
 
-    result insert(input &i) const
+    result insert(user_interface &i) const
     // ------------------------------------------------------------------------
     //   Insert in the editor at cursor position, with possible offset
     // ------------------------------------------------------------------------
@@ -691,7 +691,7 @@ struct object
 #define EXEC_DECL(D)    static result   do_execute(const D *o UNUSED)
 #define SIZE_DECL(D)    static size_t   do_size(const D *o UNUSED)
 #define RENDER_DECL(D)  static size_t   do_render(const D *o UNUSED,renderer &r UNUSED)
-#define INSERT_DECL(D)  static result   do_insert(const D *o UNUSED, input &i UNUSED)
+#define INSERT_DECL(D)  static result   do_insert(const D *o UNUSED)
 #define MENU_DECL(D)    static bool     do_menu(const D *o UNUSED, menu_info &mi UNUSED)
 #define MARKER_DECL(D)  static unicode  do_menu_marker(const D *o UNUSED)
 #define ARITY_DECL(A)   enum { ARITY = A }
@@ -732,7 +732,7 @@ public:
 #define EXEC_BODY(D)    object::result D::do_execute(const D *o UNUSED)
 #define SIZE_BODY(D)    size_t         D::do_size(const D *o UNUSED)
 #define RENDER_BODY(D)  size_t         D::do_render(const D *o UNUSED, renderer &r UNUSED)
-#define INSERT_BODY(D)  object::result D::do_insert(const D *o UNUSED, input &i UNUSED)
+#define INSERT_BODY(D)  object::result D::do_insert(const D *o UNUSED)
 #define MENU_BODY(D)    bool           D::do_menu(const D *o UNUSED, menu_info &mi UNUSED)
 #define MARKER_BODY(D)  unicode        D::do_menu_marker(const D *o UNUSED)
 

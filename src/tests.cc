@@ -30,7 +30,7 @@
 #include "tests.h"
 
 #include "dmcp.h"
-#include "input.h"
+#include "user_interface.h"
 #include "recorder.h"
 #include "settings.h"
 #include "stack.h"
@@ -233,7 +233,7 @@ void tests::keyboard_entry()
 
     step("Key repeat");
     test(CLEAR, LONGPRESS, SHIFT, LONGPRESS, A).wait(1000).test(RELEASE)
-        .check(Input.cursor > 4);
+        .check(ui.cursor > 4);
 }
 
 
@@ -797,10 +797,10 @@ tests &tests::itest(cstring txt)
 
         nokeys();
 
-        bool alpha  = Input.alpha;
+        bool alpha  = ui.alpha;
         bool shift  = false;
         bool xshift = false;
-        bool lower  = Input.lowercase;
+        bool lower  = ui.lowercase;
         key  k      = RELEASE;
         bool del    = false;
         bool bsp    = false;
@@ -956,26 +956,26 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
         shift = false;
 
     // First change lowercase state as necessary, since this messes up shift
-    while (lowercase != Input.lowercase)
+    while (lowercase != ui.lowercase)
     {
-        while (!Input.shift)
+        while (!ui.shift)
             itest(SHIFT, NOKEYS);
         itest(ENTER, NOKEYS);
     }
 
     // Enter alpha mode using Shift-Enter so that we can shift afterwards
-    if (alpha != Input.alpha)
+    if (alpha != ui.alpha)
     {
         if (shift || xshift)
         {
             if (!alpha)
             {
-                while (Input.alpha)
+                while (ui.alpha)
                     itest(LONGPRESS, SHIFT, NOKEYS);
             }
             else
             {
-                while (!Input.shift)
+                while (!ui.shift)
                     itest(SHIFT, NOKEYS);
                 itest(ENTER, NOKEYS);
             }
@@ -983,15 +983,15 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
         else
         {
             // Keep pressing shift until we get alpha
-            while (Input.alpha != alpha)
+            while (ui.alpha != alpha)
                 itest(LONGPRESS, SHIFT, NOKEYS);
         }
     }
 
-    while (xshift != Input.xshift)
+    while (xshift != ui.xshift)
         itest(SHIFT, NOKEYS);
 
-    while (shift != Input.shift)
+    while (shift != ui.shift)
         itest(SHIFT, NOKEYS);
 
     return *this;
@@ -1243,8 +1243,8 @@ tests &tests::shift(bool s)
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    return check(Input.shift == s,
-                 "Expected shift ", s, ", got ", Input.shift);
+    return check(ui.shift == s,
+                 "Expected shift ", s, ", got ", ui.shift);
 }
 
 
@@ -1254,8 +1254,8 @@ tests &tests::xshift(bool x)
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    return check(Input.xshift == x,
-                 "Expected xshift ", x, " got ", Input.xshift);
+    return check(ui.xshift == x,
+                 "Expected xshift ", x, " got ", ui.xshift);
 }
 
 
@@ -1265,8 +1265,8 @@ tests &tests::alpha(bool a)
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    return check(Input.alpha == a,
-                 "Expected alpha ", a, " got ", Input.alpha);
+    return check(ui.alpha == a,
+                 "Expected alpha ", a, " got ", ui.alpha);
 }
 
 
@@ -1276,8 +1276,8 @@ tests &tests::lower(bool l)
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    return check(Input.lowercase == l,
-                 "Expected alpha ", l, " got ", Input.alpha);
+    return check(ui.lowercase == l,
+                 "Expected alpha ", l, " got ", ui.alpha);
 }
 
 
@@ -1338,9 +1338,9 @@ tests &tests::cursor(size_t csr)
 // ----------------------------------------------------------------------------
 {
     ready();
-    return check(Input.cursor == csr,
+    return check(ui.cursor == csr,
                  "Expected cursor to be at position ", csr,
-                 " but it's at position ", Input.cursor);
+                 " but it's at position ", ui.cursor);
 }
 
 

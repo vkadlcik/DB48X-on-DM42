@@ -29,7 +29,7 @@
 
 #include "catalog.h"
 #include "runtime.h"
-#include "input.h"
+#include "user_interface.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -42,7 +42,7 @@ MENU_BODY(Catalog)
 {
     uint  nitems = count_commands();
     items_init(mi, nitems, 1);
-    Input.autoCompleteMenu();
+    ui.autoCompleteMenu();
     list_commands(mi);
     return OK;
 }
@@ -97,7 +97,7 @@ uint Catalog::count_commands()
 
     utf8   start  = 0;
     size_t size   = 0;
-    bool   filter = Input.currentWord(start, size);
+    bool   filter = ui.currentWord(start, size);
     uint   count  = 0;
 
     for (uint i = 0; i < NUM_COMMANDS; i++)
@@ -120,7 +120,7 @@ void Catalog::list_commands(info &mi)
 {
     utf8   start  = nullptr;
     size_t size   = 0;
-    bool   filter = Input.currentWord(start, size);
+    bool   filter = ui.currentWord(start, size);
 
     for (uint i = 0; i < NUM_COMMANDS; i++)
     {
@@ -131,5 +131,5 @@ void Catalog::list_commands(info &mi)
             menu::items(mi, cstring(fancy(sorted)),
                         command::static_object(sorted));
     }
-    Input.menuNeedsRefresh();
+    ui.menuNeedsRefresh();
 }

@@ -34,7 +34,7 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
-#include "input.h"
+#include "user_interface.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
@@ -344,7 +344,7 @@ INSERT_BODY(DoUntil)
 //   Insert a do-until loop in the editor
 // ----------------------------------------------------------------------------
 {
-    return i.edit(utf8("do  until  end"), input::PROGRAM, 3);
+    return ui.edit(utf8("do  until  end"), ui.PROGRAM, 3);
 }
 
 
@@ -406,7 +406,7 @@ INSERT_BODY(WhileRepeat)
 //   Insert a while loop in the editor
 // ----------------------------------------------------------------------------
 {
-    return i.edit(utf8("while  repeat  end"), input::PROGRAM, 6);
+    return ui.edit(utf8("while  repeat  end"), ui.PROGRAM, 6);
 }
 
 
@@ -466,7 +466,7 @@ INSERT_BODY(StartNext)
 //   Insert a start-next loop in the editor
 // ----------------------------------------------------------------------------
 {
-    return i.edit(utf8("start  next"), input::PROGRAM, 6);
+    return ui.edit(utf8("start  next"), ui.PROGRAM, 6);
 }
 
 
@@ -566,7 +566,7 @@ INSERT_BODY(StartStep)
 //   Insert a start-step loop in the editor
 // ----------------------------------------------------------------------------
 {
-    return i.edit(utf8("start  step"), input::PROGRAM, 6);
+    return ui.edit(utf8("start  step"), ui.PROGRAM, 6);
 }
 
 
@@ -611,7 +611,7 @@ INSERT_BODY(ForNext)
 //   Insert a for-next loop in the editor
 // ----------------------------------------------------------------------------
 {
-    return i.edit(utf8("for  next"), input::PROGRAM, 4);
+    return ui.edit(utf8("for  next"), ui.PROGRAM, 4);
 }
 
 
@@ -656,7 +656,7 @@ INSERT_BODY(ForStep)
 //   Insert a for-step loop in the editor
 // ----------------------------------------------------------------------------
 {
-    return i.edit(utf8("for  step"), input::PROGRAM, 4);
+    return ui.edit(utf8("for  step"), ui.PROGRAM, 4);
 }
 
 

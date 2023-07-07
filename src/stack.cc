@@ -30,7 +30,7 @@
 #include "stack.h"
 
 #include "graphics.h"
-#include "input.h"
+#include "user_interface.h"
 #include "renderer.h"
 #include "runtime.h"
 #include "target.h"
@@ -81,7 +81,7 @@ void stack::draw_stack()
     size   lineHeight = font->height();
     size   idxHeight  = idxfont->height();
     coord  top        = hdrfont->height() + 2;
-    coord  bottom     = Input.stack_screen_bottom() - 1;
+    coord  bottom     = ui.stack_screen_bottom() - 1;
     uint   depth      = rt.depth();
     uint   digits     = countDigits(depth);
     coord  hdrx       = idxfont->width('0') * digits + 2;

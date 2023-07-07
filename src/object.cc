@@ -40,7 +40,7 @@
 #include "font.h"
 #include "fraction.h"
 #include "functions.h"
-#include "input.h"
+#include "user_interface.h"
 #include "integer.h"
 #include "list.h"
 #include "locals.h"
@@ -283,7 +283,7 @@ INSERT_BODY(object)
 //   Default insertion is as a program object
 // ----------------------------------------------------------------------------
 {
-    return i.edit(o->fancy(), i.PROGRAM);
+    return ui.edit(o->fancy(), ui.PROGRAM);
 }
 
 

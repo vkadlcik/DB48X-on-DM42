@@ -81,13 +81,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     step("Current test");
-    test(CLEAR, 997, ENTER);
-    for(uint i = 1; i <= 100; i++)
-        test(i * 997 % 101, DIV);
-    expect("997/"
-           "9332621544394415268169923885626670049071596826438162146859296389521"
-           "7599993229915608941463976156518286253697920827223758251185210916864"
-           "000000000000000000000000");
+    global_variables();
 }
 
 
@@ -494,6 +488,69 @@ void tests::arithmetic()
            "000000000000000000000000");
 }
 
+
+void tests::global_variables()
+// ----------------------------------------------------------------------------
+//   Tests for access to global variables
+// ----------------------------------------------------------------------------
+{
+    begin("Global variables");
+
+    step("Store in global variable");
+    test(CLEAR, 12345, ENTER)
+        .expect(12345);
+    test(XEQ, "A", ENTER)
+        .expect("'A'");
+    test(STO)
+        .noerr();
+    step("Recall global variable");
+    test(CLEAR, XEQ, "A", ENTER)
+        .expect("'A'");
+    test("RCL", ENTER)
+        .noerr().expect(12345);
+
+    step("Store in long-name global variable");
+    test(CLEAR,
+         "\"Hello World\"", ENTER,
+         XEQ, "SomeLongVariable", ENTER,
+         STO)
+        .noerr();
+    step("Recall global variable");
+    test(CLEAR,
+         XEQ, "SomeLongVariable", ENTER,
+         "recall", ENTER)
+        .noerr().expect("\"Hello World\"");
+
+    step("Recall non-existent variable");
+    test(CLEAR, XEQ, "DOESNOTEXIST", ENTER, "RCL", ENTER)
+        .error("Undefined name").clear();
+    step("Recall invalid variable object");
+    test(1234, ENTER, "RCL", ENTER)
+        .error("Invalid name").clear();
+
+    step("Store program in global variable");
+    test(CLEAR, "« 1 + »", ENTER, XEQ, "INCR", ENTER, STO)
+        .noerr();
+    step("Evaluate global variable");
+    test(CLEAR, "A INCR", ENTER)
+        .expect(12346);
+
+    step("Purge global variable");
+    test(CLEAR, XEQ, "A", ENTER, "PURGE", ENTER)
+        .noerr();
+    test(CLEAR, XEQ, "INCR", ENTER, "PURGE", ENTER)
+        .noerr();
+    test(CLEAR, XEQ, "SomeLongVariable", ENTER, "PURGE", ENTER)
+        .noerr();
+
+    test(CLEAR, XEQ, "A", ENTER, "RCL", ENTER)
+        .error("Undefined name").clear();
+    test(CLEAR, XEQ, "INCR", ENTER, "RCL", ENTER)
+        .error("Undefined name").clear();
+    test(CLEAR, XEQ, "SomeLongVariable", ENTER, "RCL", ENTER)
+        .error("Undefined name").clear();
+
+}
 
 
 // ============================================================================

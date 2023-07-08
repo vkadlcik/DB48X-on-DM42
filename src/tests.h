@@ -59,6 +59,7 @@ struct tests
     void keyboard_entry();
     void data_types();
     void arithmetic();
+    void global_variables();
 
     enum key
     {

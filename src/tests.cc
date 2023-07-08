@@ -41,6 +41,8 @@
 
 extern volatile int lcd_needsupdate;
 
+RECORDER_DECLARE(errors);
+
 uint         wait_time  = 10;
 uint         delay_time = 2;
 
@@ -52,49 +54,10 @@ void tests::run(bool onlyCurrent)
     tindex = sindex = cindex = count = 0;
     failures.clear();
 
-    bool verbose = false;
-    if (verbose)
-        fprintf(stderr,
-                "Initial settings:\n"
-                "  Precision:       %u\n"
-                "  Displayed:       %u\n"
-                "  Display mode:    %u\n"
-                "  Decimal dot:     %c\n"
-                "  Exponent:        %c\n"
-                "  Angle mode:      %u\n"
-                "  Base:            %u\n"
-                "  Command format:  %u\n",
-                Settings.precision,
-                Settings.displayed,
-                Settings.display_mode,
-                Settings.decimal_mark,
-                Settings.exponent_mark,
-                Settings.angle_mode,
-                Settings.base,
-                Settings.command_fmt);
+    auto tracing = RECORDER_TRACE(errors);
+    RECORDER_TRACE(errors) = false;
 
     Settings = settings();       // Reset to default settings
-    Settings.exponent_mark = 'E'; // Standard E is easier for us to match
-
-    if (verbose)
-        fprintf(stderr,
-                "Updated settings:\n"
-                "  Precision:       %u\n"
-                "  Displayed:       %u\n"
-                "  Display mode:    %u\n"
-                "  Decimal dot:     %c\n"
-                "  Exponent:        %c\n"
-                "  Angle mode:      %u\n"
-                "  Base:            %u\n"
-                "  Command format:  %u\n",
-                Settings.precision,
-                Settings.displayed,
-                Settings.display_mode,
-                Settings.decimal_mark,
-                Settings.exponent_mark,
-                Settings.angle_mode,
-                Settings.base,
-                Settings.command_fmt);
 
     current();
     if (!onlyCurrent)
@@ -104,8 +67,11 @@ void tests::run(bool onlyCurrent)
         keyboard_entry();
         data_types();
         arithmetic();
+        global_variables();
     }
     summary();
+
+    RECORDER_TRACE(errors) = tracing;
 }
 
 

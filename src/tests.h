@@ -60,6 +60,7 @@ struct tests
     void data_types();
     void arithmetic();
     void global_variables();
+    void local_variables();
 
     enum key
     {

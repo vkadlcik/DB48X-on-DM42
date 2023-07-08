@@ -68,6 +68,7 @@ void tests::run(bool onlyCurrent)
         data_types();
         arithmetic();
         global_variables();
+        local_variables();
     }
     summary();
 
@@ -81,7 +82,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     step("Current test");
-    global_variables();
+    local_variables();
 }
 
 
@@ -550,6 +551,36 @@ void tests::global_variables()
     test(CLEAR, XEQ, "SomeLongVariable", ENTER, "RCL", ENTER)
         .error("Undefined name").clear();
 
+}
+
+
+void tests::local_variables()
+// ----------------------------------------------------------------------------
+//   Tests for access to local variables
+// ----------------------------------------------------------------------------
+{
+    begin("Local variables");
+
+    step("Creating a local block");
+    cstring source = "« → A B C « A B + A B - × B C + B C - × ÷ » »";
+    test(CLEAR, source, ENTER)
+        .type(object::ID_program)
+        .expect(source);
+    test(XEQ, "LocTest", ENTER, STO)
+        .noerr();
+
+    step("Calling a local block with numerical values");
+    test(CLEAR, 1, ENTER, 2, ENTER, 3, ENTER, "LocTest", ENTER)
+        .expect("3/5");
+
+    step("Calling a local block with symbolic values");
+    test(CLEAR, XEQ, "X", ENTER, XEQ, "Y", ENTER, XEQ, "Z", ENTER,
+         "LocTest", ENTER)
+        .expect("'(X+Y)×(X-Y)÷((Y+Z)×(Y-Z))'");
+
+    step("Cleanup");
+    test(CLEAR, XEQ, "LocTest", ENTER, "PurgeAll", ENTER)
+        .noerr();
 }
 
 

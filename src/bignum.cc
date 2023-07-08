@@ -520,7 +520,7 @@ bignum_g operator*(bignum_g y, bignum_g x)
 
 bool bignum::quorem(bignum_g yg, bignum_g xg, id ty, bignum_g *q, bignum_g *r)
 // ----------------------------------------------------------------------------
-//   Perform divide  operation op on leb128 numbers x and y
+//   Compute quotient and remainder of two bignums, as bignums
 // ----------------------------------------------------------------------------
 //   Result is placed in scratchpad, the function returns the size in bytes
 {
@@ -532,7 +532,13 @@ bool bignum::quorem(bignum_g yg, bignum_g xg, id ty, bignum_g *q, bignum_g *r)
 
     // In the computations below (e.g. needed), the size of the quotient is
     // less than the size of y, and the size of the remainder is less than the
-    // size of x, therefore, we need at most xs + ys for both
+    // size of x, therefore, we need at most xs + ys for both.
+    // However, the computation of the remainder requires a subtraction
+    // which can be one byte larger than x (see issue #70 for details).
+    // For example in 0x17B/0xEF, the first remainder subtraction will be
+    // 0x17B - 0xEF, which does require two bytes, not just one. It could
+    // be carried out by keeping the extra byte in a variable, but it's
+    // simpler to allocate one extra byte.
     size_t xs = 0;
     size_t ys = 0;
     byte_p x = xg->value(&xs);                // Read those after potential GC
@@ -540,7 +546,7 @@ bool bignum::quorem(bignum_g yg, bignum_g xg, id ty, bignum_g *q, bignum_g *r)
     id xt = xg->type();
     size_t wbits = wordsize(xt);
     size_t wbytes = (wbits + 7) / 8;
-    size_t needed = ys + xs;
+    size_t needed = ys + xs + 1;
     byte *buffer = rt.allocate(needed);       // May GC here
     if (!buffer)
         return false;                         // Out of memory
@@ -552,7 +558,7 @@ bool bignum::quorem(bignum_g yg, bignum_g xg, id ty, bignum_g *q, bignum_g *r)
     byte *remainder = quotient + ys;
     size_t rs = 0;
     size_t qs = 0;
-    for (uint i = 0; i < xs + ys; i++)
+    for (uint i = 0; i < needed; i++)
         buffer[i] = 0;
 
     // Loop on the numerator
@@ -571,6 +577,7 @@ bool bignum::quorem(bignum_g yg, bignum_g xg, id ty, bignum_g *q, bignum_g *r)
                     delta = d;
                 c >>= 8;
             }
+
             if (c)
             {
                 if (int d = c - x[rs])
@@ -578,7 +585,7 @@ bool bignum::quorem(bignum_g yg, bignum_g xg, id ty, bignum_g *q, bignum_g *r)
                 remainder[rs++] = c;
             }
             if (rs != xs)
-                delta = rs - xs;
+                delta = int(rs) - int(xs);
 
             // If remainder >= denominator, add to quotient, subtract from rem
             if (delta >= 0)
@@ -590,9 +597,9 @@ bool bignum::quorem(bignum_g yg, bignum_g xg, id ty, bignum_g *q, bignum_g *r)
                 c = 0;
                 for (uint ri = 0; ri < rs; ri++)
                 {
-                    c = remainder[ri] - x[ri] - c;
+                    c = remainder[ri] - (ri < xs ? x[ri] : 0) - c;
                     remainder[ri] = byte(c);
-                    c >>= 8;
+                    c = c > 0xFF;
                 }
 
                 // Strip zeroes at top of remainder

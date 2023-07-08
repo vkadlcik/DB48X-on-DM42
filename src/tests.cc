@@ -114,6 +114,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
+    step("Current test");
     test(CLEAR, "-80/60", ENTER)
         .type(object::ID_neg_fraction).expect("-4/3");
 }

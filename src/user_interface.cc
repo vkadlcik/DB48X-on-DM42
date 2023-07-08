@@ -1968,6 +1968,12 @@ bool user_interface::handle_editing(int key)
                 last = 0;
                 return true;
             }
+            else if (xshift)
+            {
+                edit('{', PROGRAM);
+                last = 0;
+                return true;
+            }
             else if (editing)
             {
                 // Stick to space role while editing, do not EVAL, repeat

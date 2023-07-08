@@ -334,6 +334,18 @@ void tests::data_types()
     test(CHS)
         .type(object::ID_neg_bignum).expect(mb);
 
+    step("Large fractions");
+    cstring bf =
+        "123456789012345678901234567890123456789012345678901234567890/"
+        "123456789012345678901234567890123456789012345678901234567891";
+    cstring mbf =
+        "-123456789012345678901234567890123456789012345678901234567890/"
+         "123456789012345678901234567890123456789012345678901234567891";
+    test(CLEAR, bf, ENTER)
+        .type(object::ID_big_fraction).expect(bf);
+    test(CHS)
+        .type(object::ID_neg_big_fraction).expect(mbf);
+
     clear();
 }
 

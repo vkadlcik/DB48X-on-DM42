@@ -264,16 +264,18 @@ size_t directory::purge(object_p ref)
 //    Purge a name (and associated value) from the directory
 // ----------------------------------------------------------------------------
 {
-    if (object_p name = lookup(ref))
+    if (object_g name = lookup(ref))
     {
-        size_t ns = name->size();
-        object_p value = name + ns;
-        size_t vs = value->size();
-        size_t purged = ns + vs;
+        size_t   ns     = name->size();
+        object_p value  = name + ns;
+        size_t   vs     = value->size();
+        size_t   purged = ns + vs;
+        object_p header = (object_p) payload();
+        object_p body   = header;
+        size_t   old    = leb128<size_t>(body); // Old size of directory
 
         rt.move_globals(name, name + purged);
 
-        size_t old = object::size();
         if (old < purged)
         {
             record(directory_error,
@@ -282,7 +284,6 @@ size_t directory::purge(object_p ref)
         }
 
         // Update header
-        object_p header = (object_p) payload();
         size_t now = old - purged;
         size_t oldh = leb128size(old);
         size_t nowh = leb128size(now);
@@ -444,7 +445,7 @@ COMMAND_BODY(Purge)
     object_p x = rt.stack(0);
     if (!x)
         return ERROR;
-    symbol_p name = x->as_quoted<symbol>();
+    symbol_g name = x->as_quoted<symbol>();
     if (!name)
     {
         rt.invalid_name_error();
@@ -474,7 +475,7 @@ COMMAND_BODY(PurgeAll)
     object_p x = rt.stack(0);
     if (!x)
         return ERROR;
-    symbol_p name = x->as_quoted<symbol>();
+    symbol_g name = x->as_quoted<symbol>();
     if (!name)
     {
         rt.invalid_name_error();

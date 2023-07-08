@@ -331,7 +331,11 @@ void tests::data_types()
     cstring mb = "-123456789012345678901234567890123456789012345678901234567890";
     test(CLEAR, b, ENTER)
         .type(object::ID_bignum).expect(b);
+    test(DOWN, ENTER)
+        .type(object::ID_bignum).expect(b);
     test(CHS)
+        .type(object::ID_neg_bignum).expect(mb);
+    test (DOWN, ENTER)
         .type(object::ID_neg_bignum).expect(mb);
 
     step("Large fractions");
@@ -343,7 +347,11 @@ void tests::data_types()
          "123456789012345678901234567890123456789012345678901234567891";
     test(CLEAR, bf, ENTER)
         .type(object::ID_big_fraction).expect(bf);
+    test(DOWN, ENTER)
+        .type(object::ID_big_fraction).expect(bf);
     test(CHS)
+        .type(object::ID_neg_big_fraction).expect(mbf);
+    test(DOWN, ENTER)
         .type(object::ID_neg_big_fraction).expect(mbf);
 
     clear();

@@ -99,7 +99,11 @@ RENDER_BODY(symbol)
 {
     size_t len = 0;
     utf8   txt = o->value(&len);
+    if (!r.equation())
+        r.put('\'');
     r.put(txt, len);
+    if (!r.equation())
+        r.put('\'');
     return r.size();
 }
 

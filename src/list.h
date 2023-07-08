@@ -124,13 +124,17 @@ struct equation : program
         return program::required_memory(i, bytes, len);
     }
 
+    // Building an equation from an object
+    equation(const algebraic_g &arg, id type = ID_equation);
+    static size_t required_memory(id i, const algebraic_g &arg);
+
     // Building equations from one or two arguments
     equation(id op, const algebraic_g &arg, id type = ID_equation);
     static size_t required_memory(id i, id op, const algebraic_g &arg);
     equation(id op, const algebraic_g &x, const algebraic_g &y, id type = ID_equation);
     static size_t required_memory(id i, id op, const algebraic_g &x, const algebraic_g &y);
 
-    symbol_p symbol() const;
+    object_p quoted(id type) const;
     static size_t size_in_equation(object_p obj);
 
     static int precedence(id type);
@@ -145,9 +149,9 @@ public:
     OBJECT_DECL(equation);
     PARSE_DECL(equation);
     RENDER_DECL(equation);
-    EVAL_DECL(equation);
 };
 typedef const equation *equation_p;
+typedef gcp<const equation> equation_g;
 
 
 struct array : list

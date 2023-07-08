@@ -488,15 +488,6 @@ RENDER_BODY(block)
 //
 // ============================================================================
 
-EVAL_BODY(equation)
-// ----------------------------------------------------------------------------
-//   Normal evaluation of an equation executes it
-// ----------------------------------------------------------------------------
-{
-    return do_execute(o);
-}
-
-
 PARSE_BODY(equation)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an equation
@@ -684,7 +675,7 @@ RENDER_BODY(equation)
 }
 
 
-symbol_p equation::symbol() const
+object_p equation::quoted(id ty) const
 // ----------------------------------------------------------------------------
 //   If an equation contains a single symbol, return that
 // ----------------------------------------------------------------------------
@@ -692,8 +683,8 @@ symbol_p equation::symbol() const
     byte  *p = (byte *) payload();
     size_t size = leb128<size_t>(p);
     object_p first = (object_p) p;
-    if (first->type() == ID_symbol && first->size() == size)
-        return (symbol_p) first;
+    if (first->type() == ty && first->size() == size)
+        return first;
     return nullptr;
 }
 
@@ -707,6 +698,49 @@ size_t equation::size_in_equation(object_p obj)
     if (obj->type() == ID_equation)
         return equation_p(obj)->length();
     return obj->size();
+}
+
+
+equation::equation(const algebraic_g &arg, id type)
+// ----------------------------------------------------------------------------
+//   Build an equation object from an object
+// ----------------------------------------------------------------------------
+    : program(nullptr, 0, type)
+{
+    byte *p = (byte *) payload();
+
+    // Compute the size of the program
+    size_t size =  size_in_equation(arg);
+
+    // Write the size of the program
+    p = leb128(p, size);
+
+    // Write the arguments
+    size_t objsize = 0;
+    byte_p objptr = nullptr;
+    if (arg->type() == ID_equation)
+    {
+        objptr = equation_p(algebraic_p(arg))->value(&objsize);
+    }
+    else
+    {
+        objsize = arg->size();
+        objptr = byte_p(arg);
+    }
+    memmove(p, objptr, objsize);
+    p += objsize;
+}
+
+
+size_t equation::required_memory(id type, const algebraic_g &arg)
+// ----------------------------------------------------------------------------
+//   Size of an equation object from an object
+// ----------------------------------------------------------------------------
+{
+    size_t size = size_in_equation(arg);
+    size += leb128size(size);
+    size += leb128size(type);
+    return size;
 }
 
 

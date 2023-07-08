@@ -305,15 +305,16 @@ MARKER_BODY(object)
 }
 
 
-symbol_p object::as_name() const
+object_p object::as_quoted(id ty) const
 // ----------------------------------------------------------------------------
-//   Check if something is a valid name
+//   Check if something is a quoted value of the given type
 // ----------------------------------------------------------------------------
+//   This is typically used to quote symbols or locals (e.g. 'A')
 {
-    if (type() == ID_symbol)
-        return (symbol_p) this;
+    if (type() == ty)
+        return this;
     if (equation_p eq = as<equation>())
-        return eq->symbol();
+        return eq->quoted(ty);
     return nullptr;
 }
 

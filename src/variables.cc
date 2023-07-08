@@ -367,15 +367,14 @@ COMMAND_BODY(Sto)
     object_p y = rt.stack(1);
     if (x && y)
     {
-        if (x->type() == ID_local)
+        if (local_p loc = x->as_quoted<local>())
         {
-            local_p local = (local_p) x;
-            size_t index = local->index();
+            size_t index = loc->index();
             if (rt.local(index, y))
                 return OK;
             return ERROR;
         }
-        symbol_p name = x->as_name();
+        symbol_p name = x->as_quoted<symbol>();
         if (!name)
         {
             rt.invalid_name_error();
@@ -403,16 +402,15 @@ COMMAND_BODY(Rcl)
     object_p x = rt.stack(0);
     if (!x)
         return ERROR;
-    if (x->type() == ID_local)
+    if (local_p loc = x->as_quoted<local>())
     {
-        local_p local = (local_p) x;
-        size_t index = local->index();
+        size_t index = loc->index();
         if (object_g obj = rt.local(index))
             if (rt.push(obj))
                 return OK;
         return ERROR;
     }
-    symbol_p name = x->as_name();
+    symbol_p name = x->as_quoted<symbol>();
     if (!name)
     {
         rt.invalid_name_error();
@@ -446,7 +444,7 @@ COMMAND_BODY(Purge)
     object_p x = rt.stack(0);
     if (!x)
         return ERROR;
-    symbol_p name = x->as_name();
+    symbol_p name = x->as_quoted<symbol>();
     if (!name)
     {
         rt.invalid_name_error();
@@ -476,7 +474,7 @@ COMMAND_BODY(PurgeAll)
     object_p x = rt.stack(0);
     if (!x)
         return ERROR;
-    symbol_p name = x->as_name();
+    symbol_p name = x->as_quoted<symbol>();
     if (!name)
     {
         rt.invalid_name_error();

@@ -244,7 +244,7 @@ void tests::data_types()
     step("Symbols");
     cstring symbol = "ABC123Z";
     test(CLEAR, symbol, ENTER)
-        .type(object::ID_symbol).expect(symbol);
+        .type(object::ID_equation).expect("'ABC123Z'");
 
     step("Text");
     cstring string = "\"Hello World\"";

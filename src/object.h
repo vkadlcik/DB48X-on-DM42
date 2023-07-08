@@ -666,9 +666,11 @@ struct object
     }
 
 
-    symbol_p as_name() const;
+    object_p as_quoted(id ty = ID_symbol) const;
+    template<typename T>
+    const T *as_quoted() const { return (const T *) as_quoted(T::static_id); }
     // ------------------------------------------------------------------------
-    //    Return object as a name
+    //    Return object as a valid quoted name (e.g. 'ABC')
     // ------------------------------------------------------------------------
 
 

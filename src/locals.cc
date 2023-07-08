@@ -211,9 +211,9 @@ RENDER_BODY(locals)
 }
 
 
-EXEC_BODY(locals)
+EVAL_BODY(locals)
 // ----------------------------------------------------------------------------
-//   Evaluate a program with locals
+//   Evaluate a program with locals (executes the code)
 // ----------------------------------------------------------------------------
 {
     object_g p   = object_p(o->payload());

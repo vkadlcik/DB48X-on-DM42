@@ -78,7 +78,7 @@ struct locals : program
 public:
     OBJECT_DECL(locals);
     PARSE_DECL(locals);
-    EXEC_DECL(locals);
+    EVAL_DECL(locals);
     RENDER_DECL(locals);
 };
 typedef const locals *locals_p;

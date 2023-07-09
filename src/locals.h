@@ -145,7 +145,7 @@ struct locals_stack
 //   A structure used in parser and renderer to identify locals
 // ----------------------------------------------------------------------------
 {
-    locals_stack(gcbytes names) : names_list(names), next(stack)
+    locals_stack(gcbytes names = nullptr) : names_list(names), next(stack)
     {
         stack = this;
     }
@@ -154,9 +154,10 @@ struct locals_stack
         stack = next;
     }
 
-    byte_p               names()        { return names_list; }
-    static locals_stack *current()      { return stack; }
-    locals_stack *       enclosing()    { return next; }
+    byte_p               names()         { return names_list; }
+    void                 names(byte_p n) { names_list = n; }
+    static locals_stack *current()       { return stack; }
+    locals_stack *       enclosing()     { return next; }
 
 private:
     static locals_stack *stack;

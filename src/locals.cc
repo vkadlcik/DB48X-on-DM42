@@ -282,24 +282,26 @@ PARSE_BODY(local)
     size_t index = 0;
     for (locals_stack *f = locals_stack::current(); f; f = f->enclosing())
     {
-        gcbytes names = f->names();
-
-        // Check if name is found in local frame
-        size_t count = leb128<size_t>(names.Safe());
-        for (size_t n = 0; n < count; n++)
+        // Need to null-check here because we create null locals parsing 'for'
+        if (gcbytes names = f->names())
         {
-            size_t nlen = leb128<size_t>(names.Safe());
-            if (nlen == len &&
-                strncasecmp(cstring(names.Safe()), cstring(source), nlen) == 0)
+            // Check if name is found in local frame
+            size_t count = leb128<size_t>(names.Safe());
+            for (size_t n = 0; n < count; n++)
             {
-                // Found a local name, return it
-                gcutf8 text   = source;
-                p.end         = len;
-                p.out         = rt.make<local>(ID_local, index);
-                return OK;
+                size_t nlen = leb128<size_t>(names.Safe());
+                if (nlen == len &&
+                    strncasecmp(cstring(names.Safe()), cstring(source), nlen) == 0)
+                {
+                    // Found a local name, return it
+                    gcutf8 text   = source;
+                    p.end         = len;
+                    p.out         = rt.make<local>(ID_local, index);
+                    return OK;
+                }
+                names += nlen;
+                index++;
             }
-            names += nlen;
-            index++;
         }
     }
 

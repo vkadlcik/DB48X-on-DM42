@@ -61,6 +61,7 @@ struct tests
     void arithmetic();
     void global_variables();
     void local_variables();
+    void for_loops();
 
     enum key
     {

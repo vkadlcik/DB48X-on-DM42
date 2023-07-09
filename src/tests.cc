@@ -69,6 +69,7 @@ void tests::run(bool onlyCurrent)
         arithmetic();
         global_variables();
         local_variables();
+        for_loops();
     }
     summary();
 
@@ -82,7 +83,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     step("Current test");
-    local_variables();
+    for_loops();
 }
 
 
@@ -582,6 +583,125 @@ void tests::local_variables()
     test(CLEAR, XEQ, "LocTest", ENTER, "PurgeAll", ENTER)
         .noerr();
 }
+
+
+void tests::for_loops()
+// ----------------------------------------------------------------------------
+//   Test simple for loops
+// ----------------------------------------------------------------------------
+{
+    begin("For loops");
+
+    step("Simple 1..10");
+    cstring pgm = "« 0 1 10 FOR i i SQ + NEXT »";
+    cstring pgmo = "« 0 1 10 for i i x² + next »";
+    test(CLEAR, pgm, ENTER)
+        .noerr()
+        .type(object::ID_program)
+        .expect(pgmo);
+    test(RUNSTOP)
+        .noerr()
+        .type(object::ID_integer)
+        .expect(385);
+
+    step("Algebraic 1..10");
+    pgm = "« 'X' 1 5 FOR i i SQ + NEXT »";
+    pgmo = "« 'X' 1 5 for i i x² + next »";
+    test(CLEAR, pgm, ENTER)
+        .noerr()
+        .type(object::ID_program)
+        .expect(pgmo);
+    test(RUNSTOP)
+        .noerr()
+        .type(object::ID_equation)
+        .expect("'X+1+4+9+16+25'");
+
+    step("Stepping by 2");
+    pgm = "« 0 1 10 FOR i i SQ + 2 STEP »";
+    pgmo = "« 0 1 10 for i i x² + 2 step »";
+    test(CLEAR, pgm, ENTER)
+        .noerr()
+        .type(object::ID_program)
+        .expect(pgmo);
+    test(RUNSTOP)
+        .noerr()
+        .type(object::ID_integer)
+        .expect(165);
+
+    step("Stepping by i");
+    pgm = "« 'X' 1 100 FOR i i SQ + i step »";
+    pgmo = "« 'X' 1 100 for i i x² + i step »";
+    test(CLEAR, pgm, ENTER)
+        .noerr()
+        .type(object::ID_program)
+        .expect(pgmo);
+    test(RUNSTOP)
+        .noerr()
+        .type(object::ID_equation)
+        .expect("'X+1+4+16+64+256+1024+4096'");
+
+    step("Negative stepping");
+    pgm = "« 0 10 1 FOR i i SQ + -1 STEP »";
+    pgmo = "« 0 10 1 for i i x² + -1 step »";
+    test(CLEAR, pgm, ENTER)
+        .noerr()
+        .type(object::ID_program)
+        .expect(pgmo);
+    test(RUNSTOP)
+        .noerr()
+        .type(object::ID_integer)
+        .expect(385);
+
+    step("Negative stepping algebraic");
+    pgm = "« 'X' 10 1 FOR i i SQ + -1 step »";
+    pgmo = "« 'X' 10 1 for i i x² + -1 step »";
+    test(CLEAR, pgm, ENTER)
+        .noerr()
+        .type(object::ID_program)
+        .expect(pgmo);
+    test(RUNSTOP)
+        .noerr()
+        .type(object::ID_equation)
+        .expect("'X+100+81+64+49+36+25+16+9+4+1'");
+
+    step("Fractional");
+    pgm = "« 'X' 0.1 0.9 FOR i i SQ + 0.1 step »";
+    pgmo = "« 'X' 0.1 0.9 for i i x² + 0.1 step »";
+    test(CLEAR, pgm, ENTER)
+        .noerr()
+        .type(object::ID_program)
+        .expect(pgmo);
+    test(RUNSTOP)
+        .noerr()
+        .type(object::ID_equation)
+        .expect("'X+0.01+0.04+0.09+0.16+0.25+0.36+0.49+0.64+0.81'");
+
+    step("Fractional down");
+    pgm = "« 'X' 0.9 0.1 FOR i i SQ + -0.1 step »";
+    pgmo = "« 'X' 0.9 0.1 for i i x² + -0.1 step »";
+    test(CLEAR, pgm, ENTER)
+        .noerr()
+        .type(object::ID_program)
+        .expect(pgmo);
+    test(RUNSTOP)
+        .noerr()
+        .type(object::ID_equation)
+        .expect("'X+0.81+0.64+0.49+0.36+0.25+0.16+0.09+0.04+0.01'");
+
+    step("Execute at least once");
+    pgm = "« 'X' 10 1 FOR i i SQ + NEXT »";
+    pgmo = "« 'X' 10 1 for i i x² + next »";
+    test(CLEAR, pgm, ENTER)
+        .noerr()
+        .type(object::ID_program)
+        .expect(pgmo);
+    test(RUNSTOP)
+        .noerr()
+        .type(object::ID_equation)
+        .expect("'X+100'");
+
+}
+
 
 
 // ============================================================================

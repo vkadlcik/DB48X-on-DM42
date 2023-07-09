@@ -47,27 +47,30 @@ struct loop : command
 //    Loop structures
 // ----------------------------------------------------------------------------
 {
-    loop(object_g body, id type);
+    loop(object_g body, symbol_g name, id type);
     result condition(bool &value) const;
 
-    static size_t required_memory(id i, object_g body)
+    static size_t required_memory(id i, object_g body, symbol_g name)
     {
-        return leb128size(i) + body->size();
+        return leb128size(i)
+            + (name ? object_p(symbol_p(name))->size() : 0)
+            + body->size();
     }
 
     static bool interrupted()   { return program::interrupted(); }
 
 protected:
     // Shared code for parsing and rendering, taking delimiters as input
+    static result object_parser(parser UNUSED &p,
+                                cstring open,
+                                cstring middle,
+                                cstring close1, id id1,
+                                cstring close2, id id2,
+                                bool    loopvar);
     intptr_t object_renderer(renderer &r,
-                             uint nsep, cstring seps[]) const;
-    static result object_parser(id type, parser UNUSED &p,
-                                uint nsep, cstring seps[]);
-    intptr_t object_renderer(renderer &r,
-                             cstring beg, cstring end) const;
-    static result object_parser(id type, parser UNUSED &p,
-                                cstring beg, cstring end);
-    static result counted(object_g body, bool stepping);
+                             cstring open, cstring middle, cstring close,
+                             bool loopvar = false) const;
+    static result counted(object_g body, bool stepping, bool named = false);
 
 public:
     SIZE_DECL(loop);
@@ -89,10 +92,6 @@ struct conditional_loop : loop
 
 protected:
     // Shared code for parsing and rendering, taking delimiters as input
-    intptr_t object_renderer(renderer &r,
-                             cstring beg, cstring mid, cstring end) const;
-    static result object_parser(id type, parser UNUSED &p,
-                                cstring beg, cstring mid, cstring end);
     static result counted(object_g body, bool stepping);
 
 public:
@@ -139,7 +138,8 @@ struct StartNext : loop
 //   start..next loop
 // ----------------------------------------------------------------------------
 {
-    StartNext(object_g body, id type): loop(body, type) {}
+    StartNext(object_g body, id type): loop(body, nullptr, type) {}
+    StartNext(object_g body, symbol_g n, id type): loop(body, n, type) {}
 
 public:
     OBJECT_DECL(StartNext);
@@ -171,11 +171,15 @@ struct ForNext : StartNext
 //   for..next loop
 // ----------------------------------------------------------------------------
 {
-    ForNext(object_g body, id type): StartNext(body, type) {}
+    ForNext(object_g body, symbol_g name, id type)
+        : StartNext(body, name, type) {}
+
+    static result counted(object_p o, bool stepping);
 
 public:
     OBJECT_DECL(ForNext);
     PARSE_DECL(ForNext);
+    SIZE_DECL(ForNext);
     EVAL_DECL(ForNext);
     RENDER_DECL(ForNext);
     INSERT_DECL(ForNext);
@@ -187,7 +191,8 @@ struct ForStep : ForNext
 //   for..step loop
 // ----------------------------------------------------------------------------
 {
-    ForStep(object_g body, id type): ForNext(body, type) {}
+    ForStep(object_g body, symbol_g name, id type)
+        : ForNext(body, name, type) {}
 
 public:
     OBJECT_DECL(ForStep);

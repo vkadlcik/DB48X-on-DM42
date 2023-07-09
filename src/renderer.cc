@@ -55,9 +55,21 @@ bool renderer::put(char c)
     if (written >= length)
         return false;
 
-    // Render flat for stack display
-    if (c == '\n' && flat)
-        c = ' ';
+    // Render flat for stack display: collect all spaces in one
+    if (flat)
+    {
+        if (isspace(c))
+        {
+            if (space)
+                return true;
+            c = ' ';
+            space = true;
+        }
+        else
+        {
+            space = false;
+        }
+    }
 
     if (saving)
     {

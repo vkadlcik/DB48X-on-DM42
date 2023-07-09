@@ -122,7 +122,7 @@ void stack::draw_stack()
         Screen.text(hdrx - w, y + idxOffset, utf8(buf), idxfont);
 
         object_g obj = rt.stack(level);
-        renderer r;
+        renderer r(nullptr, ~0U, true);
         size_t   len = obj->render(r);
         utf8     out = r.text();
 #ifdef SIMULATOR

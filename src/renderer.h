@@ -43,12 +43,12 @@ struct renderer
 {
     renderer(char *buffer = nullptr, size_t length = ~0U, bool flat = false)
         : target(buffer), length(length), written(0), saving(), tabs(0),
-          edit(buffer == nullptr), eq(false), flat(flat) {}
+          edit(buffer == nullptr), eq(false), flat(flat), space(false) {}
     renderer(bool equation, bool edit = false, bool flat = false)
         : target(nullptr), length(~0U), written(0), saving(), tabs(0),
-          edit(edit), eq(equation), flat(flat) {}
+          edit(edit), eq(equation), flat(flat), space(false) {}
     renderer(file *f): target(), length(~0U), written(0), saving(f), tabs(0),
-                       edit(true), eq(false), flat(false) {}
+                       edit(true), eq(false), flat(false), space(false) {}
     ~renderer();
 
     bool put(char c);
@@ -105,9 +105,10 @@ protected:
     size_t      written;        // Number of bytes written
     file *      saving;         // Save area for a program or object
     uint        tabs;           // Amount of indent
-    bool        edit : 1;       // For editor
-    bool        eq   : 1;       // As equation
-    bool        flat : 1;       // Flat (for stack rendering)
+    bool         edit  : 1;     // For editor
+    bool         eq    : 1;     // As equation
+    bool         flat  : 1;     // Flat (for stack rendering)
+    bool         space : 1;     // Had a space
 };
 
 #endif // RENDERER_H

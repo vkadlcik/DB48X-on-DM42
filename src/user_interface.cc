@@ -2549,8 +2549,9 @@ bool user_interface::handle_functions(int key)
 
             default:
                 // If we have the editor open, need to close it
-                if (!end_edit())
-                    return false;
+                if (ty != object::ID_SelfInsert)
+                    if (!end_edit())
+                        return false;
                 break;
             }
 

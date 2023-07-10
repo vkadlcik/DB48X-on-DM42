@@ -358,6 +358,7 @@ static size_t render_num(renderer &r, integer_p num, uint base, cstring fmt)
 
     // Check which kind of spacing to use
     bool based = *fmt == '#';
+    bool fancy_base = based && r.stack();
     uint spacing = based ? Settings.spacing_based : Settings.spacing_mantissa;
     unicode space = based ? Settings.space_based : Settings.space;
     if (r.editing())
@@ -393,8 +394,21 @@ static size_t render_num(renderer &r, integer_p num, uint base, cstring fmt)
     utf8_reverse(dest + findex, dest + r.size(), multibyte);
 
     // Add suffix
-    if (*fmt)
+    if (fancy_base)
+    {
+        static uint16_t fancy_base_digits[10] =
+        {
+                L'₀', L'₁', L'₂', L'₃', L'₄',
+                L'₅', L'₆', L'₇', L'₈', L'₉'
+        };
+        if (base / 10)
+            r.put(unicode(fancy_base_digits[base/10]));
+        r.put(unicode(fancy_base_digits[base%10]));
+    }
+    else if (*fmt)
+    {
         r.put(*fmt++);
+    }
 
     return r.size();
 }

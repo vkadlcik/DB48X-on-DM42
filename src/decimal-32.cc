@@ -135,9 +135,9 @@ PARSE_BODY(decimal32)
     // Check how many digits were given
     uint mantissa = s - digits - hadDecimalDot;
     record(decimal32, "Had %u digits, max %u", mantissa, BID32_MAXDIGITS);
-    if (mantissa >= BID32_MAXDIGITS)
+    if (mantissa > BID32_MAXDIGITS)
     {
-        rt.mantissa_error().source(digits + BID32_MAXDIGITS);
+        rt.mantissa_error().source(digits + mantissa);
         return WARN;                    // Try again with higher-precision
     }
 

@@ -21,6 +21,9 @@ This project was presented at [FOSDEM 2023][fosdem]
 
 [fosdem]: https://fosdem.org/2023/schedule/event/reversepolishlisp/
 
+[![Watch the video](https://img.youtube.com/vi/ea_ybeslGpA/maxresdefault.jpg)](https://youtu.be/ea_ybeslGpA)
+
+
 ## Why name the project DB48X?
 
 DB stands for "Dave and Bill", who are more commonly known as Hewlett and

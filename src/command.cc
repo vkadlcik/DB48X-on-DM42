@@ -315,6 +315,7 @@ COMMAND_BODY(ToText)
                 return OK;
     return ERROR;
 }
+
 COMMAND_BODY(SelfInsert)
 // ----------------------------------------------------------------------------
 //   Find the label associated to the menu and enter it in the editor

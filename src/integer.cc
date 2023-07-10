@@ -103,7 +103,7 @@ PARSE_BODY(integer)
     {
         s++;
         for (byte_p e = s; !endp; e++)
-            if (value[*e] == NODIGIT)
+            if (value[*e] == NODIGIT && *e != '#')
                 endp = e;
 
         if (endp > s)
@@ -183,6 +183,21 @@ PARSE_BODY(integer)
 
         while (!endp || s < endp)
         {
+            // Check new syntax for based numbers
+            if (*s == '#')
+            {
+                if (result < 2 || result > 36)
+                {
+                    rt.invalid_base_error().source(s);
+                    return ERROR;
+                }
+                base = result;
+                result = 0;
+                type = ID_based_integer;
+                s++;
+                continue;
+            }
+
             v = value[*s++];
             if (v == NODIGIT)
                 break;

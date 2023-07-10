@@ -243,6 +243,12 @@ void tests::data_types()
     test(CLEAR, "#DEADBEEFH", ENTER)
         .type(object::ID_hex_integer).expect("#DEADBEEFh");
 
+    step("Arbitrary base input");
+    test(CLEAR, "8#777", ENTER)
+        .type(object::ID_based_integer).expect("#1FF");
+    test(CLEAR, "2#10000#ABCDE", ENTER)
+        .type(object::ID_based_integer).expect("#ABCDE");
+
     step("Symbols");
     cstring symbol = "ABC123Z";
     test(CLEAR, symbol, ENTER)

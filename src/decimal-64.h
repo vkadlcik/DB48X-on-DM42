@@ -255,6 +255,6 @@ void bid64_mod(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
 void bid64_rem(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
 
 // Utlity common to all formats to format a number for display
-size_t decimal_format(char *buf, size_t len, bool editing);
+size_t decimal_format(char *buf, size_t len, bool editing, bool raw);
 
 #endif // DECIMAL64_H

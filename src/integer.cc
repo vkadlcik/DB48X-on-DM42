@@ -339,7 +339,11 @@ PARSE_BODY(integer)
 }
 
 
-static size_t render_num(renderer &r, integer_p num, uint base, cstring fmt)
+static size_t render_num(renderer &r,
+                         integer_p num,
+                         uint      base,
+                         cstring   fmt,
+                         bool      raw = false)
 // ----------------------------------------------------------------------------
 //   Convert an integer value to the proper format
 // ----------------------------------------------------------------------------
@@ -351,7 +355,7 @@ static size_t render_num(renderer &r, integer_p num, uint base, cstring fmt)
     if (r.file_save())
     {
         renderer tmp(r.equation(), r.editing(), r.stack());
-        size_t result = render_num(tmp, num, base, fmt);
+        size_t result = render_num(tmp, num, base, fmt, true);
         r.put(tmp.text(), result);
         return result;
     }
@@ -361,6 +365,13 @@ static size_t render_num(renderer &r, integer_p num, uint base, cstring fmt)
     bool fancy_base = based && r.stack();
     uint spacing = based ? Settings.spacing_based : Settings.spacing_mantissa;
     unicode space = based ? Settings.space_based : Settings.space;
+
+    if (raw)
+    {
+        fancy_base = false;
+        spacing = 0;
+        space = 0;
+    }
 
     // Copy the '#' or '-' sign
     if (*fmt)

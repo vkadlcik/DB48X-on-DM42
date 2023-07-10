@@ -215,7 +215,7 @@ PARSE_BODY(decimal32)
 // Trick to only put the decimal_format function inside decimal32.cc
 #if 32 == 64 + 64                      // Check if we are in decimal32.cc
 
-size_t decimal_format(char *buf, size_t len, bool editing)
+size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
 // ----------------------------------------------------------------------------
 //   Format the number according to our preferences
 // ----------------------------------------------------------------------------
@@ -244,6 +244,19 @@ size_t decimal_format(char *buf, size_t len, bool editing)
     uint            frac_spc = display.spacing_fraction;
     bool            fancy   = !editing && display.fancy_exponent;
     char            decimal = display.decimal_mark; // Can be '.' or ','
+
+    if (raw)
+    {
+        mode = display.NORMAL;
+        digits = BID32_MAXDIGITS;
+        std_exp = 9;
+        showdec = true;
+        space = 0;
+        mant_spc = 0;
+        frac_spc = 0;
+        fancy = false;
+        decimal = '.';
+    }
 
     static uint16_t fancy_digit[10] =
     {
@@ -506,7 +519,7 @@ RENDER_BODY(decimal32)
     record(decimal32, "Render raw output [%s] %+s",
            buf, r.editing() ? "editing" : "normal");
 
-    size_t sz = decimal_format(buf, sizeof(buf), !r.stack());
+    size_t sz = decimal_format(buf, sizeof(buf), !r.stack(), r.file_save());
     record(decimal32, "Render formatted output [%s]", buf);
 
     // And return it to the caller

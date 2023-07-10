@@ -255,6 +255,6 @@ void bid32_mod(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
 void bid32_rem(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
 
 // Utlity common to all formats to format a number for display
-size_t decimal_format(char *buf, size_t len, bool editing);
+size_t decimal_format(char *buf, size_t len, bool editing, bool raw);
 
 #endif // DECIMAL32_H

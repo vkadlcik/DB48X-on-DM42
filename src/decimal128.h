@@ -255,6 +255,6 @@ void bid128_mod(BID_UINT128 *pres, BID_UINT128 *px, BID_UINT128 *py);
 void bid128_rem(BID_UINT128 *pres, BID_UINT128 *px, BID_UINT128 *py);
 
 // Utlity common to all formats to format a number for display
-size_t decimal_format(char *buf, size_t len, bool editing);
+size_t decimal_format(char *buf, size_t len, bool editing, bool raw);
 
 #endif // DECIMAL128_H

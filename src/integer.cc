@@ -361,8 +361,6 @@ static size_t render_num(renderer &r, integer_p num, uint base, cstring fmt)
     bool fancy_base = based && r.stack();
     uint spacing = based ? Settings.spacing_based : Settings.spacing_mantissa;
     unicode space = based ? Settings.space_based : Settings.space;
-    if (r.editing())
-        spacing = 0;
 
     // Copy the '#' or '-' sign
     if (*fmt)

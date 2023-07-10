@@ -98,6 +98,7 @@ user_interface::user_interface()
       dirtyMenu(false),
       dynamicMenu(false),
       autoComplete(false),
+      adjustSeps(false),
       helpfile()
 {
     for (uint p = 0; p < NUM_PLANES; p++)
@@ -151,6 +152,7 @@ void user_interface::edit(unicode c, modes m)
     }
 
     mode = m;
+    adjustSeps = true;
 }
 
 
@@ -181,6 +183,7 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
     else if (offset < 0 && cursor > uint(-offset))
         cursor = cursor + offset;
 
+    adjustSeps = true;
     updateMode();
     return added == len ? object::OK : object::ERROR;
 }
@@ -210,6 +213,33 @@ bool user_interface::end_edit()
     size_t edlen = rt.editing();
     if (edlen)
     {
+        // Remove all additional decorative number spacing
+        byte   *ed   = rt.editor();
+        size_t  o    = 0;
+        bool    text = false;
+        unicode nspc = Settings.space;
+        unicode hspc = Settings.space_based;
+
+        while (o < edlen)
+        {
+            unicode cp = utf8_codepoint(ed + o);
+            if (cp == '"')
+            {
+                text = !text;
+                o += 1;
+            }
+            else if (!text && (cp == nspc || cp == hspc))
+            {
+                size_t ulen = utf8_size(cp);
+                rt.remove(o, ulen);
+                edlen -= ulen;
+            }
+            else
+            {
+                o += utf8_size(cp);
+            }
+        }
+
         gcutf8 editor = rt.close_editor();
         if (editor)
         {
@@ -374,42 +404,101 @@ void user_interface::updateMode()
 //   Scan the command line to check what the state is at the cursor
 // ----------------------------------------------------------------------------
 {
-    utf8 ed    = rt.editor();
-    utf8 last  = ed + cursor;
-    uint progs = 0;
-    uint lists = 0;
-    uint algs  = 0;
-    uint txts  = 0;
-    uint vecs  = 0;
-    uint hex   = 0;
+    utf8    ed    = rt.editor();
+    utf8    last  = ed + cursor;
+    uint    progs = 0;
+    uint    lists = 0;
+    uint    algs  = 0;
+    uint    txts  = 0;
+    uint    vecs  = 0;
+    uint    based = 0;
+    uint    inum  = 0;
+    uint    fnum  = 0;
+    uint    hnum  = 0;
+    unicode nspc  = Settings.space;
+    unicode hspc  = Settings.space_based;
+    unicode dmrk  = Settings.decimal_mark;
+    unicode emrk  = Settings.exponent_mark;
+    utf8    num   = nullptr;
 
     mode = DIRECT;
     for (utf8 p = ed; p < last; p = utf8_next(p))
     {
         unicode code = utf8_codepoint(p);
-        if (hex && (code < '0'
-                    || (code > '9' && code < 'A')
-                    || (code > 'Z' && code < 'a')
-                    || (code > 'z')))
-            hex = 0;
-        switch(code)
+
+        if (!txts)
         {
-        case '\'':      algs = 1 - algs;        break;
-        case '"':       txts = 1 - txts;        break;
-        case '{':       lists++;                break;
-        case '}':       lists--;                break;
-        case '[':       vecs++;                 break;
-        case ']':       vecs--;                 break;
-        case L'«':      progs++;                break;
-        case L'»':      progs--;                break;
-        case '#':       hex++;                  break;
+            if ((inum || fnum) && (code == emrk || code == '-'))
+            {
+
+            }
+            else if (code == nspc || code == hspc)
+            {
+                // Ignore all extra spacing in numbers
+                if (!num)
+                    num = p;
+            }
+            else if (based)
+            {
+                if  (code < '0'
+                 || (code > '9' && code < 'A')
+                 || (code > 'Z' && code < 'a')
+                 || (code > 'z'))
+                {
+                    based = 0;
+                }
+                else
+                {
+                    if (!num)
+                        num = p;
+                    hnum++;
+                }
+            }
+            else if (code >= '0' && code <= '9')
+            {
+                if (!num)
+                    num = p;
+                if (fnum)
+                    fnum++;
+                else
+                    inum++;
+            }
+            else if (code == dmrk)
+            {
+                if (!num)
+                    num = p;
+                fnum = 1;
+            }
+            else
+            {
+                // All other characters: reset numbering
+                based = inum = fnum = hnum = 0;
+                num = nullptr;
+            }
+
+            switch(code)
+            {
+            case '\'':      algs = 1 - algs;                break;
+            case '"':       txts = 1 - txts;                break;
+            case '{':       lists++;                        break;
+            case '}':       lists--;                        break;
+            case '[':       vecs++;                         break;
+            case ']':       vecs--;                         break;
+            case L'«':      progs++;                        break;
+            case L'»':      progs--;                        break;
+            case '#':       based++; hnum = 0; num = nullptr; break;
+            }
+        }
+        else if (code == '"')
+        {
+            txts = 1 - txts;
         }
     }
 
     if (txts)
         mode = TEXT;
-    else if (hex)
-        mode = HEXADECIMAL;
+    else if (based)
+        mode = BASED;
     else if (algs)
         mode = ALGEBRAIC;
     else if (vecs)
@@ -418,6 +507,85 @@ void user_interface::updateMode()
         mode = PROGRAM;
     else
         mode = DIRECT;
+
+    if (adjustSeps && (inum || fnum || hnum) && num)
+    {
+        // We are editing some kind of number. Insert relevant spacing.
+        size_t len = rt.editing();
+
+        // First identify the number range and remove all extra spaces in it
+        bool   isnum = true;
+        size_t frpos = 0;
+        size_t start = num - ed;
+        size_t o     = start;
+
+        while (o < len && isnum)
+        {
+            unicode code = utf8_codepoint(ed + o);
+
+            // Remove all spacing in the range
+            if (code == nspc || code == hspc)
+            {
+                size_t remove = utf8_size(code);
+                rt.remove(o, remove);
+                if (cursor > o)
+                    cursor -= remove;
+                len -= remove;
+                ed = rt.editor(); // Defensive coding (shouldn't move on remove)
+                continue;
+            }
+
+            isnum = ((code >= '0' && code <= '9')
+                     || (code >= 'A' && code <= 'Z')
+                     || (code >= 'a' && code <= 'z')
+                     || code == '+'
+                     || code == '-'
+                     || code == '#'
+                     || code == dmrk);
+            if (code == dmrk)
+                frpos = o + 1;
+            if (isnum)
+                o += utf8_size(code);
+        }
+
+        // Insert markers on the fractional part if necessary
+        if (frpos)
+        {
+            byte   encoding[4];
+            size_t ulen = utf8_encode(nspc, encoding);
+            uint   sf   = Settings.spacing_fraction;
+            size_t end  = o;
+
+            o = frpos - 1;
+            frpos += sf;
+            while (frpos < end)
+            {
+                if (!rt.insert(frpos, encoding, ulen))
+                    break;
+                if (cursor > frpos)
+                    cursor += ulen;
+                frpos += sf + ulen;
+                len += ulen;
+                end += ulen;
+            }
+        }
+
+        // Then insert markers on the integral part
+        byte   encoding[4];
+        uint sp = hnum ? Settings.spacing_based : Settings.spacing_mantissa;
+        unicode spc = hnum ? Settings.space_based : Settings.space;
+        size_t ulen = utf8_encode(spc, encoding);
+        while (o > start + sp)
+        {
+            o -= sp;
+            if (!rt.insert(o, encoding, ulen))
+                break;
+            if (cursor > o)
+                cursor += ulen;
+        }
+
+        adjustSeps = false;
+    }
 }
 
 
@@ -1080,7 +1248,7 @@ int user_interface::draw_cursor(uint time, uint &period, bool force)
                        : mode == PROGRAM     ? 'P'
                        : mode == ALGEBRAIC   ? 'A'
                        : mode == MATRIX      ? 'M'
-                       : mode == HEXADECIMAL ? 'B'
+                       : mode == BASED ? 'B'
                                              : 'X';
     size    csrh       = CursorFont->height();
     size    csrw       = CursorFont->width(cursorChar);
@@ -1739,7 +1907,7 @@ bool user_interface::noHelpForKey(int key)
             return true;
 
         // No help for A-F keys in hexadecimal entry mode
-        if (mode == HEXADECIMAL && (key >= KB_A && key <= KB_F))
+        if (mode == BASED && (key >= KB_A && key <= KB_F))
             return true;
     }
 
@@ -1966,7 +2134,7 @@ bool user_interface::handle_editing(int key)
         {
         case KEY_XEQ:
             // XEQ is used to enter algebraic / equation objects
-            if ((!editing  || mode != HEXADECIMAL) && !shift && !xshift)
+            if ((!editing  || mode != BASED) && !shift && !xshift)
             {
                 bool iseq = editing && mode == ALGEBRAIC;
                 edit(editing && iseq ? '(' : '\'', ALGEBRAIC);
@@ -2017,6 +2185,7 @@ bool user_interface::handle_editing(int key)
                 utf8 ed              = rt.editor();
                 uint after           = utf8_next(ed, cursor, editing);
                 rt.remove(cursor, after - cursor);
+                adjustSeps = true;
             }
             else if (!shift && cursor > 0)
             {
@@ -2025,6 +2194,7 @@ bool user_interface::handle_editing(int key)
                 uint before  = cursor;
                 cursor       = utf8_previous(ed, cursor);
                 rt.remove(cursor, before - cursor);
+                adjustSeps = true;
             }
             else
             {
@@ -2174,7 +2344,7 @@ bool user_interface::handle_alpha(int key)
 // ----------------------------------------------------------------------------
 {
     bool editing = rt.editing();
-    bool hex = editing && mode == HEXADECIMAL && key >= KB_A && key <= KB_F;
+    bool hex = editing && mode == BASED && key >= KB_A && key <= KB_F;
     if (!alpha || !key || ((key == KEY_ENTER || key == KEY_BSP) && !xshift) ||
         (key >= KEY_F1 && key <= KEY_F6))
         if (!hex)
@@ -2265,11 +2435,14 @@ bool user_interface::handle_digits(int key)
             byte    *ed = rt.editor();
             utf8 p      = ed + cursor;
             unicode  c  = 0;
+            unicode  dm = Settings.decimal_mark;
+            unicode  ns = Settings.space;
+            unicode  hs = Settings.space_based;
             while (p > ed)
             {
                 p = utf8_previous(p);
                 c = utf8_codepoint(p);
-                if ((c < '0' || c > '9') && c != (unicode) Settings.decimal_mark)
+                if ((c < '0' || c > '9') && c != dm && c != ns && c != hs)
                     break;
             }
 

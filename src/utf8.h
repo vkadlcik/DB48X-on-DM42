@@ -218,6 +218,15 @@ inline size_t utf8_encode(unicode cp, byte buffer[4])
 }
 
 
+inline size_t utf8_size(unicode cp)
+// ----------------------------------------------------------------------------
+//   Return the number of bytes required for a UTF-8 encoding of codepoint
+// ----------------------------------------------------------------------------
+{
+    return cp < 0x80 ? 1 : cp < 0x800 ? 2 : cp < 0x10000 ? 3 : 4;
+}
+
+
 inline uint utf8_length(utf8 text)
 // ----------------------------------------------------------------------------
 //    Return the length of the text in Unicode characters

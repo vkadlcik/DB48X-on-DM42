@@ -62,7 +62,7 @@ struct user_interface
         PROGRAM,                // Keys like 'sin' show as 'sin' in the editor
         ALGEBRAIC,              // Keys like 'sin' show as 'sin()'
         MATRIX,                 // Matrix/vector mode
-        HEXADECIMAL,            // Based number: A-F map switch to alpha
+        BASED,                  // Based number: A-F map switch to alpha
     };
 
     enum
@@ -180,6 +180,7 @@ protected:
     bool   dirtyMenu    : 1; // Menu label needs redraw
     bool   dynamicMenu  : 1; // Menu is dynamic, needs update after keystroke
     bool   autoComplete : 1; // Menu is auto-complete
+    bool   adjustSeps   : 1; // Need to adjust separators
 
 protected:
     // Key mappings

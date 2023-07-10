@@ -240,8 +240,8 @@ size_t decimal_format(char *buf, size_t len, bool editing)
     int             std_exp = display.standard_exp;
     bool            showdec = display.show_decimal;
     unicode         space   = display.space;
-    uint            mant_spc = editing ? 0 : display.spacing_mantissa;
-    uint            frac_spc = editing ? 0 : display.spacing_fraction;
+    uint            mant_spc = display.spacing_mantissa;
+    uint            frac_spc = display.spacing_fraction;
     bool            fancy   = !editing && display.fancy_exponent;
     char            decimal = display.decimal_mark; // Can be '.' or ','
 

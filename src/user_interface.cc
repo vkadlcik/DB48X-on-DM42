@@ -31,7 +31,6 @@
 
 #include "arithmetic.h"
 #include "command.h"
-#include "dm42/sysmenu.h"
 #include "functions.h"
 #include "graphics.h"
 #include "list.h"
@@ -54,6 +53,7 @@
 user_interface    ui;
 
 RECORDER(user_interface, 16, "ui processing");
+RECORDER(text_editor, 16, "Text editor");
 RECORDER(help,  16, "On-line help");
 
 #if SIMULATOR
@@ -903,6 +903,9 @@ void user_interface::draw_editor()
         cursx = cwidth;
     }
 
+    record(text_editor, "Rows %d/%d Colums %d/%d cursx %d",
+           edrow, rows, edcol, column, cursx);
+
     // Check if we want to move the cursor up or down
     if (up || down)
     {
@@ -946,33 +949,48 @@ void user_interface::draw_editor()
     }
 
     // Draw the area that fits on the screen
-    int  lineHeight      = font->height();
-    int  errorHeight     = rt.error() ? LCD_H / 3 : 0;
-    int  top             = HeaderFont->height() + errorHeight + 2;
-    int  bottom          = LCD_H - menuHeight;
-    int  availableHeight = bottom - top;
-    int  availableRows   = availableHeight / lineHeight;
-    int  displayRows     = (availableHeight + lineHeight - 1) / lineHeight;
-    utf8 display         = ed;
+    int   lineHeight      = font->height();
+    int   errorHeight     = rt.error() ? LCD_H / 3 + 10 : 0;
+    int   top             = HeaderFont->height() + errorHeight + 2;
+    int   bottom          = LCD_H - menuHeight;
+    int   availableHeight = bottom - top;
+    int   fullRows        = availableHeight / lineHeight;
+    int   clippedRows     = (availableHeight + lineHeight - 1) / lineHeight;
+    utf8  display         = ed;
+    coord y               = bottom - rows * lineHeight;
 
     graphics::rect clip = Screen.clip();
     Screen.clip(0, top, LCD_W, bottom);
     Screen.fill(pattern::white);
-    if (rows > availableRows)
+    record(text_editor, "Clip between %d and %d", top, bottom);
+    if (rows > fullRows)
     {
         // Skip rows to show the cursor
-        int skip = edrow < displayRows / 2         ? 0
-                 : edrow >= rows - displayRows / 2 ? rows - availableRows
-                                                   : edrow - displayRows / 2;
+        int half = fullRows / 2;
+        int skip = edrow < half         ? 0
+                 : edrow >= rows - half ? rows - fullRows
+                                        : edrow - half;
+        record(text_editor,
+               "Available %d, ed %d, displaying %d, skipping %d",
+               fullRows,
+               edrow,
+               clippedRows,
+               skip);
+
         for (int r = 0; r < skip; r++)
         {
             do
                 display = utf8_next(display);
             while (*display != '\n');
-            display = utf8_next(display);
         }
-        rows = availableRows;
+        if (skip)
+            display = utf8_next(display);
+        record(text_editor, "Truncated from %d to %d, text=%s",
+               rows, clippedRows, display);
+        rows = clippedRows;
+        y = top;
     }
+
 
     // Draw the editor rows
     int  hskip   = 64;
@@ -982,7 +1000,6 @@ void user_interface::draw_editor()
     else if (xoffset + LCD_W - cursw < cursx)
         xoffset = cursx - LCD_W + cursw + hskip;
 
-    coord y = bottom - rows * lineHeight;
     coord x = -xoffset;
     int   r = 0;
 

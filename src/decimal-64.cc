@@ -503,9 +503,10 @@ RENDER_BODY(decimal64)
     // Render in a separate buffer to avoid overflows
     char buf[MAXBIDCHAR];
     bid64_to_string(buf, &num.value);
-    record(decimal64, "Render raw output [%s]", buf);
+    record(decimal64, "Render raw output [%s] %+s",
+           buf, r.editing() ? "editing" : "normal");
 
-    size_t sz = decimal_format(buf, sizeof(buf), r.editing());
+    size_t sz = decimal_format(buf, sizeof(buf), !r.stack());
     record(decimal64, "Render formatted output [%s]", buf);
 
     // And return it to the caller

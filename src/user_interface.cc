@@ -389,8 +389,8 @@ void user_interface::updateMode()
         unicode code = utf8_codepoint(p);
         if (hex && (code < '0'
                     || (code > '9' && code < 'A')
-                    || (code > 'F' && code < 'a')
-                    || (code > 'f')))
+                    || (code > 'Z' && code < 'a')
+                    || (code > 'z')))
             hex = 0;
         switch(code)
         {

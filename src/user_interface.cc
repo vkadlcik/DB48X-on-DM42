@@ -2451,10 +2451,15 @@ bool user_interface::handle_digits(int key)
             if (c == 'e' || c == 'E' || c == Settings.exponent_mark)
                 c  = utf8_codepoint(p);
 
-            if (c             == '-' || c == '+')
-                *((byte *) p)  = '+' + '-' - c;
+            if (c == '-')
+            {
+                rt.remove(p - ed, 1);
+                cursor--;
+            }
             else
+            {
                 cursor        += rt.insert(p - ed, '-');
+            }
             last               = 0;
             return true;
         }

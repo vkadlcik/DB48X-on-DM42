@@ -1375,10 +1375,12 @@ graphics::coord graphics::surface<Mode>::text(coord       x,
     while (len)
     {
         unicode cp = utf8_codepoint(text);
-        utf8 next = utf8_next(text);
-        len -= (next - text);
+        size_t sz = utf8_size(cp);
+        if (sz > len)
+            break;              // Defensive coding, see #101
+        len -= sz;
         x = glyph<Clip>(x, y, cp, f, colors, op);
-        text = next;
+        text += sz;
     }
     return x;
 }
@@ -1400,10 +1402,12 @@ graphics::coord graphics::surface<Mode>::text(coord       x,
     while (len)
     {
         unicode cp = utf8_codepoint(text);
-        utf8 next = utf8_next(text);
-        len -= (next - text);
+        size_t sz = utf8_size(cp);
+        if (sz > len)
+            break;              // Defensive coding, see #101
+        len -= sz;
         x = glyph<Clip>(x, y, cp, f, fg, bg);
-        text = next;
+        text += sz;
     }
     return x;
 }

@@ -2446,8 +2446,7 @@ bool user_interface::handle_digits(int key)
                     break;
             }
 
-            if (p > ed)
-                p  = utf8_next(p);
+            utf8 i = p > ed ? utf8_next(p) : p;
             if (c == 'e' || c == 'E' || c == Settings.exponent_mark)
                 c  = utf8_codepoint(p);
 
@@ -2458,7 +2457,7 @@ bool user_interface::handle_digits(int key)
             }
             else
             {
-                cursor        += rt.insert(p - ed, '-');
+                cursor += rt.insert(i - ed, '-');
             }
             last               = 0;
             return true;

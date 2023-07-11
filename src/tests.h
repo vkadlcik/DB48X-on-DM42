@@ -63,6 +63,9 @@ struct tests
     void local_variables();
     void for_loops();
     void logical_operations();
+    void command_display_formats();
+    void integer_display_formats();
+    void decimal_display_formats();
 
     enum key
     {

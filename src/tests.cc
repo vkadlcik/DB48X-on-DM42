@@ -70,6 +70,9 @@ void tests::run(bool onlyCurrent)
         global_variables();
         local_variables();
         for_loops();
+        command_display_formats();
+        integer_display_formats();
+        decimal_display_formats();
     }
     summary();
 
@@ -82,8 +85,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    step("Current test");
-    logical_operations();
+    integer_display_formats();
 }
 
 
@@ -106,14 +108,10 @@ void tests::reset_settings()
         .noerr();
     step("Using 64-bit word size").test("64 StoreWordSize", ENTER).noerr();
     step("Disable spacing")
-        .test("0 NumberSpacing", ENTER)
-        .noerr()
-        .test("0 MantissaSpacing", ENTER)
-        .noerr()
-        .test("0 FractionSpacing", ENTER)
-        .noerr()
-        .test("0 BasedSpacing", ENTER)
-        .noerr();
+        .test("0 NumberSpacing", ENTER)         .noerr()
+        .test("0 MantissaSpacing", ENTER)       .noerr()
+        .test("0 FractionSpacing", ENTER)       .noerr()
+        .test("0 BasedSpacing", ENTER)          .noerr();
 }
 
 
@@ -761,6 +759,204 @@ void tests::logical_operations()
     test("dup not", ENTER).expect("#12₁₆");
     test("xor not", ENTER).expect("#0₁₆");
 }
+
+
+void tests::command_display_formats()
+// ----------------------------------------------------------------------------
+//   Check the various display formats for commands
+// ----------------------------------------------------------------------------
+{
+    begin("Commands display formats");
+
+    step("Commands");
+    // There is a trap in this command line
+    cstring prgm =
+        "«"
+        "  1 1.0"
+        "+ - * / ^ "
+        "sin cos tan asin acos atan "
+        "LowerCase PurgeAll Precision "
+        "start step next start step for i next for i step "
+        "while repeat end do until end » ";
+
+    test(CLEAR, prgm, ENTER).noerr();
+    step("Lower case");
+    test("lowercase", ENTER)
+        .expect("« 1 1. + - × ÷ pow sin cos tan asin acos atan lowercase "
+                "purgeall precision start step next start step for i next "
+                "for i step while repeat end do until end »");
+
+    step("Upper case");
+    test("UPPERCASE", ENTER)
+        .expect("« 1 1. + - × ÷ POW SIN COS TAN ASIN ACOS ATAN LOWERCASE "
+                "PURGEALL PRECISION START STEP next START STEP FOR i NEXT "
+                "FOR i STEP WHILE REPEAT END DO UNTIL END »");
+
+    step("Capitalized");
+    test("Capitalized", ENTER)
+        .expect("« 1 1. + - × ÷ Pow Sin Cos Tan Asin Acos Atan Lowercase "
+                "Purgeall Precision Start Step next Start Step For i Next "
+                "For i Step While Repeat End Do Until End »");
+
+    step("Long form");
+    test("LongForm", ENTER)
+        .expect("« 1 1. + - × ÷ ↑ sin cos tan sin⁻¹ cos⁻¹ tan⁻¹ LowerCase "
+                "PurgeAll Precision start step next start step for i next "
+                "for i step while repeat end do until end »");
+
+
+}
+
+
+void tests::integer_display_formats()
+// ----------------------------------------------------------------------------
+//   Check the various display formats for integer values
+// ----------------------------------------------------------------------------
+{
+    begin("Integer display formats");
+
+    step("Reset settings to defaults");
+    test(CLEAR)
+        .test("3 NumberSpacing", ENTER)         .noerr()
+        .test("3 MantissaSpacing", ENTER)       .noerr()
+        .test("5 FractionSpacing", ENTER)       .noerr()
+        .test("4 BasedSpacing", ENTER)          .noerr()
+        .test("NumberSpaces", ENTER)            .noerr()
+        .test("BasedSpaces", ENTER)             .noerr();
+
+    step("Default integer rendering");
+    test(CLEAR, 1, ENTER)
+        .type(object::ID_integer)
+        .expect("1");
+    test(CLEAR, 12, ENTER)
+        .type(object::ID_integer)
+        .expect("12");
+    test(CLEAR, 123, ENTER)
+        .type(object::ID_integer)
+        .expect("123");
+    test(CLEAR, 1234, ENTER)
+        .type(object::ID_integer)
+        .expect("1 234");
+    test(CLEAR, 12345, ENTER)
+        .type(object::ID_integer)
+        .expect("12 345");
+    test(CLEAR, 123456789, ENTER)
+        .type(object::ID_integer)
+        .expect("123 456 789");
+
+    step("No spacing");
+    test("0 MantissaSpacing", ENTER)
+        .expect("123456789");
+
+    step("Four spacing");
+    test("4 NumberSpacing", ENTER)
+        .expect("1 2345 6789");
+
+    step("Five spacing");
+    test("5 NumberSpacing", ENTER)
+        .expect("1234 56789");
+
+    step("Three spacing");
+    test("3 MantissaSpacing 5 FractionSpacing", ENTER)
+        .expect("123 456 789");
+
+    step("Comma spacing");
+    test("NumberDotOrComma", ENTER)
+        .expect("123,456,789");
+
+    step("Dot spacing");
+    test("DecimalComma", ENTER)
+        .expect("123.456.789");
+
+    step("Ticks spacing");
+    test("DecimalDot", ENTER)
+        .expect("123,456,789");
+    test("NumberTicks", ENTER)
+        .expect("123’456’789");
+
+    step("Underscore spacing");
+    test("NumberUnderscore", ENTER)
+        .expect("123_456_789");
+
+    step("Space spacing");
+    test("NumberSpaces", ENTER)
+        .expect("123 456 789");
+
+    step("Big integer rendering");
+    test(CLEAR, "123456789012345678901234567890", ENTER)
+        .type(object::ID_bignum)
+        .expect("123 456 789 012 345 678 901 234 567 890");
+
+    step("Entering numbers with spacing");
+    test(CLEAR, "FancyExponent", ENTER).noerr();
+
+    test(CLEAR, "1").editor("1");
+    test(CHS).editor("-1");
+    test(CHS).editor("1");
+    test("2").editor("12");
+    test("3").editor("123");
+    test("4").editor("1 234");
+    test("5").editor("12 345");
+    test(CHS).editor("-12 345");
+    test(EEX).editor("-12 345⁳");
+    test("34").editor("-12 345⁳34");
+    test(CHS).editor("-12 345⁳-34");
+    test(" ").editor("-12 345⁳-34 ");
+    test("12345.45678901234").editor("-12 345⁳-34 12 345.45678 90123 4");
+    test(ENTER).noerr();
+
+    step("Based number rendering");
+    test(CLEAR, "#1234ABCDEFH", ENTER)
+        .type(object::ID_hex_integer)
+        .expect("#12 34AB CDEF₁₆");
+
+    step("Two spacing");
+    test("2 BasedSpacing", ENTER)
+        .expect("#12 34 AB CD EF₁₆");
+
+    step("Three spacing");
+    test("3 BasedSpacing", ENTER)
+        .expect("#1 234 ABC DEF₁₆");
+
+    step("Four spacing");
+    test("4 BasedSpacing", ENTER)
+        .expect("#12 34AB CDEF₁₆");
+
+    step("Comma spacing");
+    test("BasedDotOrComma", ENTER)
+        .expect("#12,34AB,CDEF₁₆");
+
+    step("Dot spacing");
+    test("DecimalComma", ENTER)
+        .expect("#12.34AB.CDEF₁₆");
+
+    step("Ticks spacing");
+    test("DecimalDot", ENTER)
+        .expect("#12,34AB,CDEF₁₆");
+    test("BasedTicks", ENTER)
+        .expect("#12’34AB’CDEF₁₆");
+
+    step("Underscore spacing");
+    test("BasedUnderscore", ENTER)
+        .expect("#12_34AB_CDEF₁₆");
+
+    step("Space spacing");
+    test("BasedSpaces", ENTER)
+        .expect("#12 34AB CDEF₁₆");
+
+}
+
+
+void tests::decimal_display_formats()
+// ----------------------------------------------------------------------------
+//   Check the various display formats for decimal values
+// ----------------------------------------------------------------------------
+{
+    begin("Decimal display formats");
+
+
+}
+
 
 
 // ============================================================================

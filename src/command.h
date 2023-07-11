@@ -54,7 +54,7 @@ struct command : object
     // ------------------------------------------------------------------------
     {
         const Obj *obj = rt.stack(level);
-        if (obj && obj->type() == Obj::static_type())
+        if (obj && obj->type() == Obj::static_id)
             return (Obj *) obj;
         return def;
     }

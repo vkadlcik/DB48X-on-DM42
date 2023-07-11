@@ -212,7 +212,7 @@ struct special_bignum : bignum
 
 public:
     // Can't use the OBJECT_DECL and RENDER_DECL macros here
-    static id static_type() { return Type; }
+    static const id static_id = Type;
     static size_t do_render(const special_bignum *o, renderer &r);
 };
 

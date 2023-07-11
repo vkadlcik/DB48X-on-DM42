@@ -136,7 +136,7 @@ struct special_integer : integer
     special_integer(Int value, id type = Type): integer(value, type) {}
 
 public:
-    static id static_type()             { return Type; }
+    static const id static_id = Type;
     PARSE_DECL(special_integer)         { return SKIP; }
     RENDER_DECL(special_integer);
 };

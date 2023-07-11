@@ -108,7 +108,7 @@ struct sparse_font : font
 // ----------------------------------------------------------------------------
 {
     sparse_font(id type = ID_sparse_font): font(type) {}
-    static id static_type() { return ID_sparse_font; }
+    OBJECT_DECL(sparse_font);
     bool glyph(unicode codepoint, glyph_info &g) const;
     fuint height();
 };
@@ -121,7 +121,7 @@ struct dense_font : font
 // ----------------------------------------------------------------------------
 {
     dense_font(id type = ID_dense_font): font(type) {}
-    static id static_type() { return ID_dense_font; }
+    OBJECT_DECL(dense_font);
     bool glyph(unicode codepoint, glyph_info &g) const;
     fuint height();
 };
@@ -143,7 +143,7 @@ struct dmcp_font : font
         return leb128size(i) + leb128size(index);
     }
 
-    static id static_type() { return ID_dmcp_font; }
+    OBJECT_DECL(dense_font);
     fint index() const      { byte_p p = payload(this); return leb128<fint>(p); }
 
     bool glyph(unicode codepoint, glyph_info &g) const;

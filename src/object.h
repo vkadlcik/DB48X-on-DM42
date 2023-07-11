@@ -660,7 +660,7 @@ struct object
     // ------------------------------------------------------------------------
     {
         id t = type();
-        if (t >= Obj::static_type() && t <= Derived::static_type())
+        if (t >= Obj::static_id && t <= Derived::static_id)
             return (const Obj *) this;
         return nullptr;
     }

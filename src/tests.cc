@@ -73,6 +73,8 @@ void tests::run(bool onlyCurrent)
         command_display_formats();
         integer_display_formats();
         decimal_display_formats();
+        integer_numerical_functions();
+        decimal_numerical_functions();
     }
     summary();
 
@@ -85,7 +87,8 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    decimal_display_formats();
+    integer_numerical_functions();
+    decimal_numerical_functions();
 }
 
 
@@ -1078,6 +1081,105 @@ void tests::decimal_display_formats()
         .test(CHS).expect("-2.00⁳⁻¹¹");
 }
 
+
+void tests::integer_numerical_functions()
+// ----------------------------------------------------------------------------
+//   Test integer numerical functions
+// ----------------------------------------------------------------------------
+{
+    begin("Integer functions");
+
+    step("neg")
+        .test(CLEAR, "3 neg", ENTER).expect("-3")
+        .test("negate", ENTER).expect("3");
+    step("inv")
+        .test(CLEAR, "3 inv", ENTER).expect("1/3")
+        .test("invert", ENTER).expect("3")
+        .test(CLEAR, "-3 inv", ENTER).expect("-1/3")
+        .test("invert", ENTER).expect("-3");
+    step("sq (square)")
+        .test(CLEAR, "-3 sq", ENTER).expect("9")
+        .test("sq", ENTER).expect("81");
+    step("cubed")
+        .test(CLEAR, "3 cubed", ENTER).expect("27")
+        .test("cubed", ENTER).expect("19 683")
+        .test(CLEAR, "-3 cubed", ENTER).expect("-27")
+        .test("cubed", ENTER).expect("-19 683");
+    step("abs")
+        .test(CLEAR, "-3 abs", ENTER).expect("3")
+        .test("abs", ENTER).expect("3");
+    step("norm").test("-5 norm", ENTER).expect("5");
+}
+
+
+void tests::decimal_numerical_functions()
+// ----------------------------------------------------------------------------
+//   Test decimal numerical functions
+// ----------------------------------------------------------------------------
+{
+    begin("Decimal functions");
+
+    step("neg")
+        .test(CLEAR, "3.21 neg", ENTER).expect("-3.21")
+        .test("negate", ENTER).expect("3.21");
+    step("inv")
+        .test(CLEAR, "3.21 inv", ENTER).expect("3.11526 47975 07788 1620⁳⁻¹")
+        .test("invert", ENTER).expect("3.21");
+    step("sq (square)")
+        .test(CLEAR, "-3.21 sq", ENTER).expect("10.3041")
+        .test("sq", ENTER).expect("106.17447 681");
+    step("cubed")
+        .test(CLEAR, "3.21 cubed", ENTER).expect("33.07616 1")
+        .test("cubed", ENTER).expect("36 186.39267 80659 01161")
+        .test(CLEAR, "-3 cubed", ENTER).expect("-27")
+        .test("cubed", ENTER).expect("-19 683");
+    step("abs")
+        .test(CLEAR, "-3.21 abs", ENTER).expect("3.21")
+        .test("abs", ENTER).expect("3.21");
+
+#define TFN(name, result)                                               \
+    step(#name).test(CLEAR, "0.321 " #name, ENTER).expect(result);
+
+    TFN(sqrt, "5.66568 61896 86117 7993⁳⁻¹");
+    TFN(sin, "3.15515 63859 27271 1131⁳⁻¹");
+    TFN(cos, "9.48920 37695 65830 1754⁳⁻¹");
+    TFN(tan, "3.32499 59243 64718 7511⁳⁻¹");
+    TFN(asin, "3.26785 17653 14954 6327⁳⁻¹");
+    TFN(acos, "1.24401 11502 63401 1560");
+    TFN(atan, "3.10609 79281 38899 1761⁳⁻¹");
+    TFN(sinh, "3.26541 16495 18063 5701⁳⁻¹");
+    TFN(cosh, "1.05196 44159 41947 5384");
+    TFN(tanh, "3.10410 84660 58860 2149⁳⁻¹");
+    TFN(asinh, "3.15728 26582 93796 1791⁳⁻¹");
+    TFN(acosh, "0.321");
+    TFN(atanh, "3.32761 58848 18145 9580⁳⁻¹");
+    TFN(log1p, "2.78389 02554 01882 6677⁳⁻¹");
+    TFN(ln1p, "'ln1p'");
+    TFN(expm1, "3.78505 58089 37538 9545⁳⁻¹");
+    TFN(log, "-1.13631 41558 52121 1874");
+    TFN(log10, "-4.93494 96759 51279 2187⁳⁻¹");
+    TFN(exp, "1.37850 55808 93753 8954");
+    TFN(exp10, "2.09411 24558 50892 6705");
+    TFN(exp2, "1.24919 61256 53376 7005");
+    TFN(erf, "3.50144 22082 00238 2355⁳⁻¹");
+    TFN(erfc, "6.49855 77917 99761 7645⁳⁻¹");
+    TFN(tgamma, "2.78663 45408 45472 3680");
+    TFN(gamma, "2.78663 45408 45472 3680");
+    TFN(lgamma, "1.02483 46099 57313 1987");
+    TFN(cbrt, "6.84702 12775 72241 6184⁳⁻¹");
+    TFN(norm, "0.321");
+#undef TFN
+
+    step("pow")
+        ,test(CLEAR, "3.21 1.23 pow", ENTER)
+        .expect("4.19760 13402 69557 0313")
+        .test(CLEAR, "1.23 2.31").shifts(true,false,false,false).test(B)
+        .expect("1.61317 24907 55543 8443");
+
+    step("hypot")
+        .test(CLEAR, "3.21 1.23 hypot", ENTER)
+        .expect("3.43758 63625 51492 3200");
+}
 
 
 // ============================================================================

@@ -66,6 +66,8 @@ struct tests
     void command_display_formats();
     void integer_display_formats();
     void decimal_display_formats();
+    void integer_numerical_functions();
+    void decimal_numerical_functions();
 
     enum key
     {

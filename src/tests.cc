@@ -30,10 +30,10 @@
 #include "tests.h"
 
 #include "dmcp.h"
-#include "user_interface.h"
 #include "recorder.h"
 #include "settings.h"
 #include "stack.h"
+#include "user_interface.h"
 
 #include <regex.h>
 #include <stdio.h>
@@ -43,8 +43,8 @@ extern volatile int lcd_needsupdate;
 
 RECORDER_DECLARE(errors);
 
-uint         wait_time  = 10;
-uint         delay_time = 2;
+uint wait_time  = 10;
+uint delay_time = 2;
 
 void tests::run(bool onlyCurrent)
 // ----------------------------------------------------------------------------
@@ -54,10 +54,10 @@ void tests::run(bool onlyCurrent)
     tindex = sindex = cindex = count = 0;
     failures.clear();
 
-    auto tracing = RECORDER_TRACE(errors);
+    auto tracing           = RECORDER_TRACE(errors);
     RECORDER_TRACE(errors) = false;
 
-    Settings = settings();       // Reset to default settings
+    Settings               = settings(); // Reset to default settings
 
     current();
     if (!onlyCurrent)
@@ -83,7 +83,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     step("Current test");
-    for_loops();
+    logical_operations();
 }
 
 
@@ -93,35 +93,27 @@ void tests::reset_settings()
 // ----------------------------------------------------------------------------
 {
     begin("Reset settings");
-    step("Numerical settings")
-        .test("StandardDisplay", ENTER)
-        .noerr();
-    step("Switching to degrees")
-        .test("Degrees", ENTER)
-        .noerr();
-    step("Using long form for commands")
-        .test("LongForm", ENTER)
-        .noerr();
-    step("Using dot as fractional mark")
-        .test("DecimalDot", ENTER)
-        .noerr();
-    step("Setting trailing decimal")
-        .test("TrailingDecimal", ENTER)
-        .noerr();
+    step("Numerical settings").test("StandardDisplay", ENTER).noerr();
+    step("Switching to degrees").test("Degrees", ENTER).noerr();
+    step("Using long form for commands").test("LongForm", ENTER).noerr();
+    step("Using dot as fractional mark").test("DecimalDot", ENTER).noerr();
+    step("Setting trailing decimal").test("TrailingDecimal", ENTER).noerr();
     step("Using default 34-digit precision")
         .test("34 Precision", ENTER)
         .noerr();
     step("Using 1E10, not fancy unicode exponent")
         .test("ClassicExponent", ENTER)
         .noerr();
-    step("Using 64-bit word size")
-        .test("64 StoreWordSize", ENTER)
-        .noerr();
+    step("Using 64-bit word size").test("64 StoreWordSize", ENTER).noerr();
     step("Disable spacing")
-        .test("0 NumberSpacing", ENTER).noerr()
-        .test("0 MantissaSpacing", ENTER).noerr()
-        .test("0 FractionSpacing", ENTER).noerr()
-        .test("0 BasedSpacing", ENTER).noerr();
+        .test("0 NumberSpacing", ENTER)
+        .noerr()
+        .test("0 MantissaSpacing", ENTER)
+        .noerr()
+        .test("0 FractionSpacing", ENTER)
+        .noerr()
+        .test("0 BasedSpacing", ENTER)
+        .noerr();
 }
 
 
@@ -132,42 +124,74 @@ void tests::shift_logic()
 {
     begin("Shift logic");
     step("Shift state must be cleared at start")
-        .shift(false).xshift(false).alpha(false).lower(false);
+        .shift(false)
+        .xshift(false)
+        .alpha(false)
+        .lower(false);
 
     step("Shift basic cycle")
         .test(SHIFT)
-        .shift(true).xshift(false).alpha(false).lower(false);
+        .shift(true)
+        .xshift(false)
+        .alpha(false)
+        .lower(false);
     step("Shift-Shift is Right Shift")
         .test(SHIFT)
-        .shift(false).xshift(true).alpha(false).lower(false);
+        .shift(false)
+        .xshift(true)
+        .alpha(false)
+        .lower(false);
     step("Third shift clears all shifts")
         .test(SHIFT)
-        .shift(false).xshift(false).alpha(false).lower(false);
+        .shift(false)
+        .xshift(false)
+        .alpha(false)
+        .lower(false);
 
     step("Shift second cycle")
         .test(SHIFT)
-        .shift(true).xshift(false).alpha(false).lower(false);
+        .shift(true)
+        .xshift(false)
+        .alpha(false)
+        .lower(false);
     step("Shift second cycle: Shift-Shift is Right Shift")
         .test(SHIFT)
-        .shift(false).xshift(true).alpha(false).lower(false);
+        .shift(false)
+        .xshift(true)
+        .alpha(false)
+        .lower(false);
     step("Shift second cycle: Third shift clears all shifts")
         .test(SHIFT)
-        .shift(false).xshift(false).alpha(false).lower(false);
+        .shift(false)
+        .xshift(false)
+        .alpha(false)
+        .lower(false);
 
     step("Long-press shift is Alpha")
-        .test(SHIFT, false).wait(600).test(RELEASE)
-        .shift(false).xshift(false).alpha(true);
+        .test(SHIFT, false)
+        .wait(600)
+        .test(RELEASE)
+        .shift(false)
+        .xshift(false)
+        .alpha(true);
     step("Long-press shift clears Alpha")
-        .test(SHIFT, false).wait(600).test(RELEASE)
-        .shift(false).xshift(false).alpha(false);
+        .test(SHIFT, false)
+        .wait(600)
+        .test(RELEASE)
+        .shift(false)
+        .xshift(false)
+        .alpha(false);
 
     step("Typing alpha")
         .test(LONGPRESS, SHIFT, A)
-        .shift(false).alpha(true).lower(false)
+        .shift(false)
+        .alpha(true)
+        .lower(false)
         .editor("A");
     step("Selecting lowercase with Shift-ENTER")
         .test(SHIFT, ENTER)
-        .alpha(true).lower(true);
+        .alpha(true)
+        .lower(true);
 }
 
 
@@ -195,12 +219,14 @@ void tests::keyboard_entry()
     test(CLEAR, seps).editor(seps).wait(500);
 
     step("Separators with auto-spacing");
-    cstring seps2 = "{}()[]";
+    cstring seps2     = "{}()[]";
     cstring seps2auto = "{ } ( ) []";
     test(CLEAR, seps2).editor(seps2auto).wait(500);
 
     step("Key repeat");
-    test(CLEAR, LONGPRESS, SHIFT, LONGPRESS, A).wait(1000).test(RELEASE)
+    test(CLEAR, LONGPRESS, SHIFT, LONGPRESS, A)
+        .wait(1000)
+        .test(RELEASE)
         .check(ui.cursor > 4);
 }
 
@@ -213,104 +239,106 @@ void tests::data_types()
     begin("Data types");
 
     step("Positive integer");
-    test(CLEAR, "1", ENTER)
-        .type(object::ID_integer).expect("1");
+    test(CLEAR, "1", ENTER).type(object::ID_integer).expect("1");
     step("Negative integer");
-    test(CLEAR, "1", CHS, ENTER)
-        .type(object::ID_neg_integer).expect("-1");
+    test(CLEAR, "1", CHS, ENTER).type(object::ID_neg_integer).expect("-1");
 
     step("Binary based integer");
     test(CLEAR, "#10010101b", ENTER)
-        .type(object::ID_bin_integer).expect("#10010101b");
-    test(CLEAR, "#101B", ENTER)
-        .type(object::ID_bin_integer).expect("#101b");
+        .type(object::ID_bin_integer)
+        .expect("#10010101b");
+    test(CLEAR, "#101B", ENTER).type(object::ID_bin_integer).expect("#101b");
 
     step("Decimal based integer");
     test(CLEAR, "#12345d", ENTER)
-        .type(object::ID_dec_integer).expect("#12345d");
-    test(CLEAR, "#123D", ENTER)
-        .type(object::ID_dec_integer).expect("#123d");
+        .type(object::ID_dec_integer)
+        .expect("#12345d");
+    test(CLEAR, "#123D", ENTER).type(object::ID_dec_integer).expect("#123d");
 
     step("Octal based integer");
     test(CLEAR, "#12345o", ENTER)
-        .type(object::ID_oct_integer).expect("#12345o");
-    test(CLEAR, "#123O", ENTER)
-        .type(object::ID_oct_integer).expect("#123o");
+        .type(object::ID_oct_integer)
+        .expect("#12345o");
+    test(CLEAR, "#123O", ENTER).type(object::ID_oct_integer).expect("#123o");
 
     step("Hexadecimal based integer");
     test(CLEAR, "#1234ABCDH", ENTER)
-        .type(object::ID_hex_integer).expect("#1234ABCDh");
+        .type(object::ID_hex_integer)
+        .expect("#1234ABCDh");
     test(CLEAR, "#DEADBEEFH", ENTER)
-        .type(object::ID_hex_integer).expect("#DEADBEEFh");
+        .type(object::ID_hex_integer)
+        .expect("#DEADBEEFh");
 
     step("Arbitrary base input");
-    test(CLEAR, "8#777", ENTER)
-        .type(object::ID_based_integer).expect("#1FF");
+    test(CLEAR, "8#777", ENTER).type(object::ID_based_integer).expect("#1FF");
     test(CLEAR, "2#10000#ABCDE", ENTER)
-        .type(object::ID_based_integer).expect("#ABCDE");
+        .type(object::ID_based_integer)
+        .expect("#ABCDE");
 
     step("Symbols");
     cstring symbol = "ABC123Z";
-    test(CLEAR, symbol, ENTER)
-        .type(object::ID_equation).expect("'ABC123Z'");
+    test(CLEAR, symbol, ENTER).type(object::ID_equation).expect("'ABC123Z'");
 
     step("Text");
     cstring string = "\"Hello World\"";
-    test(CLEAR, string, ENTER)
-        .type(object::ID_text).expect(string);
+    test(CLEAR, string, ENTER).type(object::ID_text).expect(string);
 
     step("List");
     cstring list = "{ A 1 3 }";
-    test(CLEAR, list, ENTER)
-        .type(object::ID_list).expect(list);
+    test(CLEAR, list, ENTER).type(object::ID_list).expect(list);
 
     step("Program");
     cstring prgm = "« 1 + sin »";
     test(CLEAR, SHIFT, RUNSTOP, 1, ADD, "sin", ENTER)
-        .type(object::ID_program).expect(prgm);
+        .type(object::ID_program)
+        .expect(prgm);
 
     step("Equation");
     cstring eqn = "'X+1'";
-    test(CLEAR, XEQ, X, ENTER, KEY1, ADD)
-        .type(object::ID_equation).expect(eqn);
+    test(CLEAR, XEQ, X, ENTER, KEY1, ADD).type(object::ID_equation).expect(eqn);
     cstring eqn2 = "'sin(X+1)'";
-    test(SIN)
-        .type(object::ID_equation).expect(eqn2);
-    test(DOWN, ENTER)
-        .type(object::ID_equation).expect(eqn2);
+    test(SIN).type(object::ID_equation).expect(eqn2);
+    test(DOWN, ENTER).type(object::ID_equation).expect(eqn2);
     step("Equation parsing and simplification");
     test(CLEAR, "'(((A))+(B))-(C+D)'", ENTER)
-        .type(object::ID_equation).expect("'A+B-(C+D)'");
+        .type(object::ID_equation)
+        .expect("'A+B-(C+D)'");
     step("equation fancy rendering");
     test(CLEAR,
-         XEQ, X, ENTER, INV,
-         XEQ, Y, ENTER, SHIFT, SQRT,
-         XEQ, Z, ENTER, "CUBED", ENTER,
-         ADD, ADD)
-        .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)'");
+         XEQ,
+         X,
+         ENTER,
+         INV,
+         XEQ,
+         Y,
+         ENTER,
+         SHIFT,
+         SQRT,
+         XEQ,
+         Z,
+         ENTER,
+         "CUBED",
+         ENTER,
+         ADD,
+         ADD)
+        .type(object::ID_equation)
+        .expect("'X⁻¹+(Y²+Z³)'");
     step("Equation fancy parsing from editor");
-    test(DOWN, "   ", ENTER)
-        .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)'");
+    test(DOWN, "   ", ENTER).type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)'");
 
     step("Fractions");
-    test(CLEAR, "1/3", ENTER)
-        .type(object::ID_fraction).expect("1/3");
-    test(CLEAR, "20/60", ENTER)
-        .type(object::ID_fraction).expect("1/3");
-    test(CLEAR, "-80/60", ENTER)
-        .type(object::ID_neg_fraction).expect("-4/3");
+    test(CLEAR, "1/3", ENTER).type(object::ID_fraction).expect("1/3");
+    test(CLEAR, "20/60", ENTER).type(object::ID_fraction).expect("1/3");
+    test(CLEAR, "-80/60", ENTER).type(object::ID_neg_fraction).expect("-4/3");
 
     step("Large integers");
     cstring b = "123456789012345678901234567890123456789012345678901234567890";
-    cstring mb = "-123456789012345678901234567890123456789012345678901234567890";
-    test(CLEAR, b, ENTER)
-        .type(object::ID_bignum).expect(b);
-    test(DOWN, ENTER)
-        .type(object::ID_bignum).expect(b);
-    test(CHS)
-        .type(object::ID_neg_bignum).expect(mb);
-    test (DOWN, ENTER)
-        .type(object::ID_neg_bignum).expect(mb);
+    cstring mb =
+        "-123456789012345678901234567890123456789012345678901234567890";
+    test(CLEAR, b, ENTER).type(object::ID_bignum).expect(b);
+    test(DOWN, ENTER).type(object::ID_bignum).expect(b);
+    test(CHS).type(object::ID_neg_bignum).expect(mb);
+    test(DOWN, ENTER).type(object::ID_neg_bignum).expect(mb);
 
     step("Large fractions");
     cstring bf =
@@ -318,15 +346,11 @@ void tests::data_types()
         "123456789012345678901234567890123456789012345678901234567891";
     cstring mbf =
         "-123456789012345678901234567890123456789012345678901234567890/"
-         "123456789012345678901234567890123456789012345678901234567891";
-    test(CLEAR, bf, ENTER)
-        .type(object::ID_big_fraction).expect(bf);
-    test(DOWN, ENTER)
-        .type(object::ID_big_fraction).expect(bf);
-    test(CHS)
-        .type(object::ID_neg_big_fraction).expect(mbf);
-    test(DOWN, ENTER)
-        .type(object::ID_neg_big_fraction).expect(mbf);
+        "123456789012345678901234567890123456789012345678901234567891";
+    test(CLEAR, bf, ENTER).type(object::ID_big_fraction).expect(bf);
+    test(DOWN, ENTER).type(object::ID_big_fraction).expect(bf);
+    test(CHS).type(object::ID_neg_big_fraction).expect(mbf);
+    test(DOWN, ENTER).type(object::ID_neg_big_fraction).expect(mbf);
 
     clear();
 }
@@ -340,39 +364,32 @@ void tests::arithmetic()
     begin("Arithmetic");
 
     step("Integer addition");
-    test(CLEAR, 1, ENTER, 1, ADD)
-        .type(object::ID_integer).expect("2");
-    test(1, ADD)
-        .type(object::ID_integer).expect("3");
-    test(-1, ADD)
-        .type(object::ID_integer).expect("2");
-    test(-1, ADD)
-        .type(object::ID_integer).expect("1");
-    test(-1, ADD)
-        .type(object::ID_integer).expect("0");
-    test(-1, ADD)
-        .type(object::ID_neg_integer).expect("-1");
-    test(-1, ADD)
-        .type(object::ID_neg_integer).expect("-2");
-    test(-1, ADD)
-        .type(object::ID_neg_integer).expect("-3");
-    test(1, ADD)
-        .type(object::ID_neg_integer).expect("-2");
-    test(1, ADD)
-        .type(object::ID_neg_integer).expect("-1");
-    test(1, ADD)
-        .type(object::ID_integer).expect("0");
+    test(CLEAR, 1, ENTER, 1, ADD).type(object::ID_integer).expect("2");
+    test(1, ADD).type(object::ID_integer).expect("3");
+    test(-1, ADD).type(object::ID_integer).expect("2");
+    test(-1, ADD).type(object::ID_integer).expect("1");
+    test(-1, ADD).type(object::ID_integer).expect("0");
+    test(-1, ADD).type(object::ID_neg_integer).expect("-1");
+    test(-1, ADD).type(object::ID_neg_integer).expect("-2");
+    test(-1, ADD).type(object::ID_neg_integer).expect("-3");
+    test(1, ADD).type(object::ID_neg_integer).expect("-2");
+    test(1, ADD).type(object::ID_neg_integer).expect("-1");
+    test(1, ADD).type(object::ID_integer).expect("0");
 
     step("Integer addition overflow");
     test(CLEAR, (1ULL << 63) - 2ULL, ENTER, 1, ADD)
-        .type(object::ID_integer).expect("9223372036854775807");
+        .type(object::ID_integer)
+        .expect("9223372036854775807");
     test(CLEAR, (1ULL << 63) - 3ULL, CHS, ENTER, -2, ADD)
-        .type(object::ID_neg_integer).expect("-9223372036854775807");
+        .type(object::ID_neg_integer)
+        .expect("-9223372036854775807");
 
     test(CLEAR, ~0ULL, ENTER, 1, ADD)
-        .type(object::ID_bignum).expect("18446744073709551616");
+        .type(object::ID_bignum)
+        .expect("18446744073709551616");
     test(CLEAR, ~0ULL, CHS, ENTER, -2, ADD)
-        .type(object::ID_neg_bignum).expect("-18446744073709551617");
+        .type(object::ID_neg_bignum)
+        .expect("-18446744073709551617");
 
     step("Adding ten small integers at random");
     srand48(sys_current_ms());
@@ -386,34 +403,25 @@ void tests::arithmetic()
     }
 
     step("Integer subtraction");
-    test(CLEAR, 1, ENTER, 1, SUB)
-        .type(object::ID_integer).expect("0");
-    test(1, SUB)
-        .type(object::ID_neg_integer).expect("-1");
-    test(-1, SUB)
-        .type(object::ID_integer).expect("0");
-    test(-1, SUB)
-        .type(object::ID_integer).expect("1");
-    test(-1, SUB)
-        .type(object::ID_integer).expect("2");
-    test(1, SUB)
-        .type(object::ID_integer).expect("1");
-    test(1, SUB)
-        .type(object::ID_integer).expect("0");
-    test(3, SUB)
-        .type(object::ID_neg_integer).expect("-3");
-    test(-1, SUB)
-        .type(object::ID_neg_integer).expect("-2");
-    test(1, SUB)
-        .type(object::ID_neg_integer).expect("-3");
-    test(-3, SUB)
-        .type(object::ID_integer).expect("0");
+    test(CLEAR, 1, ENTER, 1, SUB).type(object::ID_integer).expect("0");
+    test(1, SUB).type(object::ID_neg_integer).expect("-1");
+    test(-1, SUB).type(object::ID_integer).expect("0");
+    test(-1, SUB).type(object::ID_integer).expect("1");
+    test(-1, SUB).type(object::ID_integer).expect("2");
+    test(1, SUB).type(object::ID_integer).expect("1");
+    test(1, SUB).type(object::ID_integer).expect("0");
+    test(3, SUB).type(object::ID_neg_integer).expect("-3");
+    test(-1, SUB).type(object::ID_neg_integer).expect("-2");
+    test(1, SUB).type(object::ID_neg_integer).expect("-3");
+    test(-3, SUB).type(object::ID_integer).expect("0");
 
     step("Integer subtraction overflow");
     test(CLEAR, 0xFFFFFFFFFFFFFFFFull, CHS, ENTER, 1, SUB)
-        .type(object::ID_neg_bignum).expect("-18446744073709551616");
+        .type(object::ID_neg_bignum)
+        .expect("-18446744073709551616");
     test(CLEAR, -3, ENTER, 0xFFFFFFFFFFFFFFFFull, SUB)
-        .type(object::ID_neg_bignum).expect("-18446744073709551618");
+        .type(object::ID_neg_bignum)
+        .expect("-18446744073709551618");
 
     step("Subtracting ten small integers at random");
     for (int i = 0; i < 10; i++)
@@ -426,16 +434,11 @@ void tests::arithmetic()
     }
 
     step("Integer multiplication");
-    test(CLEAR, 1, ENTER, 1, MUL)
-        .type(object::ID_integer).expect("1");
-    test(3, MUL)
-        .type(object::ID_integer).expect("3");
-    test(-3, MUL)
-        .type(object::ID_neg_integer).expect("-9");
-    test(2, MUL)
-        .type(object::ID_neg_integer).expect("-18");
-    test(-7, MUL)
-        .type(object::ID_integer).expect("126");
+    test(CLEAR, 1, ENTER, 1, MUL).type(object::ID_integer).expect("1");
+    test(3, MUL).type(object::ID_integer).expect("3");
+    test(-3, MUL).type(object::ID_neg_integer).expect("-9");
+    test(2, MUL).type(object::ID_neg_integer).expect("-18");
+    test(-7, MUL).type(object::ID_integer).expect("126");
 
     step("Multiplying ten small integers at random");
     for (int i = 0; i < 10; i++)
@@ -448,14 +451,10 @@ void tests::arithmetic()
     }
 
     step("Integer division");
-    test(CLEAR, 210, ENTER, 2, DIV)
-        .type(object::ID_integer).expect("105");
-    test(5, DIV)
-        .type(object::ID_integer).expect("21");
-    test(-3, DIV)
-        .type(object::ID_neg_integer).expect("-7");
-    test(-7, DIV)
-        .type(object::ID_integer).expect("1");
+    test(CLEAR, 210, ENTER, 2, DIV).type(object::ID_integer).expect("105");
+    test(5, DIV).type(object::ID_integer).expect("21");
+    test(-3, DIV).type(object::ID_neg_integer).expect("-7");
+    test(-7, DIV).type(object::ID_integer).expect("1");
 
     step("Dividing ten small integers at random");
     for (int i = 0; i < 10; i++)
@@ -468,32 +467,32 @@ void tests::arithmetic()
     }
 
     step("Division with fractional output");
-    test(CLEAR, 1, ENTER, 3, DIV)
-        .expect("1/3");
-    test(CLEAR, 2, ENTER, 5, DIV)
-        .expect("2/5");
+    test(CLEAR, 1, ENTER, 3, DIV).expect("1/3");
+    test(CLEAR, 2, ENTER, 5, DIV).expect("2/5");
 
     step("Manual computation of 100!");
     test(CLEAR, 1, ENTER);
     for (uint i = 1; i <= 100; i++)
         test(i, MUL);
-    wait(30);                    // Takes its sweet time to display (GC?)
-    expect("9332621544394415268169923885626670049071596826438162146859296389521"
-           "7599993229915608941463976156518286253697920827223758251185210916864"
-           "000000000000000000000000");
+    wait(30); // Takes its sweet time to display (GC?)
+    expect(
+        "9332621544394415268169923885626670049071596826438162146859296389521"
+        "7599993229915608941463976156518286253697920827223758251185210916864"
+        "000000000000000000000000");
     step("Manual division by all factors of 100!");
-    for(uint i = 1; i <= 100; i++)
+    for (uint i = 1; i <= 100; i++)
         test(i * 997 % 101, DIV);
     expect(1);
 
     step("Manual computation of 997/100!");
     test(CLEAR, 997, ENTER);
-    for(uint i = 1; i <= 100; i++)
+    for (uint i = 1; i <= 100; i++)
         test(i * 997 % 101, DIV);
-    expect("997/"
-           "9332621544394415268169923885626670049071596826438162146859296389521"
-           "7599993229915608941463976156518286253697920827223758251185210916864"
-           "000000000000000000000000");
+    expect(
+        "997/"
+        "9332621544394415268169923885626670049071596826438162146859296389521"
+        "7599993229915608941463976156518286253697920827223758251185210916864"
+        "000000000000000000000000");
 }
 
 
@@ -505,59 +504,45 @@ void tests::global_variables()
     begin("Global variables");
 
     step("Store in global variable");
-    test(CLEAR, 12345, ENTER)
-        .expect(12345);
-    test(XEQ, "A", ENTER)
-        .expect("'A'");
-    test(STO)
-        .noerr();
+    test(CLEAR, 12345, ENTER).expect(12345);
+    test(XEQ, "A", ENTER).expect("'A'");
+    test(STO).noerr();
     step("Recall global variable");
-    test(CLEAR, XEQ, "A", ENTER)
-        .expect("'A'");
-    test("RCL", ENTER)
-        .noerr().expect(12345);
+    test(CLEAR, XEQ, "A", ENTER).expect("'A'");
+    test("RCL", ENTER).noerr().expect(12345);
 
     step("Store in long-name global variable");
-    test(CLEAR,
-         "\"Hello World\"", ENTER,
-         XEQ, "SomeLongVariable", ENTER,
-         STO)
+    test(CLEAR, "\"Hello World\"", ENTER, XEQ, "SomeLongVariable", ENTER, STO)
         .noerr();
     step("Recall global variable");
-    test(CLEAR,
-         XEQ, "SomeLongVariable", ENTER,
-         "recall", ENTER)
-        .noerr().expect("\"Hello World\"");
+    test(CLEAR, XEQ, "SomeLongVariable", ENTER, "recall", ENTER)
+        .noerr()
+        .expect("\"Hello World\"");
 
     step("Recall non-existent variable");
     test(CLEAR, XEQ, "DOESNOTEXIST", ENTER, "RCL", ENTER)
-        .error("Undefined name").clear();
+        .error("Undefined name")
+        .clear();
     step("Recall invalid variable object");
-    test(1234, ENTER, "RCL", ENTER)
-        .error("Invalid name").clear();
+    test(1234, ENTER, "RCL", ENTER).error("Invalid name").clear();
 
     step("Store program in global variable");
-    test(CLEAR, "« 1 + »", ENTER, XEQ, "INCR", ENTER, STO)
-        .noerr();
+    test(CLEAR, "« 1 + »", ENTER, XEQ, "INCR", ENTER, STO).noerr();
     step("Evaluate global variable");
-    test(CLEAR, "A INCR", ENTER)
-        .expect(12346);
+    test(CLEAR, "A INCR", ENTER).expect(12346);
 
     step("Purge global variable");
-    test(CLEAR, XEQ, "A", ENTER, "PURGE", ENTER)
-        .noerr();
-    test(CLEAR, XEQ, "INCR", ENTER, "PURGE", ENTER)
-        .noerr();
-    test(CLEAR, XEQ, "SomeLongVariable", ENTER, "PURGE", ENTER)
-        .noerr();
+    test(CLEAR, XEQ, "A", ENTER, "PURGE", ENTER).noerr();
+    test(CLEAR, XEQ, "INCR", ENTER, "PURGE", ENTER).noerr();
+    test(CLEAR, XEQ, "SomeLongVariable", ENTER, "PURGE", ENTER).noerr();
 
-    test(CLEAR, XEQ, "A", ENTER, "RCL", ENTER)
-        .error("Undefined name").clear();
+    test(CLEAR, XEQ, "A", ENTER, "RCL", ENTER).error("Undefined name").clear();
     test(CLEAR, XEQ, "INCR", ENTER, "RCL", ENTER)
-        .error("Undefined name").clear();
+        .error("Undefined name")
+        .clear();
     test(CLEAR, XEQ, "SomeLongVariable", ENTER, "RCL", ENTER)
-        .error("Undefined name").clear();
-
+        .error("Undefined name")
+        .clear();
 }
 
 
@@ -570,24 +555,29 @@ void tests::local_variables()
 
     step("Creating a local block");
     cstring source = "« → A B C « A B + A B - × B C + B C - × ÷ » »";
-    test(CLEAR, source, ENTER)
-        .type(object::ID_program)
-        .expect(source);
-    test(XEQ, "LocTest", ENTER, STO)
-        .noerr();
+    test(CLEAR, source, ENTER).type(object::ID_program).expect(source);
+    test(XEQ, "LocTest", ENTER, STO).noerr();
 
     step("Calling a local block with numerical values");
-    test(CLEAR, 1, ENTER, 2, ENTER, 3, ENTER, "LocTest", ENTER)
-        .expect("3/5");
+    test(CLEAR, 1, ENTER, 2, ENTER, 3, ENTER, "LocTest", ENTER).expect("3/5");
 
     step("Calling a local block with symbolic values");
-    test(CLEAR, XEQ, "X", ENTER, XEQ, "Y", ENTER, XEQ, "Z", ENTER,
-         "LocTest", ENTER)
+    test(CLEAR,
+         XEQ,
+         "X",
+         ENTER,
+         XEQ,
+         "Y",
+         ENTER,
+         XEQ,
+         "Z",
+         ENTER,
+         "LocTest",
+         ENTER)
         .expect("'(X+Y)×(X-Y)÷((Y+Z)×(Y-Z))'");
 
     step("Cleanup");
-    test(CLEAR, XEQ, "LocTest", ENTER, "PurgeAll", ENTER)
-        .noerr();
+    test(CLEAR, XEQ, "LocTest", ENTER, "PurgeAll", ENTER).noerr();
 }
 
 
@@ -599,115 +589,178 @@ void tests::for_loops()
     begin("For loops");
 
     step("Simple 1..10");
-    cstring pgm = "« 0 1 10 FOR i i SQ + NEXT »";
+    cstring pgm  = "« 0 1 10 FOR i i SQ + NEXT »";
     cstring pgmo = "« 0 1 10 for i i x² + next »";
-    test(CLEAR, pgm, ENTER)
-        .noerr()
-        .type(object::ID_program)
-        .expect(pgmo);
-    test(RUNSTOP)
-        .noerr()
-        .type(object::ID_integer)
-        .expect(385);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(RUNSTOP).noerr().type(object::ID_integer).expect(385);
 
     step("Algebraic 1..10");
-    pgm = "« 'X' 1 5 FOR i i SQ + NEXT »";
+    pgm  = "« 'X' 1 5 FOR i i SQ + NEXT »";
     pgmo = "« 'X' 1 5 for i i x² + next »";
-    test(CLEAR, pgm, ENTER)
-        .noerr()
-        .type(object::ID_program)
-        .expect(pgmo);
-    test(RUNSTOP)
-        .noerr()
-        .type(object::ID_equation)
-        .expect("'X+1+4+9+16+25'");
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(RUNSTOP).noerr().type(object::ID_equation).expect("'X+1+4+9+16+25'");
 
     step("Stepping by 2");
-    pgm = "« 0 1 10 FOR i i SQ + 2 STEP »";
+    pgm  = "« 0 1 10 FOR i i SQ + 2 STEP »";
     pgmo = "« 0 1 10 for i i x² + 2 step »";
-    test(CLEAR, pgm, ENTER)
-        .noerr()
-        .type(object::ID_program)
-        .expect(pgmo);
-    test(RUNSTOP)
-        .noerr()
-        .type(object::ID_integer)
-        .expect(165);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(RUNSTOP).noerr().type(object::ID_integer).expect(165);
 
     step("Stepping by i");
-    pgm = "« 'X' 1 100 FOR i i SQ + i step »";
+    pgm  = "« 'X' 1 100 FOR i i SQ + i step »";
     pgmo = "« 'X' 1 100 for i i x² + i step »";
-    test(CLEAR, pgm, ENTER)
-        .noerr()
-        .type(object::ID_program)
-        .expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
     test(RUNSTOP)
         .noerr()
         .type(object::ID_equation)
         .expect("'X+1+4+16+64+256+1024+4096'");
 
     step("Negative stepping");
-    pgm = "« 0 10 1 FOR i i SQ + -1 STEP »";
+    pgm  = "« 0 10 1 FOR i i SQ + -1 STEP »";
     pgmo = "« 0 10 1 for i i x² + -1 step »";
-    test(CLEAR, pgm, ENTER)
-        .noerr()
-        .type(object::ID_program)
-        .expect(pgmo);
-    test(RUNSTOP)
-        .noerr()
-        .type(object::ID_integer)
-        .expect(385);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(RUNSTOP).noerr().type(object::ID_integer).expect(385);
 
     step("Negative stepping algebraic");
-    pgm = "« 'X' 10 1 FOR i i SQ + -1 step »";
+    pgm  = "« 'X' 10 1 FOR i i SQ + -1 step »";
     pgmo = "« 'X' 10 1 for i i x² + -1 step »";
-    test(CLEAR, pgm, ENTER)
-        .noerr()
-        .type(object::ID_program)
-        .expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
     test(RUNSTOP)
         .noerr()
         .type(object::ID_equation)
         .expect("'X+100+81+64+49+36+25+16+9+4+1'");
 
     step("Fractional");
-    pgm = "« 'X' 0.1 0.9 FOR i i SQ + 0.1 step »";
+    pgm  = "« 'X' 0.1 0.9 FOR i i SQ + 0.1 step »";
     pgmo = "« 'X' 0.1 0.9 for i i x² + 0.1 step »";
-    test(CLEAR, pgm, ENTER)
-        .noerr()
-        .type(object::ID_program)
-        .expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
     test(RUNSTOP)
         .noerr()
         .type(object::ID_equation)
         .expect("'X+0.01+0.04+0.09+0.16+0.25+0.36+0.49+0.64+0.81'");
 
     step("Fractional down");
-    pgm = "« 'X' 0.9 0.1 FOR i i SQ + -0.1 step »";
+    pgm  = "« 'X' 0.9 0.1 FOR i i SQ + -0.1 step »";
     pgmo = "« 'X' 0.9 0.1 for i i x² + -0.1 step »";
-    test(CLEAR, pgm, ENTER)
-        .noerr()
-        .type(object::ID_program)
-        .expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
     test(RUNSTOP)
         .noerr()
         .type(object::ID_equation)
         .expect("'X+0.81+0.64+0.49+0.36+0.25+0.16+0.09+0.04+0.01'");
 
     step("Execute at least once");
-    pgm = "« 'X' 10 1 FOR i i SQ + NEXT »";
+    pgm  = "« 'X' 10 1 FOR i i SQ + NEXT »";
     pgmo = "« 'X' 10 1 for i i x² + next »";
-    test(CLEAR, pgm, ENTER)
-        .noerr()
-        .type(object::ID_program)
-        .expect(pgmo);
-    test(RUNSTOP)
-        .noerr()
-        .type(object::ID_equation)
-        .expect("'X+100'");
-
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(RUNSTOP).noerr().type(object::ID_equation).expect("'X+100'");
 }
 
+
+void tests::logical_operations()
+// ----------------------------------------------------------------------------
+//   Perform logical operations on small and big integers
+// ----------------------------------------------------------------------------
+{
+    begin("Logical operations");
+
+    step("Binary number");
+    cstring binary  = "#10001b";
+    cstring binaryf = "#1 0001₂";
+    test(CLEAR, binary, ENTER).type(object::ID_bin_integer).expect(binaryf);
+
+    step("Octal number");
+    cstring octal  = "#1777o";
+    cstring octalf = "#1777₈";
+    test(CLEAR, octal, ENTER).type(object::ID_oct_integer).expect(octalf);
+
+    step("Decimal number");
+    cstring decimal  = "#12345d";
+    cstring decimalf = "#1 2345₁₀";
+    test(CLEAR, decimal, ENTER).type(object::ID_dec_integer).expect(decimalf);
+
+    step("Hexadecimal number");
+    cstring hexa  = "#135AFh";
+    cstring hexaf = "#1 35AF₁₆";
+    test(CLEAR, hexa, ENTER).type(object::ID_hex_integer).expect(hexaf);
+
+    step("Based number (default base)");
+    cstring based  = "#1234A";
+    cstring basedf = "#1 234A₁₆";
+    test(CLEAR, based, ENTER).type(object::ID_based_integer).expect(basedf);
+
+    step("Based number (arbitrary base)");
+    cstring abased  = "17#1234AG";
+    cstring abasedf = "#18 75A4₁₆";
+    test(CLEAR, abased, ENTER).type(object::ID_based_integer).expect(abasedf);
+
+    step("Display in arbitrary base");
+    test("17 base", ENTER).expect("#12 34AG₁₇");
+    test("3 base", ENTER).expect("#10 0001 0221 2122₃");
+    test("36 base", ENTER).expect("#YCV8₃₆");
+    test("16 base", ENTER).expect("#18 75A4₁₆");
+
+    step("Range for bases");
+    test("1 base", ENTER).error("Invalid numeric base");
+    test(CLEAR, "37 base", ENTER).error("Invalid numeric base");
+    test(CLEAR, "0.3 base", ENTER).error("Bad argument type");
+    test(CLEAR);
+
+    step("Default word size");
+    test("WordSize", ENTER).expect("64");
+    step("Set word size to 16");
+    test(CLEAR, "16 STWS", ENTER).noerr();
+
+    step("Binary not");
+    test(CLEAR, "#12 not", ENTER).expect("#FFED₁₆");
+    test("not", ENTER).expect("#12₁₆");
+
+    step("Binary or");
+    test(CLEAR, "#123 #A23 or", ENTER).expect("#B23₁₆");
+
+    step("Binary xor");
+    test(CLEAR, "#12 #A23 xor", ENTER).expect("#A31₁₆");
+
+    step("Binary and");
+    test(CLEAR, "#72 #A23 and", ENTER).expect("#22₁₆");
+
+    step("Binary nand");
+    test(CLEAR, "#72 #A23 nand", ENTER).expect("#FFDD₁₆");
+
+    step("Binary nor");
+    test(CLEAR, "#72 #A23 nor", ENTER).expect("#F58C₁₆");
+
+    step("Binary implies");
+    test(CLEAR, "#72 #A23 implies", ENTER).expect("#FFAF₁₆");
+
+    step("Binary excludes");
+    test(CLEAR, "#72 #A23 excludes", ENTER).expect("#50₁₆");
+
+    step("Set word size to 32");
+    test(CLEAR, "32 STWS", ENTER).noerr();
+    test(CLEAR, "#12 not", ENTER).expect("#FFFF FFED₁₆");
+    test("not", ENTER).expect("#12₁₆");
+
+    step("Set word size to 30");
+    test(CLEAR, "30 STWS", ENTER).noerr();
+    test(CLEAR, "#142 not", ENTER).expect("#3FFF FEBD₁₆");
+    test("not", ENTER).expect("#142₁₆");
+
+    step("Set word size to 48");
+    test(CLEAR, "48 STWS", ENTER).noerr();
+    test(CLEAR, "#233 not", ENTER).expect("#FFFF FFFF FDCC₁₆");
+    test("not", ENTER).expect("#233₁₆");
+
+    step("Set word size to 64");
+    test(CLEAR, "64 STWS", ENTER).noerr();
+    test(CLEAR, "#64123 not", ENTER).expect("#FFFF FFFF FFF9 BEDC₁₆");
+    test("not", ENTER).expect("#6 4123₁₆");
+
+    step("Set word size to 128");
+    test(CLEAR, "128 STWS", ENTER).noerr();
+    test(CLEAR, "#12 not", ENTER).expect("#FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFED₁₆");
+    test("dup not", ENTER).expect("#12₁₆");
+    test("xor not", ENTER).expect("#0₁₆");
+}
 
 
 // ============================================================================
@@ -745,8 +798,8 @@ tests &tests::begin(cstring name)
     tname = name;
     tindex++;
     fprintf(stderr, "%3u: %s\n", tindex, tname);
-    sindex = 0;
-    ok = true;
+    sindex      = 0;
+    ok          = true;
     explanation = "";
 
     // Start with a clean state
@@ -774,7 +827,7 @@ tests &tests::istep(cstring name)
     fprintf(stderr, "%3u:  %03u: %-60s", tindex, sindex, sname);
     cindex = 0;
     count++;
-    ok = true;
+    ok          = true;
     explanation = "";
 
     return *this;
@@ -809,9 +862,8 @@ tests &tests::fail()
 //   Report that a test failed
 // ----------------------------------------------------------------------------
 {
-    failures.push_back(failure(file, line,
-                               tname, sname, explanation,
-                               tindex, sindex, cindex));
+    failures.push_back(
+        failure(file, line, tname, sname, explanation, tindex, sindex, cindex));
     ok = false;
     return *this;
 }
@@ -827,14 +879,13 @@ tests &tests::summary()
 
     if (failures.size())
     {
-        fprintf(stderr, "Summary of %zu failures:\n", failures.size());\
+        fprintf(stderr, "Summary of %zu failures:\n", failures.size());
         cstring last = nullptr;
-        uint line = 0;
+        uint    line = 0;
         for (auto f : failures)
             show(f, last, line);
     }
-    fprintf(stderr, "Ran %u tests, %zu failures\n",
-            count, failures.size());
+    fprintf(stderr, "Ran %u tests, %zu failures\n", count, failures.size());
     return *this;
 }
 
@@ -845,7 +896,7 @@ tests &tests::show(tests::failure &f)
 // ----------------------------------------------------------------------------
 {
     cstring last = nullptr;
-    uint line = 0;
+    uint    line = 0;
     return show(f, last, line);
 }
 
@@ -858,15 +909,24 @@ tests &tests::show(tests::failure &f, cstring &last, uint &line)
     if (f.test != last || f.line != line)
     {
         fprintf(stderr,
-                "%s:%d:  Test #%u: %s\n", f.file, f.line, f.tindex, f.test);
+                "%s:%d:  Test #%u: %s\n",
+                f.file,
+                f.line,
+                f.tindex,
+                f.test);
         last = f.test;
     }
-    fprintf(stderr, "%s:%d: %3u:%03u.%03u: %s\n",
-            f.file, f.line, f.tindex, f.sindex, f.cindex, f.step);
+    fprintf(stderr,
+            "%s:%d: %3u:%03u.%03u: %s\n",
+            f.file,
+            f.line,
+            f.tindex,
+            f.sindex,
+            f.cindex,
+            f.step);
     fprintf(stderr, "%s\n", f.explanation.c_str());
     return *this;
 }
-
 
 
 // ============================================================================
@@ -887,29 +947,23 @@ tests &tests::itest(tests::key k, bool release)
     lcd_update = lcd_needsupdate;
 
     // Check for special key sequences
-    switch(k)
+    switch (k)
     {
-    case ALPHA:
-        return shifts(false, false, true, false);
+    case ALPHA: return shifts(false, false, true, false);
 
-    case LOWERCASE:
-        return shifts(false, false, true, true);
+    case LOWERCASE: return shifts(false, false, true, true);
 
     case LONGPRESS:
-        longpress = true;       // Next key will be a long press
+        longpress = true; // Next key will be a long press
         return *this;
 
-    case CLEAR:
-        return clear();
+    case CLEAR: return clear();
 
-    case NOKEYS:
-        return nokeys();
+    case NOKEYS: return nokeys();
 
-    case REFRESH:
-        return refreshed();
+    case REFRESH: return refreshed();
 
-    default:
-        break;
+    default: break;
     }
 
 
@@ -922,7 +976,7 @@ tests &tests::itest(tests::key k, bool release)
     {
         sys_delay(600);
         longpress = false;
-        release = false;
+        release   = false;
     }
     sys_delay(delay_time);
 
@@ -1029,7 +1083,7 @@ tests &tests::itest(cstring txt)
     while (*u)
     {
         unicode c = utf8_codepoint(u);
-        u = utf8_next(u);
+        u         = utf8_next(u);
 
         nokeys();
 
@@ -1041,109 +1095,497 @@ tests &tests::itest(cstring txt)
         bool del    = false;
         bool bsp    = false;
 
-        switch(c)
+        switch (c)
         {
-        case 'A': k = A;            alpha = true; lower = false; break;
-        case 'B': k = B;            alpha = true; lower = false; break;
-        case 'C': k = C;            alpha = true; lower = false; break;
-        case 'D': k = D;            alpha = true; lower = false; break;
-        case 'E': k = E;            alpha = true; lower = false; break;
-        case 'F': k = F;            alpha = true; lower = false; break;
-        case 'G': k = G;            alpha = true; lower = false; break;
-        case 'H': k = H;            alpha = true; lower = false; break;
-        case 'I': k = I;            alpha = true; lower = false; break;
-        case 'J': k = J;            alpha = true; lower = false; break;
-        case 'K': k = K;            alpha = true; lower = false; break;
-        case 'L': k = L;            alpha = true; lower = false; break;
-        case 'M': k = M;            alpha = true; lower = false; break;
-        case 'N': k = N;            alpha = true; lower = false; break;
-        case 'O': k = O;            alpha = true; lower = false; break;
-        case 'P': k = P;            alpha = true; lower = false; break;
-        case 'Q': k = Q;            alpha = true; lower = false; break;
-        case 'R': k = R;            alpha = true; lower = false; break;
-        case 'S': k = S;            alpha = true; lower = false; break;
-        case 'T': k = T;            alpha = true; lower = false; break;
-        case 'U': k = U;            alpha = true; lower = false; break;
-        case 'V': k = V;            alpha = true; lower = false; break;
-        case 'W': k = W;            alpha = true; lower = false; break;
-        case 'X': k = X;            alpha = true; lower = false; break;
-        case 'Y': k = Y;            alpha = true; lower = false; break;
-        case 'Z': k = Z;            alpha = true; lower = false; break;
+        case 'A':
+            k     = A;
+            alpha = true;
+            lower = false;
+            break;
+        case 'B':
+            k     = B;
+            alpha = true;
+            lower = false;
+            break;
+        case 'C':
+            k     = C;
+            alpha = true;
+            lower = false;
+            break;
+        case 'D':
+            k     = D;
+            alpha = true;
+            lower = false;
+            break;
+        case 'E':
+            k     = E;
+            alpha = true;
+            lower = false;
+            break;
+        case 'F':
+            k     = F;
+            alpha = true;
+            lower = false;
+            break;
+        case 'G':
+            k     = G;
+            alpha = true;
+            lower = false;
+            break;
+        case 'H':
+            k     = H;
+            alpha = true;
+            lower = false;
+            break;
+        case 'I':
+            k     = I;
+            alpha = true;
+            lower = false;
+            break;
+        case 'J':
+            k     = J;
+            alpha = true;
+            lower = false;
+            break;
+        case 'K':
+            k     = K;
+            alpha = true;
+            lower = false;
+            break;
+        case 'L':
+            k     = L;
+            alpha = true;
+            lower = false;
+            break;
+        case 'M':
+            k     = M;
+            alpha = true;
+            lower = false;
+            break;
+        case 'N':
+            k     = N;
+            alpha = true;
+            lower = false;
+            break;
+        case 'O':
+            k     = O;
+            alpha = true;
+            lower = false;
+            break;
+        case 'P':
+            k     = P;
+            alpha = true;
+            lower = false;
+            break;
+        case 'Q':
+            k     = Q;
+            alpha = true;
+            lower = false;
+            break;
+        case 'R':
+            k     = R;
+            alpha = true;
+            lower = false;
+            break;
+        case 'S':
+            k     = S;
+            alpha = true;
+            lower = false;
+            break;
+        case 'T':
+            k     = T;
+            alpha = true;
+            lower = false;
+            break;
+        case 'U':
+            k     = U;
+            alpha = true;
+            lower = false;
+            break;
+        case 'V':
+            k     = V;
+            alpha = true;
+            lower = false;
+            break;
+        case 'W':
+            k     = W;
+            alpha = true;
+            lower = false;
+            break;
+        case 'X':
+            k     = X;
+            alpha = true;
+            lower = false;
+            break;
+        case 'Y':
+            k     = Y;
+            alpha = true;
+            lower = false;
+            break;
+        case 'Z':
+            k     = Z;
+            alpha = true;
+            lower = false;
+            break;
 
-        case 'a': k = A;            alpha = true; lower = true;  break;
-        case 'b': k = B;            alpha = true; lower = true;  break;
-        case 'c': k = C;            alpha = true; lower = true;  break;
-        case 'd': k = D;            alpha = true; lower = true;  break;
-        case 'e': k = E;            alpha = true; lower = true;  break;
-        case 'f': k = F;            alpha = true; lower = true;  break;
-        case 'g': k = G;            alpha = true; lower = true;  break;
-        case 'h': k = H;            alpha = true; lower = true;  break;
-        case 'i': k = I;            alpha = true; lower = true;  break;
-        case 'j': k = J;            alpha = true; lower = true;  break;
-        case 'k': k = K;            alpha = true; lower = true;  break;
-        case 'l': k = L;            alpha = true; lower = true;  break;
-        case 'm': k = M;            alpha = true; lower = true;  break;
-        case 'n': k = N;            alpha = true; lower = true;  break;
-        case 'o': k = O;            alpha = true; lower = true;  break;
-        case 'p': k = P;            alpha = true; lower = true;  break;
-        case 'q': k = Q;            alpha = true; lower = true;  break;
-        case 'r': k = R;            alpha = true; lower = true;  break;
-        case 's': k = S;            alpha = true; lower = true;  break;
-        case 't': k = T;            alpha = true; lower = true;  break;
-        case 'u': k = U;            alpha = true; lower = true;  break;
-        case 'v': k = V;            alpha = true; lower = true;  break;
-        case 'w': k = W;            alpha = true; lower = true;  break;
-        case 'x': k = X;            alpha = true; lower = true;  break;
-        case 'y': k = Y;            alpha = true; lower = true;  break;
-        case 'z': k = Z;            alpha = true; lower = true;  break;
+        case 'a':
+            k     = A;
+            alpha = true;
+            lower = true;
+            break;
+        case 'b':
+            k     = B;
+            alpha = true;
+            lower = true;
+            break;
+        case 'c':
+            k     = C;
+            alpha = true;
+            lower = true;
+            break;
+        case 'd':
+            k     = D;
+            alpha = true;
+            lower = true;
+            break;
+        case 'e':
+            k     = E;
+            alpha = true;
+            lower = true;
+            break;
+        case 'f':
+            k     = F;
+            alpha = true;
+            lower = true;
+            break;
+        case 'g':
+            k     = G;
+            alpha = true;
+            lower = true;
+            break;
+        case 'h':
+            k     = H;
+            alpha = true;
+            lower = true;
+            break;
+        case 'i':
+            k     = I;
+            alpha = true;
+            lower = true;
+            break;
+        case 'j':
+            k     = J;
+            alpha = true;
+            lower = true;
+            break;
+        case 'k':
+            k     = K;
+            alpha = true;
+            lower = true;
+            break;
+        case 'l':
+            k     = L;
+            alpha = true;
+            lower = true;
+            break;
+        case 'm':
+            k     = M;
+            alpha = true;
+            lower = true;
+            break;
+        case 'n':
+            k     = N;
+            alpha = true;
+            lower = true;
+            break;
+        case 'o':
+            k     = O;
+            alpha = true;
+            lower = true;
+            break;
+        case 'p':
+            k     = P;
+            alpha = true;
+            lower = true;
+            break;
+        case 'q':
+            k     = Q;
+            alpha = true;
+            lower = true;
+            break;
+        case 'r':
+            k     = R;
+            alpha = true;
+            lower = true;
+            break;
+        case 's':
+            k     = S;
+            alpha = true;
+            lower = true;
+            break;
+        case 't':
+            k     = T;
+            alpha = true;
+            lower = true;
+            break;
+        case 'u':
+            k     = U;
+            alpha = true;
+            lower = true;
+            break;
+        case 'v':
+            k     = V;
+            alpha = true;
+            lower = true;
+            break;
+        case 'w':
+            k     = W;
+            alpha = true;
+            lower = true;
+            break;
+        case 'x':
+            k     = X;
+            alpha = true;
+            lower = true;
+            break;
+        case 'y':
+            k     = Y;
+            alpha = true;
+            lower = true;
+            break;
+        case 'z':
+            k     = Z;
+            alpha = true;
+            lower = true;
+            break;
 
-        case '0': k = KEY0;         shift = alpha; break;
-        case '1': k = KEY1;         shift = alpha; break;
-        case '2': k = KEY2;         shift = alpha; break;
-        case '3': k = KEY3;         shift = alpha; break;
-        case '4': k = KEY4;         shift = alpha; break;
-        case '5': k = KEY5;         shift = alpha; break;
-        case '6': k = KEY6;         shift = alpha; break;
-        case '7': k = KEY7;         shift = alpha; break;
-        case '8': k = KEY8;         shift = alpha; break;
-        case '9': k = KEY9;         shift = alpha; break;
-        case '+': k = ADD;          alpha = true;  shift = true; break;
-        case '-': k = SUB;          alpha = true;  shift = true; break;
-        case '*': k = MUL;          alpha = true; xshift = true; break;
-        case '/': k = DIV;          alpha = true; xshift = true; break;
-        case '.': k = DOT;          shift = alpha; break;
-        case ',': k = DOT;          shift = !alpha; break;
-        case ' ': k = RUNSTOP;      alpha = true;  break;
-        case '?': k = KEY7;         alpha = true; xshift = true; break;
-        case '!': k = ADD;          alpha = true; xshift = true; break;
-        case '_': k = SUB;          alpha = true;  break;
-        case '%': k = RCL;          alpha = true;  shift = true; break;
-        case ':': k = KEY0;         alpha = true;  del   = true; break;
-        case ';': k = KEY0;         alpha = true; xshift = true;  break;
-        case '<': k = SIN;          alpha = true;  shift = true;  break;
-        case '=': k = COS;          alpha = true;  shift = true;  break;
-        case '>': k = TAN;          alpha = true;  shift = true;  break;
-        case '^': k = INV;          alpha = true;  shift = true;  break;
-        case '(': k = XEQ;          alpha = true;  shift = true;  del = true; break;
-        case ')': k = XEQ;          alpha = true;  shift = true;  bsp = true; break;
-        case '[': k = KEY9;         alpha = true; xshift = true;  del = true; break;
-        case ']': k = KEY9;         alpha = true; xshift = true;  bsp = true; break;
-        case '{': k = RUNSTOP;      alpha = true; xshift = true;  del = true; break;
-        case '}': k = RUNSTOP;      alpha = true; xshift = true;  bsp = true; break;
-        case '"': k = ENTER;        alpha = true; xshift = true;  bsp = true; break;
-        case '\'': k = XEQ;         alpha = true; xshift = true;  bsp = true; break;
-        case '&': k = KEY1;         alpha = true; xshift = true; break;
-        case '@': k = KEY2;         alpha = true; xshift = true; break;
-        case '$': k = KEY3;         alpha = true; xshift = true; break;
-        case '#': k = KEY4;         alpha = true; xshift = true; break;
-        case '\\': k = ADD;         alpha = true; xshift = true; break;
-        case '\n': k = BSP;         alpha = true; xshift = true; break;
-        case L'«': k = RUNSTOP;     alpha = false; shift = true; del = true; break;
-        case L'»': k = RUNSTOP;     alpha = false; shift = true; bsp = true; break;
-        case L'→': k = STO;         alpha = true; xshift = true; break;
-        case L'×': k = MUL;         alpha = true;  shift = true; break;
-        case L'÷': k = DIV;         alpha = true;  shift = true; break;
-    }
+        case '0':
+            k     = KEY0;
+            shift = alpha;
+            break;
+        case '1':
+            k     = KEY1;
+            shift = alpha;
+            break;
+        case '2':
+            k     = KEY2;
+            shift = alpha;
+            break;
+        case '3':
+            k     = KEY3;
+            shift = alpha;
+            break;
+        case '4':
+            k     = KEY4;
+            shift = alpha;
+            break;
+        case '5':
+            k     = KEY5;
+            shift = alpha;
+            break;
+        case '6':
+            k     = KEY6;
+            shift = alpha;
+            break;
+        case '7':
+            k     = KEY7;
+            shift = alpha;
+            break;
+        case '8':
+            k     = KEY8;
+            shift = alpha;
+            break;
+        case '9':
+            k     = KEY9;
+            shift = alpha;
+            break;
+        case '+':
+            k     = ADD;
+            alpha = true;
+            shift = true;
+            break;
+        case '-':
+            k     = SUB;
+            alpha = true;
+            shift = true;
+            break;
+        case '*':
+            k      = MUL;
+            alpha  = true;
+            xshift = true;
+            break;
+        case '/':
+            k      = DIV;
+            alpha  = true;
+            xshift = true;
+            break;
+        case '.':
+            k     = DOT;
+            shift = alpha;
+            break;
+        case ',':
+            k     = DOT;
+            shift = !alpha;
+            break;
+        case ' ':
+            k     = RUNSTOP;
+            alpha = true;
+            break;
+        case '?':
+            k      = KEY7;
+            alpha  = true;
+            xshift = true;
+            break;
+        case '!':
+            k      = ADD;
+            alpha  = true;
+            xshift = true;
+            break;
+        case '_':
+            k     = SUB;
+            alpha = true;
+            break;
+        case '%':
+            k     = RCL;
+            alpha = true;
+            shift = true;
+            break;
+        case ':':
+            k     = KEY0;
+            alpha = true;
+            del   = true;
+            break;
+        case ';':
+            k      = KEY0;
+            alpha  = true;
+            xshift = true;
+            break;
+        case '<':
+            k     = SIN;
+            alpha = true;
+            shift = true;
+            break;
+        case '=':
+            k     = COS;
+            alpha = true;
+            shift = true;
+            break;
+        case '>':
+            k     = TAN;
+            alpha = true;
+            shift = true;
+            break;
+        case '^':
+            k     = INV;
+            alpha = true;
+            shift = true;
+            break;
+        case '(':
+            k     = XEQ;
+            alpha = true;
+            shift = true;
+            del   = true;
+            break;
+        case ')':
+            k     = XEQ;
+            alpha = true;
+            shift = true;
+            bsp   = true;
+            break;
+        case '[':
+            k      = KEY9;
+            alpha  = true;
+            xshift = true;
+            del    = true;
+            break;
+        case ']':
+            k      = KEY9;
+            alpha  = true;
+            xshift = true;
+            bsp    = true;
+            break;
+        case '{':
+            k      = RUNSTOP;
+            alpha  = true;
+            xshift = true;
+            del    = true;
+            break;
+        case '}':
+            k      = RUNSTOP;
+            alpha  = true;
+            xshift = true;
+            bsp    = true;
+            break;
+        case '"':
+            k      = ENTER;
+            alpha  = true;
+            xshift = true;
+            bsp    = true;
+            break;
+        case '\'':
+            k      = XEQ;
+            alpha  = true;
+            xshift = true;
+            bsp    = true;
+            break;
+        case '&':
+            k      = KEY1;
+            alpha  = true;
+            xshift = true;
+            break;
+        case '@':
+            k      = KEY2;
+            alpha  = true;
+            xshift = true;
+            break;
+        case '$':
+            k      = KEY3;
+            alpha  = true;
+            xshift = true;
+            break;
+        case '#':
+            k      = KEY4;
+            alpha  = true;
+            xshift = true;
+            break;
+        case '\\':
+            k      = ADD;
+            alpha  = true;
+            xshift = true;
+            break;
+        case '\n':
+            k      = BSP;
+            alpha  = true;
+            xshift = true;
+            break;
+        case L'«':
+            k     = RUNSTOP;
+            alpha = false;
+            shift = true;
+            del   = true;
+            break;
+        case L'»':
+            k     = RUNSTOP;
+            alpha = false;
+            shift = true;
+            bsp   = true;
+            break;
+        case L'→':
+            k      = STO;
+            alpha  = true;
+            xshift = true;
+            break;
+        case L'×':
+            k     = MUL;
+            alpha = true;
+            shift = true;
+            break;
+        case L'÷':
+            k     = DIV;
+            alpha = true;
+            shift = true;
+            break;
+        }
 
         if (shift)
             xshift = false;
@@ -1184,10 +1626,12 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
     // Check that we are not displaying an error message
     if (rt.error())
     {
-        explain("Unexpected error message [", rt.error(), "] "
+        explain("Unexpected error message [",
+                rt.error(),
+                "] "
                 "during data entry, cleared");
+        fail();
         rt.clear_error();
-        ok = false;
     }
 
     // Check invalid input: can only have one shift
@@ -1247,7 +1691,6 @@ tests &tests::itest(tests::WAIT delay)
 }
 
 
-
 // ============================================================================
 //
 //    Test validation
@@ -1261,7 +1704,7 @@ tests &tests::clear()
 {
     nokeys();
     key_push(CLEAR);
-    while(!key_empty())
+    while (!key_empty())
         sys_delay(delay_time);
     sys_delay(delay_time);
     return *this;
@@ -1311,12 +1754,14 @@ tests &tests::refreshed()
         sys_delay(delay_time);
 
     // Check that we have latest stack update
-    while(Stack.available() > 1)
+    while (Stack.available() > 1)
         Stack.consume();
 
     record(tests,
            "Refreshed, needs=%u update=%u available=%u",
-           lcd_needsupdate, lcd_update, Stack.available());
+           lcd_needsupdate,
+           lcd_update,
+           Stack.available());
     lcd_update = lcd_needsupdate;
 
     return *this;
@@ -1344,13 +1789,19 @@ tests &tests::expect(cstring output)
     cindex++;
     if (utf8 out = Stack.recorded())
     {
-        record(tests, "Comparing [%s] to [%+s] %+s",
-               out, output,
+        record(tests,
+               "Comparing [%s] to [%+s] %+s",
+               out,
+               output,
                strcmp(output, cstring(out)) == 0 ? "OK" : "FAIL");
         if (strcmp(output, cstring(out)) == 0)
             return *this;
-        explain("Expected output [", output, "], "
-                "got [", cstring(out), "] instead");
+        explain("Expected output [",
+                output,
+                "], "
+                "got [",
+                cstring(out),
+                "] instead");
         return fail();
     }
     record(tests, "No output");
@@ -1438,15 +1889,17 @@ tests &tests::match(cstring restr)
         regmatch_t rm;
 
         regcomp(&re, restr, REG_EXTENDED | REG_ICASE);
-        bool ok =
-            regexec(&re, cstring(out), 1, &rm, 0) == 0 &&
-            rm.rm_so == 0 &&
-            out[rm.rm_eo] == 0;
+        bool ok = regexec(&re, cstring(out), 1, &rm, 0) == 0 && rm.rm_so == 0 &&
+                  out[rm.rm_eo] == 0;
         regfree(&re);
         if (ok)
             return *this;
-        explain("Expected output matching [", restr, "], "
-                "got [", out, "]");
+        explain("Expected output matching [",
+                restr,
+                "], "
+                "got [",
+                out,
+                "]");
         return fail();
     }
     explain("Expected output matching [", restr, "] but stack not updated");
@@ -1466,11 +1919,23 @@ tests &tests::type(object::id ty)
         object::id tty = Stack.type();
         if (tty == ty)
             return *this;
-        explain("Expected type ", object::name(ty), " (", int(ty), ")"
-                " but got ", object::name(tty), " (", int(tty), ")");
+        explain("Expected type ",
+                object::name(ty),
+                " (",
+                int(ty),
+                ")"
+                " but got ",
+                object::name(tty),
+                " (",
+                int(tty),
+                ")");
         return fail();
     }
-    explain("Expected type ", object::name(ty), " (", int(ty), ")"
+    explain("Expected type ",
+            object::name(ty),
+            " (",
+            int(ty),
+            ")"
             " but stack not updated");
     return fail();
 }
@@ -1482,8 +1947,7 @@ tests &tests::shift(bool s)
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    return check(ui.shift == s,
-                 "Expected shift ", s, ", got ", ui.shift);
+    return check(ui.shift == s, "Expected shift ", s, ", got ", ui.shift);
 }
 
 
@@ -1493,8 +1957,7 @@ tests &tests::xshift(bool x)
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    return check(ui.xshift == x,
-                 "Expected xshift ", x, " got ", ui.xshift);
+    return check(ui.xshift == x, "Expected xshift ", x, " got ", ui.xshift);
 }
 
 
@@ -1504,8 +1967,7 @@ tests &tests::alpha(bool a)
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    return check(ui.alpha == a,
-                 "Expected alpha ", a, " got ", ui.alpha);
+    return check(ui.alpha == a, "Expected alpha ", a, " got ", ui.alpha);
 }
 
 
@@ -1515,8 +1977,7 @@ tests &tests::lower(bool l)
 // ----------------------------------------------------------------------------
 {
     nokeys();
-    return check(ui.lowercase == l,
-                 "Expected alpha ", l, " got ", ui.alpha);
+    return check(ui.lowercase == l, "Expected alpha ", l, " got ", ui.alpha);
 }
 
 
@@ -1527,7 +1988,8 @@ tests &tests::editing()
 {
     ready();
     return check(rt.editing(),
-                 "Expected to be editing, got length ", rt.editing());
+                 "Expected to be editing, got length ",
+                 rt.editing());
 }
 
 
@@ -1538,8 +2000,10 @@ tests &tests::editing(size_t length)
 {
     ready();
     return check(rt.editing() == length,
-                 "Expected editing length to be ", length,
-                 " got ", rt.editing());
+                 "Expected editing length to be ",
+                 length,
+                 " got ",
+                 rt.editing());
 }
 
 
@@ -1549,22 +2013,36 @@ tests &tests::editor(cstring text)
 // ----------------------------------------------------------------------------
 {
     ready();
-    byte_p   ed = rt.editor();
-    size_t   sz = rt.editing();
+    byte_p ed = rt.editor();
+    size_t sz = rt.editing();
 
     if (!ed)
-        return explain("Expected editor to contain [", text, "], "
+        return explain("Expected editor to contain [",
+                       text,
+                       "], "
                        "but it's empty")
             .fail();
     if (sz != strlen(text))
-        return explain("Expected ", strlen(text), " characters in editor"
-                       " [", text, "], "
-                       "but got ", sz, " characters "
-                       " [", std::string(cstring(ed), sz), "]")
+        return explain("Expected ",
+                       strlen(text),
+                       " characters in editor"
+                       " [",
+                       text,
+                       "], "
+                       "but got ",
+                       sz,
+                       " characters "
+                       " [",
+                       std::string(cstring(ed), sz),
+                       "]")
             .fail();
     if (memcmp(ed, text, sz))
-        return explain("Expected editor to contain [", text, "], "
-                       "but it contains [", std::string(cstring(ed), sz), "]")
+        return explain("Expected editor to contain [",
+                       text,
+                       "], "
+                       "but it contains [",
+                       std::string(cstring(ed), sz),
+                       "]")
             .fail();
 
     return *this;
@@ -1578,8 +2056,10 @@ tests &tests::cursor(size_t csr)
 {
     ready();
     return check(ui.cursor == csr,
-                 "Expected cursor to be at position ", csr,
-                 " but it's at position ", ui.cursor);
+                 "Expected cursor to be at position ",
+                 csr,
+                 " but it's at position ",
+                 ui.cursor);
 }
 
 
@@ -1589,15 +2069,20 @@ tests &tests::error(cstring msg)
 // ----------------------------------------------------------------------------
 {
     ready();
-    utf8     err = rt.error();
+    utf8 err = rt.error();
 
     if (!msg && err)
         return explain("Expected no error, got [", err, "]").fail();
     if (msg && !err)
         return explain("Expected error message [", msg, "], got none").fail();
     if (msg && err && strcmp(cstring(err), msg) != 0)
-        return explain("Expected error message [", msg, "], "
-                       "got [", err, "]").fail();
+        return explain("Expected error message [",
+                       msg,
+                       "], "
+                       "got [",
+                       err,
+                       "]")
+            .fail();
     return *this;
 }
 
@@ -1608,15 +2093,20 @@ tests &tests::command(cstring ref)
 // ----------------------------------------------------------------------------
 {
     ready();
-    utf8     cmd = rt.command();
+    utf8 cmd = rt.command();
 
     if (!ref && cmd)
         return explain("Expected no command, got [", cmd, "]").fail();
     if (ref && !cmd)
         return explain("Expected command [", ref, "], got none").fail();
     if (ref && cmd && strcmp(ref, cstring(cmd)) != 0)
-        return explain("Expected command [", ref, "], "
-                       "got [", cmd, "]").fail();
+        return explain("Expected command [",
+                       ref,
+                       "], "
+                       "got [",
+                       cmd,
+                       "]")
+            .fail();
 
     return *this;
 }
@@ -1628,15 +2118,20 @@ tests &tests::source(cstring ref)
 // ----------------------------------------------------------------------------
 {
     ready();
-    utf8     src = rt.source();
+    utf8 src = rt.source();
 
     if (!ref && src)
         return explain("Expected no source, got [", src, "]").fail();
     if (ref && !src)
         return explain("Expected source [", ref, "], got none").fail();
     if (ref && src && strcmp(ref, cstring(src)) != 0)
-        return explain("Expected source [", ref, "], "
-                       "got [", src, "]").fail();
+        return explain("Expected source [",
+                       ref,
+                       "], "
+                       "got [",
+                       src,
+                       "]")
+            .fail();
 
     return *this;
 }

@@ -63,7 +63,7 @@ struct settings
           display_mode(NORMAL),
           displayed(STD_DISPLAYED),
           spacing_mantissa(3),
-          spacing_fraction(3),
+          spacing_fraction(5),
           spacing_based(4),
           decimal_mark('.'),
           exponent_mark(L'⁳'),

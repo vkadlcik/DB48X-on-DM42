@@ -309,16 +309,16 @@ bignum_g bignum::binary(Op op, bignum_g xg, bignum_g yg, id ty)
 // ----------------------------------------------------------------------------
 //   This uses the scratch pad AND can cause garbage collection
 {
-    size_t xs = 0;
-    size_t ys = 0;
-    byte_p x = xg->value(&xs);
-    byte_p y = yg->value(&ys);
-    id xt = xg->type();
-    size_t wbits = wordsize(xt);
-    size_t wbytes = (wbits + 7) / 8;
-    uint16_t c = 0;
-    size_t needed = std::max(xs, ys) + 1;
-    if (wbits && needed > wbytes)
+    size_t   xs     = 0;
+    size_t   ys     = 0;
+    byte_p   x      = xg->value(&xs);
+    byte_p   y      = yg->value(&ys);
+    id       xt     = xg->type();
+    size_t   wbits  = wordsize(xt);
+    size_t   wbytes = (wbits + 7) / 8;
+    uint16_t c      = 0;
+    size_t   needed = std::max(xs, ys) + 1;
+    if (wbits && needed < wbytes)
         needed = wbytes;
     byte *buffer = rt.allocate(needed);         // May GC here
     if (!buffer)
@@ -391,20 +391,20 @@ bignum_g bignum::unary(Op op, bignum_g xg)
 // ----------------------------------------------------------------------------
 //   This uses the scratch pad AND can cause garbage collection
 {
-    size_t xs = 0;
-    byte_p x = xg->value(&xs);
-    id xt = xg->type();
-    size_t wbits = wordsize(xt);
-    size_t wbytes = (wbits + 7) / 8;
-    uint16_t c = 0;
-    size_t needed = xs + 1;
-    if (wbits && needed > wbytes)
+    size_t   xs     = 0;
+    byte_p   x      = xg->value(&xs);
+    id       xt     = xg->type();
+    size_t   wbits  = wordsize(xt);
+    size_t   wbytes = (wbits + 7) / 8;
+    uint16_t c      = 0;
+    size_t   needed = xs + 1;
+    if (wbits && needed < wbytes)
         needed = wbytes;
-    byte *buffer = rt.allocate(needed);         // May GC here
+    byte *buffer = rt.allocate(needed); // May GC here
     if (!buffer)
-        return nullptr;                         // Out of memory
-    size_t i = 0;
-    x = xg->value(&xs);                         // Re-read after potential GC
+        return nullptr; // Out of memory
+    size_t i   = 0;
+    x          = xg->value(&xs); // Re-read after potential GC
 
     // Process the part in X
     size_t max = std::min(xs, needed);

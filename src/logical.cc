@@ -101,6 +101,7 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
+    case ID_based_bignum:
     {
         id yt = x->type();
         if (!is_bignum(xt))
@@ -182,6 +183,7 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big)
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
+    case ID_based_bignum:
     {
         if (!is_bignum(xt))
             xt = bignum_promotion(x);

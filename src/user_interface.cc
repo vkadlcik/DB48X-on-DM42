@@ -557,33 +557,38 @@ void user_interface::updateMode()
             size_t end  = o;
 
             o = frpos - 1;
-            frpos += sf;
-            while (frpos < end)
+            if (sf)
             {
-                if (!rt.insert(frpos, encoding, ulen))
-                    break;
-                if (cursor > frpos)
-                    cursor += ulen;
-                frpos += sf + ulen;
-                len += ulen;
-                end += ulen;
+                frpos += sf;
+                while (frpos < end)
+                {
+                    if (!rt.insert(frpos, encoding, ulen))
+                        break;
+                    if (cursor > frpos)
+                        cursor += ulen;
+                    frpos += sf + ulen;
+                    len += ulen;
+                    end += ulen;
+                }
             }
         }
 
         // Then insert markers on the integral part
         byte   encoding[4];
         uint sp = hnum ? Settings.spacing_based : Settings.spacing_mantissa;
-        unicode spc = hnum ? Settings.space_based : Settings.space;
-        size_t ulen = utf8_encode(spc, encoding);
-        while (o > start + sp)
+        if (sp)
         {
-            o -= sp;
-            if (!rt.insert(o, encoding, ulen))
-                break;
-            if (cursor > o)
-                cursor += ulen;
+            unicode spc = hnum ? Settings.space_based : Settings.space;
+            size_t ulen = utf8_encode(spc, encoding);
+            while (o > start + sp)
+            {
+                o -= sp;
+                if (!rt.insert(o, encoding, ulen))
+                    break;
+                if (cursor > o)
+                    cursor += ulen;
+            }
         }
-
         adjustSeps = false;
     }
 }

@@ -334,7 +334,11 @@ bool program::interrupted()
 //   Return true if the current program must be interrupted
 // ----------------------------------------------------------------------------
 {
-    if (!key_empty())
-        return key_tail() == KEY_EXIT;
+    while (!key_empty())
+    {
+        if (key_tail() == KEY_EXIT)
+            return true;
+        key_pop();
+    }
     return false;
 }

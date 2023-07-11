@@ -426,7 +426,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         {
             char *rptr = out;
             bool rounding = true;
-            while (rounding && --rptr > buf)
+            while (rounding && --rptr >= buf)
             {
                 if (*rptr >= '0' && *rptr <= '9')   // Do not convert '.' or '-'
                 {

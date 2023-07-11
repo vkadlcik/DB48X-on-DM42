@@ -85,6 +85,7 @@ user_interface::user_interface()
       menuPage(),
       menuPages(),
       menuHeight(),
+      busy(0),
       shift(false),
       xshift(false),
       alpha(false),
@@ -1003,6 +1004,30 @@ int user_interface::draw_battery(uint time, uint &period, bool force)
 #endif
 
     return ann_y;
+}
+
+
+int user_interface::draw_busy_cursor()
+// ----------------------------------------------------------------------------
+//    Draw the busy flying cursor
+// ----------------------------------------------------------------------------
+{
+    size  h = HeaderFont->height();
+    coord x = 230 + sys_current_ms() / 16 % 64;
+    Screen.fill(230, 0, 305, h + 1, pattern::black);
+    Screen.glyph(x, 0, L'▶', HeaderFont, pattern::white);
+    return h;
+}
+
+
+int user_interface::draw_idle()
+// ----------------------------------------------------------------------------
+//   Clear busy indicator
+// ----------------------------------------------------------------------------
+{
+    busy = 0;
+    Screen.fill(230, 0, 305, HeaderFont->height() + 1, pattern::black);
+    return 0;
 }
 
 
@@ -2755,7 +2780,9 @@ bool user_interface::handle_functions(int key)
             }
 
         }
+        draw_busy();
         obj->execute();
+        draw_idle();
         if (!imm)
             alpha = false;
         return true;

@@ -334,6 +334,9 @@ bool program::interrupted()
 //   Return true if the current program must be interrupted
 // ----------------------------------------------------------------------------
 {
+    if (int h = ui.draw_busy())
+        lcd_refresh_lines(0, h);
+
     while (!key_empty())
     {
         if (key_tail() == KEY_EXIT)

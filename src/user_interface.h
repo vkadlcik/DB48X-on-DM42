@@ -113,6 +113,9 @@ struct user_interface
     int         draw_menus(uint time, uint &period, bool force);
     int         draw_battery(uint time, uint &period, bool force);
     int         draw_cursor(uint time, uint &period, bool force);
+    int         draw_busy();
+    int         draw_idle();
+    int         draw_busy_cursor();
 
     int         stack_screen_bottom()   { return stack; }
     int         menu_screen_bottom()    { return menuHeight; }
@@ -167,6 +170,7 @@ protected:
     uint   menuPage;         // Current menu page
     uint   menuPages;        // Number of menu pages
     uint   menuHeight;       // Height of the menu
+    uint   busy;             // Busy counter
     bool   shift        : 1; // Normal shift active
     bool   xshift       : 1; // Extended shift active (simulate Right)
     bool   alpha        : 1; // Alpha mode active
@@ -198,5 +202,14 @@ enum { TIMER0, TIMER1, TIMER2, TIMER3 };
 
 extern user_interface ui;
 
+inline int user_interface::draw_busy()
+// ----------------------------------------------------------------------------
+//    Draw the annunciators for Shift, Alpha, etc
+// ----------------------------------------------------------------------------
+{
+    if (busy++ % 0x4000 == 0)
+        return draw_busy_cursor();
+    return 0;
+}
 
 #endif // INPUT_H

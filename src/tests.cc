@@ -85,7 +85,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    integer_display_formats();
+    decimal_display_formats();
 }
 
 
@@ -954,7 +954,128 @@ void tests::decimal_display_formats()
 {
     begin("Decimal display formats");
 
+    step("Standard mode");
+    test(CLEAR, "STD", ENTER).noerr();
 
+    step("Small number");
+    test(CLEAR, "1.03", ENTER)
+        .type(object::ID_decimal32)
+        .expect("1.03");
+
+    step("Zero");
+    test(CLEAR, ".", ENTER)
+        .type(object::ID_decimal32)
+        .expect("0.");
+
+    step("Negative");
+    test(CLEAR, "0.3", CHS, ENTER)
+        .type(object::ID_decimal32)
+        .expect("-0.3");
+
+    step("Scientific entry");
+    test(CLEAR, "1", EEX, "2", ENTER)
+        .type(object::ID_decimal32)
+        .expect("100.");
+
+    step("Scientific entry with negative exponent");
+    test(CLEAR, "1", EEX, "2", CHS, ENTER)
+        .type(object::ID_decimal32)
+        .expect("0.01");
+
+    step("Negative entry with negative exponent");
+    test(CLEAR, "1", CHS, EEX, "2", CHS, ENTER)
+        .type(object::ID_decimal32)
+        .expect("-0.01");
+
+    step("Non-scientific display");
+    test(CLEAR, "0.245", ENTER)
+        .type(object::ID_decimal32)
+        .expect("0.245");
+    test(CLEAR, "0.0003", CHS, ENTER)
+        .type(object::ID_decimal32)
+        .expect("-0.0003");
+    test(CLEAR, "123.456", ENTER)
+        .type(object::ID_decimal32)
+        .expect("123.456");
+
+    step("Selection of decimal64");
+    test(CLEAR, "1.2345678", ENTER)
+        .type(object::ID_decimal64)
+        .expect("1.23456 78");
+
+    step("Selection of decimal64 based on exponent");
+    test(CLEAR, "1.23", EEX, 100, ENTER)
+        .type(object::ID_decimal64)
+        .expect("1.23⁳¹⁰⁰");
+
+    step("Selection of decimal128");
+    test(CLEAR, "1.2345678901234567890123", ENTER)
+        .type(object::ID_decimal128)
+        .expect("1.23456 78901 23456 7890");
+    step("Selection of decimal128 based on exponent");
+    test(CLEAR, "1.23", EEX, 400, ENTER)
+        .type(object::ID_decimal128)
+        .expect("1.23⁳⁴⁰⁰");
+
+    step("Automatic switching to scientific display");
+    test(CLEAR, "1000000000000.", ENTER)
+        .expect("1.⁳¹²");
+    test(CLEAR, "0.00000000000025", ENTER)
+        .expect("2.5⁳⁻¹³");
+
+    step("FIX 4 mode");
+    test(CLEAR, "4 FIX", ENTER).noerr();
+    test(CLEAR, "1.01", ENTER).expect("1.0100")
+        .test(CHS).expect("-1.0100");
+    test(CLEAR, "1.0123", ENTER).expect("1.0123");
+    test(CLEAR, "10.12345", ENTER).expect("10.1235");
+    test(CLEAR, "101.29995", ENTER).expect("101.3000");
+    test(CLEAR, "1999.99999", ENTER).expect("2 000.0000");
+    test(CLEAR, "19999999999999.", ENTER).expect("2.0000⁳¹³");
+    test(CLEAR, "0.00000000001999999", ENTER).expect("2.0000⁳⁻¹¹")
+        .test(CHS).expect("-2.0000⁳⁻¹¹");
+
+    step("FIX 24 mode");
+    test(CLEAR, "24 FIX", ENTER).noerr();
+    test(CLEAR, "1.01", ENTER).expect("1.010000000000000000000000");
+    test(CLEAR, "1.0123 log", ENTER)
+        .expect("1.22249 69622 56897 09224 5327⁳⁻²");
+
+    step("SCI 3 mode");
+    test(CLEAR, "3 Sci", ENTER).noerr();
+    test(CLEAR, "1.01", ENTER).expect("1.010⁳⁰")
+        .test(CHS).expect("-1.010⁳⁰");
+    test(CLEAR, "1.0123", ENTER).expect("1.012⁳⁰");
+    test(CLEAR, "10.12345", ENTER).expect("1.012⁳¹");
+    test(CLEAR, "101.2543", ENTER).expect("1.013⁳²");
+    test(CLEAR, "1999.999", ENTER).expect("2.000⁳³");
+    test(CLEAR, "19999999999999.", ENTER).expect("2.000⁳¹³");
+    test(CLEAR, "0.00000000001999999", ENTER).expect("2.000⁳⁻¹¹")
+        .test(CHS).expect("-2.000⁳⁻¹¹");
+
+    step("ENG 3 mode");
+    test(CLEAR, "3 eng", ENTER).noerr();
+    test(CLEAR, "1.01", ENTER).expect("1.010⁳⁰")
+        .test(CHS).expect("-1.010⁳⁰");
+    test(CLEAR, "1.0123", ENTER).expect("1.012⁳⁰");
+    test(CLEAR, "10.12345", ENTER).expect("10.12⁳⁰");
+    test(CLEAR, "101.2543", ENTER).expect("101.3⁳⁰");
+    test(CLEAR, "1999.999", ENTER).expect("2.000⁳³");
+    test(CLEAR, "19999999999999.", ENTER).expect("20.00⁳¹²");
+    test(CLEAR, "0.00000000001999999", ENTER).expect("20.00⁳⁻¹²")
+        .test(CHS).expect("-20.00⁳⁻¹²");
+
+    step("SIG 3 mode");
+    test(CLEAR, "3 sig", ENTER).noerr();
+    test(CLEAR, "1.01", ENTER).expect("1.01")
+        .test(CHS).expect("-1.01");
+    test(CLEAR, "1.0123", ENTER).expect("1.01");
+    test(CLEAR, "10.12345", ENTER).expect("10.1");
+    test(CLEAR, "101.2543", ENTER).expect("101.");
+    test(CLEAR, "1999.999", ENTER).expect("2 000.");
+    test(CLEAR, "19999999999999.", ENTER).expect("2.00⁳¹³");
+    test(CLEAR, "0.00000000001999999", ENTER).expect("2.00⁳⁻¹¹")
+        .test(CHS).expect("-2.00⁳⁻¹¹");
 }
 
 

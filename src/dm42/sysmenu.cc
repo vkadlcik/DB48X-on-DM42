@@ -238,7 +238,7 @@ static int state_save_callback(cstring fpath,
     // Restore the settings we had
     Settings = saved;
 
-    return 0;
+    return MRET_EXIT;
 }
 
 
@@ -417,7 +417,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
     }
 
     // Exit with success
-    return 0;
+    return MRET_EXIT;
 }
 
 
@@ -459,7 +459,7 @@ static int state_clear()
     }
 
 
-    return 0;
+    return MRET_EXIT;
 }
 
 
@@ -590,7 +590,8 @@ void system_setup()
 // ----------------------------------------------------------------------------
 {
     SET_ST(STAT_MENU);
-    handle_menu(&application_menu, MENU_RESET, 0);
+    int ret = handle_menu(&application_menu, MENU_RESET, 0);
     CLR_ST(STAT_MENU);
-    wait_for_key_release(-1);
+    if (ret != MRET_EXIT)
+        wait_for_key_release(-1);
 }

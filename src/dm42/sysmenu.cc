@@ -594,6 +594,24 @@ bool load_state_file(cstring path)
 }
 
 
+bool load_system_state()
+// ----------------------------------------------------------------------------
+//   Load the default system state file
+// ----------------------------------------------------------------------------
+{
+    if (sys_disk_ok())
+    {
+        // Try to load the state file, but only if it has the right
+        // extension. This is necessary, because get_reset_state_file() could
+        // legitimately return a .f42 file if we just switched from DM42.
+        char *state = get_reset_state_file();
+        if (state && *state && strstr(state, ".48S"))
+            return load_state_file(state);
+    }
+    return false;
+}
+
+
 bool save_state_file(cstring path)
 // ----------------------------------------------------------------------------
 //   Save the state file directly
@@ -604,6 +622,26 @@ bool save_state_file(cstring path)
         if (*p == '/' || *p == '\\')
             name = p + 1;
     return state_save_callback(path, name, nullptr) == 0;
+}
+
+
+bool save_system_state()
+// ----------------------------------------------------------------------------
+//   Save the default system state file
+// ----------------------------------------------------------------------------
+{
+    if (sys_disk_ok())
+    {
+        // Try to load the state file, but only if it has the right
+        // extension. This is necessary, because get_reset_state_file() could
+        // legitimately return a .f42 file if we just switched from DM42.
+        char *state = get_reset_state_file();
+        if (state && *state && strstr(state, ".48S"))
+            return save_state_file(state);
+        else
+            return state_save() == 0;
+    }
+    return false;
 }
 
 

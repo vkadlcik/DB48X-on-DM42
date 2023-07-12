@@ -190,15 +190,7 @@ void program_init()
     }
 
     // Check if we have a state file to load
-    if (sys_disk_ok())
-    {
-        // Try to load the state file, but only if it has the right
-        // extension. This is necessary, because get_reset_state_file() could
-        // legitimately return a .f42 file if we just switched from DM42.
-        char *state = get_reset_state_file();
-        if (state && *state && strstr(state, ".48S"))
-            load_state_file(state);
-    }
+    load_system_state();
 }
 
 

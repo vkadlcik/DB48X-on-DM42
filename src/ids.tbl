@@ -372,6 +372,7 @@ MENU(PlotMenu)
 CMD(VariablesMenu)
 CMD(Catalog)
 NAMED(Off, "PowerOff")
+CMD(SaveState)
 CMD(SystemSetup)
 
 CMD(Unimplemented)

@@ -32,13 +32,14 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
-#include "user_interface.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
 #include "symbol.h"
+#include "sysmenu.h"
+#include "user_interface.h"
 #include "utf8.h"
 #include "version.h"
 
@@ -353,8 +354,17 @@ COMMAND_BODY(Off)
 //   Switch the calculator off
 // ----------------------------------------------------------------------------
 {
-    extern void power_off();
     power_off();
+    return OK;
+}
+
+
+COMMAND_BODY(SaveState)
+// ----------------------------------------------------------------------------
+//   Save the system state to disk
+// ----------------------------------------------------------------------------
+{
+    save_system_state();
     return OK;
 }
 
@@ -364,7 +374,6 @@ COMMAND_BODY(SystemSetup)
 //   Select the system menu
 // ----------------------------------------------------------------------------
 {
-    extern void system_setup();
     system_setup();
     return OK;
 }

@@ -114,3 +114,8 @@ Turn calculator off programmatically
 ## SystemSetup
 
 Display the built-in system setup
+
+
+## SaveState
+
+Save the machine's state to disk, using the current state if one was previously loaded. This is intended to quickly save the state for example before a system upgrade.

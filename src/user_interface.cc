@@ -2693,7 +2693,7 @@ static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_2,     0),
     OP2BYTES(KEY_3,     0),
     OP2BYTES(KEY_SUB,   0),
-    OP2BYTES(KEY_EXIT,  0),
+    OP2BYTES(KEY_EXIT,  command::ID_SaveState),
     OP2BYTES(KEY_0,     0),
     OP2BYTES(KEY_DOT,   0),
     OP2BYTES(KEY_RUN,   0),

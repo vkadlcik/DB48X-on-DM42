@@ -265,6 +265,8 @@ static object::result set_display_mode(settings::display mode)
         if (integer_p digits = size->as<integer>())
         {
             uint disp = digits->value<uint>();
+            if (mode == settings::NORMAL && disp == 0)
+                disp = 1;
             Settings.displayed = std::min(disp, (uint) BID128_MAXDIGITS);
             Settings.display_mode = mode;
             rt.pop();

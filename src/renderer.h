@@ -81,6 +81,7 @@ struct renderer
     bool   stack() const                { return flat; }
     file * file_save() const            { return saving; }
     size_t size() const                 { return written; }
+    void   clear()                      { written = 0; }
     utf8   text() const;
 
     size_t printf(const char *format, ...);

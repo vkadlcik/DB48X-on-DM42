@@ -169,12 +169,16 @@ cstring object::edit() const
 //   Render an object into the scratchpad, then move it into editor
 // ----------------------------------------------------------------------------
 {
-    record(render, "Rendering %+s %p into editor", name(), this);
+    utf8 tname = name();     // Object may be GC'd during render
+    record(render, "Rendering %+s %p into editor", tname, this);
     renderer r;
     size_t size = render(r);
-    record(render, "Rendered %+s as size %u [%s]", name(), size, r.text());
+    record(render, "Rendered %+s as size %u [%s]", tname, size, r.text());
     if (size)
+    {
         rt.edit();
+        r.clear();
+    }
     return (cstring) rt.editor();
 }
 

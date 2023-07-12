@@ -1388,7 +1388,7 @@ tests &tests::itest(tests::key k, bool release)
 
 
     // Wait for the RPL thread to process the keys (to be revisited on DM42)
-    while (!key_remaining())
+    while (!key_empty())
         sys_delay(delay_time);
 
     key_push(k);

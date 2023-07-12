@@ -576,7 +576,7 @@ utf8 runtime::close_editor(bool convert)
 {
     // Compute the extra size we need for a string header
     size_t hdrsize = leb128size(object::ID_text) + leb128size(Editing + 1);
-    if (available(hdrsize) < hdrsize)
+    if (available(hdrsize+1) < hdrsize+1)
         return nullptr;
 
     // Move the editor data above that header

@@ -297,6 +297,8 @@ size_t runtime::gc()
     object_p free     = first;
     object_p next;
 
+    draw_gc();
+
     record(gc, "Garbage collection, available %u, range %p-%p",
            available(), first, last);
 #ifdef SIMULATOR
@@ -316,6 +318,8 @@ size_t runtime::gc()
 
     object_p *firstobjptr = Stack;
     object_p *lastobjptr = HighMem;
+    size_t count = 0;
+
     for (object_p obj = first; obj < last; obj = next)
     {
         bool found = false;
@@ -375,6 +379,8 @@ size_t runtime::gc()
             record(gc_details, "Recycling %p size %u total %u",
                    obj, next - obj, recycled);
         }
+        if (count++ % 0x1000 == 0)
+            draw_gc();
     }
 
     // Move the command line and scratch buffer

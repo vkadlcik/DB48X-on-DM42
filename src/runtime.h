@@ -833,4 +833,7 @@ private:
 };
 
 
+// User interface signal that a GC is in progress
+extern void draw_gc();
+
 #endif // RUNTIME_H

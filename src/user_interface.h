@@ -116,6 +116,7 @@ struct user_interface
     int         draw_busy();
     int         draw_idle();
     int         draw_busy_cursor();
+    int         draw_gc();
 
     int         stack_screen_bottom()   { return stack; }
     int         menu_screen_bottom()    { return menuHeight; }
@@ -207,7 +208,7 @@ inline int user_interface::draw_busy()
 //    Draw the annunciators for Shift, Alpha, etc
 // ----------------------------------------------------------------------------
 {
-    if (busy++ % 0x4000 == 0)
+    if (busy++ % 0x400 == 0)
         return draw_busy_cursor();
     return 0;
 }

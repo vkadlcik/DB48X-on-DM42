@@ -1020,6 +1020,20 @@ int user_interface::draw_busy_cursor()
 }
 
 
+int user_interface::draw_gc()
+// ----------------------------------------------------------------------------
+//   Indicate a garbage collection is in progress
+// ----------------------------------------------------------------------------
+{
+    size  h = HeaderFont->height();
+    coord x = 230 + sys_current_ms() / 16 % 64;
+    Screen.fill(230, 0, 305, h + 1, pattern::black);
+    Screen.glyph(x, 0, L'●', HeaderFont, pattern::white);
+    busy = 0;
+    return h;
+}
+
+
 int user_interface::draw_idle()
 // ----------------------------------------------------------------------------
 //   Clear busy indicator

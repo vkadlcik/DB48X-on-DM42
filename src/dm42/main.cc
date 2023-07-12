@@ -345,3 +345,13 @@ bool program::interrupted()
     }
     return false;
 }
+
+
+void draw_gc()
+// ----------------------------------------------------------------------------
+//   Indicate that a garbage collection is in progress
+// ----------------------------------------------------------------------------
+{
+    if (int h = ui.draw_gc())
+        lcd_refresh_lines(0, h);
+}

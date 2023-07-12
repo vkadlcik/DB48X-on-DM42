@@ -75,6 +75,7 @@ void tests::run(bool onlyCurrent)
         decimal_display_formats();
         integer_numerical_functions();
         decimal_numerical_functions();
+        regression_checks();
     }
     summary();
 
@@ -87,8 +88,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    integer_numerical_functions();
-    decimal_numerical_functions();
+    decimal_display_formats();
 }
 
 
@@ -247,34 +247,34 @@ void tests::data_types()
     step("Binary based integer");
     test(CLEAR, "#10010101b", ENTER)
         .type(object::ID_bin_integer)
-        .expect("#10010101b");
-    test(CLEAR, "#101B", ENTER).type(object::ID_bin_integer).expect("#101b");
+        .expect("#10010101₂");
+    test(CLEAR, "#101B", ENTER).type(object::ID_bin_integer).expect("#101₂");
 
     step("Decimal based integer");
     test(CLEAR, "#12345d", ENTER)
         .type(object::ID_dec_integer)
-        .expect("#12345d");
-    test(CLEAR, "#123D", ENTER).type(object::ID_dec_integer).expect("#123d");
+        .expect("#12345₁₀");
+    test(CLEAR, "#123D", ENTER).type(object::ID_dec_integer).expect("#123₁₀");
 
     step("Octal based integer");
     test(CLEAR, "#12345o", ENTER)
         .type(object::ID_oct_integer)
-        .expect("#12345o");
-    test(CLEAR, "#123O", ENTER).type(object::ID_oct_integer).expect("#123o");
+        .expect("#12345₈");
+    test(CLEAR, "#123O", ENTER).type(object::ID_oct_integer).expect("#123₈");
 
     step("Hexadecimal based integer");
     test(CLEAR, "#1234ABCDH", ENTER)
         .type(object::ID_hex_integer)
-        .expect("#1234ABCDh");
+        .expect("#1234ABCD₁₆");
     test(CLEAR, "#DEADBEEFH", ENTER)
         .type(object::ID_hex_integer)
-        .expect("#DEADBEEFh");
+        .expect("#DEADBEEF₁₆");
 
     step("Arbitrary base input");
-    test(CLEAR, "8#777", ENTER).type(object::ID_based_integer).expect("#1FF");
+    test(CLEAR, "8#777", ENTER).type(object::ID_based_integer).expect("#1FF₁₆");
     test(CLEAR, "2#10000#ABCDE", ENTER)
         .type(object::ID_based_integer)
-        .expect("#ABCDE");
+        .expect("#ABCDE₁₆");
 
     step("Symbols");
     cstring symbol = "ABC123Z";
@@ -305,23 +305,9 @@ void tests::data_types()
         .type(object::ID_equation)
         .expect("'A+B-(C+D)'");
     step("equation fancy rendering");
-    test(CLEAR,
-         XEQ,
-         X,
-         ENTER,
-         INV,
-         XEQ,
-         Y,
-         ENTER,
-         SHIFT,
-         SQRT,
-         XEQ,
-         Z,
-         ENTER,
-         "CUBED",
-         ENTER,
-         ADD,
-         ADD)
+    test(CLEAR, XEQ, X, ENTER, INV,
+         XEQ, Y, ENTER, SHIFT, SQRT, XEQ, Z, ENTER,
+         "CUBED", ENTER, ADD, ADD)
         .type(object::ID_equation)
         .expect("'X⁻¹+(Y²+Z³)'");
     step("Equation fancy parsing from editor");
@@ -1076,9 +1062,12 @@ void tests::decimal_display_formats()
     test(CLEAR, "10.12345", ENTER).expect("10.1");
     test(CLEAR, "101.2543", ENTER).expect("101.");
     test(CLEAR, "1999.999", ENTER).expect("2 000.");
-    test(CLEAR, "19999999999999.", ENTER).expect("2.00⁳¹³");
-    test(CLEAR, "0.00000000001999999", ENTER).expect("2.00⁳⁻¹¹")
-        .test(CHS).expect("-2.00⁳⁻¹¹");
+    test(CLEAR, "19999999999999.", ENTER).expect("2.⁳¹³");
+    test(CLEAR, "0.00000000001999999", ENTER).expect("2.⁳⁻¹¹")
+        .test(CHS).expect("-2.⁳⁻¹¹");
+
+    step("Reset defaults");
+    test(CLEAR, "Std", ENTER).noerr();
 }
 
 
@@ -1123,7 +1112,7 @@ void tests::decimal_numerical_functions()
         .test(CLEAR, "3.21 neg", ENTER).expect("-3.21")
         .test("negate", ENTER).expect("3.21");
     step("inv")
-        .test(CLEAR, "3.21 inv", ENTER).expect("3.11526 47975 07788 1620⁳⁻¹")
+        .test(CLEAR, "3.21 inv", ENTER).expect("3.11526 47975 07788 162⁳⁻¹")
         .test("invert", ENTER).expect("3.21");
     step("sq (square)")
         .test(CLEAR, "-3.21 sq", ENTER).expect("10.3041")
@@ -1145,7 +1134,7 @@ void tests::decimal_numerical_functions()
     TFN(cos, "9.48920 37695 65830 1754⁳⁻¹");
     TFN(tan, "3.32499 59243 64718 7511⁳⁻¹");
     TFN(asin, "3.26785 17653 14954 6327⁳⁻¹");
-    TFN(acos, "1.24401 11502 63401 1560");
+    TFN(acos, "1.24401 11502 63401 156");
     TFN(atan, "3.10609 79281 38899 1761⁳⁻¹");
     TFN(sinh, "3.26541 16495 18063 5701⁳⁻¹");
     TFN(cosh, "1.05196 44159 41947 5384");
@@ -1163,8 +1152,8 @@ void tests::decimal_numerical_functions()
     TFN(exp2, "1.24919 61256 53376 7005");
     TFN(erf, "3.50144 22082 00238 2355⁳⁻¹");
     TFN(erfc, "6.49855 77917 99761 7645⁳⁻¹");
-    TFN(tgamma, "2.78663 45408 45472 3680");
-    TFN(gamma, "2.78663 45408 45472 3680");
+    TFN(tgamma, "2.78663 45408 45472 368");
+    TFN(gamma, "2.78663 45408 45472 368");
     TFN(lgamma, "1.02483 46099 57313 1987");
     TFN(cbrt, "6.84702 12775 72241 6184⁳⁻¹");
     TFN(norm, "0.321");
@@ -1178,7 +1167,19 @@ void tests::decimal_numerical_functions()
 
     step("hypot")
         .test(CLEAR, "3.21 1.23 hypot", ENTER)
-        .expect("3.43758 63625 51492 3200");
+        .expect("3.43758 63625 51492 32");
+}
+
+
+void tests::regression_checks()
+// ----------------------------------------------------------------------------
+//   Checks for specific regressions
+// ----------------------------------------------------------------------------
+{
+    begin("Regression checks");
+    step("Bug 116: Rounding of gamma(7) and gamma(8)");
+    test(CLEAR, "7 gamma", ENTER).expect("720.");
+    test(CLEAR, "8 gamma", ENTER).expect("5 040.");
 }
 
 

@@ -403,7 +403,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
                        : decpos < 0 ? frac_spc
                        : decpos > 0 ? mant_spc
                                     : 0;
-            if (++sep == limit)
+            if (++sep == limit && decimals > 1 && more)
             {
                 out += utf8_encode(space, (byte *) out);
                 sep = 0;
@@ -426,6 +426,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         {
             char *rptr = out;
             bool rounding = true;
+            bool stripzeros = mode == display.NORMAL;
             while (rounding && --rptr >= buf)
             {
                 if (*rptr >= '0' && *rptr <= '9')   // Do not convert '.' or '-'
@@ -433,7 +434,30 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
                     *rptr += 1;
                     rounding = *rptr > '9';
                     if (rounding)
+                    {
                         *rptr -= 10;
+                        if (stripzeros && *rptr == '0' && rptr != buf)
+                        {
+                            out--;
+                            decimals++;
+                            decpos++;
+                            if (--sep == 0)
+                                sep = mant_spc - 1;
+                        }
+                        else
+                        {
+                            stripzeros = false;
+                        }
+                    }
+                }
+                else if (*rptr == decimal)
+                {
+                    stripzeros = false;
+                }
+                else if (stripzeros) // Inserted separator
+                {
+                    out--;
+                    sep = mant_spc - 1;
                 }
             }
 
@@ -467,8 +491,20 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         // Add trailing zeroes if necessary
         while (decimals > 0)
         {
+            bool more = in < last;
+            uint limit = !more      ? 0
+                       : decpos < 0 ? frac_spc
+                       : decpos > 0 ? mant_spc
+                                    : 0;
+            if (++sep == limit && decimals > 1)
+            {
+                out += utf8_encode(space, (byte *) out);
+                sep = 0;
+            }
+
             *out++ = '0';
             decpos--;
+
             if (decpos == 0)
                 *out++ = decimal;
             decimals--;

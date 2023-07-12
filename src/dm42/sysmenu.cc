@@ -59,7 +59,6 @@ const uint8_t application_menu_items[] =
     MI_DB48_SETTINGS,           // Application setting
     MI_DB48_ABOUT,              // About dialog
 
-    MI_48PGM,                   // File operations on programs
     MI_48STATE,                 // File operations on state
 
     MI_MSC,                     // Activate USB disk
@@ -142,126 +141,9 @@ const smenu_t settings_menu =
 
 // ============================================================================
 //
-//    Program load/save menu
+//   State load/save
 //
 // ============================================================================
-
-const uint8_t program_menu_items[] =
-// ----------------------------------------------------------------------------
-//    Program menu items
-// ----------------------------------------------------------------------------
-{
-    MI_48PGM_LOAD,              // Load a 48 program from disk
-    MI_48PGM_SAVE,              // Save a 48 program to disk
-    MI_MSC,                     // Activate USB disk
-    MI_DISK_INFO,               // Show disk information
-
-    0
-}; // Terminator
-
-
-const smenu_t program_menu =
-// ----------------------------------------------------------------------------
-//   Program menu
-// ----------------------------------------------------------------------------
-{
-    "Program",  program_menu_items,  NULL, NULL
-};
-
-
-static int program_save_callback(cstring fpath,
-                                 cstring fname,
-                                 void       *)
-// ----------------------------------------------------------------------------
-//   Callback when a file is selected to save a program
-// ----------------------------------------------------------------------------
-{
-    // Display the name of the file being saved
-    lcd_puts(t24,"Saving program...");
-    lcd_puts(t24, fname);
-    lcd_refresh();
-
-    // Store the state file name
-    file prog(fpath);
-    if (!prog.valid())
-    {
-        disp_disk_info("Program save failed");
-        wait_for_key_press();
-        return 1;
-    }
-
-    renderer render(&prog);
-    render.put("Hello World!\n");
-
-    // Exit with success
-    return 0;
-}
-
-
-static int program_save()
-// ----------------------------------------------------------------------------
-//   Save a program to disk
-// ----------------------------------------------------------------------------
-{
-    // Check if we have enough power to write flash disk
-    if (power_check_screen())
-        return 0;
-
-    bool display_new = true;
-    bool overwrite_check = true;
-    void *user_data = NULL;
-    int ret = file_selection_screen("Save program",
-                                    "/PROGRAMS", ".48S",
-                                    program_save_callback,
-                                    display_new, overwrite_check,
-                                    user_data);
-    return ret;
-}
-
-
-static int program_load_callback(cstring fpath,
-                                 cstring fname,
-                                 void       *)
-// ----------------------------------------------------------------------------
-//   Callback when a file is selected for loading
-// ----------------------------------------------------------------------------
-{
-    // Display the name of the file being saved
-    lcd_puts(t24,"Loading program...");
-    lcd_puts(t24, fname);
-    lcd_refresh();
-
-    // Store the state file name
-    file prog;
-    prog.open(fpath);
-    if (!prog.valid())
-    {
-        disp_disk_info("Program load failed");
-        wait_for_key_press();
-        return 1;
-    }
-
-    // Exit with success
-    return 0;
-}
-
-
-static int program_load()
-// ----------------------------------------------------------------------------
-//   Load a program from disk
-// ----------------------------------------------------------------------------
-{
-    bool display_new = false;
-    bool overwrite_check = true;
-    void *user_data = NULL;
-    int ret = file_selection_screen("Load program",
-                                    "/PROGRAMS", ".48S",
-                                    program_load_callback,
-                                    display_new, overwrite_check,
-                                    user_data);
-    return ret;
-}
-
 
 const uint8_t state_menu_items[] =
 // ----------------------------------------------------------------------------
@@ -656,9 +538,6 @@ int menu_item_run(uint8_t menu_id)
     {
     case MI_DB48_ABOUT:    about_dialog(); break;
     case MI_DB48_SETTINGS: ret = handle_menu(&settings_menu, MENU_ADD, 0); break;
-    case MI_48PGM:         ret = handle_menu(&program_menu, MENU_ADD, 0); break;
-    case MI_48PGM_LOAD:    ret = program_load(); break;
-    case MI_48PGM_SAVE:    ret = program_save(); break;
     case MI_48STATE:       ret = handle_menu(&state_menu, MENU_ADD, 0); break;
     case MI_48STATE_LOAD:  ret = state_load(false); break;
     case MI_48STATE_MERGE: ret = state_load(true); break;
@@ -684,9 +563,6 @@ cstring menu_item_description(uint8_t          menu_id,
     {
     case MI_DB48_SETTINGS:      ln = "Settings >";      break;
     case MI_DB48_ABOUT:         ln = "About >";         break;
-    case MI_48PGM:              ln = "Program >";       break;
-    case MI_48PGM_LOAD:         ln = "Load Program";    break;
-    case MI_48PGM_SAVE:         ln = "Save Program";    break;
     case MI_48STATE:            ln = "State >";         break;
     case MI_48STATE_LOAD:       ln = "Load State";      break;
     case MI_48STATE_MERGE:      ln = "Merge State"; break;

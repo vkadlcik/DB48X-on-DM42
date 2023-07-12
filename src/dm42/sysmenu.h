@@ -41,10 +41,6 @@ enum menu_item
     MI_DB48_SETTINGS = 1,       // Application settings
     MI_DB48_ABOUT,              // Display the "About" dialog
 
-    MI_48PGM,                   // Menu for 48 program load and save
-    MI_48PGM_LOAD,              // Load a .48S program
-    MI_48PGM_SAVE,              // Save a .48S program
-
     MI_48STATE,                 // Menu for 48 state load and save
     MI_48STATE_CLEAN,           // Restart with a clean state
     MI_48STATE_LOAD,            // Load a state from disk

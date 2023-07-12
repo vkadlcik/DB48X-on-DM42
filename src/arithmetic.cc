@@ -34,6 +34,7 @@
 #include "decimal-64.h"
 #include "decimal128.h"
 #include "fraction.h"
+#include "functions.h"
 #include "integer.h"
 #include "list.h"
 #include "runtime.h"
@@ -612,6 +613,35 @@ inline bool hypot::fraction_ok(fraction_g &UNUSED x, fraction_g &UNUSED y)
 }
 
 
+inline bool atan2::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
+                              ularge &UNUSED xv, ularge &UNUSED yv)
+// ----------------------------------------------------------------------------
+//   atan2() involves a square root, so not working on integers
+// ----------------------------------------------------------------------------
+//   Not trying to optimize the few cases where it works, e.g. 3^2+4^2=5^2
+{
+    return false;
+}
+
+
+inline bool atan2::bignum_ok(bignum_g &UNUSED x, bignum_g &UNUSED y)
+// ----------------------------------------------------------------------------
+//   Atan2 never works with big integers
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
+inline bool atan2::fraction_ok(fraction_g &UNUSED x, fraction_g &UNUSED y)
+// ----------------------------------------------------------------------------
+//   Atan2 never works with big integers
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
 
 // ============================================================================
 //
@@ -806,43 +836,6 @@ object::result arithmetic::evaluate(id             op,
 }
 
 
-template <typename Op>
-algebraic_g arithmetic::evaluate(algebraic_g &x, algebraic_g &y)
-// ----------------------------------------------------------------------------
-//   Evaluate
-// ----------------------------------------------------------------------------
-{
-    return evaluate(Op::static_id,
-                    x, y,
-                    Op::bid128_op,
-                    Op::bid64_op,
-                    Op::bid32_op,
-                    Op::integer_ok,
-                    Op::bignum_ok,
-                    Op::fraction_ok,
-                    non_numeric<Op>);
-}
-
-
-
-template <typename Op>
-object::result arithmetic::evaluate()
-// ----------------------------------------------------------------------------
-//   The stack-based evaluator for arithmetic operations
-// ----------------------------------------------------------------------------
-{
-    return evaluate(Op::static_id,
-                    Op::bid128_op,
-                    Op::bid64_op,
-                    Op::bid32_op,
-                    Op::integer_ok,
-                    Op::bignum_ok,
-                    Op::fraction_ok,
-                    non_numeric<Op>);
-}
-
-
-
 // ============================================================================
 //
 //   128-bit stubs
@@ -906,6 +899,32 @@ void bid32_hypot(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py)
 }
 
 
+void bid64_atan2(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py)
+// ----------------------------------------------------------------------------
+//   Perform the computation with bid128 code
+// ----------------------------------------------------------------------------
+{
+    BID_UINT128 x128, y128, res128;
+    bid64_to_bid128(&x128, px);
+    bid64_to_bid128(&y128, py);
+    bid128_atan2(&res128, &x128, &y128);
+    bid128_to_bid64(pres, &res128);
+}
+
+
+void bid32_atan2(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py)
+// ----------------------------------------------------------------------------
+//   Perform the computation with bid128 code
+// ----------------------------------------------------------------------------
+{
+    BID_UINT128 x128, y128, res128;
+    bid32_to_bid128(&x128, px);
+    bid32_to_bid128(&y128, py);
+    bid128_atan2(&res128, &x128, &y128);
+    bid128_to_bid32(pres, &res128);
+}
+
+
 
 // ============================================================================
 //
@@ -921,6 +940,7 @@ template object::result arithmetic::evaluate<struct mod>();
 template object::result arithmetic::evaluate<struct rem>();
 template object::result arithmetic::evaluate<struct pow>();
 template object::result arithmetic::evaluate<struct hypot>();
+template object::result arithmetic::evaluate<struct atan2>();
 
 
 
@@ -929,6 +949,15 @@ template object::result arithmetic::evaluate<struct hypot>();
 //   C++ wrappers
 //
 // ============================================================================
+
+algebraic_g operator-(algebraic_g x)
+// ----------------------------------------------------------------------------
+//   Negation
+// ----------------------------------------------------------------------------
+{
+    return neg::evaluate(x);
+}
+
 
 algebraic_g operator+(algebraic_g x, algebraic_g y)
 // ----------------------------------------------------------------------------

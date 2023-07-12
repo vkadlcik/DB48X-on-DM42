@@ -52,8 +52,15 @@ bool renderer::put(char c)
 //   Write a single character
 // ----------------------------------------------------------------------------
 {
+    if (sign && c != '-')
+    {
+        sign = false;
+        put('+');
+    }
+
     if (written >= length)
         return false;
+
 
     // Render flat for stack display: collect all spaces in one
     if (flat)

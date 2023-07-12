@@ -34,13 +34,13 @@
 #include "bignum.h"
 #include "catalog.h"
 #include "compare.h"
+#include "complex.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
 #include "font.h"
 #include "fraction.h"
 #include "functions.h"
-#include "user_interface.h"
 #include "integer.h"
 #include "list.h"
 #include "locals.h"
@@ -54,6 +54,7 @@
 #include "stack-cmds.h"
 #include "symbol.h"
 #include "text.h"
+#include "user_interface.h"
 #include "variables.h"
 
 #include <stdio.h>

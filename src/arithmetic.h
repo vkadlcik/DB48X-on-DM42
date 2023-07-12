@@ -153,9 +153,12 @@ ARITHMETIC_DECLARE(mod, MULTIPLICATIVE);
 ARITHMETIC_DECLARE(rem, MULTIPLICATIVE);
 ARITHMETIC_DECLARE(pow, POWER);
 ARITHMETIC_DECLARE(hypot, FUNCTION);
+ARITHMETIC_DECLARE(atan2, FUNCTION);
 
 void bid64_hypot(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
 void bid32_hypot(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
+void bid64_atan2(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
+void bid32_atan2(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
 void bid64_pow(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
 void bid32_pow(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
 
@@ -173,5 +176,39 @@ algebraic_g operator-(algebraic_g x, algebraic_g y);
 algebraic_g operator*(algebraic_g x, algebraic_g y);
 algebraic_g operator/(algebraic_g x, algebraic_g y);
 
+template <typename Op>
+algebraic_g arithmetic::evaluate(algebraic_g &x, algebraic_g &y)
+// ----------------------------------------------------------------------------
+//   Evaluate
+// ----------------------------------------------------------------------------
+{
+    return evaluate(Op::static_id,
+                    x, y,
+                    Op::bid128_op,
+                    Op::bid64_op,
+                    Op::bid32_op,
+                    Op::integer_ok,
+                    Op::bignum_ok,
+                    Op::fraction_ok,
+                    non_numeric<Op>);
+}
+
+
+
+template <typename Op>
+object::result arithmetic::evaluate()
+// ----------------------------------------------------------------------------
+//   The stack-based evaluator for arithmetic operations
+// ----------------------------------------------------------------------------
+{
+    return evaluate(Op::static_id,
+                    Op::bid128_op,
+                    Op::bid64_op,
+                    Op::bid32_op,
+                    Op::integer_ok,
+                    Op::bignum_ok,
+                    Op::fraction_ok,
+                    non_numeric<Op>);
+}
 
 #endif // ARITHMETIC

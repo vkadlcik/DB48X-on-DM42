@@ -56,6 +56,7 @@ struct settings
         SPACE_DEFAULT           = SPACE_MEDIUM_MATH,
 
         MARK                    = L'●', // L'■'
+        COMPLEX_I               = L'𝒊',
     };
 
     settings()

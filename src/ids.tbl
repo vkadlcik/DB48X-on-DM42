@@ -107,6 +107,11 @@ ID(decimal128)
 #define LAST_DECIMAL_TYPE       ID_decimal128
 #define LAST_REAL_TYPE          ID_decimal128
 
+#define FIRST_COMPLEX_TYPE      ID_rectangular
+ID(rectangular)
+ID(polar)
+#define LAST_COMPLEX_TYPE       ID_polar
+
 ID(local)
 ID(symbol)
 ID(equation)
@@ -206,6 +211,7 @@ NAMED(cbrt, "∛")
 OP(pow, "↑")
 ALIAS(pow, "^")
 NAMED(hypot, "Hypothenuse")
+CMD(atan2)
 CMD(norm)
 
 #define LAST_ALGEBRAIC          ID_norm

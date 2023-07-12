@@ -553,6 +553,24 @@ struct object
     }
 
 
+    static  bool is_complex(id ty)
+    // -------------------------------------------------------------------------
+    //   Check if a type is a complex number
+    // -------------------------------------------------------------------------
+    {
+        return ty >= FIRST_COMPLEX_TYPE && ty <= LAST_COMPLEX_TYPE;
+    }
+
+
+    bool is_complex() const
+    // -------------------------------------------------------------------------
+    //   Check if an object is a complex number
+    // -------------------------------------------------------------------------
+    {
+        return is_complex(type());
+    }
+
+
     static bool is_command(id ty)
     // ------------------------------------------------------------------------
     //    Check if a type denotes a command

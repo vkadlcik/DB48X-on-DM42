@@ -48,7 +48,7 @@ VERSION_H=src/dm42/version.h
 #==============================================================================
 
 # default action: build all
-all: $(TARGET).pgm help/$(TARGET).md $(VERSION_H)
+all: $(TARGET).pgm help/$(TARGET).md
 
 # installation steps
 install: install-pgm install-qspi install-help
@@ -62,10 +62,19 @@ install-qspi: all
 install-help: help/$(TARGET).md
 	cp -v help/$(TARGET).md $(MOUNTPOINT)help/
 
-sim: sim/simulator.mak sim/gcc111libbid.a recorder/config.h help/$(TARGET).md .ALWAYS
+sim: sim/simulator.mak
 	cd sim; make -f $(<F)
 sim/simulator.mak: sim/simulator.pro Makefile $(VERSION_H)
 	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(QMAKE_$(OPT))
+
+sim:	sim/gcc111libbid.a	\
+	recorder/config.h	\
+	help/$(TARGET).md	\
+	fonts/EditorFont.cc	\
+	fonts/StackFont.cc	\
+	fonts/HelpFont.cc	\
+	.ALWAYS
+
 QMAKE_debug=debug
 QMAKE_release=release
 QMAKE_small=release
@@ -73,8 +82,8 @@ QMAKE_fast=release
 QMAKE_faster=release
 QMAKE_fastest=release
 
-ttf2font: $(TOOLS)/ttf2fonts/ttf2fonts
-$(TOOLS)/ttf2fonts/ttf2fonts: $(TOOLS)/ttf2font/ttf2font.cpp $(TOOLS)/ttf2font/Makefile
+TTF2FONT=$(TOOLS)/ttf2font/ttf2font
+$(TTF2FONT): $(TTF2FONT).cpp $(TOOLS)/ttf2font/Makefile
 	cd $(TOOLS)/ttf2font; $(MAKE)
 sim/gcc111libbid.a: sim/gcc111libbid-$(shell uname)-$(shell uname -m).a
 	cp $< $@
@@ -83,22 +92,22 @@ dist: all
 	mv build/release/$(TARGET)_qspi.bin  .
 	tar cvfz v$(VERSION).tgz $(TARGET).pgm $(TARGET)_qspi.bin help/ STATE/
 
-$(VERSION_H): Makefile $(BUILD)/version-$(VERSION).h
-	cp $(BUILD)/version-$(VERSION).h $@
-$(BUILD)/version-$(VERSION).h: $(BUILD)
+$(VERSION_H): $(BUILD)/version-$(VERSION).h
+	cp $< $@
+$(BUILD)/version-$(VERSION).h: $(BUILD)/.exists Makefile
 	echo "#define DB48X_VERSION \"$(VERSION)\"" > $@
 
 
 #BASE_FONT=fonts/C43StandardFont.ttf
 BASE_FONT=fonts/FogSans-ddd.ttf
-fonts/EditorFont.cc: ttf2font $(BASE_FONT)
-	$(TOOLS)/ttf2font/ttf2font -s 48 -S 80 -y -10 EditorFont $(BASE_FONT) $@
-fonts/StackFont.cc: ttf2font $(BASE_FONT)
-	$(TOOLS)/ttf2font/ttf2font -s 32 -S 80 -y -8 StackFont $(BASE_FONT) $@
-fonts/HelpFont.cc: ttf2font $(BASE_FONT)
-	$(TOOLS)/ttf2font/ttf2font -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
+fonts/EditorFont.cc: $(TTF2FONT) $(BASE_FONT) src/ids.tbl
+	$(TTF2FONT) -s 48 -S 80 -y -10 EditorFont $(BASE_FONT) $@
+fonts/StackFont.cc: $(TTF2FONT) $(BASE_FONT) src/ids.tbl
+	$(TTF2FONT) -s 32 -S 80 -y -8 StackFont $(BASE_FONT) $@
+fonts/HelpFont.cc: $(TTF2FONT) $(BASE_FONT) src/ids.tbl
+	$(TTF2FONT) -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
 help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md)
-	cat $^ > $@
+	mkdir -p help && cat $^ > $@
 
 debug-%:
 	$(MAKE) $* OPT=debug
@@ -286,13 +295,13 @@ vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti -Wno-packed-bitfield-compat
 
-$(BUILD)/%.o: %.c Makefile | $(BUILD)
+$(BUILD)/%.o: %.c Makefile | $(BUILD)/.exists
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD)/$(notdir $(<:.c=.lst)) $< -o $@
 
-$(BUILD)/%.o: %.cc Makefile | $(BUILD)
+$(BUILD)/%.o: %.cc Makefile | $(BUILD)/.exists
 	$(CXX) -c $(CXXFLAGS) -Wa,-a,-ad,-alms=$(BUILD)/$(notdir $(<:.cc=.lst)) $< -o $@
 
-$(BUILD)/%.o: %.s Makefile | $(BUILD)
+$(BUILD)/%.o: %.s Makefile | $(BUILD)/.exists
 	$(AS) -c $(CFLAGS) $< -o $@
 
 $(BUILD)/$(TARGET).elf: $(OBJECTS) Makefile
@@ -308,7 +317,7 @@ $(TARGET).pgm: $(BUILD)/$(TARGET).elf Makefile $(CRCFIX)
 	$(SIZE) $<
 	wc -c $@
 
-$(OBJECTS): $(DECIMAL_SOURCES)
+$(OBJECTS): $(DECIMAL_SOURCES) $(VERSION_H)
 sim: $(DECIMAL_SOURCES)
 
 $(BUILD)/%.hex: $(BUILD)/%.elf | $(BUILD)
@@ -317,8 +326,10 @@ $(BUILD)/%.hex: $(BUILD)/%.elf | $(BUILD)
 $(BUILD)/%.bin: $(BUILD)/%.elf | $(BUILD)
 	$(BIN) $< $@
 
-$(BUILD):
-	mkdir -p $@
+$(BUILD)/.exists:
+	mkdir -p $(@D)
+	touch $@
+
 
 $(CRCFIX): $(CRCFIX).c $(dir $(CRCFIX))/Makefile
 	cd $(dir $(CRCFIX)); $(MAKE)

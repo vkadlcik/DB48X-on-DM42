@@ -168,7 +168,7 @@ OP(NOr,         "nor")
 OP(Implies,     "implies")
 OP(Equiv,       "equiv")
 OP(Excludes,    "excludes")
-OP(Not, "not")
+OP(Not,         "not")
 
 CMD(same)                       // HP48 distinguises == and same
 NAMED(TestSame, "==")           // Must be before =
@@ -214,6 +214,8 @@ ALIAS(pow, "^")
 NAMED(hypot, "Hypothenuse")
 CMD(atan2)
 CMD(norm)
+
+NAMED(ImaginaryUnit, "ⅈ")
 
 #define LAST_ALGEBRAIC          ID_norm
 

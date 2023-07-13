@@ -480,3 +480,22 @@ RENDER_BODY(polar)
     a->render(r);
     return r.size();
 }
+
+
+COMMAND_BODY(ImaginaryUnit)
+// ----------------------------------------------------------------------------
+//   Push a unit complex number on the stack
+// ----------------------------------------------------------------------------
+{
+    algebraic_g zero = algebraic_p(rt.make<integer>(0));
+    algebraic_g one = algebraic_p(rt.make<integer>(1));
+    if (!zero || !one)
+        return ERROR;
+    rectangular_g i = rt.make<rectangular>(zero, one);
+    if (!i)
+        return ERROR;
+    if (!rt.push(rectangular_p(i)))
+
+        return ERROR;
+    return OK;
+}

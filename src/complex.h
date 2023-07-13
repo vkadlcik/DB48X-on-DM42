@@ -145,4 +145,7 @@ public:
     RENDER_DECL(polar);
 };
 
+COMMAND_DECLARE(ImaginaryUnit);
+
+
 #endif // COMPLEX_H

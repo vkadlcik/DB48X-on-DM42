@@ -291,18 +291,20 @@ MENU(ComplexMenu,
 // ----------------------------------------------------------------------------
 //   Operation on complex numbers
 // ----------------------------------------------------------------------------
+     "ⅈ",       ID_SelfInsert,
+     "∡",       ID_SelfInsert,
      "→ℂ",      ID_Unimplemented,
      "Conj",    ID_Unimplemented,
      "Norm",    ID_Unimplemented,
      "Arg",     ID_Unimplemented,
-     "Sign",    ID_Unimplemented,
-     "𝒊",        ID_Unimplemented,
 
      "ℂ→",      ID_Unimplemented,
      "Re",      ID_Unimplemented,
      "Im",      ID_Unimplemented,
      "→Polar",  ID_Unimplemented,
      "→Rect",   ID_Unimplemented,
+     "Sign",    ID_Unimplemented,
+
      "Auto ℂ",  ID_Unimplemented);
 
 
@@ -990,6 +992,22 @@ MENU(IOMenu,
      "Save",    ID_Unimplemented,
      "Load",    ID_Unimplemented,
      "Print",   ID_Unimplemented);
+
+
+MENU(MemMenu,
+// ----------------------------------------------------------------------------
+//   Memory operations
+// ----------------------------------------------------------------------------
+     "GC",      ID_GarbageCollect,
+     "Free",    ID_FreeMemory);
+
+
+MENU(LibsMenu,
+// ----------------------------------------------------------------------------
+//   Library operations
+// ----------------------------------------------------------------------------
+     "Attach",  ID_Unimplemented,
+     "Detach",  ID_Unimplemented);
 
 
 MENU(TimeMenu,

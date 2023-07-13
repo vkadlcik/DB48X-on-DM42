@@ -52,10 +52,11 @@ bool renderer::put(char c)
 //   Write a single character
 // ----------------------------------------------------------------------------
 {
-    if (sign && c != '-')
+    if (sign)
     {
         sign = false;
-        put('+');
+        if (c != '-' && c != '+')
+            put('+');
     }
 
     if (written >= length)

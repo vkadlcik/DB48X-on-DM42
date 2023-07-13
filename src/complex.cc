@@ -7,7 +7,7 @@
 //      Complex numbers
 //
 //      There are two representations for complex numbers:
-//      - rectangular representation is one of X;Y, X+𝒊Y, X-𝒊Y, X+Y𝒊 or X-Y𝒊
+//      - rectangular representation is one of X;Y, X+ⅈY, X-ⅈY, X+Yⅈ or X-Yⅈ
 //      - polar representation is X∡Y
 //
 //      Some settings control how complex numbers are rendered
@@ -32,6 +32,7 @@
 
 #include "arithmetic.h"
 #include "functions.h"
+#include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
 
@@ -185,6 +186,208 @@ complex_g operator/(complex_g x, complex_g y)
 
 
 
+PARSE_BODY(complex)
+// ----------------------------------------------------------------------------
+//   Parse the various forms of complex number
+// ----------------------------------------------------------------------------
+//   We accept the following formats:
+//   a. (1;3)           Classic RPL
+//   b. (1 3)           Classic RPL
+//   c. 1ⅈ3             ⅈ as a separator
+//   d. 1+ⅈ3            ⅈ as a prefix
+//   e. 1-ⅈ3
+//   f. 1+3ⅈ            ⅈ as a postfix
+//   g. 1-3ⅈ
+//   h. 1∡30            ∡ as a separator
+//
+//   Cases a-g generate a rectangular form, case i generates a polar form
+//   Cases c-h can be surrounded by parentheses as well
+//
+//   In case (a), we do not accept (1,3) which classic RPL would accept,
+//   because in DB48X 1,000.000 is a valid real number with thousands separator
+{
+    gcutf8      src    = p.source;
+    size_t      max    = p.length;
+    id          type   = ID_object;
+
+    // Find the end of the possible complex number and check parentheses
+    utf8        first  = src;
+    utf8        last   = first;
+    utf8        ybeg   = nullptr;
+    size_t      xlen   = 0;
+    size_t      ylen   = 0;
+    bool        paren  = false;
+    bool        signok = false;
+    bool        ineq   = false;
+    char        sign   = 0;
+    while (size_t(last - first) < max)
+    {
+        unicode cp = utf8_codepoint(last);
+
+        // Check if we have an opening parenthese
+        if (last == first && cp == '(')
+        {
+            paren = true;
+            first++;
+        }
+
+        // Check if found a '+' or '-' (cases d-g)
+        else if (signok && (cp == '+' || cp == '-'))
+        {
+            if (sign)
+            {
+                // Cannot have two signs
+                rt.syntax_error().source(last);
+                return WARN;
+            }
+            sign = cp;
+            ybeg = last + 1;
+            if (type != ID_polar)
+                xlen = last - first;
+        }
+
+        // Check if we found the ⅈ sign
+        else if (cp == I_MARK)
+        {
+            // Can't have two complex signs
+            if (type != ID_object)
+            {
+                rt.syntax_error().source(last);
+                return WARN;
+            }
+            type = ID_rectangular;
+
+            // Case of ⅈ as a separator (c)
+            if (!sign)
+            {
+                ybeg = last + utf8_size(cp);
+                xlen = last - first;
+            }
+            // Case of prefix ⅈ (d or e)
+            else if (last == ybeg)
+            {
+                ybeg = last + utf8_size(cp);
+            }
+            // Case of postfix ⅈ (f or g)
+            else
+            {
+                ylen = last - ybeg;
+            }
+        }
+
+        // Check if we found the ∡ sign
+        else if (cp == ANGLE_MARK)
+        {
+            // Can't have two complex signs, or have that with a sign
+            if (type != ID_object || sign)
+            {
+                rt.syntax_error().source(last);
+                return WARN;
+            }
+            type = ID_polar;
+
+            // Case of ∡ as a separator (h)
+            ybeg = last + utf8_size(cp);
+            xlen = last - first;
+        }
+
+        // Check if we found a space or ';' inside parentheses
+        else if (paren && (cp == ' ' || cp == ';'))
+        {
+            // Can't have two complex signs
+            if (type != ID_object)
+            {
+                rt.syntax_error().source(last);
+                return WARN;
+            }
+            type = ID_rectangular;
+            ybeg = last + 1;
+            xlen = last - first;
+        }
+
+        // Check if we found characters that we don't expect in a complex
+        else if (cp == '"' || cp == '{' || cp == '[' || cp == L'«')
+        {
+            return SKIP;
+        }
+
+        // Check if we have equations in our complex
+        else if (cp == '\'')
+        {
+            ineq = !ineq;
+        }
+
+        // Check if we have two parentheses
+        else if (paren && !ineq && cp == '(')
+        {
+            rt.syntax_error().source(last);
+            return WARN;
+        }
+
+        // Check if we found the end of the complex number
+        else if (cp == ' ' || cp == '\n' || cp == '\t' ||
+                 cp == ')' || cp == '}')
+        {
+            break;
+        }
+
+        // We can have a sign except after exponent markers
+        signok = cp != 'e' && cp != 'E' && cp != L'⁳';
+
+        // Loop on next characters
+        last += utf8_size(cp);
+    }
+
+    // If we did not find the necessary structure, just skip
+    if (type == ID_object || !xlen || !ybeg)
+        return SKIP;
+
+    // Check if we need to compute the length of y
+    if (!ylen)
+        ylen = last - ybeg;
+
+    // Compute size that we parsed
+    size_t parsed = last - first + paren;
+
+    // Parse the first object
+    gcutf8 ysrc = ybeg;
+    size_t xsz = xlen;
+    algebraic_g x = algebraic_p(object::parse(first, xlen));
+    if (!x)
+        return ERROR;
+    if (xlen != xsz)
+    {
+        rt.syntax_error().source(utf8(src) + xlen);
+        return ERROR;
+    }
+
+    // Parse the second object
+    size_t ysz = ylen;
+    algebraic_g y = algebraic_p(object::parse(ysrc, ylen));
+    if (!y)
+        return ERROR;
+    if (ylen != ysz)
+    {
+        rt.syntax_error().source(utf8(ysrc) + ylen);
+        return ERROR;
+    }
+    if (sign == '-')
+    {
+        y = neg::evaluate(y);
+        if (!y)
+            return ERROR;
+    }
+
+    // Build the resulting complex
+    complex_g result = rt.make<complex>(type, x, y);
+    p.out = complex_p(result);
+    p.end = parsed;
+
+    return OK;
+}
+
+
+
 // ============================================================================
 //
 //   Specific code for rectangular form
@@ -209,15 +412,6 @@ algebraic_g rectangular::arg() const
     algebraic_g r = re();
     algebraic_g i = im();
     return atan2::evaluate(r, i);
-}
-
-
-PARSE_BODY(rectangular)
-// ----------------------------------------------------------------------------
-//   Parse a complex number in rectangular form
-// ----------------------------------------------------------------------------
-{
-    return SKIP;
 }
 
 
@@ -269,6 +463,7 @@ PARSE_BODY(polar)
 //   Parse a complex number in polar form
 // ----------------------------------------------------------------------------
 {
+    // This is really handled in the parser for 'rectangular'
     return SKIP;
 }
 

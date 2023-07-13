@@ -82,7 +82,7 @@ struct renderer
     bool   equation() const             { return eq; }
     bool   stack() const                { return flat; }
     file * file_save() const            { return saving; }
-    size_t size() const                 { return written; }
+    size_t size() const                 { return written + sign; }
     void   clear()                      { written = 0; }
     void   need_sign()                  { sign = true; }
     utf8   text() const;

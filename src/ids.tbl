@@ -67,6 +67,12 @@ ID(array)
 ID(menu)
 ID(locals)                      // Block with locals
 
+// Complex types must be parsed before numbers
+#define FIRST_COMPLEX_TYPE      ID_rectangular
+ID(rectangular)
+ID(polar)
+#define LAST_COMPLEX_TYPE       ID_polar
+
 #define FIRST_INTEGER_TYPE      ID_hex_integer
 #define FIRST_BASED_TYPE        ID_hex_integer
 ID(hex_integer)
@@ -106,11 +112,6 @@ ID(decimal64)
 ID(decimal128)
 #define LAST_DECIMAL_TYPE       ID_decimal128
 #define LAST_REAL_TYPE          ID_decimal128
-
-#define FIRST_COMPLEX_TYPE      ID_rectangular
-ID(rectangular)
-ID(polar)
-#define LAST_COMPLEX_TYPE       ID_polar
 
 ID(local)
 ID(symbol)
@@ -367,6 +368,8 @@ MENU(FontsMenu)
 MENU(IOMenu)
 MENU(TimeMenu)
 MENU(PlotMenu)
+MENU(MemMenu)
+MENU(LibsMenu)
 
 
 // ============================================================================

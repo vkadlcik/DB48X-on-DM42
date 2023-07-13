@@ -91,10 +91,11 @@ struct complex : algebraic
     algebraic_g arg() const;
     algebraic_g conjugate() const;
 
-    enum { I_MARK = L'𝒊', ANGLE_MARK = L'∡' };
+    enum { I_MARK = L'ⅈ', ANGLE_MARK = L'∡' };
 
 public:
     SIZE_DECL(complex);
+    PARSE_DECL(complex);
 };
 
 
@@ -120,7 +121,7 @@ struct rectangular : complex
 
 public:
     OBJECT_DECL(rectangular);
-    PARSE_DECL(rectangular);
+    // PARSE_DECL(rectangular); is really in complex
     RENDER_DECL(rectangular);
 };
 
@@ -140,7 +141,7 @@ struct polar : complex
 
 public:
     OBJECT_DECL(polar);
-    PARSE_DECL(polar);
+    PARSE_DECL(polar);          // Just skips, actual work in 'rectangular'
     RENDER_DECL(polar);
 };
 

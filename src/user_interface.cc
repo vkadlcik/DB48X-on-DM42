@@ -31,6 +31,7 @@
 
 #include "arithmetic.h"
 #include "command.h"
+#include "complex.h"
 #include "functions.h"
 #include "graphics.h"
 #include "list.h"
@@ -2476,25 +2477,41 @@ bool user_interface::handle_digits(int key)
         if (key == KEY_CHS)
         {
             // Special case for change of sign
-            byte    *ed = rt.editor();
-            utf8 p      = ed + cursor;
-            unicode  c  = 0;
-            unicode  dm = Settings.decimal_mark;
-            unicode  ns = Settings.space;
-            unicode  hs = Settings.space_based;
+            byte   *ed          = rt.editor();
+            byte   *p           = ed + cursor;
+            unicode c           = 0;
+            unicode dm          = Settings.decimal_mark;
+            unicode ns          = Settings.space;
+            unicode hs          = Settings.space_based;
+            bool    had_complex = false;
             while (p > ed)
             {
-                p = utf8_previous(p);
+                p = (byte *) utf8_previous(p);
                 c = utf8_codepoint(p);
-                if ((c < '0' || c > '9') && c != dm && c != ns && c != hs)
+                if (c == complex::I_MARK || c == complex::ANGLE_MARK)
+                {
+                    had_complex = true;
+                    if (c == complex::I_MARK)
+                        p = (byte *) utf8_previous(p);
+                    c = utf8_codepoint(p);
+                    break;
+                }
+                else if ((c < '0' || c > '9') && c != dm && c != ns && c != hs)
                     break;
             }
 
-            utf8 i = p > ed ? utf8_next(p) : p;
+            utf8 i = (p > ed || had_complex) ? utf8_next(p) : p;
             if (c == 'e' || c == 'E' || c == Settings.exponent_mark)
                 c  = utf8_codepoint(p);
 
-            if (c == '-')
+            if (had_complex)
+            {
+                if (c == '+' || c == '-')
+                    *p = '+' + '-' - c;
+                else
+                    cursor += rt.insert(i - ed, '-');
+            }
+            else if (c == '-')
             {
                 rt.remove(p - ed, 1);
                 cursor--;

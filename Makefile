@@ -83,7 +83,7 @@ QMAKE_faster=release
 QMAKE_fastest=release
 
 TTF2FONT=$(TOOLS)/ttf2font/ttf2font
-$(TTF2FONT): $(TTF2FONT).cpp $(TOOLS)/ttf2font/Makefile
+$(TTF2FONT): $(TTF2FONT).cpp $(TOOLS)/ttf2font/Makefile src/ids.tbl
 	cd $(TOOLS)/ttf2font; $(MAKE)
 sim/gcc111libbid.a: sim/gcc111libbid-$(shell uname)-$(shell uname -m).a
 	cp $< $@
@@ -100,11 +100,11 @@ $(BUILD)/version-$(VERSION).h: $(BUILD)/.exists Makefile
 
 #BASE_FONT=fonts/C43StandardFont.ttf
 BASE_FONT=fonts/FogSans-ddd.ttf
-fonts/EditorFont.cc: $(TTF2FONT) $(BASE_FONT) src/ids.tbl
+fonts/EditorFont.cc: $(TTF2FONT) $(BASE_FONT)
 	$(TTF2FONT) -s 48 -S 80 -y -10 EditorFont $(BASE_FONT) $@
-fonts/StackFont.cc: $(TTF2FONT) $(BASE_FONT) src/ids.tbl
+fonts/StackFont.cc: $(TTF2FONT) $(BASE_FONT)
 	$(TTF2FONT) -s 32 -S 80 -y -8 StackFont $(BASE_FONT) $@
-fonts/HelpFont.cc: $(TTF2FONT) $(BASE_FONT) src/ids.tbl
+fonts/HelpFont.cc: $(TTF2FONT) $(BASE_FONT)
 	$(TTF2FONT) -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
 help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md)
 	mkdir -p help && cat $^ > $@

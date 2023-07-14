@@ -173,7 +173,7 @@ void menu::items(info &mi, cstring label, object_p action)
     /* ------------------------------------------------------------ */  \
     {                                                                   \
         uint  nitems = count(__VA_ARGS__);                              \
-        items_init(mi, nitems, 2);                                      \
+        items_init(mi, nitems, 3);                                      \
         items(mi, ##__VA_ARGS__);                                       \
         return true;                                                    \
     }

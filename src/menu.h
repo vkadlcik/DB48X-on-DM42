@@ -63,7 +63,7 @@ struct menu : command
         return ops().menu(this, mi) ? OK : ERROR;
     }
 
-    static void items_init(info &mi, uint nitems, uint planes = 2);
+    static void items_init(info &mi, uint nitems, uint planes = 3);
     static void items(info &UNUSED mi) { }
     static void items(info &mi, id action);
     static void items(info &mi, cstring label, object_p action);

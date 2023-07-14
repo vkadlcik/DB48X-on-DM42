@@ -30,6 +30,7 @@
 // ****************************************************************************
 
 #include "algebraic.h"
+#include "complex.h"
 #include "runtime.h"
 
 struct function : algebraic
@@ -41,12 +42,15 @@ struct function : algebraic
 
 
 protected:
-    static result evaluate(id op, bid128_fn op128);
+    typedef complex_g (*complex_fn)(complex_g &x);
+
+    static result evaluate(id op, bid128_fn op128, complex_fn zop);
     // ------------------------------------------------------------------------
     //   Stack-based evaluation for all functions implemented in BID library
     // ------------------------------------------------------------------------
 
-    static algebraic_g evaluate(algebraic_g &x, id op, bid128_fn op128);
+    static algebraic_g evaluate(algebraic_g &x, id op,
+                                bid128_fn op128, complex_fn zop);
     // ------------------------------------------------------------------------
     //   C++ evaluation for all functions implemented in BID library
     // ------------------------------------------------------------------------
@@ -78,6 +82,7 @@ struct derived : function                                               \
     derived(id i = ID_##derived) : function(i) {}                       \
                                                                         \
     static constexpr auto bid128_op = bid128_##derived;                 \
+    static constexpr complex_fn zop = complex::derived;                 \
                                                                         \
 public:                                                                 \
     OBJECT_DECL(derived);                                               \
@@ -90,11 +95,11 @@ public:                                                                 \
     }                                                                   \
     static result evaluate()                                            \
     {                                                                   \
-        return function::evaluate(ID_##derived, bid128_op);             \
+        return function::evaluate(ID_##derived, bid128_op, zop);        \
     }                                                                   \
     static algebraic_g evaluate(algebraic_g &x)                         \
     {                                                                   \
-        return function::evaluate(x, ID_##derived, bid128_op);          \
+        return function::evaluate(x, ID_##derived, bid128_op, zop);     \
     }                                                                   \
 }
 

@@ -96,6 +96,40 @@ struct complex : algebraic
 public:
     SIZE_DECL(complex);
     PARSE_DECL(complex);
+
+public:
+    // Complex implelemtation for main functions
+#define COMPLEX_FUNCTION(name)  static complex_g name(complex_g &x)
+#define COMPLEX_BODY(name)      complex_g complex::name(complex_g &x)
+    COMPLEX_FUNCTION(sqrt);
+    COMPLEX_FUNCTION(cbrt);
+
+    COMPLEX_FUNCTION(sin);
+    COMPLEX_FUNCTION(cos);
+    COMPLEX_FUNCTION(tan);
+    COMPLEX_FUNCTION(asin);
+    COMPLEX_FUNCTION(acos);
+    COMPLEX_FUNCTION(atan);
+
+    COMPLEX_FUNCTION(sinh);
+    COMPLEX_FUNCTION(cosh);
+    COMPLEX_FUNCTION(tanh);
+    COMPLEX_FUNCTION(asinh);
+    COMPLEX_FUNCTION(acosh);
+    COMPLEX_FUNCTION(atanh);
+
+    COMPLEX_FUNCTION(log1p);
+    COMPLEX_FUNCTION(expm1);
+    COMPLEX_FUNCTION(log);
+    COMPLEX_FUNCTION(log10);
+    COMPLEX_FUNCTION(log2);
+    COMPLEX_FUNCTION(exp);
+    COMPLEX_FUNCTION(exp10);
+    COMPLEX_FUNCTION(exp2);
+    COMPLEX_FUNCTION(erf);
+    COMPLEX_FUNCTION(erfc);
+    COMPLEX_FUNCTION(tgamma);
+    COMPLEX_FUNCTION(lgamma);
 };
 
 

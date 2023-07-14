@@ -56,7 +56,7 @@ algebraic_g function::symbolic(id op, algebraic_g &x)
 }
 
 
-object::result function::evaluate(id op, bid128_fn op128)
+object::result function::evaluate(id op, bid128_fn op128, complex_fn zop)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------
@@ -64,15 +64,17 @@ object::result function::evaluate(id op, bid128_fn op128)
     algebraic_g x = algebraic_p(rt.top());
     if (!x)
         return ERROR;
-    x = evaluate(x, op ,op128);
+    x = evaluate(x, op ,op128, zop);
     if (x && rt.top(x))
         return OK;
     return ERROR;
 }
 
 
-
-algebraic_g function::evaluate(algebraic_g &x, id op, bid128_fn op128)
+algebraic_g function::evaluate(algebraic_g &x,
+                               id           op,
+                               bid128_fn    op128,
+                               complex_fn   zop)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------
@@ -83,6 +85,11 @@ algebraic_g function::evaluate(algebraic_g &x, id op, bid128_fn op128)
     id xt = x->type();
     if (should_be_symbolic(xt))
         return symbolic(op, x);
+    if (is_complex(xt))
+    {
+        complex_g &z = (complex_g &) x;
+        return algebraic_p(zop(z));
+    }
 
     if (is_integer(xt))
     {
@@ -173,9 +180,13 @@ FUNCTION_BODY(abs)
         // No-op
         return x;
     }
+    else if (is_complex(xt))
+    {
+        return complex_p(algebraic_p(x))->mod();
+    }
 
     // Fall-back to floating-point abs
-    return function::evaluate(x, ID_abs, bid128_abs);
+    return function::evaluate(x, ID_abs, bid128_abs, nullptr);
 }
 
 

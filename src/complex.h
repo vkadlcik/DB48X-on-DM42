@@ -91,6 +91,9 @@ struct complex : algebraic
     algebraic_g arg() const;
     algebraic_g conjugate() const;
 
+    polar_p             as_polar() const;
+    rectangular_p       as_rectangular() const;
+
     enum { I_MARK = L'ⅈ', ANGLE_MARK = L'∡' };
 
 public:

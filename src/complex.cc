@@ -185,6 +185,34 @@ complex_g operator/(complex_g x, complex_g y)
 }
 
 
+polar_p complex::as_polar() const
+// ----------------------------------------------------------------------------
+//   Switch to polar form if preferred for computation
+// ----------------------------------------------------------------------------
+{
+    if (type() == ID_rectangular)
+    {
+        rectangular_g r = rectangular_p(this);
+        return rt.make<polar>(r->mod(), r->arg());
+    }
+    return polar_p(this);
+}
+
+
+rectangular_p complex::as_rectangular() const
+// ----------------------------------------------------------------------------
+//   Switch to rectangular form if preferred for computation
+// ----------------------------------------------------------------------------
+{
+    if (type() == ID_polar)
+    {
+        polar_g r = polar_p(this);
+        return rt.make<rectangular>(r->re(), r->im());
+    }
+    return rectangular_p(this);
+}
+
+
 PARSE_BODY(complex)
 // ----------------------------------------------------------------------------
 //   Parse the various forms of complex number
@@ -591,8 +619,11 @@ COMPLEX_BODY(cbrt)
 //   Complex implementation of cbrt
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return z;
+    polar_g p = z->as_polar();
+    algebraic_g mod = p->mod();
+    algebraic_g arg = p->arg();
+    algebraic_g three = integer::make(3);
+    return rt.make<polar>(cbrt::evaluate(mod), arg / three);
 }
 
 

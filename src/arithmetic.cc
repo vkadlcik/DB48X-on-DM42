@@ -609,6 +609,42 @@ inline bool rem::complex_ok(complex_g &, complex_g &)
 }
 
 
+template <>
+inline bool arithmetic::non_numeric<struct pow>(algebraic_g &x,
+                                                algebraic_g &y,
+                                                object::id  &xt,
+                                                object::id  &yt)
+// ----------------------------------------------------------------------------
+//   Deal with non-numerical data types for multiplication
+// ----------------------------------------------------------------------------
+{
+    // Deal with X^N where N is a positive integer
+    if (yt == object::ID_integer && !is_integer(xt) && !is_strictly_symbolic(xt))
+    {
+        ularge yv = integer_p(algebraic_p(y))->value<ularge>();
+        if (yv == 0 && x->is_zero(false))
+        {
+            rt.undefined_operation_error();
+            return false;
+        }
+
+        algebraic_g r = integer::make(1);
+        while (yv)
+        {
+            if (yv & 1)
+                r = r * x;
+            yv /= 2;
+            x = x * x;
+        }
+        x = r;
+        return true;
+    }
+
+    // Not yet implemented
+    return false;
+}
+
+
 inline bool pow::integer_ok(object::id &xt, object::id &yt,
                             ularge &xv, ularge &yv)
 // ----------------------------------------------------------------------------

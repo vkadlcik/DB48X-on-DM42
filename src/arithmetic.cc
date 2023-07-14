@@ -632,20 +632,21 @@ inline bool pow::integer_ok(object::id &xt, object::id &yt,
 
     // Compute result, check that it does not overflow
     ularge r = 1;
+    enum { MAXBITS = 8 * sizeof(ularge) };
     while (yv)
     {
         if (yv & 1)
         {
-            ularge p = r * xv;
-            if (p < r || p < xv)
+            if (std::__countl_zero(xv) + std::__countl_zero(r) < MAXBITS)
                 return false;   // Integer overflow
+            ularge p = r * xv;
             r = p;
         }
         yv /= 2;
 
+        if (std::__countl_zero(xv) * 2 < MAXBITS)
+            return false;   // Integer overflow
         ularge nxv = xv * xv;
-        if (yv && nxv < xv)
-            return false;       // Integer overflow
         xv = nxv;
     }
 

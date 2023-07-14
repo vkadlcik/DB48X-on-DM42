@@ -704,12 +704,15 @@ inline bool pow::bignum_ok(bignum_g &x, bignum_g &y)
 }
 
 
-inline bool pow::complex_ok(complex_g &, complex_g &)
+inline bool pow::complex_ok(complex_g &x, complex_g &y)
 // ----------------------------------------------------------------------------
-//   No power on complex numbers (yet), do be defined as exp(y*ln(x))
+//   Implement x^y as exp(y * log(x))
 // ----------------------------------------------------------------------------
 {
-    return false;
+    complex_g a = complex::log(x);
+    complex_g b = y * a;
+    x = complex::exp(b);
+    return true;
 }
 
 
@@ -819,6 +822,12 @@ algebraic_g arithmetic::evaluate(id             op,
     // Integer types
     bool ok = false;
 
+    // All non-numeric cases, e.g. string concatenation
+    // Must come first, e.g. for optimization of X^3
+    if (!ok)
+        ok = ops.non_numeric(x, y, xt, yt);
+
+    // Integer types
     if (!ok && is_integer(xt) && is_integer(yt))
     {
         if (!is_bignum(xt) && !is_bignum(yt))
@@ -936,10 +945,6 @@ algebraic_g arithmetic::evaluate(id             op,
         complex_g &yc = (complex_g &) y;
         ok = ops.complex_ok(xc, yc);
     }
-
-    // All other non-numeric cases, e.g. string concatenation
-    if (!ok)
-        ok = ops.non_numeric(x, y, xt, yt);
 
     if (!ok && x->is_symbolic() && y->is_symbolic())
     {

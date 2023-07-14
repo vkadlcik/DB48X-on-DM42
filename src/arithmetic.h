@@ -71,30 +71,33 @@ protected:
     typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x, BID_UINT128 *y);
     typedef void (*bid64_fn) (BID_UINT64  *res, BID_UINT64  *x, BID_UINT64  *y);
     typedef void (*bid32_fn) (BID_UINT32  *res, BID_UINT32  *x, BID_UINT32  *y);
-    static result evaluate(id             op,
-                           bid128_fn      op128,
-                           bid64_fn       op64,
-                           bid32_fn       op32,
-                           integer_fn     integer_ok,
-                           bignum_fn      bignum_ok,
-                           fraction_fn    fraction_ok,
-                           non_numeric_fn non_numeric);
+
+    // Structure holding the function pointers called by generic code
+    struct ops
+    {
+        bid128_fn      op128;
+        bid64_fn       op64;
+        bid32_fn       op32;
+        integer_fn     integer_ok;
+        bignum_fn      bignum_ok;
+        fraction_fn    fraction_ok;
+        non_numeric_fn non_numeric;
+    };
+    typedef const ops &ops_t;
+    template <typename Op> static ops_t Ops();
+
+    static result evaluate(id op, ops_t ops);
 
     template <typename Op> static result evaluate();
     // ------------------------------------------------------------------------
     //   Stack-based evaluation for all binary operators
     // ------------------------------------------------------------------------
 
-    static algebraic_g evaluate(id             op,
-                                algebraic_g &  x,
-                                algebraic_g &  y,
-                                bid128_fn      op128,
-                                bid64_fn       op64,
-                                bid32_fn       op32,
-                                integer_fn     integer_ok,
-                                bignum_fn      bignum_ok,
-                                fraction_fn    fraction_ok,
-                                non_numeric_fn non_numeric);
+    static algebraic_g evaluate(id           op,
+                                algebraic_g &x,
+                                algebraic_g &y,
+                                ops_t        ops);
+
     template <typename Op>
     static algebraic_g evaluate(algebraic_g &x, algebraic_g &y);
     // ------------------------------------------------------------------------
@@ -177,20 +180,31 @@ algebraic_g operator*(algebraic_g x, algebraic_g y);
 algebraic_g operator/(algebraic_g x, algebraic_g y);
 
 template <typename Op>
+arithmetic::ops_t arithmetic::Ops()
+// ----------------------------------------------------------------------------
+//   Return the operations for the given Op
+// ----------------------------------------------------------------------------
+{
+    static const ops result =
+    {
+        Op::bid128_op,
+        Op::bid64_op,
+        Op::bid32_op,
+        Op::integer_ok,
+        Op::bignum_ok,
+        Op::fraction_ok,
+        non_numeric<Op>
+    };
+    return result;
+}
+
+template <typename Op>
 algebraic_g arithmetic::evaluate(algebraic_g &x, algebraic_g &y)
 // ----------------------------------------------------------------------------
 //   Evaluate
 // ----------------------------------------------------------------------------
 {
-    return evaluate(Op::static_id,
-                    x, y,
-                    Op::bid128_op,
-                    Op::bid64_op,
-                    Op::bid32_op,
-                    Op::integer_ok,
-                    Op::bignum_ok,
-                    Op::fraction_ok,
-                    non_numeric<Op>);
+    return evaluate(Op::static_id, x, y, Ops<Op>());
 }
 
 
@@ -201,14 +215,7 @@ object::result arithmetic::evaluate()
 //   The stack-based evaluator for arithmetic operations
 // ----------------------------------------------------------------------------
 {
-    return evaluate(Op::static_id,
-                    Op::bid128_op,
-                    Op::bid64_op,
-                    Op::bid32_op,
-                    Op::integer_ok,
-                    Op::bignum_ok,
-                    Op::fraction_ok,
-                    non_numeric<Op>);
+    return evaluate(Op::static_id, Ops<Op>());
 }
 
 #endif // ARITHMETIC

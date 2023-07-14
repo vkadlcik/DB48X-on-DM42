@@ -652,13 +652,7 @@ inline bool atan2::fraction_ok(fraction_g &UNUSED x, fraction_g &UNUSED y)
 algebraic_g arithmetic::evaluate(id             op,
                                  algebraic_g &  x,
                                  algebraic_g &  y,
-                                 bid128_fn      op128,
-                                 bid64_fn       op64,
-                                 bid32_fn       op32,
-                                 integer_fn     integer_ok,
-                                 bignum_fn      bignum_ok,
-                                 fraction_fn    fraction_ok,
-                                 non_numeric_fn non_numeric)
+                                 ops_t          ops)
 // ----------------------------------------------------------------------------
 //   Shared code for all forms of evaluation, does not use the RPL stack
 // ----------------------------------------------------------------------------
@@ -680,7 +674,7 @@ algebraic_g arithmetic::evaluate(id             op,
             {
                 ularge xv = xi->value<ularge>();
                 ularge yv = yi->value<ularge>();
-                if (integer_ok(xt, yt, xv, yv))
+                if (ops.integer_ok(xt, yt, xv, yv))
                 {
                     x = rt.make<integer>(xt, xv);
                     ok = object_p(x) != nullptr;
@@ -700,7 +694,7 @@ algebraic_g arithmetic::evaluate(id             op,
             // Proceed with big integers if native did not fit
             bignum_g xg = bignum_p(object_p(x));
             bignum_g yg = bignum_p(object_p(y));
-            if (bignum_ok(xg, yg))
+            if (ops.bignum_ok(xg, yg))
             {
                 x = bignum_p(xg);
                 ok = object_p(x) != nullptr;
@@ -718,7 +712,7 @@ algebraic_g arithmetic::evaluate(id             op,
         {
             if (fraction_g yf = fraction_promotion(y))
             {
-                ok = fraction_ok(xf, yf);
+                ok = ops.fraction_ok(xf, yf);
                 if (ok)
                 {
                     x = algebraic_p(fraction_p(xf));
@@ -749,7 +743,7 @@ algebraic_g arithmetic::evaluate(id             op,
             bid32 xv = x->as<decimal32>()->value();
             bid32 yv = y->as<decimal32>()->value();
             bid32 res;
-            op32(&res.value, &xv.value, &yv.value);
+            ops.op32(&res.value, &xv.value, &yv.value);
             x = rt.make<decimal32>(ID_decimal32, res);
             ok = true;
             break;
@@ -759,7 +753,7 @@ algebraic_g arithmetic::evaluate(id             op,
             bid64 xv = x->as<decimal64>()->value();
             bid64 yv = y->as<decimal64>()->value();
             bid64 res;
-            op64(&res.value, &xv.value, &yv.value);
+            ops.op64(&res.value, &xv.value, &yv.value);
             x = rt.make<decimal64>(ID_decimal64, res);
             ok = true;
             break;
@@ -769,7 +763,7 @@ algebraic_g arithmetic::evaluate(id             op,
             bid128 xv = x->as<decimal128>()->value();
             bid128 yv = y->as<decimal128>()->value();
             bid128 res;
-            op128(&res.value, &xv.value, &yv.value);
+            ops.op128(&res.value, &xv.value, &yv.value);
             x = rt.make<decimal128>(ID_decimal128, res);
             ok = true;
             break;
@@ -780,7 +774,7 @@ algebraic_g arithmetic::evaluate(id             op,
     }
 
     if (!ok)
-        ok = non_numeric(x, y, xt, yt);
+        ok = ops.non_numeric(x, y, xt, yt);
 
     if (!ok && x->is_symbolic() && y->is_symbolic())
     {
@@ -800,14 +794,7 @@ algebraic_g arithmetic::evaluate(id             op,
 }
 
 
-object::result arithmetic::evaluate(id             op,
-                                    bid128_fn      op128,
-                                    bid64_fn       op64,
-                                    bid32_fn       op32,
-                                    integer_fn     integer_ok,
-                                    bignum_fn      bignum_ok,
-                                    fraction_fn    fraction_ok,
-                                    non_numeric_fn non_numeric)
+object::result arithmetic::evaluate(id op, ops_t ops)
 // ----------------------------------------------------------------------------
 //   Shared code for all forms of evaluation using the RPL stack
 // ----------------------------------------------------------------------------
@@ -821,8 +808,7 @@ object::result arithmetic::evaluate(id             op,
         return ERROR;
 
     // Evaluate the operation
-    algebraic_g r = evaluate(op, y, x, op128, op64, op32,
-                             integer_ok, bignum_ok, fraction_ok, non_numeric);
+    algebraic_g r = evaluate(op, y, x, ops);
 
     // If result is valid, drop second argument and push result on stack
     if (r)

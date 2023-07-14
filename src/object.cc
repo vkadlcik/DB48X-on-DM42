@@ -357,11 +357,61 @@ int object::as_truth(bool error) const
         return !decimal64_p(this)->is_zero();
     case ID_decimal32:
         return !decimal32_p(this)->is_zero();
+    case ID_polar:
+        return !polar_p(this)->is_zero();
+    case ID_rectangular:
+        return !rectangular_p(this)->is_zero();
     default:
         if (error)
             rt.type_error();
     }
     return -1;
+}
+
+
+bool object::is_zero(bool error) const
+// ----------------------------------------------------------------------------
+//   Get the logical value for an object, or -1 if invalid
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    switch(ty)
+    {
+    case ID_True:
+        return false;
+    case ID_False:
+        return true;
+    case ID_integer:
+    case ID_neg_integer:
+    case ID_bin_integer:
+    case ID_oct_integer:
+    case ID_dec_integer:
+    case ID_hex_integer:
+    case ID_based_integer:
+        return (integer_p(this)->is_zero());
+    case ID_bignum:
+    case ID_neg_bignum:
+    case ID_bin_bignum:
+    case ID_oct_bignum:
+    case ID_dec_bignum:
+    case ID_hex_bignum:
+        return (bignum_p(this)->is_zero());
+    case ID_decimal128:
+        return decimal128_p(this)->is_zero();
+    case ID_decimal64:
+        return decimal64_p(this)->is_zero();
+    case ID_decimal32:
+        return decimal32_p(this)->is_zero();
+    case ID_polar:
+        return polar_p(this)->is_zero();
+    case ID_rectangular:
+        return rectangular_p(this)->is_zero();
+
+    default:
+        if (error)
+            rt.type_error();
+    }
+    return false;
 }
 
 

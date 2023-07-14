@@ -176,14 +176,13 @@ complex_g operator/(complex_g x, complex_g y)
 
     rectangular_p xx = rectangular_p(complex_p(x));
     rectangular_p yy = rectangular_p(complex_p(y));
-    algebraic_g xr = xx->re();
-    algebraic_g xi = xx->im();
-    algebraic_g yr = yy->re();
-    algebraic_g yi = yy->im();
-    algebraic_g d = sq::evaluate(yr);
-    return rt.make<rectangular>((xr*yr+xi*yi)/d, (xi*yr-xr*yi)/d);
+    algebraic_g a = xx->re();
+    algebraic_g b = xx->im();
+    algebraic_g c = yy->re();
+    algebraic_g d = yy->im();
+    algebraic_g r = sq::evaluate(c) + sq::evaluate(d);
+    return rt.make<rectangular>((a*c+b*d)/r, (b*c-a*d)/r);
 }
-
 
 
 PARSE_BODY(complex)
@@ -415,6 +414,15 @@ algebraic_g rectangular::arg() const
 }
 
 
+bool rectangular::is_zero() const
+// ----------------------------------------------------------------------------
+//   A complex in rectangular form is zero iff both re and im are zero
+// ----------------------------------------------------------------------------
+{
+    return re()->is_zero(false) && im()->is_zero(false);
+}
+
+
 RENDER_BODY(rectangular)
 // ----------------------------------------------------------------------------
 //   Render a complex number in rectangular form
@@ -455,6 +463,15 @@ algebraic_g polar::im() const
     algebraic_g m = mod();
     algebraic_g a = arg();
     return m * sin::evaluate(a);
+}
+
+
+bool polar::is_zero() const
+// ----------------------------------------------------------------------------
+//   A complex in polar form is zero iff modulus is zero
+// ----------------------------------------------------------------------------
+{
+    return mod()->is_zero(false);
 }
 
 

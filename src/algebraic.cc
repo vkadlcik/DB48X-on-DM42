@@ -31,12 +31,13 @@
 
 #include "arithmetic.h"
 #include "bignum.h"
-#include "user_interface.h"
+#include "complex.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
+#include "user_interface.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -199,6 +200,54 @@ object::id algebraic::real_promotion(algebraic_g &x)
                   : prec > BID32_MAXDIGITS ? ID_decimal64
                                            : ID_decimal32;
     return real_promotion(x, type) ? type : ID_object;
+}
+
+
+bool algebraic::complex_promotion(algebraic_g &x, object::id type)
+// ----------------------------------------------------------------------------
+//   Promote the value x to the given complex type
+// ----------------------------------------------------------------------------
+{
+    id xt = x->type();
+    if (xt == type)
+        return true;
+
+    record(algebraic, "Complex promotion of %p from %+s to %+s",
+           (object_p) x, object::name(xt), object::name(type));
+
+    if (!is_complex(type))
+    {
+        record(algebraic_error, "Complex promotion to invalid type %+s",
+               object::name(type));
+        return false;
+    }
+
+    if (xt == ID_polar)
+    {
+        // Convert from polar to rectangular
+        polar_g z = polar_p(algebraic_p(x));
+        x = rt.make<rectangular>(z->re(), z->im());
+        return true;
+    }
+    else if (xt == ID_rectangular)
+    {
+        // Convert from rectangular to polar
+        rectangular_g z = rectangular_p(algebraic_p(x));
+        x = rt.make<polar>(z->mod(), z->arg());
+        return true;
+    }
+    else if (is_integer(xt) || is_real(xt) || is_symbolic(xt) ||
+             is_algebraic(xt))
+    {
+        algebraic_g zero = algebraic_p(integer::make(0));
+        if (type == ID_polar)
+            x = rt.make<polar>(x, zero);
+        else
+            x = rt.make<rectangular>(x, zero);
+        return true;
+    }
+
+    return false;
 }
 
 

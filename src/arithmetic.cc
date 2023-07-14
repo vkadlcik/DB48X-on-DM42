@@ -76,6 +76,35 @@ bool arithmetic::real_promotion(algebraic_g &x, algebraic_g &y)
 }
 
 
+bool arithmetic::complex_promotion(algebraic_g &x, algebraic_g &y)
+// ----------------------------------------------------------------------------
+//   Return true if one type is complex and the other can be promoted
+// ----------------------------------------------------------------------------
+{
+    id xt = x->type();
+    id yt = y->type();
+
+    if (is_complex(xt))
+    {
+        // Success if the two complex types are identical
+        if (yt == xt)
+            return true;
+
+        // Try to convert both types to the same complex type
+        return complex_promotion(y, xt);
+    }
+
+    if (is_complex(yt))
+    {
+        // Try to convert both types to the same complex type
+        return complex_promotion(x, yt);
+    }
+
+    // Neither type is complex, no point to promote
+    return false;
+}
+
+
 fraction_g arithmetic::fraction_promotion(algebraic_g &x)
 // ----------------------------------------------------------------------------
 //  Check if we can promote the number to a fraction
@@ -173,7 +202,7 @@ inline bool add::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 {
     x = x + y;
-    return byte_p(x) != nullptr;
+    return true;
 }
 
 
@@ -183,7 +212,17 @@ inline bool add::fraction_ok(fraction_g &x, fraction_g &y)
 // ----------------------------------------------------------------------------
 {
     x = x + y;
-    return byte_p(x) != nullptr;
+    return true;
+}
+
+
+inline bool add::complex_ok(complex_g &x, complex_g &y)
+// ----------------------------------------------------------------------------
+//   Add complex numbers if we have them
+// ----------------------------------------------------------------------------
+{
+    x = x + y;
+    return true;
 }
 
 
@@ -233,7 +272,7 @@ inline bool sub::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 {
     x = x - y;
-    return byte_p(x) != nullptr;
+    return true;
 }
 
 
@@ -243,7 +282,17 @@ inline bool sub::fraction_ok(fraction_g &x, fraction_g &y)
 // ----------------------------------------------------------------------------
 {
     x = x - y;
-    return byte_p(x) != nullptr;
+    return true;
+}
+
+
+inline bool sub::complex_ok(complex_g &x, complex_g &y)
+// ----------------------------------------------------------------------------
+//   Subtract complex numbers if we have them
+// ----------------------------------------------------------------------------
+{
+    x = x - y;
+    return true;
 }
 
 
@@ -320,7 +369,7 @@ inline bool mul::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 {
     x = x * y;
-    return byte_p(x) != nullptr;
+    return true;
 }
 
 
@@ -330,7 +379,17 @@ inline bool mul::fraction_ok(fraction_g &x, fraction_g &y)
 // ----------------------------------------------------------------------------
 {
     x = x * y;
-    return byte_p(x) != nullptr;
+    return true;
+}
+
+
+inline bool mul::complex_ok(complex_g &x, complex_g &y)
+// ----------------------------------------------------------------------------
+//   Multiply complex numbers if we have them
+// ----------------------------------------------------------------------------
+{
+    x = x * y;
+    return true;
 }
 
 
@@ -407,7 +466,22 @@ inline bool div::fraction_ok(fraction_g &x, fraction_g &y)
         return false;
     }
     x = x / y;
-    return byte_p(x) != nullptr;
+    return true;
+}
+
+
+inline bool div::complex_ok(complex_g &x, complex_g &y)
+// ----------------------------------------------------------------------------
+//   Divide complex numbers if we have them
+// ----------------------------------------------------------------------------
+{
+    if (y->is_zero())
+    {
+        rt.zero_divide_error();
+        return false;
+    }
+    x = x / y;
+    return true;
 }
 
 
@@ -454,7 +528,7 @@ inline bool mod::bignum_ok(bignum_g &x, bignum_g &y)
         x = y - r;
     else
         x = r;
-    return byte_p(x) != nullptr;
+    return true;
 }
 
 
@@ -469,7 +543,16 @@ inline bool mod::fraction_ok(fraction_g &x, fraction_g &y)
         return false;
     }
     x = x % y;
-    return byte_p(x) != nullptr;
+    return true;
+}
+
+
+inline bool mod::complex_ok(complex_g &, complex_g &)
+// ----------------------------------------------------------------------------
+//   No modulo on complex numbers
+// ----------------------------------------------------------------------------
+{
+    return false;
 }
 
 
@@ -498,7 +581,7 @@ inline bool rem::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 {
     x = x % y;
-    return byte_p(x) != nullptr;
+    return true;
 }
 
 
@@ -513,7 +596,16 @@ inline bool rem::fraction_ok(fraction_g &x, fraction_g &y)
         return false;
     }
     x = x % y;
-    return byte_p(x) != nullptr;
+    return true;
+}
+
+
+inline bool rem::complex_ok(complex_g &, complex_g &)
+// ----------------------------------------------------------------------------
+//   No remainder on complex numbers
+// ----------------------------------------------------------------------------
+{
+    return false;
 }
 
 
@@ -571,7 +663,16 @@ inline bool pow::bignum_ok(bignum_g &x, bignum_g &y)
     if (x->type() == ID_neg_integer)
         return false;
     x = bignum::pow(x, y);
-    return byte_p(x) != nullptr;
+    return true;
+}
+
+
+inline bool pow::complex_ok(complex_g &, complex_g &)
+// ----------------------------------------------------------------------------
+//   No power on complex numbers (yet), do be defined as exp(y*ln(x))
+// ----------------------------------------------------------------------------
+{
+    return false;
 }
 
 
@@ -613,6 +714,15 @@ inline bool hypot::fraction_ok(fraction_g &UNUSED x, fraction_g &UNUSED y)
 }
 
 
+inline bool hypot::complex_ok(complex_g &, complex_g &)
+// ----------------------------------------------------------------------------
+//   No hypot on complex yet, to be defined as sqrt(x^2+y^2)
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
 inline bool atan2::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
                               ularge &UNUSED xv, ularge &UNUSED yv)
 // ----------------------------------------------------------------------------
@@ -642,6 +752,15 @@ inline bool atan2::fraction_ok(fraction_g &UNUSED x, fraction_g &UNUSED y)
 }
 
 
+inline bool atan2::complex_ok(complex_g &, complex_g &)
+// ----------------------------------------------------------------------------
+//   No atan2 on complex numbers yet
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
 
 // ============================================================================
 //
@@ -660,14 +779,14 @@ algebraic_g arithmetic::evaluate(id             op,
     id xt = x->type();
     id yt = y->type();
 
-    /* Integer types */
+    // Integer types
     bool ok = false;
 
     if (!ok && is_integer(xt) && is_integer(yt))
     {
         if (!is_bignum(xt) && !is_bignum(yt))
         {
-            /* Perform conversion of integer values to the same base */
+            // Perform conversion of integer values to the same base
             integer_p xi = integer_p(object_p(x));
             integer_p yi = integer_p(object_p(y));
             if (xi->native() && yi->native())
@@ -704,7 +823,7 @@ algebraic_g arithmetic::evaluate(id             op,
         }
     }
 
-    /* Fraction types */
+    // Fraction types
     if (!ok && (x->is_fraction() || y->is_fraction() ||
                 (op == ID_div && x->is_fractionable() && y->is_fractionable())))
     {
@@ -731,10 +850,10 @@ algebraic_g arithmetic::evaluate(id             op,
         }
     }
 
-    /* Real data types */
+    // Real data types
     if (!ok && real_promotion(x, y))
     {
-        /* Here, x and y have the same type, a decimal type */
+        // Here, x and y have the same type, a decimal type
         xt = x->type();
         switch(xt)
         {
@@ -773,6 +892,15 @@ algebraic_g arithmetic::evaluate(id             op,
         }
     }
 
+    // Complex data types
+    if (!ok && complex_promotion(x, y))
+    {
+        complex_g &xc = (complex_g &) x;
+        complex_g &yc = (complex_g &) y;
+        ok = ops.complex_ok(xc, yc);
+    }
+
+    // All other non-numeric cases, e.g. string concatenation
     if (!ok)
         ok = ops.non_numeric(x, y, xt, yt);
 

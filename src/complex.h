@@ -118,6 +118,7 @@ struct rectangular : complex
     algebraic_g im()  const     { return y(); }
     algebraic_g mod() const;
     algebraic_g arg() const;
+    bool        is_zero() const;
 
 public:
     OBJECT_DECL(rectangular);
@@ -138,6 +139,7 @@ struct polar : complex
     algebraic_g im()  const;
     algebraic_g mod() const     { return x(); }
     algebraic_g arg() const     { return y(); }
+    bool        is_zero() const;
 
 public:
     OBJECT_DECL(polar);

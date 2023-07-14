@@ -57,8 +57,11 @@ struct algebraic : command
     static uint precedence()            { return 1; }
 
     // Promotion of integer / fractions to real
-    static bool real_promotion(algebraic_g &x, object::id type);
+    static bool real_promotion(algebraic_g &x, id type);
     static id   real_promotion(algebraic_g &x);
+
+    // Promotion of integer, real or fraction to complex
+    static bool complex_promotion(algebraic_g &x, id type = ID_rectangular);
 
     // Promotion of integer to bignum
     static id   bignum_promotion(algebraic_g &x);

@@ -31,6 +31,7 @@
 
 #include "algebraic.h"
 #include "bignum.h"
+#include "complex.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
@@ -59,12 +60,21 @@ struct arithmetic : algebraic
         return algebraic::real_promotion(x);
     }
 
+    static bool complex_promotion(algebraic_g &x, id type = ID_rectangular)
+    {
+        return algebraic::complex_promotion(x, type);
+    }
+    static bool complex_promotion(algebraic_g &x, algebraic_g &y);
+
+
     static fraction_g fraction_promotion(algebraic_g &x);
+
 
 protected:
     typedef bool (*integer_fn)(id &xt, id &yt, ularge &xv, ularge &yv);
     typedef bool (*bignum_fn)(bignum_g &x, bignum_g &y);
     typedef bool (*fraction_fn)(fraction_g &x, fraction_g &y);
+    typedef bool (*complex_fn)(complex_g &x, complex_g &y);
     typedef bool (*non_numeric_fn)(algebraic_g &x, algebraic_g &y, id &xt, id &yt);
 
     // Function pointers used by generic evaluation code
@@ -81,6 +91,7 @@ protected:
         integer_fn     integer_ok;
         bignum_fn      bignum_ok;
         fraction_fn    fraction_ok;
+        complex_fn     complex_ok;
         non_numeric_fn non_numeric;
     };
     typedef const ops &ops_t;
@@ -129,6 +140,7 @@ struct derived : arithmetic                                             \
     static bool integer_ok(id &xt, id &yt, ularge &xv, ularge &yv);     \
     static bool bignum_ok(bignum_g &x, bignum_g &y);                    \
     static bool fraction_ok(fraction_g &x, fraction_g &y);              \
+    static bool complex_ok(complex_g &x, complex_g &y);                 \
     static constexpr auto bid32_op = bid32_##derived;                   \
     static constexpr auto bid64_op = bid64_##derived;                   \
     static constexpr auto bid128_op = bid128_##derived;                 \
@@ -193,6 +205,7 @@ arithmetic::ops_t arithmetic::Ops()
         Op::integer_ok,
         Op::bignum_ok,
         Op::fraction_ok,
+        Op::complex_ok,
         non_numeric<Op>
     };
     return result;

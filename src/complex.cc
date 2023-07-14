@@ -751,17 +751,20 @@ COMPLEX_BODY(expm1)
 //   Complex implementation of expm1
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
+    rt.type_error();
     return z;
 }
+
 
 COMPLEX_BODY(log)
 // ----------------------------------------------------------------------------
 //   Complex implementation of log
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return z;
+    // log(a.exp(ib)) = log(a) + i b
+    algebraic_g mod = z->mod();
+    algebraic_g arg = z->arg();
+    return rt.make<rectangular>(log::evaluate(mod), arg);
 }
 
 COMPLEX_BODY(log10)
@@ -787,8 +790,10 @@ COMPLEX_BODY(exp)
 //   Complex implementation of exp
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return z;
+    // exp(a+ib) = exp(a)*exp(ib)
+    algebraic_g re = z->re();
+    algebraic_g im = z->im();
+    return rt.make<polar>(exp::evaluate(re), im);
 }
 
 COMPLEX_BODY(exp10)

@@ -97,7 +97,9 @@ inline bool is_valid_as_name_initial(unicode cp)
              cp != L'⁻' &&
              cp != L'¹' &&
              cp != L'²' &&
-             cp != L'³'));
+             cp != L'³' &&
+             cp != L'ⅈ' &&
+             cp != L'∡'));
 }
 
 

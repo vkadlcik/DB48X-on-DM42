@@ -438,7 +438,7 @@ algebraic_g rectangular::arg() const
 {
     algebraic_g r = re();
     algebraic_g i = im();
-    return atan2::evaluate(r, i);
+    return atan2::evaluate(i, r);
 }
 
 

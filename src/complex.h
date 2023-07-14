@@ -99,8 +99,8 @@ public:
 
 public:
     // Complex implelemtation for main functions
-#define COMPLEX_FUNCTION(name)  static complex_g name(complex_g &x)
-#define COMPLEX_BODY(name)      complex_g complex::name(complex_g &x)
+#define COMPLEX_FUNCTION(name)  static complex_g name(complex_g &z)
+#define COMPLEX_BODY(name)      complex_g complex::name(complex_g &z)
     COMPLEX_FUNCTION(sqrt);
     COMPLEX_FUNCTION(cbrt);
 
@@ -171,8 +171,8 @@ struct polar : complex
 
     algebraic_g re()  const;
     algebraic_g im()  const;
-    algebraic_g mod() const     { return x(); }
-    algebraic_g arg() const     { return y(); }
+    algebraic_g mod() const;
+    algebraic_g arg() const;
     bool        is_zero() const;
 
 public:

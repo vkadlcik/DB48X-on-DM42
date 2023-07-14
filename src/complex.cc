@@ -466,6 +466,35 @@ algebraic_g polar::im() const
 }
 
 
+algebraic_g polar::mod() const
+// ----------------------------------------------------------------------------
+//   Compute the real part in polar form
+// ----------------------------------------------------------------------------
+{
+    algebraic_g m = x();
+    if (m->is_negative())
+        return neg::evaluate(m);
+    return m;
+}
+
+algebraic_g polar::arg() const
+// ----------------------------------------------------------------------------
+//   Compute the imaginary part in polar form
+// ----------------------------------------------------------------------------
+{
+    algebraic_g m = x();
+    algebraic_g a = y();
+    if (m->is_negative())
+    {
+        algebraic_g one = algebraic_p(integer::make(1));
+        algebraic_g four = algebraic_p(integer::make(4));
+        algebraic_g pi = atan::evaluate(one) * four;
+        a = a + pi;
+    }
+    return a;
+}
+
+
 bool polar::is_zero() const
 // ----------------------------------------------------------------------------
 //   A complex in polar form is zero iff modulus is zero
@@ -530,8 +559,30 @@ COMPLEX_BODY(sqrt)
 //   Complex implementation of sqrt
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    id zt = z->type();
+    if (zt == ID_polar)
+    {
+        // Computation is a bit easier in polar form
+        polar_g &p = (polar_g &) z;
+        algebraic_g mod = p->mod();
+        algebraic_g arg = p->arg();
+        algebraic_g two = integer::make(2);
+        return rt.make<polar>(sqrt::evaluate(mod), arg / two);
+    }
+
+    rectangular_g &r = (rectangular_g &) z;
+    algebraic_g a = r->re();
+    algebraic_g b = r->im();
+    algebraic_g znorm1 = norm::evaluate((algebraic_g &) z);
+    algebraic_g znorm2= algebraic_p(rt.clone(znorm1));
+    algebraic_g two = algebraic_p(integer::make(2));
+    algebraic_g re = (znorm1 + a) / two;
+    algebraic_g im = (znorm2 - a) / two;
+    re = sqrt::evaluate(re);
+    im = sqrt::evaluate(im);
+    if (b->is_negative(false))
+        im = neg::evaluate(im);
+    return rt.make<rectangular>(re, im);
 }
 
 
@@ -541,7 +592,7 @@ COMPLEX_BODY(cbrt)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 
@@ -551,7 +602,7 @@ COMPLEX_BODY(sin)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(cos)
@@ -560,7 +611,7 @@ COMPLEX_BODY(cos)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(tan)
@@ -569,7 +620,7 @@ COMPLEX_BODY(tan)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(asin)
@@ -578,7 +629,7 @@ COMPLEX_BODY(asin)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(acos)
@@ -587,7 +638,7 @@ COMPLEX_BODY(acos)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(atan)
@@ -596,7 +647,7 @@ COMPLEX_BODY(atan)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 
@@ -606,7 +657,7 @@ COMPLEX_BODY(sinh)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(cosh)
@@ -615,7 +666,7 @@ COMPLEX_BODY(cosh)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(tanh)
@@ -624,7 +675,7 @@ COMPLEX_BODY(tanh)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(asinh)
@@ -633,7 +684,7 @@ COMPLEX_BODY(asinh)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(acosh)
@@ -642,7 +693,7 @@ COMPLEX_BODY(acosh)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(atanh)
@@ -651,7 +702,7 @@ COMPLEX_BODY(atanh)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 
@@ -661,7 +712,7 @@ COMPLEX_BODY(log1p)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(expm1)
@@ -670,7 +721,7 @@ COMPLEX_BODY(expm1)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(log)
@@ -679,7 +730,7 @@ COMPLEX_BODY(log)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(log10)
@@ -688,7 +739,7 @@ COMPLEX_BODY(log10)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(log2)
@@ -697,7 +748,7 @@ COMPLEX_BODY(log2)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(exp)
@@ -706,7 +757,7 @@ COMPLEX_BODY(exp)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(exp10)
@@ -715,7 +766,7 @@ COMPLEX_BODY(exp10)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(exp2)
@@ -724,7 +775,7 @@ COMPLEX_BODY(exp2)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(erf)
@@ -733,7 +784,7 @@ COMPLEX_BODY(erf)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(erfc)
@@ -742,7 +793,7 @@ COMPLEX_BODY(erfc)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(tgamma)
@@ -751,7 +802,7 @@ COMPLEX_BODY(tgamma)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }
 
 COMPLEX_BODY(lgamma)
@@ -760,5 +811,5 @@ COMPLEX_BODY(lgamma)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
-    return x;
+    return z;
 }

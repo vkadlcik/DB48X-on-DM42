@@ -330,12 +330,11 @@ int object::as_truth(bool error) const
 // ----------------------------------------------------------------------------
 {
     id ty = type();
+
     switch(ty)
     {
     case ID_True:
-        return 1;
     case ID_False:
-        return 0;
     case ID_integer:
     case ID_neg_integer:
     case ID_bin_integer:
@@ -343,24 +342,23 @@ int object::as_truth(bool error) const
     case ID_dec_integer:
     case ID_hex_integer:
     case ID_based_integer:
-        return !(integer_p(this)->is_zero());
     case ID_bignum:
     case ID_neg_bignum:
     case ID_bin_bignum:
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
-        return !(bignum_p(this)->is_zero());
+    case ID_fraction:
+    case ID_neg_fraction:
+    case ID_big_fraction:
+    case ID_neg_big_fraction:
     case ID_decimal128:
-        return !decimal128_p(this)->is_zero();
     case ID_decimal64:
-        return !decimal64_p(this)->is_zero();
     case ID_decimal32:
-        return !decimal32_p(this)->is_zero();
     case ID_polar:
-        return !polar_p(this)->is_zero();
     case ID_rectangular:
-        return !rectangular_p(this)->is_zero();
+        return !is_zero(error);
+
     default:
         if (error)
             rt.type_error();
@@ -371,7 +369,7 @@ int object::as_truth(bool error) const
 
 bool object::is_zero(bool error) const
 // ----------------------------------------------------------------------------
-//   Get the logical value for an object, or -1 if invalid
+//   Check if an object is zero
 // ----------------------------------------------------------------------------
 {
     id ty = type();
@@ -396,6 +394,12 @@ bool object::is_zero(bool error) const
     case ID_dec_bignum:
     case ID_hex_bignum:
         return (bignum_p(this)->is_zero());
+    case ID_fraction:
+    case ID_neg_fraction:
+        return fraction_p(this)->numerator()->is_zero();
+    case ID_big_fraction:
+    case ID_neg_big_fraction:
+        return big_fraction_p(this)->numerator()->is_zero();
     case ID_decimal128:
         return decimal128_p(this)->is_zero();
     case ID_decimal64:
@@ -406,6 +410,48 @@ bool object::is_zero(bool error) const
         return polar_p(this)->is_zero();
     case ID_rectangular:
         return rectangular_p(this)->is_zero();
+
+    default:
+        if (error)
+            rt.type_error();
+    }
+    return false;
+}
+
+
+bool object::is_negative(bool error) const
+// ----------------------------------------------------------------------------
+//   Check if an object is negative
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    switch(ty)
+    {
+    case ID_integer:
+    case ID_bin_integer:
+    case ID_oct_integer:
+    case ID_dec_integer:
+    case ID_hex_integer:
+    case ID_based_integer:
+    case ID_bignum:
+    case ID_bin_bignum:
+    case ID_oct_bignum:
+    case ID_dec_bignum:
+    case ID_hex_bignum:
+    case ID_fraction:
+    case ID_big_fraction:
+        return false;
+    case ID_neg_integer:
+    case ID_neg_bignum:
+    case ID_neg_fraction:
+    case ID_neg_big_fraction:
+        return true;
+    case ID_decimal128:
+        return decimal128_p(this)->is_negative();
+    case ID_decimal64:
+        return decimal64_p(this)->is_negative();
+    case ID_decimal32:
+        return decimal32_p(this)->is_negative();
 
     default:
         if (error)

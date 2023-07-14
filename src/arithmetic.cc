@@ -1056,7 +1056,49 @@ template object::result arithmetic::evaluate<struct rem>();
 template object::result arithmetic::evaluate<struct pow>();
 template object::result arithmetic::evaluate<struct hypot>();
 template object::result arithmetic::evaluate<struct atan2>();
+template algebraic_g arithmetic::evaluate<struct hypot>(algebraic_g &x, algebraic_g &y);
+template algebraic_g arithmetic::evaluate<struct atan2>(algebraic_g &x, algebraic_g &y);
 
+
+template <typename Op>
+arithmetic::ops_t arithmetic::Ops()
+// ----------------------------------------------------------------------------
+//   Return the operations for the given Op
+// ----------------------------------------------------------------------------
+{
+    static const ops result =
+    {
+        Op::bid128_op,
+        Op::bid64_op,
+        Op::bid32_op,
+        Op::integer_ok,
+        Op::bignum_ok,
+        Op::fraction_ok,
+        Op::complex_ok,
+        non_numeric<Op>
+    };
+    return result;
+}
+
+
+template <typename Op>
+algebraic_g arithmetic::evaluate(algebraic_g &x, algebraic_g &y)
+// ----------------------------------------------------------------------------
+//   Evaluate the operation for C++ use (not using RPL stack)
+// ----------------------------------------------------------------------------
+{
+    return evaluate(Op::static_id, x, y, Ops<Op>());
+}
+
+
+template <typename Op>
+object::result arithmetic::evaluate()
+// ----------------------------------------------------------------------------
+//   The stack-based evaluator for arithmetic operations
+// ----------------------------------------------------------------------------
+{
+    return evaluate(Op::static_id, Ops<Op>());
+}
 
 
 // ============================================================================

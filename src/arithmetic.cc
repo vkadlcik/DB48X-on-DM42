@@ -1145,3 +1145,12 @@ algebraic_g operator/(algebraic_r x, algebraic_r y)
 {
     return div::evaluate(x, y);
 }
+
+
+algebraic_g operator%(algebraic_r x, algebraic_r y)
+// ----------------------------------------------------------------------------
+//   Modulo
+// ----------------------------------------------------------------------------
+{
+    return mod::evaluate(x, y);
+}

@@ -150,6 +150,11 @@ struct rectangular : complex
     algebraic_g arg() const;
     bool        is_zero() const;
 
+    static rectangular_g make(algebraic_r r, algebraic_r i)
+    {
+        return rt.make<rectangular>(r, i);
+    }
+
 public:
     OBJECT_DECL(rectangular);
     // PARSE_DECL(rectangular); is really in complex
@@ -167,9 +172,11 @@ struct polar : complex
 
     algebraic_g re()  const;
     algebraic_g im()  const;
-    algebraic_g mod() const;
-    algebraic_g arg() const;
+    algebraic_g mod() const     { return x(); }
+    algebraic_g arg() const     { return y(); }
     bool        is_zero() const;
+
+    static polar_g make(algebraic_r r, algebraic_r i);
 
 public:
     OBJECT_DECL(polar);

@@ -240,7 +240,7 @@ fraction_g operator+(fraction_r x, fraction_r y)
     bignum_g  xd = x->denominator();
     bignum_g  yn = y->numerator();
     bignum_g  yd = y->denominator();
-    return big_fraction::make(a(xn * yd) + a(yn * xd), xd * yd);
+    return big_fraction::make(xn * yd + yn * xd, xd * yd);
 }
 
 
@@ -253,7 +253,7 @@ fraction_g operator-(fraction_r x, fraction_r y)
     bignum_g  xd = x->denominator();
     bignum_g  yn = y->numerator();
     bignum_g  yd = y->denominator();
-    return big_fraction::make(a(xn * yd) - a(yn * xd), xd * yd);
+    return big_fraction::make(xn * yd - yn * xd, xd * yd);
 }
 
 

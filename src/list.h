@@ -42,6 +42,14 @@
 #include "text.h"
 #include "symbol.h"
 
+
+GCP(list);
+GCP(program);
+GCP(block);
+GCP(equation);
+GCP(array);
+
+
 struct list : text
 // ----------------------------------------------------------------------------
 //   RPL list type
@@ -150,8 +158,6 @@ public:
     PARSE_DECL(equation);
     RENDER_DECL(equation);
 };
-typedef const equation *equation_p;
-typedef gcp<const equation> equation_g;
 
 
 struct array : list

@@ -61,10 +61,7 @@
 
 #include <algorithm>
 
-struct bignum;
-typedef const bignum *bignum_p;
-typedef gcp<const bignum> bignum_g;
-
+GCP(bignum);
 
 struct bignum : text
 // ----------------------------------------------------------------------------

@@ -54,9 +54,7 @@
 #include "settings.h"
 
 
-struct integer;
-typedef const integer *integer_p;
-typedef gcp<const integer> integer_g;
+GCP(integer);
 
 
 struct integer : algebraic

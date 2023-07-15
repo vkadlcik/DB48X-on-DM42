@@ -39,19 +39,9 @@
 #include "runtime.h"
 #include "settings.h"
 
-
-struct complex;
-struct rectangular;
-struct polar;
-
-typedef const complex         *complex_p;
-typedef const rectangular     *rectangular_p;
-typedef const polar           *polar_p;
-
-typedef gcp<const complex>     complex_g;
-typedef gcp<const rectangular> rectangular_g;
-typedef gcp<const polar>       polar_g;
-
+GCP(complex);
+GCP(rectangular);
+GCP(polar);
 
 struct complex : algebraic
 // ----------------------------------------------------------------------------

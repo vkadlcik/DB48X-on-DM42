@@ -39,9 +39,7 @@
 
 #include "command.h"
 
-struct algebraic;
-typedef const algebraic *algebraic_p;
-typedef gcp<const algebraic> algebraic_g;
+GCP(algebraic);
 
 struct algebraic : command
 // ----------------------------------------------------------------------------

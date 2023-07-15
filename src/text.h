@@ -43,6 +43,9 @@
 #include "text.h"
 
 
+GCP(text);
+
+
 struct text : algebraic
 // ----------------------------------------------------------------------------
 //    Represent text objects
@@ -111,9 +114,6 @@ public:
     SIZE_DECL(text);
     RENDER_DECL(text);
 };
-
-typedef const text     *text_p;
-typedef gcp<const text> text_g;
 
 // Some operators on texts
 text_g operator+(text_g x, text_g y);

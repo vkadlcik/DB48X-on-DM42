@@ -39,10 +39,7 @@
 #include <string>
 #include <vector>
 
-struct runtime;
-struct menu;
-typedef const menu *menu_p;
-typedef gcp<const menu> menu_g;
+GCP(menu);
 
 struct user_interface
 // ----------------------------------------------------------------------------

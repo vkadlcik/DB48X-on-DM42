@@ -46,6 +46,8 @@
 #include "utf8.h"
 
 
+GCP(symbol);
+
 struct symbol : text
 // ----------------------------------------------------------------------------
 //    Represent symbol objects
@@ -55,12 +57,12 @@ struct symbol : text
         text(source, len, type)
     { }
 
-    static gcp<const symbol> make(char c)
+    static symbol_g make(char c)
     {
         return rt.make<symbol>(ID_symbol, utf8(&c), 1);
     }
 
-    static gcp<const symbol> make(cstring s)
+    static symbol_g make(cstring s)
     {
         return rt.make<symbol>(ID_symbol, utf8(s), strlen(s));
     }
@@ -76,9 +78,6 @@ public:
     RENDER_DECL(symbol);
     PREC_DECL(SYMBOL);
 };
-
-typedef const symbol *symbol_p;
-typedef gcp<const symbol> symbol_g;
 
 symbol_g operator+(symbol_g x, symbol_g y);
 

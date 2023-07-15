@@ -245,7 +245,7 @@ bool user_interface::end_edit()
         gcutf8 editor = rt.close_editor();
         if (editor)
         {
-            gcp<const program> cmds = program::parse(editor, edlen);
+            program_g cmds = program::parse(editor, edlen);
             if (cmds)
             {
                 // We successfully parsed the line

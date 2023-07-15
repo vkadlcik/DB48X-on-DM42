@@ -719,16 +719,25 @@ protected:
 };
 
 template<typename T>
-using gcp = runtime::gcp<T>;
+using gcp = runtime::gcp<const T>;
+template<typename T>
+using gcm = runtime::gcp<T>;
 
-using gcstring  = gcp<const char>;
-using gcmstring = gcp<char>;
-using gcbytes   = gcp<const byte>;
-using gcmbytes  = gcp<byte>;
-using gcutf8    = gcp<const byte>;
-using gcmutf8   = gcp<byte>;
+using gcstring  = gcp<char>;
+using gcmstring = gcm<char>;
+using gcbytes   = gcp<byte>;
+using gcmbytes  = gcm<byte>;
+using gcutf8    = gcp<byte>;
+using gcmutf8   = gcm<byte>;
 
-using object_g  = gcp<const object>;
+using object_g  = gcp<object>;
+
+#define GCP(T)                                  \
+    struct T;                                   \
+    typedef const T *T##_p;                     \
+    typedef gcp<T>   T##_g;                     \
+    typedef gcm<T>   T##_m;                     \
+    typedef const T##_g &T##_r;
 
 
 // ============================================================================

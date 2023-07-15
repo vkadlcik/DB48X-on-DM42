@@ -67,6 +67,10 @@
 #include "list.h"
 
 
+GCP(locals);
+GCP(local);
+
+
 struct locals : program
 // ----------------------------------------------------------------------------
 //   A locals block
@@ -81,8 +85,6 @@ public:
     EVAL_DECL(locals);
     RENDER_DECL(locals);
 };
-typedef const locals *locals_p;
-typedef gcp<const locals> locals_g;
 
 
 struct local : object
@@ -136,8 +138,6 @@ public:
     SIZE_DECL(local);
     RENDER_DECL(local);
 };
-typedef const local *local_p;
-typedef gcp<const local> local_g;
 
 
 struct locals_stack

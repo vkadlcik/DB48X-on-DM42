@@ -1425,7 +1425,6 @@ tests &tests::istep(cstring name)
 //  Beginning of a step
 // ----------------------------------------------------------------------------
 {
-    lcd_update = lcd_needsupdate;
     record(tests, "Step %+s, catching up", name);
     Stack.catch_up();
     sname = name;
@@ -1555,7 +1554,6 @@ tests &tests::itest(tests::key k, bool release)
 
     // Catch up with stack output
     Stack.catch_up();
-    lcd_update = lcd_needsupdate;
 
     // Check for special key sequences
     switch (k)
@@ -1582,6 +1580,7 @@ tests &tests::itest(tests::key k, bool release)
     while (!key_empty())
         sys_delay(delay_time);
 
+    lcd_update = lcd_needsupdate;
     key_push(k);
     if (longpress)
     {
@@ -1938,7 +1937,6 @@ tests &tests::clear()
     key_push(CLEAR);
     while (!key_empty())
         sys_delay(delay_time);
-    sys_delay(delay_time);
     return *this;
 }
 
@@ -1961,7 +1959,6 @@ tests &tests::nokeys()
 {
     while (!key_empty())
     {
-        lcd_update = lcd_needsupdate;
         Stack.catch_up();
         sys_delay(delay_time);
     }
@@ -1994,7 +1991,6 @@ tests &tests::refreshed()
            lcd_needsupdate,
            lcd_update,
            Stack.available());
-    lcd_update = lcd_needsupdate;
 
     return *this;
 }

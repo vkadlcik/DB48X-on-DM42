@@ -207,6 +207,40 @@ FUNCTION_BODY(norm)
 }
 
 
+FUNCTION_BODY(sign)
+// ----------------------------------------------------------------------------
+//   Implementation of 'sign'
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+
+    id xt = x->type();
+    if (should_be_symbolic(xt))
+        return symbolic(ID_sign, x);
+
+    if (x->is_negative(false))
+    {
+        return integer::make(-1);
+    }
+    else if (x->is_zero(false))
+    {
+        return integer::make(0);
+    }
+    else if (is_integer(xt) || is_bignum(xt) || is_fraction(xt) || is_real(xt))
+    {
+        return integer::make(1);
+    }
+    else if (is_complex(xt))
+    {
+        return rt.make<polar>(integer::make(1), complex_p(algebraic_p(x))->arg());
+    }
+
+    rt.type_error();
+    return nullptr;
+}
+
+
 FUNCTION_BODY(inv)
 // ----------------------------------------------------------------------------
 //   Invert is implemented as 1/x

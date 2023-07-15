@@ -167,6 +167,7 @@ algebraic_p derived::evaluate(algebraic_r x)
 
 FUNCTION(abs);
 FUNCTION(norm);
+FUNCTION(sign);
 FUNCTION(inv);
 FUNCTION(neg);
 FUNCTION(sq);

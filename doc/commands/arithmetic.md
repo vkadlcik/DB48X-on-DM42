@@ -65,7 +65,10 @@ Exponent of a number represented as (M*10<sup>exp</sup>)
 
 
 ## SIGN
-Sign of a number
+Sign of a number, -1, 0 or 1.
+
+For complex numbers, returns a unit number on the unit circle with the same
+argument as the original number.
 
 
 ## PERCENT
@@ -202,4 +205,3 @@ Largest prime smaller than the input
 
 ## FACTORS
 Factorize a polynomial or number
-

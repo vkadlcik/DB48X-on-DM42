@@ -445,7 +445,7 @@ bool object::is_negative(bool error) const
     case ID_neg_bignum:
     case ID_neg_fraction:
     case ID_neg_big_fraction:
-        return true;
+        return !is_zero();
     case ID_decimal128:
         return decimal128_p(this)->is_negative();
     case ID_decimal64:

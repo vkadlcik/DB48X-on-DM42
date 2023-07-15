@@ -501,7 +501,7 @@ algebraic_g polar::mod() const
 // ----------------------------------------------------------------------------
 {
     algebraic_g m = x();
-    if (m->is_negative())
+    if (m->is_negative(false))
         return neg::evaluate(m);
     return m;
 }
@@ -517,7 +517,7 @@ algebraic_g polar::arg() const
     {
         algebraic_g one = algebraic_p(integer::make(1));
         algebraic_g four = algebraic_p(integer::make(4));
-        algebraic_g pi = atan::evaluate(one) * four;
+        algebraic_g pi = four * atan::evaluate(one);
         a = a + pi;
     }
     return a;
@@ -610,6 +610,8 @@ COMPLEX_BODY(sqrt)
     im = sqrt::evaluate(im);
     if (b->is_negative(false))
         im = neg::evaluate(im);
+    else if (b->is_strictly_symbolic())
+        im = sign::run(im) * im;
     return rt.make<rectangular>(re, im);
 }
 

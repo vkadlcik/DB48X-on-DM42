@@ -214,6 +214,7 @@ ALIAS(pow, "^")
 OP(hypot, "⊿")
 OP(atan2, "∠")
 CMD(norm)
+CMD(sign)
 
 NAMED(ImaginaryUnit, "ⅈ")
 

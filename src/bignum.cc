@@ -277,7 +277,7 @@ RENDER_BODY(based_bignum)
 //
 // ============================================================================
 
-int bignum::compare(bignum_g xg, bignum_g yg, bool magnitude)
+int bignum::compare(bignum_r xg, bignum_r yg, bool magnitude)
 // ----------------------------------------------------------------------------
 //   Compare two bignum values
 // ----------------------------------------------------------------------------
@@ -346,7 +346,7 @@ inline object::id bignum::opposite_type(id type)
 }
 
 
-bignum_g operator-(bignum_g xg)
+bignum_g operator-(bignum_r xg)
 // ----------------------------------------------------------------------------
 //   Negate the input value
 // ----------------------------------------------------------------------------
@@ -366,7 +366,7 @@ bignum_g operator-(bignum_g xg)
 }
 
 
-bignum_g operator~(bignum_g x)
+bignum_g operator~(bignum_r x)
 // ----------------------------------------------------------------------------
 //   Boolean not
 // ----------------------------------------------------------------------------
@@ -375,14 +375,14 @@ bignum_g operator~(bignum_g x)
 
     // For bignum and neg_bignum, do a 0/1 logical not
     if (xt == object::ID_bignum || xt == object::ID_neg_bignum)
-        return rt.make<bignum>(object::ID_bignum, !x);
+        return rt.make<bignum>(object::ID_bignum, x->is_zero());
 
     // For hex_bignum and other based numbers, do a binary not
     return bignum::unary<true>(not_op, x);
 }
 
 
-bignum_g bignum::add_sub(bignum_g yg, bignum_g xg, bool issub)
+bignum_g bignum::add_sub(bignum_r yg, bignum_r xg, bool issub)
 // ----------------------------------------------------------------------------
 //   Add the two bignum values, result has type of x
 // ----------------------------------------------------------------------------
@@ -415,7 +415,7 @@ bignum_g bignum::add_sub(bignum_g yg, bignum_g xg, bool issub)
 }
 
 
-bignum_g operator+(bignum_g y, bignum_g x)
+bignum_g operator+(bignum_r y, bignum_r x)
 // ----------------------------------------------------------------------------
 //   Add the two bignum values, result has type of x
 // ----------------------------------------------------------------------------
@@ -424,7 +424,7 @@ bignum_g operator+(bignum_g y, bignum_g x)
 }
 
 
-bignum_g operator-(bignum_g y, bignum_g x)
+bignum_g operator-(bignum_r y, bignum_r x)
 // ----------------------------------------------------------------------------
 //   Subtract two bignum values, result has type of x
 // ----------------------------------------------------------------------------
@@ -433,7 +433,7 @@ bignum_g operator-(bignum_g y, bignum_g x)
 }
 
 
-bignum_g operator&(bignum_g y, bignum_g x)
+bignum_g operator&(bignum_r y, bignum_r x)
 // ----------------------------------------------------------------------------
 //   Perform a binary and operation
 // ----------------------------------------------------------------------------
@@ -442,7 +442,7 @@ bignum_g operator&(bignum_g y, bignum_g x)
 }
 
 
-bignum_g operator|(bignum_g y, bignum_g x)
+bignum_g operator|(bignum_r y, bignum_r x)
 // ----------------------------------------------------------------------------
 //   Perform a binary or operation
 // ----------------------------------------------------------------------------
@@ -451,7 +451,7 @@ bignum_g operator|(bignum_g y, bignum_g x)
 }
 
 
-bignum_g operator^(bignum_g y, bignum_g x)
+bignum_g operator^(bignum_r y, bignum_r x)
 // ----------------------------------------------------------------------------
 //   Perform a binary xor operation
 // ----------------------------------------------------------------------------
@@ -460,7 +460,7 @@ bignum_g operator^(bignum_g y, bignum_g x)
 }
 
 
-bignum_g bignum::multiply(bignum_g yg, bignum_g xg, id ty)
+bignum_g bignum::multiply(bignum_r yg, bignum_r xg, id ty)
 // ----------------------------------------------------------------------------
 //   Perform multiply operation on the two big nums, with result type ty
 // ----------------------------------------------------------------------------
@@ -523,7 +523,7 @@ bignum_g bignum::multiply(bignum_g yg, bignum_g xg, id ty)
 }
 
 
-bignum_g operator*(bignum_g y, bignum_g x)
+bignum_g operator*(bignum_r y, bignum_r x)
 // ----------------------------------------------------------------------------
 //   Multiplication of bignums
 // ----------------------------------------------------------------------------
@@ -535,13 +535,13 @@ bignum_g operator*(bignum_g y, bignum_g x)
 }
 
 
-bool bignum::quorem(bignum_g yg, bignum_g xg, id ty, bignum_g *q, bignum_g *r)
+bool bignum::quorem(bignum_r yg, bignum_r xg, id ty, bignum_g *q, bignum_g *r)
 // ----------------------------------------------------------------------------
 //   Compute quotient and remainder of two bignums, as bignums
 // ----------------------------------------------------------------------------
 //   Result is placed in scratchpad, the function returns the size in bytes
 {
-    if (!xg)
+    if (xg->is_zero())
     {
         rt.zero_divide_error();
         return false;
@@ -649,7 +649,7 @@ bool bignum::quorem(bignum_g yg, bignum_g xg, id ty, bignum_g *q, bignum_g *r)
 }
 
 
-bignum_g operator/(bignum_g y, bignum_g x)
+bignum_g operator/(bignum_r y, bignum_r x)
 // ----------------------------------------------------------------------------
 //   Perform long division of y by x
 // ----------------------------------------------------------------------------
@@ -664,7 +664,7 @@ bignum_g operator/(bignum_g y, bignum_g x)
 }
 
 
-bignum_g operator%(bignum_g y, bignum_g x)
+bignum_g operator%(bignum_r y, bignum_r x)
 // ----------------------------------------------------------------------------
 //  Perform long-remainder of y by x
 // ----------------------------------------------------------------------------
@@ -676,15 +676,16 @@ bignum_g operator%(bignum_g y, bignum_g x)
 }
 
 
-bignum_g bignum::pow(bignum_g y, bignum_g xg)
+bignum_g bignum::pow(bignum_r yr, bignum_r xg)
 // ----------------------------------------------------------------------------
 //    Compute y^abs(x)
 // ----------------------------------------------------------------------------
 //   Note that the case where x is negative should be filtered by caller
 {
-    bignum_g r = bignum::make(1);
-    size_t xs = 0;
-    byte_p x = xg->value(&xs);
+    bignum_g r  = bignum::make(1);
+    size_t   xs = 0;
+    byte_p   x  = xg->value(&xs);
+    bignum_g y  = yr;
 
     for (size_t xi = 0; xi < xs; xi++)
     {

@@ -79,7 +79,7 @@ public:
     PREC_DECL(SYMBOL);
 };
 
-symbol_g operator+(symbol_g x, symbol_g y);
+symbol_g operator+(symbol_r x, symbol_r y);
 
 
 inline bool is_valid_as_name_initial(unicode cp)

@@ -104,10 +104,10 @@ struct derived : logical                                                \
 BINARY_LOGICAL(And,      Y &  X);
 BINARY_LOGICAL(Or,       Y |  X);
 BINARY_LOGICAL(Xor,      Y ^  X);
-BINARY_LOGICAL(NAnd,   ~(Y &  X));
-BINARY_LOGICAL(NOr,    ~(Y |  X));
+BINARY_LOGICAL(NAnd,   ~a(Y &  X));
+BINARY_LOGICAL(NOr,    ~a(Y |  X));
 BINARY_LOGICAL(Implies, ~Y |  X);
-BINARY_LOGICAL(Equiv,  ~(Y ^  X));
+BINARY_LOGICAL(Equiv,  ~a(Y ^  X));
 BINARY_LOGICAL(Excludes, Y & ~X); // If Y then X=0
 UNARY_LOGICAL (Not,          ~X);
 

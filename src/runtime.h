@@ -137,13 +137,13 @@ struct runtime
     // ------------------------------------------------------------------------
 
     template <typename Obj, typename ... Args>
-    Obj *make(typename Obj::id type, const Args &... args);
+    const Obj *make(typename Obj::id type, const Args &... args);
     // ------------------------------------------------------------------------
     //   Make a new temporary of the given size
     // ------------------------------------------------------------------------
 
     template <typename Obj, typename ... Args>
-    Obj *make(const Args &... args);
+    const Obj *make(const Args &... args);
     // ------------------------------------------------------------------------
     //   Make a new temporary of the given size
     // ------------------------------------------------------------------------
@@ -422,6 +422,7 @@ struct runtime
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
         operator Obj *() const          { return (Obj *) safe; }
         operator Obj *&()               { return (Obj *&) safe; }
+        const Obj *Safe() const         { return (const Obj *) safe; }
         Obj *&Safe()                    { return (Obj *&) safe; }
         Obj operator *() const          { return *((Obj *) safe); }
         Obj &operator *()               { return *((Obj *) safe); }
@@ -747,7 +748,7 @@ using object_g  = gcp<object>;
 // ============================================================================
 
 template <typename Obj, typename ...Args>
-inline Obj *make(Args &... args)
+inline const Obj *make(Args &... args)
 // ----------------------------------------------------------------------------
 //    Create an object in the runtime
 // ----------------------------------------------------------------------------
@@ -767,7 +768,7 @@ inline void *operator new(size_t UNUSED size, Obj *where)
 
 
 template <typename Obj, typename ... Args>
-Obj *runtime::make(typename Obj::id type, const Args &... args)
+const Obj *runtime::make(typename Obj::id type, const Args &... args)
 // ----------------------------------------------------------------------------
 //   Make a new temporary of the given size
 // ----------------------------------------------------------------------------
@@ -800,7 +801,7 @@ Obj *runtime::make(typename Obj::id type, const Args &... args)
 
 
 template <typename Obj, typename ... Args>
-Obj *runtime::make(const Args &... args)
+const Obj *runtime::make(const Args &... args)
 // ----------------------------------------------------------------------------
 //   Make a new temporary of the given size
 // ----------------------------------------------------------------------------

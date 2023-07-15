@@ -67,18 +67,18 @@ struct text : algebraic
         return leb128size(i) + leb128size(len) + len;
     }
 
-    static text *make(utf8 str, size_t len)
+    static text_p make(utf8 str, size_t len)
     {
         gcutf8 gcstr = str;
         return rt.make<text>(gcstr, len);
     }
 
-    static text *make(utf8 str)
+    static text_p make(utf8 str)
     {
         return make(str, strlen(cstring(str)));
     }
 
-    static text *make(cstring str, size_t len)
+    static text_p make(cstring str, size_t len)
     {
         return make(utf8(str), len);
     }
@@ -116,7 +116,7 @@ public:
 };
 
 // Some operators on texts
-text_g operator+(text_g x, text_g y);
-text_g operator*(text_g x, uint y);
+text_g operator+(text_r x, text_r y);
+text_g operator*(text_r x, uint y);
 
 #endif // TEXT_H

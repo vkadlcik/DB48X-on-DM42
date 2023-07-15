@@ -72,5 +72,7 @@ struct algebraic : command
     INSERT_DECL(algebraic);
 };
 
+template <typename Obj> gcp<Obj> a(const Obj *p) { return p; }
+template <typename Obj> Obj      a(Obj x)        { return x; }
 
 #endif // ALGEBRAIC_H

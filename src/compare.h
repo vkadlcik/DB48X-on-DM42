@@ -105,11 +105,11 @@ COMMAND_DECLARE_SPECIAL(False, algebraic, );         // Evaluate as self
 //
 // ============================================================================
 
-algebraic_g operator==(algebraic_g x, algebraic_g y);
-algebraic_g operator<=(algebraic_g x, algebraic_g y);
-algebraic_g operator>=(algebraic_g x, algebraic_g y);
-algebraic_g operator <(algebraic_g x, algebraic_g y);
-algebraic_g operator >(algebraic_g x, algebraic_g y);
-algebraic_g operator!=(algebraic_g x, algebraic_g y);
+algebraic_g operator==(algebraic_r x, algebraic_r y);
+algebraic_g operator<=(algebraic_r x, algebraic_r y);
+algebraic_g operator>=(algebraic_r x, algebraic_r y);
+algebraic_g operator <(algebraic_r x, algebraic_r y);
+algebraic_g operator >(algebraic_r x, algebraic_r y);
+algebraic_g operator!=(algebraic_r x, algebraic_r y);
 
 #endif // COMPARE_H

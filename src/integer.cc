@@ -248,7 +248,7 @@ PARSE_BODY(integer)
             bignum_g bbase  = rt.make<bignum>(ID_bignum, base);
             bignum_g bvalue = rt.make<bignum>(type, v);
             bresult         = rt.make<bignum>(type, result);
-            bresult = bvalue + bbase * bresult; // Order matters for types
+            bresult = bvalue + a(bbase * bresult); // Order matters for types
 
             while (count--)
             {
@@ -264,7 +264,7 @@ PARSE_BODY(integer)
                 }
                 record(integer, "Digit %c value %u in bignum", s[-1], v);
                 bvalue  = rt.make<bignum>(type, v);
-                bresult = bvalue + bbase * bresult;
+                bresult = bvalue + a(bbase * bresult);
             }
 
             s    = gs;

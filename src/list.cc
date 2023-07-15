@@ -701,7 +701,7 @@ size_t equation::size_in_equation(object_p obj)
 }
 
 
-equation::equation(const algebraic_g &arg, id type)
+equation::equation(algebraic_r arg, id type)
 // ----------------------------------------------------------------------------
 //   Build an equation object from an object
 // ----------------------------------------------------------------------------
@@ -732,7 +732,7 @@ equation::equation(const algebraic_g &arg, id type)
 }
 
 
-size_t equation::required_memory(id type, const algebraic_g &arg)
+size_t equation::required_memory(id type, algebraic_r arg)
 // ----------------------------------------------------------------------------
 //   Size of an equation object from an object
 // ----------------------------------------------------------------------------
@@ -744,7 +744,7 @@ size_t equation::required_memory(id type, const algebraic_g &arg)
 }
 
 
-equation::equation(id op, const algebraic_g &arg, id type)
+equation::equation(id op, algebraic_r arg, id type)
 // ----------------------------------------------------------------------------
 //   Build an equation from one argument
 // ----------------------------------------------------------------------------
@@ -778,7 +778,7 @@ equation::equation(id op, const algebraic_g &arg, id type)
 }
 
 
-size_t equation::required_memory(id type, id op, const algebraic_g &arg)
+size_t equation::required_memory(id type, id op, algebraic_r arg)
 // ----------------------------------------------------------------------------
 //   Size of an equation object with one argument
 // ----------------------------------------------------------------------------
@@ -790,7 +790,7 @@ size_t equation::required_memory(id type, id op, const algebraic_g &arg)
 }
 
 
-equation::equation(id op, const algebraic_g &x, const algebraic_g &y, id type)
+equation::equation(id op, algebraic_r x, algebraic_r y, id type)
 // ----------------------------------------------------------------------------
 //   Build an equation from two arguments
 // ----------------------------------------------------------------------------
@@ -837,10 +837,7 @@ equation::equation(id op, const algebraic_g &x, const algebraic_g &y, id type)
 }
 
 
-size_t equation::required_memory(id                 type,
-                                 id                 op,
-                                 const algebraic_g &x,
-                                 const algebraic_g &y)
+size_t equation::required_memory(id type, id op, algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Size of an equation object with one argument
 // ----------------------------------------------------------------------------

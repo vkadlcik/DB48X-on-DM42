@@ -48,7 +48,7 @@ struct complex : algebraic
 //    Base class shared by both rectangular and polar implementations
 // ----------------------------------------------------------------------------
 {
-    complex(algebraic_g x, algebraic_g y, id type): algebraic(type)
+    complex(algebraic_r x, algebraic_r y, id type): algebraic(type)
     {
         byte *p = (byte *) payload(this);
         size_t xs = x->size();
@@ -58,7 +58,7 @@ struct complex : algebraic
         memcpy(p, byte_p(y), ys);
     }
 
-    static size_t required_memory(id i, algebraic_g x, algebraic_g y)
+    static size_t required_memory(id i, algebraic_r x, algebraic_r y)
     {
         return leb128size(i) + x->size() + y->size();
     }
@@ -81,8 +81,8 @@ struct complex : algebraic
     algebraic_g arg() const;
     algebraic_g conjugate() const;
 
-    polar_p             as_polar() const;
-    rectangular_p       as_rectangular() const;
+    polar_g             as_polar() const;
+    rectangular_g       as_rectangular() const;
 
     enum { I_MARK = L'ⅈ', ANGLE_MARK = L'∡' };
 
@@ -91,9 +91,12 @@ public:
     PARSE_DECL(complex);
 
 public:
-    // Complex implelemtation for main functions
-#define COMPLEX_FUNCTION(name)  static complex_g name(complex_g &z)
-#define COMPLEX_BODY(name)      complex_g complex::name(complex_g &z)
+    // Complex implementation for main functions
+#define COMPLEX_FUNCTION(name)                  \
+    static complex_p name(complex_r z)
+
+#define COMPLEX_BODY(name)      complex_p complex::name(complex_r z)
+
     COMPLEX_FUNCTION(sqrt);
     COMPLEX_FUNCTION(cbrt);
 
@@ -126,11 +129,11 @@ public:
 };
 
 
-complex_g operator-(complex_g x);
-complex_g operator+(complex_g x, complex_g y);
-complex_g operator-(complex_g x, complex_g y);
-complex_g operator*(complex_g x, complex_g y);
-complex_g operator/(complex_g x, complex_g y);
+complex_g operator-(complex_r x);
+complex_g operator+(complex_r x, complex_r y);
+complex_g operator-(complex_r x, complex_r y);
+complex_g operator*(complex_r x, complex_r y);
+complex_g operator/(complex_r x, complex_r y);
 
 
 struct rectangular : complex
@@ -138,7 +141,7 @@ struct rectangular : complex
 //   Rectangular representation for complex numbers
 // ----------------------------------------------------------------------------
 {
-    rectangular(algebraic_g re, algebraic_g im, id type = ID_rectangular)
+    rectangular(algebraic_r re, algebraic_r im, id type = ID_rectangular)
         : complex(re, im, type) {}
 
     algebraic_g re()  const     { return x(); }
@@ -159,7 +162,7 @@ struct polar : complex
 //   Polar representation for complex numbers
 // ----------------------------------------------------------------------------
 {
-    polar(algebraic_g re, algebraic_g im, id type = ID_polar)
+    polar(algebraic_r re, algebraic_r im, id type = ID_polar)
         : complex(re, im, type) {}
 
     algebraic_g re()  const;

@@ -63,7 +63,7 @@ struct list : text
         return text::required_memory(i, bytes, len);
     }
 
-    static list *make(gcbytes bytes, size_t len)
+    static list_p make(gcbytes bytes, size_t len)
     {
         return rt.make<list>(bytes, len);
     }
@@ -133,14 +133,14 @@ struct equation : program
     }
 
     // Building an equation from an object
-    equation(const algebraic_g &arg, id type = ID_equation);
-    static size_t required_memory(id i, const algebraic_g &arg);
+    equation(algebraic_r arg, id type = ID_equation);
+    static size_t required_memory(id i, algebraic_r arg);
 
     // Building equations from one or two arguments
-    equation(id op, const algebraic_g &arg, id type = ID_equation);
-    static size_t required_memory(id i, id op, const algebraic_g &arg);
-    equation(id op, const algebraic_g &x, const algebraic_g &y, id type = ID_equation);
-    static size_t required_memory(id i, id op, const algebraic_g &x, const algebraic_g &y);
+    equation(id op, algebraic_r arg, id type = ID_equation);
+    static size_t required_memory(id i, id op, algebraic_r arg);
+    equation(id op, algebraic_r x, algebraic_r y, id type = ID_equation);
+    static size_t required_memory(id i, id op, algebraic_r x, algebraic_r y);
 
     object_p quoted(id type) const;
     static size_t size_in_equation(object_p obj);

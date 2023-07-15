@@ -109,7 +109,7 @@ struct integer : algebraic
     bool operator>=(Int x)              { return value<Int>() >= x; }
 
     template <typename Int>
-    static integer *make(Int value);
+    static integer_p make(Int value);
 
     // Up to 63 bits, we use native functions, it's faster
     enum { NATIVE = 64 / 7 };
@@ -148,7 +148,7 @@ using hex_integer   = special_integer<object::ID_hex_integer>;
 using based_integer = special_integer<object::ID_based_integer>;
 
 template <typename Int>
-integer *integer::make(Int value)
+integer_p integer::make(Int value)
 // ----------------------------------------------------------------------------
 //   Make an integer with the correct sign
 // ----------------------------------------------------------------------------

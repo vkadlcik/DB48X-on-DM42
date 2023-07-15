@@ -37,6 +37,7 @@
 #include "runtime.h"
 
 
+
 // ============================================================================
 //
 //   Generic complex operations
@@ -107,11 +108,11 @@ algebraic_g complex::conjugate() const
 //   Return complex conjugate in a format-independent way
 // ----------------------------------------------------------------------------
 {
-    return rt.make<complex>(type(), x(), -y());
+    return rt.make<complex>(type(), x(), -a(y()));
 }
 
 
-complex_g operator-(complex_g x)
+complex_g operator-(complex_r x)
 // ----------------------------------------------------------------------------
 //  Unary minus
 // ----------------------------------------------------------------------------
@@ -119,14 +120,14 @@ complex_g operator-(complex_g x)
     if (x->type() == object::ID_polar)
     {
         polar_p p = polar_p(complex_p(x));
-        return rt.make<polar>(-p->mod(), p->arg());
+        return rt.make<polar>(-a(p->mod()), p->arg());
     }
     rectangular_p r = rectangular_p(complex_p(x));
-    return rt.make<rectangular>(-r->re(), -r->im());
+    return rt.make<rectangular>(-a(r->re()), -a(r->im()));
 }
 
 
-complex_g operator+(complex_g x, complex_g y)
+complex_g operator+(complex_r x, complex_r y)
 // ----------------------------------------------------------------------------
 //   Complex addition - Don't even bother doing it in polar form
 // ----------------------------------------------------------------------------
@@ -135,7 +136,7 @@ complex_g operator+(complex_g x, complex_g y)
 }
 
 
-complex_g operator-(complex_g x, complex_g y)
+complex_g operator-(complex_r x, complex_r y)
 // ----------------------------------------------------------------------------
 //   Complex subtraction - Always in rectangular form
 // ----------------------------------------------------------------------------
@@ -144,7 +145,7 @@ complex_g operator-(complex_g x, complex_g y)
 }
 
 
-complex_g operator*(complex_g x, complex_g y)
+complex_g operator*(complex_r x, complex_r y)
 // ----------------------------------------------------------------------------
 //   If both are in rectangular form, rectangular, otherwise polar
 // ----------------------------------------------------------------------------
@@ -164,7 +165,7 @@ complex_g operator*(complex_g x, complex_g y)
 }
 
 
-complex_g operator/(complex_g x, complex_g y)
+complex_g operator/(complex_r x, complex_r y)
 // ----------------------------------------------------------------------------
 //   Like for multiplication, it's slighly cheaper in polar form
 // ----------------------------------------------------------------------------
@@ -180,12 +181,12 @@ complex_g operator/(complex_g x, complex_g y)
     algebraic_g b = xx->im();
     algebraic_g c = yy->re();
     algebraic_g d = yy->im();
-    algebraic_g r = sq::evaluate(c) + sq::evaluate(d);
+    algebraic_g r = sq::run(c) + sq::run(d);
     return rt.make<rectangular>((a*c+b*d)/r, (b*c-a*d)/r);
 }
 
 
-polar_p complex::as_polar() const
+polar_g complex::as_polar() const
 // ----------------------------------------------------------------------------
 //   Switch to polar form if preferred for computation
 // ----------------------------------------------------------------------------
@@ -199,7 +200,7 @@ polar_p complex::as_polar() const
 }
 
 
-rectangular_p complex::as_rectangular() const
+rectangular_g complex::as_rectangular() const
 // ----------------------------------------------------------------------------
 //   Switch to rectangular form if preferred for computation
 // ----------------------------------------------------------------------------
@@ -512,7 +513,7 @@ algebraic_g polar::arg() const
 {
     algebraic_g m = x();
     algebraic_g a = y();
-    if (m->is_negative())
+    if (m->is_negative(false))
     {
         algebraic_g one = algebraic_p(integer::make(1));
         algebraic_g four = algebraic_p(integer::make(4));
@@ -591,21 +592,20 @@ COMPLEX_BODY(sqrt)
     if (zt == ID_polar)
     {
         // Computation is a bit easier in polar form
-        polar_g &p = (polar_g &) z;
+        polar_r p = (polar_r) z;
         algebraic_g mod = p->mod();
         algebraic_g arg = p->arg();
         algebraic_g two = integer::make(2);
         return rt.make<polar>(sqrt::evaluate(mod), arg / two);
     }
 
-    rectangular_g &r = (rectangular_g &) z;
+    rectangular_r r = (rectangular_r) z;
     algebraic_g a = r->re();
     algebraic_g b = r->im();
-    algebraic_g znorm1 = norm::evaluate((algebraic_g &) z);
-    algebraic_g znorm2= algebraic_p(rt.clone(znorm1));
+    algebraic_g znorm = norm::run(algebraic_p(z));
     algebraic_g two = algebraic_p(integer::make(2));
-    algebraic_g re = (znorm1 + a) / two;
-    algebraic_g im = (znorm2 - a) / two;
+    algebraic_g re = (znorm + a) / two;
+    algebraic_g im = (znorm - a) / two;
     re = sqrt::evaluate(re);
     im = sqrt::evaluate(im);
     if (b->is_negative(false))

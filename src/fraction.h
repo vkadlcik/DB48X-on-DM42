@@ -154,11 +154,11 @@ public:
     RENDER_DECL(neg_big_fraction);
 };
 
-fraction_g operator+(fraction_g x, fraction_g y);
-fraction_g operator-(fraction_g x, fraction_g y);
-fraction_g operator*(fraction_g x, fraction_g y);
-fraction_g operator/(fraction_g x, fraction_g y);
-fraction_g operator%(fraction_g x, fraction_g y);
+fraction_g operator+(fraction_r x, fraction_r y);
+fraction_g operator-(fraction_r x, fraction_r y);
+fraction_g operator*(fraction_r x, fraction_r y);
+fraction_g operator/(fraction_r x, fraction_r y);
+fraction_g operator%(fraction_r x, fraction_r y);
 
 
 #endif // FRACTION_H

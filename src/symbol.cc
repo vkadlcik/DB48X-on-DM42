@@ -111,14 +111,14 @@ RENDER_BODY(symbol)
 }
 
 
-symbol_g operator+(symbol_g x, symbol_g y)
+symbol_g operator+(symbol_r x, symbol_r y)
 // ----------------------------------------------------------------------------
 //   Concatenate two texts
 // ----------------------------------------------------------------------------
 {
-    if (!x)
+    if (!x.Safe())
         return y;
-    if (!y)
+    if (!y.Safe())
         return x;
     size_t sx = 0, sy = 0;
     utf8 tx = x->value(&sx);

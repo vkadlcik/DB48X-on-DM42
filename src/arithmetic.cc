@@ -105,7 +105,7 @@ bool arithmetic::complex_promotion(algebraic_g &x, algebraic_g &y)
 }
 
 
-fraction_g arithmetic::fraction_promotion(algebraic_g &x)
+fraction_p arithmetic::fraction_promotion(algebraic_g &x)
 // ----------------------------------------------------------------------------
 //  Check if we can promote the number to a fraction
 // ----------------------------------------------------------------------------
@@ -117,14 +117,14 @@ fraction_g arithmetic::fraction_promotion(algebraic_g &x)
     {
         integer_g n = integer_p(object_p(x));
         integer_g d = integer::make(1);
-        fraction_g f = fraction::make(n, d);
+        fraction_p f = fraction::make(n, d);
         return f;
     }
     if (ty >= ID_bignum && ty <= ID_neg_bignum)
     {
         bignum_g n = bignum_p(object_p(x));
         bignum_g d = bignum::make(1);
-        fraction_g f = big_fraction::make(n, d);
+        fraction_p f = big_fraction::make(n, d);
         return f;
     }
     return nullptr;
@@ -132,8 +132,7 @@ fraction_g arithmetic::fraction_promotion(algebraic_g &x)
 
 
 template<>
-inline bool arithmetic::non_numeric<add>(algebraic_g &x, algebraic_g & y,
-                                         object::id &xt, object::id &yt)
+algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Deal with non-numerical data types for addition
 // ----------------------------------------------------------------------------
@@ -142,16 +141,12 @@ inline bool arithmetic::non_numeric<add>(algebraic_g &x, algebraic_g & y,
 //   - Text + object: Concatenation of text + object text
 //   - Object + text: Concatenation of object text + text
 {
-    if (xt == object::ID_text && yt == object::ID_text)
-    {
-        text_g xs = x->as<text>();
-        text_g ys = y->as<text>();
-        x = algebraic_p(xs + ys);
-        return true;
-    }
+    if (text_g xs = x->as<text>())
+        if (text_g ys = y->as<text>())
+            return xs + ys;
 
     // Not yet implemented
-    return false;
+    return nullptr;
 }
 
 
@@ -297,10 +292,7 @@ inline bool sub::complex_ok(complex_g &x, complex_g &y)
 
 
 template <>
-inline bool arithmetic::non_numeric<mul>(algebraic_g &x,
-                                         algebraic_g &y,
-                                         object::id  &xt,
-                                         object::id  &yt)
+algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Deal with non-numerical data types for multiplication
 // ----------------------------------------------------------------------------
@@ -308,28 +300,15 @@ inline bool arithmetic::non_numeric<mul>(algebraic_g &x,
 //   - Text * integer: Repeat the text
 //   - Integer * text: Repeat the text
 {
-    if (xt == object::ID_text && yt == object::ID_integer)
-    {
-        text_g xs = x->as<text>();
-        integer_p ys = y->as<integer>();
-        uint yn = ys->value<uint>();
-        x = algebraic_p(xs * yn);
-        xt = text::ID_text;
-        return true;
-    }
-
-    if (xt == object::ID_integer && yt == object::ID_text)
-    {
-        integer_p xs = x->as<integer>();
-        uint xn = xs->value<uint>();
-        text_g ys = y->as<text>();
-        x = algebraic_p(ys * xn);
-        xt = text::ID_text;
-        return true;
-    }
+    if (text_g xs = x->as<text>())
+        if (integer_g yi = y->as<integer>())
+            return xs * yi->value<uint>();
+    if (text_g ys = y->as<text>())
+        if (integer_g xi = x->as<integer>())
+            return ys * xi->value<uint>();
 
     // Not yet implemented
-    return false;
+    return nullptr;
 }
 
 
@@ -610,38 +589,38 @@ inline bool rem::complex_ok(complex_g &, complex_g &)
 
 
 template <>
-inline bool arithmetic::non_numeric<struct pow>(algebraic_g &x,
-                                                algebraic_g &y,
-                                                object::id  &xt,
-                                                object::id  &yt)
+algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Deal with non-numerical data types for multiplication
 // ----------------------------------------------------------------------------
 {
     // Deal with X^N where N is a positive integer
-    if (yt == object::ID_integer && !is_integer(xt) && !is_strictly_symbolic(xt))
+    if (integer_g yi = y->as<integer>())
     {
-        ularge yv = integer_p(algebraic_p(y))->value<ularge>();
-        if (yv == 0 && x->is_zero(false))
+        if (!x->is_integer() && !x->is_strictly_symbolic())
         {
-            rt.undefined_operation_error();
-            return false;
-        }
+            ularge yv = yi->value<ularge>();
+            if (yv == 0 && x->is_zero(false))
+            {
+                rt.undefined_operation_error();
+                return nullptr;
+            }
 
-        algebraic_g r = integer::make(1);
-        while (yv)
-        {
-            if (yv & 1)
-                r = r * x;
-            yv /= 2;
-            x = x * x;
+            algebraic_g r = integer::make(1);
+            algebraic_g xx = x;
+            while (yv)
+            {
+                if (yv & 1)
+                    r = r * xx;
+                yv /= 2;
+                xx = xx * xx;
+            }
+            return r;
         }
-        x = r;
-        return true;
     }
 
     // Not yet implemented
-    return false;
+    return nullptr;
 }
 
 
@@ -709,9 +688,7 @@ inline bool pow::complex_ok(complex_g &x, complex_g &y)
 //   Implement x^y as exp(y * log(x))
 // ----------------------------------------------------------------------------
 {
-    complex_g a = complex::log(x);
-    complex_g b = y * a;
-    x = complex::exp(b);
+    x = complex::exp(y * complex::log(x));
     return true;
 }
 
@@ -808,96 +785,85 @@ inline bool atan2::complex_ok(complex_g &, complex_g &)
 //
 // ============================================================================
 
-algebraic_g arithmetic::evaluate(id             op,
-                                 algebraic_g &  x,
-                                 algebraic_g &  y,
-                                 ops_t          ops)
+algebraic_p arithmetic::evaluate(id          op,
+                                 algebraic_r xr,
+                                 algebraic_r yr,
+                                 ops_t       ops)
 // ----------------------------------------------------------------------------
 //   Shared code for all forms of evaluation, does not use the RPL stack
 // ----------------------------------------------------------------------------
 {
-    id xt = x->type();
-    id yt = y->type();
+    if (!xr.Safe() || !yr.Safe())
+        return nullptr;
 
-    // Integer types
-    bool ok = false;
+    id xt = xr->type();
+    id yt = yr->type();
 
     // All non-numeric cases, e.g. string concatenation
     // Must come first, e.g. for optimization of X^3
-    if (!ok)
-        ok = ops.non_numeric(x, y, xt, yt);
+    if (algebraic_p result = ops.non_numeric(xr, yr))
+        return result;
 
     // Integer types
-    if (!ok && is_integer(xt) && is_integer(yt))
+    if (is_integer(xt) && is_integer(yt))
     {
         if (!is_bignum(xt) && !is_bignum(yt))
         {
             // Perform conversion of integer values to the same base
-            integer_p xi = integer_p(object_p(x));
-            integer_p yi = integer_p(object_p(y));
+            integer_p xi = integer_p(object_p(xr.Safe()));
+            integer_p yi = integer_p(object_p(yr.Safe()));
             if (xi->native() && yi->native())
             {
                 ularge xv = xi->value<ularge>();
                 ularge yv = yi->value<ularge>();
                 if (ops.integer_ok(xt, yt, xv, yv))
-                {
-                    x = rt.make<integer>(xt, xv);
-                    ok = object_p(x) != nullptr;
-                }
+                    return rt.make<integer>(xt, xv);
             }
-            if (rt.error())
-                return nullptr;
         }
 
-        if (!ok)
-        {
-            if (!is_bignum(xt))
-                xt = bignum_promotion(x);
-            if (!is_bignum(yt))
-                yt = bignum_promotion(y);
+        algebraic_g x = xr;
+        algebraic_g y = yr;
+        if (!is_bignum(xt))
+            xt = bignum_promotion(x);
+        if (!is_bignum(yt))
+            yt = bignum_promotion(y);
 
-            // Proceed with big integers if native did not fit
-            bignum_g xg = bignum_p(object_p(x));
-            bignum_g yg = bignum_p(object_p(y));
-            if (ops.bignum_ok(xg, yg))
-            {
-                x = bignum_p(xg);
-                ok = object_p(x) != nullptr;
-            }
-            if (rt.error())
-                return nullptr;
-        }
+        // Proceed with big integers if native did not fit
+        bignum_g xg = bignum_p(x.Safe());
+        bignum_g yg = bignum_p(y.Safe());
+        if (ops.bignum_ok(xg, yg))
+            return bignum_p(xg);
     }
 
     // Fraction types
-    if (!ok && (x->is_fraction() || y->is_fraction() ||
-                (op == ID_div && x->is_fractionable() && y->is_fractionable())))
+    if ((xr->is_fraction() || yr->is_fraction() ||
+         (op == ID_div && xr->is_fractionable() && yr->is_fractionable())))
     {
+        algebraic_g x = xr;
+        algebraic_g y = yr;
         if (fraction_g xf = fraction_promotion(x))
         {
             if (fraction_g yf = fraction_promotion(y))
             {
-                ok = ops.fraction_ok(xf, yf);
-                if (ok)
+                if (ops.fraction_ok(xf, yf))
                 {
                     x = algebraic_p(fraction_p(xf));
-                    ok = object_p(x);
-                    if (ok)
+                    if (x.Safe())
                     {
                         bignum_g d = xf->denominator();
                         if (d->is(1))
-                        {
-                            x = algebraic_p(bignum_p(xf->numerator()));
-                            ok = object_p(x);
-                        }
+                            return algebraic_p(bignum_p(xf->numerator()));
                     }
+                    return x;
                 }
             }
         }
     }
 
     // Real data types
-    if (!ok && real_promotion(x, y))
+    algebraic_g x = xr;
+    algebraic_g y = yr;
+    if (real_promotion(x, y))
     {
         // Here, x and y have the same type, a decimal type
         xt = x->type();
@@ -909,9 +875,7 @@ algebraic_g arithmetic::evaluate(id             op,
             bid32 yv = y->as<decimal32>()->value();
             bid32 res;
             ops.op32(&res.value, &xv.value, &yv.value);
-            x = rt.make<decimal32>(ID_decimal32, res);
-            ok = true;
-            break;
+            return rt.make<decimal32>(ID_decimal32, res);
         }
         case ID_decimal64:
         {
@@ -919,9 +883,7 @@ algebraic_g arithmetic::evaluate(id             op,
             bid64 yv = y->as<decimal64>()->value();
             bid64 res;
             ops.op64(&res.value, &xv.value, &yv.value);
-            x = rt.make<decimal64>(ID_decimal64, res);
-            ok = true;
-            break;
+            return rt.make<decimal64>(ID_decimal64, res);
         }
         case ID_decimal128:
         {
@@ -929,9 +891,7 @@ algebraic_g arithmetic::evaluate(id             op,
             bid128 yv = y->as<decimal128>()->value();
             bid128 res;
             ops.op128(&res.value, &xv.value, &yv.value);
-            x = rt.make<decimal128>(ID_decimal128, res);
-            ok = true;
-            break;
+            return rt.make<decimal128>(ID_decimal128, res);
         }
         default:
             break;
@@ -939,28 +899,22 @@ algebraic_g arithmetic::evaluate(id             op,
     }
 
     // Complex data types
-    if (!ok && complex_promotion(x, y))
+    if (complex_promotion(x, y))
     {
         complex_g &xc = (complex_g &) x;
         complex_g &yc = (complex_g &) y;
-        ok = ops.complex_ok(xc, yc);
+        if (ops.complex_ok(xc, yc))
+            return xc;
     }
 
-    if (!ok && x->is_symbolic() && y->is_symbolic())
+    if (x->is_symbolic() && y->is_symbolic())
     {
         x = rt.make<equation>(ID_equation, op, x, y);
-        if (!x)
-            return nullptr;
-        ok = true;
+        return x;
     }
 
-    if (!ok)
-    {
-        rt.type_error();
-        return nullptr;
-    }
-
-    return x;
+    rt.type_error();
+    return nullptr;
 }
 
 
@@ -1097,8 +1051,8 @@ template object::result arithmetic::evaluate<struct rem>();
 template object::result arithmetic::evaluate<struct pow>();
 template object::result arithmetic::evaluate<struct hypot>();
 template object::result arithmetic::evaluate<struct atan2>();
-template algebraic_g arithmetic::evaluate<struct hypot>(algebraic_g &x, algebraic_g &y);
-template algebraic_g arithmetic::evaluate<struct atan2>(algebraic_g &x, algebraic_g &y);
+template algebraic_p arithmetic::evaluate<struct hypot>(algebraic_r x, algebraic_r y);
+template algebraic_p arithmetic::evaluate<struct atan2>(algebraic_r x, algebraic_r y);
 
 
 template <typename Op>
@@ -1123,7 +1077,7 @@ arithmetic::ops_t arithmetic::Ops()
 
 
 template <typename Op>
-algebraic_g arithmetic::evaluate(algebraic_g &x, algebraic_g &y)
+algebraic_p arithmetic::evaluate(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Evaluate the operation for C++ use (not using RPL stack)
 // ----------------------------------------------------------------------------
@@ -1148,7 +1102,7 @@ object::result arithmetic::evaluate()
 //
 // ============================================================================
 
-algebraic_g operator-(algebraic_g x)
+algebraic_g operator-(algebraic_r x)
 // ----------------------------------------------------------------------------
 //   Negation
 // ----------------------------------------------------------------------------
@@ -1157,7 +1111,7 @@ algebraic_g operator-(algebraic_g x)
 }
 
 
-algebraic_g operator+(algebraic_g x, algebraic_g y)
+algebraic_g operator+(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Addition
 // ----------------------------------------------------------------------------
@@ -1166,7 +1120,7 @@ algebraic_g operator+(algebraic_g x, algebraic_g y)
 }
 
 
-algebraic_g operator-(algebraic_g x, algebraic_g y)
+algebraic_g operator-(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Subtraction
 // ----------------------------------------------------------------------------
@@ -1175,7 +1129,7 @@ algebraic_g operator-(algebraic_g x, algebraic_g y)
 }
 
 
-algebraic_g operator*(algebraic_g x, algebraic_g y)
+algebraic_g operator*(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Multiplication
 // ----------------------------------------------------------------------------
@@ -1184,7 +1138,7 @@ algebraic_g operator*(algebraic_g x, algebraic_g y)
 }
 
 
-algebraic_g operator/(algebraic_g x, algebraic_g y)
+algebraic_g operator/(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Division
 // ----------------------------------------------------------------------------

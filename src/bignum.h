@@ -101,7 +101,7 @@ struct bignum : text
         return (bitsize + 7) / 8;
     }
 
-    static size_t bytesize(const integer_g &i)
+    static size_t bytesize(integer_r i)
     {
         return bytesize(integer_p(i));
     }
@@ -170,11 +170,11 @@ struct bignum : text
     }
 
     template <typename Int>
-    static bignum *make(Int value);
+    static bignum_p make(Int value);
 
 public:
     // Arithmetic internal routines
-    static int compare(bignum_g x, bignum_g y, bool magnitude = false);
+    static int compare(bignum_r x, bignum_r y, bool magnitude = false);
 
     static size_t wordsize(id type);
     size_t wordsize() const             { return wordsize(type()); }
@@ -182,14 +182,14 @@ public:
     static id product_type(id yt, id xt);
 
     template<bool extend, typename Op>
-    static bignum_g binary(Op op, bignum_g x, bignum_g y, id ty);
+    static bignum_g binary(Op op, bignum_r x, bignum_r y, id ty);
     template<bool extend, typename Op>
-    static bignum_g unary(Op op, bignum_g x);
+    static bignum_g unary(Op op, bignum_r x);
 
-    static bignum_g add_sub(bignum_g y, bignum_g x, bool subtract);
-    static bignum_g multiply(bignum_g y, bignum_g x, id ty);
-    static bool quorem(bignum_g y, bignum_g x, id ty, bignum_g *q, bignum_g *r);
-    static bignum_g pow(bignum_g y, bignum_g x);
+    static bignum_g add_sub(bignum_r y, bignum_r x, bool subtract);
+    static bignum_g multiply(bignum_r y, bignum_r x, id ty);
+    static bool quorem(bignum_r y, bignum_r x, id ty, bignum_g *q, bignum_g *r);
+    static bignum_g pow(bignum_r y, bignum_r x);
 
 public:
     OBJECT_DECL(bignum);
@@ -221,7 +221,7 @@ using dec_bignum   = special_bignum<object::ID_dec_bignum>;
 using based_bignum = special_bignum<object::ID_based_bignum>;
 
 template <typename Int>
-bignum *bignum::make(Int value)
+bignum_p bignum::make(Int value)
 // ----------------------------------------------------------------------------
 //   Make an bignum with the correct sign
 // ----------------------------------------------------------------------------
@@ -233,51 +233,51 @@ bignum *bignum::make(Int value)
 
 // ============================================================================
 //
-//    Big-bignum comparisons and arithmetic
+//    Bignum comparisons and arithmetic
 //
 // ============================================================================
 
-inline bool operator< (bignum_g y, bignum_g x)
+inline bool operator< (bignum_r y, bignum_r x)
 {
     return bignum::compare(y,x) <  0;
 }
 
-inline bool operator==(bignum_g y, bignum_g x)
+inline bool operator==(bignum_r y, bignum_r x)
 {
     return bignum::compare(y,x) == 0;
 }
 
-inline bool operator> (bignum_g y, bignum_g x)
+inline bool operator> (bignum_r y, bignum_r x)
 {
     return bignum::compare(y,x) >  0;
 }
 
-inline bool operator<=(bignum_g y, bignum_g x)
+inline bool operator<=(bignum_r y, bignum_r x)
 {
     return bignum::compare(y,x) <= 0;
 }
 
-inline bool operator>=(bignum_g y, bignum_g x)
+inline bool operator>=(bignum_r y, bignum_r x)
 {
     return bignum::compare(y,x) >= 0;
 }
 
-inline bool operator!=(bignum_g y, bignum_g x)
+inline bool operator!=(bignum_r y, bignum_r x)
 {
     return bignum::compare(y,x) != 0;
 }
 
 
-bignum_g operator- (bignum_g x);
-bignum_g operator~ (bignum_g x);
-bignum_g operator+ (bignum_g y, bignum_g x);
-bignum_g operator- (bignum_g y, bignum_g x);
-bignum_g operator* (bignum_g y, bignum_g x);
-bignum_g operator/ (bignum_g y, bignum_g x);
-bignum_g operator% (bignum_g y, bignum_g x);
-bignum_g operator& (bignum_g y, bignum_g x);
-bignum_g operator| (bignum_g y, bignum_g x);
-bignum_g operator^ (bignum_g y, bignum_g x);
+bignum_g operator- (bignum_r x);
+bignum_g operator~ (bignum_r x);
+bignum_g operator+ (bignum_r y, bignum_r x);
+bignum_g operator- (bignum_r y, bignum_r x);
+bignum_g operator* (bignum_r y, bignum_r x);
+bignum_g operator/ (bignum_r y, bignum_r x);
+bignum_g operator% (bignum_r y, bignum_r x);
+bignum_g operator& (bignum_r y, bignum_r x);
+bignum_g operator| (bignum_r y, bignum_r x);
+bignum_g operator^ (bignum_r y, bignum_r x);
 
 
 
@@ -300,7 +300,7 @@ inline size_t bignum::wordsize(id type)
 
 
 template <bool extend, typename Op>
-bignum_g bignum::binary(Op op, bignum_g xg, bignum_g yg, id ty)
+bignum_g bignum::binary(Op op, bignum_r xg, bignum_r yg, id ty)
 // ----------------------------------------------------------------------------
 //   Perform binary operation op on bignum values xg and yg
 // ----------------------------------------------------------------------------
@@ -382,7 +382,7 @@ bignum_g bignum::binary(Op op, bignum_g xg, bignum_g yg, id ty)
 
 
 template<bool extend, typename Op>
-bignum_g bignum::unary(Op op, bignum_g xg)
+bignum_g bignum::unary(Op op, bignum_r xg)
 // ----------------------------------------------------------------------------
 //   Perform a unary operation on a bignum
 // ----------------------------------------------------------------------------

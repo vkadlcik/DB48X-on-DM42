@@ -361,7 +361,7 @@ COMMAND_BODY(False)
 //
 // ============================================================================
 
-algebraic_g operator==(algebraic_g x, algebraic_g y)
+algebraic_g operator==(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Equality operation on algebraic objects
 // ----------------------------------------------------------------------------
@@ -370,7 +370,7 @@ algebraic_g operator==(algebraic_g x, algebraic_g y)
 }
 
 
-algebraic_g operator<=(algebraic_g x, algebraic_g y)
+algebraic_g operator<=(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Less or equal operation on algebraic objects
 // ----------------------------------------------------------------------------
@@ -379,7 +379,7 @@ algebraic_g operator<=(algebraic_g x, algebraic_g y)
 }
 
 
-algebraic_g operator>=(algebraic_g x, algebraic_g y)
+algebraic_g operator>=(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Gretter or equal operation on algebraic objects
 // ----------------------------------------------------------------------------
@@ -388,7 +388,7 @@ algebraic_g operator>=(algebraic_g x, algebraic_g y)
 }
 
 
-algebraic_g operator!=(algebraic_g x, algebraic_g y)
+algebraic_g operator!=(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Inequality operation on algebraic objects
 // ----------------------------------------------------------------------------
@@ -397,7 +397,7 @@ algebraic_g operator!=(algebraic_g x, algebraic_g y)
 }
 
 
-algebraic_g operator<(algebraic_g x, algebraic_g y)
+algebraic_g operator<(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Less  operation on algebraic objects
 // ----------------------------------------------------------------------------
@@ -406,7 +406,7 @@ algebraic_g operator<(algebraic_g x, algebraic_g y)
 }
 
 
-algebraic_g operator>(algebraic_g x, algebraic_g y)
+algebraic_g operator>(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Gretter operation on algebraic objects
 // ----------------------------------------------------------------------------

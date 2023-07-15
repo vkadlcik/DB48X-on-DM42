@@ -67,7 +67,7 @@ struct arithmetic : algebraic
     static bool complex_promotion(algebraic_g &x, algebraic_g &y);
 
 
-    static fraction_g fraction_promotion(algebraic_g &x);
+    static fraction_p fraction_promotion(algebraic_g &x);
 
 
 protected:
@@ -75,7 +75,7 @@ protected:
     typedef bool (*bignum_fn)(bignum_g &x, bignum_g &y);
     typedef bool (*fraction_fn)(fraction_g &x, fraction_g &y);
     typedef bool (*complex_fn)(complex_g &x, complex_g &y);
-    typedef bool (*non_numeric_fn)(algebraic_g &x, algebraic_g &y, id &xt, id &yt);
+    typedef algebraic_p (*non_numeric_fn)(algebraic_r x, algebraic_r y);
 
     // Function pointers used by generic evaluation code
     typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x, BID_UINT128 *y);
@@ -104,27 +104,21 @@ protected:
     //   Stack-based evaluation for all binary operators
     // ------------------------------------------------------------------------
 
-    static algebraic_g evaluate(id           op,
-                                algebraic_g &x,
-                                algebraic_g &y,
-                                ops_t        ops);
+    static algebraic_p evaluate(id op, algebraic_r x, algebraic_r y, ops_t ops);
 
     template <typename Op>
-    static algebraic_g evaluate(algebraic_g &x, algebraic_g &y);
-    // ------------------------------------------------------------------------
+    static algebraic_p evaluate(algebraic_r x, algebraic_r y);
+    // --------------------------------------------------Z----------------------
     //   C++ wrapper for the operation
     // ------------------------------------------------------------------------
 
     template <typename Op>
-    static bool non_numeric(algebraic_g &UNUSED x,
-                            algebraic_g &UNUSED y,
-                            id &UNUSED          xt,
-                            id &UNUSED          yt)
+    static algebraic_p non_numeric(algebraic_r UNUSED x, algebraic_r UNUSED y)
     // ------------------------------------------------------------------------
     //   Return true if we can process non-numeric objects of the type
     // ------------------------------------------------------------------------
     {
-        return false;
+        return nullptr;
     }
 };
 
@@ -153,7 +147,7 @@ struct derived : arithmetic                                             \
         rt.command(fancy(ID_##derived));                                \
         return arithmetic::evaluate<derived>();                         \
     }                                                                   \
-    static algebraic_g evaluate(algebraic_g &x, algebraic_g &y)         \
+    static algebraic_g evaluate(algebraic_r x, algebraic_r y)           \
     {                                                                   \
         return arithmetic::evaluate<derived>(x,y);                      \
     }                                                                   \
@@ -185,10 +179,10 @@ void bid32_pow(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
 //
 // ============================================================================
 
-algebraic_g operator-(algebraic_g x);
-algebraic_g operator+(algebraic_g x, algebraic_g y);
-algebraic_g operator-(algebraic_g x, algebraic_g y);
-algebraic_g operator*(algebraic_g x, algebraic_g y);
-algebraic_g operator/(algebraic_g x, algebraic_g y);
+algebraic_g operator-(algebraic_r x);
+algebraic_g operator+(algebraic_r x, algebraic_r y);
+algebraic_g operator-(algebraic_r x, algebraic_r y);
+algebraic_g operator*(algebraic_r x, algebraic_r y);
+algebraic_g operator/(algebraic_r x, algebraic_r y);
 
 #endif // ARITHMETIC

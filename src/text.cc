@@ -94,14 +94,14 @@ RENDER_BODY(text)
 }
 
 
-text_g operator+(text_g x, text_g y)
+text_g operator+(text_r x, text_r y)
 // ----------------------------------------------------------------------------
 //   Concatenate two texts
 // ----------------------------------------------------------------------------
 {
-    if (!x)
+    if (!x.Safe())
         return y;
-    if (!y)
+    if (!y.Safe())
         return x;
     size_t sx = 0, sy = 0;
     utf8 tx = x->value(&sx);
@@ -116,12 +116,13 @@ text_g operator+(text_g x, text_g y)
 }
 
 
-text_g operator*(text_g x, uint y)
+text_g operator*(text_r xr, uint y)
 // ----------------------------------------------------------------------------
 //    Repeat the text a given number of times
 // ----------------------------------------------------------------------------
 {
-    text_g result = rt.make<text>(text::ID_text, x->value(), 0);
+    text_g result = rt.make<text>(text::ID_text, xr->value(), 0);
+    text_g x = xr;
     while (y)
     {
         if (y & 1)
@@ -173,7 +174,7 @@ text_p text::import() const
                     replace = rt.allocate(o);
                     if (!replace)
                         return result;
-                    memmove(replace.Safe(), txt.Safe(), o);
+                    memmove((byte *) replace.Safe(), txt.Safe(), o);
                 }
                 byte *cp = rt.allocate(rlen);
                 if (!cp)

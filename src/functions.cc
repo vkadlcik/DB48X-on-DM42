@@ -45,13 +45,13 @@ bool function::should_be_symbolic(id type)
 }
 
 
-algebraic_g function::symbolic(id op, algebraic_g &x)
+algebraic_p function::symbolic(id op, algebraic_r x)
 // ----------------------------------------------------------------------------
 //    Check if we should process this function symbolically
 // ----------------------------------------------------------------------------
 {
-    if (!x)
-        return x;
+    if (!x.Safe())
+        return nullptr;
     return rt.make<equation>(ID_equation, op, x);
 }
 
@@ -71,26 +71,27 @@ object::result function::evaluate(id op, bid128_fn op128, complex_fn zop)
 }
 
 
-algebraic_g function::evaluate(algebraic_g &x,
-                               id           op,
-                               bid128_fn    op128,
-                               complex_fn   zop)
+algebraic_p function::evaluate(algebraic_r xr,
+                               id          op,
+                               bid128_fn   op128,
+                               complex_fn  zop)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------
 {
-    if (!x)
+    if (!xr.Safe())
         return nullptr;
 
-    id xt = x->type();
+    id xt = xr->type();
     if (should_be_symbolic(xt))
-        return symbolic(op, x);
+        return symbolic(op, xr);
     if (is_complex(xt))
     {
-        complex_g &z = (complex_g &) x;
+        complex_r z = (complex_r) xr;
         return algebraic_p(zop(z));
     }
 
+    algebraic_g x = xr;
     if (is_integer(xt))
     {
         // Do not accept sin(#123h)
@@ -156,8 +157,8 @@ FUNCTION_BODY(abs)
 // ----------------------------------------------------------------------------
 //   Special case where we don't need to promote argument to decimal128
 {
-    if (!x)
-        return x;
+    if (!x.Safe())
+        return nullptr;
 
     id xt = x->type();
     if (should_be_symbolic(xt))
@@ -195,8 +196,8 @@ FUNCTION_BODY(norm)
 //   Implementation of 'norm'
 // ----------------------------------------------------------------------------
 {
-    if (!x)
-        return x;
+    if (!x.Safe())
+        return nullptr;
 
     id xt = x->type();
     if (should_be_symbolic(xt))
@@ -211,8 +212,8 @@ FUNCTION_BODY(inv)
 //   Invert is implemented as 1/x
 // ----------------------------------------------------------------------------
 {
-    if (!x)
-        return x;
+    if (!x.Safe())
+        return nullptr;
     if (x->is_strictly_symbolic())
         return symbolic(ID_inv, x);
 
@@ -227,8 +228,8 @@ FUNCTION_BODY(neg)
 //   Negate is implemented as 0-x
 // ----------------------------------------------------------------------------
 {
-    if (!x)
-        return x;
+    if (!x.Safe())
+        return nullptr;
     if (x->is_strictly_symbolic())
         return symbolic(ID_neg, x);
 
@@ -242,8 +243,8 @@ FUNCTION_BODY(sq)
 //   Square is implemented using a multiplication
 // ----------------------------------------------------------------------------
 {
-    if (!x)
-        return x;
+    if (!x.Safe())
+        return nullptr;
     if (x->is_strictly_symbolic())
         return rt.make<equation>(ID_equation, ID_sq, x);
     return x * x;
@@ -255,8 +256,8 @@ FUNCTION_BODY(cubed)
 //   Cubed is implemented as "dup dup mul mul"
 // ----------------------------------------------------------------------------
 {
-    if (!x)
-        return x;
+    if (!x.Safe())
+        return nullptr;
     if (x->is_strictly_symbolic())
         return rt.make<equation>(ID_equation, ID_cubed, x);
     return x * x * x;

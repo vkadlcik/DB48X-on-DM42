@@ -901,8 +901,8 @@ algebraic_p arithmetic::evaluate(id          op,
     // Complex data types
     if (complex_promotion(x, y))
     {
-        complex_g &xc = (complex_g &) x;
-        complex_g &yc = (complex_g &) y;
+        complex_g xc = complex_p(algebraic_p(x));
+        complex_g yc = complex_p(algebraic_p(y));
         if (ops.complex_ok(xc, yc))
             return xc;
     }

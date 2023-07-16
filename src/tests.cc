@@ -464,7 +464,7 @@ void tests::arithmetic()
     test(CLEAR, 1, ENTER);
     for (uint i = 1; i <= 100; i++)
         test(i, MUL);
-    wait(30); // Takes its sweet time to display (GC?)
+    wait(100); // Takes its sweet time to display (GC?)
     expect(
         "9332621544394415268169923885626670049071596826438162146859296389521"
         "7599993229915608941463976156518286253697920827223758251185210916864"

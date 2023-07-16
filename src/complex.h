@@ -85,6 +85,7 @@ struct complex : algebraic
     rectangular_g       as_rectangular() const;
 
     static complex_p    make(id type, algebraic_r x, algebraic_r y);
+    static rectangular_p make(int re = 0, int im = 1);
 
     enum { I_MARK = L'ⅈ', ANGLE_MARK = L'∡' };
 
@@ -95,9 +96,9 @@ public:
 public:
     // Complex implementation for main functions
 #define COMPLEX_FUNCTION(name)                  \
-    static complex_p name(complex_r z)
+    static complex_g name(complex_r z)
 
-#define COMPLEX_BODY(name)      complex_p complex::name(complex_r z)
+#define COMPLEX_BODY(name)      complex_g complex::name(complex_r z)
 
     COMPLEX_FUNCTION(sqrt);
     COMPLEX_FUNCTION(cbrt);

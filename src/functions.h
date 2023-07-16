@@ -43,7 +43,7 @@ struct function : algebraic
 
 
 protected:
-    typedef complex_p (*complex_fn)(complex_r x);
+    typedef complex_g (*complex_fn)(complex_r x);
 
     static result evaluate(id op, bid128_fn op128, complex_fn zop);
     // ------------------------------------------------------------------------

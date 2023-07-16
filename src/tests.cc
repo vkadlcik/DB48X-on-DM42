@@ -91,6 +91,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
+    complex_functions();
 }
 
 
@@ -1363,6 +1364,55 @@ void tests::complex_functions()
     step("Power");
     test(CLEAR, "3+7ⅈ", ENTER, "2-3ⅈ", ENTER, SHIFT, B)
         .expect("1 916.30979 15541 96293 8∡2.52432 98723 79583 8639");
+
+    step("Sine");
+    test(CLEAR, "4+2ⅈ", ENTER, SIN)
+        .expect("-2.84723 90868 48827 8827-2.37067 41693 52001 6145ⅈ");
+
+    step("Cosine");
+    test(CLEAR, "3+11ⅈ", ENTER, COS)
+        .expect("-29 637.47552 74860 62145-4 224.71967 95347 02126 0ⅈ");
+
+    step("Tangent");
+    test(CLEAR, "2+8ⅈ", ENTER, TAN)
+        .expect("-1.39772 11770 40026 1373⁳⁻⁴+1.00030 51824 41239 0233ⅈ");
+
+    step("Arc sine");
+    test(CLEAR, "3+5ⅈ", ENTER, SHIFT, SIN)
+        .expect("5.33999 06959 41686 1164⁳⁻¹+2.45983 15216 23434 5129ⅈ");
+
+    step("Arc cosine");
+    test(CLEAR, "7+11ⅈ", ENTER, SHIFT, COS)
+        .expect("1.00539 67973 35154 2326-3.26167 13063 80062 6275ⅈ");
+
+    step("Arc tangent");
+    test(CLEAR, "9.+2ⅈ", ENTER, SHIFT, TAN)
+        .expect("1.46524 96601 83523 3458+2.32726 05766 50298 8381⁳⁻²ⅈ");
+
+    step("Hyperbolic sine");
+    test(CLEAR, "4+2ⅈ", ENTER, "SINH", ENTER)
+        .expect("-11.35661 27112 18172 906+24.83130 58489 46379 372ⅈ");
+
+    step("Hyperbolic cosine");
+    test(CLEAR, "3+11ⅈ", ENTER, "COSH", ENTER)
+        .expect("4.43360 88910 78241 4161⁳⁻²-10.06756 33986 40475 460ⅈ");
+
+    step("Hyperbolic tangent");
+    test(CLEAR, "2+8ⅈ", ENTER, "TANH", ENTER)
+        .expect("1.03564 79469 63237 6354-1.09258 84335 75253 1964⁳⁻²ⅈ");
+
+    step("Hyperbolic arc sine");
+    test(CLEAR, "3+5ⅈ", ENTER, SHIFT, "ASINH", ENTER)
+        .expect("2.45291 37425 02811 7695+1.02382 17465 11782 9101ⅈ");
+
+    step("Hyperbolic arc cosine");
+    test(CLEAR, "7+11ⅈ", ENTER, SHIFT, "ACOSH", ENTER)
+        .expect("3.26167 13063 80062 6275+1.00539 67973 35154 2326ⅈ");
+
+    step("Hyperbolic arc tangent");
+    test(CLEAR, "9.+2ⅈ", ENTER, SHIFT, "ATANH", ENTER)
+        .expect("1.06220 79849 13164 9131⁳⁻¹+1.54700 47751 56404 9213ⅈ");
+
 }
 
 

@@ -148,6 +148,30 @@ struct equation : program
     static int precedence(id type);
     static int precedence(object_p obj) { return precedence(obj->type()); }
 
+    static equation_p make(algebraic_r x,
+                           id type = ID_equation)
+    {
+        if (!x.Safe())
+            return nullptr;
+        return rt.make<equation>(type, x);
+    }
+
+    static equation_p make(id op, algebraic_r x,
+                           id type = ID_equation)
+    {
+        if (!x.Safe())
+            return nullptr;
+        return rt.make<equation>(type, op, x);
+    }
+
+    static equation_p make(id op, algebraic_r x, algebraic_r y,
+                           id type = ID_equation)
+    {
+        if (!x.Safe() || !y.Safe())
+            return nullptr;
+        return rt.make<equation>(type, op, x, y);
+    }
+
 protected:
     static symbol_g render(uint depth, int &precedence, bool edit);
     static symbol_g parentheses(symbol_g what);

@@ -75,14 +75,16 @@ struct complex : algebraic
         return n;
     }
 
-    algebraic_g re()  const;
-    algebraic_g im()  const;
-    algebraic_g mod() const;
-    algebraic_g arg() const;
-    algebraic_g conjugate() const;
+    algebraic_g         re() const;
+    algebraic_g         im() const;
+    algebraic_g         mod() const;
+    algebraic_g         arg() const;
+    complex_g           conjugate() const;
 
     polar_g             as_polar() const;
     rectangular_g       as_rectangular() const;
+
+    static complex_p    make(id type, algebraic_r x, algebraic_r y);
 
     enum { I_MARK = L'ⅈ', ANGLE_MARK = L'∡' };
 
@@ -150,8 +152,10 @@ struct rectangular : complex
     algebraic_g arg() const;
     bool        is_zero() const;
 
-    static rectangular_g make(algebraic_r r, algebraic_r i)
+    static rectangular_p make(algebraic_r r, algebraic_r i)
     {
+        if (!r.Safe() || !i.Safe())
+            return nullptr;
         return rt.make<rectangular>(r, i);
     }
 
@@ -176,7 +180,7 @@ struct polar : complex
     algebraic_g arg() const     { return y(); }
     bool        is_zero() const;
 
-    static polar_g make(algebraic_r r, algebraic_r i);
+    static polar_p make(algebraic_r r, algebraic_r i);
 
 public:
     OBJECT_DECL(polar);

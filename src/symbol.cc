@@ -49,7 +49,7 @@ EVAL_BODY(symbol)
     if (directory_p dir = rt.variables(0))
         if (object_p found = dir->recall(o))
             return found->execute();
-    if (object_g eq = rt.make<equation>(o))
+    if (object_g eq = equation::make(o))
         if (rt.push(eq))
             return OK;
     return ERROR;
@@ -64,7 +64,7 @@ EXEC_BODY(symbol)
     if (directory_p dir = rt.variables(0))
         if (object_p found = dir->recall(o))
             return found->execute();
-    if (object_g eq = rt.make<equation>(o))
+    if (object_g eq = equation::make(o))
         if (rt.push(eq))
             return OK;
     return ERROR;

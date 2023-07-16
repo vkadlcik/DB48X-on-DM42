@@ -52,7 +52,7 @@ algebraic_p function::symbolic(id op, algebraic_r x)
 {
     if (!x.Safe())
         return nullptr;
-    return rt.make<equation>(ID_equation, op, x);
+    return equation::make(op, x);
 }
 
 
@@ -127,7 +127,7 @@ algebraic_p function::evaluate(algebraic_r xr,
     // If things did not work with real number, try an equation
     if (x->is_strictly_symbolic())
     {
-        x = rt.make<equation>(ID_equation, op, x);
+        x = equation::make(op, x);
         return x;
     }
 
@@ -233,7 +233,7 @@ FUNCTION_BODY(sign)
     }
     else if (is_complex(xt))
     {
-        return rt.make<polar>(integer::make(1), complex_p(algebraic_p(x))->arg());
+        return polar::make(integer::make(1), complex_p(algebraic_p(x))->arg());
     }
 
     rt.type_error();
@@ -280,7 +280,7 @@ FUNCTION_BODY(sq)
     if (!x.Safe())
         return nullptr;
     if (x->is_strictly_symbolic())
-        return rt.make<equation>(ID_equation, ID_sq, x);
+        return equation::make(ID_sq, x);
     return x * x;
 }
 
@@ -293,6 +293,6 @@ FUNCTION_BODY(cubed)
     if (!x.Safe())
         return nullptr;
     if (x->is_strictly_symbolic())
-        return rt.make<equation>(ID_equation, ID_cubed, x);
+        return equation::make(ID_cubed, x);
     return x * x * x;
 }

@@ -61,6 +61,9 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
 //   Promote the value x to the given type
 // ----------------------------------------------------------------------------
 {
+    if (!x.Safe())
+        return false;
+
     id xt = x->type();
     if (xt == type)
         return true;
@@ -77,13 +80,13 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         {
         case ID_decimal32:
             x = rt.make<decimal32>(ID_decimal32, ival);
-            return true;
+            return x.Safe();
         case ID_decimal64:
             x = rt.make<decimal64>(ID_decimal64, ival);
-            return true;
+            return x.Safe();
         case ID_decimal128:
             x = rt.make<decimal128>(ID_decimal128, ival);
-            return true;
+            return x.Safe();
         default:
             break;
         }
@@ -100,13 +103,13 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         {
         case ID_decimal32:
             x = rt.make<decimal32>(ID_decimal32, ival, true);
-            return true;
+            return x.Safe();
         case ID_decimal64:
             x = rt.make<decimal64>(ID_decimal64, ival, true);
-            return true;
+            return x.Safe();
         case ID_decimal128:
             x = rt.make<decimal128>(ID_decimal128, ival, true);
-            return true;
+            return x.Safe();
         default:
             break;
         }
@@ -124,13 +127,13 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         {
         case ID_decimal32:
             x = rt.make<decimal32>(ID_decimal32, i);
-            return true;
+            return x.Safe();
         case ID_decimal64:
             x = rt.make<decimal64>(ID_decimal64, i);
-            return true;
+            return x.Safe();
         case ID_decimal128:
             x = rt.make<decimal128>(ID_decimal128, i);
-            return true;
+            return x.Safe();
         default:
             break;
         }
@@ -148,10 +151,10 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         {
         case ID_decimal64:
             x = rt.make<decimal64>(ID_decimal64, dval);
-            return true;
+            return x.Safe();
         case ID_decimal128:
             x = rt.make<decimal128>(ID_decimal128, dval);
-            return true;
+            return x.Safe();
         default:
             break;
         }
@@ -169,10 +172,10 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         {
         case ID_decimal64:
             x = rt.make<decimal64>(ID_decimal64, dval);
-            return true;
+            return x.Safe();
         case ID_decimal128:
             x = rt.make<decimal128>(ID_decimal128, dval);
-            return true;
+            return x.Safe();
         default:
             break;
         }
@@ -226,25 +229,25 @@ bool algebraic::complex_promotion(algebraic_g &x, object::id type)
     {
         // Convert from polar to rectangular
         polar_g z = polar_p(algebraic_p(x));
-        x = rt.make<rectangular>(z->re(), z->im());
-        return true;
+        x = rectangular::make(z->re(), z->im());
+        return x.Safe();
     }
     else if (xt == ID_rectangular)
     {
         // Convert from rectangular to polar
         rectangular_g z = rectangular_p(algebraic_p(x));
-        x = rt.make<polar>(z->mod(), z->arg());
-        return true;
+        x = polar::make(z->mod(), z->arg());
+        return x.Safe();
     }
     else if (is_integer(xt) || is_real(xt) || is_symbolic(xt) ||
              is_algebraic(xt))
     {
         algebraic_g zero = algebraic_p(integer::make(0));
         if (type == ID_polar)
-            x = rt.make<polar>(x, zero);
+            x = polar::make(x, zero);
         else
-            x = rt.make<rectangular>(x, zero);
-        return true;
+            x = rectangular::make(x, zero);
+        return x.Safe();
     }
 
     return false;

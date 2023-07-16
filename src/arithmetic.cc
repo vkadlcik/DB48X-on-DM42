@@ -53,6 +53,9 @@ bool arithmetic::real_promotion(algebraic_g &x, algebraic_g &y)
 //   Promote x or y to the largest of both types
 // ----------------------------------------------------------------------------
 {
+    if (!x.Safe() || !y.Safe())
+        return false;
+
     id xt = x->type();
     id yt = y->type();
     if (is_integer(xt) && is_integer(yt))
@@ -81,6 +84,9 @@ bool arithmetic::complex_promotion(algebraic_g &x, algebraic_g &y)
 //   Return true if one type is complex and the other can be promoted
 // ----------------------------------------------------------------------------
 {
+    if (!x.Safe() || !y.Safe())
+        return false;
+
     id xt = x->type();
     id yt = y->type();
 
@@ -907,9 +913,12 @@ algebraic_p arithmetic::evaluate(id          op,
             return xc;
     }
 
+    if (!x.Safe() || !y.Safe())
+        return nullptr;
+
     if (x->is_symbolic() && y->is_symbolic())
     {
-        x = rt.make<equation>(ID_equation, op, x, y);
+        x = equation::make(op, x, y);
         return x;
     }
 

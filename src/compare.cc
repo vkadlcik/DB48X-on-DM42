@@ -226,7 +226,7 @@ algebraic_g comparison::compare(comparison_fn comparator,
     }
 
     // Otherwise, need to build an equation with the comparison
-    equation_p eq = rt.make<equation>(ID_equation, op, x, y);
+    equation_p eq = equation::make(op, x, y);
     return eq;
 }
 

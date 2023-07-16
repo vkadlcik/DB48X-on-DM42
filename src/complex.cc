@@ -31,11 +31,11 @@
 #include "complex.h"
 
 #include "arithmetic.h"
+#include "compare.h"
 #include "functions.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
-
 
 
 // ============================================================================
@@ -103,12 +103,25 @@ algebraic_g complex::arg() const
 }
 
 
-algebraic_g complex::conjugate() const
+complex_g complex::conjugate() const
 // ----------------------------------------------------------------------------
 //   Return complex conjugate in a format-independent way
 // ----------------------------------------------------------------------------
 {
-    return rt.make<complex>(type(), x(), -y());
+    return make(type(), x(), -y());
+}
+
+
+complex_p complex::make(id type, algebraic_r x, algebraic_r y)
+// ----------------------------------------------------------------------------
+//   Build a complex of the right type
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe() || !y.Safe())
+        return nullptr;
+    if (type == ID_polar)
+        return polar::make(x, y);
+    return rectangular::make(x, y);
 }
 
 
@@ -123,7 +136,7 @@ complex_g operator-(complex_r x)
         return complex_p(polar::make(-p->mod(), p->arg()));
     }
     rectangular_p r = rectangular_p(complex_p(x));
-    return complex_p(rectangular::make(-r->re(), -r->im()));
+    return rectangular::make(-r->re(), -r->im());
 }
 
 
@@ -132,7 +145,7 @@ complex_g operator+(complex_r x, complex_r y)
 //   Complex addition - Don't even bother doing it in polar form
 // ----------------------------------------------------------------------------
 {
-    return rt.make<rectangular>(x->re() + y->re(), x->im() + y->im());
+    return rectangular::make(x->re() + y->re(), x->im() + y->im());
 }
 
 
@@ -141,7 +154,7 @@ complex_g operator-(complex_r x, complex_r y)
 //   Complex subtraction - Always in rectangular form
 // ----------------------------------------------------------------------------
 {
-    return rt.make<rectangular>(x->re() - y->re(), x->im() - y->im());
+    return rectangular::make(x->re() - y->re(), x->im() - y->im());
 }
 
 
@@ -153,7 +166,7 @@ complex_g operator*(complex_r x, complex_r y)
     object::id xt = x->type();
     object::id yt = y->type();
     if (xt != object::ID_rectangular || yt != object::ID_rectangular)
-        return rt.make<polar>(x->mod() * y->mod(), x->arg() + y->arg());
+        return polar::make(x->mod() * y->mod(), x->arg() + y->arg());
 
     rectangular_p xx = rectangular_p(complex_p(x));
     rectangular_p yy = rectangular_p(complex_p(y));
@@ -161,7 +174,7 @@ complex_g operator*(complex_r x, complex_r y)
     algebraic_g xi = xx->im();
     algebraic_g yr = yy->re();
     algebraic_g yi = yy->im();
-    return rt.make<rectangular>(xr*yr-xi*yi, xr*yi+xi*yr);
+    return rectangular::make(xr*yr-xi*yi, xr*yi+xi*yr);
 }
 
 
@@ -173,7 +186,7 @@ complex_g operator/(complex_r x, complex_r y)
     object::id xt = x->type();
     object::id yt = y->type();
     if (xt != object::ID_rectangular || yt != object::ID_rectangular)
-        return rt.make<polar>(x->mod() / y->mod(), x->arg() - y->arg());
+        return polar::make(x->mod() / y->mod(), x->arg() - y->arg());
 
     rectangular_p xx = rectangular_p(complex_p(x));
     rectangular_p yy = rectangular_p(complex_p(y));
@@ -182,7 +195,7 @@ complex_g operator/(complex_r x, complex_r y)
     algebraic_g c = yy->re();
     algebraic_g d = yy->im();
     algebraic_g r = sq::run(c) + sq::run(d);
-    return rt.make<rectangular>((a*c+b*d)/r, (b*c-a*d)/r);
+    return rectangular::make((a*c+b*d)/r, (b*c-a*d)/r);
 }
 
 
@@ -194,7 +207,7 @@ polar_g complex::as_polar() const
     if (type() == ID_rectangular)
     {
         rectangular_g r = rectangular_p(this);
-        return rt.make<polar>(r->mod(), r->arg());
+        return polar::make(r->mod(), r->arg());
     }
     return polar_p(this);
 }
@@ -208,7 +221,7 @@ rectangular_g complex::as_rectangular() const
     if (type() == ID_polar)
     {
         polar_g r = polar_p(this);
-        return rt.make<rectangular>(r->re(), r->im());
+        return rectangular::make(r->re(), r->im());
     }
     return rectangular_p(this);
 }
@@ -407,7 +420,7 @@ PARSE_BODY(complex)
     }
 
     // Build the resulting complex
-    complex_g result = rt.make<complex>(type, x, y);
+    complex_g result = complex::make(type, x, y);
     p.out = complex_p(result);
     p.end = parsed;
 
@@ -504,17 +517,28 @@ bool polar::is_zero() const
 }
 
 
-polar_g polar::make(algebraic_r m, algebraic_r ar)
+polar_p polar::make(algebraic_r mr, algebraic_r ar)
 // ----------------------------------------------------------------------------
 //   Build a normalized polar from given modulus and argument
 // ----------------------------------------------------------------------------
 {
+    if (!mr.Safe() || !ar.Safe())
+        return nullptr;
     algebraic_g pi = integer::make(4) * atan::run(integer::make(1));
     algebraic_g a = ar;
+    algebraic_g m = mr;
     if (m->is_negative(false))
+    {
         a = a + pi;
-    if (!a->is_strictly_symbolic())
-        a = (a+pi) % (pi+pi) - pi;
+        m = neg::run(m);
+    }
+    if (a.Safe() && !a->is_strictly_symbolic())
+    {
+        if ((a < -pi)->as_truth(false) || (a > pi)->as_truth(false))
+            a = (a+pi) % (pi+pi) - pi;
+    }
+    if (!a.Safe() || !m.Safe())
+        return nullptr;
     return rt.make<polar>(m, a);
 }
 
@@ -552,7 +576,7 @@ COMMAND_BODY(ImaginaryUnit)
     algebraic_g one = algebraic_p(rt.make<integer>(1));
     if (!zero || !one)
         return ERROR;
-    rectangular_g i = rt.make<rectangular>(zero, one);
+    rectangular_g i = rectangular::make(zero, one);
     if (!i)
         return ERROR;
     if (!rt.push(rectangular_p(i)))
@@ -606,6 +630,8 @@ COMPLEX_BODY(cbrt)
 // ----------------------------------------------------------------------------
 {
     polar_g p = z->as_polar();
+    if (!p.Safe())
+        return nullptr;
     algebraic_g mod = p->mod();
     algebraic_g arg = p->arg();
     algebraic_g three = integer::make(3);
@@ -779,7 +805,7 @@ COMPLEX_BODY(exp)
     // exp(a+ib) = exp(a)*exp(ib)
     algebraic_g re = z->re();
     algebraic_g im = z->im();
-    return rt.make<polar>(exp::run(re), im);
+    return polar::make(exp::run(re), im);
 }
 
 COMPLEX_BODY(exp10)

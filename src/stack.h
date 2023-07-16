@@ -51,13 +51,18 @@ public:
     //   Record the output of the stack for testing purpose
     // ------------------------------------------------------------------------
     {
+        int         key;
         object::id  type;
         std::string output;
     } history[8];
 
-    void output(object::id type, utf8 stack0, size_t len)
+    enum { COUNT = sizeof(history) / sizeof(*history) };
+
+    void output(int key, object::id type, utf8 stack0, size_t len)
     {
-        data *ptr = history + writer % (sizeof(history) / sizeof(*history));
+        data *ptr = history + writer % COUNT;
+        std::string out = std::string(cstring(stack0), len);
+        ptr->key = key;
         ptr->type = type;
         ptr->output = std::string(cstring(stack0), len);
         writer++;
@@ -82,6 +87,14 @@ public:
             return object::ID_object;
         data *ptr = history + reader % (sizeof(history) / sizeof(*history));
         return ptr->type;
+    }
+
+    int key()
+    {
+        if (reader >= writer)
+            return -99999;
+        data *ptr = history + reader % (sizeof(history) / sizeof(*history));
+        return ptr->key;
     }
 
     void consume()

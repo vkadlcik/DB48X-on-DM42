@@ -103,8 +103,9 @@ void stack::draw_stack()
     char buf[8];
     coord y = bottom;
 #ifdef SIMULATOR
+    extern int last_key;
     if (depth == 0)
-        output(object::ID_object, nullptr, 0);
+        output(last_key, object::ID_object, nullptr, 0);
 #endif
     for (uint level = 0; level < depth; level++)
     {
@@ -128,9 +129,10 @@ void stack::draw_stack()
 #ifdef SIMULATOR
         if (level == 0)
         {
-            output(obj->type(), out, len);
+            output(last_key, obj->type(), out, len);
             record(tests,
-                   "X-reg %+s size %u %s", object::name(obj->type()), len, out);
+                   "Key %d X-reg %+s size %u %s",
+                   last_key, object::name(obj->type()), len, out);
         }
 #endif
 

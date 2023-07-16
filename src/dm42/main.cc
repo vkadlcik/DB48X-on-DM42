@@ -40,6 +40,7 @@
 #include "sysmenu.h"
 #include "target.h"
 #include "util.h"
+#include "recorder.h"
 
 #include <algorithm>
 #include <cctype>
@@ -54,6 +55,9 @@ using std::min;
 
 
 uint last_keystroke_time = 0;
+int  last_key            = 0;
+
+RECORDER(main, 16, "Main RPL thread");
 
 static void redraw_lcd()
 // ----------------------------------------------------------------------------
@@ -62,6 +66,8 @@ static void redraw_lcd()
 {
     uint period = 60000;
     uint now    = sys_current_ms();
+
+    record(main, "Begin redraw at %u", now);
 
     // Draw the header
     Screen.fill(0, 0, LCD_W, HeaderFont->height() + 1, pattern::black);
@@ -81,6 +87,9 @@ static void redraw_lcd()
     ui.draw_error();
 
     // Refresh the screen
+    uint then = sys_current_ms();
+    record(main,
+           "Refresh at %u (%u later), period %u", then, then - now, period);
     lcd_refresh_lines(0, LCD_H);
 
     // Refresh screen moving elements after 0.1s
@@ -99,6 +108,7 @@ static void redraw_periodics()
     uint dawdle_time = now - last_keystroke_time;
     bool dawdling    = dawdle_time > 10000;
 
+    record(main, "Periodics %u", now);
     int cy = ui.draw_cursor(now, period, false);
     if (cy >= 0)
         lcd_refresh_lines(cy, EditorFont->height());
@@ -116,6 +126,9 @@ static void redraw_periodics()
         period = 10000;                 // Onlyi update screen every 10s
     else if (dawdle_time > 10000)       // If inactive for 10 seconds
         period = 3000;                  // Only upate screen every 3 second
+
+    uint then = sys_current_ms();
+    record(main, "Dawdling for %u at %u after %u", period, then, then-now);
 
     // Refresh screen moving elements after 0.1s
     sys_timer_start(TIMER1, period);
@@ -284,6 +297,7 @@ extern "C" void program_main()
             reset_auto_off();
             key    = key_pop();
             hadKey = true;
+            record(main, "Got key %d", key);
 #if SIMULATOR
             if (key == -1)
             {
@@ -297,12 +311,25 @@ extern "C" void program_main()
         }
         bool repeating = sys_timer_timeout(TIMER0);
         if (repeating)
+        {
             hadKey = true;
+            record(main, "Repeating key %d", key);
+        }
 
         // Fetch the key (<0: no key event, >0: key pressed, 0: key released)
+        record(main, "Testing key %d (%+s)", key, hadKey ? "had" : "nope");
         if (key >= 0 && hadKey)
         {
+#if SIMULATOR
+            if (key > 0)
+                last_key = key;
+            else if (last_key > 0)
+                last_key = -last_key;
+#endif
+
+            record(main, "Handle key %d last %d", key, last_key);
             handle_key(key, repeating);
+            record(main, "Did key %d last %d", key, last_key);
 
             // Redraw the LCD unless there is some type-ahead
             if (key_empty())
@@ -310,6 +337,7 @@ extern "C" void program_main()
 
             // Record the last keystroke
             last_keystroke_time = sys_current_ms();
+            record(main, "Last keystroke time %u", last_keystroke_time);
         }
         else
         {
@@ -333,7 +361,16 @@ bool program::interrupted()
     {
         if (key_tail() == KEY_EXIT)
             return true;
+#if SIMULATOR
+        int key = key_pop();
+        record(main, "Runner popped key %d, last=%d", key, last_key);
+        if (key > 0)
+            last_key = key;
+        else if (last_key > 0)
+            last_key = -last_key;
+#else
         key_pop();
+#endif
     }
     return false;
 }

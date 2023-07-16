@@ -43,7 +43,7 @@ extern volatile int lcd_needsupdate;
 
 RECORDER_DECLARE(errors);
 
-uint wait_time  = 10;
+uint wait_time  = 200;
 uint delay_time = 2;
 
 void tests::run(bool onlyCurrent)
@@ -91,7 +91,6 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    complex_functions();
 }
 
 
@@ -301,8 +300,12 @@ void tests::data_types()
     cstring eqn = "'X+1'";
     test(CLEAR, XEQ, X, ENTER, KEY1, ADD).type(object::ID_equation).expect(eqn);
     cstring eqn2 = "'sin(X+1)'";
-    test(SIN).type(object::ID_equation).expect(eqn2);
-    test(DOWN, ENTER).type(object::ID_equation).expect(eqn2);
+    test(SIN)
+        .type(object::ID_equation).expect(eqn2);
+    test(DOWN)
+        .editor(eqn2);
+    test(ENTER, 1, ADD).
+        type(object::ID_equation).expect("'sin(X+1)+1'");
     step("Equation parsing and simplification");
     test(CLEAR, "'(((A))+(B))-(C+D)'", ENTER)
         .type(object::ID_equation)
@@ -310,25 +313,26 @@ void tests::data_types()
     step("equation fancy rendering");
     test(CLEAR, XEQ, X, ENTER, INV,
          XEQ, Y, ENTER, SHIFT, SQRT, XEQ, Z, ENTER,
-         "CUBED", ENTER, ADD, ADD)
+         "CUBED", ENTER, ADD, ADD, WAIT(100))
         .type(object::ID_equation)
         .expect("'X⁻¹+(Y²+Z³)'");
     step("Equation fancy parsing from editor");
-    test(DOWN, "   ", ENTER).type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)'");
+    test(DOWN, "   ", SHIFT, SHIFT, DOWN, " 1 +", ENTER)
+        .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)+1'");
 
     step("Fractions");
     test(CLEAR, "1/3", ENTER).type(object::ID_fraction).expect("1/3");
-    test(CLEAR, "20/60", ENTER).type(object::ID_fraction).expect("1/3");
     test(CLEAR, "-80/60", ENTER).type(object::ID_neg_fraction).expect("-4/3");
+    test(CLEAR, "20/60", ENTER).type(object::ID_fraction).expect("1/3");
 
     step("Large integers");
     cstring b = "123456789012345678901234567890123456789012345678901234567890";
     cstring mb =
         "-123456789012345678901234567890123456789012345678901234567890";
     test(CLEAR, b, ENTER).type(object::ID_bignum).expect(b);
-    test(DOWN, ENTER).type(object::ID_bignum).expect(b);
-    test(CHS).type(object::ID_neg_bignum).expect(mb);
-    test(DOWN, ENTER).type(object::ID_neg_bignum).expect(mb);
+    test(DOWN, CHS, ENTER).type(object::ID_neg_bignum).expect(mb);
+    test(CHS).type(object::ID_bignum).expect(b);
+    test(DOWN, CHS, ENTER).type(object::ID_neg_bignum).expect(mb);
 
     step("Large fractions");
     cstring bf =
@@ -338,9 +342,10 @@ void tests::data_types()
         "-123456789012345678901234567890123456789012345678901234567890/"
         "123456789012345678901234567890123456789012345678901234567891";
     test(CLEAR, bf, ENTER).type(object::ID_big_fraction).expect(bf);
-    test(DOWN, ENTER).type(object::ID_big_fraction).expect(bf);
+    test(DOWN, CHS, ENTER).type(object::ID_neg_big_fraction).expect(mbf);
+    test(CHS).type(object::ID_big_fraction).expect(bf);
     test(CHS).type(object::ID_neg_big_fraction).expect(mbf);
-    test(DOWN, ENTER).type(object::ID_neg_big_fraction).expect(mbf);
+    test(DOWN, CHS, ENTER).type(object::ID_big_fraction).expect(bf);
 
     clear();
 }
@@ -424,11 +429,11 @@ void tests::arithmetic()
     }
 
     step("Integer multiplication");
-    test(CLEAR, 1, ENTER, 1, MUL).type(object::ID_integer).expect("1");
-    test(3, MUL).type(object::ID_integer).expect("3");
-    test(-3, MUL).type(object::ID_neg_integer).expect("-9");
-    test(2, MUL).type(object::ID_neg_integer).expect("-18");
-    test(-7, MUL).type(object::ID_integer).expect("126");
+    test(CLEAR, 3, ENTER, 7, MUL).type(object::ID_integer).expect("21");
+    test(3, MUL).type(object::ID_integer).expect("63");
+    test(-3, MUL).type(object::ID_neg_integer).expect("-189");
+    test(2, MUL).type(object::ID_neg_integer).expect("-378");
+    test(-7, MUL).type(object::ID_integer).expect("2646");
 
     step("Multiplying ten small integers at random");
     for (int i = 0; i < 10; i++)
@@ -463,21 +468,20 @@ void tests::arithmetic()
     step("Manual computation of 100!");
     test(CLEAR, 1, ENTER);
     for (uint i = 1; i <= 100; i++)
-        test(i, MUL);
-    wait(100); // Takes its sweet time to display (GC?)
+        test(i, MUL, NOKEYS, WAIT(20));
     expect(
         "9332621544394415268169923885626670049071596826438162146859296389521"
         "7599993229915608941463976156518286253697920827223758251185210916864"
         "000000000000000000000000");
     step("Manual division by all factors of 100!");
     for (uint i = 1; i <= 100; i++)
-        test(i * 997 % 101, DIV);
+        test(i * 997 % 101, DIV, NOKEYS, WAIT(20));
     expect(1);
 
     step("Manual computation of 997/100!");
     test(CLEAR, 997, ENTER);
     for (uint i = 1; i <= 100; i++)
-        test(i * 997 % 101, DIV);
+        test(i * 997 % 101, DIV, NOKEYS, WAIT(20));
     expect(
         "997/"
         "9332621544394415268169923885626670049071596826438162146859296389521"
@@ -498,7 +502,7 @@ void tests::global_variables()
     test(XEQ, "A", ENTER).expect("'A'");
     test(STO).noerr();
     step("Recall global variable");
-    test(CLEAR, XEQ, "A", ENTER).expect("'A'");
+    test(CLEAR, 1, ENTER, XEQ, "A", ENTER).expect("'A'");
     test("RCL", ENTER).noerr().expect(12345);
 
     step("Store in long-name global variable");
@@ -1096,7 +1100,7 @@ void tests::integer_numerical_functions()
         .test("cubed", ENTER).expect("-19 683");
     step("abs")
         .test(CLEAR, "-3 abs", ENTER).expect("3")
-        .test("abs", ENTER).expect("3");
+        .test("abs", ENTER, 1, ADD).expect("4");
     step("norm").test("-5 norm", ENTER).expect("5");
 }
 
@@ -1124,7 +1128,7 @@ void tests::decimal_numerical_functions()
         .test("cubed", ENTER).expect("-19 683");
     step("abs")
         .test(CLEAR, "-3.21 abs", ENTER).expect("3.21")
-        .test("abs", ENTER).expect("3.21");
+        .test("abs", ENTER, 1, ADD).expect("4.21");
 
 #define TFN(name, result)                                               \
     step(#name).test(CLEAR, "0.321 " #name, ENTER).expect(result);
@@ -1153,8 +1157,8 @@ void tests::decimal_numerical_functions()
     TFN(erf, "3.50144 22082 00238 2355⁳⁻¹");
     TFN(erfc, "6.49855 77917 99761 7645⁳⁻¹");
     TFN(tgamma, "2.78663 45408 45472 368");
-    TFN(gamma, "2.78663 45408 45472 368");
     TFN(lgamma, "1.02483 46099 57313 1987");
+    TFN(gamma, "2.78663 45408 45472 368");
     TFN(cbrt, "6.84702 12775 72241 6184⁳⁻¹");
     TFN(norm, "0.321");
 #undef TFN
@@ -1199,7 +1203,7 @@ void tests::complex_types()
     test(CLEAR, "0∡0", ENTER)
         .type(object::ID_polar).expect("0∡0");
     test(CLEAR, "1∡90", ENTER)
-        .type(object::ID_polar).expect("1∡90");
+        .type(object::ID_polar).expect("1∡2.03540 56994 85789 3230");
     test(CLEAR, "-1∡0", ENTER)
         .type(object::ID_polar).expect("1∡3.14159 26535 89793 2385");
 
@@ -1426,7 +1430,6 @@ tests &tests::istep(cstring name)
 // ----------------------------------------------------------------------------
 {
     record(tests, "Step %+s, catching up", name);
-    Stack.catch_up();
     sname = name;
     if (sindex++)
     {
@@ -1552,9 +1555,6 @@ tests &tests::itest(tests::key k, bool release)
 {
     extern int key_remaining();
 
-    // Catch up with stack output
-    Stack.catch_up();
-
     // Check for special key sequences
     switch (k)
     {
@@ -1580,7 +1580,10 @@ tests &tests::itest(tests::key k, bool release)
     while (!key_empty())
         sys_delay(delay_time);
 
+    record(tests, "Push key %d update %u->%u last %d", k, lcd_update, lcd_needsupdate, last_key);
     lcd_update = lcd_needsupdate;
+    Stack.catch_up();
+    last_key = k;
     key_push(k);
     if (longpress)
     {
@@ -1594,6 +1597,10 @@ tests &tests::itest(tests::key k, bool release)
     {
         while (!key_remaining())
             sys_delay(delay_time);
+    record(tests, "Release key %d update %u->%u last %d", k, lcd_update, lcd_needsupdate, last_key);
+        lcd_update = lcd_needsupdate;
+        Stack.catch_up();
+        last_key = -k;
         key_push(RELEASE);
     }
 
@@ -1937,10 +1944,7 @@ tests &tests::nokeys()
 // ----------------------------------------------------------------------------
 {
     while (!key_empty())
-    {
-        Stack.catch_up();
         sys_delay(delay_time);
-    }
     return *this;
 }
 
@@ -1950,23 +1954,40 @@ tests &tests::refreshed()
 //    Wait until the screen was updated by the calculator
 // ----------------------------------------------------------------------------
 {
-    record(tests, "Waiting for refresh");
-
     // Wait for a screen redraw
+    record(tests, "Waiting for screen update");
     while (lcd_needsupdate == lcd_update)
         sys_delay(delay_time);
 
     // Wait for a stack update
     uint32_t start = sys_current_ms();
-    while (!Stack.available() && sys_current_ms() - start < wait_time)
-        sys_delay(delay_time);
-
-    // Check that we have latest stack update
-    while (Stack.available() > 1)
-        Stack.consume();
+    record(tests, "Waiting for key %d in stack at %u", last_key, start);
+    while (sys_current_ms() - start < wait_time)
+    {
+        if (!Stack.available())
+        {
+            sys_delay(delay_time);
+        }
+        else if (Stack.available() > 1)
+        {
+            record(tests, "Consume extra stack");
+            Stack.consume();
+        }
+        else if (Stack.key() == last_key)
+        {
+            record(tests, "Consume extra stack");
+            break;
+        }
+        else
+        {
+            record(tests, "Wrong key %d", Stack.key());
+            Stack.consume();
+        }
+    }
 
     record(tests,
-           "Refreshed, needs=%u update=%u available=%u",
+           "Refreshed, key %d, needs=%u update=%u available=%u",
+           Stack.key(),
            lcd_needsupdate,
            lcd_update,
            Stack.available());

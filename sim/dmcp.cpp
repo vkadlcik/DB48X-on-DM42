@@ -54,6 +54,7 @@ RECORDER(dmcp_notyet,   64, "DMCP features that are not yet implemented");
 RECORDER(keys,          64, "DMCP key handling");
 RECORDER(keys_warning,  64, "Warnings related to key handling");
 RECORDER(lcd,           64, "DMCP lcd/display functions");
+RECORDER(lcd_refresh,   64, "DMCP lcd/display refresh");
 RECORDER(lcd_width,     64, "Width of strings and chars");
 RECORDER(lcd_warning,   64, "Warnings from lcd/display functions");
 
@@ -202,13 +203,18 @@ int handle_menu(const smenu_t * menu_id, int action, int cur_line)
     return 0;
 }
 
-int8_t  keys[4] = { 0 };
-uint    keyrd   = 0;
-uint    keywr   = 0;
-enum {  nkeys = sizeof(keys) };
+volatile int8_t  keys[4] = { 0 };
+volatile uint    keyrd   = 0;
+volatile uint    keywr   = 0;
+enum {  nkeys = sizeof(keys) / sizeof(keys[0]) };
 
 int key_empty()
 {
+    record(keys,
+           "Key empty %u-%u = %+s",
+           keyrd,
+           keywr,
+           keyrd == keywr ? "empty" : "full");
     return keyrd == keywr;
 }
 
@@ -221,7 +227,7 @@ int key_pop()
 {
     if (keyrd != keywr)
     {
-        record(keys, "Key %d (rd %u wr %u)", keys[keyrd], keyrd, keywr);
+        record(keys, "Key %d (rd %u wr %u)", keys[keyrd % nkeys], keyrd, keywr);
         return keys[keyrd++ % nkeys];
     }
     return -1;
@@ -256,6 +262,7 @@ int key_push(int k)
         keys[keywr++ % nkeys] = k;
     else
         record(keys_warning, "Dropped key %d (wr %u rd %u)", k, keywr, keyrd);
+    record(keys, "Pushed key %d (wr %u rd %u)", k, keywr, keyrd);
     return keywr - keyrd < nkeys;
 }
 int read_key(int *k1, int *k2)
@@ -470,22 +477,23 @@ void lcd_forced_refresh()
 }
 void lcd_refresh()
 {
-    record(lcd, "Refresh");
+    record(lcd_refresh, "Refresh %u", lcd_needsupdate);
     lcd_needsupdate++;
 }
 void lcd_refresh_dma()
 {
-    record(lcd, "Refresh DMA");
+    record(lcd_refresh, "Refresh DMA %u", lcd_needsupdate);
     lcd_needsupdate++;
 }
 void lcd_refresh_wait()
 {
-    record(lcd, "Refresh Wait");
+    record(lcd_refresh, "Refresh wait %u", lcd_needsupdate);
     lcd_needsupdate++;
 }
 void lcd_refresh_lines(int ln, int cnt)
 {
-    record(lcd, "Refresh lines (%d-%d) count %d", ln, ln+cnt-1, cnt);
+    record(lcd_refresh, "Refresh lines %u (%d-%d) count %d",
+           lcd_needsupdate, ln, ln+cnt-1, cnt);
     lcd_needsupdate += (ln >= 0 && cnt > 0);
 }
 void lcd_setLine(disp_stat_t * ds, int ln_nr)

@@ -307,6 +307,7 @@ protected:
     uint                 count;
     uint                 refresh;
     int                  lcd_update;
+    int                  last_key;
     bool                 ok;
     bool                 longpress;
     std::vector<failure> failures;

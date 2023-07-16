@@ -2475,7 +2475,7 @@ bool user_interface::handle_digits(int key)
             // Special case for change of sign
             byte   *ed          = rt.editor();
             byte   *p           = ed + cursor;
-            unicode c           = 0;
+            unicode c           = utf8_codepoint(p);
             unicode dm          = Settings.decimal_mark;
             unicode ns          = Settings.space;
             unicode hs          = Settings.space_based;
@@ -2510,7 +2510,8 @@ bool user_interface::handle_digits(int key)
             else if (c == '-')
             {
                 rt.remove(p - ed, 1);
-                cursor--;
+                if (cursor)
+                    cursor--;
             }
             else
             {

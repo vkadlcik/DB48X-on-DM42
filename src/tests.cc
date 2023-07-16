@@ -1869,37 +1869,16 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
     if (shift && xshift)
         shift = false;
 
+    // If not alpha, disable lowercase
+    if (!alpha)
+        lowercase = false;
+
     // First change lowercase state as necessary, since this messes up shift
-    while (lowercase != ui.lowercase)
+    while (lowercase != ui.lowercase || alpha != ui.alpha)
     {
         while (!ui.shift)
             itest(SHIFT, NOKEYS);
         itest(ENTER, NOKEYS);
-    }
-
-    // Enter alpha mode using Shift-Enter so that we can shift afterwards
-    if (alpha != ui.alpha)
-    {
-        if (shift || xshift)
-        {
-            if (!alpha)
-            {
-                while (ui.alpha)
-                    itest(LONGPRESS, SHIFT, NOKEYS);
-            }
-            else
-            {
-                while (!ui.shift)
-                    itest(SHIFT, NOKEYS);
-                itest(ENTER, NOKEYS);
-            }
-        }
-        else
-        {
-            // Keep pressing shift until we get alpha
-            while (ui.alpha != alpha)
-                itest(LONGPRESS, SHIFT, NOKEYS);
-        }
     }
 
     while (xshift != ui.xshift)

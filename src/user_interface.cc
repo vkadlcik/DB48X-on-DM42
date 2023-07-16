@@ -2157,6 +2157,23 @@ bool user_interface::handle_shifts(int key)
 #undef SHM
 #undef SHD
     }
+    else if (shift && key == KEY_ENTER)
+    {
+        // Cycle ABC -> abc -> non alpha
+        if (alpha)
+        {
+            if (lowercase)
+                alpha = lowercase = false;
+            else
+                lowercase = true;
+        }
+        else
+        {
+            alpha     = true;
+            lowercase = false;
+        }
+        consumed = true;
+    }
 
     if (key)
         last = key;
@@ -2254,27 +2271,12 @@ bool user_interface::handle_editing(int key)
             return true;
         case KEY_ENTER:
         {
-            if (shift)
+            // Finish editing and parse the result
+            if (!shift && !xshift)
             {
-                // TODO: Show Alpha menu
-                // For now, enter Alpha mode or shift lowercase
-                if (alpha)
-                    lowercase = !lowercase;
-                else
-                    alpha     = true;
-            }
-            else if (xshift)
-            {
-                // Insert quotes and begin editing text
-                edit('\"', TEXT);
-                alpha = true;
-            }
-            else
-            {
-                // Finish editing and parse the result
                 end_edit();
+                return true;
             }
-            return true;
         }
         case KEY_EXIT:
             // Clear error if there is one, else clear editor
@@ -2339,15 +2341,7 @@ bool user_interface::handle_editing(int key)
         switch(key)
         {
         case KEY_ENTER:
-            if (shift)
-            {
-                if (alpha)
-                    lowercase = !lowercase;
-                else
-                    alpha     = true;
-                return true;
-            }
-            else if (xshift)
+            if (xshift)
             {
                 // Insert quotes and begin editing
                 edit('\"', TEXT);
@@ -2450,6 +2444,8 @@ bool user_interface::handle_alpha(int key)
         lowercase ? lower[key]    :
         upper[key];
     edit(c, TEXT);
+    if (c == '"')
+        alpha = true;
     repeat = true;
     return true;
 }

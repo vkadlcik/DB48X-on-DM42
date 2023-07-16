@@ -54,9 +54,9 @@ calculator compared to the HP48:
   accessible seems important, so holding the *Shift* key enters Alpha mode.
 
 * It is also possible to enter Alpha mode with _Shift_ _ ENTER _ to match
-  the labelling on the DM42. Furthermore, _Shift_ _ ENTER _ also cycles between
-  *uppercase* and *lowercase* alphabetical entry (shown as _ABC_ and _abc_ in
-  the annunciator area.
+  the labelling on the DM42. _Shift_ _ ENTER _ also cycles between *uppercase*,
+  *lowercase* and *non-alpha* entry. The first two are shown as _ABC_ and _abc_
+  in the annunciator area.
 
 * Alpha mode is always sticky. In other words, there is no equivalent of the
   HP48's "single-Alpha" mode. Alpha mode is also exited when pressing _ ENTER _

@@ -191,9 +191,9 @@ FUNCTION_BODY(abs)
 }
 
 
-FUNCTION_BODY(norm)
+FUNCTION_BODY(arg)
 // ----------------------------------------------------------------------------
-//   Implementation of 'norm'
+//   Implementation of the complex argument (0 for non-complex values)
 // ----------------------------------------------------------------------------
 {
     if (!x.Safe())
@@ -201,9 +201,67 @@ FUNCTION_BODY(norm)
 
     id xt = x->type();
     if (should_be_symbolic(xt))
-        return symbolic(ID_norm, x);
+        return symbolic(ID_arg, x);
+    if (is_complex(xt))
+        return complex_p(algebraic_p(x))->arg();
+    return integer::make(0);
+}
 
-    return abs::evaluate(x);
+
+FUNCTION_BODY(re)
+// ----------------------------------------------------------------------------
+//   Extract the real part of a number
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+
+    id xt = x->type();
+    if (should_be_symbolic(xt))
+        return symbolic(ID_re, x);
+    if (is_complex(xt))
+        return complex_p(algebraic_p(x))->re();
+    if (!is_real(xt))
+        rt.type_error();
+    return x;
+}
+
+
+FUNCTION_BODY(im)
+// ----------------------------------------------------------------------------
+//   Extract the imaginary part of a number (0 for real values)
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+
+    id xt = x->type();
+    if (should_be_symbolic(xt))
+        return symbolic(ID_im, x);
+    if (is_complex(xt))
+        return complex_p(algebraic_p(x))->im();
+    if (!is_real(xt))
+        rt.type_error();
+    return integer::make(0);
+}
+
+
+FUNCTION_BODY(conj)
+// ----------------------------------------------------------------------------
+//   Compute the conjugate of input
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+
+    id xt = x->type();
+    if (should_be_symbolic(xt))
+        return symbolic(ID_conj, x);
+    if (is_complex(xt))
+        return complex_p(algebraic_p(x))->conjugate();
+    if (!is_real(xt))
+        rt.type_error();
+    return x;
 }
 
 
@@ -287,7 +345,7 @@ FUNCTION_BODY(sq)
 
 FUNCTION_BODY(cubed)
 // ----------------------------------------------------------------------------
-//   Cubed is implemented as "dup dup mul mul"
+//   Cubed is implemented as two multiplications
 // ----------------------------------------------------------------------------
 {
     if (!x.Safe())
@@ -295,4 +353,39 @@ FUNCTION_BODY(cubed)
     if (x->is_strictly_symbolic())
         return equation::make(ID_cubed, x);
     return x * x * x;
+}
+
+
+
+FUNCTION_BODY(fact)
+// ----------------------------------------------------------------------------
+//   Perform factorial for integer values, fallback to gamma otherwise
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+
+    if (x->is_strictly_symbolic())
+        return equation::make(ID_fact, x);
+
+    if (integer_p ival = x->as<integer>())
+    {
+        ularge maxl = ival->value<ularge>();
+        uint max = uint(maxl);
+        if (max != maxl)
+        {
+            rt.domain_error();
+            return nullptr;
+        }
+        algebraic_g result = integer::make(1);
+        for (uint i = 2; i <= max; i++)
+            result = result * integer::make(i);
+        return result;
+    }
+
+    if (x->is_real() || x->is_complex())
+        return tgamma::run(x + integer::make(1));
+
+    rt.type_error();
+    return nullptr;
 }

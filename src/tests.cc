@@ -1413,6 +1413,49 @@ void tests::complex_functions()
     test(CLEAR, "9.+2ⅈ", ENTER, SHIFT, "ATANH", ENTER)
         .expect("1.06220 79849 13164 9131⁳⁻¹+1.54700 47751 56404 9213ⅈ");
 
+    step("Real to complex");
+    test(CLEAR, "1 2 R→C", ENTER)
+        .type(object::ID_rectangular).expect("1+2ⅈ");
+    test(CLEAR, "a b R→C", ENTER)
+        .type(object::ID_rectangular).expect("'a'+'b'ⅈ");
+
+    step("Complex to real");
+    test(CLEAR, "1+2ⅈ C→R", ENTER)
+        .expect("2").test(BSP).expect("1");
+    test(CLEAR, "a+bⅈ C→R", ENTER)
+        .expect("b").test(BSP).expect("a");
+
+    step("Re function");
+    test(CLEAR, "33+22ⅈ Re", ENTER).expect("33");
+    test(CLEAR, "a+bⅈ Re", ENTER).expect("a");
+    test(CLEAR, "31 Re", ENTER).expect("31");
+    test(CLEAR, "31.234 Re", ENTER).expect("31.234");
+
+    step("Im function");
+    test(CLEAR, "33+22ⅈ Im", ENTER).expect("22");
+    test(CLEAR, "a+bⅈ Im", ENTER).expect("b");
+    test(CLEAR, "31 Im", ENTER).expect("0");
+    test(CLEAR, "31.234 Im", ENTER).expect("0");
+
+    step("Complex modulus");
+    test(CLEAR, "3+4ⅈ abs", ENTER).expect("5.");
+    test(CLEAR, "a+bⅈ abs", ENTER).expect("'a⊿b'");
+    test(CLEAR, "3+4ⅈ norm", ENTER).expect("5.");
+    test(CLEAR, "a+bⅈ norm", ENTER).expect("'a⊿b'");
+    test(CLEAR, "3+4ⅈ modulus", ENTER).expect("5.");
+    test(CLEAR, "a+bⅈ modulus", ENTER).expect("'a⊿b'");
+
+    step("Complex argument");
+    test(CLEAR, "1+1ⅈ arg", ENTER).expect("7.85398 16339 74483 0962⁳⁻¹");
+    test(CLEAR, "a+bⅈ arg", ENTER).expect("'b∠a'");
+    test(CLEAR, "31 arg", ENTER).expect("0");
+    test(CLEAR, "31.234 arg", ENTER).expect("0");
+
+    step("Complex conjugate");
+    test(CLEAR, "3+4ⅈ conj", ENTER).expect("3-4ⅈ");
+    test(CLEAR, "a+bⅈ conj", ENTER).expect("a+'-b'ⅈ");
+    test(CLEAR, "31 conj", ENTER).expect("31");
+    test(CLEAR, "31.234 conj", ENTER).expect("31.234");
 }
 
 

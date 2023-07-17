@@ -166,11 +166,16 @@ public:                                                                 \
 algebraic_p derived::evaluate(algebraic_r x)
 
 FUNCTION(abs);
-FUNCTION(norm);
 FUNCTION(sign);
 FUNCTION(inv);
 FUNCTION(neg);
 FUNCTION(sq);
 FUNCTION(cubed);
+FUNCTION(fact);
+
+FUNCTION(re);
+FUNCTION(im);
+FUNCTION(arg);
+FUNCTION(conj);
 
 #endif // FUNCTIONS_H

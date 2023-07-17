@@ -158,7 +158,8 @@ NAMED(cubed, "x³")
 
 NAMED(sqrt, "√")
 
-CMD(abs)
+NAMED(abs, "norm")
+ALIAS(abs, "modulus")
 
 OP(And,         "and")
 OP(Or,          "or")
@@ -207,18 +208,25 @@ CMD(erf)
 CMD(erfc)
 NAMED(tgamma, "Gamma")
 CMD(lgamma)
+NAMED(fact, "!")
+ALIAS(fact, "factorial")
 
 NAMED(cbrt, "∛")
 OP(pow, "↑")
 ALIAS(pow, "^")
 OP(hypot, "⊿")
 OP(atan2, "∠")
-CMD(norm)
+
 CMD(sign)
+
+CMD(re)
+CMD(im)
+CMD(arg)
+CMD(conj)
 
 NAMED(ImaginaryUnit, "ⅈ")
 
-#define LAST_ALGEBRAIC          ID_norm
+#define LAST_ALGEBRAIC          ID_ImaginaryUnit
 
 
 // ============================================================================
@@ -241,6 +249,17 @@ CMD(ForStep)
 //
 // ============================================================================
 
+CMD(Depth)
+NAMED(ToList, "→List")
+
+NAMED(RealToComplex, "ℝ→ℂ")
+ALIAS(RealToComplex, "R→C")
+NAMED(ComplexToReal, "ℂ→ℝ")
+ALIAS(ComplexToReal, "C→R")
+NAMED(ToRectangular, "→Rectangular")
+ALIAS(ToRectangular, "→Rect")
+NAMED(ToPolar, "→Polar")
+
 CMD(Purge)
 CMD(PurgeAll)
 NAMED(Mem, "AvailableMemory")
@@ -250,9 +269,6 @@ CMD(GarbageCollect)
 CMD(HomeDirectory)
 
 CMD(Ticks)
-CMD(Depth)
-NAMED(ToList, "→List")
-
 
 
 // ============================================================================

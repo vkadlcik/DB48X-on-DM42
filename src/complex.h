@@ -190,6 +190,9 @@ public:
 };
 
 COMMAND_DECLARE(ImaginaryUnit);
-
+COMMAND_DECLARE(RealToComplex);
+COMMAND_DECLARE(ComplexToReal);
+COMMAND_DECLARE(ToRectangular);
+COMMAND_DECLARE(ToPolar);
 
 #endif // COMPLEX_H

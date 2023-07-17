@@ -591,6 +591,100 @@ COMMAND_BODY(ImaginaryUnit)
 }
 
 
+COMMAND_BODY(RealToComplex)
+// ----------------------------------------------------------------------------
+//   Take two values in x and y and turn them into a complex
+// ----------------------------------------------------------------------------
+{
+    object_g re = rt.stack(1);
+    object_g im = rt.stack(0);
+    if (!re || !im)
+        return ERROR;
+    if (!(re->is_real() || re->is_strictly_symbolic()) ||
+        !(im->is_real() || im->is_strictly_symbolic()))
+    {
+        rt.type_error();
+        return ERROR;
+    }
+    complex_g z = rectangular::make(algebraic_p(re.Safe()),
+                                    algebraic_p(im.Safe()));
+    if (!z.Safe() || !rt.drop())
+        return ERROR;
+    if (!rt.top(z))
+        return ERROR;
+    return OK;
+}
+
+
+COMMAND_BODY(ComplexToReal)
+// ----------------------------------------------------------------------------
+//   Take a complex value and convert it into two real values
+// ----------------------------------------------------------------------------
+{
+    object_g z = rt.top();
+    if (!z)
+        return ERROR;
+    if (!z->is_complex())
+    {
+        rt.type_error();
+        return ERROR;
+    }
+    if (!rt.top(complex_p(z.Safe())->re()))
+        return ERROR;
+    if (!rt.push(object_p(complex_p(z.Safe())->im())))
+        return ERROR;
+    return OK;
+}
+
+
+COMMAND_BODY(ToRectangular)
+// ----------------------------------------------------------------------------
+//  Convert the top-level complex to rectangular form
+// ----------------------------------------------------------------------------
+{
+    object_g x = rt.top();
+    if (!x)
+        return ERROR;
+    if (!x->is_complex())
+    {
+        rt.type_error();
+        return ERROR;
+    }
+    complex_g z = complex_p(x.Safe());
+    if (z->type() == ID_polar)
+    {
+        z = rectangular::make(z->re(), z->im());
+        if (!rt.push(object_p(complex_p(z.Safe()))))
+            return ERROR;
+    }
+    return OK;
+}
+
+
+COMMAND_BODY(ToPolar)
+// ----------------------------------------------------------------------------
+//  Convert the top-level complex to polar form
+// ----------------------------------------------------------------------------
+{
+    object_g x = rt.top();
+    if (!x)
+        return ERROR;
+    if (!x->is_complex())
+    {
+        rt.type_error();
+        return ERROR;
+    }
+    complex_g z = complex_p(x.Safe());
+    if (z->type() == ID_rectangular)
+    {
+        z = polar::make(z->mod(), z->arg());
+        if (!rt.push(object_p(complex_p(z.Safe()))))
+            return ERROR;
+    }
+    return OK;
+}
+
+
 
 // ============================================================================
 //
@@ -617,7 +711,7 @@ COMPLEX_BODY(sqrt)
     rectangular_r r = (rectangular_r) z;
     algebraic_g a = r->re();
     algebraic_g b = r->im();
-    algebraic_g znorm = norm::run(algebraic_p(z));
+    algebraic_g znorm = abs::run(algebraic_p(z));
     algebraic_g two = algebraic_p(integer::make(2));
     algebraic_g re = sqrt::run((znorm + a) / two);
     algebraic_g im = sqrt::run((znorm - a) / two);

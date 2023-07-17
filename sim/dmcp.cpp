@@ -708,7 +708,7 @@ void run_help_file_style(const char * help_file, user_style_fn_t *user_style_fn)
 }
 void start_buzzer_freq(uint32_t freq)
 {
-    record(dmcp_notyet, "start_buzzer_freq not implemented");
+    record(dmcp_error, "start_buzzer");
 }
 void stop_buzzer()
 {

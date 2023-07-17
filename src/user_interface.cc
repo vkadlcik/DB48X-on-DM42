@@ -2173,6 +2173,8 @@ bool user_interface::handle_shifts(int key)
             lowercase = false;
         }
         consumed = true;
+        shift = false;
+        key = last = 0;
     }
 
     if (key)

@@ -31,6 +31,7 @@
 #include "recorder.h"
 #include "sim-rpl.h"
 #include "sim-window.h"
+#include "version.h"
 
 #include <QApplication>
 #include <QWindow>
@@ -99,6 +100,15 @@ int main(int argc, char *argv[])
     if (traces && traces[0] == char(0xFF))
         if (cstring result = debug())
             record(options, "Strange input %s", result);
+
+    // Indicate the first two-byte opcode
+    fprintf(stderr,
+            "DB48X version %s\n"
+            "Last single-byte opcode is %s\n"
+            "First two byte opcode is %s\n",
+            DB48X_VERSION,
+            object::name(object::id(127)),
+            object::name(object::id(128)));
 
     record(options,
            "Simulator invoked as %+s with %d arguments", argv[0], argc-1);

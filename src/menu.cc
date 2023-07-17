@@ -210,28 +210,26 @@ MENU(MathMenu,
 //   Math menu, reached from the Σ+ key
 // ----------------------------------------------------------------------------
 
+     "Trig",    ID_CircularMenu,
      "Real",    ID_RealMenu,
      "Cmplx",   ID_ComplexMenu,
      "Vector",  ID_VectorMenu,
      "Matrix",  ID_MatrixMenu,
      "Const",   ID_ConstantsMenu,
 
-     "Trig",    ID_CircularMenu,
      "Hyper",   ID_HyperbolicMenu,
      "Eqns",    ID_EquationsMenu,
      "Proba",   ID_ProbabilitiesMenu,
      "Stats",   ID_StatisticsMenu,
-
      "Solver",  ID_SolverMenu,
      "Symb",    ID_SymbolicMenu,
+
      "Signal",  ID_SignalProcessingMenu,
      "Bases",   ID_BasesMenu,
      "Powers",  ID_PowersMenu,
-
      "Angles",  ID_AnglesMenu,
      "List",    ID_ListMenu,
-     "Frac",    ID_FractionsMenu,
-     "...",     ID_MainMenu);
+     "Frac",    ID_FractionsMenu);
 
 
 MENU(RealMenu,
@@ -240,14 +238,14 @@ MENU(RealMenu,
 // ----------------------------------------------------------------------------
      "Min",     ID_Unimplemented,
      "Max",     ID_Unimplemented,
-     "mod",     ID_mod,
-     "Abs",     ID_Unimplemented,
+     ID_mod,
+     ID_abs,
      "→Num",    ID_Unimplemented,
      "→Frac",   ID_Unimplemented,
 
      "Ceil",    ID_Unimplemented,
      "Floor",   ID_Unimplemented,
-     "rem",     ID_rem,
+     ID_rem,
      "%",       ID_Unimplemented,
      "%Chg",    ID_Unimplemented,
      "Parts",   ID_PartsMenu);
@@ -257,25 +255,33 @@ MENU(PartsMenu,
 // ----------------------------------------------------------------------------
 //   Extract parts of a number
 // ----------------------------------------------------------------------------
-     "Sign",    ID_Unimplemented,
+     ID_sign,
      "Round",   ID_Unimplemented,
      "Trunc",   ID_Unimplemented,
      "IPart",   ID_Unimplemented,
      "FPart",   ID_Unimplemented,
-     "Abs",     ID_Unimplemented,
+     ID_abs,
+
+     ID_re,
+     ID_im,
+     ID_abs,
+     ID_arg,
+     ID_conj,
 
      "Mant",    ID_Unimplemented,
      "Xpon",    ID_Unimplemented,
-     "Type",    ID_Unimplemented);
+     "Type",    ID_Unimplemented,
+     "Trunc",   ID_Unimplemented,
+     "Round",   ID_Unimplemented);
 
 
 MENU(AnglesMenu,
 // ----------------------------------------------------------------------------
 //   Operations on angles
 // ----------------------------------------------------------------------------
-     "Deg",     ID_Deg,
-     "Rad",     ID_Rad,
-     "Grad",    ID_Grad,
+     ID_Deg,
+     ID_Rad,
+     ID_Grad,
      "→Deg",    ID_Unimplemented,
      "→Rad",    ID_Unimplemented,
      "→Grad",   ID_Unimplemented,
@@ -293,26 +299,28 @@ MENU(ComplexMenu,
 // ----------------------------------------------------------------------------
      "ⅈ",       ID_SelfInsert,
      "∡",       ID_SelfInsert,
-     "→ℂ",      ID_Unimplemented,
-     "Conj",    ID_Unimplemented,
-     "Norm",    ID_Unimplemented,
-     "Arg",     ID_Unimplemented,
+     "ℝ→ℂ",     ID_RealToComplex,
+     "ℂ→ℝ",     ID_ComplexToReal,
+     ID_re,
+     ID_im,
 
-     "ℂ→",      ID_Unimplemented,
-     "Re",      ID_Unimplemented,
-     "Im",      ID_Unimplemented,
-     "→Polar",  ID_Unimplemented,
-     "→Rect",   ID_Unimplemented,
-     "Sign",    ID_Unimplemented,
+     "→Rect",   ID_ToRectangular,
+     ID_ToPolar,
+     ID_conj,
+     ID_sign,
+     ID_abs,
+     ID_arg,
 
-     "Auto ℂ",  ID_Unimplemented);
+     "Auto ℂ",  ID_Unimplemented,
+     "Rect",    ID_Unimplemented,
+     "Polar",   ID_Unimplemented);
 
 
 MENU(VectorMenu,
 // ----------------------------------------------------------------------------
 //   Operations on vectors
 // ----------------------------------------------------------------------------
-     "Norm",    ID_Unimplemented,
+     "Norm",    ID_abs,
      "Dot",     ID_Unimplemented,
      "Cross",   ID_Unimplemented,
      "→Vec2",   ID_Unimplemented,
@@ -376,10 +384,10 @@ MENU(BasesMenu,
 //   Operations on based numbers
 // ----------------------------------------------------------------------------
      "#",       ID_SelfInsert,
-     "→Bin",    ID_Unimplemented,
-     "→Oct",    ID_Unimplemented,
-     "→Dec",    ID_Unimplemented,
-     "→Hex",    ID_Unimplemented,
+     ID_And,
+     ID_Or,
+     ID_Xor,
+     ID_Not,
 
      Base::menu_label, ID_Base,
      "Bin",     ID_Bin,
@@ -388,16 +396,10 @@ MENU(BasesMenu,
      "Hex",     ID_Hex,
 
      stws::menu_label,  ID_stws,
-     ID_And,
-     ID_Or,
-     ID_Xor,
-     ID_Not,
-
-     "→WSize",  ID_stws,
      ID_NAnd,
      ID_NOr,
-     "impl",    ID_Implies,
-     "excl",    ID_Excludes,
+     ID_Implies,
+     ID_Excludes,
 
      "ShL",     ID_Unimplemented,
      "ShR",     ID_Unimplemented,

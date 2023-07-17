@@ -697,7 +697,7 @@ SETTINGS_COMMAND_LABEL(stws)
 // ----------------------------------------------------------------------------
 {
     static char buffer[16];
-    snprintf(buffer, sizeof(buffer), "WordSz %u", Settings.wordsize);
+    snprintf(buffer, sizeof(buffer), "WSz %u", Settings.wordsize);
     return buffer;
 }
 

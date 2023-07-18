@@ -29,12 +29,14 @@
 
 #include "settings.h"
 
+#include "arithmetic.h"
 #include "command.h"
 #include "font.h"
-#include "user_interface.h"
+#include "functions.h"
 #include "integer.h"
 #include "menu.h"
 #include "renderer.h"
+#include "user_interface.h"
 
 #include <cstdarg>
 #include <cstdlib>
@@ -42,6 +44,7 @@
 #include <stdexcept>
 
 settings Settings;
+
 
 
 // ============================================================================
@@ -104,6 +107,7 @@ void settings::save(renderer &out, bool show_defaults)
     case DEGREES:       if (show_defaults)      out.put("DEG\n"); break;
     case RADIANS:                               out.put("RAD\n"); break;
     case GRADS:                                 out.put("GRAD\n"); break;
+    case PI_RADIANS:                            out.put("PIRADIANS\n"); break;
     }
 
     // Save default base
@@ -401,6 +405,17 @@ SETTINGS_COMMAND_NOLABEL(Grad,
 // ----------------------------------------------------------------------------
 {
     Settings.angle_mode = settings::GRADS;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(PiRadians,
+                         Settings.angle_mode == settings::PI_RADIANS)
+// ----------------------------------------------------------------------------
+//   Switch to grads
+// ----------------------------------------------------------------------------
+{
+    Settings.angle_mode = settings::PI_RADIANS;
     return OK;
 }
 

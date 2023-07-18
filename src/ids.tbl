@@ -291,6 +291,7 @@ NAMED(Sig, "SignificantDisplay")
 NAMED(Deg, "Degrees")
 NAMED(Rad, "Radians")
 NAMED(Grad, "Grads")
+CMD(PiRadians)
 
 CMD(LowerCase)
 CMD(UpperCase)

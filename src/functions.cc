@@ -71,6 +71,70 @@ object::result function::evaluate(id op, bid128_fn op128, complex_fn zop)
 }
 
 
+static bid128 from_deg, from_grad, from_ratio;
+static bool   init = false;
+
+static void adjust_init()
+// ----------------------------------------------------------------------------
+//   Initialize the constants used for adjustments
+// ----------------------------------------------------------------------------
+{
+    if (!init)
+    {
+        bid128_from_string(&from_deg.value,
+                           "1.745329251994329576923690768488613E-2");
+        bid128_from_string(&from_grad.value,
+                           "1.570796326794896619231321691639752E-2");
+        bid128_from_string(&from_ratio.value,
+                           "3.141592653589793238462643383279503");
+        init = true;
+    }
+}
+
+static void adjust_from_angle(bid128 &x)
+// ----------------------------------------------------------------------------
+//   Adjust an angle value for sin/cos/tan
+// ----------------------------------------------------------------------------
+{
+    if (!init)
+        adjust_init();
+    switch(Settings.angle_mode)
+    {
+    case Settings.DEGREES:
+        bid128_mul(&x.value, &x.value, &from_deg.value); break;
+    case Settings.GRADS:
+        bid128_mul(&x.value, &x.value, &from_grad.value); break;
+    case Settings.PI_RADIANS:
+        bid128_mul(&x.value, &x.value, &from_ratio.value); break;
+    default:
+    case Settings.RADIANS:
+        break;
+    }
+}
+
+
+static void adjust_to_angle(bid128 &x)
+// ----------------------------------------------------------------------------
+//   Adjust an angle value for asin/acos/atan
+// ----------------------------------------------------------------------------
+{
+    if (!init)
+        adjust_init();
+    switch(Settings.angle_mode)
+    {
+    case Settings.DEGREES:
+        bid128_div(&x.value, &x.value, &from_deg.value); break;
+    case Settings.GRADS:
+        bid128_div(&x.value, &x.value, &from_grad.value); break;
+    case Settings.PI_RADIANS:
+        bid128_div(&x.value, &x.value, &from_ratio.value); break;
+    default:
+    case Settings.RADIANS:
+        break;
+    }
+}
+
+
 algebraic_p function::evaluate(algebraic_r xr,
                                id          op,
                                bid128_fn   op128,
@@ -112,6 +176,8 @@ algebraic_p function::evaluate(algebraic_r xr,
     {
         bid128 xv = decimal128_p(algebraic_p(x))->value();
         bid128 res;
+        if (op == ID_sin || op == ID_cos || op == ID_tan)
+            adjust_from_angle(xv);
         op128(&res.value, &xv.value);
         int finite = false;
         bid128_isFinite(&finite, &res.value);
@@ -120,6 +186,8 @@ algebraic_p function::evaluate(algebraic_r xr,
             rt.domain_error();
             return nullptr;
         }
+        if (op == ID_asin || op == ID_acos || op == ID_atan || op == ID_atan2)
+            adjust_to_angle(res);
         x = rt.make<decimal128>(ID_decimal128, res);
         return x;
     }

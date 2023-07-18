@@ -282,15 +282,21 @@ MENU(AnglesMenu,
      ID_Deg,
      ID_Rad,
      ID_Grad,
+     "n×π",     ID_PiRadians,
+     "→Angle",  ID_Unimplemented,
+     "Angle→",  ID_Unimplemented,
+
      "→Deg",    ID_Unimplemented,
      "→Rad",    ID_Unimplemented,
      "→Grad",   ID_Unimplemented,
-
-     "→Angle",  ID_Unimplemented,
+     "→x×π",    ID_Unimplemented,
      "→Polar",  ID_Unimplemented,
      "→Rect",   ID_Unimplemented,
-     "→HMS",    ID_Unimplemented,
-     "HMS→",    ID_Unimplemented);
+
+     "→DMS",    ID_Unimplemented,
+     "DMS→",    ID_Unimplemented,
+     "DMS+",    ID_Unimplemented,
+     "DMS-",    ID_Unimplemented);
 
 
 MENU(ComplexMenu,
@@ -931,6 +937,12 @@ MENU(ModesMenu,
      Sci::menu_label,   ID_Sci,
      Eng::menu_label,   ID_Eng,
      Sig::menu_label,   ID_Sig,
+     Precision::menu_label, ID_Precision,
+
+     "NumSpc", ID_NumberSpacing,
+     MantissaSpacing::menu_label, ID_MantissaSpacing,
+     FractionSpacing::menu_label, ID_FractionSpacing,
+     BasedSpacing::menu_label,    ID_BasedSpacing,
 
      "Frac .",  ID_DecimalDot,
      "Frac ,",  ID_DecimalComma,
@@ -938,9 +950,11 @@ MENU(ModesMenu,
      "()",      ID_Unimplemented,
      "Use n/m", ID_Unimplemented,
 
+
      "Deg",     ID_Deg,
      "Rad",     ID_Rad,
      "Grad",    ID_Grad,
+     "a×π",     ID_PiRadians,
      "Angles",  ID_AnglesMenu,
      "DMS",     ID_Unimplemented,
 
@@ -954,7 +968,6 @@ MENU(ModesMenu,
      "CMD",     ID_UpperCase,
      "Cmd",     ID_Capitalized,
      "Command", ID_LongForm,
-     Precision::menu_label, ID_Precision,
 
      StandardExponent::menu_label, ID_StandardExponent,
      "1.2x10³²", ID_FancyExponent,
@@ -972,12 +985,7 @@ MENU(ModesMenu,
      Settings.decimal_mark == '.' ? "#1,000" : "#1.000",  ID_BasedDotOrComma,
      "#1'000", ID_BasedTicks,
      "#1_000", ID_BasedUnderscore,
-     ID_Modes,
-
-     "NumSpc", ID_NumberSpacing,
-     MantissaSpacing::menu_label, ID_MantissaSpacing,
-     FractionSpacing::menu_label, ID_FractionSpacing,
-     BasedSpacing::menu_label,    ID_BasedSpacing);
+     ID_Modes);
 
 MENU(FontsMenu,
      ResultFontSize::menu_label,                ID_ResultFontSize,

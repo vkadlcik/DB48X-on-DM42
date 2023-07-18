@@ -82,11 +82,12 @@ Display the exponent in scientific mode in a way reminiscent of classical HP48 c
 The angle mode determines how the calculator interprets angle arguments and how
 it returns angle results.
 
-DB48X has three angle modes:
+DB48X has four angle modes:
 
 * [Degrees](#Degrees): A full circle is 360 degress
 * [Radians](#Radians): A full circle is 2π radians
 * [Grads](#Grads): A full circle is 400 radians
+* [PiRadians](#PiRadians): Radians shown as multiple of π
 
 ## Degrees (DEG)
 
@@ -94,11 +95,17 @@ Select degrees as the angular unit. A full circle is 360 degrees.
 
 ## Radians (RAD)
 
-Select radians as the angular unit. A full circle is 2π radians.
+Select radians as the angular unit. A full circle is 2π radians,
+and the angle is shown as a numerical value.
 
 ## Grads (GRAD)
 
 Select grads as the angular unit. A full circle is 400 grads.
+
+## PiRadians (PIRAD)
+
+Select multiples of π as the angular unit. A full circle is 2π radians,
+shown as a multiple of π.
 
 
 # Command display

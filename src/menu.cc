@@ -1009,7 +1009,9 @@ MENU(MemMenu,
 //   Memory operations
 // ----------------------------------------------------------------------------
      "GC",      ID_GarbageCollect,
-     "Free",    ID_FreeMemory);
+     "Free",    ID_FreeMemory,
+     "Purge",   ID_Purge,
+     "PgAll",   ID_PurgeAll);
 
 
 MENU(LibsMenu,

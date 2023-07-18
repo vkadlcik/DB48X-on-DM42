@@ -1149,6 +1149,9 @@ void tests::decimal_numerical_functions()
         .test(CLEAR, "-3.21 abs", ENTER).expect("3.21")
         .test("abs", ENTER, 1, ADD).expect("4.21");
 
+    step("Setting radians mode");
+    test(CLEAR, "RAD", ENTER).noerr();
+
 #define TFN(name, result)                                               \
     step(#name).test(CLEAR, "0.321 " #name, ENTER).expect(result);
 

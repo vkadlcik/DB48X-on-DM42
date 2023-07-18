@@ -91,15 +91,27 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    step("Testing sign of modulo");
-    test(CLEAR, " 7  3 MOD", ENTER).expect(1);
-    test(CLEAR, " 7 -3 MOD", ENTER).expect(1);
-    test(CLEAR, "-7  3 MOD", ENTER).expect(2);
-    test(CLEAR, "-7 -3 MOD", ENTER).expect(2);
-    test(CLEAR, " 7  3 REM", ENTER).expect(1);
-    test(CLEAR, " 7 -3 REM", ENTER).expect(1);
-    test(CLEAR, "-7  3 REM", ENTER).expect(-1);
-    test(CLEAR, "-7 -3 REM", ENTER).expect(-1);
+    step("Fraction modulo and remainder");
+    test(CLEAR, " 7/2  3 REM", ENTER).expect("1/2");
+    test(CLEAR, " 7/2 -3 REM", ENTER).expect("1/2");
+    test(CLEAR, "-7/2  3 REM", ENTER).expect("-1/2");
+    test(CLEAR, "-7/2 -3 REM", ENTER).expect("-1/2");
+    test(CLEAR, " 7/2  3 REM", ENTER).expect("1/2");
+    test(CLEAR, " 7/2 -3 REM", ENTER).expect("1/2");
+    test(CLEAR, "-7/2  3 REM", ENTER).expect("-1/2");
+    test(CLEAR, "-7/2 -3 REM", ENTER).expect("-1/2");
+#if 0
+    step("Testing sign of modulo for bignum");
+#define ZEROS "00000000000000000000"
+    test(CLEAR, " 7" ZEROS "  3" ZEROS " MOD", ENTER).expect("1" ZEROS);
+    test(CLEAR, " 7" ZEROS " -3" ZEROS " MOD", ENTER).expect("1" ZEROS);
+    test(CLEAR, "-7" ZEROS "  3" ZEROS " MOD", ENTER).expect("2" ZEROS);
+    test(CLEAR, "-7" ZEROS " -3" ZEROS " MOD", ENTER).expect("2" ZEROS);
+    test(CLEAR, " 7" ZEROS "  3" ZEROS " REM", ENTER).expect("1" ZEROS);
+    test(CLEAR, " 7" ZEROS " -3" ZEROS " REM", ENTER).expect("1" ZEROS);
+    test(CLEAR, "-7" ZEROS "  3" ZEROS " REM", ENTER).expect("-1" ZEROS);
+    test(CLEAR, "-7" ZEROS " -3" ZEROS " REM", ENTER).expect("-1" ZEROS);
+#endif
 }
 
 
@@ -497,7 +509,7 @@ void tests::arithmetic()
         "7599993229915608941463976156518286253697920827223758251185210916864"
         "000000000000000000000000");
 
-    step("Testing sign of modulo");
+    step("Sign of modulo and remainder");
     test(CLEAR, " 7  3 MOD", ENTER).expect(1);
     test(CLEAR, " 7 -3 MOD", ENTER).expect(1);
     test(CLEAR, "-7  3 MOD", ENTER).expect(2);
@@ -506,6 +518,16 @@ void tests::arithmetic()
     test(CLEAR, " 7 -3 REM", ENTER).expect(1);
     test(CLEAR, "-7  3 REM", ENTER).expect(-1);
     test(CLEAR, "-7 -3 REM", ENTER).expect(-1);
+
+    step("Fraction modulo and remainder");
+    test(CLEAR, " 7/2  3 REM", ENTER).expect("1/2");
+    test(CLEAR, " 7/2 -3 REM", ENTER).expect("1/2");
+    test(CLEAR, "-7/2  3 REM", ENTER).expect("-1/2");
+    test(CLEAR, "-7/2 -3 REM", ENTER).expect("-1/2");
+    test(CLEAR, " 7/2  3 REM", ENTER).expect("1/2");
+    test(CLEAR, " 7/2 -3 REM", ENTER).expect("1/2");
+    test(CLEAR, "-7/2  3 REM", ENTER).expect("-1/2");
+    test(CLEAR, "-7/2 -3 REM", ENTER).expect("-1/2");
 }
 
 

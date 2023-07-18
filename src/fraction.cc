@@ -285,7 +285,7 @@ fraction_g operator/(fraction_r x, fraction_r y)
 
 fraction_g operator%(fraction_r x, fraction_r y)
 // ----------------------------------------------------------------------------
-//    Divide two fractions
+//    Compute the remainder of two fractions
 // ----------------------------------------------------------------------------
 {
     bignum_g   xn = x->numerator();
@@ -296,6 +296,6 @@ fraction_g operator%(fraction_r x, fraction_r y)
     bignum_g   ir = q->numerator() / q->denominator();
     fraction_g fr = big_fraction::make(ir, bignum::make(1));
     fr            = fr * y;
-    q             = q - fr;
+    q             = x - fr;
     return q;
 }

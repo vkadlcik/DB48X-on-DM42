@@ -408,14 +408,3 @@ COMMAND_BODY(Version)
             return OK;
     return ERROR;
 }
-
-
-COMMAND_BODY(pi)
-// ----------------------------------------------------------------------------
-//   Push the value of π on the stack
-// ----------------------------------------------------------------------------
-{
-    if (!rt.push(command::static_object(ID_pi)))
-        return ERROR;
-    return OK;
-}

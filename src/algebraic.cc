@@ -281,3 +281,26 @@ object::id algebraic::bignum_promotion(algebraic_g &x)
     }
     return ty;
 }
+
+
+
+EVAL_BODY(ImaginaryUnit)
+// ----------------------------------------------------------------------------
+//   Push a unit complex number on the stack
+// ----------------------------------------------------------------------------
+{
+    if (!rt.push(o))
+        return ERROR;
+    return OK;
+}
+
+
+EVAL_BODY(pi)
+// ----------------------------------------------------------------------------
+//   Push a symbolic representation of π on the stack
+// ----------------------------------------------------------------------------
+{
+    if (!rt.push(o))
+        return ERROR;
+    return OK;
+}

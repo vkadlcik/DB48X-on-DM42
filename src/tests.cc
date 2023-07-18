@@ -91,15 +91,12 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    step("Fraction modulo and remainder");
-    test(CLEAR, " 7/2  3 REM", ENTER).expect("1/2");
-    test(CLEAR, " 7/2 -3 REM", ENTER).expect("1/2");
-    test(CLEAR, "-7/2  3 REM", ENTER).expect("-1/2");
-    test(CLEAR, "-7/2 -3 REM", ENTER).expect("-1/2");
-    test(CLEAR, " 7/2  3 REM", ENTER).expect("1/2");
-    test(CLEAR, " 7/2 -3 REM", ENTER).expect("1/2");
-    test(CLEAR, "-7/2  3 REM", ENTER).expect("-1/2");
-    test(CLEAR, "-7/2 -3 REM", ENTER).expect("-1/2");
+    step("Polar angle conversions");
+    test(CLEAR, "1∡90", ENTER).expect("1∡90");
+    test("GRAD", ENTER).expect("1∡100");
+    test("PiRadians", ENTER).expect("1∡1/2");
+    test("RAD", ENTER).expect("1∡3.1415");
+    test("DEG", ENTER).expect("1∡90");
 #if 0
     step("Testing sign of modulo for bignum");
 #define ZEROS "00000000000000000000"
@@ -1274,6 +1271,12 @@ void tests::complex_types()
         .type(object::ID_polar).expect("a∡b");
     test(CLEAR, "c∡d", ENTER)
         .type(object::ID_polar).expect("c∡d");
+
+    step("Polar angle conversions");
+    test(CLEAR, "1∡90", ENTER).expect("1∡90");
+    test("GRAD", ENTER).expect("1∡100");
+    test("PiRadians", ENTER).expect("1∡1/2");
+    test("RAD", ENTER).expect("1∡1/2×3.14159 26535 89793 23846 26433 83279 503");
 }
 
 

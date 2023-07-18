@@ -8,9 +8,9 @@
 //
 //      There are two representations for complex numbers:
 //      - rectangular representation is one of X;Y, X+ⅈY, X-ⅈY, X+Yⅈ or X-Yⅈ
-//      - polar representation is X∡Y
+//      - polar representation is X∡Y, where X≥0 and Y is a ratio of π
 //
-//      Some settings control how complex numbers are rendered
+//      Some settings control how complex numbers are rendered.
 //
 //
 //
@@ -496,6 +496,15 @@ RENDER_BODY(rectangular)
 //   Polar-specific code
 //
 // ============================================================================
+//
+//   In the polar representation, the unit is always stored as a ratio of π.
+//   For example, the internal representation of the imaginary unit is (1;1),
+//   where the second 1 represents the angle π in radians.
+//   This makes it possible to have an exact and compact representation of
+//   common angles, like 1/4π, etc.
+//   When the argument is symbolic, it is not transformed. The assumption is
+//   that it represents an angle, irrespective of the angular unit.
+//
 
 algebraic_g polar::re() const
 // ----------------------------------------------------------------------------
@@ -534,22 +543,82 @@ polar_p polar::make(algebraic_r mr, algebraic_r ar)
 {
     if (!mr.Safe() || !ar.Safe())
         return nullptr;
-    algebraic_g pi = integer::make(4) * atan::run(integer::make(1));
-    algebraic_g a = ar;
     algebraic_g m = mr;
-    if (m->is_negative(false))
+    algebraic_g a = ar;
+    if (a->is_real())
     {
-        a = a + pi;
-        m = neg::run(m);
+        // Adjust angle based on user setting
+        switch (Settings.angle_mode)
+        {
+        case Settings.DEGREES:
+            a = a / integer::make(180);
+            break;
+        case Settings.GRADS:
+            a = a / integer::make(200);
+            break;
+        case Settings.RADIANS:
+            a = a / (atan::run(integer::make(1)) * integer::make(4));
+            break;
+        case Settings.PI_RADIANS:
+        default:
+            break;
+        }
+
+         // Check if we have (-1, 0π), change it to (1, 1π)
+        if (m->is_negative(false))
+        {
+            a = a + algebraic_g(integer::make(1));
+            m = neg::run(m);
+        }
+
+        // Bring the result between -1 and 1
+        algebraic_g one = integer::make(1);
+        algebraic_g two = integer::make(2);
+        a = one - (one - a) % two;
     }
-    if (a.Safe() && !a->is_strictly_symbolic())
-    {
-        if ((a < -pi)->as_truth(false) || (a > pi)->as_truth(false))
-            a = (a+pi) % (pi+pi) - pi;
-    }
+
     if (!a.Safe() || !m.Safe())
         return nullptr;
     return rt.make<polar>(m, a);
+}
+
+
+algebraic_g polar::mod() const
+// ----------------------------------------------------------------------------
+//   The modulus of a polar complex is always its first item
+// ----------------------------------------------------------------------------
+{
+    return x();
+}
+
+
+algebraic_g polar::arg() const
+// ----------------------------------------------------------------------------
+//   Convert the argument to the current angle setting
+// ----------------------------------------------------------------------------
+{
+    algebraic_g a = y();
+
+    if (a->is_real())
+    {
+        switch (Settings.angle_mode)
+        {
+        case Settings.DEGREES:
+            a = a * integer::make(180);
+            break;
+        case Settings.GRADS:
+            a = a * integer::make(200);
+            break;
+        case Settings.RADIANS:
+            a = a * (atan::run(integer::make(1)) * integer::make(4));
+            break;
+        case Settings.PI_RADIANS:
+        default:
+            break;
+        }
+    }
+
+    return a;
 }
 
 
@@ -574,20 +643,6 @@ RENDER_BODY(polar)
     r.put(unicode(ANGLE_MARK));
     a->render(r);
     return r.size();
-}
-
-
-COMMAND_BODY(ImaginaryUnit)
-// ----------------------------------------------------------------------------
-//   Push a unit complex number on the stack
-// ----------------------------------------------------------------------------
-{
-    object_g i = complex::make(0, 1);
-    if (!i)
-        return ERROR;
-    if (!rt.push((i)))
-        return ERROR;
-    return OK;
 }
 
 

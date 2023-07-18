@@ -48,12 +48,6 @@ struct algebraic : command
 {
     algebraic(id i): command(i) {}
 
-    // Arity is the number of arguments this takes on the stack
-    static uint arity()                 { return 1; }
-
-    // Precedence is the precedence when rendering as equations
-    static uint precedence()            { return 1; }
-
     // Promotion of integer / fractions to real
     static bool real_promotion(algebraic_g &x, id type);
     static id   real_promotion(algebraic_g &x);
@@ -71,5 +65,23 @@ struct algebraic : command
 
     INSERT_DECL(algebraic);
 };
+
+
+#define CONSTANT_DECL(derived)                                          \
+struct derived : algebraic                                              \
+/* ----------------------------------------------------------------- */ \
+/* Define an algenraic constant                                      */ \
+/* ----------------------------------------------------------------- */ \
+{                                                                       \
+    derived(id type = ID_##derived): algebraic(type) {}                 \
+                                                                        \
+    OBJECT_DECL(derived);                                               \
+    EVAL_DECL(derived);                                                 \
+    PREC_DECL(SYMBOL);                                                  \
+}
+
+
+CONSTANT_DECL(ImaginaryUnit);
+CONSTANT_DECL(pi);
 
 #endif // ALGEBRAIC_H

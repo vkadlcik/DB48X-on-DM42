@@ -10,7 +10,7 @@
 //
 //      There are two representations for complex numbers:
 //      - rectangular representation is one of X;Y, X+𝒊Y, X-𝒊Y, X+Y𝒊 or X-Y𝒊
-//      - polar representation is X∡Y
+//      - polar representation is X∡Y where X≥0 and Y is a ratio of π
 //
 //      Some settings control how complex numbers are rendered
 //
@@ -177,8 +177,8 @@ struct polar : complex
 
     algebraic_g re()  const;
     algebraic_g im()  const;
-    algebraic_g mod() const     { return x(); }
-    algebraic_g arg() const     { return y(); }
+    algebraic_g mod() const;
+    algebraic_g arg() const;
     bool        is_zero() const;
 
     static polar_p make(algebraic_r r, algebraic_r i);
@@ -189,7 +189,6 @@ public:
     RENDER_DECL(polar);
 };
 
-COMMAND_DECLARE(ImaginaryUnit);
 COMMAND_DECLARE(RealToComplex);
 COMMAND_DECLARE(ComplexToReal);
 COMMAND_DECLARE(ToRectangular);

@@ -149,40 +149,41 @@ protected:
     typedef graphics::size      size;
 
 public:
-    int evaluating; // Key being evaluated
+    int      evaluating;        // Key being evaluated
 
 protected:
-    utf8   command;          // Command being executed
-    uint   help;             // Offset of help being displayed in help file
-    uint   line;             // Line offset in the help display
-    uint   topic;            // Offset of topic being highlighted
-    uint   history;          // History depth
-    uint   topics[8];        // Topics history
-    uint   cursor;           // Cursor position in buffer
-    coord  xoffset;          // Offset of the cursor
-    modes  mode;             // Current editing mode
-    int    last;             // Last key
-    int    stack;            // Vertical bottom of the stack
-    coord  cx, cy;           // Cursor position on screen
-    menu_g menuObject;       // Current menu being shown
-    uint   menuPage;         // Current menu page
-    uint   menuPages;        // Number of menu pages
-    uint   menuHeight;       // Height of the menu
-    uint   busy;             // Busy counter
-    bool   shift        : 1; // Normal shift active
-    bool   xshift       : 1; // Extended shift active (simulate Right)
-    bool   alpha        : 1; // Alpha mode active
-    bool   lowercase    : 1; // Lowercase
-    bool   down         : 1; // Move one line down
-    bool   up           : 1; // Move one line up
-    bool   repeat       : 1; // Repeat the key
-    bool   longpress    : 1; // We had a long press of the key
-    bool   blink        : 1; // Cursor blink indicator
-    bool   follow       : 1; // Follow a help topic
-    bool   dirtyMenu    : 1; // Menu label needs redraw
-    bool   dynamicMenu  : 1; // Menu is dynamic, needs update after keystroke
-    bool   autoComplete : 1; // Menu is auto-complete
-    bool   adjustSeps   : 1; // Need to adjust separators
+    utf8     command;           // Command being executed
+    uint     help;              // Offset of help being displayed in help file
+    uint     line;              // Line offset in the help display
+    uint     topic;             // Offset of topic being highlighted
+    uint     history;           // History depth
+    uint     topics[8];         // Topics history
+    uint     cursor;            // Cursor position in buffer
+    coord    xoffset;           // Offset of the cursor
+    modes    mode;              // Current editing mode
+    int      last;              // Last key
+    int      stack;             // Vertical bottom of the stack
+    coord    cx, cy;            // Cursor position on screen
+    menu_g   menuObject;        // Current menu being shown
+    uint     menuPage;          // Current menu page
+    uint     menuPages;         // Number of menu pages
+    uint     menuHeight;        // Height of the menu
+    uint     busy;              // Busy counter
+    object_g editing;           // Object being edited if any
+    bool     shift        : 1;  // Normal shift active
+    bool     xshift       : 1;  // Extended shift active (simulate Right)
+    bool     alpha        : 1;  // Alpha mode active
+    bool     lowercase    : 1;  // Lowercase
+    bool     down         : 1;  // Move one line down
+    bool     up           : 1;  // Move one line up
+    bool     repeat       : 1;  // Repeat the key
+    bool     longpress    : 1;  // We had a long press of the key
+    bool     blink        : 1;  // Cursor blink indicator
+    bool     follow       : 1;  // Follow a help topic
+    bool     dirtyMenu    : 1;  // Menu label needs redraw
+    bool     dynamicMenu  : 1;  // Menu is dynamic, needs update after keystroke
+    bool     autoComplete : 1;  // Menu is auto-complete
+    bool     adjustSeps   : 1;  // Need to adjust separators
 
 protected:
     // Key mappings

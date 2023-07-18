@@ -250,6 +250,7 @@ bool user_interface::end_edit()
             {
                 // We successfully parsed the line
                 clear_editor();
+                this->editing = nullptr;
                 cmds->execute();
             }
             else
@@ -2287,9 +2288,18 @@ bool user_interface::handle_editing(int key)
                 return false;
 
             if (rt.error())
+            {
                 rt.clear_error();
+            }
             else
+            {
                 clear_editor();
+                if (this->editing)
+                {
+                    rt.push(this->editing);
+                    this->editing = nullptr;
+                }
+            }
             return true;
 
         case KEY_UP:
@@ -2366,6 +2376,7 @@ bool user_interface::handle_editing(int key)
                 {
                     if (object_p obj = rt.pop())
                     {
+                        this->editing = obj;
                         obj->edit();
                         return true;
                     }

@@ -91,7 +91,15 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    complex_functions();
+    step("Testing sign of modulo");
+    test(CLEAR, " 7  3 MOD", ENTER).expect(1);
+    test(CLEAR, " 7 -3 MOD", ENTER).expect(1);
+    test(CLEAR, "-7  3 MOD", ENTER).expect(2);
+    test(CLEAR, "-7 -3 MOD", ENTER).expect(2);
+    test(CLEAR, " 7  3 REM", ENTER).expect(1);
+    test(CLEAR, " 7 -3 REM", ENTER).expect(1);
+    test(CLEAR, "-7  3 REM", ENTER).expect(-1);
+    test(CLEAR, "-7 -3 REM", ENTER).expect(-1);
 }
 
 
@@ -488,6 +496,16 @@ void tests::arithmetic()
         "9332621544394415268169923885626670049071596826438162146859296389521"
         "7599993229915608941463976156518286253697920827223758251185210916864"
         "000000000000000000000000");
+
+    step("Testing sign of modulo");
+    test(CLEAR, " 7  3 MOD", ENTER).expect(1);
+    test(CLEAR, " 7 -3 MOD", ENTER).expect(1);
+    test(CLEAR, "-7  3 MOD", ENTER).expect(2);
+    test(CLEAR, "-7 -3 MOD", ENTER).expect(2);
+    test(CLEAR, " 7  3 REM", ENTER).expect(1);
+    test(CLEAR, " 7 -3 REM", ENTER).expect(1);
+    test(CLEAR, "-7  3 REM", ENTER).expect(-1);
+    test(CLEAR, "-7 -3 REM", ENTER).expect(-1);
 }
 
 

@@ -493,7 +493,7 @@ inline bool mod::integer_ok(object::id &xt, object::id &yt,
     // Perform the modulo
     xv = xv % yv;
     if (xt == ID_neg_integer)
-        xv = xv - yv;
+        xv = yv - xv;
 
     // The resulting type is always positive
     xt = ID_integer;

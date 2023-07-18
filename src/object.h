@@ -594,7 +594,8 @@ struct object
     //    Check if a type denotes a symbolic argument (symbol, equation, number)
     // ------------------------------------------------------------------------
     {
-        return ty >= FIRST_SYMBOLIC_TYPE && ty <= LAST_SYMBOLIC_TYPE;
+        return ((ty >= FIRST_SYMBOLIC_TYPE     && ty <= LAST_SYMBOLIC_TYPE) ||
+                (ty >= FIRST_SYMBOLIC_CONSTANT && ty <= LAST_SYMBOLIC_CONSTANT));
     }
 
 

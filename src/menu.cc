@@ -489,9 +489,9 @@ MENU(ConstantsMenu,
 // ----------------------------------------------------------------------------
 //   Constants (to be loaded from catalog on disk)
 // ----------------------------------------------------------------------------
-     "π",       ID_Unimplemented,
+     "π",       ID_pi,
      "e",       ID_Unimplemented,
-     "i",       ID_Unimplemented,
+     "i",       ID_ImaginaryUnit,
      "Avogadro",ID_Unimplemented,
      "Gravity", ID_Unimplemented,
      "∞",       ID_Unimplemented,

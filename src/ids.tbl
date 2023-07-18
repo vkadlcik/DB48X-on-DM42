@@ -113,6 +113,7 @@ ID(decimal128)
 #define LAST_DECIMAL_TYPE       ID_decimal128
 #define LAST_REAL_TYPE          ID_decimal128
 
+
 ID(local)
 ID(symbol)
 ID(equation)
@@ -141,7 +142,13 @@ CMD(False)
 NAMED(ToText, "→Text")
 ALIAS(ToText, "→Str")
 
-#define FIRST_ALGEBRAIC         ID_add
+#define FIRST_ALGEBRAIC         ID_pi
+
+#define FIRST_SYMBOLIC_CONSTANT ID_pi
+NAMED(pi, "π")
+NAMED(ImaginaryUnit, "ⅈ")
+#define LAST_SYMBOLIC_CONSTANT  ID_ImaginaryUnit
+
 OP(add, "+")
 OP(sub, "-")
 OP(mul, "×")
@@ -224,9 +231,7 @@ CMD(im)
 CMD(arg)
 CMD(conj)
 
-NAMED(ImaginaryUnit, "ⅈ")
-
-#define LAST_ALGEBRAIC          ID_ImaginaryUnit
+#define LAST_ALGEBRAIC          ID_conj
 
 
 // ============================================================================

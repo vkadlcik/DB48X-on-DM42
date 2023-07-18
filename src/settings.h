@@ -131,6 +131,7 @@ struct settings
     font_p stack_font()         { return font(stack_sz); }
     font_p editor_font()        { return font(editor_sz); }
     font_p editor_ml_font()     { return font(editor_ml_sz); }
+    font_p editor_cursor_font() { return font(editor_ml_sz); }
 
     void save(renderer &out, bool show_defaults = false);
 

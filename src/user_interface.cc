@@ -1285,7 +1285,7 @@ int user_interface::draw_cursor(uint time, uint &period, bool force)
         if (*p == '\n')
             rows++;
     if (rows > 2)
-        edFont = StackFont;
+        edFont = Settings.editor_ml_font();
 
     // Select cursor character
     unicode cursorChar = mode == DIRECT      ? 'D'
@@ -1295,8 +1295,9 @@ int user_interface::draw_cursor(uint time, uint &period, bool force)
                        : mode == MATRIX      ? 'M'
                        : mode == BASED ? 'B'
                                              : 'X';
-    size    csrh       = CursorFont->height();
-    size    csrw       = CursorFont->width(cursorChar);
+    font_p  cursorFont = Settings.editor_cursor_font();
+    size    csrh       = cursorFont->height();
+    size    csrw       = cursorFont->width(cursorChar);
     size    ch         = edFont->height();
 
     coord   x          = cx;
@@ -1335,12 +1336,12 @@ int user_interface::draw_cursor(uint time, uint &period, bool force)
             Screen.fill(r, pattern::black);
             r.inset(2,2);
             Screen.fill(r, pattern::white);
-            Screen.glyph(csrx, csry, cursorChar, CursorFont, pattern::black);
+            Screen.glyph(csrx, csry, cursorChar, cursorFont, pattern::black);
         }
         else
         {
             Screen.fill(r, pattern::black);
-            Screen.glyph(csrx, csry, cursorChar, CursorFont, pattern::white);
+            Screen.glyph(csrx, csry, cursorChar, cursorFont, pattern::white);
         }
     }
 

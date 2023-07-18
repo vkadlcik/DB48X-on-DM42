@@ -155,6 +155,9 @@ object::result list::list_parse(id type,
                 case L'³':
                     cmd = ID_cubed;
                     break;
+                case '!':
+                    cmd = ID_fact;
+                    break;
                 case L'⁻':
                     if (utf8_codepoint(utf8_next(s)) == L'¹')
                         cmd = ID_inv;
@@ -566,6 +569,9 @@ symbol_g equation::render(uint depth, int &precedence, bool editing)
                 case ID_neg:
                     precedence = precedence::ADDITIVE;
                     return symbol::make('-') + arg;
+                case ID_fact:
+                    precedence = precedence::SYMBOL;
+                    return arg + symbol::make("!");
                 case ID_inv:
                     precedence = precedence::FUNCTION_POWER;
                     return arg + symbol::make("⁻¹");
@@ -880,11 +886,12 @@ int equation::precedence(id type)
     case ID_div:
     case ID_mod:
     case ID_rem:        return 5;
+    case ID_sq:
+    case ID_cubed:
     case ID_pow:        return 6;
 
-    case ID_inv:
-    case ID_sq:
-    case ID_cubed:      return 999;
+    case ID_fact:
+    case ID_inv:        return 999;
 
     default:            return 0;
     }

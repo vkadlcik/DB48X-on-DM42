@@ -844,6 +844,8 @@ int user_interface::draw_menus(uint time, uint &period, bool force)
                 size_t len = 0;
                 if (*label == object::ID_symbol)
                 {
+                    COMPILE_TIME_ASSERT(object::ID_symbol < ' ');
+
                     // If we are given a symbol, use its length
                     label++;
                     len = leb128<size_t>(label);

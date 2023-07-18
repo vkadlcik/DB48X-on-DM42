@@ -594,7 +594,8 @@ struct object
     //    Check if a type denotes a symbolic argument (symbol, equation, number)
     // ------------------------------------------------------------------------
     {
-        return ((ty >= FIRST_SYMBOLIC_TYPE     && ty <= LAST_SYMBOLIC_TYPE) ||
+        return (is_strictly_symbolic(ty)                                    ||
+                (ty >= FIRST_SYMBOLIC_TYPE     && ty <= LAST_SYMBOLIC_TYPE) ||
                 (ty >= FIRST_SYMBOLIC_CONSTANT && ty <= LAST_SYMBOLIC_CONSTANT));
     }
 
@@ -613,7 +614,7 @@ struct object
     //    Check if a type denotes a symbol or equation
     // ------------------------------------------------------------------------
     {
-        return ty == ID_symbol || ty == ID_equation;
+        return ty == ID_symbol || ty == ID_equation || ty == ID_local;
     }
 
 

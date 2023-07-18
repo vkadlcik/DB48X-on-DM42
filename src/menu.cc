@@ -422,7 +422,7 @@ MENU(ProbabilitiesMenu,
 // ----------------------------------------------------------------------------
 //   Probabilities
 // ----------------------------------------------------------------------------
-     "!",       ID_Unimplemented,
+     "!",       ID_fact,
      "Comb",    ID_Unimplemented,
      "Perm",    ID_Unimplemented,
      "",        ID_Unimplemented,

@@ -67,6 +67,10 @@ ID(array)
 ID(menu)
 ID(locals)                      // Block with locals
 
+ID(local)
+ID(symbol)
+ID(equation)
+
 // Complex types must be parsed before numbers
 #define FIRST_COMPLEX_TYPE      ID_rectangular
 ID(rectangular)
@@ -112,12 +116,7 @@ ID(decimal64)
 ID(decimal128)
 #define LAST_DECIMAL_TYPE       ID_decimal128
 #define LAST_REAL_TYPE          ID_decimal128
-
-
-ID(local)
-ID(symbol)
-ID(equation)
-#define LAST_SYMBOLIC_TYPE      ID_equation
+#define LAST_SYMBOLIC_TYPE      ID_decimal128
 
 #define FIRST_COMMAND           ID_Drop
 CMD(Drop)

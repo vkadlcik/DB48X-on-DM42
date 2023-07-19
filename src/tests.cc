@@ -1045,7 +1045,7 @@ void tests::decimal_display_formats()
     step("Selection of decimal128");
     test(CLEAR, "1.2345678901234567890123", ENTER)
         .type(object::ID_decimal128)
-        .expect("1.23456 78901 23456 7890");
+        .expect("1.23456 78901 23456 789");
     step("Selection of decimal128 based on exponent");
     test(CLEAR, "1.23", EEX, 400, ENTER)
         .type(object::ID_decimal128)
@@ -1189,7 +1189,7 @@ void tests::decimal_numerical_functions()
     TFN(tanh, "3.10410 84660 58860 2149⁳⁻¹");
     TFN(asinh, "3.15728 26582 93796 1791⁳⁻¹");
     TFN(acosh, "0.321");
-    TFN(atanh, "3.32761 58848 18145 9580⁳⁻¹");
+    TFN(atanh, "3.32761 58848 18145 958⁳⁻¹");
     TFN(log1p, "2.78389 02554 01882 6677⁳⁻¹");
     TFN(ln1p, "'ln1p'");
     TFN(expm1, "3.78505 58089 37538 9545⁳⁻¹");
@@ -1341,7 +1341,7 @@ void tests::complex_arithmetic()
     test("7∡8", DIV)
         .expect("-1.96093 08625 90835 7439-2.27040 74859 23784 7541ⅈ");
     test("2∡3", DIV)
-        .expect("8.10453 45880 22095 7610⁳⁻¹+1.26220 64772 11844 76ⅈ");
+        .expect("8.10453 45880 22095 761⁳⁻¹+1.26220 64772 11844 76ⅈ");
     test("2∡3", MUL)
         .expect("-1.96093 08625 90835 7439-2.27040 74859 23784 7541ⅈ");
     step("Power");
@@ -1413,7 +1413,7 @@ void tests::complex_functions()
         .expect("2.91447 28088 05103 5368+8.62170 05466 72263 4884⁳⁻¹ⅈ");
     step("Exponential");
     test("exp", ENTER)
-        .expect("18.43908 89145 85774 620∡8.62170 05466 72263 4884⁳⁻¹");
+        .expect("18.43908 89145 85774 62∡8.62170 05466 72263 4884⁳⁻¹");
 
     step("Power");
     test(CLEAR, "3+7ⅈ", ENTER, "2-3ⅈ", ENTER, SHIFT, B)
@@ -1425,7 +1425,7 @@ void tests::complex_functions()
 
     step("Cosine");
     test(CLEAR, "3+11ⅈ", ENTER, COS)
-        .expect("-29 637.47552 74860 62145-4 224.71967 95347 02126 0ⅈ");
+        .expect("-29 637.47552 74860 62145-4 224.71967 95347 02126ⅈ");
 
     step("Tangent");
     test(CLEAR, "2+8ⅈ", ENTER, TAN)
@@ -1449,7 +1449,7 @@ void tests::complex_functions()
 
     step("Hyperbolic cosine");
     test(CLEAR, "3+11ⅈ", ENTER, "COSH", ENTER)
-        .expect("4.43360 88910 78241 4161⁳⁻²-10.06756 33986 40475 460ⅈ");
+        .expect("4.43360 88910 78241 4161⁳⁻²-10.06756 33986 40475 46ⅈ");
 
     step("Hyperbolic tangent");
     test(CLEAR, "2+8ⅈ", ENTER, "TANH", ENTER)

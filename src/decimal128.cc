@@ -392,10 +392,15 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
 
         // Copy significant digits, inserting decimal separator when needed
         bool sigmode = mode == display.NORMAL;
+        char *lastnz = out;
         while (in < last && decimals > 0)
         {
             *out++ = *in++;
             decpos--;
+
+            // Check if we will need to eliminate trailing zeros
+            if (decpos >= 0 || out[-1] != '0')
+                lastnz = out;
 
             // Insert spacing on the left of the decimal mark
             bool more = in < last;
@@ -412,6 +417,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
             if (decpos == 0 && (more || showdec))
             {
                 *out++ = decimal;
+                lastnz = out;
                 sep = 0;
             }
 
@@ -474,6 +480,14 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
                 continue;
             }
         }
+
+        // Return to position of last inserted zero
+        else if (mode == display.NORMAL && out > lastnz)
+        {
+            out = lastnz;
+            in = last;
+        }
+
 
         // Do not add trailing zeroes in standard mode
         if (sigmode)

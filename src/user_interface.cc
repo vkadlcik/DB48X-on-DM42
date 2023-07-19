@@ -1176,6 +1176,7 @@ bool user_interface::draw_busy_cursor()
     Screen.fill(230, 0, 305, h + 1, pattern::black);
     Screen.glyph(x, 0, L'▶', HeaderFont, pattern::white);
     draw_dirty(230, 0, 305, h + 1);
+    refresh_dirty();
     return true;
 }
 
@@ -1190,6 +1191,7 @@ bool user_interface::draw_gc()
     Screen.fill(230, 0, 305, h + 1, pattern::black);
     Screen.glyph(x, 0, L'●', HeaderFont, pattern::white);
     draw_dirty(230, 0, 305, h + 1);
+    refresh_dirty();
     busy = 0;
     return true;
 }
@@ -1204,6 +1206,7 @@ bool user_interface::draw_idle()
     size  h = HeaderFont->height();
     Screen.fill(230, 0, 305, h + 1, pattern::black);
     draw_dirty(230, 0, 305, h + 1);
+    refresh_dirty();
     return true;
 }
 

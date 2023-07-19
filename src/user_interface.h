@@ -229,7 +229,7 @@ inline bool user_interface::draw_busy()
 //    Draw the annunciators for Shift, Alpha, etc
 // ----------------------------------------------------------------------------
 {
-    if (busy++ % 0x400 == 0)
+    if (busy++ % 0x200 == 0)
         return draw_busy_cursor();
     return false;
 }

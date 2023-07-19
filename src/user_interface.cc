@@ -3109,7 +3109,7 @@ bool user_interface::handle_functions(int key)
             }
 
         }
-        draw_busy();
+        draw_busy_cursor();
         obj->execute();
         draw_idle();
         dirtyStack = true;

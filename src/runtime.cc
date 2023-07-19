@@ -379,7 +379,7 @@ size_t runtime::gc()
             record(gc_details, "Recycling %p size %u total %u",
                    obj, next - obj, recycled);
         }
-        if (count++ % 0x1000 == 0)
+        if (count++ % 0x400 == 0)
             draw_gc();
     }
 

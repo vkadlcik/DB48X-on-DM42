@@ -76,6 +76,10 @@ struct user_interface
 
     using result = object::result;
 
+    typedef graphics::coord     coord;
+    typedef graphics::size      size;
+    typedef graphics::rect      rect;
+
 
     bool        key(int key, bool repeating);
     bool        repeating()     { return repeat; }
@@ -100,20 +104,30 @@ struct user_interface
     symbol_p    label(uint index);
     cstring     labelText(uint index);
 
-    void        draw_annunciators();
-    void        draw_editor();
-    void        draw_error();
+    void        draw_start(bool force, uint refresh = ~0U);
+    void        draw_refresh(uint delay);
+    void        draw_dirty(const rect &r);
+    void        draw_dirty(coord x1, coord y1, coord x2, coord y2);
+    uint        draw_refresh()          { return nextRefresh; }
+    rect        draw_dirty()            { return dirty; }
+    void        draw_clean()            { dirty = rect(); }
+
+    bool        draw_header();
+    bool        draw_annunciators();
+    bool        draw_editor();
+    bool        draw_stack();
+    bool        draw_error();
     bool        draw_help();
-    void        draw_command();
+    bool        draw_command();
     void        draw_user_command(utf8 cmd, size_t sz);
 
-    int         draw_menus(uint time, uint &period, bool force);
-    int         draw_battery(uint time, uint &period, bool force);
-    int         draw_cursor(uint time, uint &period, bool force);
-    int         draw_busy();
-    int         draw_idle();
-    int         draw_busy_cursor();
-    int         draw_gc();
+    bool        draw_menus();
+    bool        draw_battery();
+    bool        draw_cursor(bool show);
+    bool        draw_busy();
+    bool        draw_idle();
+    bool        draw_busy_cursor();
+    bool        draw_gc();
 
     int         stack_screen_bottom()   { return stack; }
     int         menu_screen_bottom()    { return menuHeight; }
@@ -144,10 +158,6 @@ protected:
     bool        handle_digits(int key);
     bool        noHelpForKey(int key);
 
-protected:
-    typedef graphics::coord     coord;
-    typedef graphics::size      size;
-
 public:
     int      evaluating;        // Key being evaluated
 
@@ -169,18 +179,28 @@ protected:
     uint     menuPages;         // Number of menu pages
     uint     menuHeight;        // Height of the menu
     uint     busy;              // Busy counter
+    uint     nextRefresh;       // Time for next refresh
+    rect     dirty;             // Dirty rectangles
     object_g editing;           // Object being edited if any
     bool     shift        : 1;  // Normal shift active
     bool     xshift       : 1;  // Extended shift active (simulate Right)
     bool     alpha        : 1;  // Alpha mode active
     bool     lowercase    : 1;  // Lowercase
+    bool     shift_drawn  : 1;  // Cache of drawn annunciators
+    bool     xshift_drawn : 1;  // Cache
+    bool     alpha_drawn  : 1;  // Cache
+    bool     lowerc_drawn : 1;  // Cache
     bool     down         : 1;  // Move one line down
     bool     up           : 1;  // Move one line up
     bool     repeat       : 1;  // Repeat the key
     bool     longpress    : 1;  // We had a long press of the key
     bool     blink        : 1;  // Cursor blink indicator
     bool     follow       : 1;  // Follow a help topic
+    bool     force        : 1;  // Force a redraw of everything
     bool     dirtyMenu    : 1;  // Menu label needs redraw
+    bool     dirtyStack   : 1;  // Need to redraw the stack
+    bool     dirtyEditor  : 1;  // Need to redraw the text editor
+    bool     dirtyHelp    : 1;  // Need to redraw the help
     bool     dynamicMenu  : 1;  // Menu is dynamic, needs update after keystroke
     bool     autoComplete : 1;  // Menu is auto-complete
     bool     adjustSeps   : 1;  // Need to adjust separators
@@ -201,14 +221,16 @@ enum { TIMER0, TIMER1, TIMER2, TIMER3 };
 
 extern user_interface ui;
 
-inline int user_interface::draw_busy()
+inline bool user_interface::draw_busy()
 // ----------------------------------------------------------------------------
 //    Draw the annunciators for Shift, Alpha, etc
 // ----------------------------------------------------------------------------
 {
     if (busy++ % 0x400 == 0)
         return draw_busy_cursor();
-    return 0;
+    return false;
 }
+
+RECORDER_DECLARE(debug);
 
 #endif // INPUT_H

@@ -101,7 +101,7 @@ int get_lowbat_state()
 
 int usb_powered()
 {
-    return sys_current_ms() / 1000 % 3;
+    return sys_current_ms() / 10000 % 3;
 }
 
 int create_screenshot(int report_error)

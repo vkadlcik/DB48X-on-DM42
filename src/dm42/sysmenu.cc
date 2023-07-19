@@ -463,6 +463,37 @@ static int state_clear()
 }
 
 
+cstring state_name()
+// ----------------------------------------------------------------------------
+//    Return the state name as stored in the non-volatile memory
+// ----------------------------------------------------------------------------
+{
+    cstring name = get_reset_state_file();
+    if (name && *name && strstr(name, ".48S"))
+    {
+        cstring last = nullptr;
+        for (cstring p = name; *p; p++)
+        {
+            if (*p == '/' || *p == '\\')
+                name = p + 1;
+            else if (*p == '.')
+                last = p;
+        }
+        if (!last)
+            last = name;
+
+        static char buffer[16];
+        char *end = buffer + sizeof(buffer);
+        char *p = buffer;
+        while (p < end && name < last && (*p++ = *name++))
+            /* Copy */;
+        return buffer;
+    }
+
+    return "DB48X";
+}
+
+
 bool load_state_file(cstring path)
 // ----------------------------------------------------------------------------
 //   Load the state file directly

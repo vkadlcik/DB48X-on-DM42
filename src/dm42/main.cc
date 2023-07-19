@@ -59,40 +59,56 @@ int  last_key            = 0;
 
 RECORDER(main, 16, "Main RPL thread");
 
-static void redraw_lcd()
+static void refresh_dirty()
+// ----------------------------------------------------------------------------
+//  Send an LCD refresh request for the area dirtied by drawing
+// ----------------------------------------------------------------------------
+{
+    rect dirty = ui.draw_dirty();
+    if (!dirty.empty())
+    {
+        // We get garbagge on screen if we pass anything outside of it
+        dirty &= rect(0, 0, LCD_W-1, LCD_H-1);
+        lcd_refresh_lines(dirty.y1, dirty.y2 - dirty.y1);
+    }
+    ui.draw_clean();
+}
+
+
+static void redraw_lcd(bool force)
 // ----------------------------------------------------------------------------
 //   Redraw the whole LCD
 // ----------------------------------------------------------------------------
 {
-    uint period = 60000;
-    uint now    = sys_current_ms();
+    uint now     = sys_current_ms();
 
     record(main, "Begin redraw at %u", now);
 
-    // Draw the header
-    Screen.fill(0, 0, LCD_W, HeaderFont->height() + 1, pattern::black);
-    Screen.text(4, 0, utf8(PROGRAM_NAME), HeaderFont, pattern::white);
-
     // Draw the various components handled by the user interface
+    ui.draw_start(force);
+    ui.draw_header();
     ui.draw_annunciators();
-    ui.draw_battery(now, period, true);
-    ui.draw_menus(now, period, true);
+    ui.draw_battery();
+    ui.draw_menus();
     if (!ui.draw_help())
     {
         ui.draw_editor();
-        ui.draw_cursor(now, period, true);
-        Stack.draw_stack();
+        ui.draw_cursor(true);
+        ui.draw_stack();
         ui.draw_command();
     }
     ui.draw_error();
 
     // Refresh the screen
+    refresh_dirty();
+
+    // Compute next refresh
     uint then = sys_current_ms();
+    uint period = ui.draw_refresh();
     record(main,
            "Refresh at %u (%u later), period %u", then, then - now, period);
-    lcd_refresh_lines(0, LCD_H);
 
-    // Refresh screen moving elements after 0.1s
+    // Refresh screen moving elements after the requested period
     sys_timer_disable(TIMER1);
     sys_timer_start(TIMER1, period);
 }
@@ -103,24 +119,21 @@ static void redraw_periodics()
 //   Redraw the elements that move
 // ----------------------------------------------------------------------------
 {
-    uint period      = 60000; // Default refresh is one minute
     uint now         = sys_current_ms();
     uint dawdle_time = now - last_keystroke_time;
-    bool dawdling    = dawdle_time > 10000;
 
     record(main, "Periodics %u", now);
-    int cy = ui.draw_cursor(now, period, false);
-    if (cy >= 0)
-        lcd_refresh_lines(cy, EditorFont->height());
-    cy = ui.draw_battery(now, period, false);
-    if (cy >= 0)
-        lcd_refresh_lines(cy, HeaderFont->height());
-    cy = ui.draw_menus(now, period, false);
-    if (cy >= 0)
-        lcd_refresh_lines(cy, LCD_H - cy);
+    ui.draw_start(false);
+    if (ui.draw_cursor(false))
+        refresh_dirty();
+    if (ui.draw_battery())
+        refresh_dirty();
+    if (ui.draw_menus())
+        refresh_dirty();
 
     // Slow things down if inactive for long enough
-    if (dawdling)                       // If inactive for 3 minutes
+    uint period = ui.draw_refresh();
+    if (dawdle_time > 180000)           // If inactive for 3 minutes
         period = 60000;                 // Only upate screen every minute
     else if (dawdle_time > 60000)       // If inactive for 1 minute
         period = 10000;                 // Onlyi update screen every 10s
@@ -221,7 +234,7 @@ extern "C" void program_main()
 
     // Initialization
     program_init();
-    redraw_lcd();
+    redraw_lcd(true);
     last_keystroke_time = sys_current_ms();
 
     // Main loop
@@ -282,7 +295,7 @@ extern "C" void program_main()
 
             // Check if we need to redraw
             if (lcd_get_buf_cleared())
-                redraw_lcd();
+                redraw_lcd(true);
             else
                 lcd_forced_refresh();
         }
@@ -333,7 +346,7 @@ extern "C" void program_main()
 
             // Redraw the LCD unless there is some type-ahead
             if (key_empty())
-                redraw_lcd();
+                redraw_lcd(false);
 
             // Record the last keystroke
             last_keystroke_time = sys_current_ms();
@@ -381,6 +394,6 @@ void draw_gc()
 //   Indicate that a garbage collection is in progress
 // ----------------------------------------------------------------------------
 {
-    if (int h = ui.draw_gc())
-        lcd_refresh_lines(0, h);
+    if (ui.draw_gc())
+        refresh_dirty();
 }

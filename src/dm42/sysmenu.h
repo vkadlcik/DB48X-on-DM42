@@ -57,6 +57,7 @@ extern const smenu_t  program_menu;
 // Callbacks installed in the SDB to run the menu system
 int                   menu_item_run(uint8_t mid);
 cstring               menu_item_description(uint8_t mid, char *, const int);
+cstring               state_name();
 bool                  load_state_file(cstring path);
 bool                  save_state_file(cstring path);
 bool                  load_system_state();

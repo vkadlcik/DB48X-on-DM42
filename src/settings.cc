@@ -223,6 +223,34 @@ font_p settings::font(font_id size)
 }
 
 
+font_p settings::cursor_font(font_id size)
+// ----------------------------------------------------------------------------
+//   Return a cursor font based on a font size
+// ----------------------------------------------------------------------------
+{
+    switch (size)
+    {
+    case EDITOR:        return StackFont;
+    default:
+    case STACK:         return LibMonoFont14x22;
+    case HELP:          return HelpFont;
+
+    case LIB17:         return LibMonoFont10x17;
+    case LIB18:         return LibMonoFont10x17;
+    case LIB20:         return LibMonoFont11x18;
+    case LIB22:         return LibMonoFont12x20;
+    case LIB25:         return LibMonoFont14x22;
+    case LIB28:         return LibMonoFont17x25;
+
+    case SKR18:
+    case SKR24:         return SkrMono13x18;
+
+    case FREE42:        return Free42Font;
+    }
+}
+
+
+
 // ============================================================================
 //
 //    Commands to manipulate the settings

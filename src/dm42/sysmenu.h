@@ -64,5 +64,6 @@ bool                  load_system_state();
 bool                  save_system_state();
 void                  power_off();
 void                  system_setup();
+void                  refresh_dirty();
 
 #endif // SYSMENU_H

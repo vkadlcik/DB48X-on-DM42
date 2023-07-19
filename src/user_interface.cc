@@ -58,6 +58,7 @@ RECORDER(user_interface, 16, "ui processing");
 RECORDER(text_editor, 16, "Text editor");
 RECORDER(help,  16, "On-line help");
 
+
 #if SIMULATOR
 #define HELPFILE_NAME   "help/db48x.md"
 #else
@@ -83,6 +84,9 @@ user_interface::user_interface()
       stack(LCD_H),
       cx(0),
       cy(0),
+      edRows(0),
+      edRow(0),
+      edCol(0),
       menuObject(),
       menuPage(),
       menuPages(),
@@ -154,6 +158,7 @@ void user_interface::edit(unicode c, modes m)
     case '"':  closing = '"';  m = TEXT;      break;
     case '\'': closing = '\''; m = ALGEBRAIC; break;
     case L'«': closing = L'»'; m = PROGRAM;   break;
+    case '\n': edRows = 0;                    break; // Recompute rows
     }
     if (closing)
     {
@@ -204,6 +209,7 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
     else if (offset < 0 && cursor > uint(-offset))
         cursor = cursor + offset;
 
+    dirtyEditor = true;
     adjustSeps = true;
     updateMode();
     return added == len ? object::OK : object::ERROR;
@@ -229,6 +235,7 @@ bool user_interface::end_edit()
     xshift      = false;
     dirtyEditor = true;
     dirtyStack  = true;
+    edRows      = 0;
     last        = 0;
 
     clear_help();
@@ -302,6 +309,7 @@ void user_interface::clear_editor()
     rt.clear();
     cursor      = 0;
     xoffset     = 0;
+    edRows      = 0;
     alpha       = false;
     shift       = false;
     xshift      = false;
@@ -540,85 +548,88 @@ void user_interface::updateMode()
     else
         mode = DIRECT;
 
-    if (adjustSeps && (inum || fnum || hnum) && num)
+    if (adjustSeps)
     {
-        // We are editing some kind of number. Insert relevant spacing.
-        size_t len = rt.editing();
-
-        // First identify the number range and remove all extra spaces in it
-        bool   isnum = true;
-        size_t frpos = 0;
-        size_t start = num - ed;
-        size_t o     = start;
-
-        while (o < len && isnum)
+        if  ((inum || fnum || hnum) && num)
         {
-            unicode code = utf8_codepoint(ed + o);
+            // We are editing some kind of number. Insert relevant spacing.
+            size_t len = rt.editing();
 
-            // Remove all spacing in the range
-            if (code == nspc || code == hspc)
+            // First identify the number range and remove all extra spaces in it
+            bool   isnum = true;
+            size_t frpos = 0;
+            size_t start = num - ed;
+            size_t o     = start;
+
+            while (o < len && isnum)
             {
-                size_t remove = utf8_size(code);
-                rt.remove(o, remove);
-                if (cursor > o)
-                    cursor -= remove;
-                len -= remove;
-                ed = rt.editor(); // Defensive coding (shouldn't move on remove)
-                continue;
+                unicode code = utf8_codepoint(ed + o);
+
+                // Remove all spacing in the range
+                if (code == nspc || code == hspc)
+                {
+                    size_t remove = utf8_size(code);
+                    rt.remove(o, remove);
+                    if (cursor > o)
+                        cursor -= remove;
+                    len -= remove;
+                    ed = rt.editor(); // Defensive coding (no move on remove)
+                    continue;
+                }
+
+                isnum = ((code >= '0' && code <= '9')
+                         || (code >= 'A' && code <= 'Z')
+                         || (code >= 'a' && code <= 'z')
+                         || code == '+'
+                         || code == '-'
+                         || code == '#'
+                         || code == dmrk);
+                if (code == dmrk)
+                    frpos = o + 1;
+                if (isnum)
+                    o += utf8_size(code);
             }
 
-            isnum = ((code >= '0' && code <= '9')
-                     || (code >= 'A' && code <= 'Z')
-                     || (code >= 'a' && code <= 'z')
-                     || code == '+'
-                     || code == '-'
-                     || code == '#'
-                     || code == dmrk);
-            if (code == dmrk)
-                frpos = o + 1;
-            if (isnum)
-                o += utf8_size(code);
-        }
-
-        // Insert markers on the fractional part if necessary
-        if (frpos)
-        {
-            byte   encoding[4];
-            size_t ulen = utf8_encode(nspc, encoding);
-            uint   sf   = Settings.spacing_fraction;
-            size_t end  = o;
-
-            o = frpos - 1;
-            if (sf)
+            // Insert markers on the fractional part if necessary
+            if (frpos)
             {
-                frpos += sf;
-                while (frpos < end)
+                byte   encoding[4];
+                size_t ulen = utf8_encode(nspc, encoding);
+                uint   sf   = Settings.spacing_fraction;
+                size_t end  = o;
+
+                o = frpos - 1;
+                if (sf)
                 {
-                    if (!rt.insert(frpos, encoding, ulen))
-                        break;
-                    if (cursor > frpos)
-                        cursor += ulen;
-                    frpos += sf + ulen;
-                    len += ulen;
-                    end += ulen;
+                    frpos += sf;
+                    while (frpos < end)
+                    {
+                        if (!rt.insert(frpos, encoding, ulen))
+                            break;
+                        if (cursor > frpos)
+                            cursor += ulen;
+                        frpos += sf + ulen;
+                        len += ulen;
+                        end += ulen;
+                    }
                 }
             }
-        }
 
-        // Then insert markers on the integral part
-        byte   encoding[4];
-        uint sp = hnum ? Settings.spacing_based : Settings.spacing_mantissa;
-        if (sp)
-        {
-            unicode spc = hnum ? Settings.space_based : Settings.space;
-            size_t ulen = utf8_encode(spc, encoding);
-            while (o > start + sp)
+            // Then insert markers on the integral part
+            byte   encoding[4];
+            uint sp = hnum ? Settings.spacing_based : Settings.spacing_mantissa;
+            if (sp)
             {
-                o -= sp;
-                if (!rt.insert(o, encoding, ulen))
-                    break;
-                if (cursor > o)
-                    cursor += ulen;
+                unicode spc = hnum ? Settings.space_based : Settings.space;
+                size_t ulen = utf8_encode(spc, encoding);
+                while (o > start + sp)
+                {
+                    o -= sp;
+                    if (!rt.insert(o, encoding, ulen))
+                        break;
+                    if (cursor > o)
+                        cursor += ulen;
+                }
             }
         }
         adjustSeps = false;
@@ -1202,8 +1213,14 @@ bool user_interface::draw_editor()
 //   Draw the editor
 // ----------------------------------------------------------------------------
 {
+    record(text_editor, "Redrawing %+s offset=%d cx=%d",
+           dirtyEditor ? "dirty" : "clean", xoffset, cx);
+
     if (!force && !dirtyEditor)
         return false;
+
+    record(text_editor, "Doing it %+s offset=%d cx=%d",
+           dirtyEditor ? "dirty" : "clean", xoffset, cx);
 
     // Get the editor area
     utf8   ed   = rt.editor();
@@ -1224,7 +1241,7 @@ bool user_interface::draw_editor()
     }
 
     // Select font
-    font_p font = Settings.editor_font();
+    font_p font = Settings.editor_font(false);
 
     // Count rows and colums
     int  rows   = 1;            // Number of rows in editor
@@ -1239,41 +1256,56 @@ bool user_interface::draw_editor()
     wed[len] = 0;               // Ensure utf8_next does not go into the woods
 
     // Count rows to check if we need to switch to stack font
-    for (utf8 p = ed; p < last; p = utf8_next(p))
-        if (*p == '\n')
-            rows++;
-    if (rows > 2)
-        font = Settings.editor_ml_font();
-
-    rows = 1;
-    for (utf8 p = ed; p < last; p = utf8_next(p))
+    if (!edRows)
     {
-        if (p - ed == (int) cursor)
+        for (utf8 p = ed; p < last; p = utf8_next(p))
+            if (*p == '\n')
+                rows++;
+        edRows = rows;
+
+        font = Settings.editor_font(rows > 2);
+
+        rows = 1;
+        for (utf8 p = ed; p < last; p = utf8_next(p))
+        {
+            if (p - ed == (int) cursor)
+            {
+                edrow = rows - 1;
+                edcol = column;
+                cursx = cwidth;
+                found = true;
+            }
+
+            if (*p == '\n')
+            {
+                rows++;
+                column = 0;
+                cwidth = 0;
+            }
+            else
+            {
+                column++;
+                unicode cp  = utf8_codepoint(p);
+                cwidth     += font->width(cp);
+            }
+        }
+        if (!found)
         {
             edrow = rows - 1;
             edcol = column;
             cursx = cwidth;
-            found = true;
         }
 
-        if (*p == '\n')
-        {
-            rows++;
-            column = 0;
-            cwidth = 0;
-        }
-        else
-        {
-            column++;
-            unicode cp  = utf8_codepoint(p);
-            cwidth     += font->width(cp);
-        }
+        edRow = edrow;
+        edCol = edcol;
     }
-    if (!found)
+    else
     {
-        edrow = rows - 1;
-        edcol = column;
-        cursx = cwidth;
+        rows  = edRows;
+        edrow = edRow;
+        edcol = edCol;
+        cursx = cx + xoffset;
+        font = Settings.editor_font(rows > 2);
     }
 
     record(text_editor, "Rows %d/%d Colums %d/%d cursx %d",
@@ -1319,7 +1351,7 @@ bool user_interface::draw_editor()
         }
         up   = false;
         down = false;
-        dirtyEditor = true;
+        edRow = edrow;
     }
 
     // Draw the area that fits on the screen
@@ -1366,7 +1398,7 @@ bool user_interface::draw_editor()
 
 
     // Draw the editor rows
-    int  hskip   = 64;
+    int  hskip   = 180;
     size cursw = font->width('M');
     if (xoffset > cursx)
         xoffset = (cursx > hskip) ? cursx - hskip : 0;
@@ -1388,7 +1420,7 @@ bool user_interface::draw_editor()
 
     while (r < rows && display <= last)
     {
-        bool    atCursor = display == ed + cursor;
+        bool atCursor = display == ed + cursor;
         if (atCursor)
         {
             cx = x;
@@ -1424,7 +1456,7 @@ bool user_interface::draw_editor()
 }
 
 
-bool user_interface::draw_cursor(bool show)
+bool user_interface::draw_cursor(int show)
 // ----------------------------------------------------------------------------
 //   Draw the cursor at the location
 // ----------------------------------------------------------------------------
@@ -1442,23 +1474,15 @@ bool user_interface::draw_cursor(bool show)
         return false;
     lastT = time;
     if (show)
-        blink = true;
+        blink = show > 0;
 
     // Select editor font
+    bool   ml         = edRows > 2;
     utf8   ed         = rt.editor();
-    font_p edFont     = Settings.editor_font();
-    font_p cursorFont = Settings.cursor_font();
+    font_p edFont     = Settings.editor_font(ml);
+    font_p cursorFont = Settings.cursor_font(ml);
     size_t len        = rt.editing();
     utf8   last       = ed + len;
-    uint   rows       = 1;
-    for (utf8 p = ed; p < last; p = utf8_next(p))
-        if (*p == '\n')
-            rows++;
-    if (rows > 2)
-    {
-        edFont = Settings.editor_ml_font();
-        cursorFont = Settings.cursor_ml_font();
-    }
 
     // Select cursor character
     unicode cursorChar = mode == DIRECT      ? 'D'
@@ -1486,10 +1510,11 @@ bool user_interface::draw_cursor(bool show)
         if (cchar     == '\n')
             spaces = true;
         if (spaces)
-            cchar      = ' ';
-        size    cw     = edFont->width(cchar);
+            cchar = ' ';
+        size cw = edFont->width(cchar);
+        bool gray = x == cx && !show;
         Screen.fill(x, cy, x + cw - 1, cy + ch - 1,
-                    x == cx ? pattern::gray75 : pattern::white);
+                    gray ? pattern::gray75 : pattern::white);
         draw_dirty(x, cy, x + cw - 1, cy + ch - 1);
 
         // Write the character under the cursor
@@ -2150,7 +2175,8 @@ bool user_interface::noHelpForKey(int key)
     if (editing)
     {
         // No help for ENTER or BSP key while editing
-        if (key == KEY_ENTER || key == KEY_BSP || key == KEY_UP || key == KEY_DOWN)
+        if (key == KEY_ENTER || key == KEY_BSP ||
+            key == KEY_UP || key == KEY_DOWN)
             return true;
 
         // No help for A-F keys in hexadecimal entry mode
@@ -2457,6 +2483,8 @@ bool user_interface::handle_editing(int key)
                 // Shift + Backspace = Delete to right of cursor
                 utf8 ed              = rt.editor();
                 uint after           = utf8_next(ed, cursor, editing);
+                if (utf8_codepoint(ed + cursor) == '\n')
+                    edRows = 0;
                 rt.remove(cursor, after - cursor);
                 dirtyEditor = true;
                 adjustSeps = true;
@@ -2467,6 +2495,8 @@ bool user_interface::handle_editing(int key)
                 utf8 ed      = rt.editor();
                 uint before  = cursor;
                 cursor       = utf8_previous(ed, cursor);
+                if (utf8_codepoint(ed + cursor) == '\n')
+                    edRows = 0;
                 rt.remove(cursor, before - cursor);
                 dirtyEditor = true;
                 adjustSeps = true;
@@ -2520,44 +2550,80 @@ bool user_interface::handle_editing(int key)
             if (shift)
             {
                 up = true;
+                dirtyEditor = true;
             }
             else if (xshift)
             {
                 cursor = 0;
+                dirtyEditor = true;
             }
             else if (cursor > 0)
             {
+                font_p edFont = Settings.editor_font(edRows > 2);
                 utf8 ed = rt.editor();
-                cursor  = utf8_previous(ed, cursor);
+                uint pcursor  = utf8_previous(ed, cursor);
+                unicode cp = utf8_codepoint(ed + pcursor);
+                if (cp != '\n')
+                {
+                    draw_cursor(-1);
+                    cursor = pcursor;
+                    cx -= edFont->width(cp);
+                    draw_cursor(1);
+                    if (cx < 0)
+                        dirtyEditor = true;
+                }
+                else
+                {
+                    cursor = pcursor;
+                    edRows = 0;
+                    dirtyEditor = true;
+                }
             }
             else
             {
                 repeat = false;
                 beep(4000, 50);
             }
-            dirtyEditor = true;
             return true;
         case KEY_DOWN:
             repeat = true;
             if (shift)
             {
                 down = true;
+                dirtyEditor = true;
             }
             else if (xshift)
             {
                 cursor = editing;
+                dirtyEditor = true;
             }
             else if (cursor < editing)
             {
+                font_p edFont = Settings.editor_font(edRows > 2);
                 utf8 ed = rt.editor();
-                cursor = utf8_next(ed, cursor, editing);
+                unicode cp = utf8_codepoint(ed + cursor);
+                uint ncursor = utf8_next(ed, cursor, editing);
+                if (cp != '\n')
+                {
+                    draw_cursor(-1);
+                    cursor = ncursor;
+                    cx += edFont->width(cp);
+                    draw_cursor(1);
+                    if (cx >= LCD_W - edFont->width('M'))
+                        dirtyEditor = true;
+                }
+                else
+                {
+                    cursor = ncursor;
+                    edRows = 0;
+                    dirtyEditor = true;
+                }
             }
             else
             {
                 repeat = false;
                 beep(4800, 50);
             }
-            dirtyEditor = true;
             return true;
         case 0:
             return false;

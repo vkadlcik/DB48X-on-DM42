@@ -57,9 +57,10 @@ using std::min;
 uint last_keystroke_time = 0;
 int  last_key            = 0;
 
-RECORDER(main, 16, "Main RPL thread");
+RECORDER(main,          16, "Main RPL thread");
+RECORDER(main_error,    16, "Errors in the main RPL thread");
 
-static void refresh_dirty()
+void refresh_dirty()
 // ----------------------------------------------------------------------------
 //  Send an LCD refresh request for the area dirtied by drawing
 // ----------------------------------------------------------------------------
@@ -68,7 +69,12 @@ static void refresh_dirty()
     if (!dirty.empty())
     {
         // We get garbagge on screen if we pass anything outside of it
-        dirty &= rect(0, 0, LCD_W-1, LCD_H-1);
+#if SIMULATOR
+        if (dirty.y1 < 0 || dirty.y1 >= LCD_W ||
+            dirty.y2 < 0 || dirty.y2 >= LCD_W)
+            record(main_error, "Dirty range is outside screen (%d to %d)",
+                   dirty.y1, dirty.y2);
+#endif
         lcd_refresh_lines(dirty.y1, dirty.y2 - dirty.y1);
     }
     ui.draw_clean();

@@ -123,7 +123,7 @@ struct user_interface
 
     bool        draw_menus();
     bool        draw_battery();
-    bool        draw_cursor(bool show);
+    bool        draw_cursor(int show);
     bool        draw_busy();
     bool        draw_idle();
     bool        draw_busy_cursor();
@@ -174,6 +174,9 @@ protected:
     int      last;              // Last key
     int      stack;             // Vertical bottom of the stack
     coord    cx, cy;            // Cursor position on screen
+    uint     edRows;            // Editor rows
+    int      edRow;             // Current editor row
+    int      edCol;             // Current editor column
     menu_g   menuObject;        // Current menu being shown
     uint     menuPage;          // Current menu page
     uint     menuPages;         // Number of menu pages

@@ -131,10 +131,8 @@ struct settings
     font_p cursor_font(font_id sz);
     font_p result_font()        { return font(result_sz); }
     font_p stack_font()         { return font(stack_sz); }
-    font_p editor_font()        { return font(editor_sz); }
-    font_p editor_ml_font()     { return font(editor_ml_sz); }
-    font_p cursor_font()        { return cursor_font(editor_sz); }
-    font_p cursor_ml_font()     { return cursor_font(editor_ml_sz); }
+    font_p editor_font(bool ml) { return font(ml ? editor_ml_sz : editor_sz); }
+    font_p cursor_font(bool ml) { return cursor_font(ml ? editor_ml_sz : editor_sz); }
 
     void save(renderer &out, bool show_defaults = false);
 

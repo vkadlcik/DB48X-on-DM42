@@ -83,6 +83,7 @@ PARSE_BODY(integer)
     }
 
     byte_p s    = (byte_p) p.source;
+    byte_p last = s + p.length;
     byte_p endp = nullptr;
 
     if (*s == '-')
@@ -103,7 +104,7 @@ PARSE_BODY(integer)
     {
         s++;
         for (byte_p e = s; !endp; e++)
-            if (value[*e] == NODIGIT && *e != '#')
+            if (e >= last || (value[*e] == NODIGIT && *e != '#'))
                 endp = e;
 
         if (endp > s)
@@ -166,7 +167,7 @@ PARSE_BODY(integer)
     }
 
     // If this is a + or - operator, skip
-    if (*s && value[*s] >= base)
+    if (s >= last || value[*s] >= base)
         return SKIP;
 
     do

@@ -91,12 +91,15 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    step("Polar angle conversions");
-    test(CLEAR, "1∡90", ENTER).expect("1∡90");
-    test("GRAD", ENTER).expect("1∡100");
-    test("PiRadians", ENTER).expect("1∡1/2");
-    test("RAD", ENTER).expect("1∡3.1415");
-    test("DEG", ENTER).expect("1∡90");
+    step("Equation fancy rendering");
+    test(CLEAR, XEQ, X, ENTER, INV,
+         XEQ, Y, ENTER, SHIFT, SQRT, XEQ, Z, ENTER,
+         "CUBED", ENTER, ADD, ADD, WAIT(100))
+        .type(object::ID_equation)
+        .expect("'X⁻¹+(Y²+Z³)'");
+    test(DOWN, "   ", SHIFT, SHIFT, DOWN, " 1 +", ENTER)
+        .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)+1'");
+
 #if 0
     step("Testing sign of modulo for bignum");
 #define ZEROS "00000000000000000000"
@@ -328,7 +331,7 @@ void tests::data_types()
     test(CLEAR, "'(((A))+(B))-(C+D)'", ENTER)
         .type(object::ID_equation)
         .expect("'A+B-(C+D)'");
-    step("equation fancy rendering");
+    step("Equation fancy rendering");
     test(CLEAR, XEQ, X, ENTER, INV,
          XEQ, Y, ENTER, SHIFT, SQRT, XEQ, Z, ENTER,
          "CUBED", ENTER, ADD, ADD, WAIT(100))
@@ -1222,6 +1225,9 @@ void tests::complex_types()
 // ----------------------------------------------------------------------------
 {
     begin("Complex types");
+    step("Select degrees for the angle");
+    test(CLEAR, "DEG", ENTER).noerr();
+
     step("Integer rectangular form");
     test(CLEAR, "0ⅈ0", ENTER)
         .type(object::ID_rectangular).expect("0+0ⅈ");
@@ -1244,9 +1250,11 @@ void tests::complex_types()
     test(CLEAR, "0∡0", ENTER)
         .type(object::ID_polar).expect("0∡0");
     test(CLEAR, "1∡90", ENTER)
-        .type(object::ID_polar).expect("1∡2.03540 56994 85789 3230");
+        .type(object::ID_polar).expect("1∡90");
+    test(CLEAR, "1∡-90", ENTER)
+        .type(object::ID_polar).expect("1∡-90");
     test(CLEAR, "-1∡0", ENTER)
-        .type(object::ID_polar).expect("1∡3.14159 26535 89793 2385");
+        .type(object::ID_polar).expect("1∡180");
 
     step("Decimal rectangular form");
     test(CLEAR, "0.1ⅈ2.3", ENTER)

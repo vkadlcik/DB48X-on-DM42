@@ -2196,7 +2196,7 @@ bool user_interface::noHelpForKey(int key)
     // No help for digits entry
     if (!shift && !xshift)
         if (key > KEY_ENTER && key < KEY_ADD &&
-            key != KEY_SUB && key != KEY_MUL && KEY != KEY_DIV)
+            key != KEY_SUB && key != KEY_MUL && key != KEY_DIV && key != KEY_RUN)
             return true;
 
     // Other cases are regular functions, we can display help

@@ -86,7 +86,7 @@ user_interface::user_interface()
       cy(0),
       edRows(0),
       edRow(0),
-      edCol(0),
+      edColumn(0),
       menuObject(),
       menuPage(),
       menuPages(),
@@ -1216,14 +1216,13 @@ bool user_interface::draw_editor()
 //   Draw the editor
 // ----------------------------------------------------------------------------
 {
-    record(text_editor, "Redrawing %+s offset=%d cx=%d",
-           dirtyEditor ? "dirty" : "clean", xoffset, cx);
-
     if (!force && !dirtyEditor)
         return false;
 
-    record(text_editor, "Doing it %+s offset=%d cx=%d",
-           dirtyEditor ? "dirty" : "clean", xoffset, cx);
+    record(text_editor, "Redrawing %+s %+s curs=%d, offset=%d cx=%d",
+           dirtyEditor ? "dirty" : "clean",
+           force ? "forced" : "lazy",
+           cursor, xoffset, cx);
 
     // Get the editor area
     utf8   ed   = rt.editor();
@@ -1248,10 +1247,8 @@ bool user_interface::draw_editor()
 
     // Count rows and colums
     int  rows   = 1;            // Number of rows in editor
-    int  column = 0;            // Current column
     int  cwidth = 0;            // Column width
     int  edrow  = 0;            // Row number of line being edited
-    int  edcol  = 0;            // Column of line being edited
     int  cursx  = 0;            // Cursor X position
     bool found  = false;
 
@@ -1274,7 +1271,6 @@ bool user_interface::draw_editor()
             if (p - ed == (int) cursor)
             {
                 edrow = rows - 1;
-                edcol = column;
                 cursx = cwidth;
                 found = true;
             }
@@ -1282,12 +1278,10 @@ bool user_interface::draw_editor()
             if (*p == '\n')
             {
                 rows++;
-                column = 0;
                 cwidth = 0;
             }
             else
             {
-                column++;
                 unicode cp  = utf8_codepoint(p);
                 cwidth     += font->width(cp);
             }
@@ -1295,66 +1289,78 @@ bool user_interface::draw_editor()
         if (!found)
         {
             edrow = rows - 1;
-            edcol = column;
             cursx = cwidth;
         }
 
         edRow = edrow;
-        edCol = edcol;
+
+        record(text_editor, "Computed: row %d/%d cursx %d (%d+%d=%d)",
+               edrow, rows, cursx, cx, xoffset, cx+xoffset);
     }
     else
     {
         rows  = edRows;
         edrow = edRow;
-        edcol = edCol;
         cursx = cx + xoffset;
         font = Settings.editor_font(rows > 2);
-    }
 
-    record(text_editor, "Rows %d/%d Colums %d/%d cursx %d",
-           edrow, rows, edcol, column, cursx);
+        record(text_editor, "Cached: row %d/%d cursx %d (%d+%d)",
+               edrow, rows, cursx, cx, xoffset, cx+xoffset);
+    }
 
     // Check if we want to move the cursor up or down
     if (up || down)
     {
-        int       r   = 0;
-        int       c    = 0;
-        int       tgt = edrow - (up && edrow > 0) + down;
-        bool      done = false;
+        int   r    = 0;
+        coord c    = 0;
+        int   tgt  = edrow - (up && edrow > 0) + down;
+        bool  done = up && edrow == 0;
+
+        record(text_editor,
+               "Moving %+s%+s edrow=%d target=%d curs=%d cursx=%d edcx=%d",
+               up ? "up" : "", down ? "down" : "",
+               edrow, tgt, cursor, cursx, edColumn);
+
         for (utf8 p   = ed; p < last && !done; p = utf8_next(p))
         {
             if (*p == '\n')
             {
                 r++;
-                c = 0;
+                if (r > tgt)
+                {
+                    cursor = p - ed;
+                    edrow  = tgt;
+                    done   = true;
+                }
             }
-            else
+            else if (r == tgt)
             {
-                c++;
-            }
-            if ((r == tgt && c > edcol) || r > tgt)
-            {
-                cursor = p - ed;
-                edrow  = r;
-                done   = true;
+                unicode cp = utf8_codepoint(p);
+                c += font->width(cp);
+                if (c > edColumn)
+                {
+                    cursor = p - ed;
+                    edrow = r;
+                    done = true;
+                }
             }
         }
-        if (!done)
+        if (!done && down)
         {
-            if (down)
-            {
-                cursor = len;
-                edrow = rows - 1;
-            }
-            else if (up)
-            {
-                cursor = 0;
-                edrow  = 0;
-            }
+            cursor = len;
+            edrow = rows - 1;
         }
+        record(text_editor, "Moved %+s%+s row=%d curs=%d",
+               up ? "up" : "", down ? "down" : "",
+               edrow, cursor);
+
         up   = false;
         down = false;
         edRow = edrow;
+    }
+    else
+    {
+        edColumn = cursx;
     }
 
     // Draw the area that fits on the screen
@@ -2571,6 +2577,7 @@ bool user_interface::handle_editing(int key)
                     draw_cursor(-1);
                     cursor = pcursor;
                     cx -= edFont->width(cp);
+                    edColumn = cx;
                     draw_cursor(1);
                     if (cx < 0)
                         dirtyEditor = true;
@@ -2611,6 +2618,7 @@ bool user_interface::handle_editing(int key)
                     draw_cursor(-1);
                     cursor = ncursor;
                     cx += edFont->width(cp);
+                    edColumn = cx;
                     draw_cursor(1);
                     if (cx >= LCD_W - edFont->width('M'))
                         dirtyEditor = true;

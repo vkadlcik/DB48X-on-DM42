@@ -176,7 +176,7 @@ protected:
     coord    cx, cy;            // Cursor position on screen
     uint     edRows;            // Editor rows
     int      edRow;             // Current editor row
-    int      edCol;             // Current editor column
+    int      edColumn;          // Current editor column (in pixels)
     menu_g   menuObject;        // Current menu being shown
     uint     menuPage;          // Current menu page
     uint     menuPages;         // Number of menu pages

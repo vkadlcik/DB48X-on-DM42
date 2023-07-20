@@ -163,6 +163,8 @@ struct tests
         CLEAR      = 103,       // Clear the calculator state
         NOKEYS     = 104,       // Wait until keys buffer is empty
         REFRESH    = 105,       // Wait until there is a screen refresh
+
+        KEYSYNC    = 106,
     };
 
   protected:
@@ -295,7 +297,6 @@ protected:
         return check(test);
     }
 
-
 protected:
     cstring              file;
     uint                 line;
@@ -316,5 +317,11 @@ protected:
 
 #define step(...)       position(__FILE__, __LINE__).istep(__VA_ARGS__)
 #define test(...)       position(__FILE__, __LINE__).itest(__VA_ARGS__)
+
+
+// Synchronization between test thread and RPL thread
+extern volatile uint keysync_sent;
+extern volatile uint keysync_done;
+
 
 #endif // TESTS_H

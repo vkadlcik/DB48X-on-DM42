@@ -41,6 +41,9 @@
 #include "target.h"
 #include "util.h"
 #include "recorder.h"
+#if SIMULATOR
+#  include "tests.h"
+#endif
 
 #include <algorithm>
 #include <cctype>
@@ -326,6 +329,15 @@ extern "C" void program_main()
                     save_state_file(path);
                 break;
             }
+            if (key == tests::KEYSYNC)
+            {
+                record(main, "Key sync done %u from %u", keysync_sent, keysync_done);
+                redraw_lcd(true);
+                keysync_done = keysync_sent;
+                key = 0;
+                continue;
+            }
+
 #endif // SIMULATOR
         }
         bool repeating = sys_timer_timeout(TIMER0);
@@ -383,7 +395,9 @@ bool program::interrupted()
 #if SIMULATOR
         int key = key_pop();
         record(main, "Runner popped key %d, last=%d", key, last_key);
-        if (key > 0)
+        if (key == tests::KEYSYNC)
+            keysync_done = keysync_sent;
+        else if (key > 0)
             last_key = key;
         else if (last_key > 0)
             last_key = -last_key;

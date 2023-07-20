@@ -40,6 +40,8 @@
 
 
 extern volatile int lcd_needsupdate;
+volatile uint keysync_sent = 0;
+volatile uint keysync_done = 0;
 
 RECORDER_DECLARE(errors);
 
@@ -1798,10 +1800,13 @@ tests &tests::itest(tests::key k, bool release)
     while (!key_empty())
         sys_delay(delay_time);
 
-    record(tests, "Push key %d update %u->%u last %d", k, lcd_update, lcd_needsupdate, last_key);
+    record(tests,
+           "Push key %d update %u->%u last %d",
+           k, lcd_update, lcd_needsupdate, last_key);
     lcd_update = lcd_needsupdate;
     Stack.catch_up();
     last_key = k;
+
     key_push(k);
     if (longpress)
     {
@@ -1815,11 +1820,21 @@ tests &tests::itest(tests::key k, bool release)
     {
         while (!key_remaining())
             sys_delay(delay_time);
-    record(tests, "Release key %d update %u->%u last %d", k, lcd_update, lcd_needsupdate, last_key);
+        record(tests,
+               "Release key %d update %u->%u last %d",
+               k, lcd_update, lcd_needsupdate, last_key);
         lcd_update = lcd_needsupdate;
         Stack.catch_up();
         last_key = -k;
         key_push(RELEASE);
+
+        // Wait for the RPL thread to process the keys
+        keysync_sent++;
+        record(tests, "Key sync sent %u done %u", keysync_sent, keysync_done);
+        key_push(KEYSYNC);
+        while (keysync_done != keysync_sent)
+            sys_delay(delay_time);
+        record(tests, "Key sync done %u sent %u", keysync_done, keysync_sent);
     }
 
     return *this;

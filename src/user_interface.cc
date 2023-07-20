@@ -1814,7 +1814,7 @@ bool user_interface::draw_help()
 //    Draw the help content
 // ----------------------------------------------------------------------------
 {
-    if (!force && !dirtyHelp)
+    if (!force && !dirtyHelp && !dirtyStack)
         return false;
     dirtyHelp = false;
 

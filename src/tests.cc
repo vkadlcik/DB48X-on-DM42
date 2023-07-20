@@ -91,14 +91,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    step("Equation fancy rendering");
-    test(CLEAR, XEQ, X, ENTER, INV,
-         XEQ, Y, ENTER, SHIFT, SQRT, XEQ, Z, ENTER,
-         "CUBED", ENTER, ADD, ADD, WAIT(100))
-        .type(object::ID_equation)
-        .expect("'X⁻¹+(Y²+Z³)'");
-    test(DOWN, "   ", SHIFT, SHIFT, DOWN, " 1 +", ENTER)
-        .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)+1'");
+    decimal_display_formats();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -1071,7 +1064,7 @@ void tests::decimal_display_formats()
 
     step("FIX 24 mode");
     test(CLEAR, "24 FIX", ENTER).noerr();
-    test(CLEAR, "1.01", ENTER).expect("1.010000000000000000000000");
+    test(CLEAR, "1.01", ENTER).expect("1.01000 00000 00000 00000 0000");
     test(CLEAR, "1.0123 log", ENTER)
         .expect("1.22249 69622 56897 09224 5327⁳⁻²");
 
@@ -1111,8 +1104,86 @@ void tests::decimal_display_formats()
     test(CLEAR, "0.00000000001999999", ENTER).expect("2.⁳⁻¹¹")
         .test(CHS).expect("-2.⁳⁻¹¹");
 
+    step("SCI 5 mode");
+    test(CLEAR, "5 Sci", ENTER).noerr();
+    test(CLEAR, "1.01", ENTER).expect("1.01000⁳⁰")
+        .test(CHS).expect("-1.01000⁳⁰");
+    test(CLEAR, "1.0123", ENTER).expect("1.01230⁳⁰");
+    test(CLEAR, "10.12345", ENTER).expect("1.01235⁳¹");
+    test(CLEAR, "101.2543", ENTER).expect("1.01254⁳²");
+    test(CLEAR, "1999.999", ENTER).expect("2.00000⁳³");
+    test(CLEAR, "19999999999999.", ENTER).expect("2.00000⁳¹³");
+    test(CLEAR, "0.00000000001999999", ENTER).expect("2.00000⁳⁻¹¹")
+        .test(CHS).expect("-2.00000⁳⁻¹¹");
+
+    step("ENG 5 mode");
+    test(CLEAR, "5 eng", ENTER).noerr();
+    test(CLEAR, "1.01", ENTER).expect("1.01000⁳⁰")
+        .test(CHS).expect("-1.01000⁳⁰");
+    test(CLEAR, "1.0123", ENTER).expect("1.01230⁳⁰");
+    test(CLEAR, "10.12345", ENTER).expect("10.1235⁳⁰");
+    test(CLEAR, "101.2543", ENTER).expect("101.254⁳⁰");
+    test(CLEAR, "1999.999", ENTER).expect("2.00000⁳³");
+    test(CLEAR, "19999999999999.", ENTER).expect("20.0000⁳¹²");
+    test(CLEAR, "0.00000000001999999", ENTER).expect("20.0000⁳⁻¹²")
+        .test(CHS).expect("-20.0000⁳⁻¹²");
+
+    step("SIG 5 mode");
+    test(CLEAR, "5 sig", ENTER).noerr();
+    test(CLEAR, "1.01", ENTER).expect("1.01")
+        .test(CHS).expect("-1.01");
+    test(CLEAR, "1.0123", ENTER).expect("1.0123");
+    test(CLEAR, "10.12345", ENTER).expect("10.123");
+    test(CLEAR, "101.2543", ENTER).expect("101.25");
+    test(CLEAR, "1999.999", ENTER).expect("2 000.");
+    test(CLEAR, "19999999999999.", ENTER).expect("2.⁳¹³");
+    test(CLEAR, "0.00000000001999999", ENTER).expect("2.⁳⁻¹¹")
+        .test(CHS).expect("-2.⁳⁻¹¹");
+
+    step("SCI 13 mode");
+    test(CLEAR, "13 Sci", ENTER).noerr();
+    test(CLEAR, "1.01", ENTER).expect("1.01000 00000 000⁳⁰")
+        .test(CHS).expect("-1.01000 00000 000⁳⁰");
+    test(CLEAR, "1.0123", ENTER).expect("1.01230 00000 000⁳⁰");
+    test(CLEAR, "10.12345", ENTER).expect("1.01234 50000 000⁳¹");
+    test(CLEAR, "101.2543", ENTER).expect("1.01254 30000 000⁳²");
+    test(CLEAR, "1999.999", ENTER).expect("1.99999 90000 000⁳³");
+    test(CLEAR, "19999999999999.", ENTER).expect("1.99999 99999 999⁳¹³");
+    test(CLEAR, "0.00000000001999999", ENTER).expect("1.99999 90000 000⁳⁻¹¹")
+        .test(CHS).expect("-1.99999 90000 000⁳⁻¹¹");
+
+    step("ENG 13 mode");
+    test(CLEAR, "13 eng", ENTER).noerr();
+    test(CLEAR, "1.01", ENTER).expect("1.01000 00000 000⁳⁰")
+        .test(CHS).expect("-1.01000 00000 000⁳⁰");
+    test(CLEAR, "1.0123", ENTER).expect("1.01230 00000 000⁳⁰");
+    test(CLEAR, "10.12345", ENTER).expect("10.12345 00000 00⁳⁰");
+    test(CLEAR, "101.2543", ENTER).expect("101.25430 00000 0⁳⁰");
+    test(CLEAR, "1999.999", ENTER).expect("1.99999 90000 000⁳³");
+    test(CLEAR, "19999999999999.", ENTER).expect("19.99999 99999 99⁳¹²");
+    test(CLEAR, "0.00000000001999999", ENTER).expect("19.99999 00000 00⁳⁻¹²")
+        .test(CHS).expect("-19.99999 00000 00⁳⁻¹²");
+
+    step("SIG 13 mode");
+    test(CLEAR, "13 sig", ENTER).noerr();
+    test(CLEAR, "1.01", ENTER).expect("1.01")
+        .test(CHS).expect("-1.01");
+    test(CLEAR, "1.0123", ENTER).expect("1.0123");
+    test(CLEAR, "10.12345", ENTER).expect("10.12345");
+    test(CLEAR, "101.2543", ENTER).expect("101.2543");
+    test(CLEAR, "1999.999", ENTER).expect("1 999.999");
+    test(CLEAR, "19999999999999.", ENTER).expect("2.⁳¹³");
+    test(CLEAR, "0.00000000001999999", ENTER).expect("1.99999 9⁳⁻¹¹")
+        .test(CHS).expect("-1.99999 9⁳⁻¹¹");
+
     step("Reset defaults");
     test(CLEAR, "Std", ENTER).noerr();
+
+    step("Test display of 5000.");
+    test(CLEAR, "5000.", ENTER)        .expect("5 000.");
+    test(CLEAR, "50000.", ENTER)       .expect("50 000.");
+    test(CLEAR, "500000.", ENTER)      .expect("500 000.");
+    test(CLEAR, "5000000.", ENTER)     .expect("5 000 000.");
 }
 
 

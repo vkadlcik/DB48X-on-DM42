@@ -286,10 +286,6 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         // The first character is always + or -. Skip the '+'
         char sign = *in++;
         bool negative = sign == '-';
-        if (negative)
-            out++;                  // Keep sign in copy
-        else if (sign != '+')       // Defensive coding in case + is not present
-            in--;
 
         // The exponent as given to us by the BID library
         int bidexp = atoi(expptr + 1);
@@ -311,6 +307,21 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
             mexp--;
             bidexp++;
         }
+
+        // BID generates things like 0E-12 as a result of some computations.
+        // Turn that into a true 0
+        if (last == copy + 2 && copy[1] == '0')
+        {
+            bidexp = realexp = 0;
+            negative = false;
+            sign = '+';
+        }
+
+        // Generate sign
+        if (negative)
+            out++;                  // Keep sign in copy
+        else if (sign != '+')       // Defensive coding in case + is not present
+            in--;
 
         // Position where we will emit the decimal dot when there is an exponent
         int decpos = 1;
@@ -346,7 +357,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         }
 
         // Position where we emit spacing
-        uint sep = mant_spc ? (~mant_spc-decpos) % mant_spc : 0;
+        uint sep = mant_spc ? (~mant_spc - decpos) % mant_spc : 0;
 
         // Number of decimals to show is given number of digits for most modes
         // (This counts *all* digits for standard / SIG mode)
@@ -403,14 +414,16 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
                 lastnz = out;
 
             // Insert spacing on the left of the decimal mark
-            bool more = in < last;
+            bool more = in < last || !sigmode || decpos > 0;
             uint limit = !more      ? 0
-                       : decpos < 0 ? frac_spc
                        : decpos > 0 ? mant_spc
+                       : decpos < 0 ? frac_spc
                                     : 0;
-            if (++sep == limit && decimals > 1 && more)
+            if (++sep == limit && more && decimals > 1)
             {
                 out += utf8_encode(space, (byte *) out);
+                if (decpos > 0)
+                    lastnz = out;
                 sep = 0;
             }
 
@@ -448,7 +461,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
                             decimals++;
                             decpos++;
                             if (--sep == 0)
-                                sep = mant_spc - 1;
+                                sep = decpos > 0 ? mant_spc - 1 : frac_spc - 1;
                         }
                         else
                         {
@@ -463,7 +476,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
                 else if (stripzeros) // Inserted separator
                 {
                     out--;
-                    sep = mant_spc - 1;
+                    sep = decpos > 0 ? mant_spc - 1 : frac_spc - 1;
                 }
             }
 
@@ -478,6 +491,14 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
                          negative ? '-' : '+',
                          realexp + 1);
                 continue;
+            }
+
+            // Check if we need to reinsert the last separator
+            uint limit = decpos > 0 ? mant_spc : decpos < 0 ? frac_spc : 0;
+            if (++sep == limit && decimals > 1)
+            {
+                out += utf8_encode(space, (byte *) out);
+                sep = 0;
             }
         }
 
@@ -505,21 +526,17 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         // Add trailing zeroes if necessary
         while (decimals > 0)
         {
-            bool more = in < last;
-            uint limit = !more      ? 0
-                       : decpos < 0 ? frac_spc
-                       : decpos > 0 ? mant_spc
-                                    : 0;
+            uint limit = decpos > 0 ? mant_spc : decpos < 0 ? frac_spc : 0;
+            *out++ = '0';
+            decpos--;
+
             if (++sep == limit && decimals > 1)
             {
                 out += utf8_encode(space, (byte *) out);
                 sep = 0;
             }
 
-            *out++ = '0';
-            decpos--;
-
-            if (decpos == 0)
+            if (decpos == 0 && showdec)
                 *out++ = decimal;
             decimals--;
         }

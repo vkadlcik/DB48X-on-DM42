@@ -19,7 +19,8 @@ presumably the calculator you are currently running this software on.
 * [Keyboard interaction](#keyboard-interaction)
 * [Soft menus](#soft-menus)
 * [Differences with the HP48](#differences-with-the-hp48)
-
+* [Built-in help](#help)
+* [Acknowledgements and credits](#acknowledgements-and-credits)
 
 
 ## State of the project
@@ -344,3 +345,187 @@ To navigate the help on the calculator, use the following keys:
   the help history. The _ ← _ key achieves the same effect.
 
 * To follow a highlighted link, click on the _ ENTER _ key.
+
+
+## Acknowledgements and credits
+
+DB48X is Free Software, see the LICENSE file for details.
+You can obtain the source code for this software at the following URL:
+https://github.com/c3d/DB48X-on-DM42
+(C) 2022-2023 Christophe de Dinechin and the DB48X team
+
+The authors would like to acknowledge
+
+* [Hewlett and Packard](#hewlett-and-packard)
+* [The Maubert Team](#the-maubert-team)
+* [Museum of HP calculators](#hp-museum)
+* [The newRPL project](#newrpl-project)
+* [The WP43 and C47 projects](#wp43-and-c47-projects)
+* [SwissMicro's DMCP](#swissmicros-dmcp)
+* [Intel Decimal Floating-Point Math Library v2.2](#intel-decimal-floating-point-math)
+
+
+### Hewlett and Packard
+
+Hand-held scientific calculators changed forever when Hewlett and Packard asked
+their engineers to design and produce the HP35, then again when their company
+introduced the first programmable hand-held calculator with the HP65, and
+finally when they introduced the RPL programming language with the HP28.
+
+Christophe de Dinechin, the primary author of DB48X, was lucky enough to meet
+both Hewlett and Packard in person, and this was a truly inspiring experience.
+Launching the Silicon Valley is certainly no small achievement, but this pales
+in comparison to bringing RPN and RPL to the world.
+
+
+### The Maubert Team
+
+Back in the late 1980s and early 1990s, a team of young students with a passion
+for HP calculators began meeting on a regular basis at or around a particular
+electronics shop in Paris called "Maubert Electronique", exchanging
+tips about how to program the HP48 in assembly language or where to get precious
+technical documentation.
+
+A lot of their productions, notably the HP48 Metakernel, can still be found
+on [hpcalc.org](https://www.hpcalc.org/hp48/apps/mk/) to this day. A few of
+these early heroes would go on to change the
+[history of Hewlett-Packard calculators](https://www.hpcalc.org/goodbyeaco.php),
+including Cyrille de Brébisson, Jean-Yves Avenard and Gerald Squelart.
+
+Another key contributor of that era is Paul Courbis, who had
+carefully reverse-engineered and documented
+[the internals of RPL calculators](https://literature.hpcalc.org/items/1584),
+allowing his readers to waste countless hours debugging PacMan and Lemmings
+clones for these wonderful little machines.
+
+
+### HP Museum
+
+The [HP Museum](https://www.hpmuseum.org) not only extensively documents the
+history of RPN and RPL calcuators, it also provides a
+[very active forum](https://www.hpmuseum.org/forum/) for calculator enthusiasts
+all over the world.
+
+
+### newRPL project
+
+[newRPL](https://newrpl.wiki.hpgcc3.org/doku.php) is a project initiated by
+Claudio Lapilli to implement a native version of RPL, initially targeting
+ARM-based HP calculators such as the HP50G.
+
+DB48X inherits many ideas from newRPL, including, but not limited to:
+
+* Implementing RPL natively for ARM CPUs
+* Adding indicators in the cursor to indicate current status
+* Integrating a catalog of functions to the command line
+
+A first iteration of DB48X started as a
+[branch of newRPL](https://github.com/c3d/db48x/), although the
+current implementation had to restart from scratch due to heavy space
+constraints on the DM42.
+
+
+### WP43 and C47 projects
+
+The DB48X took several ideas and some inspiration from the
+[WP43](https://gitlab.com/rpncalculators/wp43) and
+[C47](https://47calc.com) projects.
+
+Walter Bonin initiated the WP43 firwmare for the DM42 as a "superset of the
+legendary HP42S RPN Scientific".
+
+C47 (initially called C43) is a variant of that firmware initiated by Jaco
+Mostert, which focuses on compatibility with the existing DM42, notably with
+respect to keyboard layout.
+
+DB48X borrowed at least the following from these projects:
+
+* The very idea of writing a new firmware for the DM42
+* The idea of converting standard Unicode TrueType fonts into bitmaps
+  (with some additional contributions from newRPL)
+* How to recompute the CRC for QSPI images so that the DM42 loads them,
+  thanks to Ben Titmus
+* At least some aspects of the double-shift logic and three-level menus
+* The original keyboard layout template and styling, with special thanks
+  to DA MacDonald.
+
+
+### SwissMicros DMCP
+
+[SwissMicros](https://www.swissmicros.com/products) offers a range of
+RPN calculators that emulate well-known models from Hewlett-Packard.
+This includes the [DM42](https://www.swissmicros.com/product/dm42),
+which is currently the primary target for the DB48X firmware.
+
+Special thanks and kudos to Michael Steinmann and his team for keeping
+the shining spirit of HP RPN calculators alive.
+
+The DM42 version of the DB48X software relies on
+[SwissMicro's DMCP SDK](https://github.com/swissmicros/SDKdemo), which
+is released under the following BSD 3-Clause License:
+
+Copyright (c) 2015-2022, SwissMicros
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+### Intel Decimal Floating-Point Math
+
+Floating-point computations in DB48X take advantage of
+[Intel's decimal floating-point math library](https://www.intel.com/content/www/us/en/developer/articles/tool/intel-decimal-floating-point-math-library.html),
+ which is released with the following end-user license agreement:
+
+Copyright (c) 2018, Intel Corp.
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  his list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of Intel Corporation nor the names of its contributors
+  may be used to endorse or promote products derived from this software
+  without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED.
+
+IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

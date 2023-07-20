@@ -2576,6 +2576,7 @@ bool user_interface::handle_editing(int key)
             else if (xshift)
             {
                 cursor = 0;
+                edRows = 0;
                 dirtyEditor = true;
             }
             else if (cursor > 0)
@@ -2617,6 +2618,7 @@ bool user_interface::handle_editing(int key)
             else if (xshift)
             {
                 cursor = editing;
+                edRows = 0;
                 dirtyEditor = true;
             }
             else if (cursor < editing)

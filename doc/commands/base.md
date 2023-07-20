@@ -2,11 +2,11 @@
 
 ## Evaluate (EVAL)
 
-Evaluate the object at stack level 1. Ths
+Evaluate the object at stack level 1.
 
 Mapped to the _ R/S _ key
 
-`X` ▶ Evaluated `X`
+`X` ▶ Result of `X` evaluation
 
 ## Drop
 

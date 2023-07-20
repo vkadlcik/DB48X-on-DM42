@@ -3100,12 +3100,18 @@ bool user_interface::handle_functions(int key)
             {
             case PROGRAM:
                 if (obj->is_command())
+                {
+                    dirtyEditor = true;
                     return obj->insert(*this) != object::ERROR;
+                }
                 break;
 
             case ALGEBRAIC:
                 if (obj->is_algebraic())
+                {
+                    dirtyEditor = true;
                     return obj->insert(*this) != object::ERROR;
+                }
                 break;
 
             default:

@@ -251,6 +251,7 @@ bool user_interface::end_edit()
         unicode nspc = Settings.space;
         unicode hspc = Settings.space_based;
 
+        draw_busy_cursor();
         while (o < edlen)
         {
             unicode cp = utf8_codepoint(ed + o);
@@ -291,10 +292,12 @@ bool user_interface::end_edit()
                     cursor = pos - ed;
                 if (!rt.edit(ed, edlen))
                     cursor = 0;
+                draw_idle();
                 beep(3300, 100);
                 return false;
             }
         }
+        draw_idle();
     }
 
     return true;
@@ -1206,6 +1209,13 @@ bool user_interface::draw_idle()
     size  h = HeaderFont->height();
     Screen.fill(230, 0, 305, h + 1, pattern::black);
     draw_dirty(230, 0, 305, h + 1);
+    if (alpha || shift || xshift)
+    {
+        bool f = force;
+        force = true;
+        draw_annunciators();
+        force = f;
+    }
     refresh_dirty();
     return true;
 }
@@ -1660,8 +1670,10 @@ bool user_interface::draw_stack()
 {
     if (!force && !dirtyStack)
         return false;
+    draw_busy_cursor();
     Stack.draw_stack();
     draw_dirty(0, HeaderFont->height() + 2, stack, LCD_H);
+    draw_idle();
     dirtyStack = false;
     return true;
 }

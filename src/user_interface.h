@@ -234,6 +234,4 @@ inline bool user_interface::draw_busy()
     return false;
 }
 
-RECORDER_DECLARE(debug);
-
 #endif // INPUT_H

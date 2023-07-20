@@ -913,7 +913,7 @@ void set_reset_state_file(const char * str)
 {
     QSettings settings;
     settings.setValue("state", str);
-    std::cout << "Set saved state: " << str << "\n";
+    record(dmcp, "Setting saved state: %s", str);
 }
 
 
@@ -925,7 +925,7 @@ char *get_reset_state_file()
     result[0] = 0;
     if (!file.isNull())
         strncpy(result, file.toStdString().c_str(), sizeof(result));
-    std::cout << "Saved state: " << result << "\n";
+    record(dmcp, "Saved state: %+s", result);
     return result;
 }
 

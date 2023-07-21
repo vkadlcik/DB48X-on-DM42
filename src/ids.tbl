@@ -406,6 +406,7 @@ MENU(TextMenu)
 
 CMD(VariablesMenu)
 CMD(ToolsMenu)
+CMD(LastMenu)
 CMD(Catalog)
 NAMED(Off, "PowerOff")
 CMD(SaveState)

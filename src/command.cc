@@ -531,3 +531,13 @@ COMMAND_BODY(ToolsMenu)
     object_p obj = command::static_object(menu);
     return obj->execute();
 }
+
+
+COMMAND_BODY(LastMenu)
+// ----------------------------------------------------------------------------
+//   Go back one entry in the menu history
+// ----------------------------------------------------------------------------
+{
+    ui.menu_pop();
+    return OK;
+}

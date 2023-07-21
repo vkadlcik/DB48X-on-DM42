@@ -56,6 +56,7 @@ user_interface    ui;
 
 RECORDER(user_interface, 16, "ui processing");
 RECORDER(text_editor, 16, "Text editor");
+RECORDER(menus, 16, "Menu operations");
 RECORDER(help,  16, "On-line help");
 
 
@@ -87,7 +88,7 @@ user_interface::user_interface()
       edRows(0),
       edRow(0),
       edColumn(0),
-      menuObject(),
+      menuStack(),
       menuPage(),
       menuPages(),
       menuHeight(),
@@ -362,7 +363,7 @@ void user_interface::clear_menu()
 //   Clear the menu
 // ----------------------------------------------------------------------------
 {
-    menuObject = nullptr;
+    menu(nullptr, 0);
     menus(0, nullptr, nullptr);
 }
 
@@ -424,9 +425,12 @@ bool user_interface::key(int key, bool repeating)
     if (!skey)
         command = nullptr;
 
-    // Refresh the variables menu
-    if (menuObject && dynamicMenu)
-        menuObject->update(menuPage);
+    // Refresh dynamic menus like VariablesMenu
+    if (menuStack[0] && dynamicMenu)
+    {
+        menu_p m = menu_p(menu::static_object(menuStack[0]));
+        m->update(menuPage);
+    }
 
     return result;
 }
@@ -656,11 +660,28 @@ void user_interface::menu(menu_p menu, uint page)
 //   Set menu and page
 // ----------------------------------------------------------------------------
 {
-    menuObject = rt.clone_if_dynamic(menu);
-    menuPage = page;
-    if (menu)
-        menu->update(page);
-    dirtyMenu = true;
+    menu::id mid = menu ? menu->type() : menu::ID_object;
+
+    record(menus, "Selecting menu %t page %u", menu, page);
+
+    if (mid != *menuStack)
+    {
+        memmove(menuStack + 1, menuStack, sizeof(menuStack) - sizeof(*menuStack));
+        menuPage = page;
+        if (menu)
+        {
+            menuStack[0] = mid;
+            menu->update(page);
+        }
+        else
+        {
+            menuStack[0] = menu::ID_object;
+        }
+        dirtyMenu = true;
+    }
+
+    for (uint i = 0; i < HISTORY; i++)
+        record(menus, "  History %u %+s", i, menu::name(menuStack[i]));
 }
 
 
@@ -669,7 +690,43 @@ menu_p user_interface::menu()
 //   Return the current menu
 // ----------------------------------------------------------------------------
 {
-    return menuObject;
+    return menuStack[0] ? menu_p(menu::static_object(menuStack[0])) : nullptr;
+}
+
+
+void user_interface::menu_pop()
+// ----------------------------------------------------------------------------
+//   Pop last menu in menu history
+// ----------------------------------------------------------------------------
+{
+    id current = menuStack[0];
+
+    record(menus, "Popping menu %+s", menu::name(current));
+
+    memmove(menuStack, menuStack + 1, sizeof(menuStack) - sizeof(*menuStack));
+    menuStack[HISTORY-1] = menu::ID_object;
+    for (uint i = 1; i < HISTORY; i++)
+    {
+        if (menuStack[i] == menu::ID_object)
+        {
+            menuStack[i] = current;
+            break;
+        }
+    }
+    menuPage = 0;
+    if (menu::id mty = menuStack[0])
+    {
+        menu_p m = menu_p(menu::static_object(mty));
+        m->update(menuPage);
+    }
+    else
+    {
+        menus(0, nullptr, nullptr);
+    }
+    dirtyMenu = true;
+
+    for (uint i = 0; i < HISTORY; i++)
+        record(menus, "  History %u %+s", i, menu::name(menuStack[i]));
 }
 
 
@@ -688,8 +745,8 @@ void user_interface::page(uint p)
 // ----------------------------------------------------------------------------
 {
     menuPage = (p + menuPages) % menuPages;
-    if (menuObject)
-        menuObject->update(menuPage);
+    if (menu_p m = menu())
+        m->update(menuPage);
     dirtyMenu = true;
 }
 
@@ -1714,6 +1771,7 @@ void user_interface::load_help(utf8 topic, size_t len)
             return;
         }
     }
+    dirtyMenu = true;
 
     // Look for the topic in the file
     uint         matching = 0;
@@ -2264,7 +2322,6 @@ bool user_interface::handle_help(int &key)
                     if (longpress)
                     {
                         load_help(htopic);
-                        dirtyMenu = true;
                         if (rt.error())
                         {
                             key  = 0; // Do not execute a function if no help
@@ -2957,7 +3014,7 @@ static const byte defaultShiftedCommand[2*user_interface::NUM_KEYS] =
 // ----------------------------------------------------------------------------
 //   All the default assigned commands fit in one or two bytes
 {
-    OP2BYTES(KEY_SIGMA, menu::ID_MainMenu),
+    OP2BYTES(KEY_SIGMA, menu::ID_LastMenu),
     OP2BYTES(KEY_INV,   arithmetic::ID_pow),
     OP2BYTES(KEY_SQRT,  arithmetic::ID_sq),
     OP2BYTES(KEY_LOG,   function::ID_exp10),
@@ -3014,7 +3071,7 @@ static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
 // ----------------------------------------------------------------------------
 //   All the default assigned commands fit in one or two bytes
 {
-    OP2BYTES(KEY_SIGMA, 0),
+    OP2BYTES(KEY_SIGMA, menu::ID_MainMenu),
     OP2BYTES(KEY_INV,   0),
     OP2BYTES(KEY_SQRT,  0),
     OP2BYTES(KEY_LOG,   function::ID_expm1),

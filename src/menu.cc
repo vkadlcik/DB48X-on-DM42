@@ -921,7 +921,7 @@ MENU(LastThingsMenu,
 // ----------------------------------------------------------------------------
      "Arg",     ID_Unimplemented,
      "Stack",   ID_Unimplemented,
-     "Menu",    ID_Unimplemented,
+     "Menu",    ID_LastMenu,
      "Cmd",     ID_Unimplemented,
      "Undo",    ID_Unimplemented,
      "Redo",    ID_Unimplemented);

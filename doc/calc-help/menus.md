@@ -1,7 +1,12 @@
 # Menus
 
-Here are the main menus in DB48X, in alphabetical order.
+Menus display at the bottom of the screen, and can be activated using the keys
+on the top row of the calculator. Menus can refer to other menus. The calculator
+keeps a history of the menus you visited previously, and you can return to an
+earlier menu with the `BackMenu` function.
 
+
+Here are the main menus in DB48X, in alphabetical order.
 
 ## MainMenu
 
@@ -53,3 +58,15 @@ Hitting the first shifted function in the [Vars menu](#VariablesMenu) will
 
 Hitting the second shifted function in the [Vars menu](#VariablesMenu) will
 [store](#Store) the top of stack in the corresponding variable.
+
+
+## ToolsMenu
+
+The `ToolsMenu` maps to the _ A _ key (_ Σ+ _ on the original DM42 keyboard).
+It invokes a context-dependent menu adapted to the top level of the stack.
+
+
+## LastMenu
+
+The `LastMenu` function, which is the shifted function for the _ A _ key,
+returns back in the history of past visited menus.

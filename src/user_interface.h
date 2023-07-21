@@ -69,6 +69,7 @@ struct user_interface
     //   Dimensioning constants
     // ------------------------------------------------------------------------
     {
+        HISTORY         = 8,    // Number of menus kept in history
         NUM_PLANES      = 3,    // NONE, Shift and "extended" shift
         NUM_KEYS        = 46,   // Including SCREENSHOT, SH_UP and SH_DN
         NUM_SOFTKEYS    = 6,    // Number of softkeys
@@ -77,10 +78,11 @@ struct user_interface
     };
 
     using result = object::result;
+    using id     = object::id;
 
-    typedef graphics::coord     coord;
-    typedef graphics::size      size;
-    typedef graphics::rect      rect;
+    typedef graphics::coord coord;
+    typedef graphics::size  size;
+    typedef graphics::rect  rect;
 
 
     bool        key(int key, bool repeating);
@@ -92,6 +94,7 @@ struct user_interface
 
     void        menu(menu_p menu, uint page = 0);
     menu_p      menu();
+    void        menu_pop();
     uint        page();
     void        page(uint p);
     uint        pages();
@@ -180,7 +183,7 @@ protected:
     uint     edRows;            // Editor rows
     int      edRow;             // Current editor row
     int      edColumn;          // Current editor column (in pixels)
-    menu_g   menuObject;        // Current menu being shown
+    id       menuStack[HISTORY];// Current and past menus
     uint     menuPage;          // Current menu page
     uint     menuPages;         // Number of menu pages
     uint     menuHeight;        // Height of the menu

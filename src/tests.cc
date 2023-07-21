@@ -93,7 +93,11 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    decimal_display_formats();
+    step("Polar angle conversions");
+    test(CLEAR, "1∡90", ENTER).expect("1∡90");
+    test("GRAD", ENTER).expect("1∡100");
+    test("PiRadians", ENTER).expect("1∡1/2");
+    test("RAD", ENTER).expect("1∡1.57079 63267 94896 6192");
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -1357,7 +1361,7 @@ void tests::complex_types()
     test(CLEAR, "1∡90", ENTER).expect("1∡90");
     test("GRAD", ENTER).expect("1∡100");
     test("PiRadians", ENTER).expect("1∡1/2");
-    test("RAD", ENTER).expect("1∡1/2×3.14159 26535 89793 23846 26433 83279 503");
+    test("RAD", ENTER).expect("1∡1.57079 63267 94896 6192");
 }
 
 

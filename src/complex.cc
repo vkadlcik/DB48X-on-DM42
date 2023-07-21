@@ -557,8 +557,21 @@ polar_p polar::make(algebraic_r mr, algebraic_r ar)
             a = a / integer::make(200);
             break;
         case Settings.RADIANS:
-            a = a / (atan::run(integer::make(1)) * integer::make(4));
+        {
+            algebraic_g pi = atan::run(integer::make(1)) * integer::make(4);
+            if (a->is_fraction())
+            {
+                fraction_g f = fraction_p(a.Safe());
+                algebraic_g n = algebraic_p(f->numerator());
+                algebraic_g d = algebraic_p(f->denominator());
+                a = pi * d / n;
+            }
+            else
+            {
+                a = a / pi;
+            }
             break;
+        }
         case Settings.PI_RADIANS:
         default:
             break;
@@ -610,8 +623,21 @@ algebraic_g polar::arg() const
             a = a * integer::make(200);
             break;
         case Settings.RADIANS:
-            a = a * (atan::run(integer::make(1)) * integer::make(4));
+        {
+            algebraic_g pi = (atan::run(integer::make(1)) * integer::make(4));
+            if (a->is_fraction())
+            {
+                fraction_g f = fraction_p(a.Safe());
+                algebraic_g n = algebraic_p(f->numerator());
+                algebraic_g d = algebraic_p(f->denominator());
+                a = pi * n / d;
+            }
+            else
+            {
+                a = a * pi;
+            }
             break;
+        }
         case Settings.PI_RADIANS:
         default:
             break;

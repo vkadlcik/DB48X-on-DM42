@@ -490,6 +490,15 @@ struct object
     }
 
 
+    bool is_fraction() const
+    // -------------------------------------------------------------------------
+    //   Check if an object is an integer
+    // -------------------------------------------------------------------------
+    {
+        return is_fraction(type());
+    }
+
+
     bool is_fractionable() const
     // -------------------------------------------------------------------------
     //   Check if an object is a fraction or an integer
@@ -505,15 +514,6 @@ struct object
     // -------------------------------------------------------------------------
     {
         return ty >= FIRST_REAL_TYPE && ty <= LAST_FRACTION_TYPE;
-    }
-
-
-    bool is_fraction() const
-    // -------------------------------------------------------------------------
-    //   Check if an object is an integer
-    // -------------------------------------------------------------------------
-    {
-        return is_fraction(type());
     }
 
 

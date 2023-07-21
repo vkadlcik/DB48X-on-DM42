@@ -1163,3 +1163,12 @@ algebraic_g operator%(algebraic_r x, algebraic_r y)
 {
     return mod::evaluate(x, y);
 }
+
+
+INSERT_BODY(arithmetic)
+// ----------------------------------------------------------------------------
+//   Arithmetic objects do not insert parentheses
+// ----------------------------------------------------------------------------
+{
+    return ui.edit(o->fancy(), ui.INFIX);
+}

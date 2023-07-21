@@ -200,18 +200,18 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
     }
     else if ((mode != ALGEBRAIC || m != ALGEBRAIC) && ed[cursor] != ' ')
     {
-        if (!skip)
+        if (!skip && m != INFIX)
             cursor += rt.insert(cursor, ' ');
     }
 
     size_t added = rt.insert(cursor, text, len);
     cursor += added;
 
-    if (m == POSTFIX && mode == ALGEBRAIC)
+    if ((m == POSTFIX || m == INFIX) && mode == ALGEBRAIC)
         /* nothing */;
     else if (mode != ALGEBRAIC || m != ALGEBRAIC)
         cursor += rt.insert(cursor, ' ');
-    else
+    else if (m != INFIX)
         cursor += rt.insert(cursor, utf8("()"), 2) - 1;
 
     // Offset from beginning or end of inserted text

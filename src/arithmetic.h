@@ -69,6 +69,8 @@ struct arithmetic : algebraic
 
     static fraction_p fraction_promotion(algebraic_g &x);
 
+    // We do not insert parentheses for algebraic values
+    INSERT_DECL(arithmetic);
 
 protected:
     typedef bool (*integer_fn)(id &xt, id &yt, ularge &xv, ularge &yv);

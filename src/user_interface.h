@@ -59,6 +59,7 @@ struct user_interface
         PROGRAM,                // Keys like 'sin' show as 'sin' in the editor
         ALGEBRAIC,              // Keys like 'sin' show as 'sin()'
         POSTFIX,                // Keys like '!' or 'x²' are postfix
+        INFIX,                  // Keys like '+' are treated as postfix
         MATRIX,                 // Matrix/vector mode
         BASED,                  // Based number: A-F map switch to alpha
     };

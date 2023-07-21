@@ -129,6 +129,7 @@ struct user_interface
     bool        draw_busy_cursor();
     bool        draw_gc();
 
+    modes       editing_mode()          { return mode; }
     int         stack_screen_bottom()   { return stack; }
     int         menu_screen_bottom()    { return menuHeight; }
     bool        showingHelp()           { return help + 1 != 0; }
@@ -147,7 +148,7 @@ struct user_interface
     result      edit(utf8 s, modes m, int off = 0);
     bool        end_edit();
     void        clear_editor();
-    void        load_help(utf8 topic);
+    void        load_help(utf8 topic, size_t len = 0);
 
 protected:
     bool        handle_shifts(int key);

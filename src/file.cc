@@ -155,8 +155,11 @@ void file::close()
     {
         fclose(data);
 
-#ifndef SIMULATOR
+#if SIMULATOR
+        data = nullptr;
+#else
         sys_disk_write_enable(0);
+        data.flag = 0;
 #endif // SIMULATOR
     }
 }

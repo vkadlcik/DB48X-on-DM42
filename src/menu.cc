@@ -205,6 +205,16 @@ MENU(MainMenu,
      "Chars",   ID_CharsMenu);
 
 
+MENU(HomeMenu,
+// ----------------------------------------------------------------------------
+//   The default menu when the stack is empty
+// ----------------------------------------------------------------------------
+     "Help",    ID_Help,
+     "Cmplx",   ID_ComplexMenu,
+     "Matrix",  ID_MatrixMenu,
+     "Modes",   ID_ModesMenu,
+     "Fonts",   ID_FontsMenu);
+
 MENU(MathMenu,
 // ----------------------------------------------------------------------------
 //   Math menu, reached from the Σ+ key
@@ -1052,3 +1062,14 @@ MENU(TimeMenu,
 
      "DelAlm",  ID_Unimplemented,
      "AckAll",  ID_Unimplemented);
+
+
+MENU(TextMenu,
+// ----------------------------------------------------------------------------
+//   Text operations
+// ----------------------------------------------------------------------------
+     "→Text",   ID_ToText,
+     "Text→",   ID_Unimplemented,
+     "Length",  ID_Unimplemented,
+     "Append",  ID_add,
+     "Repeat",  ID_mul);

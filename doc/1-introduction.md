@@ -43,3 +43,75 @@ addition `2+15`, which gives `17`.
 
 Algebraic expressions are not evaluated automatically. The _R/S_ key (bound to
 the [Evaluate](#evaluate) function) will compute their value.
+
+
+## Integers
+
+The DB48X version of RPL distinguishes between integer values, like `123`, and
+[decimal values](#decimal-numbers), like `123.` Integer values are represented
+internally in a compact and efficient format, saving memory and making
+computations faster. All values between -127 and 127 can be stored in two bytes.
+All values between -16383 and 16383 in three bytes.
+
+Integers can be [as large as memory permits](#big-integers).
+
+
+## Big integers
+
+The DB48X version of RPL can perform computations on arbitrarily large integers,
+limited only by available memory, enabling for example the exact computation of
+`100!` and making it possible to address problems that require exact integer
+computations, like exploring the Syracuse conjecture.
+
+
+## Decimal numbers
+
+Decimal numbers are used to represent values with a fractional part.
+DB48X supports three decimal numbers, using the 32-bit, 64-bit and 128-bit
+[binary decimal representation](#intel-decimal-floating-point-math).
+In memory, all decimal numbers use one additional byte: a 32-bit decimal number
+uses 5 bytes, a 128-bit binary decimal number uses 17 bytes.
+
+The 32-bit format offers a 7 digits mantissa and has a maximum exponent
+of 96. The 64-bit format offers a 16 digits mantissa and has a maximum
+exponent of 384. The 128-bit format offers a 34 digits mantissa and a maximum
+exponent of 6144.
+
+The [Precision](#precision) command selects the default precision.
+
+Note that a future implementation of DB48X is expected to feature
+variable-precision decimal numbers similar to [newRPL](#newRPL-project).
+
+
+## Based numbers
+
+Based numbers are used to perform computations in any base. The most common
+bases used in computer science, 2, 8, 10 and 16, have special shortcuts.
+The [Bases Menu](#bases-menu) list operations on based numbers.
+
+Like integers, based numbers can be [arbitrary large](#big-integers).
+However, operations on based numbers can be truncated to a specific number of
+bits using the [STWS](#stws) command. This makes it possible to perform
+computations simulating a 16-bit or 256-bit processor.
+
+
+## Complex numbers
+
+Complex numbers can be represented in rectangular form or polar form.
+The rectangular form will show as something like `2+3ⅈ` on the display, where
+`2` is the real part and `3` is the imaginary part. The polar form will show as
+something like `1∡90°` on the display, where `1` is the modulus and `90°` is the
+argument. The two forms can be mixed and matched in operations. The calculator
+typically selects the most efficient form for a given operation.
+
+Available operations on complex numbers include basic arithmetic, trigonometric,
+logarithms, exponential and hyperbolic functions, as well as a few specific
+functions such as [conj](#conj) or [arg](#arg). These functions are available in
+the [Complex Menu](#complex-menu).
+
+
+## Equations
+
+Algebraic expressions and equations are represented between quotes, for example
+`X+1` or `A+B=C`. Many functions such as circular functions, exponential, logs
+or hyperbolic functions can apply to algebraic expressions.

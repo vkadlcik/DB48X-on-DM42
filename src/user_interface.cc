@@ -1679,14 +1679,15 @@ bool user_interface::draw_stack()
 }
 
 
-void user_interface::load_help(utf8 topic)
+void user_interface::load_help(utf8 topic, size_t len)
 // ----------------------------------------------------------------------------
 //   Find the help message associated with the topic
 // ----------------------------------------------------------------------------
 {
     record(help, "Loading help topic %s", topic);
 
-    size_t len = strlen(cstring(topic));
+    if (!len)
+        len = strlen(cstring(topic));
     command    = nullptr;
     follow     = false;
     dirtyHelp  = true;
@@ -1694,9 +1695,13 @@ void user_interface::load_help(utf8 topic)
     // Need to have the help file open here
     if (!helpfile.valid())
     {
-        help = -1u;
-        line          = 0;
-        return;
+        helpfile.open(HELPFILE_NAME);
+        if (!helpfile.valid())
+        {
+            help = -1u;
+            line          = 0;
+            return;
+        }
     }
 
     // Look for the topic in the file
@@ -2247,8 +2252,8 @@ bool user_interface::handle_help(int &key)
                     command = htopic;
                     if (longpress)
                     {
-                        helpfile.open(HELPFILE_NAME);
                         load_help(htopic);
+                        dirtyMenu = true;
                         if (rt.error())
                         {
                             key  = 0; // Do not execute a function if no help
@@ -2884,7 +2889,7 @@ static const byte defaultUnshiftedCommand[2*user_interface::NUM_KEYS] =
     [2*(key) - 2] = (id) < 0x80 ? (id) : ((id) & 0x7F) | 0x80,  \
     [2*(key) - 1] = (id) < 0x80 ?   0  : ((id) >> 7)
 
-    OP2BYTES(KEY_SIGMA, menu::ID_MathMenu),
+    OP2BYTES(KEY_SIGMA, menu::ID_ToolsMenu),
     OP2BYTES(KEY_INV,   function::ID_inv),
     OP2BYTES(KEY_SQRT,  function::ID_sqrt),
     OP2BYTES(KEY_LOG,   function::ID_log10),
@@ -3034,7 +3039,7 @@ static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_0,     0),
     OP2BYTES(KEY_DOT,   0),
     OP2BYTES(KEY_RUN,   0),
-    OP2BYTES(KEY_ADD,   0),
+    OP2BYTES(KEY_ADD,   command::ID_Help),
 
     OP2BYTES(KEY_F1,    0),
     OP2BYTES(KEY_F2,    0),

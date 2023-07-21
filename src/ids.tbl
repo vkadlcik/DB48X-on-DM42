@@ -347,6 +347,7 @@ CMD(Version)
 #define FIRST_IMMEDIATE          ID_MainMenu
 
 MENU(MainMenu)
+MENU(HomeMenu)
 
 MENU(MathMenu)
 MENU(RealMenu)
@@ -394,6 +395,7 @@ MENU(TimeMenu)
 MENU(PlotMenu)
 MENU(MemMenu)
 MENU(LibsMenu)
+MENU(TextMenu)
 
 
 // ============================================================================
@@ -403,10 +405,12 @@ MENU(LibsMenu)
 // ============================================================================
 
 CMD(VariablesMenu)
+CMD(ToolsMenu)
 CMD(Catalog)
 NAMED(Off, "PowerOff")
 CMD(SaveState)
 CMD(SystemSetup)
+CMD(Help)
 
 CMD(Unimplemented)
 #define LAST_COMMAND            ID_Unimplemented

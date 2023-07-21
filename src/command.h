@@ -149,6 +149,8 @@ COMMAND_DECLARE(SaveState);     // Save state to disk
 COMMAND_DECLARE(SystemSetup);   // Select the system menu
 COMMAND_DECLARE(HomeDirectory); // Return the home directory
 COMMAND_DECLARE(Version);       // Return a version string
+COMMAND_DECLARE(Help);          // Activate online help
+COMMAND_DECLARE(ToolsMenu);     // Automatic selection of the right menu
 COMMAND_DECLARE(ToList);        // Build a list from stack
 
 #endif // COMMAND_H

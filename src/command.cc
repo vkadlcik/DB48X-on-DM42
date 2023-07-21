@@ -32,6 +32,7 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
+#include "fraction.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
@@ -407,4 +408,126 @@ COMMAND_BODY(Version)
         if (rt.push(object_p(version)))
             return OK;
     return ERROR;
+}
+
+
+COMMAND_BODY(Help)
+// ----------------------------------------------------------------------------
+//   Bring contextual help
+// ----------------------------------------------------------------------------
+{
+    utf8   topic  = utf8("Overview");
+    size_t length = 0;
+
+    if (rt.depth())
+    {
+        if (object_p top = rt.top())
+        {
+            if (text_p index = top->as<text>())
+            {
+                utf8 what = index->value(&length);
+                if (length)
+                    topic = what;
+            }
+            else if (symbol_p index = top->as<symbol>())
+            {
+                topic = index->value(&length);
+            }
+            else
+            {
+                switch(top->type())
+                {
+                case ID_integer:
+                case ID_neg_integer:        topic = utf8("Integers"); break;
+                case ID_fraction:
+                case ID_neg_fraction:
+                case ID_big_fraction:
+                case ID_neg_big_fraction:   topic = utf8("Fractions"); break;
+                case ID_bignum:
+                case ID_neg_bignum:         topic = utf8("Big integers"); break;
+                case ID_polar:
+                case ID_rectangular:        topic = utf8("Complex numbers"); break;
+                case ID_hex_integer:
+                case ID_dec_integer:
+                case ID_oct_integer:
+                case ID_bin_integer:
+                case ID_based_integer:
+                case ID_hex_bignum:
+                case ID_dec_bignum:
+                case ID_oct_bignum:
+                case ID_bin_bignum:
+                case ID_based_bignum:       topic = utf8("Based numbers"); break;
+                case ID_decimal128:
+                case ID_decimal64:
+                case ID_decimal32:          topic = utf8("Decimal numbers"); break;
+                case ID_equation:           topic = utf8("Equations"); break;
+                default:                    topic = fancy(top->type()); break;
+                }
+            }
+        }
+    }
+
+    ui.load_help(topic, length);
+    return OK;
+}
+
+
+COMMAND_BODY(ToolsMenu)
+// ----------------------------------------------------------------------------
+//   Contextual tool menu
+// ----------------------------------------------------------------------------
+{
+    id menu = ID_HomeMenu;
+
+    if (rt.editing())
+    {
+        switch(ui.editing_mode())
+        {
+        case ui.DIRECT:                 menu = ID_MathMenu; break;
+        case ui.TEXT:                   menu = ID_TextMenu; break;
+        case ui.PROGRAM:                menu = ID_ProgramMenu; break;
+        case ui.ALGEBRAIC:              menu = ID_EquationsMenu; break;
+        case ui.MATRIX:                 menu = ID_MatrixMenu; break;
+        case ui.BASED:                  menu = ID_BasesMenu; break;
+        default:
+        case ui.STACK:                  break;
+        }
+    }
+    else if (rt.depth())
+    {
+        if (object_p top = rt.top())
+        {
+            switch(top->type())
+            {
+            case ID_integer:
+            case ID_neg_integer:
+            case ID_bignum:
+            case ID_neg_bignum:
+            case ID_decimal128:
+            case ID_decimal64:
+            case ID_decimal32:          menu = ID_RealMenu; break;
+            case ID_fraction:
+            case ID_neg_fraction:
+            case ID_big_fraction:
+            case ID_neg_big_fraction:   menu = ID_FractionsMenu; break;
+            case ID_polar:
+            case ID_rectangular:        menu = ID_ComplexMenu; break;
+            case ID_hex_integer:
+            case ID_dec_integer:
+            case ID_oct_integer:
+            case ID_bin_integer:
+            case ID_based_integer:
+            case ID_hex_bignum:
+            case ID_dec_bignum:
+            case ID_oct_bignum:
+            case ID_bin_bignum:
+            case ID_based_bignum:       menu = ID_BasesMenu; break;
+            case ID_equation:           menu = ID_EquationsMenu; break;
+            default:                    break;
+            }
+        }
+    }
+
+    object_p obj = command::static_object(menu);
+    return obj->execute();
 }

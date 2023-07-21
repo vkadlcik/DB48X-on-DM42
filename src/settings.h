@@ -57,6 +57,10 @@ struct settings
 
         MARK                    = L'●', // L'■'
         COMPLEX_I               = L'𝒊',
+        DEGREES_SYMBOL          = L'°',
+        RADIANS_SYMBOL          = L'ℼ',
+        GRAD_SYMBOL             = L'ℊ',
+        PI_RADIANS_SYMBOL       = L'π',
     };
 
     settings()

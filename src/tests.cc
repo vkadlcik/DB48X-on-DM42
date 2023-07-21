@@ -93,11 +93,17 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
+    step("Decimal polar form");
+    test(CLEAR, "0.1∡2.3", ENTER)
+        .type(object::ID_polar).expect("0.1∡2.3°");
+    test(CLEAR, "0.1∡2.3", CHS, ENTER)
+        .type(object::ID_polar).expect("0.1∡-2.3°");
+
     step("Polar angle conversions");
-    test(CLEAR, "1∡90", ENTER).expect("1∡90");
-    test("GRAD", ENTER).expect("1∡100");
-    test("PiRadians", ENTER).expect("1∡1/2");
-    test("RAD", ENTER).expect("1∡1.57079 63267 94896 6192");
+    test(CLEAR, "1∡90", ENTER).expect("1∡90°");
+    test("GRAD", ENTER).expect("1∡100ℊ");
+    test("PiRadians", ENTER).expect("1∡1/2π");
+    test("RAD", ENTER).expect("1∡1.57079 63267 94896 6192ℼ");
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -1325,13 +1331,13 @@ void tests::complex_types()
 
     step("Integer polar form");
     test(CLEAR, "0∡0", ENTER)
-        .type(object::ID_polar).expect("0∡0");
+        .type(object::ID_polar).expect("0∡0°");
     test(CLEAR, "1∡90", ENTER)
-        .type(object::ID_polar).expect("1∡90");
+        .type(object::ID_polar).expect("1∡90°");
     test(CLEAR, "1∡-90", ENTER)
-        .type(object::ID_polar).expect("1∡-90");
+        .type(object::ID_polar).expect("1∡-90°");
     test(CLEAR, "-1∡0", ENTER)
-        .type(object::ID_polar).expect("1∡180");
+        .type(object::ID_polar).expect("1∡180°");
 
     step("Decimal rectangular form");
     test(CLEAR, "0.1ⅈ2.3", ENTER)
@@ -1341,9 +1347,9 @@ void tests::complex_types()
 
     step("Decimal polar form");
     test(CLEAR, "0.1∡2.3", ENTER)
-        .type(object::ID_polar).expect("0.1∡2.3");
+        .type(object::ID_polar).expect("0.1∡2.3°");
     test(CLEAR, "0.1∡2.3", CHS, ENTER)
-        .type(object::ID_polar).expect("0.1∡-2.3");
+        .type(object::ID_polar).expect("0.1∡-2.3°");
 
     step("Symbolic rectangular form");
     test(CLEAR, "aⅈb", ENTER)
@@ -1358,10 +1364,10 @@ void tests::complex_types()
         .type(object::ID_polar).expect("c∡d");
 
     step("Polar angle conversions");
-    test(CLEAR, "1∡90", ENTER).expect("1∡90");
-    test("GRAD", ENTER).expect("1∡100");
-    test("PiRadians", ENTER).expect("1∡1/2");
-    test("RAD", ENTER).expect("1∡1.57079 63267 94896 6192");
+    test(CLEAR, "1∡90", ENTER).expect("1∡90°");
+    test("GRAD", ENTER).expect("1∡100ℊ");
+    test("PiRadians", ENTER).expect("1∡1/2π");
+    test("RAD", ENTER).expect("1∡1.57079 63267 94896 6192ℼ");
 }
 
 
@@ -1483,18 +1489,18 @@ void tests::complex_functions()
         .expect("-414-154ⅈ");
     step("Cube root");
     test("cbrt", ENTER)
-        .expect("7.61577 31058 63908 2857∡-9.28490 56188 33822 9639⁳⁻¹");
+        .expect("7.61577 31058 63908 2857∡-9.28490 56188 33822 9639⁳⁻¹ℼ");
 
     step("Logarithm");
     test(CLEAR, "12+14ⅈ", ENTER, E)
         .expect("2.91447 28088 05103 5368+8.62170 05466 72263 4884⁳⁻¹ⅈ");
     step("Exponential");
     test("exp", ENTER)
-        .expect("18.43908 89145 85774 62∡8.62170 05466 72263 4884⁳⁻¹");
+        .expect("18.43908 89145 85774 62∡8.62170 05466 72263 4884⁳⁻¹ℼ");
 
     step("Power");
     test(CLEAR, "3+7ⅈ", ENTER, "2-3ⅈ", ENTER, SHIFT, B)
-        .expect("1 916.30979 15541 96293 8∡2.52432 98723 79583 8639");
+        .expect("1 916.30979 15541 96293 8∡2.52432 98723 79583 8639ℼ");
 
     step("Sine");
     test(CLEAR, "4+2ⅈ", ENTER, SIN)

@@ -271,6 +271,8 @@ PARSE_BODY(complex)
     bool        signok = false;
     bool        ineq   = false;
     char        sign   = 0;
+    unicode     angle  = 0;
+
     while (size_t(last - first) < max)
     {
         unicode cp = utf8_codepoint(last);
@@ -382,6 +384,21 @@ PARSE_BODY(complex)
             break;
         }
 
+        // Check if we found an angle marker
+        else if (cp == Settings.DEGREES_SYMBOL ||
+                 cp == Settings.RADIANS_SYMBOL ||
+                 cp == Settings.GRAD_SYMBOL    ||
+                 cp == Settings.PI_RADIANS_SYMBOL)
+        {
+            if (angle || type != ID_polar)
+            {
+                rt.syntax_error().source(last);
+                return ERROR;
+            }
+            angle = cp;
+            ylen = last - ybeg;
+        }
+
         // We can have a sign except after exponent markers
         signok = cp != 'e' && cp != 'E' && cp != L'⁳';
 
@@ -429,10 +446,30 @@ PARSE_BODY(complex)
             return ERROR;
     }
 
+    // Select forced angle mode if necessary
+    settings::angles mode = Settings.angle_mode;
+    switch(angle)
+    {
+    case Settings.DEGREES_SYMBOL:
+        Settings.angle_mode = Settings.DEGREES;
+        break;
+    case Settings.RADIANS_SYMBOL:
+        Settings.angle_mode = Settings.RADIANS;
+        break;
+    case Settings.GRAD_SYMBOL:
+        Settings.angle_mode = Settings.GRADS;
+        break;
+    case Settings.PI_RADIANS_SYMBOL:
+        Settings.angle_mode = Settings.PI_RADIANS;
+        break;
+    }
+
     // Build the resulting complex
     complex_g result = complex::make(type, x, y);
     p.out = complex_p(result);
     p.end = parsed;
+
+    Settings.angle_mode = mode;
 
     return OK;
 }
@@ -668,6 +705,25 @@ RENDER_BODY(polar)
     m->render(r);
     r.put(unicode(ANGLE_MARK));
     a->render(r);
+    if (!a->is_strictly_symbolic())
+    {
+        switch(Settings.angle_mode)
+        {
+        case Settings.DEGREES:
+            r.put(unicode(Settings.DEGREES_SYMBOL));
+            break;
+        case Settings.GRADS:
+            r.put(unicode(Settings.GRAD_SYMBOL));
+            break;
+        case Settings.PI_RADIANS:
+            r.put(unicode(Settings.PI_RADIANS_SYMBOL));
+            break;
+        default:
+        case Settings.RADIANS:
+            r.put(unicode(Settings.RADIANS_SYMBOL));
+            break;
+        }
+    }
     return r.size();
 }
 

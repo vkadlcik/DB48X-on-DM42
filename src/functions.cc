@@ -383,6 +383,16 @@ FUNCTION_BODY(inv)
 }
 
 
+INSERT_BODY(inv)
+// ----------------------------------------------------------------------------
+//   x⁻¹ is a postfix
+// ----------------------------------------------------------------------------
+{
+    return ui.edit(o->fancy(), ui.POSTFIX);
+
+}
+
+
 FUNCTION_BODY(neg)
 // ----------------------------------------------------------------------------
 //   Negate is implemented as 0-x
@@ -411,6 +421,16 @@ FUNCTION_BODY(sq)
 }
 
 
+INSERT_BODY(sq)
+// ----------------------------------------------------------------------------
+//   x² is a postfix
+// ----------------------------------------------------------------------------
+{
+    return ui.edit(o->fancy(), ui.POSTFIX);
+
+}
+
+
 FUNCTION_BODY(cubed)
 // ----------------------------------------------------------------------------
 //   Cubed is implemented as two multiplications
@@ -423,6 +443,15 @@ FUNCTION_BODY(cubed)
     return x * x * x;
 }
 
+
+INSERT_BODY(cubed)
+// ----------------------------------------------------------------------------
+//   x³ is a postfix
+// ----------------------------------------------------------------------------
+{
+    return ui.edit(o->fancy(), ui.POSTFIX);
+
+}
 
 
 FUNCTION_BODY(fact)
@@ -456,4 +485,14 @@ FUNCTION_BODY(fact)
 
     rt.type_error();
     return nullptr;
+}
+
+
+INSERT_BODY(fact)
+// ----------------------------------------------------------------------------
+//   A factorial is inserted in postfix form in
+// ----------------------------------------------------------------------------
+{
+    // We need to pass "x!' because ui.edit() strips the x
+    return ui.edit(utf8("x!"), 2, ui.POSTFIX);
 }

@@ -136,7 +136,7 @@ STANDARD_FUNCTION(tgamma);
 STANDARD_FUNCTION(lgamma);
 
 
-#define FUNCTION(derived)                                               \
+#define FUNCTION_EXT(derived, extra)                                    \
 struct derived : function                                               \
 /* ----------------------------------------------------------------- */ \
 /*  Macro to define a mathematical function not from the library     */ \
@@ -153,6 +153,7 @@ public:                                                                 \
         rt.command(fancy(ID_##derived));                                \
         return evaluate();                                              \
     }                                                                   \
+    extra                                                               \
 public:                                                                 \
     static result evaluate()                                            \
     {                                                                   \
@@ -162,16 +163,21 @@ public:                                                                 \
     static algebraic_p evaluate(algebraic_r x);                         \
 };
 
+#define FUNCTION(derived) FUNCTION_EXT(derived, )
+
+#define FUNCTION_FANCY(derived) \
+    FUNCTION_EXT(derived, INSERT_DECL(derived);)
+
 #define FUNCTION_BODY(derived)                  \
 algebraic_p derived::evaluate(algebraic_r x)
 
 FUNCTION(abs);
 FUNCTION(sign);
-FUNCTION(inv);
+FUNCTION_FANCY(inv);
 FUNCTION(neg);
-FUNCTION(sq);
-FUNCTION(cubed);
-FUNCTION(fact);
+FUNCTION_FANCY(sq);
+FUNCTION_FANCY(cubed);
+FUNCTION_FANCY(fact);
 
 FUNCTION(re);
 FUNCTION(im);

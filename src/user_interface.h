@@ -58,6 +58,7 @@ struct user_interface
         TEXT,                   // Alphanumeric entry, e.g. in strings
         PROGRAM,                // Keys like 'sin' show as 'sin' in the editor
         ALGEBRAIC,              // Keys like 'sin' show as 'sin()'
+        POSTFIX,                // Keys like '!' or 'x²' are postfix
         MATRIX,                 // Matrix/vector mode
         BASED,                  // Based number: A-F map switch to alpha
     };

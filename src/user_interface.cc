@@ -184,6 +184,14 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
 
     bool editing = rt.editing();
     byte *ed = rt.editor();
+    bool skip = m == POSTFIX && mode == ALGEBRAIC;
+
+    // Skip the x in postfix operators (x⁻¹, x², x³ or x!)
+    if (skip)
+    {
+        text++;
+        len--;
+    }
 
     if (!editing)
     {
@@ -192,13 +200,16 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
     }
     else if ((mode != ALGEBRAIC || m != ALGEBRAIC) && ed[cursor] != ' ')
     {
-        cursor += rt.insert(cursor, ' ');
+        if (!skip)
+            cursor += rt.insert(cursor, ' ');
     }
 
     size_t added = rt.insert(cursor, text, len);
     cursor += added;
 
-    if (mode != ALGEBRAIC || m != ALGEBRAIC)
+    if (m == POSTFIX && mode == ALGEBRAIC)
+        /* nothing */;
+    else if (mode != ALGEBRAIC || m != ALGEBRAIC)
         cursor += rt.insert(cursor, ' ');
     else
         cursor += rt.insert(cursor, utf8("()"), 2) - 1;

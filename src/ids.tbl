@@ -158,7 +158,7 @@ CMD(mod)
 CMD(rem)
 
 NAMED(neg, "Negate")
-NAMED(inv, "Invert")
+NAMED(inv, "x⁻¹")
 NAMED(sq,  "x²")
 NAMED(cubed, "x³")
 

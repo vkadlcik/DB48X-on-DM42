@@ -1211,9 +1211,9 @@ void tests::integer_numerical_functions()
         .test("negate", ENTER).expect("3");
     step("inv")
         .test(CLEAR, "3 inv", ENTER).expect("1/3")
-        .test("invert", ENTER).expect("3")
+        .test("inv", ENTER).expect("3")
         .test(CLEAR, "-3 inv", ENTER).expect("-1/3")
-        .test("invert", ENTER).expect("-3");
+        .test("inv", ENTER).expect("-3");
     step("sq (square)")
         .test(CLEAR, "-3 sq", ENTER).expect("9")
         .test("sq", ENTER).expect("81");
@@ -1241,7 +1241,7 @@ void tests::decimal_numerical_functions()
         .test("negate", ENTER).expect("3.21");
     step("inv")
         .test(CLEAR, "3.21 inv", ENTER).expect("3.11526 47975 07788 162⁳⁻¹")
-        .test("invert", ENTER).expect("3.21");
+        .test("inv", ENTER).expect("3.21");
     step("sq (square)")
         .test(CLEAR, "-3.21 sq", ENTER).expect("10.3041")
         .test("sq", ENTER).expect("106.17447 681");

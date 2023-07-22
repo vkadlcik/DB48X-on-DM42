@@ -315,32 +315,20 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
 //   Render the list into the given buffer
 // ----------------------------------------------------------------------------
 {
-    // Source objects
-    byte_p  p      = payload();
-    size_t  size   = leb128<size_t>(p);
-    gcbytes start  = p;
-    size_t  offset = 0;
-
     // Write the header, e.g. "{ "
     if (open)
         r.put(open);
 
     // Loop on all objects inside the list
-    while (offset < size)
+    for (object_p obj : *this)
     {
         // Add space separator (except on first object when no separator)
         if (open)
             r.put(' ');
         open = 1;
 
-        object_p obj = object_p(byte_p(start) + offset);
-        size_t   objsize = obj->size();
-
         // Render the object in what remains (may GC)
         obj->render(r);
-
-        // Loop on next object
-        offset += objsize;
     }
 
     // Add final space and closing separator
@@ -393,16 +381,12 @@ EXEC_BODY(program)
 //   Execution of a program evaluates all items in turn
 // ----------------------------------------------------------------------------
 {
-    byte  *p       = (byte *) o->payload();
-    size_t len     = leb128<size_t>(p);
-    result r       = OK;
-    size_t objsize = 0;
+    result r = OK;
 
-    for (object_g obj = object_p(p); len > 0; obj += objsize, len -= objsize)
+    for (object_g obj : *o)
     {
-        objsize = obj->size();
-        record(program, "Evaluating %+s at %p, size %u, %u remaining\n",
-               obj->fancy(), (object_p) obj, objsize, len);
+        record(program, "Evaluating %+s at %p, size %u\n",
+               obj->fancy(), (object_p) obj, obj->size());
         if (interrupted() || r != OK)
             break;
         r = obj->evaluate();
@@ -640,16 +624,14 @@ RENDER_BODY(equation)
 //   1 2 3 5 * + - 2 3 * +
 {
     size_t depth   = rt.depth();
-    byte_p p       = o->payload();
-    size_t size    = leb128<size_t>(p);
     bool   ok      = true;
-    size_t objsize = 0;
 
     // First push all things so that we have the outermost operators first
-    for (object_g obj = object_p(p); ok && size; size -= objsize, obj += objsize)
+    for (object_p obj : *o)
     {
-        objsize = obj->size();
         ok = rt.push(obj);
+        if (!ok)
+            break;
     }
 
     if (!ok)

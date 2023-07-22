@@ -68,6 +68,72 @@ struct list : text
         return rt.make<list>(bytes, len);
     }
 
+
+    // Iterator, built in a way that is robust to garbage collection in loops
+    struct iterator
+    {
+
+        typedef object_p value_type;
+        typedef size_t difference_type;
+
+        explicit iterator(list_p list, bool atend = false)
+            : first(object_p(list->value())),
+              size(list->length()),
+              index(atend ? size : 0) {}
+        explicit iterator(list_p list, size_t skip)
+            : first(object_p(list->value())),
+              size(list->length()),
+              index(0)
+        {
+            while (skip && index < size)
+            {
+                operator++();
+                skip--;
+            }
+        }
+
+    public:
+        iterator& operator++()
+        {
+            if (index < size)
+            {
+                object_p obj = first.Safe() + index;
+                size_t objsize = obj->size();
+                index += objsize;
+            }
+
+            return *this;
+        }
+        iterator operator++(int)
+        {
+            iterator prev = *this;
+            ++(*this);
+            return prev;
+        }
+        bool operator==(iterator other) const
+        {
+            return
+                index == other.index &&
+                first.Safe() == other.first.Safe() &&
+                size == other.size;
+        }
+        bool operator!=(iterator other) const
+        {
+            return !(*this == other);
+        }
+        value_type operator*() const
+        {
+            return first.Safe() + index;
+        }
+
+    public:
+        object_g first;
+        size_t   size;
+        size_t   index;
+    };
+    iterator begin() const      { return iterator(this); }
+    iterator end() const        { return iterator(this, true); }
+
 public:
     // Shared code for parsing and rendering, taking delimiters as input
     static result list_parse(id type, parser &p, unicode open, unicode close);

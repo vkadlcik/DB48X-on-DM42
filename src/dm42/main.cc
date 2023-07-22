@@ -34,7 +34,7 @@
 #include "font.h"
 #include "graphics.h"
 #include "user_interface.h"
-#include "list.h"
+#include "program.h"
 #include "num.h"
 #include "stack.h"
 #include "sysmenu.h"

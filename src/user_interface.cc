@@ -35,6 +35,7 @@
 #include "graphics.h"
 #include "list.h"
 #include "menu.h"
+#include "program.h"
 #include "runtime.h"
 #include "settings.h"
 #include "stack.h"

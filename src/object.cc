@@ -31,6 +31,7 @@
 
 #include "algebraic.h"
 #include "arithmetic.h"
+#include "array.h"
 #include "bignum.h"
 #include "catalog.h"
 #include "compare.h"
@@ -38,6 +39,7 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
+#include "equation.h"
 #include "font.h"
 #include "fraction.h"
 #include "functions.h"
@@ -48,6 +50,7 @@
 #include "loops.h"
 #include "menu.h"
 #include "parser.h"
+#include "program.h"
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"

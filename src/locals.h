@@ -64,7 +64,7 @@
   a local name.
  */
 
-#include "list.h"
+#include "program.h"
 
 
 GCP(locals);

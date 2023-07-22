@@ -31,9 +31,8 @@
 
 #include "arithmetic.h"
 #include "decimal128.h"
+#include "equation.h"
 #include "integer.h"
-#include "list.h"
-
 
 
 bool function::should_be_symbolic(id type)

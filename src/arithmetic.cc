@@ -33,6 +33,7 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
+#include "equation.h"
 #include "fraction.h"
 #include "functions.h"
 #include "integer.h"

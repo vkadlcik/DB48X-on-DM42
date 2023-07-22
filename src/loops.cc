@@ -47,7 +47,7 @@
 
 
 RECORDER(loop, 16, "Loops");
-RECORDER(loop_errors, 16, "Errors processing loops");
+RECORDER(loop_error, 16, "Errors processing loops");
 
 
 
@@ -297,7 +297,7 @@ intptr_t loop::object_renderer(renderer &r,
     if (loopvar)
     {
         if (p[0] != 1)
-            record(loop_errors, "Got %d variables instead of 1", p[0]);
+            record(loop_error, "Got %d variables instead of 1", p[0]);
         p++;
         namesz = leb128<size_t>(p);
         name = p;
@@ -738,7 +738,7 @@ SIZE_BODY(ForNext)
 {
     byte_p p = payload(o);
     if (p[0] != 1)
-        record(loop_errors, "Size got %d variables instead of 1", p[0]);
+        record(loop_error, "Size got %d variables instead of 1", p[0]);
     p++;
     size_t sz = leb128<size_t>(p);
     p += sz;
@@ -793,7 +793,7 @@ object::result ForNext::counted(object_p o, bool stepping)
 
     // Skip name
     if (p[0] != 1)
-        record(loop_errors, "Evaluating for-next loop with %u locals", p[0]);
+        record(loop_error, "Evaluating for-next loop with %u locals", p[0]);
     p += 1;
     size_t namesz = leb128<size_t>(p);
     p += namesz;

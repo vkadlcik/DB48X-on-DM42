@@ -31,7 +31,7 @@
 
 #include "file.h"
 #include "user_interface.h"
-#include "list.h"
+#include "program.h"
 #include "main.h"
 #include "object.h"
 #include "renderer.h"
@@ -366,7 +366,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
         {
             char ds = Settings.decimal_mark;
             Settings.decimal_mark = '.';
-            gcp<const program> cmds = program::parse(editor, edlen);
+            program_g cmds = program::parse(editor, edlen);
             Settings.decimal_mark = ds;
             if (cmds)
             {

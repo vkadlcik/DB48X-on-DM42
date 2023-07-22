@@ -39,7 +39,7 @@
 
 
 #include "command.h"
-#include "list.h"
+#include "program.h"
 
 
 struct loop : command

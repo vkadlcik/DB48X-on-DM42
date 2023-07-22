@@ -64,6 +64,9 @@ SOURCES +=                                      \
         ../src/catalog.cc                       \
         ../src/menu.cc                          \
         ../src/list.cc                          \
+        ../src/program.cc                       \
+        ../src/equation.cc                      \
+        ../src/array.cc                         \
         ../src/loops.cc                         \
 	../fonts/EditorFont.cc	                \
 	../fonts/HelpFont.cc	                \

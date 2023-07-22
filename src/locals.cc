@@ -28,10 +28,14 @@
 // ****************************************************************************
 
 #include "locals.h"
+
+#include "equation.h"
 #include "parser.h"
+#include "program.h"
 #include "renderer.h"
 #include "symbol.h"
 #include "utf8.h"
+
 #include <strings.h>
 
 

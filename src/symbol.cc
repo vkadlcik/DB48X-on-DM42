@@ -31,7 +31,7 @@
 
 #include "algebraic.h"
 #include "command.h"
-#include "list.h"
+#include "equation.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"

@@ -93,18 +93,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    step("Decimal polar form");
-    test(CLEAR, "0.1∡2.3", ENTER)
-        .type(object::ID_polar).expect("0.1∡2.3°");
-    test(CLEAR, "0.1∡2.3", CHS, ENTER)
-        .type(object::ID_polar).expect("0.1∡-2.3°");
-
-    step("Polar angle conversions");
-    test(CLEAR, "1∡90", ENTER).expect("1∡90°");
-    test("GRAD", ENTER).expect("1∡100ℊ");
-    test("PiRadians", ENTER).expect("1∡1/2π");
-    test("RAD", ENTER).expect("1∡1.57079 63267 94896 6192ℼ");
-
+    regression_checks();
 #if 0
     step("Testing sign of modulo for bignum");
 #define ZEROS "00000000000000000000"
@@ -1605,6 +1594,11 @@ void tests::regression_checks()
     step("Bug 116: Rounding of gamma(7) and gamma(8)");
     test(CLEAR, "7 gamma", ENTER).expect("720.");
     test(CLEAR, "8 gamma", ENTER).expect("5 040.");
+
+    step("Bug 168: pi no longer parses correctly");
+    test(CLEAR, "pi", ENTER).expect("π");
+    test(DOWN).editor("π");
+    test(ENTER).expect("π");
 }
 
 

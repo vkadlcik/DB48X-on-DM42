@@ -255,6 +255,7 @@ CMD(ForStep)
 
 CMD(Depth)
 NAMED(ToList, "→List")
+CMD(Get)
 
 NAMED(RealToComplex, "ℝ→ℂ")
 ALIAS(RealToComplex, "R→C")

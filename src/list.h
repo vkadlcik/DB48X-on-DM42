@@ -38,9 +38,10 @@
 //
 //   To save space, there is no explicit marker for the end of list
 
+#include "command.h"
 #include "object.h"
-#include "text.h"
 #include "symbol.h"
+#include "text.h"
 
 
 GCP(list);
@@ -119,7 +120,7 @@ struct list : text
         }
         value_type operator*() const
         {
-            return first.Safe() + index;
+            return index < size ? first.Safe() + index : nullptr;
         }
 
     public:
@@ -129,6 +130,11 @@ struct list : text
     };
     iterator begin() const      { return iterator(this); }
     iterator end() const        { return iterator(this, true); }
+
+    object_p operator[](size_t index) const
+    {
+        return *iterator(this, index);
+    }
 
 public:
     // Shared code for parsing and rendering, taking delimiters as input
@@ -141,5 +147,7 @@ public:
     RENDER_DECL(list);
 };
 typedef const list *list_p;
+
+COMMAND_DECLARE(Get);
 
 #endif // LIST_H

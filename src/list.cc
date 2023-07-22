@@ -404,3 +404,61 @@ COMMAND_BODY(ToList)
     }
     return ERROR;
 }
+
+
+COMMAND_BODY(Get)
+// ----------------------------------------------------------------------------
+//   Get an element in a list
+// ----------------------------------------------------------------------------
+{
+    uint32_t index = 0;
+    if (stack(&index))
+    {
+        if (object_p obj = rt.stack(1))
+        {
+            id ty = obj->type();
+            if (ty == ID_list || ty == ID_array)
+            {
+                list_p list = list_p(obj);
+                if (object_p obj = (*list)[index-1])
+                {
+                    if (rt.drop())
+                        if (rt.top(obj))
+                            return OK;
+                }
+                else
+                {
+                    rt.value_error();
+                }
+            }
+            else if (ty == ID_text)
+            {
+                text_p text = text_p(obj);
+                size_t sz = 0;
+                utf8 chars = text->value(&sz);
+                uint i;
+                for (i = 0; i < sz && i + 1 < index; i++)
+                    chars = utf8_next(chars);
+                if (index && i < sz)
+                {
+                    unicode cp = utf8_codepoint(chars);
+                    size_t cpsz = utf8_size(cp);
+                    text_g extracted = text::make(chars, cpsz);
+                    if (extracted)
+                        if (rt.drop())
+                            if (rt.top(extracted.Safe()))
+                                return OK;
+                }
+                else
+                {
+                    rt.value_error();
+                }
+            }
+            else
+            {
+                rt.type_error();
+            }
+        }
+    }
+    return ERROR;
+}

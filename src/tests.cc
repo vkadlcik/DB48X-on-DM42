@@ -93,7 +93,30 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    regression_checks();
+    begin("Current test: equations");
+    cstring eqn = "'X+1'";
+    test(CLEAR, XEQ, X, ENTER, KEY1, ADD).type(object::ID_equation).expect(eqn);
+    cstring eqn2 = "'sin(X+1)'";
+    test(SIN)
+        .type(object::ID_equation).expect(eqn2);
+    test(DOWN)
+        .editor(eqn2);
+    test(ENTER, 1, ADD).
+        type(object::ID_equation).expect("'sin(X+1)+1'");
+    step("Equation parsing and simplification");
+    test(CLEAR, "'(((A))+(B))-(C+D)'", ENTER)
+        .type(object::ID_equation)
+        .expect("'A+B-(C+D)'");
+    step("Equation fancy rendering");
+    test(CLEAR, XEQ, X, ENTER, INV,
+         XEQ, Y, ENTER, SHIFT, SQRT, XEQ, Z, ENTER,
+         "CUBED", ENTER, ADD, ADD, WAIT(100))
+        .type(object::ID_equation)
+        .expect("'X⁻¹+(Y²+Z³)'");
+    step("Equation fancy parsing from editor");
+    test(DOWN, "   ", SHIFT, SHIFT, DOWN, " 1 +", ENTER)
+        .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)+1'");
+
 #if 0
     step("Testing sign of modulo for bignum");
 #define ZEROS "00000000000000000000"

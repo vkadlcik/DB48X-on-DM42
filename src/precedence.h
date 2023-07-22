@@ -35,17 +35,19 @@ enum precedence
 // ----------------------------------------------------------------------------
 {
     NONE                = 0,    // No precedence
-    LOGICAL             = 1,    // and, or, xor
-    RELATIONAL          = 3,    // <, >, =, etc
-    ADDITIVE            = 5,    // +, -
-    MULTIPLICATIVE      = 7,    // *, /
-    POWER               = 9,    // ^
+    LOWEST              = 1,    // Lowest precedence (when parsing parentheses)
 
-    UNKNOWN             = 10,   // Unknown operator
-    PARENTHESES         = 20,   // Parentheses
-    FUNCTION            = 30,   // Functions, e.g. f(x)
-    FUNCTION_POWER      = 40,   // X²
-    SYMBOL              = 50,   // Names
+    LOGICAL             = 2,    // and, or, xor
+    RELATIONAL          = 4,    // <, >, =, etc
+    ADDITIVE            = 6,    // +, -
+    MULTIPLICATIVE      = 8,    // *, /
+    POWER               = 10,   // ^
+
+    UNKNOWN             = 20,   // Unknown operator
+    PARENTHESES         = 30,   // Parentheses
+    FUNCTION            = 40,   // Functions, e.g. f(x)
+    FUNCTION_POWER      = 50,   // X²
+    SYMBOL              = 60,   // Names
 };
 
 #endif // PRECEDENCE_H

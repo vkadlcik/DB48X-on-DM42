@@ -30,6 +30,7 @@
 #include "equation.h"
 
 #include "parser.h"
+#include "precedence.h"
 #include "renderer.h"
 
 
@@ -401,47 +402,4 @@ size_t equation::required_memory(id type, id op, algebraic_r x, algebraic_r y)
     size += leb128size(size);
     size += leb128size(type);
     return size;
-}
-
-
-int equation::precedence(id type)
-// ----------------------------------------------------------------------------
-//   Return the algebraic precedence associated to a given operation
-// ----------------------------------------------------------------------------
-{
-    switch(type)
-    {
-    case ID_And:
-    case ID_Or:
-    case ID_Xor:
-    case ID_NAnd:
-    case ID_NOr:        return 1;
-
-    case ID_Implies:
-    case ID_Equiv:
-    case ID_Excludes:   return 2;
-
-    case ID_TestSame:
-    case ID_TestLT:
-    case ID_TestEQ:
-    case ID_TestGT:
-    case ID_TestLE:
-    case ID_TestNE:
-    case ID_TestGE:     return 3;
-
-    case ID_add:
-    case ID_sub:        return 4;
-    case ID_mul:
-    case ID_div:
-    case ID_mod:
-    case ID_rem:        return 5;
-    case ID_sq:
-    case ID_cubed:
-    case ID_pow:        return 6;
-
-    case ID_fact:
-    case ID_inv:        return 999;
-
-    default:            return 0;
-    }
 }

@@ -60,9 +60,6 @@ struct equation : program
     object_p quoted(id type) const;
     static size_t size_in_equation(object_p obj);
 
-    static int precedence(id type);
-    static int precedence(object_p obj) { return precedence(obj->type()); }
-
     static equation_p make(algebraic_r x,
                            id type = ID_equation)
     {

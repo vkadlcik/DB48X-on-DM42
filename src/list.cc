@@ -122,9 +122,9 @@ object::result list::list_parse(id type,
                 bool parenthese = cp == '(';
                 if (parenthese  || infix || prefix)
                 {
-                    int childp = parenthese ? 1
-                        : infix ? equation::precedence(infix) + 1
-                        : 999;
+                    int childp = parenthese ? LOWEST
+                        : infix ? infix->precedence() + 1
+                        : SYMBOL;
                     parser child(p, s, childp);
                     unicode iopen = parenthese ? '(' : 0;
                     unicode iclose = parenthese ? ')' : 0;
@@ -207,14 +207,14 @@ object::result list::list_parse(id type,
                 {
                     prefix = obj;
                     obj = nullptr;
-                    precedence = -999;
+                    precedence = -SYMBOL;
                 }
             }
             else
             {
                 // We just parsed an infix, e.g. +, -, etc
                 // stash it, or exit loop if it has lower precedence
-                int objprec = equation::precedence(obj);
+                int objprec = obj->precedence();
                 if (objprec < lowest)
                     break;
                 if (!objprec)
@@ -222,7 +222,7 @@ object::result list::list_parse(id type,
                     rt.infix_expected_error();
                     return ERROR;
                 }
-                if (objprec < 999)
+                if (objprec < SYMBOL)
                 {
                     infix = obj;
                     precedence = -objprec;

@@ -58,7 +58,7 @@ struct logical : arithmetic
 };
 
 
-#define BINARY_LOGICAL(derived, code)                                   \
+#define BINARY_LOGICAL(derived, prec, code)                             \
 /* ----------------------------------------------------------------- */ \
 /*  Macro to define an arithmetic command                            */ \
 /* ----------------------------------------------------------------- */ \
@@ -68,7 +68,7 @@ struct derived : logical                                                \
                                                                         \
     OBJECT_DECL(derived);                                               \
     ARITY_DECL(2);                                                      \
-    PREC_DECL(LOGICAL);                                                 \
+    PREC_DECL(prec);                                                    \
     EVAL_DECL(derived)                                                  \
     {                                                                   \
         rt.command(fancy(ID_##derived));                                \
@@ -101,14 +101,14 @@ struct derived : logical                                                \
 }
 
 
-BINARY_LOGICAL(And,      Y &  X);
-BINARY_LOGICAL(Or,       Y |  X);
-BINARY_LOGICAL(Xor,      Y ^  X);
-BINARY_LOGICAL(NAnd,   ~(Y &  X));
-BINARY_LOGICAL(NOr,    ~(Y |  X));
-BINARY_LOGICAL(Implies, ~Y |  X);
-BINARY_LOGICAL(Equiv,  ~(Y ^  X));
-BINARY_LOGICAL(Excludes, Y & ~X); // If Y then X=0
+BINARY_LOGICAL(And,      LOGICAL,       Y &  X);
+BINARY_LOGICAL(Or,       LOGICAL,       Y |  X);
+BINARY_LOGICAL(Xor,      LOGICAL,       Y ^  X);
+BINARY_LOGICAL(NAnd,     LOGICAL,     ~(Y &  X));
+BINARY_LOGICAL(NOr,      LOGICAL,     ~(Y |  X));
+BINARY_LOGICAL(Implies,  RELATIONAL,   ~Y |  X);
+BINARY_LOGICAL(Equiv,    RELATIONAL,  ~(Y ^  X));
+BINARY_LOGICAL(Excludes, RELATIONAL,    Y & ~X); // If Y then X=0
 UNARY_LOGICAL (Not,          ~X);
 
 #endif // LOGICAL_H

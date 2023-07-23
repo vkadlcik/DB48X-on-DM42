@@ -41,10 +41,19 @@ struct array : list
     array(gcbytes bytes, size_t len, id type = ID_array)
         : list(bytes, len, type) {}
 
+
+
 public:
     OBJECT_DECL(array);
     PARSE_DECL(array);
     RENDER_DECL(array);
 };
+
+
+array_g operator-(array_r x);
+array_g operator+(array_r x, array_r y);
+array_g operator-(array_r x, array_r y);
+array_g operator*(array_r x, array_r y);
+array_g operator/(array_r x, array_r y);
 
 #endif // ARRAY_H

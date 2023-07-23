@@ -64,17 +64,14 @@ COMMAND(DupN)
 //   Implement the RPL "dupN" command, duplicate two elements at top of stack
 // ----------------------------------------------------------------------------
 {
-    uint32_t depth = 0;
-    if (stack(&depth))
+    uint32_t depth = uint32_arg();
+    if (!rt.error() && rt.pop())
     {
-        if (rt.pop())
-        {
-            for (uint i = 0; i < depth; i++)
-                if (object_p obj = rt.stack(depth-1))
-                    if (!rt.push(obj))
-                        return ERROR;
-            return OK;
-        }
+        for (uint i = 0; i < depth; i++)
+            if (object_p obj = rt.stack(depth-1))
+                if (!rt.push(obj))
+                    return ERROR;
+        return OK;
     }
     return ERROR;
 }
@@ -107,8 +104,8 @@ COMMAND(DropN)
 //   Implement the DropN command, remove N elements from the stack
 // ----------------------------------------------------------------------------
 {
-    uint32_t depth = 0;
-    if (stack(&depth))
+    uint32_t depth = uint32_arg();
+    if (!rt.error())
         if (rt.pop())
             if (rt.drop(depth))
                 return OK;
@@ -133,8 +130,8 @@ COMMAND(Pick)
 //   Implement the Pick command, getting from level N
 // ----------------------------------------------------------------------------
 {
-    uint32_t depth = 0;
-    if (stack(&depth))
+    uint32_t depth = uint32_arg();
+    if (!rt.error())
         if (object_p obj = rt.stack(depth))
             if (rt.top(obj))
                 return OK;
@@ -147,8 +144,8 @@ COMMAND(Roll)
 //   Implement the Roll command, moving objects from high stack level down
 // ----------------------------------------------------------------------------
 {
-    uint32_t depth = 0;
-    if (stack(&depth))
+    uint32_t depth = uint32_arg();
+    if (!rt.error())
         if (rt.pop())
             if (rt.roll(depth))
                 return OK;
@@ -161,8 +158,8 @@ COMMAND(RollD)
 //   Implement the RollD command, moving objects from first level up
 // ----------------------------------------------------------------------------
 {
-    uint32_t depth = 0;
-    if (stack(&depth))
+    uint32_t depth = uint32_arg();
+    if (!rt.error())
         if (rt.pop())
             if (rt.rolld(depth))
                 return OK;

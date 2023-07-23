@@ -80,6 +80,7 @@ void tests::run(bool onlyCurrent)
         complex_types();
         complex_arithmetic();
         complex_functions();
+        list_functions();
         regression_checks();
     }
     summary();
@@ -93,29 +94,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    begin("Current test: equations");
-    cstring eqn = "'X+1'";
-    test(CLEAR, XEQ, X, ENTER, KEY1, ADD).type(object::ID_equation).expect(eqn);
-    cstring eqn2 = "'sin(X+1)'";
-    test(SIN)
-        .type(object::ID_equation).expect(eqn2);
-    test(DOWN)
-        .editor(eqn2);
-    test(ENTER, 1, ADD).
-        type(object::ID_equation).expect("'sin(X+1)+1'");
-    step("Equation parsing and simplification");
-    test(CLEAR, "'(((A))+(B))-(C+D)'", ENTER)
-        .type(object::ID_equation)
-        .expect("'A+B-(C+D)'");
-    step("Equation fancy rendering");
-    test(CLEAR, XEQ, X, ENTER, INV,
-         XEQ, Y, ENTER, SHIFT, SQRT, XEQ, Z, ENTER,
-         "CUBED", ENTER, ADD, ADD, WAIT(100))
-        .type(object::ID_equation)
-        .expect("'X⁻¹+(Y²+Z³)'");
-    step("Equation fancy parsing from editor");
-    test(DOWN, "   ", SHIFT, SHIFT, DOWN, " 1 +", ENTER)
-        .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)+1'");
+    list_functions();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -1605,6 +1584,46 @@ void tests::complex_functions()
     test(CLEAR, "a+bⅈ conj", ENTER).expect("a+'-b'ⅈ");
     test(CLEAR, "31 conj", ENTER).expect("31");
     test(CLEAR, "31.234 conj", ENTER).expect("31.234");
+}
+
+
+void tests::list_functions()
+// ----------------------------------------------------------------------------
+//   Some operations on lists
+// ----------------------------------------------------------------------------
+{
+    begin("List GET operations");
+    step("Integer index");
+    test(CLEAR, "{ A B C }", ENTER, "2 GET", ENTER)
+        .expect("B");
+    step("Real index");
+    test(CLEAR, "{ A B C }", ENTER, "2.3 GET", ENTER)
+        .expect("B");
+    step("Bad index type");
+    test(CLEAR, "{ A B C }", ENTER, "\"A\" GET", ENTER)
+        .error("Bad argument type");
+    step("Out-of-range index");
+    test(CLEAR, "{ A B C }", ENTER, "5 GET", ENTER)
+        .error("Index out of range");
+    step("Empty list index");
+    test(CLEAR, "{ A B C }", ENTER, "{} GET", ENTER)
+        .expect("{ A B C }");
+    step("Single element list index");
+    test(CLEAR, "{ A B C }", ENTER, "{2} GET", ENTER)
+        .expect("B");
+    step("List index nested");
+    test(CLEAR, "{ A {D E F} C }", ENTER, "{2 3} GET", ENTER)
+        .expect("F");
+    step("List index, too many items");
+    test(CLEAR, "{ A B C }", ENTER, "{2 3} GET", ENTER)
+        .error("Bad argument type");
+    step("Character from array");
+    test(CLEAR, "\"Hello World\"", ENTER, "2 GET", ENTER)
+        .expect("\"e\"");
+    step("Deep nesting");
+    test(CLEAR, "{ A { D E { 1 2 \"Hello World\" } F } 2 3 }", ENTER,\
+         "{ 2 3 3 5 } GET", ENTER)
+        .expect("\"o\"");
 }
 
 

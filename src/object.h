@@ -350,6 +350,19 @@ struct object
     }
 
 
+    uint32_t as_uint32(uint32_t def = 0, bool err = true) const;
+    int32_t  as_int32 (int32_t  def = 0, bool err = true)  const;
+    // ------------------------------------------------------------------------
+    //   Return the object as an integer, possibly erroring out for bad type
+    // ------------------------------------------------------------------------
+
+
+    object_p at(size_t index, bool err = true) const;
+    // ------------------------------------------------------------------------
+    //   Extract a subobject at given index, works for list, array and text
+    // ------------------------------------------------------------------------
+
+
     result insert(user_interface &i) const
     // ------------------------------------------------------------------------
     //   Insert in the editor at cursor position, with possible offset

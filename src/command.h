@@ -69,8 +69,8 @@ struct command : object
     static bool is_separator_or_digit(utf8 str);
 
     // Get the top of the stack as an integer
-    static bool stack(uint32_t *result, uint level = 0);
-    static bool stack(int32_t  *result, uint level = 0);
+    static uint32_t uint32_arg(uint level = 0);
+    static int32_t  int32_arg (uint level = 0);
 
     // Execute a command
     static result evaluate()    { return OK; }

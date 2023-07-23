@@ -40,7 +40,7 @@
 
 #include "algebraic.h"
 #include "runtime.h"
-#include "text.h"
+#include "utf8.h"
 
 
 GCP(text);
@@ -107,6 +107,109 @@ struct text : algebraic
     }
 
     text_p import() const;      // Import text containing << or >> or ->
+
+    // Iterator, built in a way that is robust to garbage collection in loops
+    struct iterator
+    {
+        typedef unicode value_type;
+        typedef size_t difference_type;
+
+        explicit iterator(text_p text, bool atend = false)
+            : first(byte_p(text->value())),
+              size(text->length()),
+              index(atend ? size : 0) {}
+        explicit iterator(text_p text, size_t skip)
+            : first(byte_p(text->value())),
+              size(text->length()),
+              index(0)
+        {
+            while (skip && index < size)
+            {
+                operator++();
+                skip--;
+            }
+        }
+
+    public:
+        iterator& operator++()
+        {
+            if (index < size)
+            {
+                utf8 p = first.Safe() + index;
+                p = utf8_next(p);
+                index = p - first.Safe();
+            }
+
+            return *this;
+        }
+        iterator operator++(int)
+        {
+            iterator prev = *this;
+            ++(*this);
+            return prev;
+        }
+        bool operator==(iterator other) const
+        {
+            return
+                index == other.index &&
+                first.Safe() == other.first.Safe() &&
+                size == other.size;
+        }
+        bool operator!=(iterator other) const
+        {
+            return !(*this == other);
+        }
+        value_type operator*() const
+        {
+            return index < size ? utf8_codepoint(first.Safe() + index) : 0;
+        }
+
+        text_g as_text() const
+        {
+            if (index < size)
+            {
+                utf8 p = first.Safe() + index;
+                utf8 n = utf8_next(p);
+                return text::make(p, n - p);
+            }
+            return text::make(utf8(""), 0);
+        }
+
+    public:
+        gcutf8 first;
+        size_t size;
+        size_t index;
+    };
+    iterator begin() const      { return iterator(this); }
+    iterator end() const        { return iterator(this, true); }
+
+    size_t items() const
+    // ------------------------------------------------------------------------
+    //   Return number of items in the text (codepoints)
+    // ------------------------------------------------------------------------
+    {
+        size_t result = 0;
+        for (unicode cp UNUSED : *this)
+            result++;
+        return result;
+    }
+
+    unicode operator[](size_t index) const
+    // ------------------------------------------------------------------------
+    //   Return the n-th element in the list
+    // ------------------------------------------------------------------------
+    {
+        return *iterator(this, index);
+    }
+
+    text_g at(size_t index) const
+    // ------------------------------------------------------------------------
+    //   Return the n-th element in the list as a text
+    // ------------------------------------------------------------------------
+    {
+        return iterator(this, index).as_text();
+    }
+
 
 public:
     OBJECT_DECL(text);

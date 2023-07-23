@@ -208,6 +208,117 @@ text_p object::as_text(bool edit, bool equation) const
 }
 
 
+uint32_t object::as_uint32(uint32_t def, bool err) const
+// ----------------------------------------------------------------------------
+//   Return the given object as an uint32
+// ----------------------------------------------------------------------------
+//   def is the default value if no valid value comes from object
+//   err indicates if we error out in that case
+{
+    id ty = type();
+    switch(ty)
+    {
+    case ID_integer:
+        return integer_p(this)->value<uint32_t>();
+    case ID_neg_integer:
+        if (err)
+            rt.value_error();
+        return def;
+    case ID_decimal128:
+    {
+        uint result = def;
+        bid128 v = decimal128_p(this)->value();
+        bid128_to_uint32_int(&result, &v.value);
+        return result;
+    }
+    case ID_decimal64:
+    {
+        uint result = def;
+        bid64 v = decimal64_p(this)->value();
+        bid64_to_uint32_int(&result, &v.value);
+        return result;
+    }
+    case ID_decimal32:
+    {
+        uint result = def;
+        bid32 v = decimal32_p(this)->value();
+        bid32_to_uint32_int(&result, &v.value);
+        return result;
+    }
+    default:
+        if (err)
+            rt.type_error();
+        return def;
+    }
+}
+
+
+int32_t object::as_int32 (int32_t  def, bool err)  const
+// ----------------------------------------------------------------------------
+//   Return the given object as an int32
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    switch(ty)
+    {
+    case ID_integer:
+        return integer_p(this)->value<uint32_t>();
+    case ID_neg_integer:
+        return  -integer_p(this)->value<uint32_t>();
+    case ID_decimal128:
+    {
+        int result = def;
+        bid128 v = decimal128_p(this)->value();
+        bid128_to_int32_int(&result, &v.value);
+        return result;
+    }
+    case ID_decimal64:
+    {
+        int result = def;
+        bid64 v = decimal64_p(this)->value();
+        bid64_to_int32_int(&result, &v.value);
+        return result;
+    }
+    case ID_decimal32:
+    {
+        int result = def;
+        bid32 v = decimal32_p(this)->value();
+        bid32_to_int32_int(&result, &v.value);
+        return result;
+    }
+    default:
+        if (err)
+            rt.type_error();
+        return def;
+    }
+}
+
+
+object_p object::at(size_t index, bool err) const
+// ----------------------------------------------------------------------------
+//   Return item at given index, works for list, array or text
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    object_p result = nullptr;
+    switch(ty)
+    {
+    case ID_list:
+    case ID_array:
+        result = list_p(this)->at(index); break;
+    case ID_text:
+        result = text_p(this)->at(index); break;
+    default:
+        if (err)
+            rt.type_error();
+    }
+    // Check if we index beyond what is in the object
+    if (err && !result && !rt.error())
+        rt.index_error();
+    return result;
+}
+
+
 void object::object_error(id type, object_p ptr)
 // ----------------------------------------------------------------------------
 //    Report an error in an object

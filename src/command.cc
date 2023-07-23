@@ -205,87 +205,25 @@ bool command::is_separator_or_digit(unicode code)
 }
 
 
-bool command::stack(uint32_t *result, uint level)
+uint32_t command::uint32_arg(uint level)
 // ----------------------------------------------------------------------------
 //   Get an unsigned value from the stack
 // ----------------------------------------------------------------------------
 {
     if (object_p d = rt.stack(level))
-    {
-        id type = d->type();
-        switch(type)
-        {
-        case ID_integer:
-            *result = integer_p(d)->value<uint32_t>();
-            return true;
-        case ID_neg_integer:
-            *result = 0;
-            return true;
-        case ID_decimal128:
-        {
-            bid128 v = decimal128_p(d)->value();
-            bid128_to_uint32_int((uint *) result, &v.value);
-            return true;
-        }
-        case ID_decimal64:
-        {
-            bid64 v = decimal64_p(d)->value();
-            bid64_to_uint32_int((uint *) result, &v.value);
-            return true;
-        }
-        case ID_decimal32:
-        {
-            bid32 v = decimal32_p(d)->value();
-            bid32_to_uint32_int((uint *) result, &v.value);
-            return true;
-        }
-        default:
-            rt.type_error();
-        }
-    }
-    return false;
+        return d->as_uint32(0, true);
+    return 0;
 }
 
 
-bool command::stack(int32_t *result, uint level)
+int32_t command::int32_arg(uint level)
 // ----------------------------------------------------------------------------
 //   Get a signed value from the stack
 // ----------------------------------------------------------------------------
 {
     if (object_p d = rt.stack(level))
-    {
-        id type = d->type();
-        switch(type)
-        {
-        case ID_integer:
-            *result = integer_p(d)->value<uint32_t>();
-            return true;
-        case ID_neg_integer:
-            *result = -integer_p(d)->value<uint32_t>();
-            return true;
-        case ID_decimal128:
-        {
-            bid128 v = decimal128_p(d)->value();
-            bid128_to_int32_int((int *) result, &v.value);
-            return true;
-        }
-        case ID_decimal64:
-        {
-            bid64 v = decimal64_p(d)->value();
-            bid64_to_int32_int((int *) result, &v.value);
-            return true;
-        }
-        case ID_decimal32:
-        {
-            bid32 v = decimal32_p(d)->value();
-            bid32_to_int32_int((int *) result, &v.value);
-            return true;
-        }
-        default:
-            rt.type_error();
-        }
-    }
-    return false;
+        return d->as_int32(0, true);
+    return 0;
 }
 
 

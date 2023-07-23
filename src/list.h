@@ -131,10 +131,73 @@ struct list : text
     iterator begin() const      { return iterator(this); }
     iterator end() const        { return iterator(this, true); }
 
+
+    size_t items() const
+    // ------------------------------------------------------------------------
+    //   Return number of items in the list
+    // ------------------------------------------------------------------------
+    {
+        size_t result = 0;
+        for (object_p obj UNUSED : *this)
+            result++;
+        return result;
+    }
+
+
+    size_t expand() const
+    // ------------------------------------------------------------------------
+    //   Expand items to the stack, and return number of them
+    // ------------------------------------------------------------------------
+    {
+        size_t result = 0;
+        for (object_p obj : *this)
+        {
+            if (!rt.push(obj))
+            {
+                if (result)
+                    rt.drop(result);
+                return 0;
+            }
+            result++;
+        }
+        return result;
+    }
+
+
     object_p operator[](size_t index) const
+    // ------------------------------------------------------------------------
+    //   Return the n-th element in the list
+    // ------------------------------------------------------------------------
+    {
+        return at(index);
+    }
+
+
+    object_p at(size_t index) const
+    // ------------------------------------------------------------------------
+    //   Return the n-th element in the list
+    // ------------------------------------------------------------------------
     {
         return *iterator(this, index);
     }
+
+
+    template<typename ...args>
+    object_p at(size_t index, args... rest) const
+    // ------------------------------------------------------------------------
+    //   N-dimensional array access
+    // ------------------------------------------------------------------------
+    {
+        object_p inner = at(index);
+        if (!inner)
+            return nullptr;
+        id type = inner->type();
+        if (type != ID_array && type != ID_list)
+            return nullptr;
+        list_p list = list_p(inner);
+        return list->at(rest...);
+    }
+
 
 public:
     // Shared code for parsing and rendering, taking delimiters as input

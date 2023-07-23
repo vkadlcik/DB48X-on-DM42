@@ -375,8 +375,8 @@ COMMAND_BODY(ToList)
 //   Convert elements to a list
 // ----------------------------------------------------------------------------
 {
-    uint32_t depth = 0;
-    if (stack(&depth))
+    uint32_t depth = uint32_arg();
+    if (!rt.error())
     {
         if (rt.depth() < depth + 1)
         {
@@ -413,53 +413,35 @@ COMMAND_BODY(Get)
 //   Get an element in a list
 // ----------------------------------------------------------------------------
 {
-    uint32_t index = 0;
-    if (stack(&index))
+    // Check we have an object at level 2
+    if (object_p items = rt.stack(1))
     {
-        if (object_p obj = rt.stack(1))
+        if (object_p index = rt.stack(0))
         {
-            id ty = obj->type();
-            if (ty == ID_list || ty == ID_array)
+            id idxty = index->type();
+            if (idxty == ID_list || idxty == ID_array)
             {
-                list_p list = list_p(obj);
-                if (object_p obj = (*list)[index-1])
+                list_p ilist = list_p(index);
+                for (object_p i : *ilist)
                 {
-                    if (rt.drop())
-                        if (rt.top(obj))
+                    uint32_t ival = i->as_uint32();
+                    if (rt.error())
+                        return ERROR;
+                    items = items->at(ival-1);
+                    if (!items)
+                        return ERROR;
+                }
+                if (rt.pop())
+                    if (rt.top(items))
+                        return OK;
+            }
+
+            uint32_t i = index->as_uint32();
+            if (!rt.error())
+                if (object_p item = items->at(i-1))
+                    if (rt.pop())
+                        if (rt.top(item))
                             return OK;
-                }
-                else
-                {
-                    rt.value_error();
-                }
-            }
-            else if (ty == ID_text)
-            {
-                text_p text = text_p(obj);
-                size_t sz = 0;
-                utf8 chars = text->value(&sz);
-                uint i;
-                for (i = 0; i < sz && i + 1 < index; i++)
-                    chars = utf8_next(chars);
-                if (index && i < sz)
-                {
-                    unicode cp = utf8_codepoint(chars);
-                    size_t cpsz = utf8_size(cp);
-                    text_g extracted = text::make(chars, cpsz);
-                    if (extracted)
-                        if (rt.drop())
-                            if (rt.top(extracted.Safe()))
-                                return OK;
-                }
-                else
-                {
-                    rt.value_error();
-                }
-            }
-            else
-            {
-                rt.type_error();
-            }
         }
     }
     return ERROR;

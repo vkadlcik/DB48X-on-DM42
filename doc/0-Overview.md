@@ -252,7 +252,7 @@ There are a number of intentional differences in design compared to the HP48:
   using. Information for that help system is stored using a regular *markdown*
   file named `/HELP/DB48X.md`, stored in the calculator's flash storage.
 
-* DB48X will feature auto-completion for commands while typing, through
+* DB48X features auto-completion for commands while typing, through
   the  _Catalog_ key ([CatalogMenu](#CatalogMenu)).
 
 * Many RPL words exist in short and long form, and a user preference selects how
@@ -262,23 +262,30 @@ There are a number of intentional differences in design compared to the HP48:
 
 * The DB48X dialect of RPL is not case sensitive, but it is case-respecting.
   For example, if your preference is to display built-in functions in long form,
-  typing `inv` or `INV` will show up as `Invert` in the resulting program. If
-  you have a named variable called `FooBar`, typing `foobar` will still show
-  `FooBar` in the program.
+  typing `inv` or `INV` will show up as `Invert` in the resulting program.
+  This means that the space of "reserved words" is larger in DB48X than in other
+  RPL implementations. Notably, on HP's implementations, `DUP` is a keyword but
+  you can use `DuP` as a valid variable name. This is not possible in DB48X.
 
 * Internally, the calculator deals with various representations for
   numbers. Notably, it keeps integer values and fractions in exact form for
   as long as possible to optimize both performance and memory usage.
+  This is somewhat similar to what the HP49 and HP50 implemented, where there is
+  a difference between `2` (where `TYPE` returns 28) and `2.` (where `TYPE`
+  return 0).
 
 * The calculator features at least 3 floating-point precisions using 32-bit,
   64-bit and 128-bit respectively, provided by the DMCP's existing Intel Binary
   Decimal Floating-Point library. The 128-bit format gives the calculator 34
   significant digits of precision, like the DM42. DB48X may support other
-  formats in the future, like the extended floating-point found in newRPL.
+  formats in the future, like the arbitrary-precision floating-point found in
+  newRPL.
 
-* Based numbers like `#123h` keep their base, which makes it possible to show on
-  stack binary and decimal numbers side by side. Mixed operations convert to the
-  base in stack level X, so that `#10d #A0h +` evaluates as `#AAh`.
+* Based numbers with an explicit base, like `#123h` keep their base, which makes
+  it possible to show on stack binary and decimal numbers side by side. Mixed
+  operations convert to the base in stack level X, so that `#10d #A0h +`
+  evaluates as `#AAh`. Based numbers without an explicit base change base
+  depending on the `Base` setting, much like based numbers on the HP48.
 
 * The storage of data in memory uses a denser format than on the HP48.
   Therefore, objects will almost always use less space on DB48X. Notably, the
@@ -311,6 +318,31 @@ There are a number of intentional differences in design compared to the HP48:
   replaced with a system that works well with FAT USB storage. It should be
   possible to directly use a part of the flash storage to store RPL programs,
   either in source or compiled form.
+
+* On DB48X, vectors like `[ 1 2 3 ]` are very similar to lists. The primary
+  difference is the behavior in the presence of arithmetic operators.
+  On lists, addition is concatenation, e.g. `{ 1 2 3} { 4 5 6} +` is
+  `{ 1 2 3 4 5 6 }`, whereas on vectors represents vector addition, e.g.
+  `[1 2 3] [4 5 6] +` is `[5 7 9]`. However, unlike on the HP original
+  implementation, a vector can contain any type of object, so that you can
+  do `[ "ABC" "DEF" ] [ "GHI" "JKL" ] +` and obtain `[ "ABCGHI" "DEFJKL" ]`.
+
+* Size enforcement on vectors only happens _during these operations_, not while
+  you enter vectors from the command line. It is legal in DB48X to have a
+  non-rectangular array like `[[1 2 3] [4 5]]`, or even an array with mixed
+  objects like `[ "ABC" 3 ]`. Size or type errors on such objects may occur
+  if/when arithmetic operations are performed.
+
+* In particular, a matrix is nothing but a vector of vectors. DB48X also
+  supports arrays with dimensions higher than 2, like `[[[1 2 3]]]`.
+
+* As a consequence, The `GET` and `GETI` functions work differently on
+  matrices. Consider a matrix like `[[ 7 8 9 ][ 4 5 6 ][ 1 2 3 ]]`. On the HP48,
+  running `1 GET` on this object gives `7`, and the valid range of index values
+  is 1 through 9. On DB48X, that object is considered as an array of vectors, so
+  `1 GET` returns `[7 8 9]`.  This is intentional. The behavior of `{ 1 1 } GET`
+  is identical on both platforms, and is extended to multi-dimensional arrays,
+  so that `[[[4 5 6]]] { 1 1 2 } GET` returns `5`.
 
 
 ## Help

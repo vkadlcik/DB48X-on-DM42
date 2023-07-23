@@ -148,9 +148,37 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
 //   - Text + object: Concatenation of text + object text
 //   - Object + text: Concatenation of object text + text
 {
+    // text + ...
     if (text_g xs = x->as<text>())
+    {
+        // text + text
         if (text_g ys = y->as<text>())
             return xs + ys;
+        // text + object
+        if (text_g ys = y->as_text())
+            return xs + ys;
+    }
+    // ... + text
+    else if (text_g ys = y->as<text>())
+    {
+        // object + text
+        if (text_g xs = x->as_text())
+            return xs + ys;
+    }
+
+    // list + ...
+    else if (list_g xl = x->as<list>())
+    {
+        if (list_g yl = y->as<list>())
+            return xl + yl;
+        if (list_g yl = rt.make<list>(byte_p(y.Safe()), y->size()))
+            return xl + yl;
+    }
+    else if (list_g yl = y->as<list>())
+    {
+        if (list_g xl = rt.make<list>(byte_p(x.Safe()), x->size()))
+            return xl + yl;
+    }
 
     // Not yet implemented
     return nullptr;
@@ -313,6 +341,12 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
     if (text_g ys = y->as<text>())
         if (integer_g xi = x->as<integer>())
             return ys * xi->value<uint>();
+    if (list_g xl = x->as<list>())
+        if (integer_g yi = y->as<integer>())
+            return xl * yi->value<uint>();
+    if (list_g yl = y->as<list>())
+        if (integer_g xi = x->as<integer>())
+            return yl * xi->value<uint>();
 
     // Not yet implemented
     return nullptr;

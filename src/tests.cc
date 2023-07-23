@@ -81,6 +81,7 @@ void tests::run(bool onlyCurrent)
         complex_arithmetic();
         complex_functions();
         list_functions();
+        text_functions();
         regression_checks();
     }
     summary();
@@ -95,6 +96,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     list_functions();
+    text_functions();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -1592,7 +1594,7 @@ void tests::list_functions()
 //   Some operations on lists
 // ----------------------------------------------------------------------------
 {
-    begin("List GET operations");
+    begin("List operations");
     step("Integer index");
     test(CLEAR, "{ A B C }", ENTER, "2 GET", ENTER)
         .expect("B");
@@ -1624,6 +1626,50 @@ void tests::list_functions()
     test(CLEAR, "{ A { D E { 1 2 \"Hello World\" } F } 2 3 }", ENTER,\
          "{ 2 3 3 5 } GET", ENTER)
         .expect("\"o\"");
+
+    step("Array indexing");
+    test(CLEAR, "[ A [ D E [ 1 2 \"Hello World\" ] F ] 2 3 ]", ENTER,\
+         "[ 2 3 3 5 ] GET", ENTER)
+        .expect("\"o\"");
+
+    step("Concatenation of lists");
+    test(CLEAR, "{ A B C D } { F G H I } +", ENTER)
+        .expect("{ A B C D F G H I }");
+    step("Concatenation of item to list");
+    test(CLEAR, "{ A B C D } 2.3 +", ENTER)
+        .expect("{ A B C D 2.3 }");
+    test(CLEAR, "2.5 { A B C D } +", ENTER)
+        .expect("{ 2.5 A B C D }");
+
+    step("Repetition of a list");
+    test(CLEAR, "{ A B C D } 3 *", ENTER)
+        .expect("{ A B C D A B C D A B C D }");
+    test(CLEAR, "3 { A B C D } *", ENTER)
+        .expect("{ A B C D A B C D A B C D }");
+}
+
+
+void tests::text_functions()
+// ----------------------------------------------------------------------------
+//   Some operations on text
+// ----------------------------------------------------------------------------
+{
+    begin("Text operations");
+    step("Concatenation of text");
+    test(CLEAR, "\"Hello \" \"World\" +", ENTER)
+        .expect("\"Hello World\"");
+    step("Concatenation of text and object");
+    test(CLEAR, "\"Hello \" 2.3 +", ENTER)
+        .expect("\"Hello 2.3\"");
+    step("Concatenation of object and text");
+    test(CLEAR, "2.3 \"Hello \" +", ENTER)
+        .expect("\"2.3Hello \"");
+
+    step("Repeating text");
+    test(CLEAR, "\"AbC\" 3 *", ENTER)
+        .expect("\"AbCAbCAbC\"");
+    test(CLEAR, "3 \"AbC\" *", ENTER)
+        .expect("\"AbCAbCAbC\"");
 }
 
 

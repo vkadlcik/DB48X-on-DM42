@@ -96,17 +96,18 @@ RENDER_BODY(text)
 
 text_g operator+(text_r x, text_r y)
 // ----------------------------------------------------------------------------
-//   Concatenate two texts
+//   Concatenate two texts or lists
 // ----------------------------------------------------------------------------
 {
     if (!x.Safe())
         return y;
     if (!y.Safe())
         return x;
+    object::id type = x->type();
     size_t sx = 0, sy = 0;
     utf8 tx = x->value(&sx);
     utf8 ty = y->value(&sy);
-    text_g concat = rt.make<text>(text::ID_text, tx, sx + sy);
+    text_g concat = rt.make<text>(type, tx, sx + sy);
     if (concat)
     {
         utf8 tc = concat->value();
@@ -121,7 +122,7 @@ text_g operator*(text_r xr, uint y)
 //    Repeat the text a given number of times
 // ----------------------------------------------------------------------------
 {
-    text_g result = rt.make<text>(text::ID_text, xr->value(), 0);
+    text_g result = rt.make<text>(xr->type(), xr->value(), 0);
     text_g x = xr;
     while (y)
     {

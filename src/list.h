@@ -213,4 +213,24 @@ typedef const list *list_p;
 
 COMMAND_DECLARE(Get);
 
+inline list_g operator+(list_r x, list_r y)
+// ----------------------------------------------------------------------------
+//   Concatenate two lists, leveraging text concatenation
+// ----------------------------------------------------------------------------
+{
+    text_r xt = (text_r) x;
+    text_r yt = (text_r) y;
+    return list_p((xt + yt).Safe());
+}
+
+
+inline list_g operator*(list_r x, uint y)
+// ----------------------------------------------------------------------------
+//    Repeat a list, leveraging text repetition
+// ----------------------------------------------------------------------------
+{
+    text_r xt = (text_r) x;
+    return list_p((xt * y).Safe());
+}
+
 #endif // LIST_H

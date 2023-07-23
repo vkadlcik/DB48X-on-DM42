@@ -188,7 +188,9 @@ object::result list::list_parse(id type,
         if (!obj)
             return ERROR;
 
-        if (precedence && !postfix && obj->type() != ID_symbol)
+        id otype = obj->type();
+        if (precedence && !postfix &&
+            otype != ID_symbol && otype != ID_pi && otype != ID_ImaginaryUnit)
         {
             // We are parsing an equation
             if (precedence > 0)

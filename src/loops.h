@@ -40,6 +40,7 @@
 
 #include "command.h"
 #include "program.h"
+#include "symbol.h"
 
 
 struct loop : command

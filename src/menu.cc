@@ -365,7 +365,7 @@ MENU(MatrixMenu,
      "→Diag",   ID_Unimplemented,
      "Idnty",   ID_Unimplemented,
      "Resid",   ID_Unimplemented,
-     "Norm",    ID_Unimplemented,
+     "Norm",    ID_abs,
      "RowNrm",  ID_Unimplemented,
      "ColNrm",  ID_Unimplemented);
 

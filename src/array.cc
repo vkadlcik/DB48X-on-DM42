@@ -29,12 +29,11 @@
 
 #include "array.h"
 #include "arithmetic.h"
+#include "functions.h"
+
 
 RECORDER(matrix, 16, "Determinant computation");
 RECORDER(matrix_error, 16, "Errors in matrix computations");
-
-
-
 RECORDER(det, 16, "Determinant computation");
 
 
@@ -537,6 +536,45 @@ algebraic_g array::determinant() const
 err:
     rt.drop(rt.depth() - depth);
     return nullptr;
+}
+
+
+algebraic_g array::norm_square() const
+// ----------------------------------------------------------------------------
+//   Compute the square of the norm of a matrix or vector
+// ----------------------------------------------------------------------------
+{
+    algebraic_g sum;
+    for (object_p obj : *this)
+    {
+        id oty = obj->type();
+        if (oty == ID_array)
+        {
+            algebraic_g enorm2 = array_p(obj)->norm_square();
+            sum = sum ? sum + enorm2 : enorm2;
+        }
+        else if (algebraic_g elem = obj->as_algebraic())
+        {
+            elem = sq::run(elem);
+            sum = sum ? sum + elem : elem;
+        }
+        else
+        {
+            rt.type_error();
+            return nullptr;
+        }
+    }
+    return sum;
+}
+
+
+algebraic_g array::norm() const
+// ----------------------------------------------------------------------------
+//   Compute the square of the norm of a matrix or vector
+// ----------------------------------------------------------------------------
+{
+    algebraic_g sq = norm_square();
+    return sqrt::run(sq);
 }
 
 

@@ -68,6 +68,8 @@ struct array : list
                              dimension_fn d, vector_fn v, matrix_fn m);
 
     algebraic_g determinant() const;
+    algebraic_g norm_square() const;
+    algebraic_g norm() const;
 
 public:
     OBJECT_DECL(array);

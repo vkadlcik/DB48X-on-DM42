@@ -66,6 +66,8 @@ struct algebraic : command
     INSERT_DECL(algebraic);
 };
 
+typedef algebraic_p (*algebraic_fn)(algebraic_r x);
+
 
 #define CONSTANT_DECL(derived)                                          \
 struct derived : algebraic                                              \

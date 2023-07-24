@@ -39,7 +39,6 @@
 //   To save space, there is no explicit marker for the end of list
 
 #include "command.h"
-#include "functions.h"
 #include "object.h"
 #include "text.h"
 
@@ -204,7 +203,6 @@ struct list : text
     }
 
     // Apply an algebraic function to all elements in list
-    typedef function::algebraic_fn algebraic_fn;
     static list_g map(algebraic_fn fn, list_r x) { return x->map(fn); }
     list_g map(algebraic_fn fn) const;
 

@@ -448,7 +448,7 @@ COMMAND_BODY(Get)
 }
 
 
-list_g list::map(list::algebraic_fn fn) const
+list_g list::map(algebraic_fn fn) const
 // ----------------------------------------------------------------------------
 //   Apply an algebraic function on all elements in the list
 // ----------------------------------------------------------------------------

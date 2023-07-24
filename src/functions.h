@@ -30,7 +30,9 @@
 // ****************************************************************************
 
 #include "algebraic.h"
+#include "array.h"
 #include "complex.h"
+#include "list.h"
 #include "runtime.h"
 
 
@@ -56,7 +58,6 @@ public:
     //   C++ evaluation for all functions implemented in BID library
     // ------------------------------------------------------------------------
 
-    typedef algebraic_p (*algebraic_fn)(algebraic_r x);
     static result evaluate(algebraic_fn fn);
     // ------------------------------------------------------------------------
     //  Evaluate on the stack function a function doing the evaluation

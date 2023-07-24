@@ -31,6 +31,7 @@
 
 
 #include "program.h"
+#include "symbol.h"
 
 GCP(equation);
 

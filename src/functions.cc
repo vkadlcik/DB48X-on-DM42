@@ -213,16 +213,19 @@ object::result function::evaluate(algebraic_fn op)
 {
     if (object_p top = rt.top())
     {
-        id topty = top->type();
-        if (topty == ID_list || topty == ID_array)
+        algebraic_g x = algebraic_p(top);
+        x = op(x);
+        if (!x)
         {
-            top = list_p(top)->map(op);
+            id topty = top->type();
+            if (topty == ID_list || topty == ID_array)
+            {
+                rt.clear_error();
+                top = list_p(top)->map(op);
+                x = algebraic_p(top);
+            }
         }
-        else
-        {
-            algebraic_g x = algebraic_p(top);
-            top = op(x);
-        }
+        top = x.Safe();
         if (top && rt.top(top))
             return OK;
     }
@@ -264,6 +267,10 @@ FUNCTION_BODY(abs)
     else if (is_complex(xt))
     {
         return complex_p(algebraic_p(x))->mod();
+    }
+    else if (xt == ID_array)
+    {
+        return array_p(algebraic_p(x))->norm();
     }
 
     // Fall-back to floating-point abs

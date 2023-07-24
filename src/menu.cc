@@ -357,7 +357,7 @@ MENU(MatrixMenu,
 // ----------------------------------------------------------------------------
      "→Mat",    ID_Unimplemented,
      "Mat→",    ID_Unimplemented,
-     "Det",     ID_Unimplemented,
+     "Det",     ID_det,
      "Transp",  ID_Unimplemented,
      "Conjug",  ID_Unimplemented,
      "Redim",   ID_Unimplemented,

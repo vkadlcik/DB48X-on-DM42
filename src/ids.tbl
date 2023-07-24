@@ -229,6 +229,7 @@ CMD(re)
 CMD(im)
 CMD(arg)
 CMD(conj)
+NAMED(det, "Determinant")
 
 #define LAST_ALGEBRAIC          ID_conj
 

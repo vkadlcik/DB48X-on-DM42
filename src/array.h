@@ -67,6 +67,8 @@ struct array : list
     static array_g do_matrix(array_r x, array_r y,
                              dimension_fn d, vector_fn v, matrix_fn m);
 
+    algebraic_g determinant() const;
+
 public:
     OBJECT_DECL(array);
     PARSE_DECL(array);
@@ -79,5 +81,7 @@ array_g operator+(array_r x, array_r y);
 array_g operator-(array_r x, array_r y);
 array_g operator*(array_r x, array_r y);
 array_g operator/(array_r x, array_r y);
+
+COMMAND_DECLARE(det);
 
 #endif // ARRAY_H

@@ -262,6 +262,23 @@ inline bool add::complex_ok(complex_g &x, complex_g &y)
 }
 
 
+template <>
+algebraic_p arithmetic::non_numeric<sub>(algebraic_r x, algebraic_r y)
+// ----------------------------------------------------------------------------
+//   Deal with non-numerical data types for multiplication
+// ----------------------------------------------------------------------------
+//   This deals with vector and matrix operations
+{
+    // vector + vector or matrix + matrix
+    if (array_g xa = x->as<array>())
+        if (array_g ya = y->as<array>())
+            return xa - ya;
+
+    // Not yet implemented
+    return nullptr;
+}
+
+
 inline bool sub::integer_ok(object::id &xt, object::id &yt,
                             ularge &xv, ularge &yv)
 // ----------------------------------------------------------------------------
@@ -354,6 +371,11 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
         if (integer_g xi = x->as<integer>())
             return yl * xi->value<uint>();
 
+    // vector + vector or matrix + matrix
+    if (array_g xa = x->as<array>())
+        if (array_g ya = y->as<array>())
+            return xa * ya;
+
     // Not yet implemented
     return nullptr;
 }
@@ -416,6 +438,23 @@ inline bool mul::complex_ok(complex_g &x, complex_g &y)
 {
     x = x * y;
     return true;
+}
+
+
+template <>
+algebraic_p arithmetic::non_numeric<struct div>(algebraic_r x, algebraic_r y)
+// ----------------------------------------------------------------------------
+//   Deal with non-numerical data types for division
+// ----------------------------------------------------------------------------
+//   This deals with vector and matrix operations
+{
+    // vector + vector or matrix + matrix
+    if (array_g xa = x->as<array>())
+        if (array_g ya = y->as<array>())
+            return xa / ya;
+
+    // Not yet implemented
+    return nullptr;
 }
 
 

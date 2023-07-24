@@ -31,6 +31,7 @@
 
 #include "list.h"
 
+
 GCP(array);
 
 struct array : list
@@ -41,7 +42,15 @@ struct array : list
     array(gcbytes bytes, size_t len, id type = ID_array)
         : list(bytes, len, type) {}
 
+    static array_g map(algebraic_fn fn, array_r x)
+    {
+        return x->map(fn);
+    }
 
+    array_g map(algebraic_fn fn) const
+    {
+        return array_p(list::map(fn).Safe());
+    }
 
 public:
     OBJECT_DECL(array);

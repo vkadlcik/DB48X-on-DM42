@@ -28,6 +28,9 @@
 // ****************************************************************************
 
 #include "array.h"
+#include "arithmetic.h"
+
+
 
 // ============================================================================
 //
@@ -51,3 +54,17 @@ RENDER_BODY(array)
 {
     return o->list_render(r, '[', ']');
 }
+
+
+array_g operator-(array_r x)
+// ----------------------------------------------------------------------------
+//   Negate all elements in an array
+// ----------------------------------------------------------------------------
+{
+    return array::map(neg::evaluate, x);
+}
+
+array_g operator+(array_r x, array_r y);
+array_g operator-(array_r x, array_r y);
+array_g operator*(array_r x, array_r y);
+array_g operator/(array_r x, array_r y);

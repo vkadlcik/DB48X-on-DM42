@@ -42,7 +42,7 @@ struct function : algebraic
     function(id i): algebraic(i) {}
 
 
-protected:
+public:
     typedef complex_g (*complex_fn)(complex_r x);
 
     static result evaluate(id op, bid128_fn op128, complex_fn zop);
@@ -96,7 +96,7 @@ public:                                                                 \
     }                                                                   \
     static result evaluate()                                            \
     {                                                                   \
-        return function::evaluate(ID_##derived, bid128_op, zop);        \
+        return function::evaluate(derived::evaluate);                   \
     }                                                                   \
     static algebraic_g run(algebraic_r x) { return evaluate(x); }       \
     static algebraic_p evaluate(algebraic_r x)                          \
@@ -157,7 +157,7 @@ public:                                                                 \
 public:                                                                 \
     static result evaluate()                                            \
     {                                                                   \
-        return function::evaluate(evaluate);                            \
+        return function::evaluate(derived::evaluate);                   \
     }                                                                   \
     static algebraic_g run(algebraic_r x) { return evaluate(x); }       \
     static algebraic_p evaluate(algebraic_r x);                         \

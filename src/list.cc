@@ -446,3 +446,33 @@ COMMAND_BODY(Get)
     }
     return ERROR;
 }
+
+
+list_g list::map(list::algebraic_fn fn) const
+// ----------------------------------------------------------------------------
+//   Apply an algebraic function on all elements in the list
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    scribble scr;
+    for (object_p obj : *this)
+    {
+        algebraic_g a = obj->as_algebraic();
+        if (!a)
+        {
+            rt.type_error();
+            return nullptr;
+        }
+
+        a = fn(a);
+        if (!a)
+            return nullptr;
+
+        size_t objsz = a->size();
+        byte_p objp = byte_p(a);
+        if (!rt.append(objsz, objp))
+            return nullptr;
+    }
+
+    return list::make(ty, scr.scratch(), scr.growth());
+}

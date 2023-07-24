@@ -39,8 +39,8 @@
 //   To save space, there is no explicit marker for the end of list
 
 #include "command.h"
+#include "functions.h"
 #include "object.h"
-#include "symbol.h"
 #include "text.h"
 
 
@@ -63,6 +63,11 @@ struct list : text
     static list_p make(gcbytes bytes, size_t len)
     {
         return rt.make<list>(bytes, len);
+    }
+
+    static list_p make(id ty, gcbytes bytes, size_t len)
+    {
+        return rt.make<list>(ty, bytes, len);
     }
 
 
@@ -198,6 +203,10 @@ struct list : text
         return list->at(rest...);
     }
 
+    // Apply an algebraic function to all elements in list
+    typedef function::algebraic_fn algebraic_fn;
+    static list_g map(algebraic_fn fn, list_r x) { return x->map(fn); }
+    list_g map(algebraic_fn fn) const;
 
 public:
     // Shared code for parsing and rendering, taking delimiters as input

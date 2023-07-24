@@ -1646,6 +1646,10 @@ void tests::list_functions()
         .expect("{ A B C D A B C D A B C D }");
     test(CLEAR, "3 { A B C D } *", ENTER)
         .expect("{ A B C D A B C D A B C D }");
+
+    step("Applying a function to a list");
+    test(CLEAR, "[ A B C ] sin", ENTER)
+        .expect("[ 'sin A' 'sin B' 'sin C' ]");
 }
 
 

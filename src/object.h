@@ -104,15 +104,16 @@
 #include "recorder.h"
 #include "types.h"
 
-struct runtime;
-struct parser;
-struct renderer;
-struct object;
-struct symbol;
-struct program;
-struct user_interface;
-struct text;
+struct algebraic;
 struct menu_info;
+struct object;
+struct parser;
+struct program;
+struct renderer;
+struct runtime;
+struct symbol;
+struct text;
+struct user_interface;
 
 RECORDER_DECLARE(object);
 RECORDER_DECLARE(parse);
@@ -122,10 +123,11 @@ RECORDER_DECLARE(eval);
 RECORDER_DECLARE(run);
 RECORDER_DECLARE(object_errors);
 
-typedef const object  *object_p;
-typedef const symbol  *symbol_p;
-typedef const program *program_p;
-typedef const text    *text_p;
+typedef const algebraic *algebraic_p;
+typedef const object    *object_p;
+typedef const program   *program_p;
+typedef const symbol    *symbol_p;
+typedef const text      *text_p;
 
 
 struct object
@@ -655,6 +657,17 @@ struct object
     // ------------------------------------------------------------------------
     {
         return is_algebraic(type());
+    }
+
+
+    algebraic_p as_algebraic() const
+    // ------------------------------------------------------------------------
+    //   Return an object as an algebraic if possible, or nullptr
+    // ------------------------------------------------------------------------
+    {
+        if (is_algebraic() || is_symbolic())
+            return algebraic_p(this);
+        return nullptr;
     }
 
 

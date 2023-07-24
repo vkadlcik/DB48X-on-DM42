@@ -33,6 +33,8 @@
 #include "decimal128.h"
 #include "equation.h"
 #include "integer.h"
+#include "list.h"
+#include "array.h"
 
 
 bool function::should_be_symbolic(id type)
@@ -209,10 +211,21 @@ object::result function::evaluate(algebraic_fn op)
 //   Perform the operation from the stack, using a C++ operation
 // ----------------------------------------------------------------------------
 {
-    algebraic_g x = algebraic_p(rt.top());
-    x = op(x);
-    if (x && rt.top(x))
-        return OK;
+    if (object_p top = rt.top())
+    {
+        id topty = top->type();
+        if (topty == ID_list || topty == ID_array)
+        {
+            top = list_p(top)->map(op);
+        }
+        else
+        {
+            algebraic_g x = algebraic_p(top);
+            top = op(x);
+        }
+        if (top && rt.top(top))
+            return OK;
+    }
     return ERROR;
 }
 

@@ -30,6 +30,7 @@
 // ****************************************************************************
 
 #include "list.h"
+#include "runtime.h"
 
 
 GCP(array);
@@ -51,6 +52,10 @@ struct array : list
     {
         return array_p(list::map(fn).Safe());
     }
+
+    // Check if vector or matrix, and push all elements on stack
+    bool is_vector(size_t *size) const;
+    bool is_matrix(size_t *rows, size_t *columns) const;
 
 public:
     OBJECT_DECL(array);

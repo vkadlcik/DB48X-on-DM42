@@ -29,6 +29,7 @@
 
 #include "arithmetic.h"
 
+#include "array.h"
 #include "bignum.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
@@ -179,6 +180,11 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
         if (list_g xl = rt.make<list>(byte_p(x.Safe()), x->size()))
             return xl + yl;
     }
+
+    // vector + vector or matrix + matrix
+    if (array_g xa = x->as<array>())
+        if (array_g ya = y->as<array>())
+            return xa + ya;
 
     // Not yet implemented
     return nullptr;
@@ -957,7 +963,9 @@ algebraic_p arithmetic::evaluate(id          op,
         return x;
     }
 
-    rt.type_error();
+    // Default error is "Bad argument type", unless we got something else
+    if (!rt.error())
+        rt.type_error();
     return nullptr;
 }
 

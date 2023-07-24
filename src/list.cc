@@ -457,19 +457,29 @@ list_g list::map(list::algebraic_fn fn) const
     scribble scr;
     for (object_p obj : *this)
     {
-        algebraic_g a = obj->as_algebraic();
-        if (!a)
+        id oty = obj->type();
+        if (oty == ID_array || oty == ID_list)
         {
-            rt.type_error();
-            return nullptr;
+            list_g sub = list_p(obj)->map(fn);
+            obj = sub.Safe();
+        }
+        else
+        {
+            algebraic_g a = obj->as_algebraic();
+            if (!a)
+            {
+                rt.type_error();
+                return nullptr;
+            }
+
+            a = fn(a);
+            if (!a)
+                return nullptr;
+            obj = a.Safe();
         }
 
-        a = fn(a);
-        if (!a)
-            return nullptr;
-
-        size_t objsz = a->size();
-        byte_p objp = byte_p(a);
+        size_t objsz = obj->size();
+        byte_p objp = byte_p(obj);
         if (!rt.append(objsz, objp))
             return nullptr;
     }

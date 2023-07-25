@@ -2561,6 +2561,16 @@ bool user_interface::handle_editing(int key)
                 return true;
             }
             break;
+
+        case KEY_9:
+            if (shift)
+            {
+                // Shift-9 enters a matrix
+                edit('[', MATRIX);
+                last = 0;
+                return true;
+            }
+            break;
         }
     }
 
@@ -3035,7 +3045,7 @@ static const byte defaultShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_UP,    0),
     OP2BYTES(KEY_7,     menu::ID_SolverMenu),
     OP2BYTES(KEY_8,     menu::ID_SymbolicMenu),
-    OP2BYTES(KEY_9,     menu::ID_MatrixMenu),
+    OP2BYTES(KEY_9,     0),     // Insert []
     OP2BYTES(KEY_DIV,   menu::ID_StatisticsMenu),
     OP2BYTES(KEY_DOWN,  0),
     OP2BYTES(KEY_4,     menu::ID_BasesMenu),
@@ -3092,7 +3102,7 @@ static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_UP,    0),
     OP2BYTES(KEY_7,     0),
     OP2BYTES(KEY_8,     0),
-    OP2BYTES(KEY_9,     0),
+    OP2BYTES(KEY_9,     menu::ID_MatrixMenu),
     OP2BYTES(KEY_DIV,   0),
     OP2BYTES(KEY_DOWN,  0),
     OP2BYTES(KEY_4,     0),

@@ -2443,8 +2443,8 @@ tests &tests::itest(cstring txt)
         case '^': k = INV;          alpha = true;  shift = true;  break;
         case '(': k = XEQ;          alpha = true;  shift = true;  del = true; break;
         case ')': k = XEQ;          alpha = true;  shift = true;  bsp = true; break;
-        case '[': k = KEY9;         alpha = true; xshift = true;  del = true; break;
-        case ']': k = KEY9;         alpha = true; xshift = true;  bsp = true; break;
+        case '[': k = KEY9;         alpha = false; shift = true;  del = true; break;
+        case ']': k = KEY9;         alpha = false; shift = true;  bsp = true; break;
         case '{': k = RUNSTOP;      alpha = true; xshift = true;  del = true; break;
         case '}': k = RUNSTOP;      alpha = true; xshift = true;  bsp = true; break;
         case '"': k = ENTER;        alpha = true; xshift = true;  bsp = true; break;

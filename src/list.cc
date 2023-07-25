@@ -486,3 +486,83 @@ list_g list::map(algebraic_fn fn) const
 
     return list::make(ty, scr.scratch(), scr.growth());
 }
+
+
+list_g list::map(arithmetic_fn fn, algebraic_r y) const
+// ----------------------------------------------------------------------------
+//   Right-apply an arithmtic function on all elements in the list
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    scribble scr;
+    for (object_p obj : *this)
+    {
+        id oty = obj->type();
+        if (oty == ID_array || oty == ID_list)
+        {
+            list_g sub = list_p(obj)->map(fn, y);
+            obj = sub.Safe();
+        }
+        else
+        {
+            algebraic_g a = obj->as_algebraic();
+            if (!a)
+            {
+                rt.type_error();
+                return nullptr;
+            }
+
+            a = fn(a, y);
+            if (!a)
+                return nullptr;
+            obj = a.Safe();
+        }
+
+        size_t objsz = obj->size();
+        byte_p objp = byte_p(obj);
+        if (!rt.append(objsz, objp))
+            return nullptr;
+    }
+
+    return list::make(ty, scr.scratch(), scr.growth());
+}
+
+
+list_g list::map(algebraic_r x, arithmetic_fn fn) const
+// ----------------------------------------------------------------------------
+//   Left-apply an arithmtic function on all elements in the list
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    scribble scr;
+    for (object_p obj : *this)
+    {
+        id oty = obj->type();
+        if (oty == ID_array || oty == ID_list)
+        {
+            list_g sub = list_p(obj)->map(x, fn);
+            obj = sub.Safe();
+        }
+        else
+        {
+            algebraic_g a = obj->as_algebraic();
+            if (!a)
+            {
+                rt.type_error();
+                return nullptr;
+            }
+
+            a = fn(x, a);
+            if (!a)
+                return nullptr;
+            obj = a.Safe();
+        }
+
+        size_t objsz = obj->size();
+        byte_p objp = byte_p(obj);
+        if (!rt.append(objsz, objp))
+            return nullptr;
+    }
+
+    return list::make(ty, scr.scratch(), scr.growth());
+}

@@ -183,8 +183,15 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
 
     // vector + vector or matrix + matrix
     if (array_g xa = x->as<array>())
+    {
         if (array_g ya = y->as<array>())
             return xa + ya;
+        return xa->map(add::evaluate, y);
+    }
+    else if (array_g ya = y->as<array>())
+    {
+        return ya->map(x, add::evaluate);
+    }
 
     // Not yet implemented
     return nullptr;
@@ -271,8 +278,15 @@ algebraic_p arithmetic::non_numeric<sub>(algebraic_r x, algebraic_r y)
 {
     // vector + vector or matrix + matrix
     if (array_g xa = x->as<array>())
+    {
         if (array_g ya = y->as<array>())
             return xa - ya;
+        return xa->map(sub::evaluate, y);
+    }
+    else if (array_g ya = y->as<array>())
+    {
+        return ya->map(x, sub::evaluate);
+    }
 
     // Not yet implemented
     return nullptr;
@@ -373,8 +387,15 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
 
     // vector + vector or matrix + matrix
     if (array_g xa = x->as<array>())
+    {
         if (array_g ya = y->as<array>())
             return xa * ya;
+        return xa->map(mul::evaluate, y);
+    }
+    else if (array_g ya = y->as<array>())
+    {
+        return ya->map(x, mul::evaluate);
+    }
 
     // Not yet implemented
     return nullptr;
@@ -450,8 +471,15 @@ algebraic_p arithmetic::non_numeric<struct div>(algebraic_r x, algebraic_r y)
 {
     // vector + vector or matrix + matrix
     if (array_g xa = x->as<array>())
+    {
         if (array_g ya = y->as<array>())
             return xa / ya;
+        return xa->map(div::evaluate, y);
+    }
+    else if (array_g ya = y->as<array>())
+    {
+        return ya->map(x, div::evaluate);
+    }
 
     // Not yet implemented
     return nullptr;

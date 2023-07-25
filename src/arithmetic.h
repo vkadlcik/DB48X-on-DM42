@@ -36,8 +36,8 @@
 #include "decimal-64.h"
 #include "decimal128.h"
 #include "fraction.h"
-#include "integer.h"
 #include "runtime.h"
+
 
 struct arithmetic : algebraic
 // ----------------------------------------------------------------------------
@@ -77,7 +77,6 @@ protected:
     typedef bool (*bignum_fn)(bignum_g &x, bignum_g &y);
     typedef bool (*fraction_fn)(fraction_g &x, fraction_g &y);
     typedef bool (*complex_fn)(complex_g &x, complex_g &y);
-    typedef algebraic_p (*non_numeric_fn)(algebraic_r x, algebraic_r y);
 
     // Function pointers used by generic evaluation code
     typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x, BID_UINT128 *y);
@@ -94,7 +93,7 @@ protected:
         bignum_fn      bignum_ok;
         fraction_fn    fraction_ok;
         complex_fn     complex_ok;
-        non_numeric_fn non_numeric;
+        arithmetic_fn non_numeric;
     };
     typedef const ops &ops_t;
     template <typename Op> static ops_t Ops();
@@ -149,7 +148,11 @@ struct derived : arithmetic                                             \
         rt.command(fancy(ID_##derived));                                \
         return arithmetic::evaluate<derived>();                         \
     }                                                                   \
-    static algebraic_g evaluate(algebraic_r x, algebraic_r y)           \
+    static algebraic_g run(algebraic_r x, algebraic_r y)                \
+    {                                                                   \
+        return evaluate(x, y);                                          \
+    }                                                                   \
+    static algebraic_p evaluate(algebraic_r x, algebraic_r y)           \
     {                                                                   \
         return arithmetic::evaluate<derived>(x,y);                      \
     }                                                                   \

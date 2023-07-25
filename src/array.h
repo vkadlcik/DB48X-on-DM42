@@ -53,6 +53,16 @@ struct array : list
         return array_p(list::map(fn).Safe());
     }
 
+    array_g map(arithmetic_fn fn, algebraic_r y) const
+    {
+        return array_p(list::map(fn, y).Safe());
+    }
+
+    array_g map(algebraic_r x, arithmetic_fn fn) const
+    {
+        return array_p(list::map(x, fn).Safe());
+    }
+
     // Check if vector or matrix, and push all elements on stack
     bool is_vector(size_t *size) const;
     bool is_matrix(size_t *rows, size_t *columns) const;

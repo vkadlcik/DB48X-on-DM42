@@ -67,6 +67,7 @@ struct algebraic : command
 };
 
 typedef algebraic_p (*algebraic_fn)(algebraic_r x);
+typedef algebraic_p (*arithmetic_fn)(algebraic_r x, algebraic_r y);
 
 
 #define CONSTANT_DECL(derived)                                          \

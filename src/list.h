@@ -203,8 +203,21 @@ struct list : text
     }
 
     // Apply an algebraic function to all elements in list
-    static list_g map(algebraic_fn fn, list_r x) { return x->map(fn); }
     list_g map(algebraic_fn fn) const;
+    list_g map(arithmetic_fn fn, algebraic_r y) const;
+    list_g map(algebraic_r x, arithmetic_fn fn) const;
+    static list_g map(algebraic_fn fn, list_r x)
+    {
+        return x->map(fn);
+    }
+    static list_g map(arithmetic_fn fn, list_r x, algebraic_r y)
+    {
+        return x->map(fn, y);
+    }
+    static list_g map(arithmetic_fn fn, algebraic_r x, list_r y)
+    {
+        return y->map(x, fn);
+    }
 
 public:
     // Shared code for parsing and rendering, taking delimiters as input

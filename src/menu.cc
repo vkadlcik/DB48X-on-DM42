@@ -558,7 +558,8 @@ MENU(SymbolicMenu,
      "Quote",   ID_Unimplemented,
      "|",       ID_Unimplemented,
      "Rules",   ID_Unimplemented,
-     "Simpl",   ID_Unimplemented);
+     "Simpl",   ID_AutoSimplify,
+     "KeepAll", ID_NoAutoSimplify);
 
 
 MENU(ProgramMenu,

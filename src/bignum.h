@@ -156,6 +156,7 @@ struct bignum : text
 
     // Check if it matches a given value
     bool is_zero() const        { return length() == 0; }
+    bool is_one() const         { return is(1); }
     bool is(ularge test) const
     {
         size_t size = 0;

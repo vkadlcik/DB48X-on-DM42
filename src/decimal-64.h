@@ -209,6 +209,17 @@ struct decimal64 : algebraic
         return is_zero(value());
     }
 
+    bool is_one() const
+    {
+        uint oneint = 1;
+        bid64 one;
+        bid64_from_uint32(&one.value, &oneint);
+        bid64 num = value();
+        bid64 zero;
+        bid64_sub(&zero.value, &num.value, &one.value);
+        return is_zero(zero);
+    }
+
     static bool is_negative(const BID_UINT64 *x)
     {
         class_type c = fpclass(x);

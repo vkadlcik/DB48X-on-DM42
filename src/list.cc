@@ -188,9 +188,7 @@ object::result list::list_parse(id type,
         if (!obj)
             return ERROR;
 
-        id otype = obj->type();
-        if (precedence && !postfix &&
-            otype != ID_symbol && otype != ID_pi && otype != ID_ImaginaryUnit)
+        if (precedence && !postfix)
         {
             // We are parsing an equation
             if (precedence > 0)
@@ -198,14 +196,14 @@ object::result list::list_parse(id type,
                 // We just parsed an algebraic, e.g. 'sin', etc
                 // stash it and require parentheses for arguments
                 id type = obj->type();
-                if (!is_algebraic(type) && !is_symbolic(type))
+                if (!is_algebraic(type))
                 {
                     rt.prefix_expected_error();
                     return ERROR;
                 }
 
                 // TODO: A symbol could be a function, need to deal with that
-                if (is_algebraic(type))
+                if (is_algebraic_function(type))
                 {
                     prefix = obj;
                     obj = nullptr;

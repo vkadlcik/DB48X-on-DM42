@@ -95,8 +95,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    vector_functions();
-    matrix_functions();
+    auto_simplification();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -1905,6 +1904,92 @@ void tests::matrix_functions()
     step("Component-wise application of functions");
     test(CLEAR, "[[a b] [c d]] SIN", ENTER)
         .expect("[ [ 'sin a' 'sin b' ] [ 'sin c' 'sin d' ] ]");
+}
+
+
+void tests::auto_simplification()
+// ----------------------------------------------------------------------------
+//   Check auto-simplification rules for arithmetic
+// ----------------------------------------------------------------------------
+{
+    begin("Auto-simplification of expressions");
+
+    step("Enable auto simplification");
+    test(CLEAR, "AutoSimplify", ENTER).noerr();
+
+    step("X + 0 = X");
+    test(CLEAR, "X 0 +", ENTER).expect("'X'");
+
+    step("0 + X = X");
+    test(CLEAR, "0 X +", ENTER).expect("'X'");
+
+    step("X - 0 = X");
+    test(CLEAR, "X 0 -", ENTER).expect("'X'");
+
+    step("0 - X = -X");
+    test(CLEAR, "0 X -", ENTER).expect("'-X'");
+
+    step("X - X = 0");
+    test(CLEAR, "X X -", ENTER).expect("0");
+
+    step("0 * X = 0");
+    test(CLEAR, "0 X *", ENTER).expect("0");
+
+    step("X * 0 = 0");
+    test(CLEAR, "X 0 *", ENTER).expect("0");
+
+    step("1 * X = X");
+    test(CLEAR, "1 X *", ENTER).expect("'X'");
+
+    step("X * 1 = X");
+    test(CLEAR, "X 1 *", ENTER).expect("'X'");
+
+    step("X * X = sq(X)");
+    test(CLEAR, "X sin 1 * X 0 + sin *", ENTER).expect("'(sin X)²'");
+
+    step("0 / X = -");
+    test(CLEAR, "0 X /", ENTER).expect("0");
+
+    step("X / 1 = X");
+    test(CLEAR, "X 1 /", ENTER).expect("'X'");
+
+    step("1 / X = inv(X)");
+    test(CLEAR, "1 X sin /", ENTER).expect("'(sin X)⁻¹'");
+
+    step("X / X = 1");
+    test(CLEAR, "X cos 1 * X 0 + cos /", ENTER).expect("1");
+
+    step("1.0 == 1");
+    test(CLEAR, "1.0000 X * ", ENTER).expect("'X'");
+
+    step("0.0 == 0 (but preserves types)");
+    test(CLEAR, "0.0000 X * ", ENTER).expect("0.");
+
+    step("Applies when building a matrix");
+    test(CLEAR, "[[3 0 2][2 0 -2][ 0 1 1 ]] [x y z] *", ENTER)
+        .expect("[ '3×x+2×z' '2×x+-2×z' 'y+z' ]");
+
+    step("Does not reduce matrices");
+    test(CLEAR, "[a b c] 0 *", ENTER).expect("[ 0 0 0 ]");
+
+    step("Does not apply to text");
+    test(CLEAR, "\"Hello\" 0 +", ENTER)
+        .expect("\"Hello0\"");
+
+    step("Does not apply to lists");
+    test(CLEAR, "{ 1 2 3 } 0 +", ENTER)
+        .expect("{ 1 2 3 0 }");
+
+    step("Disable auto simplification");
+    test(CLEAR, "NoAutoSimplify", ENTER).noerr();
+
+    step("When disabled, get the complicated expression");
+    test(CLEAR, "[[3 0 2][2 0 -2][ 0 1 1 ]] [x y z] *", ENTER)
+        .expect("[ '3×x+0×y+2×z' '2×x+0×y+-2×z' '0×x+1×y+1×z' ]");
+
+    step("Re-enable auto simplification");
+    test(CLEAR, "AutoSimplify", ENTER).noerr();
+
 }
 
 

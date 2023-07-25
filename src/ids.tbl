@@ -336,6 +336,9 @@ CMD(BasedDotOrComma)
 CMD(BasedTicks)
 CMD(BasedUnderscore)
 
+CMD(AutoSimplify)
+CMD(NoAutoSimplify)
+
 CMD(Modes)
 CMD(Version)
 

@@ -209,6 +209,17 @@ struct decimal32 : algebraic
         return is_zero(value());
     }
 
+    bool is_one() const
+    {
+        uint oneint = 1;
+        bid32 one;
+        bid32_from_uint32(&one.value, &oneint);
+        bid32 num = value();
+        bid32 zero;
+        bid32_sub(&zero.value, &num.value, &one.value);
+        return is_zero(zero);
+    }
+
     static bool is_negative(const BID_UINT32 *x)
     {
         class_type c = fpclass(x);

@@ -80,7 +80,7 @@ struct derived : algebraic                                              \
                                                                         \
     OBJECT_DECL(derived);                                               \
     EVAL_DECL(derived);                                                 \
-    PREC_DECL(SYMBOL);                                                  \
+    PREC_DECL(NONE);                                                    \
 }
 
 

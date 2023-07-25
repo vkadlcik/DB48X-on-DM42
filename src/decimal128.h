@@ -209,6 +209,17 @@ struct decimal128 : algebraic
         return is_zero(value());
     }
 
+    bool is_one() const
+    {
+        uint oneint = 1;
+        bid128 one;
+        bid128_from_uint32(&one.value, &oneint);
+        bid128 num = value();
+        bid128 zero;
+        bid128_sub(&zero.value, &num.value, &one.value);
+        return is_zero(zero);
+    }
+
     static bool is_negative(const BID_UINT128 *x)
     {
         class_type c = fpclass(x);

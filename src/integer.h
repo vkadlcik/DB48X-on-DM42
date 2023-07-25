@@ -95,6 +95,7 @@ struct integer : algebraic
 
     operator bool() const               { return !is_zero(); }
     bool is_zero() const                { return *payload(this) == 0; }
+    bool is_one() const                 { return *payload(this) == 1; }
     template<typename Int>
     bool operator==(Int x)              { return value<Int>() == x; }
     template<typename Int>

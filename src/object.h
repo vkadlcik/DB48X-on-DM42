@@ -642,12 +642,30 @@ struct object
     }
 
 
-    static bool is_algebraic(id ty)
+    static bool is_algebraic_function(id ty)
     // ------------------------------------------------------------------------
     //    Check if a type denotes an algebraic function
     // ------------------------------------------------------------------------
     {
         return ty >= FIRST_ALGEBRAIC && ty <= LAST_ALGEBRAIC;
+    }
+
+
+    bool is_algebraic_function() const
+    // ------------------------------------------------------------------------
+    //   Check if an object is an algebraic function
+    // ------------------------------------------------------------------------
+    {
+        return is_algebraic_function(type());
+    }
+
+
+    static bool is_algebraic(id ty)
+    // ------------------------------------------------------------------------
+    //    Check if a type denotes an algebraic value or function
+    // ------------------------------------------------------------------------
+    {
+        return is_algebraic_function(ty) || is_symbolic(ty);
     }
 
 
@@ -665,7 +683,7 @@ struct object
     //   Return an object as an algebraic if possible, or nullptr
     // ------------------------------------------------------------------------
     {
-        if (is_algebraic() || is_symbolic())
+        if (is_algebraic())
             return algebraic_p(this);
         return nullptr;
     }
@@ -732,9 +750,21 @@ struct object
     // ------------------------------------------------------------------------
 
 
+    bool is_one(bool error = true) const;
+    // ------------------------------------------------------------------------
+    //   Return true if this is one, false otherwise. Can error if bad type
+    // ------------------------------------------------------------------------
+
+
     bool is_negative(bool error = true) const;
     // ------------------------------------------------------------------------
     //   Return true if this is negative, false otherwise, can error if bad
+    // ------------------------------------------------------------------------
+
+
+    bool is_same_as(object_p other) const;
+    // ------------------------------------------------------------------------
+    //   Compare two objects
     // ------------------------------------------------------------------------
 
 

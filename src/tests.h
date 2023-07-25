@@ -75,6 +75,7 @@ struct tests
     void vector_functions();
     void matrix_functions();
     void text_functions();
+    void auto_simplification();
     void regression_checks();
 
     enum key

@@ -81,6 +81,7 @@ struct settings
           command_fmt(LONG_FORM),
           show_decimal(true),
           fancy_exponent(true),
+          auto_simplify(true),
           result_sz(STACK),
           stack_sz(STACK),
           editor_sz(EDITOR),
@@ -160,6 +161,7 @@ public:
     commands command_fmt;       // How we prefer to display commands
     bool     show_decimal   :1; // Show decimal dot for integral real numbers
     bool     fancy_exponent :1; // Show exponent with fancy superscripts
+    bool     auto_simplify  :1; // Automatically simplify symbolic results
     font_id  result_sz;         // Size for stack top
     font_id  stack_sz;          // Size for other stack levels
     font_id  editor_sz;         // Size for normal editor
@@ -269,5 +271,8 @@ SETTINGS_COMMAND_DECLARE(BasedSpaces);
 SETTINGS_COMMAND_DECLARE(BasedDotOrComma);
 SETTINGS_COMMAND_DECLARE(BasedTicks);
 SETTINGS_COMMAND_DECLARE(BasedUnderscore);
+
+SETTINGS_COMMAND_DECLARE(AutoSimplify);
+SETTINGS_COMMAND_DECLARE(NoAutoSimplify);
 
 #endif // SETTINGS_H

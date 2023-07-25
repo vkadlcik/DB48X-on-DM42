@@ -946,3 +946,23 @@ SETTINGS_COMMAND_NOLABEL(BasedUnderscore, Settings.space_based == '_')
     Settings.space_based = '_';
     return OK;
 }
+
+
+SETTINGS_COMMAND_NOLABEL(AutoSimplify, Settings.auto_simplify)
+// ----------------------------------------------------------------------------
+//   Enable automatic simplification of algebraic expressions
+// ----------------------------------------------------------------------------
+{
+    Settings.auto_simplify = true;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(NoAutoSimplify, !Settings.auto_simplify)
+// ----------------------------------------------------------------------------
+//   Disable automatic simplification of algebraic expressions
+// ----------------------------------------------------------------------------
+{
+    Settings.auto_simplify = false;
+    return OK;
+}

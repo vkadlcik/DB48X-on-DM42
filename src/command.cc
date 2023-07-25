@@ -399,6 +399,8 @@ COMMAND_BODY(Help)
                 case ID_decimal64:
                 case ID_decimal32:          topic = utf8("Decimal numbers"); break;
                 case ID_equation:           topic = utf8("Equations"); break;
+                case ID_list:               topic = utf8("Lists"); break;
+                case ID_array:              topic = utf8("Vectors and matrices"); break;
                 default:                    topic = fancy(top->type()); break;
                 }
             }
@@ -461,6 +463,8 @@ COMMAND_BODY(ToolsMenu)
             case ID_bin_bignum:
             case ID_based_bignum:       menu = ID_BasesMenu; break;
             case ID_equation:           menu = ID_EquationsMenu; break;
+            case ID_list:               menu = ID_ListMenu; break;
+            case ID_array:              menu = ID_MatrixMenu; break;
             default:                    break;
             }
         }

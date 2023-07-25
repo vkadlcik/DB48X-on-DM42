@@ -1026,6 +1026,14 @@ array_g array::do_matrix(array_r x, array_r y,
             goto err;
         }
 
+        // Special case of matrix division
+        if (mat == matrix_div)
+        {
+            rt.drop(rt.depth() - depth);
+            array_g ya = y->invert();
+            return do_matrix(ya, x, mul_dimension, vector_mul, matrix_mul);
+        }
+
         scribble scr;
         for (size_t r = 0; r < rr; r++)
         {

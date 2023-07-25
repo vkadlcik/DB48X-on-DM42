@@ -58,7 +58,7 @@ public:
     //   C++ evaluation for all functions implemented in BID library
     // ------------------------------------------------------------------------
 
-    static result evaluate(algebraic_fn fn);
+    static result evaluate(algebraic_fn fn, bool mat);
     // ------------------------------------------------------------------------
     //  Evaluate on the stack function a function doing the evaluation
     // ------------------------------------------------------------------------
@@ -72,6 +72,8 @@ public:
     // ------------------------------------------------------------------------
     //   Process it symbolically
     // ------------------------------------------------------------------------
+
+    static const bool does_matrices = false;
 };
 
 
@@ -97,7 +99,7 @@ public:                                                                 \
     }                                                                   \
     static result evaluate()                                            \
     {                                                                   \
-        return function::evaluate(derived::evaluate);                   \
+        return function::evaluate(derived::evaluate, does_matrices);    \
     }                                                                   \
     static algebraic_g run(algebraic_r x) { return evaluate(x); }       \
     static algebraic_p evaluate(algebraic_r x)                          \
@@ -158,7 +160,7 @@ public:                                                                 \
 public:                                                                 \
     static result evaluate()                                            \
     {                                                                   \
-        return function::evaluate(derived::evaluate);                   \
+        return function::evaluate(derived::evaluate, does_matrices);    \
     }                                                                   \
     static algebraic_g run(algebraic_r x) { return evaluate(x); }       \
     static algebraic_p evaluate(algebraic_r x);                         \
@@ -166,18 +168,25 @@ public:                                                                 \
 
 #define FUNCTION(derived) FUNCTION_EXT(derived, )
 
-#define FUNCTION_FANCY(derived) \
+#define FUNCTION_FANCY(derived)                         \
     FUNCTION_EXT(derived, INSERT_DECL(derived);)
+#define FUNCTION_MAT(derived)                                           \
+    FUNCTION_EXT(derived,                                               \
+                 static const bool does_matrices = true;)
+#define FUNCTION_FANCY_MAT(derived)                                     \
+    FUNCTION_EXT(derived,                                               \
+                 INSERT_DECL(derived);                                  \
+                 static const bool does_matrices = true;)
 
 #define FUNCTION_BODY(derived)                  \
 algebraic_p derived::evaluate(algebraic_r x)
 
-FUNCTION(abs);
+FUNCTION_MAT(abs);
 FUNCTION(sign);
-FUNCTION_FANCY(inv);
+FUNCTION_FANCY_MAT(inv);
 FUNCTION(neg);
-FUNCTION_FANCY(sq);
-FUNCTION_FANCY(cubed);
+FUNCTION_FANCY_MAT(sq);
+FUNCTION_FANCY_MAT(cubed);
 FUNCTION_FANCY(fact);
 
 FUNCTION(re);

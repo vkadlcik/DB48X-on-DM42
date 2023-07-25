@@ -206,26 +206,24 @@ algebraic_p function::evaluate(algebraic_r xr,
 }
 
 
-object::result function::evaluate(algebraic_fn op)
+object::result function::evaluate(algebraic_fn op, bool mat)
 // ----------------------------------------------------------------------------
 //   Perform the operation from the stack, using a C++ operation
 // ----------------------------------------------------------------------------
 {
     if (object_p top = rt.top())
     {
-        algebraic_g x = algebraic_p(top);
-        x = op(x);
-        if (!x)
+        id topty = top->type();
+        if (topty == ID_list || (topty == ID_array && !mat))
         {
-            id topty = top->type();
-            if (topty == ID_list || topty == ID_array)
-            {
-                rt.clear_error();
-                top = list_p(top)->map(op);
-                x = algebraic_p(top);
-            }
+            top = list_p(top)->map(op);
         }
-        top = x.Safe();
+        else
+        {
+            algebraic_g x = algebraic_p(top);
+            x = op(x);
+            top = x.Safe();
+        }
         if (top && rt.top(top))
             return OK;
     }

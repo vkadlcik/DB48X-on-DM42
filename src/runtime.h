@@ -269,86 +269,6 @@ struct runtime
 
     // ========================================================================
     //
-    //   Scratchpad
-    //
-    // ========================================================================
-    //   The scratchpad is a temporary area to store binary data
-    //   It is used for example while building complex or composite objects
-
-    byte *scratchpad()
-    // ------------------------------------------------------------------------
-    //   Return the buffer for the scratchpad
-    // ------------------------------------------------------------------------
-    //   This must be called each time a GC could have happened
-    {
-        byte *scratch = (byte *) Temporaries + Editing + Scratch;
-        return scratch;
-    }
-
-    size_t allocated()
-    // ------------------------------------------------------------------------
-    //   Return the size of the temporary scratchpad
-    // ------------------------------------------------------------------------
-    {
-        return Scratch;
-    }
-
-    byte *allocate(size_t sz);
-    // ------------------------------------------------------------------------
-    //   Allocate additional bytes at end of scratchpad
-    // ------------------------------------------------------------------------
-
-
-    byte *append(size_t sz, byte_p bytes);
-    // ------------------------------------------------------------------------
-    //   Append some bytes at end of scratch pad
-    // ------------------------------------------------------------------------
-
-
-    template <typename Int>
-    byte *encode(Int value);
-    // ------------------------------------------------------------------------
-    //   Add an LEB128-encoded value to the scratchpad
-    // ------------------------------------------------------------------------
-
-
-    template <typename Int, typename ...Args>
-    byte *encode(Int value, Args... args);
-    // ------------------------------------------------------------------------
-    //   Add an LEB128-encoded value to the scratchpad
-    // ------------------------------------------------------------------------
-
-
-    void free(size_t size)
-    // ------------------------------------------------------------------------
-    //   Free the whole scratchpad
-    // ------------------------------------------------------------------------
-    {
-        if (Scratch >= size)
-            Scratch -= size;
-        else
-            Scratch = 0;
-    }
-
-    object_p temporary()
-    // ------------------------------------------------------------------------
-    //   Make a temporary from the scratchpad
-    // ------------------------------------------------------------------------
-    {
-        if (Editing == 0)
-        {
-            object_p result = Temporaries;
-            Temporaries = (object_p) ((byte *) Temporaries + Scratch);
-            Scratch = 0;
-            return result;
-        }
-        return nullptr;
-    }
-
-
-
-    // ========================================================================
-    //
     //   Object management
     //
     // ========================================================================
@@ -455,6 +375,85 @@ struct runtime
                                 const object *obj,
                                 size_t size);
 #endif // SIMULATOR
+
+
+    // ========================================================================
+    //
+    //   Scratchpad
+    //
+    // ========================================================================
+    //   The scratchpad is a temporary area to store binary data
+    //   It is used for example while building complex or composite objects
+
+    byte *scratchpad()
+    // ------------------------------------------------------------------------
+    //   Return the buffer for the scratchpad
+    // ------------------------------------------------------------------------
+    //   This must be called each time a GC could have happened
+    {
+        byte *scratch = (byte *) Temporaries + Editing + Scratch;
+        return scratch;
+    }
+
+    size_t allocated()
+    // ------------------------------------------------------------------------
+    //   Return the size of the temporary scratchpad
+    // ------------------------------------------------------------------------
+    {
+        return Scratch;
+    }
+
+    byte *allocate(size_t sz);
+    // ------------------------------------------------------------------------
+    //   Allocate additional bytes at end of scratchpad
+    // ------------------------------------------------------------------------
+
+
+    byte *append(size_t sz, gcp<const byte> bytes);
+    // ------------------------------------------------------------------------
+    //   Append some bytes at end of scratch pad
+    // ------------------------------------------------------------------------
+
+
+    template <typename Int>
+    byte *encode(Int value);
+    // ------------------------------------------------------------------------
+    //   Add an LEB128-encoded value to the scratchpad
+    // ------------------------------------------------------------------------
+
+
+    template <typename Int, typename ...Args>
+    byte *encode(Int value, Args... args);
+    // ------------------------------------------------------------------------
+    //   Add an LEB128-encoded value to the scratchpad
+    // ------------------------------------------------------------------------
+
+
+    void free(size_t size)
+    // ------------------------------------------------------------------------
+    //   Free the whole scratchpad
+    // ------------------------------------------------------------------------
+    {
+        if (Scratch >= size)
+            Scratch -= size;
+        else
+            Scratch = 0;
+    }
+
+    object_p temporary()
+    // ------------------------------------------------------------------------
+    //   Make a temporary from the scratchpad
+    // ------------------------------------------------------------------------
+    {
+        if (Editing == 0)
+        {
+            object_p result = Temporaries;
+            Temporaries = (object_p) ((byte *) Temporaries + Scratch);
+            Scratch = 0;
+            return result;
+        }
+        return nullptr;
+    }
 
 
 

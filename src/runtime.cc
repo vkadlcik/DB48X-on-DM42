@@ -669,14 +669,14 @@ byte *runtime::allocate(size_t sz)
 }
 
 
-byte *runtime::append(size_t sz, byte_p bytes)
+byte *runtime::append(size_t sz, gcbytes bytes)
 // ----------------------------------------------------------------------------
 //   Append some bytes at end of scratch pad
 // ----------------------------------------------------------------------------
 {
     byte *ptr = allocate(sz);
     if (ptr)
-        memcpy(ptr, bytes, sz);
+        memcpy(ptr, bytes.Safe(), sz);
     return ptr;
 }
 

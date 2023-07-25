@@ -70,6 +70,7 @@ struct array : list
     algebraic_g determinant() const;
     algebraic_g norm_square() const;
     algebraic_g norm() const;
+    array_g invert() const;
 
 public:
     OBJECT_DECL(array);

@@ -395,8 +395,9 @@ FUNCTION_BODY(inv)
         return nullptr;
     if (x->is_strictly_symbolic())
         return symbolic(ID_inv, x);
+    else if (x->type() == ID_array)
+        return array_p(x.Safe())->invert();
 
-    // Apparently there is a div function getting in the way, see man div(3)
     algebraic_g one = rt.make<integer>(ID_integer, 1);
     return one / x;
 }

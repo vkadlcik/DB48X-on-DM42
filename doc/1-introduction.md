@@ -115,3 +115,33 @@ the [Complex Menu](#complex-menu).
 Algebraic expressions and equations are represented between quotes, for example
 `X+1` or `A+B=C`. Many functions such as circular functions, exponential, logs
 or hyperbolic functions can apply to algebraic expressions.
+
+
+## Lists
+
+Lists are sequence of items between curly braces, such as `{ 1 'A' "Hello" }`.
+They can contain an arbitrary number of elements, and can be nested.
+
+Operations such as `sin` apply to all elements on a list.
+
+
+## Vectors and matrices
+
+Vector and matrices represent tables of numbers, and are represented between
+square brackets, for example `[1 2 3]` for a vector and `[[1 2] [3 4]` for a 2x2
+matrix.
+
+Vector and matrices follow their own arithmetic rules. Vectors are
+one-dimensional, matrices are two-dimensional. DB48X also supports tables with a
+higher number of dimensions, but only offers limited operations on them.
+
+DB48X implements vector addition, subtraction, multipplication and division,
+which apply component-wise. Multiplication and division are an extension
+compared to the HP48.
+
+DB48X also implements matrix addition, subtraction, multiplication and
+division. Like on the HP48, the division of matrix `A` by matrix `B` is
+interpreted as left-multiplying `A` by the inverse of `B`.
+
+As another extension, algebraic functions such as `sin` apply to all elements in
+a vector or matrix in turn.

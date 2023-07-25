@@ -18,7 +18,7 @@ presumably the calculator you are currently running this software on.
 * [Design overview](#design-overview)
 * [Keyboard interaction](#keyboard-interaction)
 * [Soft menus](#soft-menus)
-* [Differences with the HP48](#differences-with-the-hp48)
+* [Differences with other RPLs](#differences-with-other-RPLs)
 * [Built-in help](#help)
 * [Acknowledgements and credits](#acknowledgements-and-credits)
 
@@ -244,9 +244,18 @@ navigate across the available menu entries.
 
 
 
-### Differences with the HP48
+### Differences with other RPLs
 
-There are a number of intentional differences in design compared to the HP48:
+Multiple implementations of RPL exist, most of them from Hewlett-Packard.
+A good reference to understand the differences between the various existing
+implementations from HP is the
+[HP50G Advanced User's Reference Manual](https://www.hpcalc.org/details/7141).
+
+There are a number of intentional differences in design between DB48X and the
+HP48, HP49 or HP50G's implementations of RPL. There are also a number of
+unintentional differences, since the implementation is completely new.
+
+#### User interface
 
 * DB48X features an extensive built-in help system, which you are presently
   using. Information for that help system is stored using a regular *markdown*
@@ -266,6 +275,9 @@ There are a number of intentional differences in design compared to the HP48:
   This means that the space of "reserved words" is larger in DB48X than in other
   RPL implementations. Notably, on HP's implementations, `DUP` is a keyword but
   you can use `DuP` as a valid variable name. This is not possible in DB48X.
+
+
+#### Representation of objects
 
 * Internally, the calculator deals with various representations for
   numbers. Notably, it keeps integer values and fractions in exact form for
@@ -296,6 +308,9 @@ There are a number of intentional differences in design compared to the HP48:
   using `==`. For example, `0=0.0` is true, but `0==0.0` is false, because `0`
   is an integer whereas `0.0` is a floating-point.
 
+
+#### Alignment with the DM42
+
 * DB48X borrows to the DM42 the idea of _special variables_, which are variables
   with a special meaning. For example, the `Precision` special variable is the
   current operating precision for floating point, in number of digits. While
@@ -318,6 +333,9 @@ There are a number of intentional differences in design compared to the HP48:
   replaced with a system that works well with FAT USB storage. It should be
   possible to directly use a part of the flash storage to store RPL programs,
   either in source or compiled form.
+
+
+#### Differences for vectors and matrices
 
 * On DB48X, vectors like `[ 1 2 3 ]` are very similar to lists. The primary
   difference is the behavior in the presence of arithmetic operators.
@@ -343,6 +361,24 @@ There are a number of intentional differences in design compared to the HP48:
   `1 GET` returns `[7 8 9]`.  This is intentional. The behavior of `{ 1 1 } GET`
   is identical on both platforms, and is extended to multi-dimensional arrays,
   so that `[[[4 5 6]]] { 1 1 2 } GET` returns `5`.
+
+* Matrices and vectors can contain integer values or fractions. This is closer
+  to the HP50G implementation than the HP48's. In some cases, this leads to
+  different results between the implementations. If you compute the inverse of
+  `[[1 2 3][4 5 6][7 8 9]` on the HP48, you get a matrix with large values, and
+  the HP48 finds a small, but non-zero determinant for that matrix. The HP50G
+  produces a matrix with infinities. DB48X by default produces a `Divide by
+  zero` error.
+
+* DB48X accept matrices and vectors as input to algebraic functions, and returns
+  a matrix or vector with the function applied to all elements. For example,
+  `[a b c] sin ` returns `[ 'sin a' 'sin b' 'sin c' ]`.
+
+* Similarly, DB48X accept operations between a constant and a vector or matrix.
+  This applies the same binary operation to all components of the vector or
+  matrix. `[ a b c ] x +` returns `[ 'a+x' 'b+x' 'c+x' ]`. Consistent with that
+  logic, `inv` works on vectors, and inverts each component, so that
+  `[1 2 3] inv` gives `[1/1 1/2 1/3]`.
 
 
 ## Help

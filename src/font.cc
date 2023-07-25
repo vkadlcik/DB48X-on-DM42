@@ -50,7 +50,7 @@ static const byte dmcpFontRPL[]
 //   RPL object representing the various DMCP fonts
 // ----------------------------------------------------------------------------
 {
-#define LEB128(id, fnt)      (id) | 0x80, ((id) >> 7) & 0x7F, (fnt)
+#define LEB128(id, fnt)      ((id) & 0x7F) | 0x80, ((id) >> 7) & 0x7F, (fnt)
 
     LEB128(object::ID_dmcp_font, 0),            // lib_mono
     LEB128(object::ID_dmcp_font, 1),

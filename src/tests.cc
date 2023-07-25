@@ -1249,8 +1249,9 @@ void tests::decimal_numerical_functions()
     step("Setting radians mode");
     test(CLEAR, "RAD", ENTER).noerr();
 
-#define TFN(name, result)                                               \
-    step(#name).test(CLEAR, "0.321 " #name, ENTER).expect(result);
+#define TFNA(name, arg, result)                                           \
+    step(#name).test(CLEAR, #arg " " #name, ENTER).expect(result);
+#define TFN(name, result)  TFNA(name, 0.321, result)
 
     TFN(sqrt, "5.66568 61896 86117 7993⁳⁻¹");
     TFN(sin, "3.15515 63859 27271 1131⁳⁻¹");
@@ -1263,10 +1264,10 @@ void tests::decimal_numerical_functions()
     TFN(cosh, "1.05196 44159 41947 5384");
     TFN(tanh, "3.10410 84660 58860 2149⁳⁻¹");
     TFN(asinh, "3.15728 26582 93796 1791⁳⁻¹");
-    TFN(acosh, "0.321");
+    TFNA(acosh, 1.321, "7.81230 20519 62526 1474⁳⁻¹");
     TFN(atanh, "3.32761 58848 18145 958⁳⁻¹");
     TFN(log1p, "2.78389 02554 01882 6677⁳⁻¹");
-    TFN(ln1p, "'ln1p'");
+    TFN(lnp1, "2.78389 02554 01882 6677⁳⁻¹");
     TFN(expm1, "3.78505 58089 37538 9545⁳⁻¹");
     TFN(log, "-1.13631 41558 52121 1874");
     TFN(log10, "-4.93494 96759 51279 2187⁳⁻¹");
@@ -1504,7 +1505,7 @@ void tests::complex_functions()
 
     step("Tangent");
     test(CLEAR, "2+8ⅈ", ENTER, TAN)
-        .expect("-1.39772 11770 40026 1373⁳⁻⁴+1.00030 51824 41239 0233ⅈ");
+        .expect("1.39772 11770 40026 1373⁳⁻⁴-1.00030 51824 41239 0233ⅈ");
 
     step("Arc sine");
     test(CLEAR, "3+5ⅈ", ENTER, SHIFT, SIN)
@@ -1516,7 +1517,7 @@ void tests::complex_functions()
 
     step("Arc tangent");
     test(CLEAR, "9.+2ⅈ", ENTER, SHIFT, TAN)
-        .expect("1.46524 96601 83523 3458+2.32726 05766 50298 8381⁳⁻²ⅈ");
+        .expect("1.35459 24390 09627 6993+2.32726 05766 50298 8381⁳⁻²ⅈ");
 
     step("Hyperbolic sine");
     test(CLEAR, "4+2ⅈ", ENTER, "SINH", ENTER)

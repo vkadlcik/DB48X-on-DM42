@@ -1015,10 +1015,20 @@ array_g array::do_matrix(array_r x, array_r y,
 
     if (x->is_matrix(&rx, &cx))
     {
+        bool vector = false;
         if (!y->is_matrix(&ry, &cy))
         {
-            rt.type_error();
-            goto err;
+            if (mat == matrix_mul && y->is_vector(&ry))
+            {
+                // We can multiply a matrix by a vector
+                cy = 1;
+                vector = true;
+            }
+            else
+            {
+                rt.type_error();
+                goto err;
+            }
         }
         if (!dim(rx, cx, ry, cy, &rr, &cr))
         {
@@ -1037,7 +1047,12 @@ array_g array::do_matrix(array_r x, array_r y,
         scribble scr;
         for (size_t r = 0; r < rr; r++)
         {
-            array_g row = nullptr;
+            object_g row = nullptr;
+            if (vector)
+            {
+                row = object_p(mat(r, 0, rx, cx, ry, cy));
+            }
+            else
             {
                 scribble sr;
                 for (size_t c = 0; c < cr; c++)
@@ -1046,11 +1061,11 @@ array_g array::do_matrix(array_r x, array_r y,
                     if (!e || !rt.append(e->size(), byte_p(e.Safe())))
                         goto err;
                 }
-                row = array_p(list::make(ty, sr.scratch(), sr.growth()));
+                row = object_p(list::make(ty, sr.scratch(), sr.growth()));
             }
             if (!row)
                 goto err;
-            if (!rt.append(row->object::size(), byte_p(row.Safe())))
+            if (!rt.append(row->size(), byte_p(row.Safe())))
                 goto err;
         }
 

@@ -2272,7 +2272,7 @@ bool user_interface::noHelpForKey(int key)
     {
         // No help for ENTER or BSP key while editing
         if (key == KEY_ENTER || key == KEY_BSP ||
-            key == KEY_UP || key == KEY_DOWN)
+            key == KEY_UP || key == KEY_DOWN || key == KEY_RUN)
             return true;
 
         // No help for A-F keys in hexadecimal entry mode

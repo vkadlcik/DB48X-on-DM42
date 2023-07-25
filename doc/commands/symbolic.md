@@ -1,5 +1,19 @@
 # Operations with Symbolic Expressions
 
+## Rewrite
+
+Applies an arbitrary transformation on equations. The first argument is the
+equation to transform. The second argument is the pattern to match. The third
+argument is the replacement pattern. Patterns can contain variable names, which
+are substituted with the corresponding sub-expression.
+
+`Eq` `From` `To` ▶ `Eq`
+
+Examples:
+* `'A+B+0' 'X+0' 'X' rewrite` returns `'A+B'`
+* `'A+B+C' 'X+Y' 'Y-X' rewrite` returns `'C-(B-A)`
+
+
 ## AUTOSIMPLIFY
 Reduce numeric subexpressions
 
@@ -37,4 +51,3 @@ Create a case-list of integers in the given range.
 
 ## ASSUME
 Apply certain assumptions about a variable to an expression.
-

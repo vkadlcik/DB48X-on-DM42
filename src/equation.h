@@ -85,6 +85,12 @@ struct equation : program
         return rt.make<equation>(type, op, x, y);
     }
 
+    equation_p rewrite(equation_r from, equation_r to) const;
+    static equation_p rewrite(equation_r eq, equation_r from, equation_r to)
+    {
+        return eq->rewrite(from, to);
+    }
+
 protected:
     static symbol_g render(uint depth, int &precedence, bool edit);
     static symbol_g parentheses(symbol_g what);
@@ -96,5 +102,7 @@ public:
     RENDER_DECL(equation);
 };
 
+
+COMMAND_DECLARE(Rewrite);
 
 #endif // EQUATION_H

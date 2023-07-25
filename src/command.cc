@@ -462,7 +462,7 @@ COMMAND_BODY(ToolsMenu)
             case ID_oct_bignum:
             case ID_bin_bignum:
             case ID_based_bignum:       menu = ID_BasesMenu; break;
-            case ID_equation:           menu = ID_EquationsMenu; break;
+            case ID_equation:           menu = ID_SymbolicMenu; break;
             case ID_list:               menu = ID_ListMenu; break;
             case ID_array:              menu = ID_MatrixMenu; break;
             default:                    break;

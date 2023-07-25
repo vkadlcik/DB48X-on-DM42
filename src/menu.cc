@@ -536,6 +536,7 @@ MENU(SymbolicMenu,
 // ----------------------------------------------------------------------------
 //   Symbolic operations
 // ----------------------------------------------------------------------------
+                ID_Rewrite,
      "Collect", ID_Unimplemented,
      "Expand",  ID_Unimplemented,
      "Isolate", ID_Unimplemented,

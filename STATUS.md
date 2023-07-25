@@ -158,7 +158,7 @@
 - [x] Parsing of symbolic expressions
 - [x] Symbolic operations
 - [ ] Integrate existing CAS like [GIAC](https://github.com/geogebra/giac)
-- [ ] Rules engine
+- [x] Rules engine
 - [ ] Symbolic differentiation
 - [ ] Symbolic integration
 

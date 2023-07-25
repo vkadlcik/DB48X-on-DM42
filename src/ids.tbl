@@ -258,6 +258,8 @@ CMD(Depth)
 NAMED(ToList, "→List")
 CMD(Get)
 
+CMD(Rewrite)
+
 NAMED(RealToComplex, "ℝ→ℂ")
 ALIAS(RealToComplex, "R→C")
 NAMED(ComplexToReal, "ℂ→ℝ")

@@ -95,7 +95,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    auto_simplification();
+    rewrite_engine();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -1990,7 +1990,36 @@ void tests::auto_simplification()
 
     step("Re-enable auto simplification");
     test(CLEAR, "AutoSimplify", ENTER).noerr();
+}
 
+
+void tests::rewrite_engine()
+// ----------------------------------------------------------------------------
+//   Equation rewrite engine
+// ----------------------------------------------------------------------------
+{
+    begin("Equation rewrite engine");
+
+    step("Single replacement");
+    test(CLEAR, "'A+B' 'X+Y' 'Y-sin X' rewrite", ENTER)
+        .expect("'B-sin A'");
+
+    step("In-depth replacement");
+    test(CLEAR, " 'A*(B+C)' 'X+Y' 'Y-sin X' rewrite", ENTER)
+        .expect("'A×(C-sin B)'");
+
+    step("Variable matching");
+    test(CLEAR, "'A*(B+C)' 'X+X' 'X-sin X' rewrite", ENTER)
+        .expect("'A×(B+C)'");
+    test(CLEAR, "'A*(B+(B))' 'X+X' 'X-sin X' rewrite", ENTER)
+        .expect("'A×(B-sin B)'");
+
+    step("Constant folding");
+    test(CLEAR, "'A+B+0' 'X+0' 'X' rewrite", ENTER)
+        .expect("'A+B'");
+    step("Multiple substitutions");
+    test(CLEAR, "'A+B+C' 'X+Y' 'Y-X' rewrite", ENTER)
+        .expect("'C-(B-A)'");
 }
 
 

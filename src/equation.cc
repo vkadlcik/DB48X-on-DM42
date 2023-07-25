@@ -403,3 +403,282 @@ size_t equation::required_memory(id type, id op, algebraic_r x, algebraic_r y)
     size += leb128size(type);
     return size;
 }
+
+
+// ============================================================================
+//
+//   Equation rewrite engine
+//
+// ============================================================================
+//
+//   The equation rewrite engine works by expanding equation objects on
+//   the stack, and matching them step by step.
+//
+//   When a symbol is encountered, it is recorded in locals as a pair
+//   of entries, one for the symbol, one for its value.
+//   If a symbol is seen twice, it must match exactly for the rule to match.
+//   For example, a pattern like `X - X` will match if the two 'X' are 'same'
+//
+//   During rewrite, the stack is used to build three arrays, each being
+//   the exploded content of the respective equation
+//   - The 'from' pattern       [from..from+fromsz]
+//   - The 'eq' value           [eq  ..eq+eqsz]
+//
+//   eq:        sin(a+3) - cos(a+3)             a 3 + sin a 3 + cos -
+//   match:     sin x    - cos x                    x sin     x cos -
+//
+
+static equation_p grab_arguments(size_t &eq, size_t &eqsz)
+// ----------------------------------------------------------------------------
+//   Fetch an argument using the arity to know how many things to use
+// ----------------------------------------------------------------------------
+{
+    size_t   len   = 0;
+    size_t   arity = 1;
+    scribble scr;
+    while (arity && len < eqsz)
+    {
+        object_p obj = rt.stack(eq + len);
+        arity--;
+        arity += obj->arity();
+        len++;
+    }
+    if (arity)
+    {
+        record(equation_error, "Argument gets %u beyond size %u", arity, eqsz);
+        return nullptr;
+    }
+
+    size_t sz = len;
+    while (len--)
+    {
+        object_p obj = rt.stack(eq + len);
+        rt.append(obj->size(), byte_p(obj));
+    }
+    eq += sz;
+    eqsz -= sz;
+    list_p list = list::make(object::ID_equation, scr.scratch(), scr.growth());
+    return equation_p(list);
+}
+
+
+static size_t check_match(size_t eq, size_t eqsz,
+                          size_t from, size_t fromsz)
+// ----------------------------------------------------------------------------
+//   Check for structure match between eq and from
+// ----------------------------------------------------------------------------
+{
+    size_t eqs = eq;
+    size_t locals = rt.locals();
+    while (fromsz && eqsz)
+    {
+        // Check what we match against
+        object_p ftop = rt.stack(from);
+        if (!ftop)
+            return false;
+        object::id fty = ftop->type();
+
+        // Check if this this is a symbol.
+        if (fty == object::ID_symbol)
+        {
+            // Check if the symbol already exists
+            symbol_p name = symbol_p(ftop);
+            object_p found = nullptr;
+            size_t symbols = rt.locals() - locals;
+            for (size_t l = 0; !found && l < symbols; l += 2)
+            {
+                symbol_p existing = symbol_p(rt.local(l));
+                if (!existing)
+                    return 0;
+                if (existing->is_same_as(name))
+                    found = rt.local(l+1);
+            }
+
+            // Get the value matching the symbol
+            ftop = grab_arguments(eq, eqsz);
+            if (!ftop)
+                return 0;
+
+            if (!found)
+            {
+                // Grab the parameter that corresponds and store it
+                if (!rt.push(name) || !rt.push(ftop) || !rt.locals(2))
+                    return 0;
+            }
+            else
+            {
+                // If there is a mismatch, rewrite fails
+                if (!found->is_same_as(ftop))
+                    return 0;
+            }
+        }
+        else
+        {
+            // If not a symobl, we need an exact match
+            object_p top = rt.stack(eq);
+            if (!top || !top->is_same_as(ftop))
+                return 0;
+            eq++;
+            eqsz--;
+        }
+        from++;
+        fromsz--;
+    }
+
+    // If there is a leftover in `from`, then this is a mismatch
+    if (fromsz)
+        return false;
+
+    // Otherwise, we covered the whole 'from' pattern, we have a match
+    // Return size matched in source equation
+    return eq - eqs;
+}
+
+
+equation_p equation::rewrite(equation_r from, equation_r to) const
+// ----------------------------------------------------------------------------
+//   If we match pattern in `from`, then rewrite using pattern in `to`
+// ----------------------------------------------------------------------------
+//   For example, if this equation is `3 + sin(X + Y)`, from is `A + B` and
+//   to is `B + A`, then the output will be `sin(Y + X) + 3`.
+//
+{
+    // Remember the current stack depth and locals
+    size_t     locals   = rt.locals();
+    size_t     depth    = rt.depth();
+
+    // Need a GC pointer since stack operations may move us
+    equation_g eq       = this;
+
+    // Information about part we replace
+    bool       replaced = false;
+    size_t     matchsz  = 0;
+
+    // Loop while there are replacements found
+    do
+    {
+        // Location of expanded equation
+        size_t eqsz = 0, fromsz = 0;
+        size_t eqst = 0, fromst = 0;
+
+        replaced = false;
+
+        // Expand 'from' on the stack and remember where it starts
+        for (object_p obj : *from)
+            if (!rt.push(obj))
+                goto err;
+        fromsz = rt.depth() - depth;
+
+        // Expand this equation on the stack, and remember where it starts
+        for (object_p obj : *eq)
+            if (!rt.push(obj))
+                goto err;
+        eqsz = rt.depth() - depth - fromsz;
+
+        // Keep checking sub-expressions until we find a match
+        fromst = eqst + eqsz;
+        while (eqsz)
+        {
+            // Check if there is a match of this sub-equation
+            matchsz = check_match(eqst, eqsz, fromst, fromsz);
+            if (matchsz)
+                break;
+
+            // Check next step in the equation
+            eqst++;
+            eqsz--;
+        }
+
+        // If we matched a sub-equation, perform replacement
+        if (matchsz)
+        {
+            scribble scr;
+            size_t   where  = 0;
+            for (equation::iterator it = eq->begin(); it != eq->end(); ++it)
+            {
+                if (where < eqst || where >= eqst + matchsz)
+                {
+                    // Copy from source equation directly
+                    object_p obj = *it;
+                    rt.append(obj->size(), byte_p(obj));
+                }
+                else if (!replaced)
+                {
+                    // Insert a version of 'to' where symbols are replaced
+                    for (object_p tobj : *to)
+                    {
+                        if (tobj->type() == ID_symbol)
+                        {
+                            // Check if we find the matching pattern in local
+                            symbol_p name = symbol_p(tobj);
+                            object_p found = nullptr;
+                            size_t symbols = rt.locals() - locals;
+                            for (size_t l = 0; !found && l < symbols; l += 2)
+                            {
+                                symbol_p existing = symbol_p(rt.local(l));
+                                if (!existing)
+                                    continue;
+                                if (existing->is_same_as(name))
+                                    found = rt.local(l+1);
+                            }
+                            if (found)
+                                tobj = found;
+                        }
+
+                        // Only copy the payload of equations
+                        size_t tobjsize = tobj->size();
+                        if (equation_p teq = tobj->as<equation>())
+                            tobj = object_p(teq->value(&tobjsize));
+                        rt.append(tobjsize, byte_p(tobj));
+                    }
+
+                    replaced = true;
+                }
+                where++;
+            }
+
+            // Restart anew with replaced equation
+            eq = equation_p(list::make(ID_equation,
+                                       scr.scratch(), scr.growth()));
+
+            // We need to dump equation and pattern again
+            rt.drop(rt.depth() - depth);
+            rt.unlocals(rt.locals() - locals);
+        }
+    } while (replaced);
+
+
+err:
+    rt.drop(rt.depth() - depth);
+    rt.unlocals(rt.locals() - locals);
+    return eq;;
+}
+
+
+COMMAND_BODY(Rewrite)
+// ----------------------------------------------------------------------------
+//   Rewrite (From, To, Value): Apply rewrites
+// ----------------------------------------------------------------------------
+{
+    object_p x = rt.stack(0);
+    object_p y = rt.stack(1);
+    object_p z = rt.stack(2);
+    if (!x || !y || !z)
+        return ERROR;
+    equation_g eq = z->as<equation>();
+    equation_g from = y->as<equation>();
+    equation_g to = x->as<equation>();
+    if (!from || !to || !eq)
+    {
+        rt.type_error();
+        return ERROR;
+    }
+
+    eq = eq->rewrite(from, to);
+    if (!eq)
+        return ERROR;
+    if (!rt.drop(2) || !rt.top(eq.Safe()))
+        return ERROR;
+
+    return OK;
+}

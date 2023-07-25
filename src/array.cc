@@ -269,10 +269,12 @@ static bool mul_dimension(size_t rx, size_t cx,
 // ----------------------------------------------------------------------------
 //   For multiplication, need matching rows and columns
 // ----------------------------------------------------------------------------
+//   We accept matrices with matching sizes, or vectors of the same size
 {
     *rr = rx;
     *cr = cy;
-    return cx == ry;
+
+    return cx == ry || (!rx && !ry && cx == cy);
 }
 
 
@@ -866,6 +868,11 @@ array_g array::invert() const
         record(matrix, "Result inv=%t", inv);
         return array_p(inv);
     }
+    else if (atype == ID_array)
+    {
+        // Apply component-wise inversion
+        return map(inv::evaluate);
+    }
     else
     {
         rt.type_error();
@@ -943,10 +950,12 @@ static bool div_dimension(size_t rx, size_t cx,
                           size_t ry, size_t cy,
                           size_t *rr, size_t *cr)
 // ----------------------------------------------------------------------------
-//   For division, not yet implemented
+//   Divide vectors component-wide, or square matrices of same size
 // ----------------------------------------------------------------------------
 {
-    return false; // Not yet
+    *rr = rx;
+    *cr = cx;
+    return (rx == cx && ry == cy && rx == ry) || (!rx && !ry && cx == cy);
 }
 
 
@@ -986,7 +995,7 @@ array_g array::do_matrix(array_r x, array_r y,
             rt.type_error();
             goto err;
         }
-        if (!dim(1, cx, 1, cy, &rr, &cr))
+        if (!dim(0, cx, 0, cy, &rr, &cr))
         {
             rt.dimension_error();
             goto err;

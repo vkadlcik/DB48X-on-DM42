@@ -72,6 +72,8 @@ struct tests
     void complex_arithmetic();
     void complex_functions();
     void list_functions();
+    void vector_functions();
+    void matrix_functions();
     void text_functions();
     void regression_checks();
 

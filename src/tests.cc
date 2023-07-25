@@ -95,8 +95,8 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    list_functions();
-    text_functions();
+    vector_functions();
+    matrix_functions();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -1674,6 +1674,112 @@ void tests::text_functions()
         .expect("\"AbCAbCAbC\"");
     test(CLEAR, "3 \"AbC\" *", ENTER)
         .expect("\"AbCAbCAbC\"");
+}
+
+
+void tests::vector_functions()
+// ----------------------------------------------------------------------------
+//   Test operations on vectors
+// ----------------------------------------------------------------------------
+{
+    begin("Vectors");
+
+    step("Data entry in numeric form");
+    test(CLEAR, "[  1  2  3  ]", ENTER)
+        .type(object::ID_array).expect("[ 1 2 3 ]");
+    test(CLEAR, "[  1.5  2.300  3.02  ]", ENTER)
+        .type(object::ID_array).expect("[ 1.5 2.3 3.02 ]");
+
+    step("Symbolic vector");
+    test(CLEAR, "[a b c]", ENTER)
+        .expect("[ a b c ]");
+
+    step("Non-homogneous data types");
+    test(CLEAR, "[  \"ABC\"  'X' 3/2  ]", ENTER)
+        .type(object::ID_array).expect("[ \"ABC\" 'X' 3/2 ]");
+
+    step("Addition");
+    test(CLEAR, "[1 2 3][4 5 6] +", ENTER)
+        .expect("[ 5 7 9 ]");
+    test(CLEAR, "[a b c][d e f] +", ENTER)
+        .expect("[ 'a+d' 'b+e' 'c+f' ]");
+
+    step("Subtraction");
+    test(CLEAR, "[1 2 3 4][4 5 2 1] -", ENTER)
+        .expect("[ -3 -3 1 3 ]");
+    test(CLEAR, "[a b c][d e f] -", ENTER)
+        .expect("[ 'a-d' 'b-e' 'c-f' ]");
+
+    step("Multiplication (extension)");
+    test(CLEAR, "[1 2  3 4 6][4 5 2 1 3] *", ENTER)
+        .expect("[ 4 10 6 4 18 ]");
+    test(CLEAR, "[a b c][d e f] *", ENTER)
+        .expect("[ 'a×d' 'b×e' 'c×f' ]");
+
+    step("Division (extension)");
+    test(CLEAR, "[1 2  3 4 6][4 5 2 1 3] /", ENTER)
+        .expect("[ 1/4 2/5 3/2 4 2 ]");
+    test(CLEAR, "[a b c][d e f] /", ENTER)
+        .expect("[ 'a÷d' 'b÷e' 'c÷f' ]");
+
+    step("Addition of constant (extension)");
+    test(CLEAR, "[1 2 3] 3 +", ENTER)
+        .expect("[ 4 5 6 ]");
+    test(CLEAR, "[a b c] x +", ENTER)
+        .expect("[ 'a+x' 'b+x' 'c+x' ]");
+
+    step("Subtraction of constant (extension)");
+    test(CLEAR, "[1 2 3 4] 3 -", ENTER)
+        .expect("[ -2 -1 0 1 ]");
+    test(CLEAR, "[a b c] x -", ENTER)
+        .expect("[ 'a-x' 'b-x' 'c-x' ]");
+    test(CLEAR, "x [a b c] -", ENTER)
+        .expect("[ 'x-a' 'x-b' 'x-c' ]");
+
+    step("Multiplication by constant (extension)");
+    test(CLEAR, "[a b c] x *", ENTER)
+        .expect("[ 'a×x' 'b×x' 'c×x' ]");
+    test(CLEAR, "x [a b c] *", ENTER)
+        .expect("[ 'x×a' 'x×b' 'x×c' ]");
+
+    step("Division by constant (extension)");
+    test(CLEAR, "[a b c] x /", ENTER)
+        .expect("[ 'a÷x' 'b÷x' 'c÷x' ]");
+    test(CLEAR, "x [a b c] /", ENTER)
+        .expect("[ 'x÷a' 'x÷b' 'x÷c' ]");
+
+    step("Invalid dimension for binary operations");
+    test(CLEAR, "[1 2 3][1 2] +", ENTER)
+        .error("Invalid dimension");
+    test(CLEAR, "[1 2 3][1 2] -", ENTER)
+        .error("Invalid dimension");
+    test(CLEAR, "[1 2 3][1 2] *", ENTER)
+        .error("Invalid dimension");
+    test(CLEAR, "[1 2 3][1 2] /", ENTER)
+        .error("Invalid dimension");
+
+    step("Component-wise inversion of a vector");
+    test(CLEAR, "[1 2 3] INV", ENTER)
+        .expect("[ 1 1/2 1/3 ]");
+
+    step("Froebenius norm");
+    test(CLEAR, "[1 2 3] ABS", ENTER)
+        .expect("3.74165 73867 73941 3856");
+    test(CLEAR, "[1 2 3] NORM", ENTER)
+        .expect("3.74165 73867 73941 3856");
+
+    step("Component-wise application of functions");
+    test(CLEAR, "[a b c] SIN", ENTER)
+        .expect("[ 'sin a' 'sin b' 'sin c' ]");
+}
+
+
+void tests::matrix_functions()
+// ----------------------------------------------------------------------------
+//   Test operations on vectors
+// ----------------------------------------------------------------------------
+{
+    begin("Matrices");
 }
 
 

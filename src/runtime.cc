@@ -229,7 +229,9 @@ void runtime::dump_object_list(cstring  message,
     }
     record(gc, "%+s stack", message);
     for (object_p *s = stack; s < stackEnd; s++)
-        record(gc, " %u: %p (%+s)", s - stack, *s, object::name((*s)->type()));
+        record(gc, " %u: %p (%+s)",
+               s - stack, *s,
+               *s ? object::name((*s)->type()) : utf8("null"));
     record(gc, "%+s: %u objects using %u bytes", message, count, sz);
 }
 

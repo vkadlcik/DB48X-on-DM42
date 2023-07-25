@@ -859,7 +859,8 @@ array_g array::invert() const
                 }
                 vec = list::make(atype, sv.scratch(), sv.growth());
             }
-            rt.append(vec->size(), byte_p(vec));
+            if (!vec || !rt.append(vec->size(), byte_p(vec)))
+                goto err;
         }
 
         // Return result
@@ -1063,9 +1064,7 @@ array_g array::do_matrix(array_r x, array_r y,
                 }
                 row = object_p(list::make(ty, sr.scratch(), sr.growth()));
             }
-            if (!row)
-                goto err;
-            if (!rt.append(row->size(), byte_p(row.Safe())))
+            if (!row || !rt.append(row->size(), byte_p(row.Safe())))
                 goto err;
         }
 

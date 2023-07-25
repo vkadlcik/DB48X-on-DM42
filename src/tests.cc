@@ -1780,6 +1780,131 @@ void tests::matrix_functions()
 // ----------------------------------------------------------------------------
 {
     begin("Matrices");
+
+    step("Data entry in numeric form");
+    test(CLEAR, "[  [1  2  3][4 5 6]  ]", ENTER)
+        .type(object::ID_array).expect("[ [ 1 2 3 ] [ 4 5 6 ] ]");
+
+    step("Non-rectangular matrices");
+    test(CLEAR, "[  [ 1.5  2.300 ] [ 3.02 ] ]", ENTER)
+        .type(object::ID_array).expect("[ [ 1.5 2.3 ] [ 3.02 ] ]");
+
+    step("Symbolic matrix");
+    test(CLEAR, "[ [a b] [c d] ]", ENTER)
+        .expect("[ [ a b ] [ c d ] ]");
+
+    step("Non-homogneous data types");
+    test(CLEAR, "[  [ \"ABC\"  'X' ] 3/2  [ 4 [5] [6 7] ] ]", ENTER)
+        .type(object::ID_array)
+        .expect("[ [ \"ABC\" 'X' ] 3/2 [ 4 [ 5 ] [ 6 7 ] ] ]");
+
+    step("Addition");
+    test(CLEAR, "[[1 2] [3 4]] [[5 6][7 8]] +", ENTER)
+        .expect("[ [ 6 8 ] [ 10 12 ] ]");
+    test(CLEAR, "[[a b][c d]] [[e f][g h]] +", ENTER)
+        .expect("[ [ 'a+e' 'b+f' ] [ 'c+g' 'd+h' ] ]");
+
+    step("Subtraction");
+    test(CLEAR, "[[1 2] [3 4]] [[5 6][7 8]] -", ENTER)
+        .expect("[ [ -4 -4 ] [ -4 -4 ] ]");
+    test(CLEAR, "[[a b][c d]] [[e f][g h]] -", ENTER)
+        .expect("[ [ 'a-e' 'b-f' ] [ 'c-g' 'd-h' ] ]");
+
+    step("Multiplication (square)");
+    test(CLEAR, "[[1 2] [3 4]] [[5 6][7 8]] *", ENTER)
+        .expect("[ [ 19 22 ] [ 43 50 ] ]");
+    test(CLEAR, "[[a b][c d]] [[e f][g h]] *", ENTER)
+        .expect("[ [ 'a×e+b×g' 'a×f+b×h' ] [ 'c×e+d×g' 'c×f+d×h' ] ]");
+
+    step("Multiplication (non-square)");
+    test(CLEAR, "[[1 2 3] [4 5 6]] [[5 6][7 8][9 10]] *", ENTER)
+        .expect("[ [ 46 52 ] [ 109 124 ] ]");
+    test(CLEAR, "[[a b c d][e f g h]] [[x][y][z][t]] *", ENTER)
+        .expect("[ [ 'a×x+b×y+c×z+d×t' ] [ 'e×x+f×y+g×z+h×t' ] ]");
+    test(CLEAR, "[[a b c d][e f g h]] [x y z t] *", ENTER)
+        .expect("[ 'a×x+b×y+c×z+d×t' 'e×x+f×y+g×z+h×t' ]");
+
+    step("Division");
+    test(CLEAR,
+         "[[5 12 1968][17 2 1969][30 3 1993]] "
+         "[[16 5 1995][21 5 1999][28 5 2009]] /", ENTER)
+        .expect("[ [ 34/11 -52/11 -43/11 ] [ 3 357/10 -13 427/10 -16 433/10 ] [ -19/22 75/22 113/22 ] ]");
+    test(CLEAR, "[[a b][c d]][[e f][g h]] /", ENTER)
+        .expect("[ [ '(1÷e-f÷e×((e×0-g×1)÷(e×h-g×f)))×a+(0÷e-f÷e×((e×1-g×0)÷(e×h-g×f)))×c' '(1÷e-f÷e×((e×0-g×1)÷(e×h-g×f)))×b+(0÷e-f÷e×((e×1-g×0)÷(e×h-g×f)))×d' ] [ '(e×0-g×1)÷(e×h-g×f)×a+(e×1-g×0)÷(e×h-g×f)×c' '(e×0-g×1)÷(e×h-g×f)×b+(e×1-g×0)÷(e×h-g×f)×d' ] ]");
+
+    step("Addition of constant (extension)");
+    test(CLEAR, "[[1 2] [3 4]] 3 +", ENTER)
+        .expect("[ [ 4 5 ] [ 6 7 ] ]");
+    test(CLEAR, "[[a b] [c d]] x +", ENTER)
+        .expect("[ [ 'a+x' 'b+x' ] [ 'c+x' 'd+x' ] ]");
+
+    step("Subtraction of constant (extension)");
+    test(CLEAR, "[[1 2] [3 4]] 3 -", ENTER)
+        .expect("[ [ -2 -1 ] [ 0 1 ] ]");
+    test(CLEAR, "[[a b] [c d]] x -", ENTER)
+        .expect("[ [ 'a-x' 'b-x' ] [ 'c-x' 'd-x' ] ]");
+
+    step("Multiplication by constant (extension)");
+    test(CLEAR, "[[a b] [c d]] x *", ENTER)
+        .expect("[ [ 'a×x' 'b×x' ] [ 'c×x' 'd×x' ] ]");
+    test(CLEAR, "x [[a b] [c d]] *", ENTER)
+        .expect("[ [ 'x×a' 'x×b' ] [ 'x×c' 'x×d' ] ]");
+
+    step("Division by constant (extension)");
+    test(CLEAR, "[[a b] [c d]] x /", ENTER)
+        .expect("[ [ 'a÷x' 'b÷x' ] [ 'c÷x' 'd÷x' ] ]");
+    test(CLEAR, "x [[a b] [c d]] /", ENTER)
+        .expect("[ [ 'x÷a' 'x÷b' ] [ 'x÷c' 'x÷d' ] ]");
+
+    step("Invalid dimension for binary operations");
+    test(CLEAR, "[[1 2] [3 4]][1 2] +", ENTER)
+        .error("Bad argument type");
+    test(CLEAR, "[[1 2] [3 4]][[1 2][3 4][5 6]] +", ENTER)
+        .error("Invalid dimension");
+    test(CLEAR, "[[1 2] [3 4]][1 2] +", ENTER)
+        .error("Bad argument type");
+    test(CLEAR, "[[1 2] [3 4]][[1 2][3 4][5 6]] -", ENTER)
+        .error("Invalid dimension");
+    test(CLEAR, "[[1 2] [3 4]][1 2] +", ENTER)
+        .error("Bad argument type");
+    test(CLEAR, "[[1 2] [3 4]][[1 2][3 4][5 6]] -", ENTER)
+        .error("Invalid dimension");
+    test(CLEAR, "[[1 2] [3 4]][1 2] +", ENTER)
+        .error("Bad argument type");
+    test(CLEAR, "[[1 2] [3 4]][[1 2][3 4][5 6]] *", ENTER)
+        .error("Invalid dimension");
+    test(CLEAR, "[[1 2] [3 4]][1 2 3] *", ENTER)
+        .error("Invalid dimension");
+    test(CLEAR, "[[1 2] [3 4]][[1 2][3 4][5 6]] /", ENTER)
+        .error("Invalid dimension");
+    test(CLEAR, "[[1 2] [3 4]][1 2] /", ENTER)
+        .error("Bad argument type");
+
+    step("Inversion of a definite matrix");
+    test(CLEAR, "[[1 2 3][4 5 6][7 8 19]] INV", ENTER)
+        .expect("[ [ -47/30 7/15 1/10 ] [ 17/15 1/15 -1/5 ] [ 1/10 -1/5 1/10 ] ]");
+    test(CLEAR, "[[a b][c d]] INV", ENTER)
+        .expect("[ [ '1÷a-b÷a×((a×0-c×1)÷(a×d-c×b))' '0÷a-b÷a×((a×1-c×0)÷(a×d-c×b))' ] [ '(a×0-c×1)÷(a×d-c×b)' '(a×1-c×0)÷(a×d-c×b)' ] ]");
+
+    step("Invert with zero determinant");       // HP48 gets this one wrong
+    test(CLEAR, "[[1 2 3][4 5 6][7 8 9]] INV", ENTER)
+        .error("Divide by zero");
+
+    step("Determinant");                        // HP48 gets this one wrong
+    test(CLEAR, "[[1 2 3][4 5 6][7 8 9]] DET", ENTER)
+        .expect("0");
+    test(CLEAR, "[[1 2 3][4 5 6][7 8 19]] DET", ENTER)
+        .expect("-30");
+
+    step("Froebenius norm");
+    test(CLEAR, "[[1 2] [3 4]] ABS", ENTER)
+        .expect("5.47722 55750 51661 1346");
+    test(CLEAR, "[[1 2] [3 4]] NORM", ENTER)
+        .expect("5.47722 55750 51661 1346");
+
+    step("Component-wise application of functions");
+    test(CLEAR, "[[a b] [c d]] SIN", ENTER)
+        .expect("[ [ 'sin a' 'sin b' ] [ 'sin c' 'sin d' ] ]");
 }
 
 
@@ -2450,6 +2575,15 @@ tests &tests::expect(cstring output)
     record(tests, "Expecting [%+s]", output);
     ready();
     cindex++;
+    if (rt.error())
+    {
+        explain("Expected output [",
+                output,
+                "], got error [",
+                rt.error(),
+                "] instead");
+        return fail();
+    }
     if (utf8 out = Stack.recorded())
     {
         record(tests,

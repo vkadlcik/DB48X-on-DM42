@@ -1,0 +1,103 @@
+Installation process
+Entering numbers
+Arithmetic and basic functions
+
+Infinite stack
+Decimal numbers
+Separators
+Command line entering 3 numbers
+
+Space key on R/S
+Alpha mode with Shift-Enter
+Alpha mode with Long Shift
+Right shift with two shifts
+Shift on digits and operations while in Alpha mode
+
+Executing a command by typing its name
+Catalog with + key
+VERSION
+Multi-line Text editor
+Up and down by shifting
+Repeat left and right
+Repeat up and down by holding key
+Begin and end with xshift
+
+Help
+Help on primary functions
+Going to main menu
+Release information
+
+Menus
+Shift and xshift in menu
+Going to next and previous in menus
+
+The Modes menu
+FIX, ENG and SCI
+SIG mode
+Fraction marks
+Separators
+
+Global variables
+RCL bringing the variables menu
+Creating a name with XEQ
+Storing a variable with STO
+
+Entering a simple program that adds two numbers
+Running a program with R/S
+
+Increment program
+Program evaluation
+Recalling vs. evaluating in Vars menu
+Editing a program
+Storing with the Vars menu
+Editing the 'Fact' program
+Running Fact 100
+Editing Fact 100
+
+The Base menu
+Entering based numbers
+Entering hexadecimal directly
+Logical operations
+Setting the word size to 16
+Changing to base 8, 2 or 10
+Changing to arbitray base
+Entering number in arbitrary base
+
+Algebraics
+Entering a name with XEQ
+Adding 1
+INV
+SIN
+Editing
+Evaluation without a global
+Evaluation after setting global
+Using algebraics to evaluate algebraic expressions
+
+Local variables
+Inserting local variables
+Efficiency of local variables
+
+Loops
+START NEXT
+START STEP
+FOR NEXT
+FOR STEP
+
+Complex number
+Complex in rectangular form
+Arithmetic
+Complex functions
+Complex in polar form
+
+Lists
+Concatenating lists
+Global operations on items in a list
+
+Vectors
+Entering a vector
+Adding, subtracting vectors
+Multiplying and dividing vectors
+Operations between a vector and a constant
+Symbolic operations on vectors
+Norm of a vector
+Applying a function to all elements in a vector

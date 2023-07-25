@@ -13,7 +13,7 @@
 - [x] Built-in commands lookup and parsing
 - [x] Soft menus navigation
 - [x] Global variables
-- [ ] Local variables
+- [x] Local variables
 - [ ] Home directory and subdirectories
 - [x] Variables menu accessible with **RCL** key
 - [x] Complete interactive catalog of available functions
@@ -27,7 +27,7 @@
       (e.g. derived from [WP43S](https://gitlab.com/wpcalculators/wp43) project)
 - [X] Larger font for editor (old geezer mode)
 - [ ] Objects in USB-accessible flash storage
-- [ ] Calculator state load/save
+- [x] Calculator state load/save
 - [x] Global help from [generated markdown file](help/db48x.md)
 - [x] [Per-function help](https://github.com/c3d/db48x/blob/dm42/firmware/hal_keyboard.c#L116)
       from [markdown files](doc/calc-help)
@@ -63,16 +63,16 @@
 - [ [ Fraction formats, e.g. `22/7` vs `3 1/7` vs. `3,1428571429`
 - [x] Decimal floating-point with fixed size (32, 64 and 128 bits)
 - [ ] Decimal floating-point with [arbitrary size](https://github.com/c3d/db48x/blob/dm42/newrpl/decimal.h)
-- [ ] Binary floating-point with arbitrary size
+- [x] Binary floating-point with arbitrary size
 - [ ] Hardware-accelerated 32-bit binary floating-point
 - [x] Text / strings, e.g. `"ABC"`
 - [x] Name / symbols, e.g. `ABC`
-- [ ] Complex numbers in rectangular form, e.g. `2 + 3i`
-- [ ] Complex numbers in polar form, e.g. `2 ∡ 30°`
+- [x] Complex numbers in rectangular form, e.g. `2 + 3i`
+- [x] Complex numbers in polar form, e.g. `2 ∡ 30°`
 - [ ] Quaternions
 - [ ] Intervals / ranges, e.g. `1..5`
 - [ ] Angles, e.g. `∡30°`
-- [ ] Lists, e.g. `{ A 1 "Hello" }`
+- [x] Lists, e.g. `{ A 1 "Hello" }`
 - [x] Arrays, vectors, matrices and tensors, e.g. `[ [ 1 2 3] [ 4 5 6] ]`
 - [x] Program objects, e.g `« IF 1 = THEN "Equal to one" END »`
 - [ ] Algebraic programs, e.g. `'if x = 1 then "Equal to one"` based on
@@ -110,7 +110,7 @@
 
 ### Computations on real numbers
 
-- [x] floating-point arithmetic
+- [x] Floating-point arithmetic
 - [x] Circular functions, e.g. `sin`, `cos`, `atan`, ...
 - [x] Exponentials and logarithms, e.g. `exp`, `ln`, ...
 - [x] Hyperbolic functions, e.g. `sinh`, `atanh`, ...
@@ -123,10 +123,10 @@
 
 ### Computations on complex numbers
 
-- [ ] Complex arithmetic
-- [ ] Circular functions, e.g. `sin`, `cos`, `atan`, ...
-- [ ] Exponentials and logarithms, e.g. `exp`, `ln`, ...
-- [ ] Hyperbolic functions, e.g. `sinh`, `atanh`, ...
+- [x] Complex arithmetic
+- [x] Circular functions, e.g. `sin`, `cos`, `atan`, ...
+- [x] Exponentials and logarithms, e.g. `exp`, `ln`, ...
+- [x] Hyperbolic functions, e.g. `sinh`, `atanh`, ...
 - [ ] Probabilities functions, like `Factorial`, `Combinations`, etc.
 - [ ] Statistics functions, like `Σ+`, `Mean` or `Median`
 - [ ] Special functions, like `Bessel`, `FastFourierTransforma`, etc
@@ -146,8 +146,8 @@
 
 ### Computations on vectors, matrices and tensors
 
-- [ ] Arithmetic
-- [ ] Determinant, inverse, transpose
+- [x] Arithmetic
+- [x] Determinant, inverse, transpose
 - [ ] Eigenvalues
 - [ ] Tables with special matrices, e.g. Pauli matrices, General Relativity
 
@@ -155,8 +155,8 @@
 ### Computer Algebra system
 
 - [x] Rendering of symbolic expressions
-- [ ] Parsing of symbolic expressions
-- [ ] Symbolic operations
+- [x] Parsing of symbolic expressions
+- [x] Symbolic operations
 - [ ] Integrate existing CAS like [GIAC](https://github.com/geogebra/giac)
 - [ ] Rules engine
 - [ ] Symbolic differentiation

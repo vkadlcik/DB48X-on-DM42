@@ -49,27 +49,32 @@ calculator compared to the HP48:
 * The single _Shift_ key cycles between three states, *Shift*, *Right Shift* and
   no shift.  This double-shift shortcut appears necessary because RPL RPL
   calculators like the HP48 have a rather full keyboard even with two shift
-  keys.
+  keys. The less-frequently used *Right Shift* functions can be accessed after a
+  double-press on _Shift_.
 
 * Since RPL uses Alpha entry a lot more than the HP42, making it quickly
-  accessible seems important, so holding the *Shift* key enters Alpha mode.
+  accessible seems important, so there are three ways to activate it: with
+  _Shift_ _ ENTER _ as indicated by the _ALPHA_ yellow label on the DM42 ENTER
+  key), by holding _Shift_ for more than half a second, or by holding the _ ▲ _
+  or _ ▼ _ while pressing one of the alpha keys. This last method is called
+  _transient alpha mode_. Text is entered in uppercase while holding the _ ▲ _
+  key, and in lowercase while holding the _ ▼ _ key. Using _Shift_ _ ENTER _
+  cycles between uppercase, lowercase and non-alpha mode.
 
-* It is also possible to enter Alpha mode with _Shift_ _ ENTER _ to match
-  the labelling on the DM42. _Shift_ _ ENTER _ also cycles between *uppercase*,
-  *lowercase* and *non-alpha* entry. The first two are shown as _ABC_ and _abc_
-  in the annunciator area.
-
-* Alpha mode is always sticky. In other words, there is no equivalent of the
-  HP48's "single-Alpha" mode. Alpha mode is also exited when pressing _ ENTER _
-  or _EXIT_.
+* Alpha mode is shown in the annunciator area, which will show _ABC_ for
+  uppercase Alpha mode, and _abc_ for lowercase Alpha mode. There is no
+  equivalent of the HP48's "single-Alpha" mode. Alpha mode is either _transient_
+  (when you hold one of the arrow keys) or _sticky_ (when you enter with _Shift_
+  _ ENTER _ or by holding _Shift_). Alpha mode is also cancelled when pressing _
+  ENTER _ or _EXIT_.
 
 * Since the DM42's alphabetic keys overlap with the numeric keys, as well as
   with and _ × _ and _ ÷ _, using _Shift_ in Alpha mode brings back
-  numbers. This means it cannot be used for lowercase, hence the need for the
-  _Shift_ _ ENTER _ sequence.
-
-* The less-frequently used *Right Shift* functions can be accessed with a
-  long-press on _Shift_.
+  numbers. This means _Shift_ cannot be used for lowercase, but as indicated
+  above, there are two other methods to enter lowercase characters. Using
+  _Shift_ in combination with keys other than the numeric keypad gives a variety
+  of special characters. Yet another set of characters are made available by
+  using double-_Shift_ in Alpha mode.
 
 * The _ ▲ _ and _ ▼ _ keys move the cursor _left_ and _right_ while editing
   instead of _up_ and _down_. These cursor movements are much more useful for a

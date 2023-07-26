@@ -85,7 +85,7 @@ struct user_interface
     typedef graphics::rect  rect;
 
 
-    bool        key(int key, bool repeating);
+    bool        key(int key, bool repeating, bool transalpha);
     bool        repeating()     { return repeat; }
     void        assign(int key, uint plane, object_p code);
     object_p    assigned(int key, uint plane);
@@ -156,7 +156,7 @@ struct user_interface
     void        load_help(utf8 topic, size_t len = 0);
 
 protected:
-    bool        handle_shifts(int key);
+    bool        handle_shifts(int &key, bool talpha);
     bool        handle_help(int &key);
     bool        handle_editing(int key);
     bool        handle_alpha(int key);
@@ -194,6 +194,7 @@ protected:
     bool     shift        : 1;  // Normal shift active
     bool     xshift       : 1;  // Extended shift active (simulate Right)
     bool     alpha        : 1;  // Alpha mode active
+    bool     transalpha   : 1;  // Transitory alpha (up or down key)
     bool     lowercase    : 1;  // Lowercase
     bool     shift_drawn  : 1;  // Cache of drawn annunciators
     bool     xshift_drawn : 1;  // Cache

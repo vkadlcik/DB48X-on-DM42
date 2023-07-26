@@ -99,6 +99,7 @@ user_interface::user_interface()
       shift(false),
       xshift(false),
       alpha(false),
+      transalpha(false),
       lowercase(false),
       shift_drawn(false),
       xshift_drawn(false),
@@ -369,7 +370,7 @@ void user_interface::clear_menu()
 }
 
 
-bool user_interface::key(int key, bool repeating)
+bool user_interface::key(int key, bool repeating, bool talpha)
 // ----------------------------------------------------------------------------
 //   Process an input key
 // ----------------------------------------------------------------------------
@@ -395,8 +396,7 @@ bool user_interface::key(int key, bool repeating)
 
     if (rt.error())
     {
-        if (key == KEY_EXIT || key == KEY_ENTER || key == KEY_BSP ||
-            key == KEY_UP || key == KEY_DOWN)
+        if (key == KEY_EXIT || key == KEY_ENTER || key == KEY_BSP)
             rt.clear_error();
         else if (key)
             beep(2200, 75);
@@ -405,13 +405,26 @@ bool user_interface::key(int key, bool repeating)
         return true;
     }
 
+    // Handle transitory alpha mode
+
+    // Temporary - Display some internal information
+    char buffer[80];
+    snprintf(buffer, sizeof(buffer), "%c%c%c %02d %02d",
+             transalpha ? 'A' : ' ',
+             talpha     ? 'T' : ' ',
+             repeating  ? 'R' : ' ',
+             key, last);
+    Screen.fill(70, 0, 200, HelpFont->height() + 1, pattern::black);
+    Screen.text(70, 1, utf8(buffer), HelpFont, pattern::white);
+    lcd_refresh_lines(0, HelpFont->height() + 1);
+
     bool result =
-        handle_shifts(key)    ||
-        handle_help(key)      ||
-        handle_editing(key)   ||
-        handle_alpha(key)     ||
-        handle_digits(key)    ||
-        handle_functions(key) ||
+        handle_shifts(key, talpha)      ||
+        handle_help(key)                ||
+        handle_editing(key)             ||
+        handle_alpha(key)               ||
+        handle_digits(key)              ||
+        handle_functions(key)           ||
         key == 0;
 
     if (rt.editing())
@@ -923,8 +936,6 @@ void user_interface::draw_dirty(const rect &r)
 }
 
 
-static unsigned menuRedrawCounter = 0;
-
 bool user_interface::draw_menus()
 // ----------------------------------------------------------------------------
 //   Draw the softkey menus
@@ -1083,17 +1094,6 @@ bool user_interface::draw_menus()
         draw_refresh(period);
     if (!animating)
         draw_dirty(0, LCD_H - menuHeight, LCD_W, LCD_H);
-
-    menuRedrawCounter++;
-#if 1
-    // Temporary - Display some internal information
-    char buffer[80];
-    snprintf(buffer, sizeof(buffer), "%uR %uB %uB   ",
-             menuRedrawCounter++, (uint) rt.available(),
-             sys_free_mem());
-    Screen.fill(70, 0, 200, HeaderFont->height() + 1, pattern::black);
-    Screen.text(70, 1, utf8(buffer), HeaderFont, pattern::white);
-#endif
 
     return true;
 }
@@ -2449,12 +2449,79 @@ bool user_interface::handle_help(int &key)
 }
 
 
-bool user_interface::handle_shifts(int key)
+bool user_interface::handle_shifts(int &key, bool talpha)
 // ----------------------------------------------------------------------------
 //   Handle status changes in shift keys
 // ----------------------------------------------------------------------------
 {
     bool consumed = false;
+
+    // Transient alpha management
+    if (!transalpha)
+    {
+        // Not yet in trans alpha mode, check if we need to enable it
+        if (talpha)
+        {
+            if (key == KEY_UP || key == KEY_DOWN)
+            {
+                // Delay processing of up or down until after delay
+                if (longpress)
+                {
+                    repeat = true;
+                    return false;
+                }
+
+                last = key;
+                repeat = true;
+                lowercase = key == KEY_DOWN;
+                return true;
+            }
+            else if (key)
+            {
+                // A non-arrow key was pressed while arrows are down
+                alpha = true;
+                transalpha = true;
+                last = 0;
+                return false;
+            }
+            else
+            {
+                // Replay the last key pressed (up or down)
+                key = 0;
+                last = 0;
+                return true;
+            }
+        }
+        else if (!key && (last == KEY_UP || last == KEY_DOWN))
+        {
+            key = last;
+            last = 0;
+            return false;
+        }
+    }
+    else
+    {
+        if (!talpha)
+        {
+            // We released the up/down key
+            transalpha = false;
+            alpha = false;
+            lowercase = false;
+            key = 0;
+            last = 0;
+            return true;
+        }
+        else if (key == KEY_UP || key == KEY_DOWN || key == 0)
+        {
+            // Ignore up/down or release in trans-alpha mode
+            last = 0;
+            return true;
+        }
+
+        // Other keys will be processed as alpha
+    }
+
+
     if (key == KEY_SHIFT)
     {
         if (longpress)

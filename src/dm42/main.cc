@@ -157,13 +157,13 @@ static void redraw_periodics()
 }
 
 
-static void handle_key(int key, bool repeating)
+static void handle_key(int key, bool repeating, bool talpha)
 // ----------------------------------------------------------------------------
 //   Handle all user-interface keys
 // ----------------------------------------------------------------------------
 {
     sys_timer_disable(TIMER0);
-    bool consumed = ui.key(key, repeating);
+    bool consumed = ui.key(key, repeating, talpha);
     if (!consumed)
         beep(1835, 125);
 
@@ -239,7 +239,8 @@ extern "C" void program_main()
 // ST(STAT_OFF)       - Program in off state (only [EXIT] key can wake it up)
 // ST(STAT_RUNNING)   - OS doesn't sleep in this mode
 {
-    int key = 0;
+    int  key        = 0;
+    bool transalpha = false;
 
     // Initialization
     program_init();
@@ -314,12 +315,40 @@ extern "C" void program_main()
 
         // Key is ready -> clear auto off timer
         bool hadKey = false;
+
         if (!key_empty())
         {
             reset_auto_off();
             key    = key_pop();
             hadKey = true;
             record(main, "Got key %d", key);
+
+            // Check transient alpha mode
+            if (key == KEY_UP || key == KEY_DOWN)
+            {
+                transalpha = true;
+            }
+            else if (transalpha)
+            {
+#ifndef SIMULATOR
+#define read_key __sysfn_read_key
+#endif // SIMULATOR
+                int k1, k2;
+                int r = read_key(&k1, &k2);
+                switch (r)
+                {
+                case 0:
+                    transalpha = false;
+                    break;
+                case 1:
+                    transalpha = k1 == KEY_UP || k1 == KEY_DOWN;
+                case 2:
+                    transalpha = k1 == KEY_UP || k1 == KEY_DOWN
+                        ||       k2 == KEY_UP || k2 == KEY_DOWN;
+                    break;
+                }
+            }
+
 #if SIMULATOR
             if (key == -1)
             {
@@ -359,7 +388,7 @@ extern "C" void program_main()
 #endif
 
             record(main, "Handle key %d last %d", key, last_key);
-            handle_key(key, repeating);
+            handle_key(key, repeating, transalpha);
             record(main, "Did key %d last %d", key, last_key);
 
             // Redraw the LCD unless there is some type-ahead

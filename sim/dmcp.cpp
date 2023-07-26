@@ -265,11 +265,29 @@ int key_push(int k)
     record(keys, "Pushed key %d (wr %u rd %u)", k, keywr, keyrd);
     return keywr - keyrd < nkeys;
 }
+
 int read_key(int *k1, int *k2)
 {
-    *k1 = keywr - keyrd > 0 ? keys[(keywr - 1) % nkeys] : 0;
-    *k2 = keyrd - keywr > 1 ? keys[(keywr - 2) % nkeys] : 0;
-    return keyrd != keywr;
+    uint count = keywr - keyrd;
+    if (count > 1)
+    {
+        *k1 = keys[(keywr - 2) % nkeys];
+        *k2 = keys[(keywr - 1) % nkeys];
+        return 2;
+    }
+    if (count > 0)
+    {
+        *k1 = keys[(keywr - 1) % nkeys];
+        *k2 = 0;
+        return 1;
+    }
+    *k1 = *k2 = 0;
+    return 0;
+}
+
+int sys_last_key()
+{
+    return keys[(keywr - 1) % nkeys];
 }
 
 int runner_get_key(int *repeat)

@@ -2601,8 +2601,6 @@ bool user_interface::handle_editing(int key)
                 edit(editing && iseq ? '(' : '\'', ALGEBRAIC);
                 if (iseq)
                     last = 0;
-                else
-                    alpha = true;
                 return true;
             }
             break;

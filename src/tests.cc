@@ -316,7 +316,7 @@ void tests::data_types()
 
     step("Equation");
     cstring eqn = "'X+1'";
-    test(CLEAR, XEQ, X, ENTER, KEY1, ADD).type(object::ID_equation).expect(eqn);
+    test(CLEAR, XEQ, "X", ENTER, KEY1, ADD).type(object::ID_equation).expect(eqn);
     cstring eqn2 = "'sin(X+1)'";
     test(SIN)
         .type(object::ID_equation).expect(eqn2);
@@ -329,8 +329,8 @@ void tests::data_types()
         .type(object::ID_equation)
         .expect("'A+B-(C+D)'");
     step("Equation fancy rendering");
-    test(CLEAR, XEQ, X, ENTER, INV,
-         XEQ, Y, ENTER, SHIFT, SQRT, XEQ, Z, ENTER,
+    test(CLEAR, XEQ, "X", ENTER, INV,
+         XEQ, "Y", ENTER, SHIFT, SQRT, XEQ, "Z", ENTER,
          "CUBED", ENTER, ADD, ADD, WAIT(100))
         .type(object::ID_equation)
         .expect("'X⁻¹+(Y²+Z³)'");
@@ -595,17 +595,10 @@ void tests::local_variables()
 
     step("Calling a local block with symbolic values");
     test(CLEAR,
-         XEQ,
-         "X",
-         ENTER,
-         XEQ,
-         "Y",
-         ENTER,
-         XEQ,
-         "Z",
-         ENTER,
-         "LocTest",
-         ENTER)
+         XEQ, "X", ENTER,
+         XEQ, "Y", ENTER,
+         XEQ, "Z", ENTER,
+         "LocTest", ENTER)
         .expect("'(X+Y)×(X-Y)÷((Y+Z)×(Y-Z))'");
 
     step("Cleanup");

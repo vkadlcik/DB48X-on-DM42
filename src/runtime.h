@@ -344,7 +344,7 @@ struct runtime
         operator Obj *&()               { return (Obj *&) safe; }
         const Obj *Safe() const         { return (const Obj *) safe; }
         Obj *&Safe()                    { return (Obj *&) safe; }
-        Obj operator *() const          { return *((Obj *) safe); }
+        const Obj &operator *() const   { return *((Obj *) safe); }
         Obj &operator *()               { return *((Obj *) safe); }
         Obj *operator ->() const        { return (Obj *) safe; }
         gcp &operator++()               { safe += sizeof(Obj); return *this; }

@@ -381,6 +381,15 @@ unintentional differences, since the implementation is completely new.
   `[1 2 3] inv` gives `[1/1 1/2 1/3]`.
 
 
+### Differences handling equations
+
+* The DB48X dialect of RPL accepts equations with "empty slots". During equation
+  evaluation, the value of these empty slots will be taken from the stack. In
+  the equation, a slot is represented as `()`. For example, the equation
+  `()+sin(cos())` will read two values from the stack. If evaluated in a stack
+  that contains `A` and `B`, it will evaluate a `A+sin(cos(B))`.
+
+
 ## Help
 
 The DB48X project includes an extensive built-in help, which you are presently

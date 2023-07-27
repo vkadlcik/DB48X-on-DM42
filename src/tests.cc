@@ -95,7 +95,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    rewrite_engine();
+    regression_checks();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -2037,6 +2037,9 @@ void tests::regression_checks()
     test(CLEAR, "pi", ENTER).expect("π");
     test(DOWN).editor("π");
     test(ENTER).expect("π");
+
+    step("Bug 207: parsing of cos(X+pi)");
+    test(CLEAR, "'COS(X+π)'", ENTER).expect("'cos(X+π)'");
 }
 
 
@@ -2494,7 +2497,8 @@ tests &tests::itest(cstring txt)
         case L'∡': k = G; fn = F2;  alpha = false; shift = true; break;
         case L'ρ': k = E;           alpha = true;  shift = true; break;
         case L'θ': k = E;           alpha = true; xshift = true; break;
-            }
+        case L'π': k = I; fn = F1;  alpha = false; shift = true; break;
+        }
 
         if (shift)
             xshift = false;

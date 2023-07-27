@@ -391,13 +391,13 @@ PARSE_BODY(complex)
                  cp == Settings.PI_RADIANS_SYMBOL)
         {
             // Just parsing π should be allowed
-            if (cp == Settings.PI_RADIANS_SYMBOL && last == first)
+            if (last == first || type == ID_object)
                 return SKIP;
 
             if (angle || type != ID_polar)
             {
                 rt.syntax_error().source(last);
-                return ERROR;
+                return WARN;
             }
             angle = cp;
             ylen = last - ybeg;

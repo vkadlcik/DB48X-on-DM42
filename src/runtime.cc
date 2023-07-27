@@ -346,19 +346,6 @@ size_t runtime::gc()
         }
         if (!found)
         {
-            object_p *functions = &ui.function[0][0];
-            size_t count = ui.NUM_PLANES * ui.NUM_KEYS;
-            object_p *lastf = functions + count;
-            for (object_p *p = functions; p < lastf && !found; p++)
-            {
-                found = *p >= obj && *p < next;
-                if (found)
-                    record(gc_details, "Found %p in user_interface function table %u",
-                           obj, p - functions);
-            }
-        }
-        if (!found)
-        {
             // Check if some of the error information was user-supplied
             utf8 start = utf8(obj);
             utf8 end = utf8(next);
@@ -461,20 +448,6 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
             record(gc_details, "Adjusting stack level %u from %p to %p",
                    s - firstobjptr, *s, *s + delta);
             *s += delta;
-        }
-    }
-
-    // Adjust the user_interface function pointers
-    object_p *functions = &ui.function[0][0];
-    size_t    count     = ui.NUM_PLANES * ui.NUM_KEYS;
-    object_p *lastf     = functions + count;
-    for (object_p *p = functions; p < lastf; p++)
-    {
-        if (*p >= from && *p < last)
-        {
-            record(gc_details, "Adjusting user_interface function %u from %p to %p",
-                   p - functions, *p, *p + delta);
-            *p += delta;
         }
     }
 

@@ -3226,7 +3226,7 @@ object_p user_interface::object_for_key(int key)
     if (key >= KEY_F1 && key <= KEY_F6 && plane >= menuPlanes())
         plane = 0;
 
-    object_p obj   = function[plane][key - 1];
+    object_p obj = function[plane][key - 1];
     if (!obj)
     {
         const byte *ptr = defaultCommand[plane] + 2 * (key - 1);

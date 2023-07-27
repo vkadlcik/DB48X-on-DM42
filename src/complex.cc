@@ -523,6 +523,15 @@ bool rectangular::is_zero() const
 }
 
 
+bool rectangular::is_one() const
+// ----------------------------------------------------------------------------
+//   A complex in rectangular form is zero iff both re and im are zero
+// ----------------------------------------------------------------------------
+{
+    return re()->is_one(false) && im()->is_zero(false);
+}
+
+
 RENDER_BODY(rectangular)
 // ----------------------------------------------------------------------------
 //   Render a complex number in rectangular form
@@ -581,6 +590,15 @@ bool polar::is_zero() const
 // ----------------------------------------------------------------------------
 {
     return mod()->is_zero(false);
+}
+
+
+bool polar::is_one() const
+// ----------------------------------------------------------------------------
+//   A complex in rectangular form is zero iff both re and im are zero
+// ----------------------------------------------------------------------------
+{
+    return mod()->is_one(false) && arg()->is_zero();
 }
 
 

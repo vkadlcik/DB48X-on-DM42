@@ -152,6 +152,7 @@ struct rectangular : complex
     algebraic_g mod() const;
     algebraic_g arg() const;
     bool        is_zero() const;
+    bool        is_one()  const;
 
     static rectangular_p make(algebraic_r r, algebraic_r i)
     {
@@ -180,6 +181,7 @@ struct polar : complex
     algebraic_g mod() const;
     algebraic_g arg() const;
     bool        is_zero() const;
+    bool        is_one()  const;
 
     static polar_p make(algebraic_r r, algebraic_r i);
 

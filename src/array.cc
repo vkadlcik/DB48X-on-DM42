@@ -931,10 +931,18 @@ COMMAND_BODY(det)
 // ----------------------------------------------------------------------------
 {
     if (object_p obj = rt.top())
+    {
         if (array_p arr = obj->as<array>())
+        {
             if (algebraic_g det = arr->determinant())
                 if (rt.top(det))
                     return OK;
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
 
     return ERROR;
 }

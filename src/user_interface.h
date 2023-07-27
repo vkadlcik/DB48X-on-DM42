@@ -57,9 +57,10 @@ struct user_interface
         DIRECT,                 // Keys like 'sin' evaluate directly
         TEXT,                   // Alphanumeric entry, e.g. in strings
         PROGRAM,                // Keys like 'sin' show as 'sin' in the editor
-        ALGEBRAIC,              // Keys like 'sin' show as 'sin()'
-        POSTFIX,                // Keys like '!' or 'x²' are postfix
-        INFIX,                  // Keys like '+' are treated as postfix
+        ALGEBRAIC,              // Keys like 'sin' show as 'sin()' in eqs
+        POSTFIX,                // Keys like '!' or 'x²' are postfix in eqs
+        INFIX,                  // Keys like '+' are treated as infix in eqs
+        CONSTANT,               // Entities like ⅈ or π have no parentheses
         MATRIX,                 // Matrix/vector mode
         BASED,                  // Based number: A-F map switch to alpha
     };

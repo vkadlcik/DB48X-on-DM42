@@ -201,16 +201,17 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
         cursor = 0;
         dirtyStack = true;
     }
-    else if ((mode != ALGEBRAIC || m != ALGEBRAIC) && ed[cursor] != ' ')
+    else if ((mode != ALGEBRAIC || m != ALGEBRAIC) &&
+             cursor > 0 && ed[cursor-1] != ' ')
     {
-        if (!skip && m != INFIX)
+        if (!skip && (mode != ALGEBRAIC || (m != INFIX && m != CONSTANT)))
             cursor += rt.insert(cursor, ' ');
     }
 
     size_t added = rt.insert(cursor, text, len);
     cursor += added;
 
-    if ((m == POSTFIX || m == INFIX) && mode == ALGEBRAIC)
+    if ((m == POSTFIX || m == INFIX || m == CONSTANT) && mode == ALGEBRAIC)
         /* nothing */;
     else if (mode != ALGEBRAIC || m != ALGEBRAIC)
         cursor += rt.insert(cursor, ' ');

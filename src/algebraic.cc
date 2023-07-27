@@ -52,7 +52,7 @@ INSERT_BODY(algebraic)
 //   Enter data in algebraic mode
 // ----------------------------------------------------------------------------
 {
-    return ui.edit(o->fancy(), ui.ALGEBRAIC);
+    return ui.edit(o->fancy(), o->arity() ? ui.ALGEBRAIC : ui.CONSTANT);
 }
 
 

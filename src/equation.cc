@@ -553,6 +553,7 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
     // Information about part we replace
     bool       replaced = false;
     size_t     matchsz  = 0;
+    uint       rewrites = Settings.maxrewrites;
 
     // Loop while there are replacements found
     do
@@ -644,6 +645,13 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
             // We need to dump equation and pattern again
             rt.drop(rt.depth() - depth);
             rt.unlocals(rt.locals() - locals);
+
+            // Check if we are looping forever
+            if (rewrites-- == 0)
+            {
+                rt.too_many_rewrites_error();
+                goto err;
+            }
         }
     } while (replaced && !interrupted());
 

@@ -178,6 +178,11 @@ void settings::save(renderer &out, bool show_defaults)
         out.put("AutoSimplify\n");
     else
         out.put("NoAutoSimplify\n");
+
+    if (maxbignum != 1024 || show_defaults)
+        out.printf("%u MaxBigNumBits\n", maxbignum);
+    if (maxrewrites != 100 || show_defaults)
+        out.printf("%u MaxRewrites\n", maxbignum);
 }
 
 
@@ -291,27 +296,49 @@ SETTINGS_COMMAND_LABEL(Std)
 }
 
 
-static object::result set_display_mode(settings::display mode)
+static uint integer_arg(uint min, uint max, bool base = false)
 // ----------------------------------------------------------------------------
-//   Set a mode with a given number of digits
+//   Get an integer argument from the stack
 // ----------------------------------------------------------------------------
 {
-    if (object_p size = rt.top())
+    if (object_p arg = rt.top())
     {
-        if (integer_p digits = size->as<integer>())
+        if (integer_p argint = arg->as<integer>())
         {
-            uint disp = digits->value<uint>();
-            if (mode == settings::NORMAL && disp == 0)
-                disp = 1;
-            Settings.displayed = std::min(disp, (uint) BID128_MAXDIGITS);
-            Settings.display_mode = mode;
+            uint value = argint->value<uint>();
+            if (value < min || value > max)
+            {
+                if (value < min)        value = min;
+                if (value > max)        value = max;
+                if (base)
+                    rt.invalid_base_error();
+                else
+                    rt.domain_error();
+            }
             rt.pop();
-            return object::OK;
+            return value;
         }
         else
         {
             rt.type_error();
         }
+    }
+    return min;
+}
+
+
+static object::result set_display_mode(settings::display mode)
+// ----------------------------------------------------------------------------
+//   Set a mode with a given number of digits
+// ----------------------------------------------------------------------------
+{
+    uint mindigits = mode == settings::NORMAL ? 1 : 0;
+    uint disp = integer_arg(mindigits, BID128_MAXDIGITS);
+    if (!rt.error())
+    {
+        Settings.displayed = disp;
+        Settings.display_mode = mode;
+        return object::OK;
     }
     return object::ERROR;
 }
@@ -549,19 +576,11 @@ SETTINGS_COMMAND_BODY(Precision, 0)
 //   Setting the precision
 // ----------------------------------------------------------------------------
 {
-    if (object_p size = rt.top())
+    uint prec = integer_arg(0, BID128_MAXDIGITS);
+    if (!rt.error())
     {
-        if (integer_p digits = size->as<integer>())
-        {
-            uint disp = digits->value<uint>();
-            Settings.precision = std::min(disp, (uint) BID128_MAXDIGITS);
-            rt.pop();
-            return object::OK;
-        }
-        else
-        {
-            rt.type_error();
-        }
+        Settings.precision = prec;
+        return object::OK;
     }
     return object::ERROR;
 }
@@ -584,19 +603,11 @@ SETTINGS_COMMAND_BODY(StandardExponent, 0)
 //   Setting the maximum exponent before switching to scientific mode
 // ----------------------------------------------------------------------------
 {
-    if (object_p size = rt.top())
+    uint exp = integer_arg(0, BID128_MAXDIGITS);
+    if (!rt.error())
     {
-        if (integer_p digits = size->as<integer>())
-        {
-            uint disp = digits->value<uint>();
-            Settings.standard_exp = std::min(disp, (uint) BID128_MAXDIGITS);
-            rt.pop();
-            return object::OK;
-        }
-        else
-        {
-            rt.type_error();
-        }
+        Settings.standard_exp = exp;
+        return object::OK;
     }
     return object::ERROR;
 }
@@ -641,23 +652,11 @@ SETTINGS_COMMAND_BODY(Base, 0)
 //   Setting the maximum exponent before switching to scientific mode
 // ----------------------------------------------------------------------------
 {
-    if (object_p size = rt.top())
+    uint base = integer_arg(2, 36, true);
+    if (!rt.error())
     {
-        if (integer_p digits = size->as<integer>())
-        {
-            uint base = digits->value<uint>();
-            rt.pop();
-            if (base >= 2 && base <= 36)
-            {
-                Settings.base = base;
-                return object::OK;
-            }
-            rt.invalid_base_error();
-        }
-        else
-        {
-            rt.type_error();
-        }
+        Settings.base = base;
+        return object::OK;
     }
     return object::ERROR;
 }
@@ -720,19 +719,11 @@ SETTINGS_COMMAND_BODY(stws, 0)
 //   Setting the word size for binary computations
 // ----------------------------------------------------------------------------
 {
-    if (object_p size = rt.top())
+    uint ws = integer_arg(1, 16384);
+    if (!rt.error())
     {
-        if (integer_p digits = size->as<integer>())
-        {
-            uint ws = digits->value<uint>();
-            rt.pop();
-            Settings.wordsize = ws;
-            return OK;
-        }
-        else
-        {
-            rt.type_error();
-        }
+        Settings.wordsize = ws;
+        return OK;
     }
     return object::ERROR;
 }
@@ -764,23 +755,11 @@ COMMAND_BODY(rcws)
 #define FONT_SIZE_SETTING(id, field, label)             \
 SETTINGS_COMMAND_BODY(id, 0)                            \
 {                                                       \
-    if (object_p size = rt.top())                       \
+    uint fs = integer_arg(0, settings::NUM_FONTS-1);    \
+    if (!rt.error())                                    \
     {                                                   \
-        if (integer_p value = size->as<integer>())      \
-        {                                               \
-            uint fs = value->value<uint>();             \
-            if (fs < (uint) settings::NUM_FONTS)        \
-            {                                           \
-                rt.pop();                               \
-                Settings.field = settings::font_id(fs); \
-                return OK;                              \
-            }                                           \
-            rt.domain_error();                          \
-        }                                               \
-        else                                            \
-        {                                               \
-            rt.type_error();                            \
-        }                                               \
+        Settings.field = settings::font_id(fs);         \
+        return OK;                                      \
     }                                                   \
     return object::ERROR;                               \
 }                                                       \
@@ -804,23 +783,11 @@ FONT_SIZE_SETTING(EditorMultilineFontSize, editor_ml_sz, "BigEdit")
 #define SPACING_SIZE_SETTING(id, field, label)          \
 SETTINGS_COMMAND_BODY(id, 0)                            \
 {                                                       \
-    if (object_p size = rt.top())                       \
+    uint fs = integer_arg(0, BID128_MAXDIGITS);         \
+    if (!rt.error())                                    \
     {                                                   \
-        if (integer_p value = size->as<integer>())      \
-        {                                               \
-            uint fs = value->value<uint>();             \
-            if (fs < 10)                                \
-            {                                           \
-                rt.pop();                               \
-                Settings.field = fs;                    \
-                return OK;                              \
-            }                                           \
-            rt.domain_error();                          \
-        }                                               \
-        else                                            \
-        {                                               \
-            rt.type_error();                            \
-        }                                               \
+        Settings.field = settings::font_id(fs);         \
+        return OK;                                      \
     }                                                   \
     return object::ERROR;                               \
 }                                                       \
@@ -840,32 +807,20 @@ COMMAND_BODY(NumberSpacing)
 //  Set same spacing for both mantissa and fraction
 // ----------------------------------------------------------------------------
 {
-    if (object_p size = rt.top())
+    uint fs = integer_arg(0, BID128_MAXDIGITS);
+    if (!rt.error())
     {
-        if (integer_p value = size->as<integer>())
-        {
-            uint fs = value->value<uint>();
-            if (fs < 10)
-            {
-                rt.pop();
-                Settings.spacing_mantissa = fs;
-                Settings.spacing_fraction = fs;
-                return OK;
-            }
-            rt.domain_error();
-        }
-        else
-        {
-            rt.type_error();
-        }
+        Settings.spacing_mantissa = fs;
+        Settings.spacing_fraction = fs;
+        return OK;
     }
     return object::ERROR;
-
 }
 
 SPACING_SIZE_SETTING(MantissaSpacing, spacing_mantissa, "Mant")
 SPACING_SIZE_SETTING(FractionSpacing, spacing_fraction, "Frac")
 SPACING_SIZE_SETTING(BasedSpacing, spacing_based, "Based")
+
 
 SETTINGS_COMMAND_NOLABEL(NumberSpaces,
                          Settings.space == settings::SPACE_DEFAULT)
@@ -969,4 +924,56 @@ SETTINGS_COMMAND_NOLABEL(NoAutoSimplify, !Settings.auto_simplify)
 {
     Settings.auto_simplify = false;
     return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(MaxBigNumBits, false)
+// ----------------------------------------------------------------------------
+//   Select maximum size for big numbers
+// ----------------------------------------------------------------------------
+{
+    uint fs = integer_arg(0, 16384);
+    if (!rt.error())
+    {
+        Settings.maxbignum = fs;
+        return OK;
+    }
+    return object::ERROR;
+}
+
+
+SETTINGS_COMMAND_LABEL(MaxBigNumBits)
+// ----------------------------------------------------------------------------
+//   Return the label for big number size
+// ----------------------------------------------------------------------------
+{
+    static char buffer[16];
+    snprintf(buffer, sizeof(buffer), "BigNum %u", Settings.maxbignum);
+    return buffer;
+}
+
+
+SETTINGS_COMMAND_BODY(MaxRewrites, false)
+// ----------------------------------------------------------------------------
+//   Select maximum number of equation rewrites in a single operation
+// ----------------------------------------------------------------------------
+{
+    uint fs = integer_arg(1, ~0U);
+    if (!rt.error())
+    {
+        Settings.maxrewrites = fs;
+        return OK;
+    }
+    return object::ERROR;
+}
+
+
+SETTINGS_COMMAND_LABEL(MaxRewrites)
+// ----------------------------------------------------------------------------
+//   Return the label for maximum number of rewrites
+// ----------------------------------------------------------------------------
+{
+    static char buffer[16];
+    snprintf(buffer, sizeof(buffer), "BigRwr %u", Settings.maxrewrites);
+    return buffer;
 }

@@ -473,6 +473,11 @@ bignum_g bignum::multiply(bignum_r yg, bignum_r xg, id ty)
     size_t wbits = wordsize(xt);
     size_t wbytes = (wbits + 7) / 8;
     size_t needed = xs + ys;
+    if (needed * 8 > Settings.maxbignum)
+    {
+        rt.number_too_big_error();
+        return nullptr;
+    }
     if (wbits && needed > wbytes)
         needed = wbytes;
     byte *buffer = rt.allocate(needed);       // May GC here
@@ -563,7 +568,7 @@ bool bignum::quorem(bignum_r yg, bignum_r xg, id ty, bignum_g *q, bignum_g *r)
     id xt = xg->type();
     size_t wbits = wordsize(xt);
     size_t wbytes = (wbits + 7) / 8;
-    size_t needed = ys + xs + 1;
+    size_t needed = ys + xs + 1;              // No need to check maxbignum
     byte *buffer = rt.allocate(needed);       // May GC here
     if (!buffer)
         return false;                         // Out of memory

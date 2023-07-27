@@ -559,7 +559,7 @@ MENU(SymbolicMenu,
      "Quote",   ID_Unimplemented,
      "|",       ID_Unimplemented,
      "Rules",   ID_Unimplemented,
-     "Simpl",   ID_AutoSimplify,
+     "Simplify",ID_AutoSimplify,
      "KeepAll", ID_NoAutoSimplify);
 
 
@@ -997,6 +997,12 @@ MENU(ModesMenu,
      Settings.decimal_mark == '.' ? "#1,000" : "#1.000",  ID_BasedDotOrComma,
      "#1'000", ID_BasedTicks,
      "#1_000", ID_BasedUnderscore,
+
+     "Simplify",ID_AutoSimplify,
+     "KeepAll", ID_NoAutoSimplify,
+     MaxBigNumBits::menu_label, ID_MaxBigNumBits,
+     MaxRewrites::menu_label, ID_MaxRewrites,
+
      ID_Modes);
 
 MENU(FontsMenu,

@@ -205,6 +205,24 @@ Store the word size for binary computations
 
 Recall the word size for binary computations
 
+## MaxRewrites
+
+Defines the maximum number of rewrites in an equation.
+
+[Equations rewrites](#rewrite) can go into infinite loops, e.g. `'X+Y' 'A+B'
+'B+A' rewrite` can never end, since it keeps rewriting terms. This setting
+indicates how many attempts at rewriting will be done before erroring out.
+
+## MaxBigNumBits
+
+Define the maxmimum number of bits for a large integer.
+
+Large integer operations can take a very long time, notably when displaying them
+on the stack. With the default value of 1024 bits, you can compute `100!` but
+computing `200!` will result in an error, `Number is too big`. You can however
+compute it seting a higher value for `MaxBigNumBits`, for example
+`2048 MaxBigNumBits`.
+
 
 # States
 

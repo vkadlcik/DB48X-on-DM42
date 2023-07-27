@@ -58,5 +58,7 @@ ERROR(return_without_caller,    "Return without a caller")
 ERROR(invalid_local,            "Invalid local")
 ERROR(malformed_directory,      "Malformed directory")
 ERROR(missing_variable,         "Expected variable name")
+ERROR(number_too_big,           "Number is too big")
+ERROR(too_many_rewrites,        "Too many rewrites")
 
 #undef ERROR

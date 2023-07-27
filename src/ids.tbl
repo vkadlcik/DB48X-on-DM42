@@ -341,6 +341,9 @@ CMD(BasedUnderscore)
 CMD(AutoSimplify)
 CMD(NoAutoSimplify)
 
+CMD(MaxBigNumBits)
+CMD(MaxRewrites)
+
 CMD(Modes)
 CMD(Version)
 

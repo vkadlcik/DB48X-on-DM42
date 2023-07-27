@@ -611,6 +611,7 @@ struct object
     {
         return (is_strictly_symbolic(ty)                                    ||
                 (ty >= FIRST_SYMBOLIC_TYPE     && ty <= LAST_SYMBOLIC_TYPE) ||
+                (ty >= FIRST_COMPLEX_TYPE      && ty <= LAST_COMPLEX_TYPE)  ||
                 (ty >= FIRST_SYMBOLIC_CONSTANT && ty <= LAST_SYMBOLIC_CONSTANT));
     }
 

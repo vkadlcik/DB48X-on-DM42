@@ -367,6 +367,8 @@ PARSE_BODY(complex)
         // Check if we have equations in our complex
         else if (cp == '\'')
         {
+            if (p.precedence)
+                break;
             ineq = !ineq;
         }
         else if (ineq)

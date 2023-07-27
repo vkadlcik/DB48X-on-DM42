@@ -645,7 +645,7 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
             rt.drop(rt.depth() - depth);
             rt.unlocals(rt.locals() - locals);
         }
-    } while (replaced);
+    } while (replaced && !interrupted());
 
 
 err:

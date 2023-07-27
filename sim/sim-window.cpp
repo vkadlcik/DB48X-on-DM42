@@ -49,6 +49,8 @@ RECORDER(sim_keys, 16, "Recorder keys from the simulator");
 
 extern bool run_tests;
 extern bool db48x_keyboard;
+extern bool shiftHeld;
+extern bool altHeld;
 MainWindow *MainWindow::mainWindow = nullptr;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -144,7 +146,7 @@ const int keyMap[] =
     Qt::Key_Space,      KB_SPC,
     Qt::Key_Question,   KB_QUESTION,
     Qt::Key_Control,    KB_SHIFT,
-    Qt::Key_Alt,        KB_LSHIFT,
+    // Qt::Key_Alt,        KB_LSHIFT,
     Qt::Key_Meta,       KB_RSHIFT,
 
     Qt::Key_Plus,       KB_ADD,
@@ -364,6 +366,15 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
             ui.keyboard->setStyleSheet("border-image: url(:/bitmap/keyboard.png) 0 0 0 0 stretch stretch;");
     }
 
+    if (k == Qt::Key_Shift)
+        shiftHeld = true;
+    else if (k == Qt::Key_Alt)
+        altHeld = true;
+    else if (shiftHeld)
+        key_push(KEY_UP);
+    else if (altHeld)
+        key_push(KEY_DOWN);
+
     for (int i = 0; keyMap[i] != 0; i += 2)
     {
         if (k == keyMap[i])
@@ -391,7 +402,12 @@ void MainWindow::keyReleaseEvent(QKeyEvent * ev)
     }
 
     int k = ev->key();
-    record(sim_keys, "Key press %d", k);
+    record(sim_keys, "Key release %d", k);
+    if (k == Qt::Key_Shift)
+        shiftHeld = false;
+    else if (k == Qt::Key_Alt)
+        altHeld = false;
+
     for (int i = 0; keyMap[i] != 0; i += 2)
     {
         if (k == keyMap[i])

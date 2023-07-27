@@ -52,6 +52,7 @@ RECORDER(dmcp_error,    64, "DMCP errors");
 RECORDER(dmcp_warning,  64, "DMCP warnings");
 RECORDER(dmcp_notyet,   64, "DMCP features that are not yet implemented");
 RECORDER(keys,          64, "DMCP key handling");
+RECORDER(keys_empty,    64, "DMCP key_empty() call");
 RECORDER(keys_warning,  64, "Warnings related to key handling");
 RECORDER(lcd,           64, "DMCP lcd/display functions");
 RECORDER(lcd_refresh,   64, "DMCP lcd/display refresh");
@@ -60,9 +61,11 @@ RECORDER(lcd_warning,   64, "Warnings from lcd/display functions");
 
 #undef ppgm_fp
 
-volatile int lcd_needsupdate = 0;
-int lcd_buf_cleared = 0;
-uint8_t lcd_buffer[LCD_SCANLINE * LCD_H / 8];
+volatile int       lcd_needsupdate = 0;
+int                lcd_buf_cleared = 0;
+uint8_t            lcd_buffer[LCD_SCANLINE * LCD_H / 8];
+bool               shiftHeld = false;
+bool               altHeld   = false;
 
 static disp_stat_t t20_ds = { .f = &lib_mono_10x17 };
 static disp_stat_t t24_ds = { .f = &lib_mono_12x20 };
@@ -210,7 +213,7 @@ enum {  nkeys = sizeof(keys) / sizeof(keys[0]) };
 
 int key_empty()
 {
-    record(keys,
+    record(keys_empty,
            "Key empty %u-%u = %+s",
            keyrd,
            keywr,
@@ -256,7 +259,10 @@ void key_pop_all()
 }
 int key_push(int k)
 {
-    record(keys, "Push key %d (wr %u rd %u)", k, keywr, keyrd);
+    record(keys, "Push key %d (wr %u rd %u) shifts=%+s",
+           k, keywr, keyrd,
+           shiftHeld ? altHeld ? "Shift+Alt" : "Shift"
+           : altHeld ? "Alt" : "None");
     MainWindow::theMainWindow()->pushKey(k);
     if (keywr - keyrd < nkeys)
         keys[keywr++ % nkeys] = k;
@@ -269,10 +275,21 @@ int key_push(int k)
 int read_key(int *k1, int *k2)
 {
     uint count = keywr - keyrd;
+    if (shiftHeld || altHeld)
+    {
+        *k1 = keys[(keywr - 1) % nkeys];
+        if (*k1)
+        {
+            *k2 = shiftHeld ? KEY_UP : KEY_DOWN;
+            return 2;
+        }
+    }
+
     if (count > 1)
     {
         *k1 = keys[(keywr - 2) % nkeys];
         *k2 = keys[(keywr - 1) % nkeys];
+        record(keys, "read_key has two keys %d and %d", *k1, *k2);
         return 2;
     }
     if (count > 0)

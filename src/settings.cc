@@ -174,6 +174,10 @@ void settings::save(renderer &out, bool show_defaults)
     case '_':                   out.put("BasedUnderscore\n");   break;
     }
 
+    if (auto_simplify || show_defaults)
+        out.put("AutoSimplify\n");
+    else
+        out.put("NoAutoSimplify\n");
 }
 
 

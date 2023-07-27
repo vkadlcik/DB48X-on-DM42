@@ -310,18 +310,18 @@ PARSE_BODY(complex)
             }
             type = ID_rectangular;
 
-            // Case of ⅈ as a separator (c)
+            // Case of ⅈ as a separator (case c)
             if (!sign)
             {
                 ybeg = last + utf8_size(cp);
                 xlen = last - first;
             }
-            // Case of prefix ⅈ (d or e)
+            // Case of prefix ⅈ (case d or e)
             else if (last == ybeg)
             {
                 ybeg = last + utf8_size(cp);
             }
-            // Case of postfix ⅈ (f or g)
+            // Case of postfix ⅈ (case f or g)
             else
             {
                 ylen = last - ybeg;
@@ -339,7 +339,7 @@ PARSE_BODY(complex)
             }
             type = ID_polar;
 
-            // Case of ∡ as a separator (h)
+            // Case of ∡ as a separator (case h)
             ybeg = last + utf8_size(cp);
             xlen = last - first;
         }
@@ -369,9 +369,13 @@ PARSE_BODY(complex)
         {
             ineq = !ineq;
         }
+        else if (ineq)
+        {
+            // Skip the content of the equations
+        }
 
         // Check if we have two parentheses
-        else if (paren && !ineq && cp == '(')
+        else if (paren && cp == '(')
         {
             rt.syntax_error().source(last);
             return WARN;
@@ -379,7 +383,8 @@ PARSE_BODY(complex)
 
         // Check if we found the end of the complex number
         else if (cp == ' ' || cp == '\n' || cp == '\t' ||
-                 cp == ')' || cp == '}')
+                 cp == ')' || cp == '}'  || cp == ']'  || cp == L'»' ||
+                 cp == '\'')
         {
             break;
         }

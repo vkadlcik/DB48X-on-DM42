@@ -92,6 +92,7 @@ struct complex : algebraic
 public:
     SIZE_DECL(complex);
     PARSE_DECL(complex);
+    PREC_DECL(COMPLEX);
 
 public:
     // Complex implementation for main functions

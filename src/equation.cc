@@ -94,7 +94,9 @@ symbol_g equation::render(uint depth, int &precedence, bool editing)
             {
             case 0:
                 // Symbols and other non-algebraics, e.g. numbers
-                precedence = precedence::SYMBOL;
+                precedence = obj->precedence();
+                if (precedence == precedence::NONE)
+                    precedence = precedence::SYMBOL;
                 if (obj->type() == ID_symbol)
                     return symbol_p(object_p(obj));
                 return obj->as_symbol(editing);

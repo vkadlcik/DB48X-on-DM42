@@ -95,7 +95,8 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    regression_checks();
+    complex_arithmetic();
+    complex_functions();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -1364,6 +1365,9 @@ void tests::complex_arithmetic()
 {
     begin("Complex arithmetic");
 
+    step("Use degrees");
+    test("DEG", ENTER).noerr();
+
     step("Addition");
     test(CLEAR, "1ⅈ2", ENTER, "3+ⅈ4", ENTER, ADD)
         .type(object::ID_rectangular).expect("4+6ⅈ");
@@ -1399,23 +1403,23 @@ void tests::complex_arithmetic()
 
     step("Addition in polar form");
     test(CLEAR, "1∡2", ENTER, "3∡4", ENTER, ADD)
-        .expect("-2.37707 76991 37978 1309-1.36111 00590 98103 0587ⅈ");
+        .expect("3.99208 29777 98568 4728+2.44168 91793 48768 7397⁳⁻¹ⅈ");
     step("Subtraction");
     test("1∡2", SUB)
-        .expect("-1.96093 08625 90835 7439-2.27040 74859 23784 7541ⅈ");
+        .expect("2.99269 21507 79472 7428+2.09269 42123 23759 0233⁳⁻¹ⅈ");
     step("Multiplication");
     test("7∡8", MUL)
-        .expect("17.72093 31333 82334 198-11.26803 12780 09134 405ⅈ");
+        .expect("20.54109 96154 09918 396+4.36614 55071 72946 0791ⅈ");
     step("Division");
     test("7∡8", DIV)
-        .expect("-1.96093 08625 90835 7439-2.27040 74859 23784 7541ⅈ");
+        .expect("2.99269 21507 79472 7428+2.09269 42123 23759 0233⁳⁻¹ⅈ");
     test("2∡3", DIV)
-        .expect("8.10453 45880 22095 761⁳⁻¹+1.26220 64772 11844 76ⅈ");
+        .expect("1.49977 15427 34586 8587+2.61786 09655 92526 9229⁳⁻²ⅈ");
     test("2∡3", MUL)
-        .expect("-1.96093 08625 90835 7439-2.27040 74859 23784 7541ⅈ");
+        .expect("2.99269 21507 79472 7428+2.09269 42123 23759 0233⁳⁻¹ⅈ");
     step("Power");
     test("5", SHIFT, B)
-        .expect("99.16394 10206 54252 613+221.84569 59268 13520 01ⅈ");
+        .expect("228.34530 68509 75737 33+83.11089 48281 37502 13ⅈ");
 
     step("Symbolic addition");
     test(CLEAR, "a∡b", ENTER, "c∡d", ENTER, ADD)
@@ -1429,6 +1433,14 @@ void tests::complex_arithmetic()
     step("Symbolic division");
     test(CLEAR, "a∡b", ENTER, "c∡d", ENTER, DIV)
         .expect("'a÷c'∡'b-d'");
+
+    step("Precedence of complex numbers during rendering");
+    test(CLEAR, "'2+3ⅈ' '3∡4' *", ENTER)
+        .expect("'(2+3ⅈ)×(3∡4°)'");
+    test(CLEAR, "'2+3ⅈ' '3∡4' +", ENTER)
+        .expect("'(2+3ⅈ)+(3∡4°)'");
+    test(CLEAR, "'2+3ⅈ' '3∡4' -", ENTER)
+        .expect("'(2+3ⅈ)-(3∡4°)'");
 }
 
 
@@ -1438,6 +1450,9 @@ void tests::complex_functions()
 // ----------------------------------------------------------------------------
 {
     begin("Complex functions");
+
+    step("Using radians");
+    test(CLEAR, "RAD", ENTER).noerr();
 
     step("Square root");
     test(CLEAR, "-1ⅈ0", ENTER, SQRT)

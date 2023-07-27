@@ -577,6 +577,7 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
         eqsz = rt.depth() - depth - fromsz;
 
         // Keep checking sub-expressions until we find a match
+        size_t eqlen = eqsz;
         fromst = eqst + eqsz;
         while (eqsz)
         {
@@ -590,11 +591,20 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
             eqsz--;
         }
 
+        // We don't need the on-stack copies of 'eq' and 'to' anymore
+        rt.drop(rt.depth() - depth);
+
+
         // If we matched a sub-equation, perform replacement
         if (matchsz)
         {
             scribble scr;
             size_t   where  = 0;
+
+            // We matched from the back of the equation object
+            eqst = eqlen - matchsz - eqst;
+
+            // Copy from the original
             for (equation::iterator it = eq->begin(); it != eq->end(); ++it)
             {
                 if (where < eqst || where >= eqst + matchsz)
@@ -642,8 +652,7 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
             eq = equation_p(list::make(ID_equation,
                                        scr.scratch(), scr.growth()));
 
-            // We need to dump equation and pattern again
-            rt.drop(rt.depth() - depth);
+            // Drop the local names, we will recreate them on next match
             rt.unlocals(rt.locals() - locals);
 
             // Check if we are looping forever

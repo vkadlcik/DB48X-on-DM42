@@ -2013,6 +2013,13 @@ void tests::rewrite_engine()
     step("Multiple substitutions");
     test(CLEAR, "'A+B+C' 'X+Y' 'Y-X' rewrite", ENTER)
         .expect("'C-(B-A)'");
+
+    step("Deep substitution");
+    test(CLEAR, "'tan(A-B)+3' 'A-B' '-B+A' rewrite", ENTER)
+        .expect("'tan(-B+A)+3'");
+    step("Deep substitution with multiple changes");
+    test(CLEAR, "'5+tan(A-B)+(3-sin(C+D-A))' 'A-B' '-B+A' rewrite", ENTER)
+        .expect("'5+tan(-B+A)+(-sin(-A+(C+D))+3)'");
 }
 
 

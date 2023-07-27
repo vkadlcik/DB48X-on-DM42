@@ -274,6 +274,35 @@ COMMAND_BODY(SelfInsert)
 }
 
 
+EXEC_BODY(Unimplemented)
+// ----------------------------------------------------------------------------
+//   Display an unimplemented error
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    rt.command("Future");
+    if (key >= KEY_F1 && key <= KEY_F6)
+    {
+        uint plane = ui.shift_plane();
+        uint menu_idx = key - KEY_F1 + plane * ui.NUM_SOFTKEYS;
+        if (cstring lbl = ui.labelText(menu_idx))
+            rt.command(lbl);
+    }
+    rt.unimplemented_error();
+    return ERROR;
+}
+
+
+MARKER_BODY(Unimplemented)
+// ----------------------------------------------------------------------------
+//   We mark unimplemented features with a little gray mark
+// ----------------------------------------------------------------------------
+{
+    return L'░';
+}
+
+
+
 COMMAND_BODY(Ticks)
 // ----------------------------------------------------------------------------
 //   Return number of ticks

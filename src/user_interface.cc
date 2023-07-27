@@ -1055,15 +1055,23 @@ bool user_interface::draw_menus()
                 {
                     if (unicode mark = menu_marker[plane][m])
                     {
-                        bool alignLeft = menu_marker_align[plane][m];
-                        marker = mark;
-                        mkw = font->width(marker);
-                        mkx = alignLeft ? x - mw / 2 + 2 : x + mw / 2 - mkw - 2;
-                        mcw -= mkw;
-                        if (alignLeft)
-                            trect.x1 += mkw;
+                        if (mark == L'░')
+                        {
+                            color = pattern::gray50;
+                        }
                         else
-                            trect.x2 -= mkw;
+                        {
+                            bool alignLeft = menu_marker_align[plane][m];
+                            marker         = mark;
+                            mkw            = font->width(marker);
+                            mkx            = alignLeft ? x - mw / 2 + 2
+                                                       : x + mw / 2 - mkw - 2;
+                            mcw -= mkw;
+                            if (alignLeft)
+                                trect.x1 += mkw;
+                            else
+                                trect.x2 -= mkw;
+                        }
                     }
                 }
 

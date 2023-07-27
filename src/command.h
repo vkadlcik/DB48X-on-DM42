@@ -127,16 +127,8 @@ struct Unimplemented : command
     Unimplemented(id i = ID_Unimplemented) : command(i) { }
 
     OBJECT_DECL(Unimplemented);
-    EXEC_DECL(Unimplemented)
-    {
-        rt.unimplemented_error();
-        return ERROR;
-    }
-
-    MARKER_DECL(Unimplemented)
-    {
-        return L'░';
-    }
+    EXEC_DECL(Unimplemented);
+    MARKER_DECL(Unimplemented);
 };
 
 // Various global commands

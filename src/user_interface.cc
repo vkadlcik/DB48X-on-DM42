@@ -2495,7 +2495,7 @@ bool user_interface::handle_shifts(int &key, bool talpha)
             }
             else
             {
-                // Replay the last key pressed (up or down)
+                // Swallow the last key pressed (up or down)
                 key = 0;
                 last = 0;
                 return true;
@@ -2503,7 +2503,8 @@ bool user_interface::handle_shifts(int &key, bool talpha)
         }
         else if (!key && (last == KEY_UP || last == KEY_DOWN))
         {
-            key = last;
+            if (!longpress)
+                key = last;
             last = 0;
             return false;
         }

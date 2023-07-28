@@ -239,6 +239,12 @@ bool algebraic::complex_promotion(algebraic_g &x, object::id type)
         x = polar::make(z->mod(), z->arg());
         return x.Safe();
     }
+    else if (is_strictly_symbolic(xt))
+    {
+        // Assume a symbolic value is complex for now
+        // TODO: Implement `REALASSUME`
+        return false;
+    }
     else if (is_integer(xt) || is_real(xt) || is_symbolic(xt) ||
              is_algebraic(xt))
     {

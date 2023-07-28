@@ -1441,6 +1441,10 @@ void tests::complex_arithmetic()
         .expect("'(2+3ⅈ)+(3∡4°)'");
     test(CLEAR, "'2+3ⅈ' '3∡4' -", ENTER)
         .expect("'(2+3ⅈ)-(3∡4°)'");
+
+    step("Do not promote symbols to complex");
+    test(CLEAR, "2+3ⅈ 'A' +", ENTER)
+        .expect("'(2+3ⅈ)+A'");
 }
 
 

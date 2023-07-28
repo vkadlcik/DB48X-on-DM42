@@ -406,19 +406,7 @@ bool user_interface::key(int key, bool repeating, bool talpha)
         return true;
     }
 
-    // Handle transitory alpha mode
-
-    // Temporary - Display some internal information
-    char buffer[80];
-    snprintf(buffer, sizeof(buffer), "%c%c%c %02d %02d",
-             transalpha ? 'A' : ' ',
-             talpha     ? 'T' : ' ',
-             repeating  ? 'R' : ' ',
-             key, last);
-    Screen.fill(70, 0, 200, HelpFont->height() + 1, pattern::black);
-    Screen.text(70, 1, utf8(buffer), HelpFont, pattern::white);
-    lcd_refresh_lines(0, HelpFont->height() + 1);
-
+    // Handle keys
     bool result =
         handle_shifts(key, talpha)      ||
         handle_help(key)                ||
@@ -1113,11 +1101,105 @@ bool user_interface::draw_header()
 //   Draw the header with the state name
 // ----------------------------------------------------------------------------
 {
-    if (force)
+    static uint day = 0, month = 0, year = 0;
+    static uint hour = 0, minute = 0, second = 0;
+    static uint dow = 0;
+    bool changed = force;
+
+    if (!changed)
     {
-        rect header(0, 0, LCD_W, HeaderFont->height() + 1);
+        dt_t dt;
+        tm_t tm;
+        rtc_wakeup_delay();
+        rtc_read(&tm, &dt);
+
+        if (day != dt.day || month != dt.month || year != dt.year)
+        {
+            day = dt.day;
+            month = dt.month;
+            year = dt.year;
+            changed = true;
+        }
+        if (hour != tm.hour || minute != tm.min || second != tm.sec)
+        {
+            hour = tm.hour;
+            minute = tm.min;
+            second = tm.sec;
+            changed = true;
+        }
+        if (dow != tm.dow)
+        {
+            dow = tm.dow;
+            changed = true;
+        }
+    }
+
+    if (changed)
+    {
+        size h = HeaderFont->height() + 1;
+        rect clip = Screen.clip();
+        rect header(0, 0, LCD_W, h);
+
+        Screen.clip(0, 0, 260, h);
         Screen.fill(header, pattern::black);
-        Screen.text(4, 0, utf8(state_name()), HeaderFont, pattern::white);
+
+        char buffer[MAX_LCD_LINE_LEN];
+        size_t sz = snprintf(buffer, MAX_LCD_LINE_LEN, "%s", state_name());
+
+        // Read the real-time clock
+        if (Settings.show_date)
+        {
+            char mname[4];
+            if (Settings.show_month)
+                snprintf(mname, 4, "%s", get_month_shortcut(month-1));
+            else
+                snprintf(mname, 4, "%d", month);
+
+            if (Settings.show_dow)
+                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, " %s",
+                               get_wday_shortcut(dow));
+
+            char sep = Settings.date_separator;
+            switch (Settings.show_date)
+            {
+            default:
+            case settings::NO_DATE:
+                break;
+            case settings::DMY:
+                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
+                               " %d%c%s%c%d",
+                               day, sep, mname, sep, year);
+                break;
+            case settings::MDY:
+                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
+                               " %s%c%d%c%d",
+                               mname, sep, day, sep, year);
+                break;
+            case settings::YMD:
+                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
+                               " %d%c%s%c%d",
+                               year, sep, mname, sep, day);
+                break;
+            }
+        }
+        if (Settings.show_time)
+        {
+            sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, " %d",
+                           Settings.show_24h ? hour : hour % 12);
+            sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, ":%02d", minute);
+
+            if (Settings.show_seconds)
+                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
+                               ":%02d", second);
+            if (!Settings.show_24h)
+                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%c",
+                               hour < 12 ? 'A' : 'P');
+
+            draw_refresh(Settings.show_seconds ? 1000 : 1000 * (60 - second));
+        }
+
+        Screen.text(1, 0, utf8(buffer), HeaderFont, pattern::white);
+        Screen.clip(clip);
         draw_dirty(header);
         return true;
     }
@@ -1265,16 +1347,27 @@ bool user_interface::draw_battery()
 }
 
 
-bool user_interface::draw_busy_cursor()
+bool user_interface::draw_busy_cursor(unicode glyph)
 // ----------------------------------------------------------------------------
 //    Draw the busy flying cursor
 // ----------------------------------------------------------------------------
 {
-    size  h = HeaderFont->height();
-    coord x = 230 + sys_current_ms() / 16 % 64;
-    Screen.fill(230, 0, 305, h + 1, pattern::black);
-    Screen.glyph(x, 0, L'▶', HeaderFont, pattern::white);
-    draw_dirty(230, 0, 305, h + 1);
+    size w  = 32;
+    size h  = HeaderFont->height();
+    size x  = 260;
+    size y  = 0;
+
+    rect r(x, y, x + w, y + h);
+    Screen.fill(r, pattern::black);
+    if (glyph)
+    {
+        rect clip = Screen.clip();
+        Screen.clip(r);
+        coord gx = x + sys_current_ms() / 16 % w;
+        Screen.glyph(gx, y, glyph, HeaderFont, pattern::white);
+        Screen.clip(clip);
+    }
+    draw_dirty(x, y, x + w - 1, y + h - 1);
     refresh_dirty();
     return true;
 }
@@ -1285,14 +1378,7 @@ bool user_interface::draw_gc()
 //   Indicate a garbage collection is in progress
 // ----------------------------------------------------------------------------
 {
-    size  h = HeaderFont->height();
-    coord x = 230 + sys_current_ms() / 16 % 64;
-    Screen.fill(230, 0, 305, h + 1, pattern::black);
-    Screen.glyph(x, 0, L'●', HeaderFont, pattern::white);
-    draw_dirty(230, 0, 305, h + 1);
-    refresh_dirty();
-    busy = 0;
-    return true;
+    return draw_busy_cursor(L'●');
 }
 
 
@@ -1301,17 +1387,11 @@ bool user_interface::draw_idle()
 //   Clear busy indicator
 // ----------------------------------------------------------------------------
 {
-    busy = 0;
-    size  h = HeaderFont->height();
-    Screen.fill(230, 0, 305, h + 1, pattern::black);
-    draw_dirty(230, 0, 305, h + 1);
-    if (alpha || shift || xshift)
-    {
-        bool f = force;
-        force = true;
-        draw_annunciators();
-        force = f;
-    }
+    draw_busy_cursor(0);
+    alpha_drawn = !alpha_drawn;
+    shift_drawn = !shift;
+    xshift_drawn = !xshift;
+    draw_annunciators();
     refresh_dirty();
     return true;
 }

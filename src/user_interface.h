@@ -132,7 +132,7 @@ struct user_interface
     bool        draw_cursor(int show);
     bool        draw_busy();
     bool        draw_idle();
-    bool        draw_busy_cursor();
+    bool        draw_busy_cursor(unicode glyph = L'▶');
     bool        draw_gc();
 
     modes       editing_mode()          { return mode; }

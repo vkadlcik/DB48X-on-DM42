@@ -154,6 +154,8 @@ const uint8_t status_bar_menu_items[] =
 {
     MI_48STATUS_DAY_OF_WEEK,    // Display day of week
     MI_48STATUS_TIME,           // Display time
+    MI_48STATUS_24H,            // Display time in 24h format
+    MI_48STATUS_SECONDS,        // Display seconds
     MI_48STATUS_DATE,           // Display the date
     MI_48STATUS_DATE_SEPARATOR, // Select date separator
     MI_48STATUS_SHORT_MONTH,    // Short month
@@ -600,8 +602,9 @@ static char next_date_sep(char sep)
     {
     case '/':   return '.';
     case '.':   return '-';
+    case '-':   return ' ';
     default:
-    case '-':   return '/';
+    case ' ':   return '/';
     }
 }
 
@@ -628,13 +631,17 @@ int menu_item_run(uint8_t menu_id)
     case MI_48STATUS_DAY_OF_WEEK:
         Settings.show_dow = !Settings.show_dow; break;
     case MI_48STATUS_DATE:
-        Settings.show_date = !Settings.show_date; break;
+        Settings.show_date = settings::dmy_ord((int(Settings.show_date) + 1) & 3); break;
     case MI_48STATUS_DATE_SEPARATOR:
         Settings.date_separator = next_date_sep(Settings.date_separator); break;
     case MI_48STATUS_SHORT_MONTH:
         Settings.show_month = !Settings.show_month;                     break;
     case MI_48STATUS_TIME:
         Settings.show_time = !Settings.show_time;                       break;
+    case MI_48STATUS_SECONDS:
+        Settings.show_seconds = !Settings.show_seconds;                 break;
+    case MI_48STATUS_24H:
+        Settings.show_24h = !Settings.show_24h;                         break;
     case MI_48STATUS_VOLTAGE:
         Settings.show_voltage = !Settings.show_voltage;                 break;
     default:
@@ -660,7 +667,18 @@ static char *flag_str(char *s, cstring txt, bool flag)
 //   Build a flag string
 // ----------------------------------------------------------------------------
 {
-    return sep_str(s, txt, flag ? 'X' : ' ');
+    return sep_str(s, txt, flag ? 'X' : '_');
+}
+
+
+static char *dord_str(char *s, cstring txt, settings::dmy_ord flag)
+// ----------------------------------------------------------------------------
+//   Build a string for date order
+// ----------------------------------------------------------------------------
+{
+    cstring order[] = { "___", "DMY", "MDY", "YMD" };
+    snprintf(s, 40, "[%s] %s", order[flag], txt);
+    return s;
 }
 
 
@@ -686,13 +704,17 @@ cstring menu_item_description(uint8_t menu_id, char *s, const int UNUSED len)
     case MI_48STATUS_DAY_OF_WEEK:
         ln = flag_str(s, "Day of week", Settings.show_dow);             break;
     case MI_48STATUS_DATE:
-        ln = flag_str(s, "Date", Settings.show_date);                   break;
+        ln = dord_str(s, "Date", Settings.show_date);                   break;
     case MI_48STATUS_DATE_SEPARATOR:
         ln = sep_str(s, "Date separator", Settings.date_separator);     break;
     case MI_48STATUS_SHORT_MONTH:
-        ln = flag_str(s, "Month", Settings.show_month);                 break;
+        ln = flag_str(s, "Month name", Settings.show_month);            break;
     case MI_48STATUS_TIME:
         ln = flag_str(s, "Time", Settings.show_time);                   break;
+    case MI_48STATUS_SECONDS:
+        ln = flag_str(s, "Show seconds", Settings.show_time);           break;
+    case MI_48STATUS_24H:
+        ln = flag_str(s, "Show 24h time", Settings.show_24h);           break;
     case MI_48STATUS_VOLTAGE:
         ln = flag_str(s, "Voltage", Settings.show_voltage);             break;
 

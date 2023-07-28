@@ -978,3 +978,40 @@ int is_menu_auto_off()
 {
     return false;
 }
+
+
+void rtc_read(tm_t * tm, dt_t *dt)
+{
+    time_t now;
+    time(&now);
+
+    struct tm utm;
+    localtime_r(&now, &utm);
+
+    dt->year = 1900 + utm.tm_year;
+    dt->month = utm.tm_mon;
+    dt->day = utm.tm_mday;
+
+    tm->hour = utm.tm_hour;
+    tm->min = utm.tm_min;
+    tm->sec = utm.tm_sec;
+    tm->csec = 0;
+    tm->dow = utm.tm_wday;
+}
+
+
+cstring get_wday_shortcut(int day)
+{
+    static cstring dow[] = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+    return dow[day];
+}
+
+cstring get_month_shortcut(int month)
+{
+    static cstring name[] =
+    {
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+    return name[month];
+}

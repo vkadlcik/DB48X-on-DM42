@@ -133,12 +133,11 @@ static void redraw_periodics()
 
     record(main, "Periodics %u", now);
     ui.draw_start(false);
-    if (ui.draw_cursor(false))
-        refresh_dirty();
-    if (ui.draw_battery())
-        refresh_dirty();
-    if (ui.draw_menus())
-        refresh_dirty();
+    ui.draw_cursor(false);
+    ui.draw_header();
+    ui.draw_battery();
+    ui.draw_menus();
+    refresh_dirty();
 
     // Slow things down if inactive for long enough
     uint period = ui.draw_refresh();

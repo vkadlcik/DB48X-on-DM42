@@ -53,6 +53,8 @@ enum menu_item
     MI_48STATUS_DATE,           // Display the date
     MI_48STATUS_DATE_SEPARATOR, // Select date separator
     MI_48STATUS_SHORT_MONTH,    // Short month
+    MI_48STATUS_SECONDS,        // Show seconds
+    MI_48STATUS_24H,            // Show 24-hours time
     MI_48STATUS_VOLTAGE,        // Display voltage
 };
 

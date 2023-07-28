@@ -307,6 +307,9 @@ bignum_g bignum::binary(Op op, bignum_r xg, bignum_r yg, id ty)
 // ----------------------------------------------------------------------------
 //   This uses the scratch pad AND can cause garbage collection
 {
+    if (!xg.Safe() || !yg.Safe())
+        return nullptr;
+
     size_t   xs     = 0;
     size_t   ys     = 0;
     byte_p   x      = xg->value(&xs);
@@ -394,6 +397,8 @@ bignum_g bignum::unary(Op op, bignum_r xg)
 // ----------------------------------------------------------------------------
 //   This uses the scratch pad AND can cause garbage collection
 {
+    if (!xg.Safe())
+        return nullptr;
     size_t   xs     = 0;
     byte_p   x      = xg->value(&xs);
     id       xt     = xg->type();

@@ -387,6 +387,9 @@ bignum_g bignum::add_sub(bignum_r yg, bignum_r xg, bool issub)
 //   Add the two bignum values, result has type of x
 // ----------------------------------------------------------------------------
 {
+    if (!xg.Safe() || !yg.Safe())
+        return nullptr;
+
     id yt = yg->type();
     id xt = xg->type();
 
@@ -533,6 +536,8 @@ bignum_g operator*(bignum_r y, bignum_r x)
 //   Multiplication of bignums
 // ----------------------------------------------------------------------------
 {
+    if (!x.Safe() || !y.Safe())
+        return nullptr;
     object::id xt = x->type();
     object::id yt = y->type();
     object::id prodtype = bignum::product_type(yt, xt);
@@ -659,6 +664,8 @@ bignum_g operator/(bignum_r y, bignum_r x)
 //   Perform long division of y by x
 // ----------------------------------------------------------------------------
 {
+    if (!x.Safe() || !y.Safe())
+        return nullptr;
     object::id yt = y->type();
     object::id xt = x->type();
     object::id prodtype = bignum::product_type(yt, xt);
@@ -674,6 +681,8 @@ bignum_g operator%(bignum_r y, bignum_r x)
 //  Perform long-remainder of y by x
 // ----------------------------------------------------------------------------
 {
+    if (!x.Safe() || !y.Safe())
+        return nullptr;
     object::id yt = y->type();
     bignum_g r = nullptr;
     bignum::quorem(y, x, yt, nullptr, &r);
@@ -681,15 +690,17 @@ bignum_g operator%(bignum_r y, bignum_r x)
 }
 
 
-bignum_g bignum::pow(bignum_r yr, bignum_r xg)
+bignum_g bignum::pow(bignum_r yr, bignum_r xr)
 // ----------------------------------------------------------------------------
 //    Compute y^abs(x)
 // ----------------------------------------------------------------------------
 //   Note that the case where x is negative should be filtered by caller
 {
+    if (!xr.Safe() || !yr.Safe())
+        return nullptr;
     bignum_g r  = bignum::make(1);
     size_t   xs = 0;
-    byte_p   x  = xg->value(&xs);
+    byte_p   x  = xr->value(&xs);
     bignum_g y  = yr;
 
     for (size_t xi = 0; xi < xs; xi++)

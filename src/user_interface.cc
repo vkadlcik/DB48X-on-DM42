@@ -2024,10 +2024,10 @@ bool user_interface::draw_help()
         { HelpTitleFont,    p::black,  p::white,  false, false, false, false },
         { HelpSubTitleFont, p::black,  p::gray50,  true, false, true,  false },
         { HelpFont,         p::black,  p::white,  false, false, false, false },
-        { HelpBoldFont,     p::black,  p::white,  true,  false, false, false },
+        { HelpBoldFont,     p::black,  p::white,   true, false, false, false },
         { HelpItalicFont,   p::black,  p::white,  false, true,  false, false },
         { HelpCodeFont,     p::black,  p::gray50, false, false, false, true  },
-        { HelpCodeFont,     p::white,  p::black,  false, false, false, false },
+        { HelpFont,         p::white,  p::black,  false, false, false, false },
         { HelpFont,         p::black,  p::gray50, false, false, true,  false },
         { HelpFont,         p::white,  p::gray10, false, false, false, false },
     };
@@ -2064,12 +2064,12 @@ bool user_interface::draw_help()
 
     // Select initial state
     font_p  font      = styles[style].font;
-    coord   height = font->height();
-    coord   x      = xleft;
-    coord   y      = ytop + 2 - line * height;
-    unicode last   = '\n';
+    coord   height    = font->height();
+    coord   x         = xleft;
+    coord   y         = ytop + 2 - line * height;
+    unicode last      = '\n';
     uint    lastTopic = 0;
-    uint    shown  = 0;
+    uint    shown     = 0;
 
     // Pun not intended
     helpfile.seek(help);
@@ -2081,6 +2081,8 @@ bool user_interface::draw_help()
         uint    widx       = 0;
         bool    emit       = false;
         bool    newline    = false;
+        bool    yellow     = false;
+        bool    blue       = false;
         style_name restyle = style;
 
         if (last  == '\n' && !shown && y >= ytop)
@@ -2251,6 +2253,14 @@ bool user_interface::draw_help()
                     skip    = true;
                 }
                 break;
+            case L'🟨':
+                emit = true;
+                yellow = true;
+                break;
+            case L'🟦':
+                emit = true;
+                blue = true;
+                break;
             default:
                 break;
             }
@@ -2266,82 +2276,107 @@ bool user_interface::draw_help()
         font              = styles[style].font;
         height            = font->height();
 
-
-        // Compute width of word (or words in the case of titles)
-        coord width = 0;
-        for (uint i  = 0; i < widx; i++)
-            width += font->width(word[i]);
-
-        if (style <= SUBTITLE)
+        // Check special case of yellow shift key
+        if (yellow || blue)
         {
-            // Center titles
-            x  = (LCD_W - width) / 2;
-            y += 3 * height / 4;
+            rect shkey(x, y + 2, x + height - 2, y + height - 4);
+            Screen.fill(shkey, pattern::black);
+            shkey.inset(2,2);
+            Screen.fill(shkey, blue ? pattern::gray75 : pattern::white);
+            yellow = blue = false;
+            x += shkey.width() + 2 + font->width(' ');
         }
         else
         {
-            // Go to new line if this does not fit
-            coord right  = x + width;
-            if (right   >= xright - 1)
+            // Compute width of word (or words in the case of titles)
+            coord width = 0;
+            for (uint i  = 0; i < widx; i++)
+                width += font->width(word[i]);
+            size kwidth = 0;
+            if (style == KEY)
             {
-                x = xleft;
-                y += height;
+                kwidth = 2*font->width(' ');
+                width += 2*kwidth;
             }
-        }
 
-        coord yf = y + height;
-        if (yf > ytop)
-        {
-            pattern color     = styles[style].color;
-            pattern bg        = styles[style].background;
-            bool    bold      = styles[style].bold;
-            bool    italic    = styles[style].italic;
-            bool    underline = styles[style].underline;
-            bool    box       = styles[style].box;
-
-            // Draw a decoration
-            coord xl = x;
-            coord xr = x + width;
-            if (box || underline)
+            if (style <= SUBTITLE)
             {
-                xl -= 2;
-                xr += 2;
-                Screen.fill(xl, yf, xr, yf, bg);
-                if (box)
+                // Center titles
+                x  = (LCD_W - width) / 2;
+                y += 3 * height / 4;
+            }
+            else
+            {
+                // Go to new line if this does not fit
+                coord right  = x + width;
+                if (right   >= xright - 1)
                 {
+                    x = xleft;
+                    y += height;
+                }
+            }
+
+            coord yf = y + height;
+            if (yf > ytop)
+            {
+                pattern color     = styles[style].color;
+                pattern bg        = styles[style].background;
+                bool    bold      = styles[style].bold;
+                bool    italic    = styles[style].italic;
+                bool    underline = styles[style].underline;
+                bool    box       = styles[style].box;
+
+                // Draw a decoration
+                coord xl = x;
+                coord xr = x + width;
+                if (underline)
+                {
+                    xl -= 2;
+                    xr += 2;
+                    Screen.fill(xl, yf, xr, yf, bg);
+                    xl += 2;
+                    xr -= 2;
+                }
+                else if (box)
+                {
+                    xl += 1;
+                    xr += 8;
+                    Screen.fill(xl, yf, xr, yf, bg);
                     Screen.fill(xl, y, xl, yf, bg);
                     Screen.fill(xr, y, xr, yf, bg);
                     Screen.fill(xl, y, xr, y, bg);
+                    xl -= 1;
+                    xr -= 8;
+                    kwidth += 4;
                 }
-                xl += 2;
-                xr -= 2;
-            }
-            else if (bg.bits != pattern::white.bits)
-            {
-                Screen.fill(xl, y, xr, yf, bg);
-            }
-
-            // Draw next word
-            for (int i = 0; i < 1 + 3 * italic; i++)
-            {
-                x = xl;
-                if (italic)
+                else if (bg.bits != pattern::white.bits)
                 {
-                    coord yt  = y + (3-i) * height / 4;
-                    coord yb  = y + (4-i) * height / 4;
-                    x        += i;
-                    Screen.clip(x, yt, xr + i, yb);
+                    Screen.fill(xl, y, xr, yf, bg);
                 }
-                coord x0   = x;
-                for (int b = 0; b <= bold; b++)
-                    x      = draw_word(x0 + b, y, widx, word, font, color);
-            }
-            if (italic)
-                Screen.clip(r);
 
-            // Select style for next round
-            style = restyle;
+                // Draw next word
+                for (int i = 0; i < 1 + 3 * italic; i++)
+                {
+                    x = xl + kwidth;
+                    if (italic)
+                    {
+                        coord yt  = y + (3-i) * height / 4;
+                        coord yb  = y + (4-i) * height / 4;
+                        x        += i;
+                        Screen.clip(x, yt, xr + i, yb);
+                    }
+                    coord x0 = x;
+                    for (int b = 0; b <= bold; b++)
+                        x = draw_word(x0 + b, y, widx, word, font, color);
+                    x += kwidth;
+                }
+                if (italic)
+                    Screen.clip(r);
+            }
         }
+
+        // Select style for next round
+        style = restyle;
 
         if (newline)
         {

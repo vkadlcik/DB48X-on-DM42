@@ -32,7 +32,8 @@ of the project on GitHub for details and updates.
 ## Design overview
 
 The objective is to re-create an RPL-like experience, but to optimize it for the
-existing DM42 physical hardware.
+existing DM42 physical hardware. Ideally, db48x should be fully usable without a
+keyboard overlay. though one is [being worked on](../Keyboard-Layout.png).
 
 Compared to the original HP48, the DM42 has a much larger screen, but no
 annunciators (it is a fully bitmap screen). It has a keyboard with dedicated
@@ -46,97 +47,114 @@ and down), and has no space key (_SPC_ on the HP48).
 The keyboard differences force us to revisit the user interaction with the
 calculator compared to the HP48:
 
-* The single _Shift_ key cycles between three states, *Shift*, *Right Shift* and
-  no shift.  This double-shift shortcut appears necessary because RPL RPL
-  calculators like the HP48 have a rather full keyboard even with two shift
-  keys. The less-frequently used *Right Shift* functions can be accessed after a
-  double-press on _Shift_.
+* The single yellow 🟨 key cycles between three states, *Shift*, *Right
+  Shift* and no shift.  This double-shift shortcut appears necessary because
+  RPL calculators like the HP48 have a rather full keyboard even with two shift
+  keys.
 
-* Since RPL uses Alpha entry a lot more than the HP42, making it quickly
-  accessible seems important, so there are three ways to activate it: with
-  _Shift_ _ ENTER _ as indicated by the _ALPHA_ yellow label on the DM42 ENTER
-  key), by holding _Shift_ for more than half a second, or by holding the _ ▲ _
-  or _ ▼ _ while pressing one of the alpha keys. This last method is called
-  _transient alpha mode_. Text is entered in uppercase while holding the _ ▲ _
-  key, and in lowercase while holding the _ ▼ _ key. Using _Shift_ _ ENTER _
-  cycles between uppercase, lowercase and non-alpha mode.
+* The less-frequently used functions can be accessed after a
+  double-press on 🟨, which in the rest of this documentation will be shown
+  as 🟦, and will correspond to blue functions on the keyboard overlay.
 
-* Alpha mode is shown in the annunciator area, which will show _ABC_ for
-  uppercase Alpha mode, and _abc_ for lowercase Alpha mode. There is no
-  equivalent of the HP48's "single-Alpha" mode. Alpha mode is either _transient_
-  (when you hold one of the arrow keys) or _sticky_ (when you enter with _Shift_
-  _ ENTER _ or by holding _Shift_). Alpha mode is also cancelled when pressing _
-  ENTER _ or _EXIT_.
+* Since RPL uses alphabetic entry (also called *Alpha* mode) a lot more
+  frequently than on the HP42, making it quickly accessible seems important, so
+  there are [three distinct ways to activate it](#alpha-mode).
 
-* Since the DM42's alphabetic keys overlap with the numeric keys, as well as
-  with and _ × _ and _ ÷ _, using _Shift_ in Alpha mode brings back
-  numbers. This means _Shift_ cannot be used for lowercase, but as indicated
-  above, there are two other methods to enter lowercase characters. Using
-  _Shift_ in combination with keys other than the numeric keypad gives a variety
-  of special characters. Yet another set of characters are made available by
-  using double-_Shift_ in Alpha mode.
-
-* The _ ▲ _ and _ ▼ _ keys move the cursor _left_ and _right_ while editing
-  instead of _up_ and _down_. These cursor movements are much more useful for a
+* The _▲_ and _▼_ keys move the cursor *left* and *right* while editing
+  instead of *up* and *down*. These cursor movements are much more useful for a
   text-based program editing as found in RPL.
-  Using _Shift_ _ ▲ _ and _Shift_ _ ▼ _ moves the cursor up and down.
-  When not editing, _ ▲ _ and _ ▼ _  behave like on the HP48, i.e. _ ▲ _
-  enters the *interactive stack* and _ ▼ _ edits the object on the first level
-  of the stack.
 
-* Long-pressing arrow keys, the _ ← _ (also known as *Backspace*) or text entry
+* Using 🟨 _▲_ and 🟨 _▼_ moves the cursor up and down.  When not editing, _▲_
+  and _▼_ behave like on the HP48, i.e. _▲_ enters the *interactive stack* (not
+  yet implemented) and _▼_ edits the object on the first level of the stack.
+
+* Long-pressing arrow keys, the _←_ (also known as *Backspace*) or text entry
   keys in Alpha mode activates auto-repeat.
 
 * Long-pressing keys that would directly trigger a function (e.g. _SIN_),
-  including function keys associated with a soft-menu, will show up the built-in
-  help for the corresponding function.
+  including function keys associated with a soft-menu, will show up the
+  [built-in help](#help) for the corresponding function.
+
+
+## Alpha mode
+
+Entering alphabetic characters is done using *Alpha* mode. These alphabetic
+characters are labeled on the right of each key on the DM42's keyboard.
+
+When *Alpha* mode is active, an _ABC_ indicator shows up in the annunciator area
+at the top of the screen. For lowercase entry, the indicator changes to _abc_.
+
+There are three ways to enter *Alpha* mode:
+
+* The first method is to use 🟨 _ENTER_ as indicated by the _ALPHA_ yellow label
+  on the DM42 ENTER key. This cycles between *Alpha* _ABC_, *Lowercase* _abc_
+  and *Normal* entry modes.
+
+* The second method is to hold 🟨 for more than half a second. This cycles
+  between *Alpha* _ABC_ and *Normal* entry modes, and cannot be used to type
+  lowercase characters.
+
+* The third method is to hold one of the arrow keys _▲_ or _▼_ *while* typing on
+  the keyboard. This is called *transient alpha mode* because *Alpha* mode ends
+  as soon as the arrow key is released. Using _▲_ enters uppercase characters,
+  while _▼_ uses lowercase characters.
+
+There is no equivalent of the HP48's "single-Alpha" mode. Alpha mode is either
+_transient_ (when you hold one of the arrow keys) or _sticky_ (with 🟨 _ENTER_
+or by holding 🟨).
+
+Alpha mode is cancelled when pressing_ENTER_ or _EXIT_.
+
+Since the DM42's alphabetic keys overlap with the numeric keys (unlike the
+HP48), as well as with operations such as _×_ and _÷_, using 🟨 in Alpha mode
+brings back numbers. This means 🟨 cannot be used for lowercase, but as
+indicated above, there are two other methods to enter lowercase
+characters.
+
+Using 🟨 or 🟦 in combination with keys other than the numeric keypad
+gives a variety of special characters.
 
 
 ### Key mapping
 
 Some keys that have little use or no direct equivalent for RPL are remapped
-as follows (**Note**: most of this is **not implemented yet**):
+as follows:
 
-* _Σ+_ is used to call [MathMenu](#MathMenu), which includes submenus for sums
-  and statistics among others
+* _Σ+_ is used to call [ToolsMenu](#ToolsMenu), which select a menu based on
+  context, notably the content of the stack.
 
-* _Σ-_ (i.e. _Shift_ _Σ+_) will select the [TopMenu](#TopMenu), i.e. the
-  top-level menu giving access to all other menus and features in DB48X.
+* _Σ-_(i.e.🟨 _Σ+_) will select [LastMenu](#LastMenu), i.e. return to the
+  previous menu.
 
-* _XEQ_ opens an algebraic expression, i.e. it shows `''` on the
-  command-line and switches to equation entry. It can be remembered as
-  *Execute Equation* and can be used to evaluate expressions in
-  [algebraic mode](#algebraic-mode)
-  instead of RPN. It also activates a menu facilitating algebraic entry,
-  e.g. with shortcuts for parentheses, and symbolic manipulation of
-  sub-expressions.
+* 🟦 _Σ+_ selects [MainMenu](#MainMenu), the top-level menu giving access
+  to all other menus and features in DB48X (see also the [Catalog](#catalog)
+  feature).
 
-* _Gto_ opens the [BranchesMenu](#BranchesMenu), with RPL branches and loops,
+* _XEQ_ opens an algebraic expression, i.e. it shows `''` on the command-line
+  and switches to equation entry. It can be remembered as *Execute Equation* and
+  can be used to evaluate expressions in [algebraic mode](#algebraic-mode)
+  instead of RPN. While inside an equation, _XEQ_ enters parentheses.
+
+* _GTO_ opens the [BranchesMenu](#BranchesMenu), with RPL branches and loops,
   e.g. `IF` `THEN` or `DO` `WHILE`, as well as conditional tests.
 
-* _Complex_ will open the [ComplexMenu](#ComplexMenu), not just build a complex
+* _COMPLEX_ opens the [ComplexMenu](#ComplexMenu), not just build a complex
   like on the DM42. The [ComplexMenu](#ComplexMenu) includes features to enter
-  complex numbers, as well as complex-specific functions like
-  [Conjugate](#Conjugate).
+  complex numbers in rectangular or polar form, as well as complex-specific
+  functions like [Conjugate](#Conjugate).
 
-* _RCL_ will open the [VariablesMenu](#VariablesMenu) menu (user variables),
-  except if that menu is already open, in which case it will perform a
-  [Recall (RCL)](#Recall) function.
+* _RCL_ opens the [VariablesMenu](#VariablesMenu) menu listing user variables.
+  This plays the role of _VARS_ on the HP48.
 
-* _ % _ will open the [FractionsMenu](#FractionsMenu), which contains operations
+* _%_ (🟨 _RCL_) opens the [FractionsMenu](#FractionsMenu), to access operations
   on fractions.
 
-* _ R↓ _ will open the [StackMenu](#StackMenu), containing operations on the
+* _R↓_ will open the [StackMenu](#StackMenu), containing operations on the
   stack.
 
-* _ π _ will open the [ConstantsMenu](#ConstantsMenu) (π being one of
-  them). Just like in the [VariablesMenu](#VariablesMenu), Each constant can
-  either be evaluated by pressing the corresponding function key, or simply
-  named using Shift with the function key. For example, pressing _F1_ shows an
-  approximate value of π beginning with `3.1415926`, whereas Shift _F1_ shows
-  `'π'`. The value of constants in this menu come from a file `CONSTANTS.CSV` on
-  disk, which makes it possible to add user-defined constants with arbitrary
-  precision.
+* _π_ (🟨 _R↓_) will open the [ConstantsMenu](#ConstantsMenu) (π being one of
+  them), with the option to get the symbolic or numerical value. The values of
+  constants come from a file named `CONSTANTS.CSV` on disk.
 
 * _X⇆Y_ executes the matching [Swap](#swap) function
 
@@ -145,6 +163,7 @@ as follows (**Note**: most of this is **not implemented yet**):
   and [LastMenu](#LastMenu).
 
 * _+/-_ executes the equivalent RPL `Negate` function
+
 * _Modes_ calls the [ModesMenu](#ModesMenu), with submenus for various settings,
   including computation precision, display modes, etc.
 
@@ -152,76 +171,77 @@ as follows (**Note**: most of this is **not implemented yet**):
   operations, plotting, shapes, and forms.
 
 * _Clear_ calls a [ClearThingsMenu](#ClearThingsMenu) with options to clear
-  various items, including [ClearStack` and `ClearMenu](#ClearStack` and
-  `ClearMenu).
+  various items, including [ClearStack](#ClearStack) and
+  [ClearMenu](#ClearMenu).
 
-* _Bst_ and _Sst_ are remapped to moving the cursor Up and Down in text editing
-  mode. In direct mode, _Bst_ selects the _Best_ editor for the object, and
-  _Sst_ selects single-step evaluation.
+* _SST_ and _BST_ (🟨 _▲_ and _▼_) move the cursor *up* and *down* in the text
+ editor. In direct mode, _BST_ selects the *Best* editor for the object, and
+  *Sst* selects single-step evaluation.
 
-* _Solver_ shows the [SolverMenu](#SolverMenu), with submenus for numerical and
-  symbolic solvers.
+* _SOLVER_ (🟨 _7_) shows the [SolverMenu](#SolverMenu), with submenus for
+  numerical and symbolic solvers.
 
-* _∫f(x)_ shows the [SymbolicMenu](#SymbolicMenu), with symbolic and numerical
-  integration and derivation features.
+* _∫f(x)_ (🟨 _8_) shows the [SymbolicMenu](#SymbolicMenu), with symbolic and
+  numerical integration and derivation features.
 
-* _Matrix_ shows the [MatrixMenu](#MatrixMenu) with operations on vectors,
-  matrices and tensors.
+* _MATRIX_ (🟨 _9_) enters the `[` and `]` characters, which are vector and
+  matrix delimiters in RPL.  🟦 _9_ shows the [MatrixMenu](#MatrixMenu) with
+  operations on vectors, matrices and tensors.
 
-* _Stat_ shows the [StatisticsMenu](#StatisticsMenu)
+* _STAT_ (🟨 _÷_) shows the [StatisticsMenu](#StatisticsMenu)
 
-* _Base_ shows the [BasedNumbersMenu](#BasedNumbersMenu), with operations on
-  based numbers, including facilities for entering hexadecimal numbers,
-  temporarily remapping the second row of the DM42 keyboard to enter `A`, `B`,
-  `C`, `D`, `E` and `F`.
+* _BASE_ (🟨 _4_) shows the [BasesMenu](#BasesMenu), with operations on
+  based numbers and facilities for entering hexadecimal numbers.
 
-* _Convert_ shows a [UnitsMenu](#UnitsMenu) with units and and conversion
-  functions.
+* _CONVERT_ (🟨 _5_) shows a [UnitsMenu](#UnitsMenu) with units and and
+  conversion functions.
 
-* _Flags_ shows the [FlagsMenu](#FlagsMenu) with operations on user and system
-  flags.
+* _FLAGS_ (🟨 _6_) shows the [FlagsMenu](#FlagsMenu) with operations on user and
+  system flags.
 
-* _Prob_ shows the [PrombabilitiesMenu](#PrombabilitiesMenu), with functions
-  such as [Factorial](#factorial), [Combinations](#combinations) or\
+* _PROB_ (🟨 _×_) shows the [ProbabilitiesMenu](#ProbabilitiesMenu), with
+  functions such as [Factorial](#factorial), [Combinations](#combinations) or
   [Random](#random).
 
-* _Assign_ makes it possible to assign any function to any key. These
-  special functions are then selected by using _Custom_ before the
-  function. This is the equivalent of the HP48 "User" mode. Selecting
-  _Custom_ twice makes the custom-keys mode sticky. It is also possible to
-  store and evaluate complete keymaps, to match special environment
-  cases. The current keymap is stored in special variable `Keymap` for the
-  current directory.
+* _ASSIGN_ (🟨 _1_) makes it possible to assign any function to any key. These
+  special functions are then selected by using _Custom_ (🟨 _2_), which
+  corresponds roughly to _USR_ on the HP48.
 
-* _Pgm.Fcn_ shows the [ProgrammingMenu](#ProgrammingMenu), with all
-  general-purpose programming functions, categorized as sub-menus
+* _PGM.FCN_ (🟨 _1_) shows the [ProgramMenu](#ProgramMenu), with all
+  general-purpose programming operations, categorized as sub-menus.
 
-* _Print_ shows the [DevicesMenu](#DevicesMenu), which includes submenus like
-  [PrintMenu](#PrintMenu), [FlashStorageMenu](#FlashStorageMenu),
-  [TimeMenu](#TimeMenu), [DateMenu](#DateMenu), and [AlarmMenu](#AlarmMenu).
+* _PRINT_ (🟨 _-_) shows the [IOMenu](#IOMenu).
 
-* _Exit_ corresponds to what the HP48 manual calls _Attn_, and typically
+* _EXIT_ corresponds to what the HP48 manual calls _Attn_, and typically
   cancels the current activity. It can also be used to interrupt a running
   program.
 
-* _Off_ shuts down the calculator
+* _OFF_ (🟨 _EXIT_) shuts down the calculator. The state of the calculator is
+  preserved.
 
-* _Setup_ calls the DM42's built-in [SystemMenu](#SystemMenu), for example to
-  load the original DM42 program, activate USB disk, and a menu-based access to
-  calculator preferences.
+* _SAVE_ (🟦 _EXIT_) saves the current state of the calculator to disk. This
+  state can be transferred to another machine, and survives system reset or
+  firmware upgrades.
+
+* _SETUP_ (🟨 _0_) shows the DM42's built-in [SystemMenu](#SystemMenu), for
+  example to load the original DM42 program, activate USB disk, and to access
+  some calculator preferences.
 
 * _Show_ selects the [ShowMenu](#ShowMenu), with various ways to display objects
   on the stack, such as [ShowBest](#ShowBest), [ShowSymbolic](#ShowSymbolic),
   [ShowGraphical](#ShowGraphical), [ShowCompact](#ShowCompact).
 
-* The _R/S_ keys inserts a space in Alpha mode, and maps to
- [Evaluate](#evaluate) in direct mode.
+* The _R/S_ keys inserts a space in the editor, and maps to
+ [Evaluate](#evaluate) otherwise.
 
-* _Prgm_ inserts the delimiters for an RPL program, corresponding to `«` and
-  `»`.
+* _PRGM_ (🟨 _R/S_) inserts the delimiters for an RPL program, `«` and `»`,
+  while 🟦 _R/S_ inserts the list delimiters, `{` and `}`.
 
-* _Catalog_ shows a complete context-sensitive catalog of all available
-  functions, and enables auto-competion using the soft-menu keys.
+* _CATALOG_ (🟨 _+_) shows a complete context-sensitive catalog of all
+  available functions, and enables auto-completion using the soft-menu
+  keys. Note that the `+` key activates the catalog while in *Alpha* mode.
+
+* _HELP_ (🟦 _+_) activates the context-sensitive help system.
 
 
 ### Soft menus
@@ -230,23 +250,28 @@ The DM42 has 6 dedicated soft-menu keys at the top of the keyboard. Most of the
 advanced features of DB48X can be accessed through these soft menus.
 
 Menus are organized internally as a hierarchy, where menus can refer to other
-menus. A special menu, [TopMenu](#TopMenu), accessile via the _Σ-_ key label
-(_Shift_ _Σ+_), contains all other menus.
+menus. A special menu, [MainMenu](#MainMenu), accessible via the 🟦 _Σ+_,
+contains all other menus.
 
-Menus can contain up to 12 entries at once, 6 being directly accessible, and 6
-more being shown when using the Shift key. Since function keys are designed for
-rapiid access to features, a right-shift access rarely makes sense, since that
-would require a long press of the shift key. There are exceptions, like the
-[VariablesMenu](#VariablesMenu), where dangerous operations (overwriting a
-variable) are associated to right-shift.
+Menus can contain up to 18 entries at once, 6 being directly accessible, 6
+more being shown when using the 🟨 key, and 6 more with 🟦. Three rows of
+functions are shown on screen, with the active row highlighted.
 
 A long press on a function key invokes the on-line help for the associated
 function.
 
-When a menu contains more than 12 entries, then the _F6_ function key turns into
-a `▶︎`. When shifted, then _F6_ turns into `◀`︎. These keys can be used to
-navigate across the available menu entries.
+When a menu contains more than 18 entries, then the _F6_ function key turns into
+a `▶︎`, and 🟨 _F6_ turns into `◀`︎. These keys can be used to
+navigate across the available menu entries. This replaces the _NXT_ and _PREV_
+keys on HP calculators.
 
+The `Variables` menu (_RCL_ key) is special in the sense that:
+
+* Selecting an entry *evaluates* that menu entry, for example to run a program
+
+* The 🟨 function *recalls* its name without evaluating it.
+
+* The 🟦 function *stores* into the variable.
 
 
 ### Differences with other RPLs
@@ -411,7 +436,7 @@ To navigate the help on the calculator, use the following keys:
   _F6_, correspond to the functions shown in the six labels at the bottom of the
   screen.
 
-* While the help is shown, the keys _ ▼ _ and _ ▲ _ on the keyboard scroll
+* While the help is shown, the keys _▼_ and _▲_ on the keyboard scroll
   through the text.
 
 * The _F1_ key returns to the [Home](#overview) (overview).
@@ -420,13 +445,13 @@ To navigate the help on the calculator, use the following keys:
   page at a time.
 
 * The _F4_ and _F5_ keys (labels `Link▲` and `Link▼`) select the previous and
-  next link respectively. The keys _ ÷ _ and _ 9 _ also select the previous
-  link, while the keys _ × _ and _ 3 _ can also be used to select the next link.
+  next link respectively. The keys _÷_ and _9_ also select the previous
+  link, while the keys _×_ and _3_ can also be used to select the next link.
 
 * The _F6_ key correspond to the `←Menu` label, and returns one step back in
-  the help history. The _ ← _ key achieves the same effect.
+  the help history. The _←_ key achieves the same effect.
 
-* To follow a highlighted link, click on the _ ENTER _ key.
+* To follow a highlighted link, click on the _ENTER_ key.
 
 
 ## Acknowledgements and credits

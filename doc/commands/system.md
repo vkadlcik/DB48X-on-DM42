@@ -118,4 +118,15 @@ Display the built-in system setup
 
 ## SaveState
 
-Save the machine's state to disk, using the current state if one was previously loaded. This is intended to quickly save the state for example before a system upgrade.
+Save the machine's state to disk, using the current state if one was previously
+loaded. This is intended to quickly save the state for example before a system
+upgrade.
+
+
+## Help
+
+Access the built-in help in a contextual way. Bound to __XShift-+__
+
+If the first level of the stack contains a text corresponding to a valid help
+topic, this topic will be shown in the help viewer. Otherwise, a help topic
+corresponding to the type of data in the stack will be selected.

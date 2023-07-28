@@ -46,6 +46,14 @@ enum menu_item
     MI_48STATE_LOAD,            // Load a state from disk
     MI_48STATE_MERGE,           // Merge a state from disk
     MI_48STATE_SAVE,            // Save state to disk
+
+    MI_48STATUS,                // Status bar menu
+    MI_48STATUS_TIME,           // Display time
+    MI_48STATUS_DAY_OF_WEEK,    // Display day of week
+    MI_48STATUS_DATE,           // Display the date
+    MI_48STATUS_DATE_SEPARATOR, // Select date separator
+    MI_48STATUS_SHORT_MONTH,    // Short month
+    MI_48STATUS_VOLTAGE,        // Display voltage
 };
 
 
@@ -65,5 +73,6 @@ bool                  save_system_state();
 void                  power_off();
 void                  system_setup();
 void                  refresh_dirty();
+void                  redraw_lcd(bool force);
 
 #endif // SYSMENU_H

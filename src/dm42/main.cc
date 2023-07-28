@@ -84,7 +84,7 @@ void refresh_dirty()
 }
 
 
-static void redraw_lcd(bool force)
+void redraw_lcd(bool force)
 // ----------------------------------------------------------------------------
 //   Redraw the whole LCD
 // ----------------------------------------------------------------------------

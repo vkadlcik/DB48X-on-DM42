@@ -258,6 +258,22 @@ struct graphics
             return x1 >= x2 || y1 >= y2;
         }
 
+        size width() const
+        // --------------------------------------------------------------------
+        //   Return the width of a rectangle
+        // --------------------------------------------------------------------
+        {
+            return x2 - x1;
+        }
+
+        size height() const
+        // --------------------------------------------------------------------
+        //   Return the height of a rectangle
+        // --------------------------------------------------------------------
+        {
+            return y2 - y1;
+        }
+
     public:
         coord x1, y1, x2, y2;
     };
@@ -815,7 +831,7 @@ template <> union graphics::pattern<graphics::mode::MONOCHROME_REVERSE>
 
     enum              { BPP = 1, SIZE = 8 }; // 64-bit = 8x8 1-bit pattern
     enum:uint64_t     { SOLID = 0xFFFFFFFFFFFFFFFFull };
-    using color = graphics::color<MONOCHROME>;
+    using color = graphics::color<MONOCHROME_REVERSE>;
 
 public:
     // Build a solid pattern from a single color

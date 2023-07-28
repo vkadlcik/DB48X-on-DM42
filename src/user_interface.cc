@@ -1222,26 +1222,44 @@ bool user_interface::draw_battery()
         return false;
     }
 
-    char buffer[64];
-    snprintf(buffer, sizeof(buffer), "%d.%03dV", vdd / 1000, vdd % 1000);
+    coord x = Settings.show_voltage ? 311 : 370;
+    rect bat(x + 3, ann_y+2, x + 25, ann_y + ann_height);
+    Screen.fill(x, 0, LCD_W, hfh + 1, pattern::black);
+    if (Settings.show_voltage)
+    {
+        char buffer[64];
+        snprintf(buffer, sizeof(buffer), "%d.%03dV", vdd / 1000, vdd % 1000);
+        Screen.text(340, 1, utf8(buffer), HeaderFont,
+                    low ? pattern::gray50 : pattern::white);
+    }
+    Screen.fill(x, ann_y + 4, x+4, ann_y + ann_height - 2, pattern::white);
 
-    Screen.fill(310, 0, LCD_W, hfh + 1, pattern::black);
-    Screen.text(340, 1, utf8(buffer), HeaderFont,
-                low ? pattern::gray50 : pattern::white);
-    Screen.fill(314, ann_y + 1, 336, ann_y + ann_height - 0, pattern::white);
-    Screen.fill(310, ann_y + 3, 336, ann_y + ann_height - 3, pattern::white);
+    Screen.fill(bat, pattern::white);
+    bat.inset(1,1);
+    Screen.fill(bat, pattern::black);
+    bat.inset(1,1);
 
-    const int batw = 334 - 315;
+    size batw = bat.width();
     int w = (vdd - 2000) * batw / (3090 - 2000);
     if (w > batw)
-        w = 334 - 315;
+        w = batw;
     else if (w < 1)
         w = 1;
+    bat.x1 = bat.x2 - w;
 
-    Screen.fill(334 - w, ann_y + 2, 334, ann_y + ann_height - 1,
-                usb ? pattern::gray50 : pattern::black);
+    Screen.fill(bat, usb ? pattern::gray50 : pattern::white);
+    if (!usb)
+    {
+        bat.x2 += 1;
+        while (bat.x2 > x + 8)
+        {
+            bat.x2 -= 4;
+            bat.x1 = bat.x2;
+            Screen.fill(bat, pattern::black);
+        }
+    }
 
-    draw_dirty(310, 0, LCD_W, hfh);
+    draw_dirty(x, 0, LCD_W, hfh);
     draw_refresh(2000);
     return true;
 }

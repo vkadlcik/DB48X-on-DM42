@@ -84,6 +84,13 @@ struct settings
           show_decimal(true),
           fancy_exponent(true),
           auto_simplify(true),
+          show_dow(true),
+          show_date(true),
+          show_month(true),
+          show_time(true),
+          show_seconds(true),
+          show_voltage(true),
+          date_separator('/'),
           result_sz(STACK),
           stack_sz(STACK),
           editor_sz(EDITOR),
@@ -166,6 +173,13 @@ public:
     bool     show_decimal   :1; // Show decimal dot for integral real numbers
     bool     fancy_exponent :1; // Show exponent with fancy superscripts
     bool     auto_simplify  :1; // Automatically simplify symbolic results
+    bool     show_dow       :1; // Show day of week in status bar
+    bool     show_date      :1; // Show date in status bar
+    bool     show_month     :1; // Show month name in status bar
+    bool     show_time      :1; // Show time in status bar
+    bool     show_seconds   :1; // Show seconds in status bar
+    bool     show_voltage   :1; // Show battery voltage in status bar
+    char     date_separator;    // Date separator
     font_id  result_sz;         // Size for stack top
     font_id  stack_sz;          // Size for other stack levels
     font_id  editor_sz;         // Size for normal editor

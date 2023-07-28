@@ -60,11 +60,13 @@ const uint8_t application_menu_items[] =
     MI_DB48_ABOUT,              // About dialog
 
     MI_48STATE,                 // File operations on state
+    MI_48STATUS,                // Status bar settings
 
     MI_MSC,                     // Activate USB disk
     MI_PGM_LOAD,                // Load program
     MI_LOAD_QSPI,               // Load QSPI
     MI_SYSTEM_ENTER,            // Enter system
+
     0
 }; // Terminator
 
@@ -135,6 +137,37 @@ const smenu_t settings_menu =
 // ----------------------------------------------------------------------------
 {
     "Settings",  settings_menu_items,  NULL, NULL
+};
+
+
+
+// ============================================================================
+//
+//    Status bar menu
+//
+// ============================================================================
+
+const uint8_t status_bar_menu_items[] =
+// ----------------------------------------------------------------------------
+//    Menu items for "Status bar" meni
+// ----------------------------------------------------------------------------
+{
+    MI_48STATUS_DAY_OF_WEEK,    // Display day of week
+    MI_48STATUS_TIME,           // Display time
+    MI_48STATUS_DATE,           // Display the date
+    MI_48STATUS_DATE_SEPARATOR, // Select date separator
+    MI_48STATUS_SHORT_MONTH,    // Short month
+    MI_48STATUS_VOLTAGE,        // Display voltage
+    0
+}; // Terminator
+
+
+const smenu_t status_bar_menu =
+// ----------------------------------------------------------------------------
+//   Status bar menu
+// ----------------------------------------------------------------------------
+{
+    "Status bar",  status_bar_menu_items,  NULL, NULL
 };
 
 
@@ -558,6 +591,21 @@ bool save_system_state()
 }
 
 
+static char next_date_sep(char sep)
+// ----------------------------------------------------------------------------
+//   Compute the next date separator
+// ----------------------------------------------------------------------------
+{
+    switch(sep)
+    {
+    case '/':   return '.';
+    case '.':   return '-';
+    default:
+    case '-':   return '/';
+    }
+}
+
+
 int menu_item_run(uint8_t menu_id)
 // ----------------------------------------------------------------------------
 //   Callback to run a menu item
@@ -574,16 +622,49 @@ int menu_item_run(uint8_t menu_id)
     case MI_48STATE_MERGE: ret = state_load(true); break;
     case MI_48STATE_SAVE:  ret = state_save(); break;
     case MI_48STATE_CLEAN: ret = state_clear(); break;
-    default:               ret = MRET_UNIMPL; break;
+
+    case MI_48STATUS:
+        ret = handle_menu(&status_bar_menu, MENU_ADD, 0); break;
+    case MI_48STATUS_DAY_OF_WEEK:
+        Settings.show_dow = !Settings.show_dow; break;
+    case MI_48STATUS_DATE:
+        Settings.show_date = !Settings.show_date; break;
+    case MI_48STATUS_DATE_SEPARATOR:
+        Settings.date_separator = next_date_sep(Settings.date_separator); break;
+    case MI_48STATUS_SHORT_MONTH:
+        Settings.show_month = !Settings.show_month;                     break;
+    case MI_48STATUS_TIME:
+        Settings.show_time = !Settings.show_time;                       break;
+    case MI_48STATUS_VOLTAGE:
+        Settings.show_voltage = !Settings.show_voltage;                 break;
+    default:
+        ret = MRET_UNIMPL; break;
     }
 
     return ret;
 }
 
 
-cstring menu_item_description(uint8_t          menu_id,
-                              char *UNUSED     s,
-                              const int UNUSED len)
+static char *sep_str(char *s, cstring txt, char sep)
+// ----------------------------------------------------------------------------
+//   Build a separator string
+// ----------------------------------------------------------------------------
+{
+    snprintf(s, 40, "[%c] %s", sep, txt);
+    return s;
+}
+
+
+static char *flag_str(char *s, cstring txt, bool flag)
+// ----------------------------------------------------------------------------
+//   Build a flag string
+// ----------------------------------------------------------------------------
+{
+    return sep_str(s, txt, flag ? 'X' : ' ');
+}
+
+
+cstring menu_item_description(uint8_t menu_id, char *s, const int UNUSED len)
 // ----------------------------------------------------------------------------
 //   Return the menu item description
 // ----------------------------------------------------------------------------
@@ -592,14 +673,30 @@ cstring menu_item_description(uint8_t          menu_id,
 
     switch (menu_id)
     {
-    case MI_DB48_SETTINGS:      ln = "Settings >";      break;
-    case MI_DB48_ABOUT:         ln = "About >";         break;
-    case MI_48STATE:            ln = "State >";         break;
-    case MI_48STATE_LOAD:       ln = "Load State";      break;
-    case MI_48STATE_MERGE:      ln = "Merge State"; break;
-    case MI_48STATE_SAVE:       ln = "Save State";      break;
-    case MI_48STATE_CLEAN:      ln = "Clear state";     break;
-    default:                    ln = NULL;              break;
+    case MI_DB48_SETTINGS:              ln = "Settings >";              break;
+    case MI_DB48_ABOUT:                 ln = "About >";                 break;
+
+    case MI_48STATE:                    ln = "State >";                 break;
+    case MI_48STATE_LOAD:               ln = "Load State";              break;
+    case MI_48STATE_MERGE:              ln = "Merge State";             break;
+    case MI_48STATE_SAVE:               ln = "Save State";              break;
+    case MI_48STATE_CLEAN:              ln = "Clear state";             break;
+
+    case MI_48STATUS:                   ln = "Status bar >";            break;
+    case MI_48STATUS_DAY_OF_WEEK:
+        ln = flag_str(s, "Day of week", Settings.show_dow);             break;
+    case MI_48STATUS_DATE:
+        ln = flag_str(s, "Date", Settings.show_date);                   break;
+    case MI_48STATUS_DATE_SEPARATOR:
+        ln = sep_str(s, "Date separator", Settings.date_separator);     break;
+    case MI_48STATUS_SHORT_MONTH:
+        ln = flag_str(s, "Month", Settings.show_month);                 break;
+    case MI_48STATUS_TIME:
+        ln = flag_str(s, "Time", Settings.show_time);                   break;
+    case MI_48STATUS_VOLTAGE:
+        ln = flag_str(s, "Voltage", Settings.show_voltage);             break;
+
+    default:                            ln = NULL;                      break;
     }
 
     return ln;
@@ -625,4 +722,5 @@ void system_setup()
     CLR_ST(STAT_MENU);
     if (ret != MRET_EXIT)
         wait_for_key_release(-1);
+    redraw_lcd(true);
 }

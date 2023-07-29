@@ -31,6 +31,7 @@
 
 
 #include "program.h"
+#include "settings.h"
 #include "symbol.h"
 
 #include <type_traits>
@@ -110,6 +111,26 @@ struct equation : program
         if (equation_p eq = rewrite(from, to))
             return eq->rewrite(rest...);
         return nullptr;
+    }
+
+    template <typename ...args>
+    equation_p rewrite_all(args... rest) const
+    {
+        uint count = 0;
+        equation_g last = nullptr;
+        equation_g eq = this;
+        while (count++ < Settings.maxrewrites && eq && eq.Safe() != last.Safe())
+        {
+            // Check if we produced the same value
+            if (last && last->is_same_as(eq))
+                break;
+
+            last = eq;
+            eq = eq->rewrite(rest...);
+        }
+        if (count >= Settings.maxrewrites)
+            rt.too_many_rewrites_error();
+        return eq;
     }
 
     equation_p expand() const;

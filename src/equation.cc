@@ -199,6 +199,7 @@ RENDER_BODY(equation)
     // First push all things so that we have the outermost operators first
     for (object_p obj : *o)
     {
+        ASSERT(obj);
         ok = rt.push(obj);
         if (!ok)
             break;
@@ -455,7 +456,8 @@ static equation_p grab_arguments(size_t &eq, size_t &eqsz)
     while (len--)
     {
         object_p obj = rt.stack(eq + len);
-        rt.append(obj->size(), byte_p(obj));
+        if (!rt.append(obj->size(), byte_p(obj)))
+            return nullptr;
     }
     eq += sz;
     eqsz -= sz;
@@ -585,6 +587,7 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
 
     // Need a GC pointer since stack operations may move us
     equation_g eq       = this;
+    equation_g oeq      = eq;
 
     // Information about part we replace
     bool       replaced = false;
@@ -629,6 +632,7 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
         }
 
         // We don't need the on-stack copies of 'eq' and 'to' anymore
+        ASSERT(rt.depth() >= depth);
         rt.drop(rt.depth() - depth);
 
 
@@ -644,11 +648,13 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
             // Copy from the original
             for (equation::iterator it = eq->begin(); it != eq->end(); ++it)
             {
+                ASSERT(*it);
                 if (where < eqst || where >= eqst + matchsz)
                 {
                     // Copy from source equation directly
                     object_p obj = *it;
-                    rt.append(obj->size(), byte_p(obj));
+                    if (!rt.append(obj->size(), byte_p(obj)))
+                        return nullptr;
                 }
                 else if (!replaced)
                 {
@@ -681,7 +687,8 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
                         size_t tobjsize = tobj->size();
                         if (equation_p teq = tobj->as<equation>())
                             tobj = object_p(teq->value(&tobjsize));
-                        rt.append(tobjsize, byte_p(tobj));
+                        if (!rt.append(tobjsize, byte_p(tobj)))
+                            return nullptr;
                     }
 
                     replaced = true;
@@ -724,8 +731,8 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
         }
     } while (replaced && !interrupted());
 
-
 err:
+    ASSERT(rt.depth() >= depth);
     rt.drop(rt.depth() - depth);
     rt.unlocals(rt.locals() - locals);
     return eq;;
@@ -787,19 +794,20 @@ equation_p equation::expand() const
 //   Run various rewrites to expand equation
 // ----------------------------------------------------------------------------
 {
-    return rewrite((x+y)*z,     x*z+y*z,
-                   x*(y+z),     x*y+x*z,
-                   (x-y)*z,     x*z-y*z,
-                   x*(y-z),     x*y-x*z,
-                   sq(x),       x*x,
-                   cubed(x),    x*x*x,
-                   x^zero,      one,
-                   x^one,       x,
-                   x^two,       x*x,
-                   x^three,     x*x*x,
-                   x^n,         x * x^(n-one),
-                   n * x + x,   (n + one) * x,
-                   x + n * x,   (n + one) * x
+    return rewrite_all(
+        (x+y)*z,     x*z+y*z,
+        x*(y+z),     x*y+x*z,
+        (x-y)*z,     x*z-y*z,
+        x*(y-z),     x*y-x*z,
+        sq(x),       x*x,
+        cubed(x),    x*x*x,
+        x^zero,      one,
+        x^one,       x,
+        x^two,       x*x,
+        x^three,     x*x*x,
+        x^n,         x * x^(n-one),
+        n * x + x,   (n + one) * x,
+        x + n * x,   (n + one) * x
         );
 }
 
@@ -809,12 +817,14 @@ equation_p equation::collect() const
 //    Run various rewrites to collect terms / factor equation
 // ----------------------------------------------------------------------------
 {
-    return rewrite(x*z+y*z,     (x+y)*z,
-                   x*y+x*z,     x*(y+z),
-                   x*z-y*z,     (x-y)*z,
-                   x*y-x*z,     x*(y-z),
-                   x*x*x,       cubed(x),
-                   x*x,         sq(x));
+    return rewrite_all(
+        x*z+y*z,     (x+y)*z,
+        x*y+x*z,     x*(y+z),
+        x*z-y*z,     (x-y)*z,
+        x*y-x*z,     x*(y-z),
+        x*x*x,       cubed(x),
+        x*x,         sq(x)
+        );
 }
 
 
@@ -823,23 +833,24 @@ equation_p equation::simplify() const
 //   Run various rewrites to simplify equation
 // ----------------------------------------------------------------------------
 {
-    return rewrite(x + zero,    x,
-                   zero + x,    x,
-                   x - zero,    x,
-                   zero - x,    x,
-                   x * zero,    zero,
-                   zero * x,    zero,
-                   x * one,     x,
-                   one * x,     x,
-                   x / one,     x,
-                   x / x,       one,
-                   one / x,     inv(x),
-                   x * x * x,   cubed(x),
-                   x * x,       sq(x),
-                   x ^ zero,    one,
-                   x ^ one,     x,
-                   x ^ two,     sq(x),
-                   x ^ three,   cubed(x),
-                   x ^ mone,    inv(x)
+    return rewrite_all(
+        x + zero,    x,
+        zero + x,    x,
+        x - zero,    x,
+        zero - x,    x,
+        x * zero,    zero,
+        zero * x,    zero,
+        x * one,     x,
+        one * x,     x,
+        x / one,     x,
+        x / x,       one,
+        one / x,     inv(x),
+        x * x * x,   cubed(x),
+        x * x,       sq(x),
+        x ^ zero,    one,
+        x ^ one,     x,
+        x ^ two,     sq(x),
+        x ^ three,   cubed(x),
+        x ^ mone,    inv(x)
         );
 }

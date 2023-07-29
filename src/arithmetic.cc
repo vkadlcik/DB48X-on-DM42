@@ -756,29 +756,39 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
 //   Deal with non-numerical data types for multiplication
 // ----------------------------------------------------------------------------
 {
-    // Deal with X^N where N is a positive integer
-    if (integer_g yi = y->as<integer>())
-    {
-        if (!x->is_integer() && !x->is_strictly_symbolic())
-        {
-            ularge yv = yi->value<ularge>();
-            if (yv == 0 && x->is_zero(false))
-            {
-                rt.undefined_operation_error();
-                return nullptr;
-            }
+    if (!x.Safe() || !y.Safe())
+        return nullptr;
 
-            algebraic_g r = integer::make(1);
-            algebraic_g xx = x;
-            while (yv)
-            {
-                if (yv & 1)
-                    r = r * xx;
-                yv /= 2;
-                xx = xx * xx;
-            }
-            return r;
+    // Deal with X^N where N is a positive  or negative integer
+    id   yt   = y->type();
+    bool negy = yt == ID_neg_integer;
+    bool posy = yt == ID_integer;
+    if (negy || posy)
+    {
+        // Do not expand X^3 or integers when y>=0
+        if (x->is_strictly_symbolic() || (x->is_integer() && !negy))
+            return nullptr;
+
+        // Deal with X^N where N is a positive integer
+        ularge yv = integer_p(y.Safe())->value<ularge>();
+        if (yv == 0 && x->is_zero(false))
+        {
+            rt.undefined_operation_error();
+            return nullptr;
         }
+
+        algebraic_g r = integer::make(1);
+        algebraic_g xx = x;
+        while (yv)
+        {
+            if (yv & 1)
+                r = r * xx;
+            yv /= 2;
+            xx = xx * xx;
+        }
+        if (negy)
+            r = inv::run(r);
+        return r;
     }
 
     // Not yet implemented
@@ -838,7 +848,7 @@ inline bool pow::bignum_ok(bignum_g &x, bignum_g &y)
 // ----------------------------------------------------------------------------
 {
     // Compute result, check that it does not overflow
-    if (x->type() == ID_neg_integer)
+    if (y->type() == ID_neg_bignum)
         return false;
     x = bignum::pow(x, y);
     return true;

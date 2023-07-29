@@ -95,7 +95,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    regression_checks();
+    arithmetic();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -547,6 +547,13 @@ void tests::arithmetic()
     test(CLEAR, " 7/2 -3 REM", ENTER).expect("1/2");
     test(CLEAR, "-7/2  3 REM", ENTER).expect("-1/2");
     test(CLEAR, "-7/2 -3 REM", ENTER).expect("-1/2");
+
+    step("Power");
+    test(CLEAR, "2 3 ^", ENTER).expect("8");
+    test(CLEAR, "-2 3 ^", ENTER).expect("-8");
+    step("Negative power");
+    test(CLEAR, "2 -3 ^", ENTER).expect("1/8");
+    test(CLEAR, "-2 -3 ^", ENTER).expect("-1/8");
 }
 
 

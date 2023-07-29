@@ -728,7 +728,9 @@ equation_p equation::expand() const
     return rewrite((x+y)*z,     x*z+y*z,
                    x*(y+z),     x*y+x*z,
                    (x-y)*z,     x*z-y*z,
-                   x*(y-z),     x*y-x*z);
+                   x*(y-z),     x*y-x*z,
+                   sq(x),       x*x,
+                   cubed(x),    x*x*x);
 }
 
 
@@ -740,7 +742,9 @@ equation_p equation::collect() const
     return rewrite(x*z+y*z,     (x+y)*z,
                    x*y+x*z,     x*(y+z),
                    x*z-y*z,     (x-y)*z,
-                   x*y-x*z,     x*(y-z));
+                   x*y-x*z,     x*(y-z),
+                   x*x*x,       cubed(x),
+                   x*x,         sq(x));
 }
 
 
@@ -761,5 +765,6 @@ equation_p equation::simplify() const
                    x / x,       one,
                    one / x,     inv(x),
                    x * x * x,   cubed(x),
-                   x * x,       sq(x));
+                   x * x,       sq(x),
+        );
 }

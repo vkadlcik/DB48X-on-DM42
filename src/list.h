@@ -113,10 +113,10 @@ struct list : text
         }
         bool operator==(iterator other) const
         {
-            return
-                index == other.index &&
-                first.Safe() == other.first.Safe() &&
-                size == other.size;
+            return !first.Safe() || !other.first.Safe() ||
+                (index == other.index &&
+                 first.Safe() == other.first.Safe() &&
+                 size == other.size);
         }
         bool operator!=(iterator other) const
         {

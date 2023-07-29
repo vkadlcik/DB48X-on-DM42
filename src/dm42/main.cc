@@ -31,16 +31,18 @@
 #include "dm42/main.h"
 
 #include "dm42/sysmenu.h"
+#include "equation.h"
 #include "font.h"
 #include "graphics.h"
-#include "user_interface.h"
-#include "program.h"
 #include "num.h"
+#include "program.h"
+#include "recorder.h"
 #include "stack.h"
 #include "sysmenu.h"
 #include "target.h"
+#include "user_interface.h"
 #include "util.h"
-#include "recorder.h"
+
 #if SIMULATOR
 #  include "tests.h"
 #endif
@@ -225,6 +227,13 @@ void program_init()
 
     // Check if we have a state file to load
     load_system_state();
+
+#if SIMULATOR
+    eq_symbol<'x'> x;
+    eq_symbol<'y'> y;
+    auto expr = (x + y - (x^y) * (x - y)).as_object();
+    fprintf(stderr, "Auto expressio builder: %s\n", expr->debug());
+#endif
 }
 
 

@@ -33,6 +33,8 @@
 #include "program.h"
 #include "symbol.h"
 
+#include <type_traits>
+
 GCP(equation);
 
 struct equation : program
@@ -102,6 +104,220 @@ public:
     RENDER_DECL(equation);
 };
 
+
+
+// ============================================================================
+//
+//    C++ equation building (to create rules in C++ code)
+//
+// ============================================================================
+
+template <byte ...args>
+struct eq
+// ----------------------------------------------------------------------------
+//   A static equation builder for C++ code
+// ----------------------------------------------------------------------------
+{
+    eq() {}
+    static constexpr byte data[sizeof...(args)] = { args... };
+    static constexpr byte object_data[sizeof...(args) + 2] =
+    {
+        object::ID_equation,
+        byte(sizeof...(args)),  // Must be less than 128...
+        args...
+    };
+    constexpr object_p as_object() const
+    {
+        return object_p(object_data);
+    }
+    constexpr equation_p as_equation() const
+    {
+        return equation_p(object_data);
+    }
+
+    // Negation operation
+    eq<args..., object::ID_neg>
+    operator-()         { return eq<args..., object::ID_neg>(); }
+
+#define EQ_FUNCTION(name)                                       \
+    eq<args..., object::ID_##name>                              \
+    name()         { return eq<args..., object::ID_##name>(); }
+
+    EQ_FUNCTION(sqrt);
+    EQ_FUNCTION(cbrt);
+
+    EQ_FUNCTION(sin);
+    EQ_FUNCTION(cos);
+    EQ_FUNCTION(tan);
+    EQ_FUNCTION(asin);
+    EQ_FUNCTION(acos);
+    EQ_FUNCTION(atan);
+
+    EQ_FUNCTION(sinh);
+    EQ_FUNCTION(cosh);
+    EQ_FUNCTION(tanh);
+    EQ_FUNCTION(asinh);
+    EQ_FUNCTION(acosh);
+    EQ_FUNCTION(atanh);
+
+    EQ_FUNCTION(log1p);
+    EQ_FUNCTION(expm1);
+    EQ_FUNCTION(log);
+    EQ_FUNCTION(log10);
+    EQ_FUNCTION(log2);
+    EQ_FUNCTION(exp);
+    EQ_FUNCTION(exp10);
+    EQ_FUNCTION(exp2);
+    EQ_FUNCTION(erf);
+    EQ_FUNCTION(erfc);
+    EQ_FUNCTION(tgamma);
+    EQ_FUNCTION(lgamma);
+
+    EQ_FUNCTION(abs);
+    EQ_FUNCTION(sign);
+    EQ_FUNCTION(inv);
+    EQ_FUNCTION(neg);
+    EQ_FUNCTION(sq);
+    EQ_FUNCTION(cubed);
+    EQ_FUNCTION(fact);
+
+    EQ_FUNCTION(re);
+    EQ_FUNCTION(im);
+    EQ_FUNCTION(arg);
+    EQ_FUNCTION(conj);
+
+#undef EQ_FUNCTION
+
+    // Arithmetic
+    template<byte ...y>
+    eq<args..., y..., object::ID_add>
+    operator+(eq<y...>) { return eq<args..., y..., object::ID_add>(); }
+
+    template<byte ...y>
+    eq<args..., y..., object::ID_sub>
+    operator-(eq<y...>) { return eq<args..., y..., object::ID_sub>(); }
+
+    template<byte ...y>
+    eq<args..., y..., object::ID_mul>
+    operator*(eq<y...>) { return eq<args..., y..., object::ID_mul>(); }
+
+    template<byte ...y>
+    eq<args..., y..., object::ID_div>
+    operator/(eq<y...>) { return eq<args..., y..., object::ID_div>(); }
+
+    template<byte ...y>
+    eq<args..., y..., object::ID_mod>
+    operator%(eq<y...>) { return eq<args..., y..., object::ID_mod>(); }
+
+    template<byte ...y>
+    eq<args..., y..., object::ID_rem>
+    rem(eq<y...>) { return eq<args..., y..., object::ID_rem>(); }
+
+    template<byte ...y>
+    eq<args..., y..., object::ID_pow>
+    operator^(eq<y...>) { return eq<args..., y..., object::ID_pow>(); }
+
+    template<byte ...y>
+    eq<args..., y..., object::ID_pow>
+    pow(eq<y...>) { return eq<args..., y..., object::ID_pow>(); }
+
+    // Comparisons
+    template<byte ...y>
+    eq<args..., y..., object::ID_TestLT>
+    operator<(eq<y...>) { return eq<args..., y..., object::ID_TestLT>(); }
+
+    template<byte ...y>
+    eq<args..., y..., object::ID_TestEQ>
+    operator==(eq<y...>) { return eq<args..., y..., object::ID_TestEQ>(); }
+
+    template<byte ...y>
+    eq<args..., y..., object::ID_TestGT>
+    operator>(eq<y...>) { return eq<args..., y..., object::ID_TestGT>(); }
+
+    template<byte ...y>
+    eq<args..., y..., object::ID_TestLE>
+    operator<=(eq<y...>) { return eq<args..., y..., object::ID_TestLE>(); }
+
+    template<byte ...y>
+    eq<args..., y..., object::ID_TestNE>
+    operator!=(eq<y...>) { return eq<args..., y..., object::ID_TestNE>(); }
+
+    template<byte ...y>
+    eq<args..., y..., object::ID_TestGE>
+    operator>=(eq<y...>) { return eq<args..., y..., object::ID_TestGE>(); }
+
+};
+
+#define EQ_FUNCTION(name)                               \
+    template<byte ...x>                                 \
+    eq<x..., object::ID_##name>                         \
+    name(eq<x...> xeq)         { return xeq.name(); }
+
+
+EQ_FUNCTION(sqrt);
+EQ_FUNCTION(cbrt);
+
+EQ_FUNCTION(sin);
+EQ_FUNCTION(cos);
+EQ_FUNCTION(tan);
+EQ_FUNCTION(asin);
+EQ_FUNCTION(acos);
+EQ_FUNCTION(atan);
+
+EQ_FUNCTION(sinh);
+EQ_FUNCTION(cosh);
+EQ_FUNCTION(tanh);
+EQ_FUNCTION(asinh);
+EQ_FUNCTION(acosh);
+EQ_FUNCTION(atanh);
+
+EQ_FUNCTION(log1p);
+EQ_FUNCTION(expm1);
+EQ_FUNCTION(log);
+EQ_FUNCTION(log10);
+EQ_FUNCTION(log2);
+EQ_FUNCTION(exp);
+EQ_FUNCTION(exp10);
+EQ_FUNCTION(exp2);
+EQ_FUNCTION(erf);
+EQ_FUNCTION(erfc);
+EQ_FUNCTION(tgamma);
+EQ_FUNCTION(lgamma);
+
+EQ_FUNCTION(abs);
+EQ_FUNCTION(sign);
+EQ_FUNCTION(inv);
+EQ_FUNCTION(neg);
+EQ_FUNCTION(sq);
+EQ_FUNCTION(cubed);
+EQ_FUNCTION(fact);
+
+EQ_FUNCTION(re);
+EQ_FUNCTION(im);
+EQ_FUNCTION(arg);
+EQ_FUNCTION(conj);
+
+#undef EQ_FUNCTION
+
+// Pi constant
+struct eq_pi : eq<object::ID_pi> {};
+
+// Build a symbol out of a character
+template <byte c>       struct eq_symbol  : eq<object::ID_symbol,  1, c> {};
+
+// Build an integer constant
+template <uint c, std::enable_if_t<(c >= 0 && c < 128), bool> = true>
+struct eq_integer : eq<object::ID_integer, byte(c)> {};
+template <uint c, std::enable_if_t<(c >= 0 && c < 128), bool> = true>
+struct eq_neg_integer : eq<object::ID_neg_integer, byte(-c)> {};
+
+
+
+// ============================================================================
+//
+//   User commands
+//
+// ============================================================================
 
 COMMAND_DECLARE(Rewrite);
 

@@ -227,13 +227,6 @@ void program_init()
 
     // Check if we have a state file to load
     load_system_state();
-
-#if SIMULATOR
-    eq_symbol<'x'> x;
-    eq_symbol<'y'> y;
-    auto expr = (x + y - (x^y) * (x - y)).as_equation();
-    fprintf(stderr, "Auto expressio builder: %s\n", expr->debug());
-#endif
 }
 
 

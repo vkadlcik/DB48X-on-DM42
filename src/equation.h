@@ -142,17 +142,12 @@ struct eq
 // ----------------------------------------------------------------------------
 {
     eq() {}
-    static constexpr byte data[sizeof...(args)] = { args... };
     static constexpr byte object_data[sizeof...(args) + 2] =
     {
         object::ID_equation,
         byte(sizeof...(args)),  // Must be less than 128...
         args...
     };
-    constexpr object_p as_object() const
-    {
-        return object_p(object_data);
-    }
     constexpr equation_p as_equation() const
     {
         return equation_p(object_data);

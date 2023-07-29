@@ -702,6 +702,17 @@ COMMAND_BODY(Rewrite)
     return OK;
 }
 
+
+
+// ============================================================================
+//
+//    Actual rewrites for various rules
+//
+// ============================================================================
+
+template <byte ...args>
+constexpr byte eq<args...>::object_data[sizeof...(args)+2];
+
 static eq_symbol<'x'> x;
 static eq_symbol<'y'> y;
 static eq_symbol<'z'> z;

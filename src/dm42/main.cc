@@ -231,7 +231,7 @@ void program_init()
 #if SIMULATOR
     eq_symbol<'x'> x;
     eq_symbol<'y'> y;
-    auto expr = (x + y - (x^y) * (x - y)).as_object();
+    auto expr = (x + y - (x^y) * (x - y)).as_equation();
     fprintf(stderr, "Auto expressio builder: %s\n", expr->debug());
 #endif
 }

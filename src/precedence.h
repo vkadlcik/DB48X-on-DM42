@@ -42,7 +42,7 @@ enum precedence
     RELATIONAL          = 14,    // <, >, =, etc
     ADDITIVE            = 16,    // +, -
     MULTIPLICATIVE      = 18,    // *, /
-    POWER               = 20,   // ^
+    POWER               = 20,    // ^
 
     UNKNOWN             = 30,   // Unknown operator
     PARENTHESES         = 40,   // Parentheses

@@ -92,6 +92,7 @@ inline bool is_valid_as_name_initial(unicode cp)
         || (cp >= 0x100 &&
             (cp != L'÷' &&      // Exclude symbols you can't have in a name
              cp != L'×' &&
+             cp != L'↑' &&
              cp != L'∂' &&
              cp != L'⁻' &&
              cp != L'¹' &&

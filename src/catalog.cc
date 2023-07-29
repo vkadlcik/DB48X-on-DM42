@@ -48,10 +48,10 @@ MENU_BODY(Catalog)
 }
 
 
-#define NUM_COMMANDS    (object::LAST_COMMAND - object::FIRST_COMMAND + 1)
+static object::id sorted_ids[object::NUM_IDS];
 
-static object::id sorted_ids[NUM_COMMANDS];
 
+static uint       NUM_COMMANDS = 0;
 
 static int sort_ids(const void *left, const void *right)
 // ----------------------------------------------------------------------------
@@ -69,9 +69,12 @@ static void initialize_sorted_ids()
 //   Sort IDs alphabetically
 // ----------------------------------------------------------------------------
 {
-    for (uint i = 0; i < NUM_COMMANDS; i++)
-        sorted_ids[i] = object::id(i + object::FIRST_COMMAND);
-    qsort(sorted_ids, NUM_COMMANDS, sizeof(sorted_ids[0]), sort_ids);
+    uint count = 0;
+    for (uint i = 0; i < object::NUM_IDS; i++)
+        if (object::is_command(object::id(i)))
+            sorted_ids[count++] = object::id(i);
+    qsort(sorted_ids, count, sizeof(sorted_ids[0]), sort_ids);
+    NUM_COMMANDS = count;
 }
 
 

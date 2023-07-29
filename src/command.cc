@@ -60,7 +60,7 @@ PARSE_BODY(command)
     bool    eq     = p.precedence;
 
     // If we are parsing an equation, only accept algebraic command
-    if (eq && (i < FIRST_ALGEBRAIC || i > LAST_ALGEBRAIC))
+    if (eq && !is_algebraic_function(i))
         return SKIP;
 
     id      found  = id(0);

@@ -189,19 +189,31 @@ struct object
     //   Operations that can be run on an object
     // ----------------------------------------------------------------------------
     {
-        cstring        name;            // Basic (compatibility) name
-        cstring        fancy;           // Fancy name
-        size_fn        size;            // Compute object size in bytes
-        parse_fn       parse;           // Parse an object
-        help_fn        help;            // Return help topic
-        evaluate_fn    evaluate;        // Evaluate the object
-        execute_fn     execute;         // Execute the object
-        render_fn      render;          // Render the object as text
-        insert_fn      insert;          // Insert object in editor
-        menu_fn        menu;            // Build menu entries
-        menu_marker_fn menu_marker;     // Show marker
-        uint           arity;           // Number of input arguments
-        uint           precedence;      // Precedence in equations
+        cstring         name;            // Basic (compatibility) name
+        cstring         fancy;           // Fancy name
+        size_fn         size;            // Compute object size in bytes
+        parse_fn        parse;           // Parse an object
+        help_fn         help;            // Return help topic
+        evaluate_fn     evaluate;        // Evaluate the object
+        execute_fn      execute;         // Execute the object
+        render_fn       render;          // Render the object as text
+        insert_fn       insert;          // Insert object in editor
+        menu_fn         menu;            // Build menu entries
+        menu_marker_fn  menu_marker;     // Show marker
+        uint            arity;           // Number of input arguments
+        uint            precedence;      // Precedence in equations
+        bool            is_type      :1; // Is a data type
+        bool            is_integer   :1; // Is an integer type
+        bool            is_based     :1; // Is a based integer type
+        bool            is_bignum    :1; // Is a bignum type
+        bool            is_fraction  :1; // Is a fraction type
+        bool            is_real      :1; // Is a real type (excludes based ints)
+        bool            is_decimal   :1; // Is a decimal type
+        bool            is_complex   :1; // Is a complex (but not real) type
+        bool            is_command   :1; // Is an RPL command
+        bool            is_symbolic  :1; // Is a symbol or an equation
+        bool            is_algebraic :1; // Algebraic functions (in equations)
+        bool            is_immediate :1; // Commands that execute immediately
     };
 
 
@@ -460,12 +472,30 @@ struct object
     //
     // ========================================================================
 
+    static bool is_type(id ty)
+    // -------------------------------------------------------------------------
+    //   Check if a type is for an RPL data type
+    // -------------------------------------------------------------------------
+    {
+        return handler[ty].is_type;
+    }
+
+
+    bool is_type() const
+    // -------------------------------------------------------------------------
+    //   Check if an object is an integer
+    // -------------------------------------------------------------------------
+    {
+        return is_type(type());
+    }
+
+
     static bool is_integer(id ty)
     // -------------------------------------------------------------------------
     //   Check if a type is an integer
     // -------------------------------------------------------------------------
     {
-        return ty >= FIRST_INTEGER_TYPE && ty <= LAST_INTEGER_TYPE;
+        return handler[ty].is_integer;
     }
 
 
@@ -478,12 +508,30 @@ struct object
     }
 
 
+    static bool is_based(id ty)
+    // -------------------------------------------------------------------------
+    //   Check if a type is a based integer
+    // -------------------------------------------------------------------------
+    {
+        return handler[ty].is_based;
+    }
+
+
+    bool is_based() const
+    // -------------------------------------------------------------------------
+    //   Check if an object is a based integer
+    // -------------------------------------------------------------------------
+    {
+        return is_based(type());
+    }
+
+
     static bool is_bignum(id ty)
     // -------------------------------------------------------------------------
     //   Check if a type is a big integer
     // -------------------------------------------------------------------------
     {
-        return ty >= FIRST_BIGNUM_TYPE && ty <= LAST_BIGNUM_TYPE;
+        return handler[ty].is_bignum;
     }
 
 
@@ -501,7 +549,7 @@ struct object
     //   Check if a type is a fraction
     // -------------------------------------------------------------------------
     {
-        return ty >= FIRST_FRACTION_TYPE && ty <= LAST_FRACTION_TYPE;
+        return handler[ty].is_fraction;
     }
 
 
@@ -514,6 +562,16 @@ struct object
     }
 
 
+    static bool is_fractionable(id ty)
+    // -------------------------------------------------------------------------
+    //   Check if a type is a fraction or a non-based integer
+    // -------------------------------------------------------------------------
+    {
+        return handler[ty].is_fraction ||
+            (handler[ty].is_integer && handler[ty].is_real);
+    }
+
+
     bool is_fractionable() const
     // -------------------------------------------------------------------------
     //   Check if an object is a fraction or an integer
@@ -523,21 +581,12 @@ struct object
     }
 
 
-    static bool is_fractionable(id ty)
-    // -------------------------------------------------------------------------
-    //   Check if a type is a fraction or a non-based integer
-    // -------------------------------------------------------------------------
-    {
-        return ty >= FIRST_REAL_TYPE && ty <= LAST_FRACTION_TYPE;
-    }
-
-
     static bool is_decimal(id ty)
     // -------------------------------------------------------------------------
     //   Check if a type is a decimal
     // -------------------------------------------------------------------------
     {
-        return ty >= FIRST_DECIMAL_TYPE && ty <= LAST_DECIMAL_TYPE;
+        return handler[ty].is_decimal;
     }
 
 
@@ -555,7 +604,7 @@ struct object
     //   Check if a type is a real number
     // -------------------------------------------------------------------------
     {
-        return ty >= FIRST_REAL_TYPE && ty <= LAST_REAL_TYPE;
+        return handler[ty].is_real;
     }
 
 
@@ -573,7 +622,7 @@ struct object
     //   Check if a type is a complex number
     // -------------------------------------------------------------------------
     {
-        return ty >= FIRST_COMPLEX_TYPE && ty <= LAST_COMPLEX_TYPE;
+        return handler[ty].is_complex;
     }
 
 
@@ -591,7 +640,7 @@ struct object
     //    Check if a type denotes a command
     // ------------------------------------------------------------------------
     {
-        return ty >= FIRST_COMMAND && ty <= LAST_COMMAND;
+        return handler[ty].is_command;
     }
 
 
@@ -604,15 +653,48 @@ struct object
     }
 
 
+    static bool is_immediate(id ty)
+    // ------------------------------------------------------------------------
+    //    Check if a type denotes an immediate command (e.g. menus)
+    // ------------------------------------------------------------------------
+    {
+        return handler[ty].is_immediate;
+    }
+
+
+    bool is_immediate() const
+    // ------------------------------------------------------------------------
+    //   Check if an object is an immediate command (e.g. menus)
+    // ------------------------------------------------------------------------
+    {
+        return is_immediate(type());
+    }
+
+
+    static bool is_algebraic_number(id ty)
+    // ------------------------------------------------------------------------
+    //   Check if something is a number (real or complex)
+    // ------------------------------------------------------------------------
+   {
+        return is_real(ty) || is_complex(ty);
+    }
+
+
+    bool is_algebraic_number() const
+    // ------------------------------------------------------------------------
+    //   Check if something is a number (real or complex)
+    // ------------------------------------------------------------------------
+    {
+        return is_algebraic_number(type());
+    }
+
+
     static bool is_symbolic(id ty)
     // ------------------------------------------------------------------------
     //    Check if a type denotes a symbolic argument (symbol, equation, number)
     // ------------------------------------------------------------------------
     {
-        return (is_strictly_symbolic(ty)                                    ||
-                (ty >= FIRST_SYMBOLIC_TYPE     && ty <= LAST_SYMBOLIC_TYPE) ||
-                (ty >= FIRST_COMPLEX_TYPE      && ty <= LAST_COMPLEX_TYPE)  ||
-                (ty >= FIRST_SYMBOLIC_CONSTANT && ty <= LAST_SYMBOLIC_CONSTANT));
+        return handler[ty].is_symbolic || is_algebraic_number(ty);
     }
 
 
@@ -630,7 +712,7 @@ struct object
     //    Check if a type denotes a symbol or equation
     // ------------------------------------------------------------------------
     {
-        return ty == ID_symbol || ty == ID_equation || ty == ID_local;
+        return handler[ty].is_symbolic;
     }
 
 
@@ -648,7 +730,7 @@ struct object
     //    Check if a type denotes an algebraic function
     // ------------------------------------------------------------------------
     {
-        return ty >= FIRST_ALGEBRAIC && ty <= LAST_ALGEBRAIC;
+        return handler[ty].is_algebraic;
     }
 
 

@@ -119,7 +119,7 @@ fraction_p arithmetic::fraction_promotion(algebraic_g &x)
 // ----------------------------------------------------------------------------
 {
     id ty = x->type();
-    if (ty >= FIRST_FRACTION_TYPE && ty <= LAST_FRACTION_TYPE)
+    if (is_fraction(ty))
         return fraction_g((fraction *) object_p(x));
     if (ty >= ID_integer && ty <= ID_neg_integer)
     {

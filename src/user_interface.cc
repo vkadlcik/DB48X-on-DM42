@@ -3385,7 +3385,7 @@ bool user_interface::handle_functions(int key)
     {
         evaluating = key;
         object::id ty = obj->type();
-        bool imm = ty >= object::FIRST_IMMEDIATE && ty <= object::LAST_COMMAND;
+        bool imm = object::is_immediate(ty);
         if (rt.editing() && !imm)
         {
             if (key == KEY_ENTER || key == KEY_BSP)

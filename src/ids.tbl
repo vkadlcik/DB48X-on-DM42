@@ -48,15 +48,43 @@
 #define ALIAS(op, name)
 #endif
 
-#ifndef OPCODE
-#define OPCODE(id)              ID(id)
-#endif
-
 #ifndef MENU
 #define MENU(id)                ID(id)
 #endif
 
+#ifndef FLAGS
+#define FLAGS(name, ...)
+#endif
+
+// ============================================================================
+//
+//   Range of types for attributes
+//
+// ============================================================================
+
+FLAGS(is_type,          directory,      decimal128)
+FLAGS(is_integer,       hex_integer,    neg_integer)
+FLAGS(is_based,         hex_integer,    based_integer, hex_bignum, based_bignum)
+FLAGS(is_bignum,        hex_bignum,     neg_bignum)
+FLAGS(is_fraction,      fraction,       neg_big_fraction)
+FLAGS(is_decimal,       decimal32,      decimal128)
+FLAGS(is_real,          bignum,         decimal128)
+FLAGS(is_complex,       rectangular,    polar)
+FLAGS(is_command,       Drop,           Unimplemented)
+FLAGS(is_symbolic,      local,          equation,       pi, ImaginaryUnit)
+FLAGS(is_algebraic,     add,            det)
+FLAGS(is_immediate,     MainMenu,       LastMenu)
+
+
+
+// ============================================================================
+//
+//   Definition of types
+//
+// ============================================================================
+
 ID(object)                      // Value 0 is reserved for "not implemented"
+
 
 ID(directory)
 ID(text)
@@ -72,53 +100,36 @@ ID(symbol)
 ID(equation)
 
 // Complex types must be parsed before numbers
-#define FIRST_COMPLEX_TYPE      ID_rectangular
 ID(rectangular)
 ID(polar)
-#define LAST_COMPLEX_TYPE       ID_polar
 
-#define FIRST_INTEGER_TYPE      ID_hex_integer
-#define FIRST_BASED_TYPE        ID_hex_integer
 ID(hex_integer)
 ID(dec_integer)
 ID(oct_integer)
 ID(bin_integer)
 ID(based_integer)
 
-#define FIRST_BIGNUM_TYPE       ID_hex_bignum
 ID(hex_bignum)
 ID(dec_bignum)
 ID(oct_bignum)
 ID(bin_bignum)
 ID(based_bignum)
-#define LAST_BASED_TYPE         ID_based_bignum
 
-#define FIRST_REAL_TYPE         ID_bignum
-#define FIRST_SYMBOLIC_TYPE     ID_bignum
 ID(bignum)
 ID(neg_bignum)
-#define LAST_BIGNUM_TYPE        ID_neg_bignum
 
 ID(integer)
 ID(neg_integer)
-#define LAST_INTEGER_TYPE       ID_neg_integer
 
-#define FIRST_FRACTION_TYPE     ID_fraction
 ID(fraction)
 ID(neg_fraction)
 ID(big_fraction)
 ID(neg_big_fraction)
-#define LAST_FRACTION_TYPE      ID_neg_big_fraction
 
-#define FIRST_DECIMAL_TYPE      ID_decimal32
 ID(decimal32)
 ID(decimal64)
 ID(decimal128)
-#define LAST_DECIMAL_TYPE       ID_decimal128
-#define LAST_REAL_TYPE          ID_decimal128
-#define LAST_SYMBOLIC_TYPE      ID_decimal128
 
-#define FIRST_COMMAND           ID_Drop
 CMD(Drop)
 CMD(Drop2)
 CMD(DropN)
@@ -141,12 +152,8 @@ CMD(False)
 NAMED(ToText, "→Text")
 ALIAS(ToText, "→Str")
 
-#define FIRST_SYMBOLIC_CONSTANT ID_pi
 NAMED(pi, "π")
 NAMED(ImaginaryUnit, "ⅈ")
-#define LAST_SYMBOLIC_CONSTANT  ID_ImaginaryUnit
-
-#define FIRST_ALGEBRAIC         ID_add
 
 OP(add, "+")
 OP(sub, "-")
@@ -231,7 +238,6 @@ CMD(arg)
 CMD(conj)
 NAMED(det, "Determinant")
 
-#define LAST_ALGEBRAIC          ID_det
 
 
 // ============================================================================
@@ -354,8 +360,6 @@ CMD(Version)
 //
 // ============================================================================
 
-#define FIRST_IMMEDIATE          ID_MainMenu
-
 MENU(MainMenu)
 MENU(HomeMenu)
 
@@ -416,15 +420,15 @@ MENU(TextMenu)
 
 CMD(VariablesMenu)
 CMD(ToolsMenu)
-CMD(LastMenu)
 CMD(Catalog)
+CMD(LastMenu)                   // Last immediate command
+
 NAMED(Off, "PowerOff")
 CMD(SaveState)
 CMD(SystemSetup)
 CMD(Help)
 
 CMD(Unimplemented)
-#define LAST_COMMAND            ID_Unimplemented
 
 
 // ============================================================================
@@ -462,3 +466,4 @@ ID(dmcp_font)
 #undef MENU
 #undef NAMED
 #undef ALIAS
+#undef FLAGS

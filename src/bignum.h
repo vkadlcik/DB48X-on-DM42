@@ -294,7 +294,7 @@ inline size_t bignum::wordsize(id type)
 //   Return the word size for an bignum type in bits
 // ----------------------------------------------------------------------------
 {
-    if (type >= FIRST_BASED_TYPE && type <= LAST_BASED_TYPE)
+    if (is_based(type))
         return Settings.wordsize;
     return 0;
 }

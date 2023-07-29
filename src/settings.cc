@@ -812,6 +812,7 @@ COMMAND_BODY(NumberSpacing)
     {
         Settings.spacing_mantissa = fs;
         Settings.spacing_fraction = fs;
+        ui.menuNeedsRefresh();
         return OK;
     }
     return object::ERROR;
@@ -819,7 +820,7 @@ COMMAND_BODY(NumberSpacing)
 
 SPACING_SIZE_SETTING(MantissaSpacing, spacing_mantissa, "Mant")
 SPACING_SIZE_SETTING(FractionSpacing, spacing_fraction, "Frac")
-SPACING_SIZE_SETTING(BasedSpacing, spacing_based, "Based")
+SPACING_SIZE_SETTING(BasedSpacing,    spacing_based,    "Based")
 
 
 SETTINGS_COMMAND_NOLABEL(NumberSpaces,

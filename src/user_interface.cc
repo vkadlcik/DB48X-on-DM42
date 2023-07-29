@@ -2102,7 +2102,7 @@ bool user_interface::draw_help()
                     break;
                 }
                 skip = last == ' ';
-                emit = style != KEY;
+                emit = style != KEY && style != CODE;
                 break;
 
             case '\n':

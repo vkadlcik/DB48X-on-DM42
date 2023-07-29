@@ -59,12 +59,12 @@ void tests::run(bool onlyCurrent)
     auto tracing           = RECORDER_TRACE(errors);
     RECORDER_TRACE(errors) = false;
 
-    Settings               = settings(); // Reset to default settings
+    // Reset to known settings stateg
+    reset_settings(onlyCurrent);
 
     current();
     if (!onlyCurrent)
     {
-        reset_settings();
         shift_logic();
         keyboard_entry();
         data_types();
@@ -112,11 +112,33 @@ void tests::current()
 }
 
 
-void tests::reset_settings()
+void tests::reset_settings(bool fast)
 // ----------------------------------------------------------------------------
 //   Use settings that make the results predictable on screen
 // ----------------------------------------------------------------------------
 {
+    // Reset to default test settings
+    Settings = settings();
+
+    // Do it the fast way if we only run current tests
+    if (fast)
+    {
+        begin("Fast-track settings reset");
+        Settings.display_mode = Settings.NORMAL;
+        Settings.angle_mode = Settings.DEGREES;
+        Settings.command_fmt = Settings.LONG_FORM;
+        Settings.decimal_mark = '.';
+        Settings.show_decimal = true;
+        Settings.precision = 34;
+        Settings.fancy_exponent = false;
+        Settings.wordsize = 64;
+        Settings.spacing_fraction = 0;
+        Settings.spacing_mantissa = 0;
+        Settings.spacing_based = 0;
+        return;
+    }
+
+    // Otherwise exercise settings routines
     begin("Reset settings");
     step("Numerical settings").test("StandardDisplay", ENTER).noerr();
     step("Switching to degrees").test("Degrees", ENTER).noerr();

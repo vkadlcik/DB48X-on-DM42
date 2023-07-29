@@ -1,8 +1,9 @@
 # DB48X on DM42
 
 The DB48X project intends to rebuild and improve the user experience of the
-legendary HP48 family of calculators, notably their "Reverse Polish Lisp" (RPL)
-language with its rich set of data types and built-in functions.
+HP48 family of calculators, notably their "Reverse Polish Lisp" (RPL)
+language with its rich set of data types and built-in functions, and
+[Lisp-level programming power](http://www.paulgraham.com/avg.html).
 
 The project in this repository is presently targeting the [SwissMicro DM42
 calculator](https://www.swissmicros.com/product/dm42), and leveraging its
@@ -31,7 +32,8 @@ DB stands for "Dave and Bill", who are more commonly known as Hewlett and
 Packard. The order is reversed compared to HP, since they reportedly chose the
 order at random, and it's about time Dave Packard was given preeminence.
 
-One of Dave and Bill's great legacy is a legendary series of calculators.
+Part of Dave and Bill's great legacy (beyond giving birth to the Silicon Valley)
+is a [legendary series of calculators](https://www.hpmuseum.org).
 The [HP48](https://en.wikipedia.org/wiki/HP_48_series) remains one of my
 favorites, notably for its rich built-in programming language, known as [Reverse
 Polish Lisp (RPL)](https://en.wikipedia.org/wiki/RPL_(programming_language)).

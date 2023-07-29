@@ -981,7 +981,7 @@ bool user_interface::draw_menus()
         {
             static cstring helpMenu[] =
             {
-                "Home", "Page▲", "Page▼", "Link▲", "Link▼", "← Menu"
+                "Home", "Page▲", "Page▼", "Link▲", "Link▼", "← Topic"
             };
             labels = helpMenu;
         }

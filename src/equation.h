@@ -326,7 +326,7 @@ template <byte c>       struct eq_symbol  : eq<object::ID_symbol,  1, c> {};
 // Build an integer constant
 template <uint c, std::enable_if_t<(c >= 0 && c < 128), bool> = true>
 struct eq_integer : eq<object::ID_integer, byte(c)> {};
-template <uint c, std::enable_if_t<(c >= 0 && c < 128), bool> = true>
+template <int c, std::enable_if_t<(c <= 0 && c >= -128), bool> = true>
 struct eq_neg_integer : eq<object::ID_neg_integer, byte(-c)> {};
 
 

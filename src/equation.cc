@@ -464,6 +464,16 @@ static equation_p grab_arguments(size_t &eq, size_t &eqsz)
 }
 
 
+static bool must_be_integer(symbol_p symbol)
+// ------------------------------------------------------------------------
+//   Convention for naming integers in rewrite rules
+// ----------------------------------------------------------------------------
+{
+    char first = tolower(object::payload(symbol)[1]);
+    return strchr("ijklmnpq", first) != nullptr;
+}
+
+
 static size_t check_match(size_t eq, size_t eqsz,
                           size_t from, size_t fromsz)
 // ----------------------------------------------------------------------------
@@ -503,6 +513,30 @@ static size_t check_match(size_t eq, size_t eqsz,
 
             if (!found)
             {
+                // Check if we expect an integer value
+                if (must_be_integer(name))
+                {
+                    // At this point, if we have an integer, it's was
+                    // wrapped in an equation by grab_arguments.
+                    size_t depth = rt.depth();
+                    if (ftop->execute() != object::OK)
+                        return 0;
+                    if (rt.depth() != depth + 1)
+                    {
+                        rt.type_error();
+                        return 0;
+                    }
+                    ftop = rt.pop();
+
+                    // We must have an integer
+                    if (ftop->type() != object::ID_integer)
+                        return 0;
+
+                    // We always special-case zero as a terminating condition
+                    if (ftop->is_zero())
+                        return 0;
+                }
+
                 // Grab the parameter that corresponds and store it
                 if (!rt.push(name) || !rt.push(ftop) || !rt.locals(2))
                     return 0;
@@ -563,6 +597,7 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
         // Location of expanded equation
         size_t eqsz = 0, fromsz = 0;
         size_t eqst = 0, fromst = 0;
+        bool compute = false;
 
         replaced = false;
 
@@ -635,7 +670,11 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
                                     found = rt.local(l+1);
                             }
                             if (found)
+                            {
                                 tobj = found;
+                                if (must_be_integer(name))
+                                    compute = true;
+                            }
                         }
 
                         // Only copy the payload of equations
@@ -653,6 +692,25 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
             // Restart anew with replaced equation
             eq = equation_p(list::make(ID_equation,
                                        scr.scratch(), scr.growth()));
+
+            // If we had an integer matfched and replaced, execute equation
+            if (compute)
+            {
+                // Need to evaluate e.g. 3-1 to get 2
+                if (eq->execute() != object::OK)
+                    goto err;
+                if (rt.depth() != depth+1)
+                    goto err;
+                object_p computed = rt.pop();
+                if (!computed)
+                    goto err;
+                algebraic_g eqa = computed->as_algebraic();
+                if (!eqa.Safe())
+                    goto err;
+                eq = eqa->as<equation>();
+                if (!eq)
+                    eq = equation::make(eqa);
+            }
 
             // Drop the local names, we will recreate them on next match
             rt.unlocals(rt.locals() - locals);
@@ -716,9 +774,13 @@ constexpr byte eq<args...>::object_data[sizeof...(args)+2];
 static eq_symbol<'x'> x;
 static eq_symbol<'y'> y;
 static eq_symbol<'z'> z;
-static eq_integer<0> zero;
+static eq_symbol<'n'> n;
+static eq_symbol<'p'> p;
+static eq_integer<0>  zero;
+static eq_neg_integer<-1> mone;
 static eq_integer<1> one;
 static eq_integer<2> two;
+static eq_integer<3> three;
 
 equation_p equation::expand() const
 // ----------------------------------------------------------------------------
@@ -730,7 +792,15 @@ equation_p equation::expand() const
                    (x-y)*z,     x*z-y*z,
                    x*(y-z),     x*y-x*z,
                    sq(x),       x*x,
-                   cubed(x),    x*x*x);
+                   cubed(x),    x*x*x,
+                   x^zero,      one,
+                   x^one,       x,
+                   x^two,       x*x,
+                   x^three,     x*x*x,
+                   x^n,         x * x^(n-one),
+                   n * x + x,   (n + one) * x,
+                   x + n * x,   (n + one) * x
+        );
 }
 
 
@@ -766,5 +836,10 @@ equation_p equation::simplify() const
                    one / x,     inv(x),
                    x * x * x,   cubed(x),
                    x * x,       sq(x),
+                   x ^ zero,    one,
+                   x ^ one,     x,
+                   x ^ two,     sq(x),
+                   x ^ three,   cubed(x),
+                   x ^ mone,    inv(x)
         );
 }

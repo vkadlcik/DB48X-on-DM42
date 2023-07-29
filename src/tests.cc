@@ -82,6 +82,8 @@ void tests::run(bool onlyCurrent)
         complex_functions();
         list_functions();
         text_functions();
+        rewrite_engine();
+        expand_collect_simplify();
         regression_checks();
     }
     summary();
@@ -2067,6 +2069,10 @@ void tests::rewrite_engine()
     step("Deep substitution with multiple changes");
     test(CLEAR, "'5+tan(A-B)+(3-sin(C+D-A))' 'A-B' '-B+A' rewrite", ENTER)
         .expect("'5+tan(-B+A)+(-sin(-A+(C+D))+3)'");
+
+    step("Matching integers");
+    test(CLEAR, "'(A+B)^3' 'X^N' 'X*X^(N-1)' rewrite", ENTER)
+        .expect("'(A+B)×((A+B)×((A+B)×(A+B)↑0))'");
 }
 
 

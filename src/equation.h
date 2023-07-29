@@ -88,10 +88,33 @@ struct equation : program
     }
 
     equation_p rewrite(equation_r from, equation_r to) const;
+    equation_p rewrite(equation_p from, equation_p to) const
+    {
+        return rewrite(equation_g(from), equation_g(to));
+    }
+
     static equation_p rewrite(equation_r eq, equation_r from, equation_r to)
     {
         return eq->rewrite(from, to);
     }
+
+    template<typename from_eq, typename to_eq>
+    equation_p rewrite(from_eq from, to_eq to) const
+    {
+        return rewrite(from.as_equation(), to.as_equation());
+    }
+
+    template <typename from_eq, typename to_eq, typename ...args>
+    equation_p rewrite(from_eq from, to_eq to, args... rest) const
+    {
+        if (equation_p eq = rewrite(from, to))
+            return eq->rewrite(rest...);
+        return nullptr;
+    }
+
+    equation_p expand() const;
+    equation_p collect() const;
+    equation_p simplify() const;
 
 protected:
     static symbol_g render(uint depth, int &precedence, bool edit);

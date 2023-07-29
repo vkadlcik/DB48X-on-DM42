@@ -536,12 +536,13 @@ MENU(SymbolicMenu,
 // ----------------------------------------------------------------------------
 //   Symbolic operations
 // ----------------------------------------------------------------------------
-                ID_Rewrite,
-     "Collect", ID_Unimplemented,
-     "Expand",  ID_Unimplemented,
+     ID_Rewrite,
+     ID_Collect,
+     ID_Expand,
+     ID_Simplify,
+
      "Isolate", ID_Unimplemented,
      "Apply",   ID_Unimplemented,
-     "Taylor",  ID_Unimplemented,
 
      "Ex/Co",   ID_Unimplemented,
      "→Q",      ID_Unimplemented,
@@ -554,6 +555,7 @@ MENU(SymbolicMenu,
      "∑",       ID_Unimplemented,
      "∏",       ID_Unimplemented,
      "∆",       ID_Unimplemented,
+     "Taylor",  ID_Unimplemented,
 
      "Show",    ID_Unimplemented,
      "Quote",   ID_Unimplemented,

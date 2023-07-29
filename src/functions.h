@@ -194,4 +194,8 @@ FUNCTION(im);
 FUNCTION(arg);
 FUNCTION(conj);
 
+FUNCTION(Expand);
+FUNCTION(Collect);
+FUNCTION(Simplify);
+
 #endif // FUNCTIONS_H

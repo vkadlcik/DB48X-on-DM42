@@ -514,3 +514,51 @@ INSERT_BODY(fact)
     // We need to pass "x!' because ui.edit() strips the x
     return ui.edit(utf8("x!"), 2, ui.POSTFIX);
 }
+
+
+FUNCTION_BODY(Expand)
+// ----------------------------------------------------------------------------
+//   Expand equations
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+    if (equation_p eq = x->as<equation>())
+        return algebraic_p(eq->expand());
+    if (x->is_algebraic())
+        return x;
+    rt.type_error();
+    return nullptr;
+}
+
+
+FUNCTION_BODY(Collect)
+// ----------------------------------------------------------------------------
+//   Collect equations
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+    if (equation_p eq = x->as<equation>())
+        return algebraic_p(eq->collect());
+    if (x->is_algebraic())
+        return x;
+    rt.type_error();
+    return nullptr;
+}
+
+
+FUNCTION_BODY(Simplify)
+// ----------------------------------------------------------------------------
+//   Simplify equations
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+    if (equation_p eq = x->as<equation>())
+        return algebraic_p(eq->simplify());
+    if (x->is_algebraic())
+        return x;
+    rt.type_error();
+    return nullptr;
+}

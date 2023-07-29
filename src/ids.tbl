@@ -236,7 +236,7 @@ CMD(re)
 CMD(im)
 CMD(arg)
 CMD(conj)
-NAMED(det, "Determinant")
+NAMED(det, "Determinant")       // Last algebraic
 
 
 
@@ -265,6 +265,9 @@ NAMED(ToList, "→List")
 CMD(Get)
 
 CMD(Rewrite)
+CMD(Expand)
+CMD(Collect)
+CMD(Simplify)
 
 NAMED(RealToComplex, "ℝ→ℂ")
 ALIAS(RealToComplex, "R→C")

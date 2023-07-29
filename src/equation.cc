@@ -701,3 +701,54 @@ COMMAND_BODY(Rewrite)
 
     return OK;
 }
+
+static eq_symbol<'x'> x;
+static eq_symbol<'y'> y;
+static eq_symbol<'z'> z;
+static eq_integer<0> zero;
+static eq_integer<1> one;
+static eq_integer<2> two;
+
+equation_p equation::expand() const
+// ----------------------------------------------------------------------------
+//   Run various rewrites to expand equation
+// ----------------------------------------------------------------------------
+{
+    return rewrite((x+y)*z,     x*z+y*z,
+                   x*(y+z),     x*y+x*z,
+                   (x-y)*z,     x*z-y*z,
+                   x*(y-z),     x*y-x*z);
+}
+
+
+equation_p equation::collect() const
+// ----------------------------------------------------------------------------
+//    Run various rewrites to collect terms / factor equation
+// ----------------------------------------------------------------------------
+{
+    return rewrite(x*z+y*z,     (x+y)*z,
+                   x*y+x*z,     x*(y+z),
+                   x*z-y*z,     (x-y)*z,
+                   x*y-x*z,     x*(y-z));
+}
+
+
+equation_p equation::simplify() const
+// ----------------------------------------------------------------------------
+//   Run various rewrites to simplify equation
+// ----------------------------------------------------------------------------
+{
+    return rewrite(x + zero,    x,
+                   zero + x,    x,
+                   x - zero,    x,
+                   zero - x,    x,
+                   x * zero,    zero,
+                   zero * x,    zero,
+                   x * one,     x,
+                   one * x,     x,
+                   x / one,     x,
+                   x / x,       one,
+                   one / x,     inv(x),
+                   x * x * x,   cubed(x),
+                   x * x,       sq(x));
+}

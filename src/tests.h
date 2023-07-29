@@ -77,6 +77,7 @@ struct tests
     void text_functions();
     void auto_simplification();
     void rewrite_engine();
+    void expand_collect_simplify();
     void regression_checks();
 
     enum key

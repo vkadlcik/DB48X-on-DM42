@@ -95,8 +95,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    complex_arithmetic();
-    complex_functions();
+    expand_collect_simplify();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -2042,6 +2041,39 @@ void tests::rewrite_engine()
 }
 
 
+void tests::expand_collect_simplify()
+// ----------------------------------------------------------------------------
+//   Equation rewrite engine
+// ----------------------------------------------------------------------------
+{
+    begin("Expand");
+
+    step("Single add, right");
+    test(CLEAR, "'(A+B)*C' expand ", ENTER)
+        .expect("'A×C+B×C'");
+    step("Single add, left");
+    test(CLEAR, "'2*(A+B)' expand ", ENTER)
+        .expect("'2×A+2×B'");
+
+    step("Multiple adds");
+    test(CLEAR, "'3*(A+B+C)' expand ", ENTER)
+        .expect("'3×A+3×B+3×C'");
+
+    step("Single sub, right");
+    test(CLEAR, "'(A-B)*C' expand ", ENTER)
+        .expect("'A×C-B×C'");
+    step("Single sub, left");
+    test(CLEAR, "'2*(A-B)' expand ", ENTER)
+        .expect("'2×A-2×B'");
+
+    step("Multiple subs");
+    test(CLEAR, "'3*(A-B-C)' expand ", ENTER)
+        .expect("'3×A-3×B-3×C'");
+
+
+}
+
+
 void tests::regression_checks()
 // ----------------------------------------------------------------------------
 //   Checks for specific regressions
@@ -3060,12 +3092,7 @@ tests &tests::source(cstring ref)
     if (ref && !src)
         return explain("Expected source [", ref, "], got none").fail();
     if (ref && src && strcmp(ref, cstring(src)) != 0)
-        return explain("Expected source [",
-                       ref,
-                       "], "
-                       "got [",
-                       src,
-                       "]")
+        return explain("Expected source [", ref, "], " "got [", src, "]")
             .fail();
 
     return *this;

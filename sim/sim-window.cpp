@@ -367,13 +367,20 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
     }
 
     if (k == Qt::Key_Shift)
+    {
         shiftHeld = true;
+    }
     else if (k == Qt::Key_Alt)
+    {
         altHeld = true;
-    else if (shiftHeld)
-        key_push(KEY_UP);
-    else if (altHeld)
-        key_push(KEY_DOWN);
+    }
+    else if (k >= Qt::Key_A && k <= Qt::Key_Z)
+    {
+        if (shiftHeld)
+            key_push(KEY_UP);
+        else if (altHeld)
+            key_push(KEY_DOWN);
+    }
 
     for (int i = 0; keyMap[i] != 0; i += 2)
     {

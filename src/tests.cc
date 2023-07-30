@@ -2106,6 +2106,12 @@ void tests::expand_collect_simplify()
     test(CLEAR, "'3*(A-B-C)' expand ", ENTER)
         .expect("'3×A-3×B-3×C'");
 
+    step("Expand and collect a power");
+    test(CLEAR, "'(A+B)^3' expand ", ENTER)
+        .expect("'A×A×A+A×B×A+(A×A×B+A×B×B)+(B×A×A+B×B×A+(B×A×B+B×B×B))'");
+    test("collect ", ENTER)
+        .expect("'(A+B)³'");
+
 
 }
 

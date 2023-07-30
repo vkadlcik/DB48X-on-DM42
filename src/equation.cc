@@ -587,7 +587,6 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
 
     // Need a GC pointer since stack operations may move us
     equation_g eq       = this;
-    equation_g oeq      = eq;
 
     // Information about part we replace
     bool       replaced = false;
@@ -634,7 +633,6 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
         // We don't need the on-stack copies of 'eq' and 'to' anymore
         ASSERT(rt.depth() >= depth);
         rt.drop(rt.depth() - depth);
-
 
         // If we matched a sub-equation, perform replacement
         if (matchsz)
@@ -739,6 +737,41 @@ err:
 }
 
 
+equation_p equation::rewrite(size_t size, const byte_p rewrites[]) const
+// ----------------------------------------------------------------------------
+//   Apply a series of rewrites
+// ----------------------------------------------------------------------------
+{
+    equation_g eq = this;
+    for (size_t i = 0; eq && i < size; i += 2)
+        eq = eq->rewrite(equation_p(rewrites[i]), equation_p(rewrites[i+1]));
+    return eq;
+}
+
+
+equation_p equation::rewrite_all(size_t size, const byte_p rewrites[]) const
+// ----------------------------------------------------------------------------
+//   Loop on the rewrites until the result stabilizes
+// ----------------------------------------------------------------------------
+{
+    uint count = 0;
+    equation_g last = nullptr;
+    equation_g eq = this;
+    while (count++ < Settings.maxrewrites && eq && eq.Safe() != last.Safe())
+    {
+        // Check if we produced the same value
+        if (last && last->is_same_as(eq))
+            break;
+
+        last = eq;
+        eq = eq->rewrite(size, rewrites);
+    }
+    if (count >= Settings.maxrewrites)
+        rt.too_many_rewrites_error();
+    return eq;
+}
+
+
 COMMAND_BODY(Rewrite)
 // ----------------------------------------------------------------------------
 //   Rewrite (From, To, Value): Apply rewrites
@@ -782,6 +815,7 @@ static eq_symbol<'x'> x;
 static eq_symbol<'y'> y;
 static eq_symbol<'z'> z;
 static eq_symbol<'n'> n;
+static eq_symbol<'m'> m;
 static eq_symbol<'p'> p;
 static eq_integer<0>  zero;
 static eq_neg_integer<-1> mone;
@@ -803,11 +837,16 @@ equation_p equation::expand() const
         cubed(x),    x*x*x,
         x^zero,      one,
         x^one,       x,
-        x^two,       x*x,
-        x^three,     x*x*x,
-        x^n,         x * x^(n-one),
-        n * x + x,   (n + one) * x,
-        x + n * x,   (n + one) * x
+        x^n,         x * (x^(n-one)),
+        x * n,       n * x,
+        one * x,     x,
+        zero * x,    zero,
+        n + x,       x + n,
+        x + zero,    x,
+        x - x,       zero,
+        x * (y * z), (x * y) * z,
+        x + (y + z), (x + y) + z,
+        x + (y - z), (x + y) - z
         );
 }
 
@@ -818,12 +857,31 @@ equation_p equation::collect() const
 // ----------------------------------------------------------------------------
 {
     return rewrite_all(
-        x*z+y*z,     (x+y)*z,
-        x*y+x*z,     x*(y+z),
-        x*z-y*z,     (x-y)*z,
-        x*y-x*z,     x*(y-z),
-        x*x*x,       cubed(x),
-        x*x,         sq(x)
+        x*z+y*z,                (x+y)*z,
+        x*y+x*z,                x*(y+z),
+        x*z-y*z,                (x-y)*z,
+        x*y-x*z,                x*(y-z),
+        x*(x^n),                x^(n+one),
+        (x^n)*x,                x^(n+one),
+        (x^n)*(x^m),            x^(n+m),
+        sq(x),                  x^two,
+        cubed(x),               x^three,
+        x * n,                  n * x,
+        one * x,                x,
+        zero * x,               zero,
+        n + x,                  x + n,
+        x + zero,               x,
+        x - x,                  zero,
+        n * x + x,              (n + one) * x,
+        x + n * x,              (n + one) * x,
+        m * x + n * x,          (m + n) * x,
+        x * y * x,              (x^two) * y,
+        x * y * y,              (y^two) * x,
+        x + y + y,              two * y + x,
+        (x ^ n) * y * x,        (x^(n + one)) * y,
+        (x ^ n) * (x + y),      (x^(n+one)) + (x^n) * y,
+        (x ^ n) * (y + x),      (x^(n+one)) + (x^n) * y,
+        x + x,                  two * x
         );
 }
 
@@ -851,6 +909,7 @@ equation_p equation::simplify() const
         x ^ one,     x,
         x ^ two,     sq(x),
         x ^ three,   cubed(x),
-        x ^ mone,    inv(x)
+        x ^ mone,    inv(x),
+        (x^n)*(x^m), x ^ (n+m)
         );
 }

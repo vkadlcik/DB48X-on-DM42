@@ -93,44 +93,26 @@ struct equation : program
     {
         return rewrite(equation_g(from), equation_g(to));
     }
+    equation_p rewrite(size_t size, const byte_p rewrites[]) const;
+    equation_p rewrite_all(size_t size, const byte_p rewrites[]) const;
 
     static equation_p rewrite(equation_r eq, equation_r from, equation_r to)
     {
         return eq->rewrite(from, to);
     }
 
-    template<typename from_eq, typename to_eq>
-    equation_p rewrite(from_eq from, to_eq to) const
+    template <typename ...args>
+    equation_p rewrite(args... rest) const
     {
-        return rewrite(from.as_equation(), to.as_equation());
-    }
-
-    template <typename from_eq, typename to_eq, typename ...args>
-    equation_p rewrite(from_eq from, to_eq to, args... rest) const
-    {
-        if (equation_p eq = rewrite(from, to))
-            return eq->rewrite(rest...);
-        return nullptr;
+        static constexpr byte_p rewrites[] = { rest.as_bytes()... };
+        return rewrite(sizeof...(rest), rewrites);
     }
 
     template <typename ...args>
     equation_p rewrite_all(args... rest) const
     {
-        uint count = 0;
-        equation_g last = nullptr;
-        equation_g eq = this;
-        while (count++ < Settings.maxrewrites && eq && eq.Safe() != last.Safe())
-        {
-            // Check if we produced the same value
-            if (last && last->is_same_as(eq))
-                break;
-
-            last = eq;
-            eq = eq->rewrite(rest...);
-        }
-        if (count >= Settings.maxrewrites)
-            rt.too_many_rewrites_error();
-        return eq;
+        static constexpr byte_p rewrites[] = { rest.as_bytes()... };
+        return rewrite_all(sizeof...(rest), rewrites);
     }
 
     equation_p expand() const;
@@ -169,6 +151,10 @@ struct eq
         byte(sizeof...(args)),  // Must be less than 128...
         args...
     };
+    constexpr byte_p as_bytes() const
+    {
+        return object_data;
+    }
     constexpr equation_p as_equation() const
     {
         return equation_p(object_data);

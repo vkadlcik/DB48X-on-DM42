@@ -2074,6 +2074,12 @@ void tests::rewrite_engine()
     step("Matching integers");
     test(CLEAR, "'(A+B)^3' 'X^N' 'X*X^(N-1)' rewrite", ENTER)
         .expect("'(A+B)×((A+B)×((A+B)×(A+B)↑0))'");
+
+    step("Matching unique terms");
+    test(CLEAR, "'(A+B+A)' 'X+U+X' '2*X+U' rewrite", ENTER)
+        .expect("'2×A+B'");
+    test(CLEAR, "'(A+A+A)' 'X+U+X' '2*X+U' rewrite", ENTER)
+        .expect("'A+A+A'");
 }
 
 

@@ -12,6 +12,10 @@ In the matching pattern, variables with a name that begins with `i`, `j`, `k`,
 match happens, the expression is evaluated after rewrite in order to compute
 values such as `3-1`.
 
+Additionally, variables with a name that begins with `u`, `v` or `w` must
+be _unique_ within the pattern. This is useful for term-reordering rules,
+such as `'x*u*x' 'x*x*u'`, which should not match `a*a*a` where it is a no-op.
+
 `Eq` `From` `To` ▶ `Eq`
 
 Examples:

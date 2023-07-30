@@ -476,6 +476,16 @@ static bool must_be_integer(symbol_p symbol)
 }
 
 
+static bool must_be_unique(symbol_p symbol)
+// ------------------------------------------------------------------------
+//   Convention for naming unique terms in rewrite rules
+// ----------------------------------------------------------------------------
+{
+    char first = tolower(object::payload(symbol)[1]);
+    return strchr("uvw", first) != nullptr;
+}
+
+
 static size_t check_match(size_t eq, size_t eqsz,
                           size_t from, size_t fromsz)
 // ----------------------------------------------------------------------------
@@ -537,6 +547,17 @@ static size_t check_match(size_t eq, size_t eqsz,
                     // We always special-case zero as a terminating condition
                     if (ftop->is_zero())
                         return 0;
+                }
+
+                // Check if the name must be unique in the locals
+                if (must_be_unique(name))
+                {
+                    for (size_t l = 0; l < symbols; l += 2)
+                    {
+                        symbol_p existing = symbol_p(rt.local(l+1));
+                        if (!existing || existing->is_same_as(ftop))
+                            return 0;
+                    }
                 }
 
                 // Grab the parameter that corresponds and store it

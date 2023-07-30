@@ -140,6 +140,8 @@ complex_g operator-(complex_r x)
 //  Unary minus
 // ----------------------------------------------------------------------------
 {
+    if (!x.Safe())
+        return nullptr;
     if (x->type() == object::ID_polar)
     {
         polar_p p = polar_p(complex_p(x));
@@ -155,6 +157,8 @@ complex_g operator+(complex_r x, complex_r y)
 //   Complex addition - Don't even bother doing it in polar form
 // ----------------------------------------------------------------------------
 {
+    if (!x.Safe() || !y.Safe())
+        return nullptr;
     return rectangular::make(x->re() + y->re(), x->im() + y->im());
 }
 
@@ -164,6 +168,8 @@ complex_g operator-(complex_r x, complex_r y)
 //   Complex subtraction - Always in rectangular form
 // ----------------------------------------------------------------------------
 {
+    if (!x.Safe() || !y.Safe())
+        return nullptr;
     return rectangular::make(x->re() - y->re(), x->im() - y->im());
 }
 
@@ -173,6 +179,8 @@ complex_g operator*(complex_r x, complex_r y)
 //   If both are in rectangular form, rectangular, otherwise polar
 // ----------------------------------------------------------------------------
 {
+    if (!x.Safe() || !y.Safe())
+        return nullptr;
     object::id xt = x->type();
     object::id yt = y->type();
     if (xt != object::ID_rectangular || yt != object::ID_rectangular)
@@ -193,6 +201,8 @@ complex_g operator/(complex_r x, complex_r y)
 //   Like for multiplication, it's slighly cheaper in polar form
 // ----------------------------------------------------------------------------
 {
+    if (!x.Safe() || !y.Safe())
+        return nullptr;
     object::id xt = x->type();
     object::id yt = y->type();
     if (xt != object::ID_rectangular || yt != object::ID_rectangular)

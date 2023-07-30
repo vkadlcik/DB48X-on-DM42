@@ -97,8 +97,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    rewrite_engine();
-    expand_collect_simplify();
+    regression_checks();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -2150,6 +2149,11 @@ void tests::regression_checks()
     step("Bug 238: Parsing of power");
     test(CLEAR, "'X↑3'", ENTER).expect("'X↑3'");
     test(CLEAR, "'X×X↑(N-1)'", ENTER).expect("'X×X↑(N-1)'");
+
+    step("Bug 253: Complex cos outside domain");
+    test(CLEAR, "0+30000.ⅈ sin", ENTER).error("Argument outside domain");
+    test(CLEAR, "0+30000.ⅈ cos", ENTER).error("Argument outside domain");
+    test(CLEAR, "0+30000.ⅈ tan", ENTER).error("Argument outside domain");
 }
 
 

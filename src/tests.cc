@@ -841,19 +841,19 @@ void tests::command_display_formats()
     test(CLEAR, prgm, ENTER).noerr();
     step("Lower case");
     test("lowercase", ENTER)
-        .expect("« 1 1. + - × ÷ pow sin cos tan asin acos atan lowercase "
+        .expect("« 1 1. + - × ÷ ↑ sin cos tan asin acos atan lowercase "
                 "purgeall precision start step next start step for i next "
                 "for i step while repeat end do until end »");
 
     step("Upper case");
     test("UPPERCASE", ENTER)
-        .expect("« 1 1. + - × ÷ POW SIN COS TAN ASIN ACOS ATAN LOWERCASE "
+        .expect("« 1 1. + - × ÷ ↑ SIN COS TAN ASIN ACOS ATAN LOWERCASE "
                 "PURGEALL PRECISION START STEP next START STEP FOR i NEXT "
                 "FOR i STEP WHILE REPEAT END DO UNTIL END »");
 
     step("Capitalized");
     test("Capitalized", ENTER)
-        .expect("« 1 1. + - × ÷ Pow Sin Cos Tan Asin Acos Atan Lowercase "
+        .expect("« 1 1. + - × ÷ ↑ Sin Cos Tan Asin Acos Atan Lowercase "
                 "Purgeall Precision Start Step next Start Step For i Next "
                 "For i Step While Repeat End Do Until End »");
 

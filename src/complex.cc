@@ -830,7 +830,7 @@ COMMAND_BODY(ToRectangular)
     if (z->type() == ID_polar)
     {
         z = rectangular::make(z->re(), z->im());
-        if (!rt.push(object_p(complex_p(z.Safe()))))
+        if (!rt.top(object_p(complex_p(z.Safe()))))
             return ERROR;
     }
     return OK;
@@ -854,7 +854,7 @@ COMMAND_BODY(ToPolar)
     if (z->type() == ID_rectangular)
     {
         z = polar::make(z->mod(), z->arg());
-        if (!rt.push(object_p(complex_p(z.Safe()))))
+        if (!rt.top(object_p(complex_p(z.Safe()))))
             return ERROR;
     }
     return OK;

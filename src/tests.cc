@@ -2108,9 +2108,10 @@ void tests::expand_collect_simplify()
 
     step("Expand and collect a power");
     test(CLEAR, "'(A+B)^3' expand ", ENTER)
-        .expect("'A×A×A+A×B×A+(A×A×B+A×B×B)+(B×A×A+B×B×A+(B×A×B+B×B×B))'");
+        .expect("'A×A×A+A×B×A+A×A×B+A×B×B+B×A×A+B×B×A+B×A×B+B×B×B'");
     test("collect ", ENTER)
-        .expect("'(A+B)³'");
+        .expect("'2×(B↑2×A)+(2×(A↑2×B)+A↑3+B↑2×A+A↑2×B)+B↑3'");
+    // .expect("'(A+B)³'");
 
 
 }

@@ -90,7 +90,8 @@ sim/gcc111libbid.a: sim/gcc111libbid-$(shell uname)-$(shell uname -m).a
 
 dist: all
 	mv build/release/$(TARGET)_qspi.bin  .
-	tar cvfz v$(VERSION).tgz $(TARGET).pgm $(TARGET)_qspi.bin help/ STATE/
+	tar cvfz v$(VERSION).tgz $(TARGET).pgm $(TARGET)_qspi.bin \
+		help/*.md STATE/*.48S
 
 $(VERSION_H): $(BUILD)/version-$(VERSION).h
 	cp $< $@

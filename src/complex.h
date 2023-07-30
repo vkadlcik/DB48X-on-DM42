@@ -48,6 +48,8 @@ struct complex : algebraic
 //    Base class shared by both rectangular and polar implementations
 // ----------------------------------------------------------------------------
 {
+    typedef settings::angles angle_unit;
+
     complex(algebraic_r x, algebraic_r y, id type): algebraic(type)
     {
         byte *p = (byte *) payload(this);
@@ -78,14 +80,22 @@ struct complex : algebraic
     algebraic_g         re() const;
     algebraic_g         im() const;
     algebraic_g         mod() const;
-    algebraic_g         arg() const;
+    algebraic_g         arg(angle_unit unit) const;
+    algebraic_g         pifrac() const;
     complex_g           conjugate() const;
 
     polar_g             as_polar() const;
     rectangular_g       as_rectangular() const;
 
-    static complex_p    make(id type, algebraic_r x, algebraic_r y);
+    static complex_p    make(id type,
+                             algebraic_r x, algebraic_r y,
+                             angle_unit polar_unit);
     static rectangular_p make(int re = 0, int im = 1);
+
+    // Convert to/from angle in current angle mode
+    static algebraic_g  convert_angle(algebraic_g pimul,
+                                      angle_unit from, angle_unit to,
+                                      bool negmod = false);
 
     enum { I_MARK = L'ⅈ', ANGLE_MARK = L'∡' };
 
@@ -151,7 +161,8 @@ struct rectangular : complex
     algebraic_g re()  const     { return x(); }
     algebraic_g im()  const     { return y(); }
     algebraic_g mod() const;
-    algebraic_g arg() const;
+    algebraic_g arg(angle_unit unit) const;
+    algebraic_g pifrac() const;
     bool        is_zero() const;
     bool        is_one()  const;
 
@@ -174,17 +185,18 @@ struct polar : complex
 //   Polar representation for complex numbers
 // ----------------------------------------------------------------------------
 {
-    polar(algebraic_r re, algebraic_r im, id type = ID_polar)
-        : complex(re, im, type) {}
+    polar(algebraic_r mod, algebraic_r pifrac, id type = ID_polar)
+        : complex(mod, pifrac, type) {}
 
     algebraic_g re()  const;
     algebraic_g im()  const;
     algebraic_g mod() const;
-    algebraic_g arg() const;
+    algebraic_g arg(angle_unit unit) const;
+    algebraic_g pifrac() const  { return y(); }
     bool        is_zero() const;
     bool        is_one()  const;
 
-    static polar_p make(algebraic_r r, algebraic_r i);
+    static polar_p make(algebraic_r mod, algebraic_r arg, angle_unit unit);
 
 public:
     OBJECT_DECL(polar);

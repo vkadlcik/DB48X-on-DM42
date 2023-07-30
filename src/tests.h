@@ -68,6 +68,7 @@ struct tests
     void decimal_display_formats();
     void integer_numerical_functions();
     void decimal_numerical_functions();
+    void exact_trig_cases();
     void complex_types();
     void complex_arithmetic();
     void complex_functions();

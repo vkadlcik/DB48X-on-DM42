@@ -203,12 +203,12 @@ NAMED(TestLE,   "≤")
 NAMED(TestNE,   "≠")
 NAMED(TestGE,   "≥")
 
-NAMED(asin, "sin⁻¹")
+NAMED(asin, "sin⁻¹")            // WARNING: order used in functions.cc
 NAMED(acos,  "cos⁻¹")
 NAMED(atan,  "tan⁻¹")
 CMD(sin)
 CMD(cos)
-CMD(tan)
+CMD(tan)                        // WARNING: order used in function.cc
 
 NAMED(asinh, "sinh⁻¹")
 NAMED(acosh, "cosh⁻¹")

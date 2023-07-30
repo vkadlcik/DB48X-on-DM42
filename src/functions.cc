@@ -30,11 +30,13 @@
 #include "functions.h"
 
 #include "arithmetic.h"
+#include "array.h"
+#include "bignum.h"
 #include "decimal128.h"
 #include "equation.h"
+#include "fraction.h"
 #include "integer.h"
 #include "list.h"
-#include "array.h"
 
 
 bool function::should_be_symbolic(id type)
@@ -42,7 +44,7 @@ bool function::should_be_symbolic(id type)
 //   Check if we should treat the type symbolically
 // ----------------------------------------------------------------------------
 {
-    return is_strictly_symbolic(type) || is_fraction(type);
+    return is_strictly_symbolic(type);
 }
 
 
@@ -92,7 +94,7 @@ static void adjust_init()
     }
 }
 
-static void adjust_from_angle(bid128 &x)
+void function::adjust_from_angle(bid128 &x)
 // ----------------------------------------------------------------------------
 //   Adjust an angle value for sin/cos/tan
 // ----------------------------------------------------------------------------
@@ -114,7 +116,7 @@ static void adjust_from_angle(bid128 &x)
 }
 
 
-static void adjust_to_angle(bid128 &x)
+void function::adjust_to_angle(bid128 &x)
 // ----------------------------------------------------------------------------
 //   Adjust an angle value for asin/acos/atan
 // ----------------------------------------------------------------------------
@@ -136,6 +138,109 @@ static void adjust_to_angle(bid128 &x)
 }
 
 
+bool function::adjust_to_angle(algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   Adjust an angle value for asin/acos/atan
+// ----------------------------------------------------------------------------
+{
+    if (!init)
+        adjust_init();
+    if (x->is_real())
+    {
+        bid128 *adjust = nullptr;
+        switch(Settings.angle_mode)
+        {
+        case Settings.DEGREES:          adjust = &from_deg;     break;
+        case Settings.GRADS:            adjust = &from_grad;    break;
+        case Settings.PI_RADIANS:       adjust = &from_ratio;   break;
+        default:                                                break;
+        }
+
+        if (adjust)
+        {
+            algebraic_g div = rt.make<decimal128>(*adjust);
+            x = x / div;
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool function::exact_trig(id op, algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   Optimize cases where we can do exact trigonometry (avoid rounding)
+// ----------------------------------------------------------------------------
+//   This matters to get exact results for rectangular -> polar
+{
+    // When in radians mode, we cannot avoid rounding except for 0
+    if (Settings.angle_mode == settings::RADIANS && !x->is_zero(false))
+        return false;
+
+    algebraic_g degrees = x;
+    switch(Settings.angle_mode)
+    {
+    case settings::GRADS:
+        degrees = degrees * integer::make(90) / integer::make(100);
+        break;
+    case settings::PI_RADIANS:
+        degrees = degrees * integer::make(180);
+        break;
+    default:
+        break;
+    }
+
+    ularge angle = 42;      // Not a special case...
+    if (integer_p posint = degrees->as<integer>())
+        angle = posint->value<ularge>();
+    else if (const neg_integer *negint = degrees->as<neg_integer>())
+        angle = 360 - negint->value<ularge>() % 360;
+    else if (bignum_p posint = degrees->as<bignum>())
+        angle = posint->value<ularge>();
+    else if (const neg_bignum *negint = degrees->as<neg_bignum>())
+        angle = 360 - negint->value<ularge>() % 360;
+    angle %= 360;
+
+    switch(op)
+    {
+    case ID_cos:
+        angle = (angle + 90) % 360;
+        // fallthrough
+    case ID_sin:
+        switch(angle)
+        {
+        case 0:
+        case 180:       x = integer::make(0);  return true;
+        case 270:       x = integer::make(-1); return true;
+        case 90:        x = integer::make(1);  return true;
+        case 30:
+        case 150:       x = fraction::make(integer::make(1),
+                                           integer::make(2)).Safe();
+                        return true;
+        case 210:
+        case 330:       x = fraction::make(integer::make(-1),
+                                           integer::make(2)).Safe();
+                        return true;
+        }
+        return false;
+    case ID_tan:
+        switch(angle)
+        {
+        case 0:
+        case 180:       x = integer::make(0);  return true;
+        case 45:
+        case 225:       x = integer::make(1);  return true;
+        case 135:
+        case 315:       x = integer::make(-1); return true;
+        }
+    default:
+        break;
+    }
+
+    return false;
+}
+
+
 algebraic_p function::evaluate(algebraic_r xr,
                                id          op,
                                bid128_fn   op128,
@@ -148,15 +253,23 @@ algebraic_p function::evaluate(algebraic_r xr,
         return nullptr;
 
     id xt = xr->type();
+    algebraic_g x = xr;
+
+    // Check if we are computing exact trigonometric values
+    if (op >= ID_sin && op <= ID_tan)
+        if (exact_trig(op, x))
+            return x;
+
     if (should_be_symbolic(xt))
         return symbolic(op, xr);
+
     if (is_complex(xt))
     {
         complex_r z = (complex_r) xr;
         return algebraic_p(zop(z));
     }
 
-    algebraic_g x = xr;
+    // Check if need to promote integer values to decimal
     if (is_integer(xt))
     {
         // Do not accept sin(#123h)
@@ -165,9 +278,6 @@ algebraic_p function::evaluate(algebraic_r xr,
             rt.type_error();
             return nullptr;
         }
-
-        // Promote to a floating-point type
-        xt = real_promotion(x);
     }
 
     // Call the right function
@@ -187,16 +297,9 @@ algebraic_p function::evaluate(algebraic_r xr,
             rt.domain_error();
             return nullptr;
         }
-        if (op == ID_asin || op == ID_acos || op == ID_atan || op == ID_atan2)
+        if (op == ID_asin || op == ID_acos || op == ID_atan)
             adjust_to_angle(res);
         x = rt.make<decimal128>(ID_decimal128, res);
-        return x;
-    }
-
-    // If things did not work with real number, try an equation
-    if (x->is_strictly_symbolic())
-    {
-        x = equation::make(op, x);
         return x;
     }
 
@@ -288,7 +391,7 @@ FUNCTION_BODY(arg)
     if (should_be_symbolic(xt))
         return symbolic(ID_arg, x);
     if (is_complex(xt))
-        return complex_p(algebraic_p(x))->arg();
+        return complex_p(algebraic_p(x))->arg(Settings.angle_mode);
     return integer::make(0);
 }
 
@@ -376,7 +479,9 @@ FUNCTION_BODY(sign)
     }
     else if (is_complex(xt))
     {
-        return polar::make(integer::make(1), complex_p(algebraic_p(x))->arg());
+        return polar::make(integer::make(1),
+                           complex_p(algebraic_p(x))->pifrac(),
+                           settings::PI_RADIANS);
     }
 
     rt.type_error();

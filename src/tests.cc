@@ -97,7 +97,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    regression_checks();
+    complex_functions();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -338,14 +338,18 @@ void tests::data_types()
 
     step("Equation");
     cstring eqn = "'X+1'";
-    test(CLEAR, XEQ, "X", ENTER, KEY1, ADD).type(object::ID_equation).expect(eqn);
+    test(CLEAR, XEQ, "X", ENTER, KEY1, ADD)
+        .type(object::ID_equation)
+        .expect(eqn);
     cstring eqn2 = "'sin(X+1)'";
     test(SIN)
-        .type(object::ID_equation).expect(eqn2);
+        .type(object::ID_equation)
+        .expect(eqn2);
     test(DOWN)
         .editor(eqn2);
     test(ENTER, 1, ADD).
         type(object::ID_equation).expect("'sin(X+1)+1'");
+
     step("Equation parsing and simplification");
     test(CLEAR, "'(((A))+(B))-(C+D)'", ENTER)
         .type(object::ID_equation)
@@ -558,6 +562,12 @@ void tests::arithmetic()
     test(CLEAR, " 7/2 -3 REM", ENTER).expect("1/2");
     test(CLEAR, "-7/2  3 REM", ENTER).expect("-1/2");
     test(CLEAR, "-7/2 -3 REM", ENTER).expect("-1/2");
+
+    step("Modulo of negative value");
+    test(CLEAR, "-360 360 MOD", ENTER).expect("0");
+    test(CLEAR, "1/3 -1/3 MOD", ENTER).expect("0");
+    test(CLEAR, "360 -360 MOD", ENTER).expect("0");
+    test(CLEAR, "-1/3 1/3 MOD", ENTER).expect("0");
 
     step("Power");
     test(CLEAR, "2 3 ^", ENTER).expect("8");
@@ -1332,6 +1342,111 @@ void tests::decimal_numerical_functions()
 }
 
 
+void tests::exact_trig_cases()
+// ----------------------------------------------------------------------------
+//   Special trig cases that are handled accurately for polar representation
+// ----------------------------------------------------------------------------
+{
+    begin("Special trigonometry cases");
+
+    cstring unit_names[] = { "Grads", "Degrees", "PiRadians" };
+    int circle[] = { 400, 360, 2 };
+
+    for (uint unit = 0; unit < 3; unit++)
+    {
+        step(unit_names[unit]);
+        test(CLEAR, unit_names[unit], ENTER).noerr();
+
+        int base = ((lrand48() & 0xFF) - 0x80) * 360;
+        char buf[80];
+        snprintf(buf, sizeof(buf),
+                 "Selecting base %d degrees for %s angles",
+                 base, unit_names[unit]);
+        step(buf);
+        test(CLEAR, base, ENTER, 360, " mod", ENTER).expect("0");
+        test(CLEAR, base, ENTER, circle[unit], MUL, 360, DIV,
+             circle[unit], " mod", ENTER).expect("0");
+
+        step("sin(0) = 0")
+            .test(base + 0, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("0");
+        step("cos(0) = 1")
+            .test(base + 0, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("1");
+        step("tan(0) = 0")
+            .test(base + 0, ENTER, circle[unit], MUL, 360, DIV, TAN)
+            .expect("0");
+
+        step("sin(30) = 1/2")
+            .test(base + 30, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("1/2");
+        step("tan(45) = 1")
+            .test(base + 45, ENTER, circle[unit], MUL, 360, DIV, TAN)
+            .expect("1");
+        step("cos(60) = 1/2")
+            .test(base + 60, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("1/2");
+
+        step("sin(90) = 1")
+            .test(base + 90, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("1");
+        step("cos(90) = 0")
+            .test(base + 90, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("0");
+
+        step("cos(120) = -1/2")
+            .test(base + 120, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("-1/2");
+        step("tan(135) = -1")
+            .test(base + 135, ENTER, circle[unit], MUL, 360, DIV, TAN)
+            .expect("-1");
+        step("sin(150) = 1/2")
+            .test(base + 150, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("1/2");
+
+        step("sin(180) = 0")
+            .test(base + 180, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("0");
+        step("cos(180) = -1")
+            .test(base + 180, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("-1");
+        step("tan(180) = 0")
+            .test(base + 180, ENTER, circle[unit], MUL, 360, DIV, TAN)
+            .expect("0");
+
+        step("sin(210) = -1/2")
+            .test(base + 210, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("-1/2");
+        step("tan(225) = 1")
+            .test(base + 225, ENTER, circle[unit], MUL, 360, DIV, TAN)
+            .expect("1");
+        step("cos(240) = -1/2")
+            .test(base + 240, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("-1/2");
+
+        step("sin(270) = -1")
+            .test(base + 270, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("-1");
+        step("cos(270) = 0")
+            .test(base + 270, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("0");
+
+        step("cos(300) = 1/2")
+            .test(base + 300, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("1/2");
+        step("tan(315) = -1")
+            .test(base + 315, ENTER, circle[unit], MUL, 360, DIV, TAN)
+            .expect("-1");
+        step("sin(330) = -1/2")
+            .test(base + 330, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("-1/2");
+    }
+
+    test(CLEAR, "DEG", ENTER).noerr();
+
+}
+
+
 void tests::complex_types()
 // ----------------------------------------------------------------------------
 //   Complex data types
@@ -1452,17 +1567,17 @@ void tests::complex_arithmetic()
         .expect("2.99269 21507 79472 7428+2.09269 42123 23759 0233⁳⁻¹ⅈ");
     step("Multiplication");
     test("7∡8", MUL)
-        .expect("20.54109 96154 09918 396+4.36614 55071 72946 0791ⅈ");
+        .expect("21.∡12.°");
     step("Division");
     test("7∡8", DIV)
-        .expect("2.99269 21507 79472 7428+2.09269 42123 23759 0233⁳⁻¹ⅈ");
+        .expect("3.∡4.°");
     test("2∡3", DIV)
-        .expect("1.49977 15427 34586 8587+2.61786 09655 92526 9229⁳⁻²ⅈ");
+        .expect("1.5∡1.°");
     test("2∡3", MUL)
-        .expect("2.99269 21507 79472 7428+2.09269 42123 23759 0233⁳⁻¹ⅈ");
+        .expect("3.∡4.°");
     step("Power");
     test("5", SHIFT, B)
-        .expect("228.34530 68509 75737 33+83.11089 48281 37502 13ⅈ");
+        .expect("243.∡20.°");
 
     step("Symbolic addition");
     test(CLEAR, "a∡b", ENTER, "c∡d", ENTER, ADD)
@@ -1540,7 +1655,7 @@ void tests::complex_functions()
         .expect("7.61577 31058 63908 2857∡-9.28490 56188 33822 9639⁳⁻¹ℼ");
 
     step("Logarithm");
-    test(CLEAR, "12+14ⅈ", ENTER, E)
+    test(CLEAR, "12+14ⅈ", ENTER, LN)
         .expect("2.91447 28088 05103 5368+8.62170 05466 72263 4884⁳⁻¹ⅈ");
     step("Exponential");
     test("exp", ENTER)
@@ -1702,9 +1817,9 @@ void tests::list_functions()
     test(CLEAR, "3 { A B C D } *", ENTER)
         .expect("{ A B C D A B C D A B C D }");
 
-    step("Applying a function to a list");
-    test(CLEAR, "[ A B C ] sin", ENTER)
-        .expect("[ 'sin A' 'sin B' 'sin C' ]");
+    step("Applying a function to a  list");
+    test(CLEAR, "{ A B C } sin", ENTER)
+        .expect("{ 'sin A' 'sin B' 'sin C' }");
 }
 
 
@@ -3115,16 +3230,13 @@ tests &tests::error(cstring msg)
     utf8 err = rt.error();
 
     if (!msg && err)
-        return explain("Expected no error, got [", err, "]").fail();
+        return explain("Expected no error, got [", err, "]")
+            .itest(CLEAR).fail();
     if (msg && !err)
         return explain("Expected error message [", msg, "], got none").fail();
     if (msg && err && strcmp(cstring(err), msg) != 0)
-        return explain("Expected error message [",
-                       msg,
-                       "], "
-                       "got [",
-                       err,
-                       "]")
+        return explain("Expected error message [", msg, "], "
+                       "got [", err, "]")
             .fail();
     return *this;
 }

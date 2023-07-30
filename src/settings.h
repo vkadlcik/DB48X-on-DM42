@@ -159,7 +159,6 @@ struct settings
     void save(renderer &out, bool show_defaults = false);
 
 
-
 public:
     uint16_t precision;         // Internal precision for numbers
     display  display_mode;      // Display mode

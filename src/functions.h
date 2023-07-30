@@ -73,6 +73,12 @@ public:
     //   Process it symbolically
     // ------------------------------------------------------------------------
 
+    static bool exact_trig(id op, algebraic_g &x);
+
+    static void adjust_from_angle(bid128 &x);
+    static void adjust_to_angle(bid128 &x);
+    static bool adjust_to_angle(algebraic_g &x);
+
     static const bool does_matrices = false;
 };
 

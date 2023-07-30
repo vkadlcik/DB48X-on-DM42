@@ -914,12 +914,18 @@ inline bool hypot::complex_ok(complex_g &, complex_g &)
 }
 
 
+
+// ============================================================================
+//
+//   atan2: Optimize exact cases when dealing with fractions of pi
+//
+// ============================================================================
+
 inline bool atan2::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
                               ularge &UNUSED xv, ularge &UNUSED yv)
 // ----------------------------------------------------------------------------
-//   atan2() involves a square root, so not working on integers
+//   Optimized for integers on the real axis
 // ----------------------------------------------------------------------------
-//   Not trying to optimize the few cases where it works, e.g. 3^2+4^2=5^2
 {
     return false;
 }
@@ -927,7 +933,7 @@ inline bool atan2::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
 
 inline bool atan2::bignum_ok(bignum_g &UNUSED x, bignum_g &UNUSED y)
 // ----------------------------------------------------------------------------
-//   Atan2 never works with big integers
+//   Optimize for bignums on the real axis
 // ----------------------------------------------------------------------------
 {
     return false;
@@ -936,7 +942,7 @@ inline bool atan2::bignum_ok(bignum_g &UNUSED x, bignum_g &UNUSED y)
 
 inline bool atan2::fraction_ok(fraction_g &UNUSED x, fraction_g &UNUSED y)
 // ----------------------------------------------------------------------------
-//   Atan2 never works with big integers
+//   Optimize for fractions on the real and complex axis and for diagonals
 // ----------------------------------------------------------------------------
 {
     return false;
@@ -949,6 +955,47 @@ inline bool atan2::complex_ok(complex_g &, complex_g &)
 // ----------------------------------------------------------------------------
 {
     return false;
+}
+
+
+template <>
+algebraic_p arithmetic::non_numeric<struct atan2>(algebraic_r y, algebraic_r x)
+// ----------------------------------------------------------------------------
+//   Deal with various exact angle optimizations for atan2
+// ----------------------------------------------------------------------------
+//   Note that the first argument to atan2 is traditionally called y,
+//   and represents the imaginary axis for complex numbers
+{
+    if (Settings.angle_mode == settings::PI_RADIANS)
+    {
+        // Deal with special cases without rounding
+        if (y->is_zero(false))
+        {
+            if (x->is_negative(false))
+                return integer::make(1);
+            return integer::make(0);
+        }
+        if (x->is_zero(false))
+        {
+            return fraction::make(integer::make(y->is_negative() ? -1 : 1),
+                                  integer::make(2));
+        }
+        algebraic_g s = x + y;
+        algebraic_g d = x - y;
+        if (!s.Safe() || !d.Safe())
+            return nullptr;
+        bool posdiag = s->is_zero(false);
+        bool negdiag = d->is_zero(false);
+        if (posdiag || negdiag)
+        {
+            bool xneg = x->is_negative();
+            return fraction::make(integer::make(posdiag
+                                                ? (xneg ? -3 :  1)
+                                                : (xneg ?  3 : -1)),
+                                  integer::make(4));
+        }
+    }
+    return nullptr;
 }
 
 
@@ -1049,7 +1096,7 @@ algebraic_p arithmetic::evaluate(id          op,
             bid32 yv = y->as<decimal32>()->value();
             bid32 res;
             ops.op32(&res.value, &xv.value, &yv.value);
-            return rt.make<decimal32>(ID_decimal32, res);
+            x = rt.make<decimal32>(ID_decimal32, res);
         }
         case ID_decimal64:
         {
@@ -1057,7 +1104,7 @@ algebraic_p arithmetic::evaluate(id          op,
             bid64 yv = y->as<decimal64>()->value();
             bid64 res;
             ops.op64(&res.value, &xv.value, &yv.value);
-            return rt.make<decimal64>(ID_decimal64, res);
+            x = rt.make<decimal64>(ID_decimal64, res);
         }
         case ID_decimal128:
         {
@@ -1065,11 +1112,14 @@ algebraic_p arithmetic::evaluate(id          op,
             bid128 yv = y->as<decimal128>()->value();
             bid128 res;
             ops.op128(&res.value, &xv.value, &yv.value);
-            return rt.make<decimal128>(ID_decimal128, res);
+            x = rt.make<decimal128>(ID_decimal128, res);
         }
         default:
             break;
         }
+        if (op == ID_atan2)
+            function::adjust_to_angle(x);
+        return x;
     }
 
     // Complex data types

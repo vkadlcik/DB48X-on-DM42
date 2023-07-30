@@ -84,6 +84,9 @@ struct fraction : algebraic
     integer_g numerator(int) const;
     integer_g denominator(int) const;
 
+    bool is_zero() const { return numerator()->is_zero(); }
+    bool is_one()  const { return (numerator() - denominator())->is_zero(); }
+
     static fraction_g make(integer_g n, integer_g d);
 
 public:

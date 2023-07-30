@@ -556,7 +556,7 @@ bool object::is_zero(bool error) const
         return bignum_p(this)->is_zero();
     case ID_fraction:
     case ID_neg_fraction:
-        return fraction_p(this)->numerator()->is_zero();
+        return fraction_p(this)->is_zero();
     case ID_big_fraction:
     case ID_neg_big_fraction:
         return big_fraction_p(this)->numerator()->is_zero();
@@ -606,6 +606,9 @@ bool object::is_one(bool error) const
     case ID_hex_bignum:
 #endif // CONFIG_FIXED_BASED_OBJECTS
         return bignum_p(this)->is_one();
+    case ID_fraction:
+    case ID_neg_fraction:
+        return fraction_p(this)->is_one();
     case ID_decimal128:
         return decimal128_p(this)->is_one();
     case ID_decimal64:
@@ -655,7 +658,7 @@ bool object::is_negative(bool error) const
     case ID_neg_bignum:
     case ID_neg_fraction:
     case ID_neg_big_fraction:
-        return !is_zero();
+        return !fraction_p(this)->is_zero();
     case ID_decimal128:
         return decimal128_p(this)->is_negative();
     case ID_decimal64:

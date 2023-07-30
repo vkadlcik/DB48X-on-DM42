@@ -260,6 +260,7 @@ font_p settings::cursor_font(font_id size)
 
 
 
+
 // ============================================================================
 //
 //    Commands to manipulate the settings

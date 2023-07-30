@@ -253,14 +253,14 @@ bool algebraic::complex_promotion(algebraic_g &x, object::id type)
     {
         // Convert from polar to rectangular
         polar_g z = polar_p(algebraic_p(x));
-        x = rectangular::make(z->re(), z->im());
+        x = polar_p(z->as_polar());
         return x.Safe();
     }
     else if (xt == ID_rectangular)
     {
         // Convert from rectangular to polar
         rectangular_g z = rectangular_p(algebraic_p(x));
-        x = polar::make(z->mod(), z->arg());
+        x = rectangular_p(z->as_rectangular());
         return x.Safe();
     }
     else if (is_strictly_symbolic(xt))
@@ -274,7 +274,7 @@ bool algebraic::complex_promotion(algebraic_g &x, object::id type)
     {
         algebraic_g zero = algebraic_p(integer::make(0));
         if (type == ID_polar)
-            x = polar::make(x, zero);
+            x = polar::make(x, zero, settings::PI_RADIANS);
         else
             x = rectangular::make(x, zero);
         return x.Safe();

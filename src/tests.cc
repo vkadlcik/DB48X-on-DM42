@@ -127,17 +127,6 @@ void tests::reset_settings(bool fast)
     if (fast)
     {
         begin("Fast-track settings reset");
-        Settings.display_mode = Settings.NORMAL;
-        Settings.angle_mode = Settings.DEGREES;
-        Settings.command_fmt = Settings.LONG_FORM;
-        Settings.decimal_mark = '.';
-        Settings.show_decimal = true;
-        Settings.precision = 34;
-        Settings.fancy_exponent = false;
-        Settings.wordsize = 64;
-        Settings.spacing_fraction = 0;
-        Settings.spacing_mantissa = 0;
-        Settings.spacing_based = 0;
         return;
     }
 
@@ -151,15 +140,21 @@ void tests::reset_settings(bool fast)
     step("Using default 34-digit precision")
         .test("34 Precision", ENTER)
         .noerr();
-    step("Using 1E10, not fancy unicode exponent")
-        .test("ClassicExponent", ENTER)
+    step("Using fancy unicode exponent")
+        .test("FancyExponent", ENTER)
         .noerr();
     step("Using 64-bit word size").test("64 StoreWordSize", ENTER).noerr();
     step("Disable spacing")
-        .test("0 NumberSpacing", ENTER)         .noerr()
-        .test("0 MantissaSpacing", ENTER)       .noerr()
-        .test("0 FractionSpacing", ENTER)       .noerr()
-        .test("0 BasedSpacing", ENTER)          .noerr();
+        .test("3 NumberSpacing", ENTER)         .noerr()
+        .test("3 MantissaSpacing", ENTER)       .noerr()
+        .test("5 FractionSpacing", ENTER)       .noerr()
+        .test("4 BasedSpacing", ENTER)          .noerr();
+    step("Select Modes menu")
+        .test("ModesMenu", ENTER)               .noerr();
+    step("Checking output modes")
+        .test("Modes", ENTER)
+        .expect("« ModesMenu »");
+
 }
 
 
@@ -292,34 +287,34 @@ void tests::data_types()
     step("Binary based integer");
     test(CLEAR, "#10010101b", ENTER)
         .type(object::ID_bin_integer)
-        .expect("#10010101₂");
+        .expect("#1001 0101₂");
     test(CLEAR, "#101B", ENTER).type(object::ID_bin_integer).expect("#101₂");
 
     step("Decimal based integer");
     test(CLEAR, "#12345d", ENTER)
         .type(object::ID_dec_integer)
-        .expect("#12345₁₀");
+        .expect("#1 2345₁₀");
     test(CLEAR, "#123D", ENTER).type(object::ID_dec_integer).expect("#123₁₀");
 
     step("Octal based integer");
     test(CLEAR, "#12345o", ENTER)
         .type(object::ID_oct_integer)
-        .expect("#12345₈");
+        .expect("#1 2345₈");
     test(CLEAR, "#123O", ENTER).type(object::ID_oct_integer).expect("#123₈");
 
     step("Hexadecimal based integer");
     test(CLEAR, "#1234ABCDH", ENTER)
         .type(object::ID_hex_integer)
-        .expect("#1234ABCD₁₆");
+        .expect("#1234 ABCD₁₆");
     test(CLEAR, "#DEADBEEFH", ENTER)
         .type(object::ID_hex_integer)
-        .expect("#DEADBEEF₁₆");
+        .expect("#DEAD BEEF₁₆");
 
     step("Arbitrary base input");
     test(CLEAR, "8#777", ENTER).type(object::ID_based_integer).expect("#1FF₁₆");
     test(CLEAR, "2#10000#ABCDE", ENTER)
         .type(object::ID_based_integer)
-        .expect("#ABCDE₁₆");
+        .expect("#A BCDE₁₆");
 
     step("Symbols");
     cstring symbol = "ABC123Z";
@@ -371,10 +366,11 @@ void tests::data_types()
     step("Large integers");
     cstring b = "123456789012345678901234567890123456789012345678901234567890";
     cstring mb =
-        "-123456789012345678901234567890123456789012345678901234567890";
-    test(CLEAR, b, ENTER).type(object::ID_bignum).expect(b);
+        "-123 456 789 012 345 678 901 234 567 890"
+        " 123 456 789 012 345 678 901 234 567 890";
+    test(CLEAR, b, ENTER).type(object::ID_bignum).expect(mb+1);
     test(DOWN, CHS, ENTER).type(object::ID_neg_bignum).expect(mb);
-    test(CHS).type(object::ID_bignum).expect(b);
+    test(CHS).type(object::ID_bignum).expect(mb + 1);
     test(DOWN, CHS, ENTER).type(object::ID_neg_bignum).expect(mb);
 
     step("Large fractions");
@@ -382,13 +378,15 @@ void tests::data_types()
         "123456789012345678901234567890123456789012345678901234567890/"
         "123456789012345678901234567890123456789012345678901234567891";
     cstring mbf =
-        "-123456789012345678901234567890123456789012345678901234567890/"
-        "123456789012345678901234567890123456789012345678901234567891";
-    test(CLEAR, bf, ENTER).type(object::ID_big_fraction).expect(bf);
+        "-123 456 789 012 345 678 901 234 567 890 123 456 789"
+        " 012 345 678 901 234 567 890/"
+        "123 456 789 012 345 678 901 234 567 890 123 456 789"
+        " 012 345 678 901 234 567 891";
+    test(CLEAR, bf, ENTER).type(object::ID_big_fraction).expect(mbf+1);
     test(DOWN, CHS, ENTER).type(object::ID_neg_big_fraction).expect(mbf);
-    test(CHS).type(object::ID_big_fraction).expect(bf);
+    test(CHS).type(object::ID_big_fraction).expect(mbf+1);
     test(CHS).type(object::ID_neg_big_fraction).expect(mbf);
-    test(DOWN, CHS, ENTER).type(object::ID_big_fraction).expect(bf);
+    test(DOWN, CHS, ENTER).type(object::ID_big_fraction).expect(mbf+1);
 
     clear();
 }
@@ -417,20 +415,21 @@ void tests::arithmetic()
     step("Integer addition overflow");
     test(CLEAR, (1ULL << 63) - 2ULL, ENTER, 1, ADD)
         .type(object::ID_integer)
-        .expect("9223372036854775807");
+        .expect("9 223 372 036 854 775 807");
     test(CLEAR, (1ULL << 63) - 3ULL, CHS, ENTER, -2, ADD)
         .type(object::ID_neg_integer)
-        .expect("-9223372036854775807");
+        .expect("-9 223 372 036 854 775 807");
 
     test(CLEAR, ~0ULL, ENTER, 1, ADD)
         .type(object::ID_bignum)
-        .expect("18446744073709551616");
+        .expect("18 446 744 073 709 551 616");
     test(CLEAR, ~0ULL, CHS, ENTER, -2, ADD)
         .type(object::ID_neg_bignum)
-        .expect("-18446744073709551617");
+        .expect("-18 446 744 073 709 551 617");
 
     step("Adding ten small integers at random");
     srand48(sys_current_ms());
+    Settings.spacing_mantissa = 0;
     for (int i = 0; i < 10; i++)
     {
         large x = (lrand48() & 0xFFFFFF) - 0x800000;
@@ -439,6 +438,7 @@ void tests::arithmetic()
             .explain("Computing ", x, " + ", y, ", ")
             .expect(x + y);
     }
+    Settings.spacing_mantissa = 3;
 
     step("Integer subtraction");
     test(CLEAR, 1, ENTER, 1, SUB).type(object::ID_integer).expect("0");
@@ -456,12 +456,13 @@ void tests::arithmetic()
     step("Integer subtraction overflow");
     test(CLEAR, 0xFFFFFFFFFFFFFFFFull, CHS, ENTER, 1, SUB)
         .type(object::ID_neg_bignum)
-        .expect("-18446744073709551616");
+        .expect("-18 446 744 073 709 551 616");
     test(CLEAR, -3, ENTER, 0xFFFFFFFFFFFFFFFFull, SUB)
         .type(object::ID_neg_bignum)
-        .expect("-18446744073709551618");
+        .expect("-18 446 744 073 709 551 618");
 
     step("Subtracting ten small integers at random");
+    Settings.spacing_mantissa = 0;
     for (int i = 0; i < 10; i++)
     {
         large x = (lrand48() & 0xFFFFFF) - 0x800000;
@@ -470,15 +471,17 @@ void tests::arithmetic()
             .explain("Computing ", x, " - ", y, ", ")
             .expect(x - y);
     }
+    Settings.spacing_mantissa = 3;
 
     step("Integer multiplication");
     test(CLEAR, 3, ENTER, 7, MUL).type(object::ID_integer).expect("21");
     test(3, MUL).type(object::ID_integer).expect("63");
     test(-3, MUL).type(object::ID_neg_integer).expect("-189");
     test(2, MUL).type(object::ID_neg_integer).expect("-378");
-    test(-7, MUL).type(object::ID_integer).expect("2646");
+    test(-7, MUL).type(object::ID_integer).expect("2 646");
 
     step("Multiplying ten small integers at random");
+    Settings.spacing_mantissa = 0;
     for (int i = 0; i < 10; i++)
     {
         large x = (lrand48() & 0xFFFFFF) - 0x800000;
@@ -487,6 +490,7 @@ void tests::arithmetic()
             .explain("Computing ", x, " * ", y, ", ")
             .expect(x * y);
     }
+    Settings.spacing_mantissa = 3;
 
     step("Integer division");
     test(CLEAR, 210, ENTER, 2, DIV).type(object::ID_integer).expect("105");
@@ -495,6 +499,7 @@ void tests::arithmetic()
     test(-7, DIV).type(object::ID_integer).expect("1");
 
     step("Dividing ten small integers at random");
+    Settings.spacing_mantissa = 0;
     for (int i = 0; i < 10; i++)
     {
         large x = (lrand48() & 0x3FFF) - 0x4000;
@@ -503,6 +508,7 @@ void tests::arithmetic()
             .explain("Computing ", x * y, " / ", y, ", ")
             .expect(x);
     }
+    Settings.spacing_mantissa = 3;
 
     step("Division with fractional output");
     test(CLEAR, 1, ENTER, 3, DIV).expect("1/3");
@@ -512,10 +518,10 @@ void tests::arithmetic()
     test(CLEAR, 1, ENTER);
     for (uint i = 1; i <= 100; i++)
         test(i, MUL, NOKEYS, WAIT(20));
-    expect(
-        "9332621544394415268169923885626670049071596826438162146859296389521"
-        "7599993229915608941463976156518286253697920827223758251185210916864"
-        "000000000000000000000000");
+    expect( "93 326 215 443 944 152 681 699 238 856 266 700 490 715 968 264 "
+           "381 621 468 592 963 895 217 599 993 229 915 608 941 463 976 156 "
+           "518 286 253 697 920 827 223 758 251 185 210 916 864 000 000 000 "
+           "000 000 000 000 000");
     step("Manual division by all factors of 100!");
     for (uint i = 1; i <= 100; i++)
         test(i * 997 % 101, DIV, NOKEYS, WAIT(20));
@@ -525,11 +531,11 @@ void tests::arithmetic()
     test(CLEAR, 997, ENTER);
     for (uint i = 1; i <= 100; i++)
         test(i * 997 % 101, DIV, NOKEYS, WAIT(20));
-    expect(
-        "997/"
-        "9332621544394415268169923885626670049071596826438162146859296389521"
-        "7599993229915608941463976156518286253697920827223758251185210916864"
-        "000000000000000000000000");
+    expect("997/"
+           "93 326 215 443 944 152 681 699 238 856 266 700 490 715 968 264 "
+           "381 621 468 592 963 895 217 599 993 229 915 608 941 463 976 156 "
+           "518 286 253 697 920 827 223 758 251 185 210 916 864 000 000 000 "
+           "000 000 000 000 000");
 
     step("Sign of modulo and remainder");
     test(CLEAR, " 7  3 MOD", ENTER).expect(1);
@@ -568,12 +574,12 @@ void tests::global_variables()
     begin("Global variables");
 
     step("Store in global variable");
-    test(CLEAR, 12345, ENTER).expect(12345);
+    test(CLEAR, 12345, ENTER).expect("12 345");
     test(XEQ, "A", ENTER).expect("'A'");
     test(STO).noerr();
     step("Recall global variable");
     test(CLEAR, 1, ENTER, XEQ, "A", ENTER).expect("'A'");
-    test("RCL", ENTER).noerr().expect(12345);
+    test("RCL", ENTER).noerr().expect("12 345");
 
     step("Store in long-name global variable");
     test(CLEAR, "\"Hello World\"", ENTER, XEQ, "SomeLongVariable", ENTER, STO)
@@ -593,7 +599,7 @@ void tests::global_variables()
     step("Store program in global variable");
     test(CLEAR, "« 1 + »", ENTER, XEQ, "INCR", ENTER, STO).noerr();
     step("Evaluate global variable");
-    test(CLEAR, "A INCR", ENTER).expect(12346);
+    test(CLEAR, "A INCR", ENTER).expect("12 346");
 
     step("Purge global variable");
     test(CLEAR, XEQ, "A", ENTER, "PURGE", ENTER).noerr();
@@ -670,7 +676,7 @@ void tests::for_loops()
     test(RUNSTOP)
         .noerr()
         .type(object::ID_equation)
-        .expect("'X+1+4+16+64+256+1024+4096'");
+        .expect("'X+1+4+16+64+256+1 024+4 096'");
 
     step("Negative stepping");
     pgm  = "« 0 10 1 FOR i i SQ + -1 STEP »";

@@ -648,7 +648,7 @@ inline bool mod::integer_ok(object::id &xt, object::id &yt,
 
     // Perform the modulo
     xv = xv % yv;
-    if (xt == ID_neg_integer)
+    if (xt == ID_neg_integer && xv)
         xv = yv - xv;
 
     // The resulting type is always positive
@@ -665,7 +665,7 @@ inline bool mod::bignum_ok(bignum_g &x, bignum_g &y)
     bignum_g r = x % y;
     if (byte_p(r) == nullptr)
         return false;
-    if (y->type() == ID_neg_bignum)
+    if (y->type() == ID_neg_bignum && !r->is_zero())
         x = y - r;
     else
         x = r;
@@ -684,6 +684,8 @@ inline bool mod::fraction_ok(fraction_g &x, fraction_g &y)
         return false;
     }
     x = x % y;
+    if (y->type() == ID_neg_fraction && !x->is_zero())
+        x = y - x;
     return true;
 }
 

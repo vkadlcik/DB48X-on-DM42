@@ -147,7 +147,7 @@ void settings::save(renderer &out, bool show_defaults)
     // Number spacing
     if (spacing_mantissa != 3 || show_defaults)
         out.printf("%u MantissaSpacing\n", spacing_mantissa);
-    if (spacing_fraction != 3 || show_defaults)
+    if (spacing_fraction != 5 || show_defaults)
         out.printf("%u FractionSpacing\n", spacing_fraction);
     if (spacing_based != 4 || show_defaults)
         out.printf("%u BasedSpacing\n", spacing_based);

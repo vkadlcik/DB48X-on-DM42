@@ -495,7 +495,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
 
             // Check if we need to reinsert the last separator
             uint limit = decpos > 0 ? mant_spc : decpos < 0 ? frac_spc : 0;
-            if (++sep == limit && decimals > 1)
+            if (limit && ++sep == limit && decimals > 1)
             {
                 out += utf8_encode(space, (byte *) out);
                 sep = 0;

@@ -2133,6 +2133,8 @@ void tests::regression_checks()
 //   Checks for specific regressions
 // ----------------------------------------------------------------------------
 {
+    Settings = settings();
+
     begin("Regression checks");
     step("Bug 116: Rounding of gamma(7) and gamma(8)");
     test(CLEAR, "7 gamma", ENTER).expect("720.");

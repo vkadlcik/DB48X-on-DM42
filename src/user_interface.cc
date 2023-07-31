@@ -39,6 +39,7 @@
 #include "runtime.h"
 #include "settings.h"
 #include "stack.h"
+#include "symbol.h"
 #include "sysmenu.h"
 #include "target.h"
 #include "util.h"
@@ -473,6 +474,7 @@ void user_interface::updateMode()
     uint    txts  = 0;
     uint    vecs  = 0;
     uint    based = 0;
+    uint    syms  = 0;
     uint    inum  = 0;
     uint    fnum  = 0;
     uint    hnum  = 0;
@@ -515,7 +517,7 @@ void user_interface::updateMode()
                     hnum++;
                 }
             }
-            else if (code >= '0' && code <= '9')
+            else if (!syms && !txts && code >= '0' && code <= '9')
             {
                 if (!num)
                     num = p;
@@ -535,6 +537,8 @@ void user_interface::updateMode()
                 // All other characters: reset numbering
                 based = inum = fnum = hnum = 0;
                 num = nullptr;
+                if (is_valid_as_name_initial(code))
+                    syms = true;
             }
 
             switch(code)
@@ -547,7 +551,9 @@ void user_interface::updateMode()
             case ']':       vecs--;                         break;
             case L'«':      progs++;                        break;
             case L'»':      progs--;                        break;
-            case '#':       based++; hnum = 0; num = nullptr; break;
+            case '#':       based++;
+                            hnum = inum = syms = 0;
+                            num = nullptr;                  break;
             }
         }
         else if (code == '"')

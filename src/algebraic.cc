@@ -143,6 +143,30 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         break;
     }
 
+    case ID_fraction:
+    case ID_neg_fraction:
+    {
+        fraction_p f = fraction_p(object_p(x));
+        switch (type)
+        {
+        case ID_decimal32:
+            x = rt.make<decimal32>(ID_decimal32, f);
+            return x.Safe();
+        case ID_decimal64:
+            x = rt.make<decimal64>(ID_decimal64, f);
+            return x.Safe();
+        case ID_decimal128:
+            x = rt.make<decimal128>(ID_decimal128, f);
+            return x.Safe();
+        default:
+            break;
+        }
+        record(algebraic_error,
+               "Cannot promote fraction %p from %+s to %+s",
+               f, object::name(xt), object::name(type));
+        break;
+    }
+
     case ID_decimal32:
     {
         decimal32_p d = x->as<decimal32>();

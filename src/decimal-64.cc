@@ -30,6 +30,7 @@
 #include "decimal-64.h"
 
 #include "bignum.h"
+#include "fraction.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -76,6 +77,54 @@ decimal64::decimal64(bignum_p num, id type)
         bid64_negate(&result.value, &result.value);
     byte *p = (byte *) payload();
     memcpy(p, &result, sizeof(result));
+}
+
+
+decimal64::decimal64(fraction_p f, id type)
+// ----------------------------------------------------------------------------
+//   Create a decimal64 from a bignum value
+// ----------------------------------------------------------------------------
+    : algebraic(type)
+{
+    bid64 result, numerator, divisor;
+    bid64 mul;
+    unsigned z = 0;
+    bid64_from_uint32(&result.value, &z);
+    numerator = divisor = result;
+    z = 256;
+    bid64_from_uint32(&mul.value, &z);
+
+    size_t size = 0;
+    bignum_p num = f->numerator();
+    byte_p n = num->value(&size);
+    for (uint i = 0; i < size; i++)
+    {
+        unsigned digits = n[size - i - 1];
+        bid64 step;
+        bid64_mul(&step.value, &numerator.value, &mul.value);
+        bid64 add;
+        bid64_from_uint32(&add.value, &digits);
+        bid64_add(&numerator.value, &step.value, &add.value);
+    }
+
+    bignum_p den = f->denominator();
+    byte_p d = den->value(&size);
+    for (uint i = 0; i < size; i++)
+    {
+        unsigned digits = d[size - i - 1];
+        bid64 step;
+        bid64_mul(&step.value, &divisor.value, &mul.value);
+        bid64 add;
+        bid64_from_uint32(&add.value, &digits);
+        bid64_add(&divisor.value, &step.value, &add.value);
+    }
+
+    bid64_div(&result.value, &numerator.value, &divisor.value);
+    if (f->type() == ID_neg_fraction)
+        bid64_negate(&result.value, &result.value);
+    byte *p = (byte *) payload();
+    memcpy(p, &result, sizeof(result));
+
 }
 
 

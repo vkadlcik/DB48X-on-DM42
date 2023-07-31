@@ -30,6 +30,7 @@
 #include "decimal-32.h"
 
 #include "bignum.h"
+#include "fraction.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -76,6 +77,54 @@ decimal32::decimal32(bignum_p num, id type)
         bid32_negate(&result.value, &result.value);
     byte *p = (byte *) payload();
     memcpy(p, &result, sizeof(result));
+}
+
+
+decimal32::decimal32(fraction_p f, id type)
+// ----------------------------------------------------------------------------
+//   Create a decimal32 from a bignum value
+// ----------------------------------------------------------------------------
+    : algebraic(type)
+{
+    bid32 result, numerator, divisor;
+    bid32 mul;
+    unsigned z = 0;
+    bid32_from_uint32(&result.value, &z);
+    numerator = divisor = result;
+    z = 256;
+    bid32_from_uint32(&mul.value, &z);
+
+    size_t size = 0;
+    bignum_p num = f->numerator();
+    byte_p n = num->value(&size);
+    for (uint i = 0; i < size; i++)
+    {
+        unsigned digits = n[size - i - 1];
+        bid32 step;
+        bid32_mul(&step.value, &numerator.value, &mul.value);
+        bid32 add;
+        bid32_from_uint32(&add.value, &digits);
+        bid32_add(&numerator.value, &step.value, &add.value);
+    }
+
+    bignum_p den = f->denominator();
+    byte_p d = den->value(&size);
+    for (uint i = 0; i < size; i++)
+    {
+        unsigned digits = d[size - i - 1];
+        bid32 step;
+        bid32_mul(&step.value, &divisor.value, &mul.value);
+        bid32 add;
+        bid32_from_uint32(&add.value, &digits);
+        bid32_add(&divisor.value, &step.value, &add.value);
+    }
+
+    bid32_div(&result.value, &numerator.value, &divisor.value);
+    if (f->type() == ID_neg_fraction)
+        bid32_negate(&result.value, &result.value);
+    byte *p = (byte *) payload();
+    memcpy(p, &result, sizeof(result));
+
 }
 
 

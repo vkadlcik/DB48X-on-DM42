@@ -210,6 +210,7 @@ protected:
     bool     force        : 1;  // Force a redraw of everything
     bool     dirtyMenu    : 1;  // Menu label needs redraw
     bool     dirtyStack   : 1;  // Need to redraw the stack
+    bool     dirtyCommand : 1;  // Need to redraw the command
     bool     dirtyEditor  : 1;  // Need to redraw the text editor
     bool     dirtyHelp    : 1;  // Need to redraw the help
     bool     dynamicMenu  : 1;  // Menu is dynamic, needs update after keystroke

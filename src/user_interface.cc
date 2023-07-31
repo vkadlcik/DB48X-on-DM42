@@ -115,6 +115,7 @@ user_interface::user_interface()
       force(false),
       dirtyMenu(false),
       dirtyStack(false),
+      dirtyCommand(false),
       dirtyHelp(false),
       dynamicMenu(false),
       autoComplete(false),
@@ -346,7 +347,7 @@ void user_interface::clear_help()
 //   Clear help data
 // ----------------------------------------------------------------------------
 {
-    command     = nullptr;
+   command     = nullptr;
     help        = -1u;
     line        = 0;
     topic       = 0;
@@ -1756,23 +1757,25 @@ bool user_interface::draw_command()
 //   Draw the current command
 // ----------------------------------------------------------------------------
 {
-    if (!force)
-        return false;
-
-    if (command && !rt.error())
+    if (force || dirtyCommand)
     {
-        font_p font = HelpCodeFont;
-        size   w    = font->width(command);
-        size   h    = font->height();
-        coord  x    = 25;
-        coord  y    = HeaderFont->height() + 6;
+        dirtyCommand = false;
+        if (command && !rt.error())
+        {
+            font_p font = HelpCodeFont;
+            size   w    = font->width(command);
+            size   h    = font->height();
+            coord  x    = 25;
+            coord  y    = HeaderFont->height() + 6;
 
-        Screen.fill(x-2, y-1, x+w+2, y+h+1, pattern::black);
-        Screen.text(x, y, command, font, pattern::white);
-        draw_dirty(x-2, y-1, x+w+2, y+h+1);
+            Screen.fill(x-2, y-1, x+w+2, y+h+1, pattern::black);
+            Screen.text(x, y, command, font, pattern::white);
+            draw_dirty(x-2, y-1, x+w+2, y+h+1);
+            return true;
+        }
     }
 
-    return true;
+    return false;
 }
 
 
@@ -1796,12 +1799,15 @@ void user_interface::draw_user_command(utf8 cmd, size_t len)
         w = nw;
 
     // User-defined command, display in white
-    Screen.fill(x-2, y-1, x + w + 2, y + h + 1, pattern::black);
-    Screen.fill(x-1, y, x + w + 1, y + h, pattern::white);
+    rect r(x-2, y-1, x+w+2, y+h+1);
+    draw_dirty(r);
+    Screen.fill(r, pattern::black);
+    r.inset(1,1);
+    Screen.fill(r, pattern::white);
     Screen.text(x + (w - nw) / 2, y, cmd, len, font, pattern::black);
 
     // Update screen
-    lcd_refresh_lines(y - 1, h + 2);
+    refresh_dirty();
 }
 
 
@@ -1857,6 +1863,7 @@ bool user_interface::draw_stack()
     draw_dirty(0, HeaderFont->height() + 2, stack, LCD_H);
     draw_idle();
     dirtyStack = false;
+    dirtyCommand = true;
     return true;
 }
 
@@ -2468,6 +2475,7 @@ bool user_interface::handle_help(int &key)
                 {
                     record(help, "Found help topic %s\n", htopic);
                     command = htopic;
+                    dirtyCommand = true;
                     if (longpress)
                     {
                         load_help(htopic);

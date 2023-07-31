@@ -174,10 +174,10 @@ void settings::save(renderer &out, bool show_defaults)
     case '_':                   out.put("BasedUnderscore\n");   break;
     }
 
-    if (auto_simplify || show_defaults)
-        out.put("AutoSimplify\n");
-    else
+    if (!auto_simplify)
         out.put("NoAutoSimplify\n");
+    else if (show_defaults)
+        out.put("AutoSimplify\n");
 
     if (maxbignum != 1024 || show_defaults)
         out.printf("%u MaxBigNumBits\n", maxbignum);

@@ -440,13 +440,33 @@ operate on these items when it makes sense. Therefore:
   `[1 2 3] inv` gives `[1/1 1/2 1/3]`.
 
 
-### Differences handling equations
+### Equations handling differences
 
 * The DB48X dialect of RPL accepts equations with "empty slots". During equation
   evaluation, the value of these empty slots will be taken from the stack. In
-  the equation, a slot is represented as `()`. For example, the equation
-  `()+sin(cos())` will read two values from the stack. If evaluated in a stack
-  that contains `A` and `B`, it will evaluate a `A+sin(cos(B))`.
+  the equation, a slot is represented as `()`.
+
+* For example, the equation `()+sin(cos())` will read two values from the
+  stack. If evaluated in a stack that contains `A` and `B`, it will evaluate a
+  `A+sin(cos(B))`.
+
+* This feature is an accident of implementation. It is recommended to use local
+  variables to more precisely control where stack input is used in the
+  equation. Ideally, you should write the above equation as
+  `→ a b 'a+sin(cos(b))'` if you want better compatibility with other RPL
+  implementations.
+
+
+### Unicode support
+
+DB48X has almost complete support for Unicode, and stores text internally using
+the UTF-8 encoding. The built-in font has minor deviations in appearance for a
+few RPL-specific glyphs.
+
+Overall, a text file produced by DB48X should appear reliably in your
+favorite text editor, which should normally be GNU Emacs. This is notably the
+case for state files with extension `.48S` which you can find in the `STATE`
+directory on the calculator.
 
 
 ## Help

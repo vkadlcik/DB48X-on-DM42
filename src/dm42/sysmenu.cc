@@ -712,7 +712,7 @@ cstring menu_item_description(uint8_t menu_id, char *s, const int UNUSED len)
     case MI_48STATUS_TIME:
         ln = flag_str(s, "Time", Settings.show_time);                   break;
     case MI_48STATUS_SECONDS:
-        ln = flag_str(s, "Show seconds", Settings.show_time);           break;
+        ln = flag_str(s, "Show seconds", Settings.show_seconds);        break;
     case MI_48STATUS_24H:
         ln = flag_str(s, "Show 24h time", Settings.show_24h);           break;
     case MI_48STATUS_VOLTAGE:

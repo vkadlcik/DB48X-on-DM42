@@ -522,6 +522,7 @@ cstring state_name()
         char *p = buffer;
         while (p < end && name < last && (*p++ = *name++))
             /* Copy */;
+        *p = 0;
         return buffer;
     }
 

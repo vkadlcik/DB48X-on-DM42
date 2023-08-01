@@ -365,7 +365,36 @@ unintentional differences, since the implementation is completely new.
   either in source or compiled form.
 
 
-#### Differences for vectors and matrices
+### List operation differences
+
+The application of a same operation on arrays or matrices has never been very
+consistent nor logical across RPL models from HP.
+
+* On HP48 and HP50, `{ 1 2 3 } 4 +` gives `{1 2 3 4}`. However, `{ 1 2 3} 4 *`
+  gives a type error on the HP48 but applies the operation to list elements on
+  the HP50, yielding `{ 4 8 12}`.
+
+* For arrays, `[ 1 2 3 ] 4 +` fails on both the HP48 and HP50, but
+  `[ 1 2 3 ] 4 *` works.
+
+* The HP50 has a `MAP` function, which works both for list and matrices.
+  `[ 1 2 3 ] « 3 + »` will return `[ 4 5 6 ]`, and `{ 1 2 3 } « 3 * »` will
+  return `{ 3 6 9 }`. That function has no direct equivalent on the HP48.
+
+DB48X considers lists as bags of items and treat them as a whole when it makes
+sense, whereas arrays are focusing more on the values they contain, and will
+operate on these items when it makes sense. Therefore:
+
+* `{ 1 2 3 } 4 +` gives `{ 1 2 3 4 }`, `{ 1 2 3 } 2 -` gives `{ 1 3 }`, and
+  `{ 1 2 3 } 3 ×` gives `{ 1 2 3 1 2 3 1 2 3 }`. The `÷` operator does not work
+  on lists.
+
+* `[ 1 2 3 ] 4 +` gives `[ 5 6 7 ]`, `[ 1 2 3 ] 2 -` gives `[ -1 0 1 ]`,
+  `[ 1 2 3 ] 3 ×` gives `[ 3 6 9 ]` and `[ 1 2 3 ] 5 ÷` gives
+  `[ 1/5 2/5 3/5 ]`.
+
+
+### Vectors and matrices differences
 
 * On DB48X, vectors like `[ 1 2 3 ]` are very similar to lists. The primary
   difference is the behavior in the presence of arithmetic operators.

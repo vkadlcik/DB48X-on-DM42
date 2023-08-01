@@ -127,7 +127,10 @@ PARSE_BODY(integer)
                 if (max < 2)
                 {
                     base = 2;
+#if CONFIG_FIXED_BASED_OBJECTS
                     type = ID_bin_integer;
+#endif // CONFIG_FIXED_BASED_OBJECTS
+
                 }
                 else
                     endp++;
@@ -135,14 +138,18 @@ PARSE_BODY(integer)
             case 'O':
             case 'o':
                 base = 8;
+#if CONFIG_FIXED_BASED_OBJECTS
                 type = ID_oct_integer;
+#endif // CONFIG_FIXED_BASED_OBJECTS
                 break;
             case 'd':
             case 'D':
                 if (max < 10)
                 {
                     base = 10;
+#if CONFIG_FIXED_BASED_OBJECTS
                     type = ID_dec_integer;
+#endif // CONFIG_FIXED_BASED_OBJECTS
                 }
                 else
                     endp++;
@@ -150,7 +157,9 @@ PARSE_BODY(integer)
             case 'H':
             case 'h':
                 base = 16;
+#if CONFIG_FIXED_BASED_OBJECTS
                 type = ID_hex_integer;
+#endif // CONFIG_FIXED_BASED_OBJECTS
                 break;
             default:
                 // Use current default base
@@ -237,10 +246,12 @@ PARSE_BODY(integer)
             {
             case ID_integer:       type = ID_bignum; break;
             case ID_neg_integer:   type = ID_neg_bignum; break;
+#if CONFIG_FIXED_BASED_OBJECTS
             case ID_hex_integer:   type = ID_hex_bignum; break;
             case ID_dec_integer:   type = ID_dec_bignum; break;
             case ID_oct_integer:   type = ID_oct_bignum; break;
             case ID_bin_integer:   type = ID_bin_bignum; break;
+#endif // CONFIG_FIXED_BASED_OBJECTS
             case ID_based_integer: type = ID_based_bignum; break;
             default: break;
             }
@@ -444,6 +455,7 @@ RENDER_BODY(neg_integer)
 }
 
 
+#if CONFIG_FIXED_BASED_OBJECTS
 template <>
 RENDER_BODY(hex_integer)
 // ----------------------------------------------------------------------------
@@ -479,6 +491,7 @@ RENDER_BODY(bin_integer)
 {
     return render_num(r, o, 2, "#b");
 }
+#endif // CONFIG_FIXED_BASED_OBJECTS
 
 
 template <>

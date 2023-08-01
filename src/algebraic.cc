@@ -294,10 +294,12 @@ object::id algebraic::bignum_promotion(algebraic_g &x)
 
     switch(xt)
     {
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_hex_integer:        ty = ID_hex_bignum;     break;
     case ID_dec_integer:        ty = ID_dec_bignum;     break;
     case ID_oct_integer:        ty = ID_oct_bignum;     break;
     case ID_bin_integer:        ty = ID_bin_bignum;     break;
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_integer:      ty = ID_based_bignum;   break;
     case ID_neg_integer:        ty = ID_neg_bignum;     break;
     case ID_integer:            ty = ID_bignum;         break;

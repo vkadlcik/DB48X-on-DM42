@@ -141,11 +141,12 @@ public:
 };
 
 using neg_integer   = special_integer<object::ID_neg_integer>;
+#if CONFIG_FIXED_BASED_OBJECTS
 using hex_integer   = special_integer<object::ID_hex_integer>;
 using oct_integer   = special_integer<object::ID_oct_integer>;
 using bin_integer   = special_integer<object::ID_bin_integer>;
 using dec_integer   = special_integer<object::ID_dec_integer>;
-using hex_integer   = special_integer<object::ID_hex_integer>;
+#endif // CONFIG_FIXED_BASED_OBJECTS
 using based_integer = special_integer<object::ID_based_integer>;
 
 template <typename Int>

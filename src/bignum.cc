@@ -224,6 +224,7 @@ RENDER_BODY(neg_bignum)
 }
 
 
+#if CONFIG_FIXED_BASED_OBJECTS
 template<>
 RENDER_BODY(hex_bignum)
 // ----------------------------------------------------------------------------
@@ -259,6 +260,7 @@ RENDER_BODY(bin_bignum)
 {
     return render_num(r, o, 2, "#b");
 }
+#endif // CONFIG_FIXED_BASED_OBJECTS
 
 
 template<>

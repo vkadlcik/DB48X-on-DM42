@@ -63,9 +63,15 @@
 // ============================================================================
 
 FLAGS(is_type,          directory,      decimal128)
+#if CONFIG_FIXED_BASED_OBJECTS
 FLAGS(is_integer,       hex_integer,    neg_integer)
 FLAGS(is_based,         hex_integer,    based_integer, hex_bignum, based_bignum)
 FLAGS(is_bignum,        hex_bignum,     neg_bignum)
+#else
+FLAGS(is_integer,       based_integer,  neg_integer)
+FLAGS(is_based,         based_integer,  based_integer, based_bignum, based_bignum)
+FLAGS(is_bignum,        based_bignum,     neg_bignum)
+#endif // CONFIG_FIXED_BASED_OBJECTS
 FLAGS(is_fraction,      fraction,       neg_big_fraction)
 FLAGS(is_decimal,       decimal32,      decimal128)
 FLAGS(is_real,          bignum,         decimal128)
@@ -103,16 +109,20 @@ ID(equation)
 ID(rectangular)
 ID(polar)
 
+#if CONFIG_FIXED_BASED_OBJECTS
 ID(hex_integer)
 ID(dec_integer)
 ID(oct_integer)
 ID(bin_integer)
+#endif // CONFIG_FIXED_BASED_OBJECTS
 ID(based_integer)
 
+#if CONFIG_FIXED_BASED_OBJECTS
 ID(hex_bignum)
 ID(dec_bignum)
 ID(oct_bignum)
 ID(bin_bignum)
+#endif // CONFIG_FIXED_BASED_OBJECTS
 ID(based_bignum)
 
 ID(bignum)

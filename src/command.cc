@@ -414,15 +414,17 @@ COMMAND_BODY(Help)
                 case ID_neg_bignum:         topic = utf8("Big integers"); break;
                 case ID_polar:
                 case ID_rectangular:        topic = utf8("Complex numbers"); break;
+#if CONFIG_FIXED_BASED_OBJECTS
                 case ID_hex_integer:
                 case ID_dec_integer:
                 case ID_oct_integer:
                 case ID_bin_integer:
-                case ID_based_integer:
                 case ID_hex_bignum:
                 case ID_dec_bignum:
                 case ID_oct_bignum:
                 case ID_bin_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+                case ID_based_integer:
                 case ID_based_bignum:       topic = utf8("Based numbers"); break;
                 case ID_decimal128:
                 case ID_decimal64:
@@ -481,15 +483,17 @@ COMMAND_BODY(ToolsMenu)
             case ID_neg_big_fraction:   menu = ID_FractionsMenu; break;
             case ID_polar:
             case ID_rectangular:        menu = ID_ComplexMenu; break;
+#if CONFIG_FIXED_BASED_OBJECTS
             case ID_hex_integer:
             case ID_dec_integer:
             case ID_oct_integer:
             case ID_bin_integer:
-            case ID_based_integer:
             case ID_hex_bignum:
             case ID_dec_bignum:
             case ID_oct_bignum:
             case ID_bin_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+            case ID_based_integer:
             case ID_based_bignum:       menu = ID_BasesMenu; break;
             case ID_equation:           menu = ID_SymbolicMenu; break;
             case ID_list:               menu = ID_ListMenu; break;

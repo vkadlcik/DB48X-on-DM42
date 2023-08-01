@@ -283,6 +283,7 @@ void tests::data_types()
     step("Negative integer");
     test(CLEAR, "1", CHS, ENTER).type(object::ID_neg_integer).expect("-1");
 
+#if CONFIG_FIXED_BASED_OBJECTS
     step("Binary based integer");
     test(CLEAR, "#10010101b", ENTER)
         .type(object::ID_bin_integer)
@@ -304,10 +305,12 @@ void tests::data_types()
     step("Hexadecimal based integer");
     test(CLEAR, "#1234ABCDH", ENTER)
         .type(object::ID_hex_integer)
+        .type(object::ID_hex_integer)
         .expect("#1234 ABCD₁₆");
     test(CLEAR, "#DEADBEEFH", ENTER)
         .type(object::ID_hex_integer)
         .expect("#DEAD BEEF₁₆");
+#endif // CONFIG_FIXED_BASED_OBJECTS
 
     step("Arbitrary base input");
     test(CLEAR, "8#777", ENTER).type(object::ID_based_integer).expect("#1FF₁₆");
@@ -725,6 +728,7 @@ void tests::logical_operations()
 {
     begin("Logical operations");
 
+#if CONFIG_FIXED_BASED_OBJECTS
     step("Binary number");
     cstring binary  = "#10001b";
     cstring binaryf = "#1 0001₂";
@@ -744,6 +748,7 @@ void tests::logical_operations()
     cstring hexa  = "#135AFh";
     cstring hexaf = "#1 35AF₁₆";
     test(CLEAR, hexa, ENTER).type(object::ID_hex_integer).expect(hexaf);
+#endif // CONFIG_FIXED_BASED_OBJECTS
 
     step("Based number (default base)");
     cstring based  = "#1234A";
@@ -969,7 +974,9 @@ void tests::integer_display_formats()
 
     step("Based number rendering");
     test(CLEAR, "#1234ABCDEFH", ENTER)
+#if CONFIG_FIXED_BASED_OBJECTS
         .type(object::ID_hex_integer)
+#endif // CONFIG_FIXED_BASED_OBJECTS
         .expect("#12 34AB CDEF₁₆");
 
     step("Two spacing");

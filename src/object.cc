@@ -489,17 +489,21 @@ int object::as_truth(bool error) const
     case ID_False:
     case ID_integer:
     case ID_neg_integer:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_integer:
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_integer:
     case ID_bignum:
     case ID_neg_bignum:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_bignum:
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_fraction:
     case ID_neg_fraction:
     case ID_big_fraction:
@@ -533,18 +537,22 @@ bool object::is_zero(bool error) const
         return true;
     case ID_integer:
     case ID_neg_integer:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_integer:
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_integer:
         return integer_p(this)->is_zero();
     case ID_bignum:
     case ID_neg_bignum:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_bignum:
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
         return bignum_p(this)->is_zero();
     case ID_fraction:
     case ID_neg_fraction:
@@ -581,18 +589,22 @@ bool object::is_one(bool error) const
     {
     case ID_integer:
     case ID_neg_integer:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_integer:
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_integer:
         return integer_p(this)->is_one();
     case ID_bignum:
     case ID_neg_bignum:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_bignum:
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
         return bignum_p(this)->is_one();
     case ID_decimal128:
         return decimal128_p(this)->is_one();
@@ -622,16 +634,20 @@ bool object::is_negative(bool error) const
     switch(ty)
     {
     case ID_integer:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_integer:
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_integer:
     case ID_bignum:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_bignum:
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_fraction:
     case ID_big_fraction:
         return false;

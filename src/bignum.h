@@ -142,7 +142,7 @@ struct bignum : text
         utf8 p = value(&size);
         Int result = 0;
         for (size_t i = 0; i < size; i++)
-            result = (result << 8) | *p++;
+            result |= Int(*p++) << (8 * i);
         return result;
     }
 

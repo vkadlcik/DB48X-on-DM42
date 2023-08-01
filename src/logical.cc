@@ -107,11 +107,17 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
 #endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_bignum:
     {
-        id yt = x->type();
+        id yt = y->type();
         if (!is_bignum(xt))
             xt = bignum_promotion(x);
         if (!is_bignum(yt))
+        {
             yt = bignum_promotion(y);
+            if (!is_bignum(yt))
+            {
+                rt.type_error();
+            }
+        }
 
         // Proceed with big integers if native did not fit
         bignum_g xg = (bignum *) object_p(x);

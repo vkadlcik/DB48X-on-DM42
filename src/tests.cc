@@ -2163,6 +2163,9 @@ void tests::regression_checks()
     test(CLEAR, "0+30000.ⅈ sin", ENTER).error("Argument outside domain");
     test(CLEAR, "0+30000.ⅈ cos", ENTER).error("Argument outside domain");
     test(CLEAR, "0+30000.ⅈ tan", ENTER).error("Argument outside domain");
+
+    step("Bug 272: Type error on logical operations");
+    test(CLEAR, "'x' #2134AF AND", ENTER).error("Bad argument type");
 }
 
 

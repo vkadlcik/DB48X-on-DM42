@@ -42,7 +42,7 @@ lacks a dedicated alpha key, does not provides left or right arrow keys (only up
 and down), and has no space key (_SPC_ on the HP48).
 
 
-### Keyboard interaction
+## Keyboard interaction
 
 The keyboard differences force us to revisit the user interaction with the
 calculator compared to the HP48:
@@ -76,7 +76,7 @@ calculator compared to the HP48:
   [built-in help](#help) for the corresponding function.
 
 
-## Alpha mode
+### Alpha mode
 
 Entering alphabetic characters is done using *Alpha* mode. These alphabetic
 characters are labeled on the right of each key on the DM42's keyboard.
@@ -244,7 +244,7 @@ as follows:
 * _HELP_ (🟦 _+_) activates the context-sensitive help system.
 
 
-### Soft menus
+## Soft menus
 
 The DM42 has 6 dedicated soft-menu keys at the top of the keyboard. Most of the
 advanced features of DB48X can be accessed through these soft menus.
@@ -274,7 +274,7 @@ The `Variables` menu (_RCL_ key) is special in the sense that:
 * The 🟦 function *stores* into the variable.
 
 
-### Differences with other RPLs
+## Differences with other RPLs
 
 Multiple implementations of RPL exist, most of them from Hewlett-Packard.
 A good reference to understand the differences between the various existing

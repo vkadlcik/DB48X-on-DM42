@@ -1151,7 +1151,7 @@ bool user_interface::draw_header()
         Screen.fill(header, pattern::black);
 
         char buffer[MAX_LCD_LINE_LEN];
-        size_t sz = snprintf(buffer, MAX_LCD_LINE_LEN, "%s", state_name());
+        size_t sz = 0;
 
         // Read the real-time clock
         if (Settings.show_date)
@@ -1163,7 +1163,7 @@ bool user_interface::draw_header()
                 snprintf(mname, 4, "%d", month);
 
             if (Settings.show_dow)
-                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, " %s",
+                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%s ",
                                get_wday_shortcut(dow));
 
             char sep = Settings.date_separator;
@@ -1174,24 +1174,24 @@ bool user_interface::draw_header()
                 break;
             case settings::DMY:
                 sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
-                               " %d%c%s%c%d",
+                               "%d%c%s%c%d ",
                                day, sep, mname, sep, year);
                 break;
             case settings::MDY:
                 sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
-                               " %s%c%d%c%d",
+                               "%s%c%d%c%d ",
                                mname, sep, day, sep, year);
                 break;
             case settings::YMD:
                 sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
-                               " %d%c%s%c%d",
+                               "%d%c%s%c%d ",
                                year, sep, mname, sep, day);
                 break;
             }
         }
         if (Settings.show_time)
         {
-            sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, " %d",
+            sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%d",
                            Settings.show_24h ? hour : hour % 12);
             sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, ":%02d", minute);
 
@@ -1201,9 +1201,11 @@ bool user_interface::draw_header()
             if (!Settings.show_24h)
                 sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%c",
                                hour < 12 ? 'A' : 'P');
-
+            sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, " ");
             draw_refresh(Settings.show_seconds ? 1000 : 1000 * (60 - second));
         }
+
+        sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%s", state_name());
 
         Screen.text(1, 0, utf8(buffer), HeaderFont, pattern::white);
         Screen.clip(clip);

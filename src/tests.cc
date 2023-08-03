@@ -2435,6 +2435,9 @@ void tests::regression_checks()
 
     step("Bug 272: Type error on logical operations");
     test(CLEAR, "'x' #2134AF AND", ENTER).error("Bad argument type");
+
+    step("Bug 279: 0/0 should error out");
+    test(CLEAR, "0 0 /", ENTER).error("Divide by zero");
 }
 
 

@@ -83,6 +83,8 @@ sim:	sim/gcc111libbid.a	\
 	fonts/HelpFont.cc	\
 	.ALWAYS
 
+clangdb: sim/simulator.mak .ALWAYS
+	cd sim && rm -f *.o && compiledb make -f simulator.mak && mv compile_commands.json ..
 
 QMAKE_debug=debug
 QMAKE_release=release
@@ -194,6 +196,7 @@ CXX_SOURCES +=				\
 	src/loops.cc			\
 	src/conditionals.cc		\
 	src/font.cc			\
+	src/graphics.cc			\
 	fonts/HelpFont.cc		\
 	fonts/EditorFont.cc		\
 	fonts/StackFont.cc

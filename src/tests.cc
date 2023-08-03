@@ -98,8 +98,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    conditionals();
-    for_loops();
+    regression_checks();
 
 #if 0
     step("Testing sign of modulo for bignum");

@@ -1,0 +1,8 @@
+DB48X_tabbed_overlay_080423.png:
+Dims:  72.46mm W x 89.069mm H
+
+DB48X_overlay_080423.png:
+Dims: 70.083mm W x 89.069mm H
+
+DB48X_Standalone_Key_Fronts_080423.png:
+Dims: 21.75mm W x 59.75mm H

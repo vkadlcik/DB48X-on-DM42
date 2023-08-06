@@ -2832,10 +2832,9 @@ bool user_interface::handle_editing(int key)
             // XEQ is used to enter algebraic / equation objects
             if ((!editing  || mode != BASED) && !shift && !xshift)
             {
-                bool iseq = editing && mode == ALGEBRAIC;
-                edit(editing && iseq ? '(' : '\'', ALGEBRAIC);
-                if (iseq)
-                    last = 0;
+                bool is_eqn = editing && mode == ALGEBRAIC;
+                edit(is_eqn ? '(' : '\'', ALGEBRAIC);
+                last = 0;
                 return true;
             }
             break;

@@ -3387,7 +3387,7 @@ static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
 //   All the default assigned commands fit in one or two bytes
 {
     OP2BYTES(KEY_SIGMA, menu::ID_MainMenu),
-    OP2BYTES(KEY_INV,   0),
+    OP2BYTES(KEY_INV,   command::ID_xroot),
     OP2BYTES(KEY_SQRT,  menu::ID_RealMenu),
     OP2BYTES(KEY_LOG,   function::ID_expm1),
     OP2BYTES(KEY_LN,    function::ID_log1p),

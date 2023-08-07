@@ -53,6 +53,7 @@ VERSION_H=src/$(PLATFORM)/version.h
 
 # default action: build all
 all: $(TARGET).$(PGM) help/$(TARGET).md
+	@echo "# Built $(VERSION)"
 
 dm32:	dm32-all
 dm32-%:
@@ -61,6 +62,7 @@ dm32-%:
 # installation steps
 install: install-pgm install-qspi install-help
 	$(EJECT)
+	@echo "# Installed $(VERSION)"
 install-fast: install-pgm
 	$(EJECT)
 install-pgm: all
@@ -100,9 +102,10 @@ sim/gcc111libbid.a: sim/gcc111libbid-$(shell uname)-$(shell uname -m).a
 	cp $< $@
 
 dist: all
-	mv build/release/$(TARGET)_qspi.bin  .
+	mv $(BUILD)/$(TARGET)_qspi.bin  .
 	tar cvfz v$(VERSION).tgz $(TARGET).$(PGM) $(TARGET)_qspi.bin \
 		help/*.md STATE/*.48S
+	@echo "# Distributing $(VERSION)"
 
 $(VERSION_H): $(BUILD)/version-$(VERSION).h
 	cp $< $@

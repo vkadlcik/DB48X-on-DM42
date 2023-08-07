@@ -602,6 +602,9 @@ void tests::arithmetic()
     step("Negative power");
     test(CLEAR, "2 -3 ^", ENTER).expect("1/8");
     test(CLEAR, "-2 -3 ^", ENTER).expect("-1/8");
+
+    step("xroot");
+    test(CLEAR, "8 3 xroot", ENTER).expect("2.");
 }
 
 

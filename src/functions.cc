@@ -569,6 +569,33 @@ FUNCTION_BODY(cubed)
 }
 
 
+COMMAND_BODY(xroot)
+// ----------------------------------------------------------------------------
+//   Cubed is implemented as two multiplications
+// ----------------------------------------------------------------------------
+{
+    if (object_p x = rt.pop())
+    {
+        if (object_p y = rt.top())
+        {
+            algebraic_g xa = x->as_algebraic();
+            algebraic_g ya = y->as_algebraic();
+            if (!xa.Safe() || !ya.Safe())
+            {
+                rt.type_error();
+            }
+            else
+            {
+                xa = pow(ya, integer::make(1) / xa);
+                if (xa.Safe() && rt.top(xa))
+                    return OK;
+            }
+        }
+    }
+    return ERROR;
+}
+
+
 INSERT_BODY(cubed)
 // ----------------------------------------------------------------------------
 //   x³ is a postfix

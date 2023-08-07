@@ -239,6 +239,7 @@ OP(pow, "↑")
 ALIAS(pow, "^")
 OP(hypot, "⊿")
 OP(atan2, "∠")
+CMD(xroot)
 
 CMD(sign)
 

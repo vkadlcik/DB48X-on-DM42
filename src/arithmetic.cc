@@ -1401,6 +1401,15 @@ algebraic_g operator%(algebraic_r x, algebraic_r y)
 }
 
 
+algebraic_g pow(algebraic_r x, algebraic_r y)
+// ----------------------------------------------------------------------------
+//   Power
+// ----------------------------------------------------------------------------
+{
+    return pow::evaluate(x, y);
+}
+
+
 INSERT_BODY(arithmetic)
 // ----------------------------------------------------------------------------
 //   Arithmetic objects do not insert parentheses

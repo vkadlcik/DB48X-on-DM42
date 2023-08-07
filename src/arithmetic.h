@@ -190,5 +190,6 @@ algebraic_g operator-(algebraic_r x, algebraic_r y);
 algebraic_g operator*(algebraic_r x, algebraic_r y);
 algebraic_g operator/(algebraic_r x, algebraic_r y);
 algebraic_g operator%(algebraic_r x, algebraic_r y);
+algebraic_g pow(algebraic_r x, algebraic_r y);
 
 #endif // ARITHMETIC

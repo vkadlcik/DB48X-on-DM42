@@ -24,8 +24,21 @@ Examples:
 * `'(A+B)^3' 'X^N' 'X*X^(N-1)' rewrite` returns `(A+B)*(A+B)^2`.
 
 
-## AUTOSIMPLIFY
-Reduce numeric subexpressions
+## AutoSimplify
+
+Enable automatic reduction of numeric subexpressions according to usual
+arithmetic rules. After evaluating `AutoSimplify` `'X+0`' will evaluate as `'X'`
+and '`X*1-B*0'` witll evaluate as `'X'`.
+
+The opposite setting is [NoAutoSimplify](#noautosimplify)
+
+## NoAutoSimplify
+
+Disable automatic reduction of numeric subexpressions according to usual
+arithmetic rules. After evaluating `NoAutoSimplify`, equations such as`'X+0`'
+or `X*1-B*0` will no longer be simplified during evaluation.
+
+The opposite setting is [AutoSimplify](#autosimplify)
 
 
 ## RULEMATCH

@@ -473,6 +473,15 @@ struct blitter
         // --------------------------------------------------------------------
         //   Draw a text with a foreground and background
         // --------------------------------------------------------------------
+
+        template<clipping Clip = CLIP_DST>
+        void line(coord x1, coord y1, coord x2, coord y2,
+                  size width, pattern fg);
+        // --------------------------------------------------------------------
+        //   Draw a line between the given coordinates
+        // --------------------------------------------------------------------
+
+
     protected:
         offset pixel_offset(coord x, coord y) const
         // ---------------------------------------------------------------------
@@ -1434,6 +1443,42 @@ blitter::coord blitter::surface<Mode>::text(coord       x,
         text += sz;
     }
     return x;
+}
+
+
+template <blitter::mode Mode>
+template<blitter::clipping Clip>
+void blitter::surface<Mode>::line(coord x1, coord y1,
+                                  coord x2, coord y2,
+                                  size width, pattern fg)
+// --------------------------------------------------------------------
+//   Draw a line between the given coordinates
+// --------------------------------------------------------------------
+{
+    size  dx = x1 > x2 ? x1 - x2 : x2 - x1;
+    size  dy = y1 > y2 ? y1 - y2 : y2 - y1;
+    int   sx = x2 < x1 ? -1 : 1;
+    int   sy = y2 < y1 ? -1 : 1;
+    coord d  = dx - dy;
+    coord x  = x1;
+    coord y  = y1;
+    size  wn = (width - 1) / 2;
+    size  wp = width / 2;
+
+    while (x != x2 && y != y2)
+    {
+        fill<Clip>(x - wn, y - wn, x + wp, y + wp, fg);
+        if (d >= 0)
+        {
+            x += sx;
+            d -= dy;
+        }
+        if (d < 0)
+        {
+            y += sy;
+            d += dx;
+        }
+    }
 }
 
 #endif // BLITTER_H

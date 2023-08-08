@@ -325,8 +325,9 @@ NAMED(errn, "ErrorNumber")
 NAMED(err0, "ClearError")
 NAMED(doerr, "DoError")
 
-NAMED(disp, "DisplayText")
-NAMED(dispxy, "DisplayStyledText")
+NAMED(disp, "DrawText")
+NAMED(dispxy, "DrawStyledText")
+NAMED(line, "DrawLine")
 NAMED(cllcd, "ClearLCD")
 
 
@@ -405,6 +406,10 @@ CMD(FlatMenus)
 CMD(ThreeRowsMenus)
 CMD(RoundedMenus)
 CMD(SquareMenus)
+
+CMD(LineWidth)
+CMD(Foreground)
+CMD(Background)
 
 CMD(Modes)
 CMD(Version)

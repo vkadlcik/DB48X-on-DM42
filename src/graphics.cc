@@ -43,9 +43,11 @@
 
 typedef const based_integer *based_integer_p;
 typedef const based_bignum  *based_bignum_p;
+using std::min;
+using std::max;
 
 
-static coord to_coord(object_g pos, uint scaling)
+static coord to_coord(object_g pos, int scaling)
 // ----------------------------------------------------------------------------
 //  Convert an object to a coordinate
 // ----------------------------------------------------------------------------
@@ -56,16 +58,18 @@ static coord to_coord(object_g pos, uint scaling)
     switch(ty)
     {
     case object::ID_integer:
-        y = scaling * (integer_p(pos.Safe())->value<coord>() - 1);
+    case object::ID_neg_integer:
+        y = integer_p(pos.Safe())->value<uint16_t>();
+        if (ty == object::ID_neg_integer)
+            y = -y;
+        y = scaling * (y - 1);
         break;
     case object::ID_bignum:
-        y = scaling * (bignum_p(pos.Safe())->value<coord>() - 1);
-        break;
-
-    case object::ID_neg_integer:
     case object::ID_neg_bignum:
-    case object::ID_neg_fraction:
-    case object::ID_neg_big_fraction:
+        y = bignum_p(pos.Safe())->value<uint16_t>();
+        if (ty == object::ID_neg_bignum)
+            y = -y;
+        y = scaling * (y - 1);
         break;
 
 #if CONFIG_FIXED_BASED_OBJECTS
@@ -88,11 +92,15 @@ static coord to_coord(object_g pos, uint scaling)
         y = based_bignum_p(pos.Safe())->value<coord>();
         break;
 
+    case object::ID_neg_fraction:
+    case object::ID_neg_big_fraction:
     case object::ID_fraction:
     case object::ID_big_fraction:
         y = scaling
             * fraction_p(pos.Safe())->numerator()->value<coord>()
             / fraction_p(pos.Safe())->denominator()->value<coord>()
+            * (1 - 2 * (ty == object::ID_neg_fraction ||
+                        ty == object::ID_neg_big_fraction))
             - scaling;
         break;
 
@@ -242,6 +250,35 @@ COMMAND_BODY(dispxy)
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
+    return ERROR;
+}
+
+
+COMMAND_BODY(line)
+// ----------------------------------------------------------------------------
+//   Draw a line between the coordinates
+// ----------------------------------------------------------------------------
+{
+    object_p x1o = rt.stack(3);
+    object_p y1o = rt.stack(2);
+    object_p x2o = rt.stack(1);
+    object_p y2o = rt.stack(0);
+    if (x1o && y1o && x2o && y2o)
+    {
+        coord x1 = to_coord(x1o, 1);
+        coord y1 = to_coord(y1o, 1);
+        coord x2 = to_coord(x2o, 1);
+        coord y2 = to_coord(y2o, 1);
+        if (!rt.error())
+        {
+            rt.drop(4);
+            Screen.line(x1, y1, x2, y2,
+                        Settings.line_width, Settings.foreground);
+            ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
+            refresh_dirty();
+            return OK;
+        }
+    }
     return ERROR;
 }
 

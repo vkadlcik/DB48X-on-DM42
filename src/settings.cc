@@ -30,6 +30,7 @@
 #include "settings.h"
 
 #include "arithmetic.h"
+#include "bignum.h"
 #include "command.h"
 #include "font.h"
 #include "functions.h"
@@ -1110,5 +1111,74 @@ SETTINGS_COMMAND_BODY(SquareMenus, Settings.menu_square)
 {
     Settings.menu_square = true;
     ui.menuNeedsRefresh();
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(LineWidth, false)
+// ----------------------------------------------------------------------------
+//   Set the line width
+// ----------------------------------------------------------------------------
+{
+    uint width = integer_arg(0, 128);
+    if (!rt.error())
+    {
+        Settings.line_width = width;
+        return object::OK;
+    }
+    return object::ERROR;
+}
+
+
+SETTINGS_COMMAND_LABEL(LineWidth)
+// ----------------------------------------------------------------------------
+//   Line width label
+// ----------------------------------------------------------------------------
+{
+    static char buffer[16];
+    snprintf(buffer, sizeof(buffer), "LineW %u", Settings.line_width);
+    return buffer;
+}
+
+
+static uint64_t pattern_arg()
+// ----------------------------------------------------------------------------
+//   Return a 64-bit argument value
+// ----------------------------------------------------------------------------
+{
+    if (object_p obj = rt.pop())
+    {
+        if (const based_integer *based = obj->as<based_integer>())
+            return based->value<uint64_t>();
+        if (const based_bignum *based = obj->as<based_bignum>())
+            return based->value<uint64_t>();
+        rt.type_error();
+    }
+    return ~0uLL;
+}
+
+
+SETTINGS_COMMAND_BODY(Foreground, false)
+// ----------------------------------------------------------------------------
+//   Set the pattern for foreground
+// ----------------------------------------------------------------------------
+{
+    uint64_t pat = pattern_arg();
+    if (rt.error())
+        return ERROR;
+    Settings.foreground.bits = pat;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(Background, false)
+// ----------------------------------------------------------------------------
+//  Set the pattern for background
+// ----------------------------------------------------------------------------
+{
+    uint64_t pat = pattern_arg();
+    if (rt.error())
+        return ERROR;
+    Settings.background.bits = pat;
     return OK;
 }

@@ -31,6 +31,7 @@
 
 #include "command.h"
 #include "menu.h"
+#include "target.h"
 
 #include <types.h>
 
@@ -100,7 +101,10 @@ struct settings
           result_sz(STACK),
           stack_sz(STACK),
           editor_sz(EDITOR),
-          editor_ml_sz(STACK)
+          editor_ml_sz(STACK),
+          line_width(1),
+          background(pattern::white),
+          foreground(pattern::black)
     {}
 
     enum angles
@@ -202,6 +206,9 @@ public:
     font_id  stack_sz;          // Size for other stack levels
     font_id  editor_sz;         // Size for normal editor
     font_id  editor_ml_sz;      // Size for editor in multi-line mode
+    size     line_width;        // Line width for drawing
+    pattern  background;        // Background color
+    pattern  foreground;        // Foreground color
 };
 
 
@@ -322,5 +329,10 @@ SETTINGS_COMMAND_DECLARE(FlatMenus);
 SETTINGS_COMMAND_DECLARE(ThreeRowsMenus);
 SETTINGS_COMMAND_DECLARE(RoundedMenus);
 SETTINGS_COMMAND_DECLARE(SquareMenus);
+
+SETTINGS_COMMAND_DECLARE(LineWidth);
+SETTINGS_COMMAND_DECLARE(Foreground);
+SETTINGS_COMMAND_DECLARE(Background);
+
 
 #endif // SETTINGS_H

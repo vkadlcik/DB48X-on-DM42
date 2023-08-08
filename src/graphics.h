@@ -34,6 +34,7 @@
 
 COMMAND_DECLARE(disp);
 COMMAND_DECLARE(dispxy);
+COMMAND_DECLARE(line);
 COMMAND_DECLARE(cllcd);
 
 #endif // GRAPHICS_H

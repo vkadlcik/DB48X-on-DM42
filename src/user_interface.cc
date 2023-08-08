@@ -1018,12 +1018,10 @@ bool user_interface::draw_menus()
             Screen.fill(mrect, pattern::black);
 
             mrect.inset(2, 0);
-            pattern color = pattern::white;
-            if (planes > 1 && plane != shplane)
-            {
+            bool selected = planes > 1 && plane != shplane;
+            pattern color = selected ? pattern::black : pattern::white;
+            if (selected)
                 Screen.fill(mrect, pattern::white);
-                color = pattern::black;
-            }
 
             utf8 label = utf8(labels[m]);
             if (label)
@@ -1089,7 +1087,18 @@ bool user_interface::draw_menus()
                 if (marker)
                 {
                     Screen.clip(mrect);
-                    Screen.glyph(mkx, ty - 2*(marker==L'◥'), marker, font, color);
+                    bool dossier = marker==L'◥';
+                    if (dossier)
+                    {
+                        if (selected)
+                            Screen.glyph(mkx+3, ty-3, marker, font, color);
+                        Screen.clip(clip);
+                        Screen.glyph(mkx+4, ty-4, marker, font, pattern::white);
+                    }
+                    else
+                    {
+                        Screen.glyph(mkx, ty, marker, font, color);
+                    }
                 }
                 Screen.clip(clip);
             }

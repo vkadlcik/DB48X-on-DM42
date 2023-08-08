@@ -734,13 +734,16 @@ uint VariablesMenu::count_variables()
 }
 
 
-static bool evaluate_variable(symbol_p name, object_p UNUSED value, void *arg)
+static bool evaluate_variable(symbol_p name, object_p value, void *arg)
 // ----------------------------------------------------------------------------
 //   Add a variable to evaluate in the menu
 // ----------------------------------------------------------------------------
 {
     menu::info &mi = *((menu::info *) arg);
+    if (value->as<directory>())
+        mi.marker = L'◥';
     menu::items(mi, name, menu::ID_VariablesMenuExecute);
+
     return true;
 }
 

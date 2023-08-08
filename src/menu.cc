@@ -69,6 +69,7 @@ void menu::items_init(info &mi, uint nitems, uint planes)
     mi.planes  = planes;
     mi.plane   = 0;
     mi.index   = 0;
+    mi.marker  = 0;
     if (nitems <= page0)
     {
         mi.page = 0;
@@ -146,7 +147,11 @@ void menu::items(info &mi, cstring label, object_p action)
             ui.menu(idx, label, action);
             if (action)
             {
-                if (unicode mark = action->marker())
+                unicode mark = action->marker();
+                if (!mark)
+                    mark = mi.marker;
+                mi.marker = 0;
+                if (mark)
                 {
                     if ((int) mark < 0)
                         ui.marker(idx, -mark, true);

@@ -2,12 +2,13 @@
 
 The calculator has a number of user-configurable settings:
 
-* [Display](#Display settings)
-* [Angles](#Angle settings)
-* [Command display](#Command display)
-* [Decimal separator](#Decimal separator settings)
-* [Precision](#Precision settings)
-* [Base](#Base settings)
+* [Display](#display-settings)
+* [Angles](#angle-settings)
+* [Command display](#command-display)
+* [Decimal separator](#decimal-separator-settings)
+* [Precision](#precision-settings)
+* [Base](#base-settings)
+* [Menus appearance](#menus-appearance)
 
 The current preferences can be retrieved and saved using the `Modes` command.
 
@@ -233,6 +234,34 @@ whereas `3 →FracIterations 3.1415926 →Frac` will give `355/113`.
 
 Define the maximum number of digits of precision converting a decimal value to a
 fraction. For example, `2 →FracDigits 3.1415926 →Frac` will give `355/113`.
+
+
+# Menus appearance
+
+Soft-key menus appearance can be customized. Menus can show on one or three
+rows, with 18 (shifted) or 6 (flat) functions per page, and there are two
+possible visual themes for the labels, rounded or square.
+
+## ThreeRowsMenus
+
+Display menus on up to three rows, with shift and double-shift functions showns
+above the primary menu function.
+
+## SingleRowMenus
+
+Display menus on a single row, with labels changing using shift.
+
+## FlatMenus
+
+Display menus on a single row, flattened across multiple pages.
+
+## RoundedMenu
+
+Display menus using rounded black or white tabs.
+
+## SquareMenus
+
+Display menus using square white tabs.
 
 
 # States

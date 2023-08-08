@@ -183,6 +183,22 @@ void settings::save(renderer &out, bool show_defaults)
     if (fracprec != Defaults.fracprec || show_defaults)
         out.printf("%u ToFractionDigits\n", fracprec);
 
+    if (menu_single_ln)
+    {
+        if (menu_flatten)
+            out.put("FlatMenus\n");
+        else
+            out.put("SingleRowMenus\n");
+    }
+    else if (show_defaults)
+    {
+        out.put("ThreeRowsMenus\n");
+    }
+    if (menu_square)
+        out.put("SquareMenus\n");
+    else if (show_defaults)
+        out.put("RoundedMenus\n");
+
     // Save the current menu
     if (menu_p menu = ui.menu())
     {
@@ -1035,4 +1051,64 @@ SETTINGS_COMMAND_LABEL(ToFractionDigits)
     static char buffer[16];
     snprintf(buffer, sizeof(buffer), "Digits %u", Settings.fracprec);
     return buffer;
+}
+
+
+SETTINGS_COMMAND_BODY(SingleRowMenus,
+                      Settings.menu_single_ln && !Settings.menu_flatten)
+// ----------------------------------------------------------------------------
+//   Select a single-line menu with entries selected using shift
+// ----------------------------------------------------------------------------
+{
+    Settings.menu_single_ln = true;
+    Settings.menu_flatten = false;
+    ui.menuNeedsRefresh();
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(FlatMenus,
+                      Settings.menu_single_ln && Settings.menu_flatten)
+// ----------------------------------------------------------------------------
+//   Select a single-line menu with entries selected using next (F6) key
+// ----------------------------------------------------------------------------
+{
+    Settings.menu_single_ln = true;
+    Settings.menu_flatten = true;
+    ui.menuNeedsRefresh();
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(ThreeRowsMenus, !Settings.menu_single_ln)
+// ----------------------------------------------------------------------------
+//   Select a three-lines menu with shift and xshift entries
+// ----------------------------------------------------------------------------
+{
+    Settings.menu_single_ln = false;
+    Settings.menu_flatten = false;
+    ui.menuNeedsRefresh();
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(RoundedMenus, !Settings.menu_square)
+// ----------------------------------------------------------------------------
+//   Select rounded menu entries
+// ----------------------------------------------------------------------------
+{
+    Settings.menu_square = false;
+    ui.menuNeedsRefresh();
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(SquareMenus, Settings.menu_square)
+// ----------------------------------------------------------------------------
+//   Select square menu entries
+// ----------------------------------------------------------------------------
+{
+    Settings.menu_square = true;
+    ui.menuNeedsRefresh();
+    return OK;
 }

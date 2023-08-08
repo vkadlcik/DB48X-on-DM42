@@ -975,13 +975,41 @@ bool user_interface::draw_menus()
     menuShift++;
 
     int planes = menuPlanes();
-    uint newMenuHeight = planes * mh;
+    int visiblePlanes = Settings.menu_single_ln ? 1 : planes;
+    uint newMenuHeight = 1 + visiblePlanes * mh;
     if (newMenuHeight != menuHeight)
     {
         menuHeight = newMenuHeight;
         dirtyStack = true;
         dirtyEditor = true;
     }
+
+    if (Settings.menu_flatten)
+    {
+        object_p prevo = command::static_object(command::ID_MenuPreviousPage);
+        object_p nexto = command::static_object(command::ID_MenuNextPage);
+        object_p what = function[0][KEY_F6-1];
+        bool prev = what == prevo;
+        bool next = what == nexto;
+        if (prev || next)
+        {
+            if (shplane != prev)
+            {
+                if (shplane)
+                {
+                    function[0][KEY_F6-1] = prevo;
+                    menu_label[0][NUM_SOFTKEYS-1] = "◀︎";
+                }
+                else
+                {
+                    function[0][KEY_F6-1] = nexto;
+                    menu_label[0][NUM_SOFTKEYS-1] = "▶";
+                }
+            }
+        }
+        shplane = 0;
+    }
+
 
     for (int plane = 0; plane < planes; plane++)
     {
@@ -995,7 +1023,11 @@ bool user_interface::draw_menus()
             labels = helpMenu;
         }
 
-        int my = LCD_H - (plane + 1) * mh;
+        if (Settings.menu_single_ln)
+            if (plane != shplane)
+                continue;
+
+        int my = LCD_H - (plane * !Settings.menu_single_ln + 1) * mh;
         for (int m = 0; m < NUM_SOFTKEYS; m++)
         {
             uint animask = (1<<(m + plane * NUM_SOFTKEYS));
@@ -1008,20 +1040,33 @@ bool user_interface::draw_menus()
             if (animating)
                 draw_dirty(mrect);
 
-            Screen.fill(mrect, pattern::white);
+            bool alt = planes > 1 && plane != shplane;
+            pattern color = pattern::black;
 
-            mrect.inset(3,  1);
-            Screen.fill(mrect, pattern::black);
-            mrect.inset(-1, 1);
-            Screen.fill(mrect, pattern::black);
-            mrect.inset(-1, 1);
-            Screen.fill(mrect, pattern::black);
-
-            mrect.inset(2, 0);
-            bool selected = planes > 1 && plane != shplane;
-            pattern color = selected ? pattern::black : pattern::white;
-            if (selected)
+            if (Settings.menu_square)
+            {
+                mrect.x2++;
+                mrect.y2++;
+                Screen.fill(mrect, alt ? pattern::gray50 : pattern::black);
+                mrect.inset(1, 1);
                 Screen.fill(mrect, pattern::white);
+            }
+            else
+            {
+                if (!alt)
+                    color = pattern::white;
+                Screen.fill(mrect, pattern::white);
+                mrect.inset(3,  1);
+                Screen.fill(mrect, pattern::black);
+                mrect.inset(-1, 1);
+                Screen.fill(mrect, pattern::black);
+                mrect.inset(-1, 1);
+                Screen.fill(mrect, pattern::black);
+                mrect.inset(2, 0);
+                if (alt)
+                    Screen.fill(mrect, pattern::white);
+            }
+
 
             utf8 label = utf8(labels[m]);
             if (label)
@@ -1082,7 +1127,7 @@ bool user_interface::draw_menus()
                 {
                     x = (trect.x1 + trect.x2 - tw) / 2;
                 }
-                coord ty = mrect.y1 - 3;
+                coord ty = mrect.y1 - (Settings.menu_square ? 2 : 3);
                 Screen.text(x, ty, label, len, font, color);
                 if (marker)
                 {
@@ -1090,7 +1135,7 @@ bool user_interface::draw_menus()
                     bool dossier = marker==L'◥';
                     if (dossier)
                     {
-                        if (selected)
+                        if (alt)
                             Screen.glyph(mkx+3, ty-3, marker, font, color);
                         Screen.clip(clip);
                         Screen.glyph(mkx+4, ty-4, marker, font, pattern::white);
@@ -1103,6 +1148,11 @@ bool user_interface::draw_menus()
                 Screen.clip(clip);
             }
         }
+    }
+    if (Settings.menu_square && shplane < visiblePlanes)
+    {
+        int my = LCD_H - (shplane * !Settings.menu_single_ln + 1) * mh;
+        Screen.fill(0, my, LCD_W-1, my, pattern::black);
     }
 
     if (animate)

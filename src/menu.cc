@@ -65,6 +65,8 @@ void menu::items_init(info &mi, uint nitems, uint planes)
 //   Initialize the info structure
 // ----------------------------------------------------------------------------
 {
+    if (Settings.menu_flatten)
+        planes = 1;
     uint page0 = planes * ui.NUM_SOFTKEYS;
     mi.planes  = planes;
     mi.plane   = 0;
@@ -1013,6 +1015,7 @@ MENU(ModesMenu,
      "1'000",  ID_NumberTicks,
      "1_000",  ID_NumberUnderscore,
      "Fonts",  ID_FontsMenu,
+     "Menus",  ID_MenuSettingsMenu,
 
      "#1 000", ID_BasedSpaces,
      Settings.decimal_mark == '.' ? "#1,000" : "#1.000",  ID_BasedDotOrComma,
@@ -1026,11 +1029,27 @@ MENU(ModesMenu,
 
      ID_Modes);
 
+
 MENU(FontsMenu,
+// ----------------------------------------------------------------------------
+//   Font size information
+// ----------------------------------------------------------------------------
      ResultFontSize::menu_label,                ID_ResultFontSize,
      StackFontSize::menu_label,                 ID_StackFontSize,
      EditorFontSize::menu_label,                ID_EditorFontSize,
      EditorMultilineFontSize::menu_label,       ID_EditorMultilineFontSize);
+
+
+MENU(MenuSettingsMenu,
+// ----------------------------------------------------------------------------
+//   Setting menu settings
+// ----------------------------------------------------------------------------
+     "3-lines", ID_ThreeRowsMenus,
+     "1-line",  ID_SingleRowMenus,
+     "Flat",    ID_FlatMenus,
+     "Round",   ID_RoundedMenus,
+     "Square",  ID_SquareMenus,
+     ID_ModesMenu);
 
 
 

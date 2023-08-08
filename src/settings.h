@@ -93,6 +93,9 @@ struct settings
           show_dow(true),
           show_month(true),
           show_voltage(true),
+          menu_single_ln(false),
+          menu_flatten(false),
+          menu_square(false),
           date_separator('/'),
           result_sz(STACK),
           stack_sz(STACK),
@@ -191,6 +194,9 @@ public:
     bool     show_dow       :1; // Show day of week in status bar
     bool     show_month     :1; // Show month name in status bar
     bool     show_voltage   :1; // Show battery voltage in status bar
+    bool     menu_single_ln :1; // Single-line menu
+    bool     menu_flatten   :1; // Show same menu entries with shift
+    bool     menu_square    :1; // Square or rounded menus
     char     date_separator;    // Date separator
     font_id  result_sz;         // Size for stack top
     font_id  stack_sz;          // Size for other stack levels
@@ -310,5 +316,11 @@ SETTINGS_COMMAND_DECLARE(MaxRewrites);
 
 SETTINGS_COMMAND_DECLARE(ToFractionIterations);
 SETTINGS_COMMAND_DECLARE(ToFractionDigits);
+
+SETTINGS_COMMAND_DECLARE(SingleRowMenus);
+SETTINGS_COMMAND_DECLARE(FlatMenus);
+SETTINGS_COMMAND_DECLARE(ThreeRowsMenus);
+SETTINGS_COMMAND_DECLARE(RoundedMenus);
+SETTINGS_COMMAND_DECLARE(SquareMenus);
 
 #endif // SETTINGS_H

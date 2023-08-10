@@ -32,7 +32,6 @@
 //   In the code, BPP stands for "Bits per pixels", and BPW for "Bits per word"
 //   Pixel buffer words are assumed to be 32-bit as on most calculators today.
 //
-#include <stdio.h>
 
 #include "font.h"
 #include "types.h"
@@ -1402,7 +1401,7 @@ void blitter::blit(Dst           &dst,
         rmask   = shrc(ones, drs + DBPP);
         dmask1  = xback ? rmask : lmask;
         dmask2  = xback ? lmask : rmask;
-        cdata64 = rotate(cdata64, dx1 * CBPP + dy1 * cshift - dws);
+        cdata64 = rotate(colors.bits, dx1 * CBPP + dy1 * cshift - dws);
         sws     = src.pixel_shift(so);
         sadj    = (int) (sws * DBPP - dws * SBPP) / (int) DBPP;
     }
@@ -1748,8 +1747,6 @@ void blitter::surface<Mode>::ellipse(coord   x1,
             x--;
             d -= dx;
         }
-
-        // fprintf(stderr, "x=%d y=%d a=%d b=%d\n", x, y, a, b);
     }
     while (x >= 0);
 }

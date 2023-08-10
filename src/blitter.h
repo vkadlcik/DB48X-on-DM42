@@ -32,12 +32,13 @@
 //   In the code, BPP stands for "Bits per pixels", and BPW for "Bits per word"
 //   Pixel buffer words are assumed to be 32-bit as on most calculators today.
 //
+#include <stdio.h>
 
+#include "font.h"
 #include "types.h"
 #include "utf8.h"
-#include "font.h"
 
-#define PACKED  __attribute__((packed))
+#define PACKED __attribute__((packed))
 
 
 struct blitter
@@ -70,10 +71,10 @@ struct blitter
     //   Graphics mode (including bits per pixel info)
     // ------------------------------------------------------------------------
     {
-        MONOCHROME,             // Monochrome bitmap, e.g. fonts
-        MONOCHROME_REVERSE,     // Monochrome bitmap, reverse X axis (DM42)
-        GRAY_4BPP,              // Gray, 4 bits per pixel (HP50G and related)
-        RGB_16BPP,              // RGB16 (HP Prime)
+        MONOCHROME,         // Monochrome bitmap, e.g. fonts
+        MONOCHROME_REVERSE, // Monochrome bitmap, reverse X axis (DM42)
+        GRAY_4BPP,          // Gray, 4 bits per pixel (HP50G and related)
+        RGB_16BPP,          // RGB16 (HP Prime)
     };
 
 
@@ -85,7 +86,8 @@ struct blitter
     //  Colors have a generic RGB-based interface, even on monochrome systems
     //  like the DM42, or on grayscale systems like the HP50G.
 
-    template <mode Mode> union color
+    template <mode Mode>
+    union color
     // ------------------------------------------------------------------------
     //   The generic color representation
     // ------------------------------------------------------------------------
@@ -98,9 +100,11 @@ struct blitter
         uint8_t green();
         uint8_t blue();
 
-        enum { BPP = 1 };
+        enum
+        {
+            BPP = 1
+        };
     };
-
 
 
     // ========================================================================
@@ -120,27 +124,37 @@ struct blitter
     //   A pattern can be built from RGB values, which will build a pattern
     //   with the corresponding pixel density on a monochrome system.
 
-    template <mode Mode> union pattern
+    template <mode Mode>
+    union pattern
     // ------------------------------------------------------------------------
     //   Pattern representation for fills
     // ------------------------------------------------------------------------
     {
-        uint64_t  bits;
+        uint64_t bits;
 
-        enum { SIZE=1 };                        // Size of the pattern
-        enum:uint64_t { SOLID = 1 };            // Multiplier for solids
-        enum { BPP = color<Mode>::BPP };        // Bit per pixels for pattern
+        enum
+        {
+            SIZE = 1
+        }; // Size of the pattern
+        enum : uint64_t
+        {
+            SOLID = 1
+        }; // Multiplier for solids
+        enum
+        {
+            BPP = color<Mode>::BPP
+        }; // Bit per pixels for pattern
         using color = blitter::color<Mode>;
 
-    public:
+      public:
         // Build a solid pattern from a single color
         pattern(color c);
 
         // Build a checkered pattern for a given RGB level
-        pattern(uint8_t  red, uint8_t  green, uint8_t  blue);
+        pattern(uint8_t red, uint8_t green, uint8_t blue);
 
         // Build a checkerboard from 2 or 4 colors in an array
-        template<uint N>
+        template <uint N>
         pattern(color colors[N]);
 
         // Build a pattern with two or four alternating colors
@@ -158,7 +172,6 @@ struct blitter
     };
 
 
-
     // ========================================================================
     //
     //    Points and rectangles
@@ -170,7 +183,9 @@ struct blitter
     //    A point holds a pair of coordinates
     // ------------------------------------------------------------------------
     {
-        point(coord x = 0, coord y = 0): x(x), y(y) {}
+        point(coord x = 0, coord y = 0) : x(x), y(y)
+        {
+        }
         point(const point &o) = default;
         coord x, y;
     };
@@ -182,36 +197,51 @@ struct blitter
     // ------------------------------------------------------------------------
     {
         rect(coord x1 = 0, coord y1 = 0, coord x2 = 0, coord y2 = 0)
-            : x1(x1), y1(y1), x2(x2), y2(y2) {}
-        rect(size w, size h): rect(0, 0, w-1, h-1) {}
-        rect(const rect &o) = default;
+            : x1(x1),
+              y1(y1),
+              x2(x2),
+              y2(y2)
+        {
+        }
+        rect(size w, size h) : rect(0, 0, w - 1, h - 1)
+        {
+        }
+        rect(const rect &o)            = default;
         rect &operator=(const rect &o) = default;
 
-        rect &operator &=(const rect &o)
+        rect &operator&=(const rect &o)
         // --------------------------------------------------------------------
         //   Intersection of two rectangles
         // --------------------------------------------------------------------
         {
-            if (x1 < o.x1) x1 = o.x1;
-            if (x2 > o.x2) x2 = o.x2;
-            if (y1 < o.y1) y1 = o.y1;
-            if (y2 > o.y2) y2 = o.y2;
+            if (x1 < o.x1)
+                x1 = o.x1;
+            if (x2 > o.x2)
+                x2 = o.x2;
+            if (y1 < o.y1)
+                y1 = o.y1;
+            if (y2 > o.y2)
+                y2 = o.y2;
             return *this;
         }
 
-        rect &operator |=(const rect &o)
+        rect &operator|=(const rect &o)
         // --------------------------------------------------------------------
         //   Union of two rectangles
         // --------------------------------------------------------------------
         {
-            if (x1 > o.x1) x1 = o.x1;
-            if (x2 < o.x2) x2 = o.x2;
-            if (y1 > o.y1) y1 = o.y1;
-            if (y2 < o.y2) y2 = o.y2;
+            if (x1 > o.x1)
+                x1 = o.x1;
+            if (x2 < o.x2)
+                x2 = o.x2;
+            if (y1 > o.y1)
+                y1 = o.y1;
+            if (y2 < o.y2)
+                y2 = o.y2;
             return *this;
         }
 
-        friend rect operator& (const rect &a, const rect &b)
+        friend rect operator&(const rect &a, const rect &b)
         // --------------------------------------------------------------------
         //   Intersection of two rectangle
         // --------------------------------------------------------------------
@@ -221,7 +251,7 @@ struct blitter
             return r;
         }
 
-        friend rect operator| (const rect &a, const rect &b)
+        friend rect operator|(const rect &a, const rect &b)
         // --------------------------------------------------------------------
         //   Union of two rectangle
         // --------------------------------------------------------------------
@@ -274,7 +304,7 @@ struct blitter
             return y2 - y1;
         }
 
-    public:
+      public:
         coord x1, y1, x2, y2;
     };
 
@@ -296,7 +326,7 @@ struct blitter
         CLIP_ALL    = 3,
         SKIP_SOURCE = 4,
         SKIP_COLOR  = 8,
-        OVERLAP     = 16,                       // Set if src and dest overlap
+        OVERLAP     = 16, // Set if src and dest overlap
         FILL_QUICK  = SKIP_SOURCE,
         FILL_SAFE   = SKIP_SOURCE | CLIP_DST,
         COPY        = CLIP_ALL | SKIP_COLOR,
@@ -320,7 +350,7 @@ struct blitter
     //
     // ========================================================================
 
-    template<mode Mode>
+    template <mode Mode>
     struct surface
     // -------------------------------------------------------------------------
     //   Structure representing a surface on screen
@@ -328,20 +358,33 @@ struct blitter
     {
         surface(pixword *p, size w, size h, size scanline)
             : pixels(p),
-              width(w), height(h), scanline(scanline),
-              drawable(w, h) {}
-        surface(pixword *p, size w, size h) : surface(p, w, h, w) {}
+              width(w),
+              height(h),
+              scanline(scanline),
+              drawable(w, h)
+        {
+        }
+        surface(pixword *p, size w, size h) : surface(p, w, h, w)
+        {
+        }
         surface(const surface &o) = default;
 
-        void horizontal_adjust(coord UNUSED &x1, coord UNUSED &x2) const {}
-        void vertical_adjust  (coord UNUSED &x1, coord UNUSED &x2) const {}
+        void horizontal_adjust(coord UNUSED &x1, coord UNUSED &x2) const
+        {
+        }
+        void vertical_adjust(coord UNUSED &x1, coord UNUSED &x2) const
+        {
+        }
 
         // Operations used by the blitting routine
         using color   = blitter::color<Mode>;
         using pattern = blitter::pattern<Mode>;
-        enum { BPP = color::BPP };
+        enum
+        {
+            BPP = color::BPP
+        };
 
-    public:
+      public:
         void clip(const rect &r)
         // --------------------------------------------------------------------
         //    Limit drawing to the given rectangle
@@ -368,7 +411,7 @@ struct blitter
         }
 
 
-        template<clipping Clip = FILL_SAFE>
+        template <clipping Clip = FILL_SAFE>
         void fill(const rect &r, pattern colors = pattern::black)
         // --------------------------------------------------------------------
         //   Fill a rectangle
@@ -377,8 +420,11 @@ struct blitter
             blit<Clip>(*this, *this, r, point(), blitop_set, colors);
         }
 
-        template<clipping Clip = FILL_SAFE>
-        void fill(coord x1, coord y1, coord x2, coord y2,
+        template <clipping Clip = FILL_SAFE>
+        void fill(coord   x1,
+                  coord   y1,
+                  coord   x2,
+                  coord   y2,
                   pattern colors = pattern::black)
         // --------------------------------------------------------------------
         //   Fill a rectangle with a color pattern
@@ -387,7 +433,7 @@ struct blitter
             fill<Clip>(rect(x1, y1, x2, y2), colors);
         }
 
-        template<clipping Clip = FILL_SAFE>
+        template <clipping Clip = FILL_SAFE>
         void fill(pattern colors = pattern::black)
         // --------------------------------------------------------------------
         //   Fill the entire area with the chosen color
@@ -396,10 +442,11 @@ struct blitter
             fill<Clip>(drawable, colors);
         }
 
-        template<clipping Clip = COPY>
-        void copy(surface &src, const rect &r,
-                  const point &spos = point(0,0),
-                  pattern clear = pattern::black)
+        template <clipping Clip = COPY>
+        void copy(surface     &src,
+                  const rect  &r,
+                  const point &spos  = point(0, 0),
+                  pattern      clear = pattern::black)
         // --------------------------------------------------------------------
         //   Copy a rectangular area from the source
         // --------------------------------------------------------------------
@@ -407,9 +454,10 @@ struct blitter
             blit<Clip>(*this, src, r, spos, blitop_source, clear);
         }
 
-        template<clipping Clip = COPY>
-        void copy(surface &src, const point &pos = point(0,0),
-                  pattern clear = pattern::black)
+        template <clipping Clip = COPY>
+        void copy(surface     &src,
+                  const point &pos   = point(0, 0),
+                  pattern      clear = pattern::black)
         // --------------------------------------------------------------------
         //   Copy a rectangular area from the source
         // --------------------------------------------------------------------
@@ -417,72 +465,123 @@ struct blitter
             return copy(src, pos.x, pos.y, clear);
         }
 
-        template<clipping Clip = COPY>
+        template <clipping Clip = COPY>
         void copy(surface &src, coord x, coord y, pattern clr = pattern::black)
         // --------------------------------------------------------------------
         //   Copy a rectangular area from the source
         // --------------------------------------------------------------------
         {
-            size  w = src.width;
-            size  h = src.height;
-            rect  dest(x, y, x + w - 1, y + h - 1);
+            size w = src.width;
+            size h = src.height;
+            rect dest(x, y, x + w - 1, y + h - 1);
             blit<Clip>(*this, src, dest, point(), blitop_source, clr);
         }
 
-        template<clipping Clip = CLIP_DST>
-        coord glyph(coord x, coord y, unicode codepoint, const font *f,
-                    pattern colors = pattern::black,
-                    blitop op = blitop_mono_fg<Mode>);
+        template <clipping Clip = CLIP_DST>
+        coord glyph(coord       x,
+                    coord       y,
+                    unicode     codepoint,
+                    const font *f,
+                    pattern     colors = pattern::black,
+                    blitop      op     = blitop_mono_fg<Mode>);
         // --------------------------------------------------------------------
         //   Draw a glyph with the given operation and colors
         // --------------------------------------------------------------------
 
-        template<clipping Clip = CLIP_DST>
-        coord glyph(coord x, coord y, unicode codepoint, const font *f,
-                    pattern fg, pattern bg);
+        template <clipping Clip = CLIP_DST>
+        coord glyph(coord       x,
+                    coord       y,
+                    unicode     codepoint,
+                    const font *f,
+                    pattern     fg,
+                    pattern     bg);
         // --------------------------------------------------------------------
         //   Draw a glyph with a foreground and background
         // --------------------------------------------------------------------
 
-        template<clipping Clip = CLIP_DST>
-        coord text(coord x, coord y, utf8 text, const font *f,
-                   pattern colors = pattern::black,
-                   blitop op = blitop_mono_fg<Mode>);
+        template <clipping Clip = CLIP_DST>
+        coord text(coord       x,
+                   coord       y,
+                   utf8        text,
+                   const font *f,
+                   pattern     colors = pattern::black,
+                   blitop      op     = blitop_mono_fg<Mode>);
         // --------------------------------------------------------------------
         //   Draw a text with the given operation and colors
         // --------------------------------------------------------------------
 
-        template<clipping Clip = CLIP_DST>
-        coord text(coord x, coord y, utf8 text, const font *f,
-                   pattern fg, pattern bg);
+        template <clipping Clip = CLIP_DST>
+        coord text(coord       x,
+                   coord       y,
+                   utf8        text,
+                   const font *f,
+                   pattern     fg,
+                   pattern     bg);
         // --------------------------------------------------------------------
         //   Draw a text with a foreground and background
         // --------------------------------------------------------------------
 
-        template<clipping Clip = CLIP_DST>
-        coord text(coord x, coord y, utf8 text, size_t len, const font *f,
-                   pattern colors = pattern::black,
-                   blitop op = blitop_mono_fg<Mode>);
+        template <clipping Clip = CLIP_DST>
+        coord text(coord       x,
+                   coord       y,
+                   utf8        text,
+                   size_t      len,
+                   const font *f,
+                   pattern     colors = pattern::black,
+                   blitop      op     = blitop_mono_fg<Mode>);
         // --------------------------------------------------------------------
         //   Draw a text with the given operation and colors
         // --------------------------------------------------------------------
 
-        template<clipping Clip = CLIP_DST>
-        coord text(coord x, coord y, utf8 text, size_t len, const font *f,
-                   pattern fg, pattern bg);
+        template <clipping Clip = CLIP_DST>
+        coord text(coord       x,
+                   coord       y,
+                   utf8        text,
+                   size_t      len,
+                   const font *f,
+                   pattern     fg,
+                   pattern     bg);
         // --------------------------------------------------------------------
         //   Draw a text with a foreground and background
         // --------------------------------------------------------------------
 
-        template<clipping Clip = CLIP_DST>
-        void line(coord x1, coord y1, coord x2, coord y2,
-                  size width, pattern fg);
+        template <clipping Clip = CLIP_DST>
+        void line(coord   x1,
+                  coord   y1,
+                  coord   x2,
+                  coord   y2,
+                  size    width,
+                  pattern fg);
         // --------------------------------------------------------------------
         //   Draw a line between the given coordinates
         // --------------------------------------------------------------------
 
+        template <clipping Clip = CLIP_DST>
+        void ellipse(coord   x1,
+                     coord   y1,
+                     coord   x2,
+                     coord   y2,
+                     size    width,
+                     pattern fg);
+        // --------------------------------------------------------------------
+        //   Draw an ellipse with the given coordinates
+        // --------------------------------------------------------------------
 
-    protected:
+        template <clipping Clip = CLIP_DST>
+        void circle(coord x, coord y, size r, size width, pattern fg)
+        // --------------------------------------------------------------------
+        //   Draw a circle with the given coordinates
+        // --------------------------------------------------------------------
+        {
+            ellipse(x - r / 2,
+                    y - r / 2,
+                    x + (r + 1) / 2,
+                    y + (r + 1) / 2,
+                    width,
+                    fg);
+        }
+
+      protected:
         offset pixel_offset(coord x, coord y) const
         // ---------------------------------------------------------------------
         //   Offset in words in a given surface for the given coordinates
@@ -507,17 +606,17 @@ struct blitter
             return pixels + bitoffset / BPW;
         }
 
-    protected:
+      protected:
         friend struct blitter;
-        pixword *pixels;        // Word-aligned address of surface buffer
-        size     width;         // Pixel width of buffer
-        size     height;        // Pixel height of buffer
-        size     scanline;      // Scanline for the buffer (can be > width)
-        rect     drawable;      // Draw area (clipping outside)
+        pixword *pixels;   // Word-aligned address of surface buffer
+        size     width;    // Pixel width of buffer
+        size     height;   // Pixel height of buffer
+        size     scanline; // Scanline for the buffer (can be > width)
+        rect     drawable; // Draw area (clipping outside)
     };
 
 
-protected:
+  protected:
     // ========================================================================
     //
     //   Helper routines
@@ -566,12 +665,14 @@ protected:
     //   Rotate a 64-bit pattern by the given amount
     // --------------------------------------------------------------------
     {
-        enum { BIT_SIZE = sizeof(bits) * 8 };
+        enum
+        {
+            BIT_SIZE = sizeof(bits) * 8
+        };
         shift %= BIT_SIZE;
         bits = ((bits >> shift) | (bits << (BIT_SIZE - shift)));
         return bits;
     }
-
 
 
     // =========================================================================
@@ -579,7 +680,8 @@ protected:
     //   Operators for blit
     //
     // =========================================================================
-public:
+
+  public:
     static pixword blitop_set(pixword UNUSED dst,
                               pixword UNUSED src,
                               pixword        arg)
@@ -600,15 +702,14 @@ public:
         return src;
     }
 
-    template<mode Mode>
+    template <mode Mode>
     static pixword blitop_mono_fg(pixword dst, pixword src, pixword arg);
     // ------------------------------------------------------------------------
     //   1-BPP to N-BPP foreground color conversion (used for text drawing)
     // ------------------------------------------------------------------------
 
 
-
-    template<mode Mode>
+    template <mode Mode>
     static pixword blitop_mono_bg(pixword dst, pixword src, pixword arg)
     // -------------------------------------------------------------------------
     //   Bitmap baground colorization (1bpp destination)
@@ -638,97 +739,160 @@ public:
 };
 
 
-
 // ============================================================================
 //
 //   Color template specializations for various BPP
 //
 // ============================================================================
 
-template<> union blitter::color<blitter::mode::MONOCHROME>
+template <>
+union blitter::color<blitter::mode::MONOCHROME>
 // ------------------------------------------------------------------------
 //  Color representation (1-bit, e.g. DM42)
 // ------------------------------------------------------------------------
 {
-    color(uint8_t red, uint8_t green, uint8_t blue):
-        value((red + green + green + blue) / 4 >= 128) {}
+    color(uint8_t red, uint8_t green, uint8_t blue)
+        : value((red + green + green + blue) / 4 >= 128)
+    {
+    }
 
-    uint8_t red()          { return value * 255; }
-    uint8_t green()        { return value * 255; }
-    uint8_t blue()         { return value * 255; }
+    uint8_t red()
+    {
+        return value * 255;
+    }
+    uint8_t green()
+    {
+        return value * 255;
+    }
+    uint8_t blue()
+    {
+        return value * 255;
+    }
 
-    enum { BPP = 1 };
+    enum
+    {
+        BPP = 1
+    };
 
-public:
-    bool value : 1;         // The color value is 0 or 1
+  public:
+    bool value : 1; // The color value is 0 or 1
 };
 
 
-template<> union blitter::color<blitter::mode::MONOCHROME_REVERSE>
+template <>
+union blitter::color<blitter::mode::MONOCHROME_REVERSE>
 // ------------------------------------------------------------------------
 //  Color representation (1-bit, e.g. DM42)
 // ------------------------------------------------------------------------
 //  On the DM42. white is 0 and black is 1
 {
-    color(uint8_t red, uint8_t green, uint8_t blue):
-        value((red + green + green + blue) / 4 < 128) {}
+    color(uint8_t red, uint8_t green, uint8_t blue)
+        : value((red + green + green + blue) / 4 < 128)
+    {
+    }
 
-    uint8_t red()          { return !value * 255; }
-    uint8_t green()        { return !value * 255; }
-    uint8_t blue()         { return !value * 255; }
+    uint8_t red()
+    {
+        return !value * 255;
+    }
+    uint8_t green()
+    {
+        return !value * 255;
+    }
+    uint8_t blue()
+    {
+        return !value * 255;
+    }
 
-    enum { BPP = 1 };
+    enum
+    {
+        BPP = 1
+    };
 
-public:
-    bool value : 1;         // The color value is 0 or 1
+  public:
+    bool value : 1; // The color value is 0 or 1
 };
 
 
-template<> union blitter::color<blitter::mode::GRAY_4BPP>
+template <>
+union blitter::color<blitter::mode::GRAY_4BPP>
 // ------------------------------------------------------------------------
 //  Color representation (4-bit, e.g. HP50G)
 // ------------------------------------------------------------------------
 //  On the HP50G, 0xF is black, 0x0 is white
 {
-    color(uint8_t  red, uint8_t green, uint8_t   blue):
-        value(0xF - (red + green + green + blue) / 64) {}
+    color(uint8_t red, uint8_t green, uint8_t blue)
+        : value(0xF - (red + green + green + blue) / 64)
+    {
+    }
 
-    uint8_t  red()              { return (0xF - value) * 0x11; }
-    uint8_t  green()            { return red(); }
-    uint8_t  blue()             { return red(); }
+    uint8_t red()
+    {
+        return (0xF - value) * 0x11;
+    }
+    uint8_t green()
+    {
+        return red();
+    }
+    uint8_t blue()
+    {
+        return red();
+    }
 
-    enum { BPP = 4 };
+    enum
+    {
+        BPP = 4
+    };
 
-public:
+  public:
     uint8_t value : 4;
 };
 
 
-template<> union blitter::color<blitter::mode::RGB_16BPP>
+template <>
+union blitter::color<blitter::mode::RGB_16BPP>
 // ------------------------------------------------------------------------
 //  Color representation (16-bit, e.g. HP Prime)
 // ------------------------------------------------------------------------
 {
     struct rgb16
     {
-        rgb16(uint8_t  red, uint8_t  green, uint8_t  blue)
-            : blue(blue), green(green), red(red) {}
+        rgb16(uint8_t red, uint8_t green, uint8_t blue)
+            : blue(blue),
+              green(green),
+              red(red)
+        {
+        }
         uint8_t blue  : 5;
         uint8_t green : 6;
         uint8_t red   : 5;
     } PACKED rgb16;
-    uint16_t value    : 16;
+    uint16_t value : 16;
 
-    enum { BPP = 16 };
+    enum
+    {
+        BPP = 16
+    };
 
-public:
+  public:
     // Build a color from normalized RGB values
     color(uint8_t red, uint8_t green, uint8_t blue)
-        : rgb16(red >> 3, green >> 2, blue >> 3) {}
+        : rgb16(red >> 3, green >> 2, blue >> 3)
+    {
+    }
 
-    uint8_t  red()              { return rgb16.blue << 3;  }
-    uint8_t  green()            { return rgb16.red << 2;   }
-    uint8_t  blue()             { return rgb16.green << 3; }
+    uint8_t red()
+    {
+        return rgb16.blue << 3;
+    }
+    uint8_t green()
+    {
+        return rgb16.red << 2;
+    }
+    uint8_t blue()
+    {
+        return rgb16.green << 3;
+    }
 } PACKED;
 
 
@@ -738,13 +902,17 @@ public:
 //
 // ============================================================================
 
-template<blitter::mode Mode> template<uint N>
+template <blitter::mode Mode>
+template <uint N>
 inline blitter::pattern<Mode>::pattern(blitter::color<Mode> colors[N])
 // ------------------------------------------------------------------------
 //  Build a checkerboard from 2 or 4 colors in an array
 // ------------------------------------------------------------------------
 {
-    enum { BPP = blitter::color<Mode>::BPP };
+    enum
+    {
+        BPP = blitter::color<Mode>::BPP
+    };
     for (uint shift = 0; shift < 64 / BPP; shift++)
     {
         uint index = (shift + ((shift / SIZE) % N)) % N;
@@ -752,7 +920,7 @@ inline blitter::pattern<Mode>::pattern(blitter::color<Mode> colors[N])
     }
 }
 
-template<blitter::mode Mode>
+template <blitter::mode Mode>
 inline blitter::pattern<Mode>::pattern(color a, color b)
 // ------------------------------------------------------------------------
 //   Build a pattern from two colors
@@ -760,25 +928,27 @@ inline blitter::pattern<Mode>::pattern(color a, color b)
 //   Is there any way to use delegating constructors here?
 {
     color colors[2] = { a, b };
-    *this = pattern(colors);
+    *this           = pattern(colors);
 }
 
-template<blitter::mode Mode>
+template <blitter::mode Mode>
 inline blitter::pattern<Mode>::pattern(color a, color b, color c, color d)
 // ------------------------------------------------------------------------
 //   Build a pattern from four colors
 // ------------------------------------------------------------------------
 {
     color colors[4] = { a, b, c, d };
-    *this = pattern(colors);
+    *this           = pattern(colors);
 }
 
 // Pre-built patterns for five shades of grey
-#define GPAT      blitter::pattern<Mode>
-#define TGPAT     template<blitter::mode Mode> const GPAT
-TGPAT GPAT::black  = GPAT(  0,   0,   0);
-TGPAT GPAT::gray10 = GPAT( 32,  32,  32);
-TGPAT GPAT::gray25 = GPAT( 64,  64,  64);
+#define GPAT blitter::pattern<Mode>
+#define TGPAT                     \
+    template <blitter::mode Mode> \
+    const GPAT
+TGPAT GPAT::black  = GPAT(0, 0, 0);
+TGPAT GPAT::gray10 = GPAT(32, 32, 32);
+TGPAT GPAT::gray25 = GPAT(64, 64, 64);
 TGPAT GPAT::gray50 = GPAT(128, 128, 128);
 TGPAT GPAT::gray75 = GPAT(192, 192, 192);
 TGPAT GPAT::gray90 = GPAT(224, 224, 224);
@@ -787,27 +957,37 @@ TGPAT GPAT::white  = GPAT(255, 255, 255);
 #undef GPAT
 
 
-template <> union blitter::pattern<blitter::mode::MONOCHROME>
+template <>
+union blitter::pattern<blitter::mode::MONOCHROME>
 // ------------------------------------------------------------------------
 //   Pattern for 1-bit bitmaps (e.g. fonts)
 // ------------------------------------------------------------------------
 {
-    uint64_t  bits;
+    uint64_t bits;
 
-    enum              { BPP = 1, SIZE = 8 }; // 64-bit = 8x8 1-bit pattern
-    enum:uint64_t     { SOLID = 0xFFFFFFFFFFFFFFFFull };
+    enum
+    {
+        BPP  = 1,
+        SIZE = 8
+    }; // 64-bit = 8x8 1-bit pattern
+    enum : uint64_t
+    {
+        SOLID = 0xFFFFFFFFFFFFFFFFull
+    };
     using color = blitter::color<MONOCHROME>;
 
-public:
+  public:
     // Build a solid pattern from a single color
-    pattern(color c) : bits(c.value * SOLID) {}
+    pattern(color c) : bits(c.value * SOLID)
+    {
+    }
 
     // Build a checkered pattern for a given RGB level
-    pattern(uint8_t red, uint8_t green, uint8_t blue ) : bits(0)
+    pattern(uint8_t red, uint8_t green, uint8_t blue) : bits(0)
     {
         // Compute a gray value beteen 0 and 64, number of pixels to fill
         uint16_t gray = (red + green + green + blue + 4) / 16;
-        if (gray == 32)             // Hand tweak 50% gray
+        if (gray == 32) // Hand tweak 50% gray
             bits = 0xAAAAAAAAAAAAAAAAull;
         else
             // Generate a pattern with "gray" bits lit "at random"
@@ -816,7 +996,8 @@ public:
     }
 
     // Shared constructors
-    template<uint N> pattern(color colors[N]);
+    template <uint N>
+    pattern(color colors[N]);
     pattern(color a, color b);
     pattern(color a, color b, color c, color d);
 
@@ -831,27 +1012,37 @@ public:
 };
 
 
-template <> union blitter::pattern<blitter::mode::MONOCHROME_REVERSE>
+template <>
+union blitter::pattern<blitter::mode::MONOCHROME_REVERSE>
 // ------------------------------------------------------------------------
 //   Pattern for 1-bit screens (DM42)
 // ------------------------------------------------------------------------
 {
-    uint64_t  bits;
+    uint64_t bits;
 
-    enum              { BPP = 1, SIZE = 8 }; // 64-bit = 8x8 1-bit pattern
-    enum:uint64_t     { SOLID = 0xFFFFFFFFFFFFFFFFull };
+    enum
+    {
+        BPP  = 1,
+        SIZE = 8
+    }; // 64-bit = 8x8 1-bit pattern
+    enum : uint64_t
+    {
+        SOLID = 0xFFFFFFFFFFFFFFFFull
+    };
     using color = blitter::color<MONOCHROME_REVERSE>;
 
-public:
+  public:
     // Build a solid pattern from a single color
-    pattern(color c) : bits(c.value * SOLID) {}
+    pattern(color c) : bits(c.value * SOLID)
+    {
+    }
 
     // Build a checkered pattern for a given RGB level
-    pattern(uint8_t red, uint8_t green, uint8_t blue ) : bits(0)
+    pattern(uint8_t red, uint8_t green, uint8_t blue) : bits(0)
     {
         // Compute a gray value beteen 0 and 64, number of pixels to fill
         uint16_t gray = (red + green + green + blue + 4) / 16;
-        if (gray == 32)             // Hand tweak 50% gray
+        if (gray == 32) // Hand tweak 50% gray
             bits = 0xAAAAAAAAAAAAAAAAull;
         else
             // Generate a pattern with "gray" bits lit "at random"
@@ -860,7 +1051,8 @@ public:
     }
 
     // Shared constructors
-    template<uint N> pattern(color colors[N]);
+    template <uint N>
+    pattern(color colors[N]);
     pattern(color a, color b);
     pattern(color a, color b, color c, color d);
 
@@ -875,31 +1067,42 @@ public:
 };
 
 
-template <> union blitter::pattern<blitter::mode::GRAY_4BPP>
+template <>
+union blitter::pattern<blitter::mode::GRAY_4BPP>
 // ------------------------------------------------------------------------
 //   Pattern for 4-bit screens (HP50G)
 // ------------------------------------------------------------------------
 {
-    uint64_t  bits;
+    uint64_t bits;
 
-    enum              { BPP = 4, SIZE = 4 }; // 64-bit = 4x4 4-bit pattern
-    enum:uint64_t     { SOLID = 0x1111111111111111ull };
+    enum
+    {
+        BPP  = 4,
+        SIZE = 4
+    }; // 64-bit = 4x4 4-bit pattern
+    enum : uint64_t
+    {
+        SOLID = 0x1111111111111111ull
+    };
     using color = blitter::color<GRAY_4BPP>;
 
   public:
     // Build a solid pattern from a single color
-    pattern(color c) : bits(c.value * SOLID) {}
+    pattern(color c) : bits(c.value * SOLID)
+    {
+    }
 
     // Build a checkered pattern for a given RGB level
-    pattern(uint8_t  red, uint8_t  green, uint8_t  blue ) : bits(0)
+    pattern(uint8_t red, uint8_t green, uint8_t blue) : bits(0)
     {
         // Compute a gray value beteen 0 and 15
         uint16_t gray = (red + green + green + blue + 4) / 64;
-        bits = SOLID * (0xF - gray);
+        bits          = SOLID * (0xF - gray);
     }
 
     // Shared constructors
-    template<uint N> pattern(color colors[N]);
+    template <uint N>
+    pattern(color colors[N]);
     pattern(color a, color b);
     pattern(color a, color b, color c, color d);
 
@@ -914,23 +1117,33 @@ template <> union blitter::pattern<blitter::mode::GRAY_4BPP>
 };
 
 
-template <> union blitter::pattern<blitter::mode::RGB_16BPP>
+template <>
+union blitter::pattern<blitter::mode::RGB_16BPP>
 // ------------------------------------------------------------------------
 //   Pattern for 16-bit screens (HP Prime)
 // ------------------------------------------------------------------------
 {
-    uint64_t  bits;
+    uint64_t bits;
 
-    enum              { BPP = 16, SIZE = 2 }; // 64-bit = 4x4 4-bit pattern
-    enum:uint64_t     { SOLID = 0x0001000100010001ull };
+    enum
+    {
+        BPP  = 16,
+        SIZE = 2
+    }; // 64-bit = 4x4 4-bit pattern
+    enum : uint64_t
+    {
+        SOLID = 0x0001000100010001ull
+    };
     using color = blitter::color<RGB_16BPP>;
 
-public:
+  public:
     // Build a solid pattern from a single color
-    pattern(color c) : bits(c.value * SOLID) {}
+    pattern(color c) : bits(c.value * SOLID)
+    {
+    }
 
     // Build a checkered pattern for a given RGB level
-    pattern(uint8_t  red, uint8_t  green, uint8_t  blue ) : bits(0)
+    pattern(uint8_t red, uint8_t green, uint8_t blue) : bits(0)
     {
         // Compute a gray value beteen 0 and 15
         color c(red, green, blue);
@@ -938,7 +1151,8 @@ public:
     }
 
     // Shared constructors
-    template<uint N> pattern(color colors[N]);
+    template <uint N>
+    pattern(color colors[N]);
     pattern(color a, color b);
     pattern(color a, color b, color c, color d);
 
@@ -958,11 +1172,11 @@ template <blitter::clipping Clip,
           typename Src,
           blitter::mode CMode>
 void blitter::blit(Dst           &dst,
-                    const Src     &src,
-                    const rect    &drect,
-                    const point   &spos,
-                    blitop         op,
-                    pattern<CMode> colors)
+                   const Src     &src,
+                   const rect    &drect,
+                   const point   &spos,
+                   blitop         op,
+                   pattern<CMode> colors)
 // ----------------------------------------------------------------------------
 //   Generalized multi-bpp blitting routine
 // ----------------------------------------------------------------------------
@@ -1059,59 +1273,58 @@ void blitter::blit(Dst           &dst,
         return;
 
     // Source coordinates
-    coord      sl     = x;
-    coord      sr     = sl + x2 - x1;
-    coord      st     = y;
-    coord      sb     = st + y2 - y1;
+    coord sl = x;
+    coord sr = sl + x2 - x1;
+    coord st = y;
+    coord sb = st + y2 - y1;
 
     src.horizontal_adjust(sl, sr);
     src.vertical_adjust(st, sb);
 
     // Check whether we need to go forward or backward along X or Y
-    bool     xback   = overlap && x < x1;
-    bool     yback   = overlap && y < y1;
-    int      xdir    = xback ? -1 : 1;
-    int      ydir    = yback ? -1 : 1;
-    coord    dx1     = xback ? x2 : x1;
-    coord    dx2     = xback ? x1 : x2;
-    coord    dy1     = yback ? y2 : y1;
-    coord    sx1     = xback ? sr : sl;
-    coord    sy1     = yback ? sb : st;
-    coord    ycount  = y2 - y1;
+    bool     xback  = overlap && x < x1;
+    bool     yback  = overlap && y < y1;
+    int      xdir   = xback ? -1 : 1;
+    int      ydir   = yback ? -1 : 1;
+    coord    dx1    = xback ? x2 : x1;
+    coord    dx2    = xback ? x1 : x2;
+    coord    dy1    = yback ? y2 : y1;
+    coord    sx1    = xback ? sr : sl;
+    coord    sy1    = yback ? sb : st;
+    coord    ycount = y2 - y1;
 
     // Pointers to word containing start and end pixel
-    offset   do1     = dst.pixel_offset(dx1, dy1);
-    offset   do2     = dst.pixel_offset(dx2, dy1);
-    offset   so      = skip_src ? 0 : src.pixel_offset(sx1, sy1);
-    offset   dod     = dst.pixel_offset(0, ydir);
-    offset   sod     = src.pixel_offset(0, ydir);
+    offset   do1    = dst.pixel_offset(dx1, dy1);
+    offset   do2    = dst.pixel_offset(dx2, dy1);
+    offset   so     = skip_src ? 0 : src.pixel_offset(sx1, sy1);
+    offset   dod    = dst.pixel_offset(0, ydir);
+    offset   sod    = src.pixel_offset(0, ydir);
 
     // X1 and x2 pixel shift
-    unsigned cshift  = surface<CMode>::BPP == 16 ? 48
-        : surface<CMode>::BPP ==  4 ? 20
-        : surface<CMode>::BPP ==  1 ?  9
-        :  0;
-    unsigned cxs     = xdir * BPW * CBPP / DBPP;
+    unsigned cshift = surface<CMode>::BPP == 16 ? 48
+                    : surface<CMode>::BPP == 4  ? 20
+                    : surface<CMode>::BPP == 1  ? 9
+                                                : 0;
+    unsigned cxs    = xdir * BPW * CBPP / DBPP;
 
     // Shift adjustment from source to destination
-    unsigned dls     = dst.pixel_shift(do1);
-    unsigned drs     = dst.pixel_shift(do2);
-    unsigned dws     = xback ? drs : dls;
-    unsigned sws     = skip_src ? 0 : src.pixel_shift(so);
-    unsigned sadj    = (int) (sws * DBPP - dws * SBPP) / (int) DBPP;
-    unsigned sxadj   = xdir * (int) (SBPP * BPW / DBPP);
+    unsigned dls    = dst.pixel_shift(do1);
+    unsigned drs    = dst.pixel_shift(do2);
+    unsigned dws    = xback ? drs : dls;
+    unsigned sws    = skip_src ? 0 : src.pixel_shift(so);
+    unsigned sadj   = (int) (sws * DBPP - dws * SBPP) / (int) DBPP;
+    unsigned sxadj  = xdir * (int) (SBPP * BPW / DBPP);
 
     // X1 and x2 masks
-    pixword  ones    = ~0U;
-    pixword  lmask   = ones << dls;
-    pixword  rmask   = shrc(ones, drs + DBPP);
-    pixword  dmask1  = xback ? rmask : lmask;
-    pixword  dmask2  = xback ? lmask : rmask;
+    pixword  ones   = ~0U;
+    pixword  lmask  = ones << dls;
+    pixword  rmask  = shrc(ones, drs + DBPP);
+    pixword  dmask1 = xback ? rmask : lmask;
+    pixword  dmask2 = xback ? lmask : rmask;
 
     // Adjust the color pattern based on starting point
-    uint64_t cdata64 = skip_col
-        ? 0
-        : rotate(colors.bits, dx1 * CBPP + dy1 * cshift - dws);
+    uint64_t cdata64 =
+        skip_col ? 0 : rotate(colors.bits, dx1 * CBPP + dy1 * cshift - dws);
 
     // Loop on all lines
     while (ycount-- >= 0)
@@ -1141,7 +1354,7 @@ void blitter::blit(Dst           &dst,
                 unsigned nextsadj = sadj + sxadj;
 
                 // Check if we change source word
-                int skip = nextsadj >= BPW;
+                int      skip     = nextsadj >= BPW;
                 if (skip)
                 {
                     sp += xdir;
@@ -1173,14 +1386,14 @@ void blitter::blit(Dst           &dst,
 
             dp += xdir;
             dmask = ~0U;
-            smem = snew;
+            smem  = snew;
         } while (!xdone);
 
         // Move to next line
-        dy1    += ydir;
-        do1    += dod;
-        do2    += dod;
-        so     += sod;
+        dy1 += ydir;
+        do1 += dod;
+        do2 += dod;
+        so += sod;
         sws     = skip_src ? 0 : src.pixel_shift(so);
         dls     = dst.pixel_shift(do1);
         drs     = dst.pixel_shift(do2);
@@ -1202,16 +1415,17 @@ void blitter::blit(Dst           &dst,
 //
 // ============================================================================
 
-template<>
-inline void blitter::surface<blitter::MONOCHROME_REVERSE>::
-horizontal_adjust(coord &x1, coord &x2) const
+template <>
+inline void blitter::surface<blitter::MONOCHROME_REVERSE>::horizontal_adjust(
+    coord &x1,
+    coord &x2) const
 // ----------------------------------------------------------------------------
 //   On the DM42, we need horizontal adjustment for coordinates
 // ----------------------------------------------------------------------------
 {
     coord ox1 = width - x2;
-    x2 = width - x1;
-    x1 = ox1;
+    x2        = width - x1;
+    x1        = ox1;
 }
 
 
@@ -1222,11 +1436,10 @@ horizontal_adjust(coord &x1, coord &x2) const
 // ============================================================================
 
 template <>
-inline blitter::pixword
-blitter::blitop_mono_fg<blitter::mode::MONOCHROME_REVERSE>
-        (blitter::pixword dst,
-         blitter::pixword src,
-         blitter::pixword arg)
+inline blitter::pixword blitter::blitop_mono_fg<
+    blitter::mode::MONOCHROME_REVERSE>(blitter::pixword dst,
+                                       blitter::pixword src,
+                                       blitter::pixword arg)
 // -------------------------------------------------------------------------
 //   Bitmap foreground colorization (1bpp destination)
 // -------------------------------------------------------------------------
@@ -1236,10 +1449,10 @@ blitter::blitop_mono_fg<blitter::mode::MONOCHROME_REVERSE>
 }
 
 template <>
-inline blitter::pixword
-blitter::blitop_mono_fg<blitter::mode::MONOCHROME>(blitter::pixword dst,
-                                                     blitter::pixword src,
-                                                     blitter::pixword arg)
+inline blitter::pixword blitter::blitop_mono_fg<blitter::mode::MONOCHROME>(
+    blitter::pixword dst,
+    blitter::pixword src,
+    blitter::pixword arg)
 // -------------------------------------------------------------------------
 //   Bitmap foreground colorization (1bpp destination)
 // -------------------------------------------------------------------------
@@ -1249,10 +1462,10 @@ blitter::blitop_mono_fg<blitter::mode::MONOCHROME>(blitter::pixword dst,
 }
 
 template <>
-inline blitter::pixword
-blitter::blitop_mono_fg<blitter::mode::GRAY_4BPP>(blitter::pixword dst,
-                                                    blitter::pixword src,
-                                                    blitter::pixword arg)
+inline blitter::pixword blitter::blitop_mono_fg<blitter::mode::GRAY_4BPP>(
+    blitter::pixword dst,
+    blitter::pixword src,
+    blitter::pixword arg)
 // -------------------------------------------------------------------------
 //   Bitmap foreground colorization (4bpp destination)
 // -------------------------------------------------------------------------
@@ -1266,10 +1479,10 @@ blitter::blitop_mono_fg<blitter::mode::GRAY_4BPP>(blitter::pixword dst,
 }
 
 template <>
-inline blitter::pixword
-blitter::blitop_mono_fg<blitter::mode::RGB_16BPP>(blitter::pixword dst,
-                                                    blitter::pixword src,
-                                                    blitter::pixword arg)
+inline blitter::pixword blitter::blitop_mono_fg<blitter::mode::RGB_16BPP>(
+    blitter::pixword dst,
+    blitter::pixword src,
+    blitter::pixword arg)
 // -------------------------------------------------------------------------
 //   Bitmap foreground colorization (16bpp destination)
 // -------------------------------------------------------------------------
@@ -1283,7 +1496,6 @@ blitter::blitop_mono_fg<blitter::mode::RGB_16BPP>(blitter::pixword dst,
 }
 
 
-
 // ============================================================================
 //
 //    Text rendering operations
@@ -1293,11 +1505,11 @@ blitter::blitop_mono_fg<blitter::mode::RGB_16BPP>(blitter::pixword dst,
 template <blitter::mode Mode>
 template <blitter::clipping Clip>
 blitter::coord blitter::surface<Mode>::glyph(coord       x,
-                                               coord       y,
-                                               unicode    codepoint,
-                                               const font *f,
-                                               pattern     colors,
-                                               blitop      op)
+                                             coord       y,
+                                             unicode     codepoint,
+                                             const font *f,
+                                             pattern     colors,
+                                             blitop      op)
 // ----------------------------------------------------------------------------
 //   Render a glyph on the given surface
 // ----------------------------------------------------------------------------
@@ -1322,11 +1534,11 @@ blitter::coord blitter::surface<Mode>::glyph(coord       x,
 template <blitter::mode Mode>
 template <blitter::clipping Clip>
 blitter::coord blitter::surface<Mode>::glyph(coord       x,
-                                               coord       y,
-                                               unicode    codepoint,
-                                               const font *f,
-                                               pattern     fg,
-                                               pattern     bg)
+                                             coord       y,
+                                             unicode     codepoint,
+                                             const font *f,
+                                             pattern     fg,
+                                             pattern     bg)
 // ----------------------------------------------------------------------------
 //   Render a glyph with a foreground and background
 // ----------------------------------------------------------------------------
@@ -1352,11 +1564,11 @@ blitter::coord blitter::surface<Mode>::glyph(coord       x,
 template <blitter::mode Mode>
 template <blitter::clipping Clip>
 blitter::coord blitter::surface<Mode>::text(coord       x,
-                                              coord       y,
-                                              utf8        text,
-                                              const font *f,
-                                              pattern     colors,
-                                              blitop      op)
+                                            coord       y,
+                                            utf8        text,
+                                            const font *f,
+                                            pattern     colors,
+                                            blitop      op)
 // ----------------------------------------------------------------------------
 //   Render a glyph on the given surface
 // ----------------------------------------------------------------------------
@@ -1364,8 +1576,8 @@ blitter::coord blitter::surface<Mode>::text(coord       x,
     while (*text)
     {
         unicode cp = utf8_codepoint(text);
-        text = utf8_next(text);
-        x = glyph<Clip>(x, y, cp, f, colors, op);
+        text       = utf8_next(text);
+        x          = glyph<Clip>(x, y, cp, f, colors, op);
     }
     return x;
 }
@@ -1374,11 +1586,11 @@ blitter::coord blitter::surface<Mode>::text(coord       x,
 template <blitter::mode Mode>
 template <blitter::clipping Clip>
 blitter::coord blitter::surface<Mode>::text(coord       x,
-                                              coord       y,
-                                              utf8        text,
-                                              const font *f,
-                                              pattern     fg,
-                                              pattern     bg)
+                                            coord       y,
+                                            utf8        text,
+                                            const font *f,
+                                            pattern     fg,
+                                            pattern     bg)
 // ----------------------------------------------------------------------------
 //   Render a text with a foreground and background
 // ----------------------------------------------------------------------------
@@ -1386,8 +1598,8 @@ blitter::coord blitter::surface<Mode>::text(coord       x,
     while (*text)
     {
         unicode cp = utf8_codepoint(text);
-        text = utf8_next(text);
-        x = glyph<Clip>(x, y, cp, f, fg, bg);
+        text       = utf8_next(text);
+        x          = glyph<Clip>(x, y, cp, f, fg, bg);
     }
     return x;
 }
@@ -1395,12 +1607,12 @@ blitter::coord blitter::surface<Mode>::text(coord       x,
 template <blitter::mode Mode>
 template <blitter::clipping Clip>
 blitter::coord blitter::surface<Mode>::text(coord       x,
-                                              coord       y,
-                                              utf8        text,
-                                              size_t      len,
-                                              const font *f,
-                                              pattern     colors,
-                                              blitop      op)
+                                            coord       y,
+                                            utf8        text,
+                                            size_t      len,
+                                            const font *f,
+                                            pattern     colors,
+                                            blitop      op)
 // ----------------------------------------------------------------------------
 //   Render a glyph on the given surface
 // ----------------------------------------------------------------------------
@@ -1408,9 +1620,9 @@ blitter::coord blitter::surface<Mode>::text(coord       x,
     while (len)
     {
         unicode cp = utf8_codepoint(text);
-        size_t sz = utf8_size(cp);
+        size_t  sz = utf8_size(cp);
         if (sz > len)
-            break;              // Defensive coding, see #101
+            break; // Defensive coding, see #101
         len -= sz;
         x = glyph<Clip>(x, y, cp, f, colors, op);
         text += sz;
@@ -1422,12 +1634,12 @@ blitter::coord blitter::surface<Mode>::text(coord       x,
 template <blitter::mode Mode>
 template <blitter::clipping Clip>
 blitter::coord blitter::surface<Mode>::text(coord       x,
-                                              coord       y,
-                                              utf8        text,
-                                              size_t      len,
-                                              const font *f,
-                                              pattern     fg,
-                                              pattern     bg)
+                                            coord       y,
+                                            utf8        text,
+                                            size_t      len,
+                                            const font *f,
+                                            pattern     fg,
+                                            pattern     bg)
 // ----------------------------------------------------------------------------
 //   Render a text with a foreground and background
 // ----------------------------------------------------------------------------
@@ -1435,9 +1647,9 @@ blitter::coord blitter::surface<Mode>::text(coord       x,
     while (len)
     {
         unicode cp = utf8_codepoint(text);
-        size_t sz = utf8_size(cp);
+        size_t  sz = utf8_size(cp);
         if (sz > len)
-            break;              // Defensive coding, see #101
+            break; // Defensive coding, see #101
         len -= sz;
         x = glyph<Clip>(x, y, cp, f, fg, bg);
         text += sz;
@@ -1447,10 +1659,13 @@ blitter::coord blitter::surface<Mode>::text(coord       x,
 
 
 template <blitter::mode Mode>
-template<blitter::clipping Clip>
-void blitter::surface<Mode>::line(coord x1, coord y1,
-                                  coord x2, coord y2,
-                                  size width, pattern fg)
+template <blitter::clipping Clip>
+void blitter::surface<Mode>::line(coord   x1,
+                                  coord   y1,
+                                  coord   x2,
+                                  coord   y2,
+                                  size    width,
+                                  pattern fg)
 // --------------------------------------------------------------------
 //   Draw a line between the given coordinates
 // --------------------------------------------------------------------
@@ -1479,6 +1694,64 @@ void blitter::surface<Mode>::line(coord x1, coord y1,
             d += dx;
         }
     }
+}
+
+
+template <blitter::mode Mode>
+template <blitter::clipping Clip>
+void blitter::surface<Mode>::ellipse(coord   x1,
+                                     coord   y1,
+                                     coord   x2,
+                                     coord   y2,
+                                     size    width,
+                                     pattern fg)
+// ----------------------------------------------------------------------------
+//   Draw an ellipse between the given coordinates
+// ----------------------------------------------------------------------------
+{
+    coord xc = (x1 + x2) / 2;
+    coord yc = (y1 + y2) / 2;
+    size  a  = (x2 > x1 ? x2 - x1 : x1 - x2)/2;
+    size  b  = (y2 > y1 ? y2 - y1 : y1 - y2)/2;
+    uint  a2 = uint(a) * uint(a);
+    uint  b2 = uint(b) * uint(b);
+    int   d  = 0;
+    coord x  = a;
+    coord y  = 0;
+    size  wn = width / 2;
+    size  wp = (width - 1) / 2;
+
+    do
+    {
+        if (width)
+        {
+            fill<Clip>(xc + x - wn, yc + y - wn, xc + x + wp, yc + y + wp, fg);
+            fill<Clip>(xc - x - wn, yc + y - wn, xc - x + wp, yc + y + wp, fg);
+            fill<Clip>(xc + x - wn, yc - y - wn, xc + x + wp, yc - y + wp, fg);
+            fill<Clip>(xc - x - wn, yc - y - wn, xc - x + wp, yc - y + wp, fg);
+        }
+        else
+        {
+            fill<Clip>(xc - x, yc - y, xc + x + 1, yc - y + 1, fg);
+            fill<Clip>(xc - x, yc + y, xc + x + 1, yc + y + 1, fg);
+        }
+
+        int dx = b2 * x;
+        int dy = a2 * y;
+        if (d <= 0)
+        {
+            y++;
+            d += dy;
+        }
+        if (d >= 0)
+        {
+            x--;
+            d -= dx;
+        }
+
+        // fprintf(stderr, "x=%d y=%d a=%d b=%d\n", x, y, a, b);
+    }
+    while (x >= 0);
 }
 
 #endif // BLITTER_H

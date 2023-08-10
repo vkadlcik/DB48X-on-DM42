@@ -328,6 +328,8 @@ NAMED(doerr, "DoError")
 NAMED(disp, "DrawText")
 NAMED(dispxy, "DrawStyledText")
 NAMED(line, "DrawLine")
+NAMED(ellipse, "DrawEllipse")
+NAMED(circle, "DrawCircle")
 NAMED(cllcd, "ClearLCD")
 
 

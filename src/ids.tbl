@@ -330,6 +330,8 @@ NAMED(dispxy, "DrawStyledText")
 NAMED(line, "DrawLine")
 NAMED(ellipse, "DrawEllipse")
 NAMED(circle, "DrawCircle")
+NAMED(Rect, "DrawRectangle")
+NAMED(rrect, "DrawRoundedRectangle")
 NAMED(cllcd, "ClearLCD")
 
 

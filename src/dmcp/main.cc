@@ -189,8 +189,8 @@ void program_init()
     // Experimentally, this is the amount of memory we need to leave free
     size_t size = sys_free_mem() - 10 * 1024;
 #else
-    // Give 256 bytes to the runtime to stress-test the GC
-    size_t size = 2048;
+    // Give 4K bytes to the runtime to stress-test the GC
+    size_t size = 4096;
 #endif
     byte *memory = (byte *) malloc(size);
     rt.memory(memory, size);

@@ -580,6 +580,27 @@ struct blitter
                     fg);
         }
 
+        template <clipping Clip = CLIP_DST>
+        void rectangle(coord x1, coord y1,
+                       coord x2, coord y2,
+                       size width, pattern fg)
+        // --------------------------------------------------------------------
+        //   Draw a rectangle
+        // --------------------------------------------------------------------
+        {
+            rounded_rectangle(x1, y1, x2, y2, 0, width, fg);
+        }
+
+        template <clipping Clip = CLIP_DST>
+        void rounded_rectangle(coord x1, coord y1,
+                               coord x2, coord y2,
+                               size r, size width, pattern fg);
+        // --------------------------------------------------------------------
+        //   Draw a rounded rectangle between the given coordinates
+        // --------------------------------------------------------------------
+
+
+
       protected:
         offset pixel_offset(coord x, coord y) const
         // ---------------------------------------------------------------------
@@ -1749,6 +1770,84 @@ void blitter::surface<Mode>::ellipse(coord   x1,
         }
     }
     while (x >= 0);
+}
+
+
+template <blitter::mode Mode>
+template <blitter::clipping Clip>
+void blitter::surface<Mode>::rounded_rectangle(coord   x1,
+                                               coord   y1,
+                                               coord   x2,
+                                               coord   y2,
+                                               size    r,
+                                               size    width,
+                                               pattern fg)
+// ----------------------------------------------------------------------------
+//   Draw a rounded rectangle between the given coordinates
+// ----------------------------------------------------------------------------
+{
+    coord xc = (x1 + x2) / 2;
+    coord yc = (y1 + y2) / 2;
+    size  a  = (x2 > x1 ? x2 - x1 : x1 - x2)/2;
+    size  b  = (y2 > y1 ? y2 - y1 : y1 - y2)/2;
+    r /= 2;
+    if (r > a)
+        r = a;
+    if (r > b)
+        r = b;
+    int   d  = r / 2;
+    coord x  = r;
+    coord y  = 0;
+    size  wn = width / 2;
+    size  wp = (width - 1) / 2;
+    coord xl = xc - a;
+    coord xr = xc + a;
+    coord yt = yc - b;
+    coord yb = yc + b;
+
+    a -= r;
+    b -= r;
+    while (x >= y)
+    {
+        if (width)
+        {
+            fill<Clip>(xl - x - wn, yt - y - wn, xl - x + wp, yt - y + wp, fg);
+            fill<Clip>(xl - y - wn, yt - x - wn, xl - y + wp, yt - x + wp, fg);
+            fill<Clip>(xr + x - wn, yt - y - wn, xr + x + wp, yt - y + wp, fg);
+            fill<Clip>(xr + y - wn, yt - x - wn, xr + y + wp, yt - x + wp, fg);
+            fill<Clip>(xl - x - wn, yb + y - wn, xl - x + wp, yb + y + wp, fg);
+            fill<Clip>(xl - y - wn, yb + x - wn, xl - y + wp, yb + x + wp, fg);
+            fill<Clip>(xr + x - wn, yb + y - wn, xr + x + wp, yb + y + wp, fg);
+            fill<Clip>(xr + y - wn, yb + x - wn, xr + y + wp, yb + x + wp, fg);
+        }
+        else
+        {
+            fill<Clip>(xl - x, yt - y, xr + x, yt - y, fg);
+            fill<Clip>(xl - y, yt - x, xr + y, yt - x, fg);
+            fill<Clip>(xl - x, yb + y, xr + x, yb + y, fg);
+            fill<Clip>(xl - y, yb + x, xr + y, yb + x, fg);
+        }
+
+        y++;
+        d -= y;
+        if (d < 0)
+        {
+            x--;
+            d += x;
+        }
+    }
+
+    if (width)
+    {
+        fill<Clip>(xl - wn,     yt - r - wn, xr + wp,     yt - r + wp, fg);
+        fill<Clip>(xl - wn,     yb + r - wn, xr + wp,     yb + r + wp, fg);
+        fill<Clip>(xl - r - wn, yt - wn,     xl - r + wp, yb + wp,     fg);
+        fill<Clip>(xr + r - wn, yt - wn,     xr + r + wp, yb + wp,     fg);
+    }
+    else
+    {
+        fill<Clip>(xl - r, yt, xr + r, yb, fg);
+    }
 }
 
 #endif // BLITTER_H

@@ -340,6 +340,66 @@ COMMAND_BODY(circle)
 }
 
 
+COMMAND_BODY(Rect)
+// ----------------------------------------------------------------------------
+//   Draw a rectangle between the given coordinates
+// ----------------------------------------------------------------------------
+{
+    object_p x1o = rt.stack(3);
+    object_p y1o = rt.stack(2);
+    object_p x2o = rt.stack(1);
+    object_p y2o = rt.stack(0);
+    if (x1o && y1o && x2o && y2o)
+    {
+        coord x1 = to_coord(x1o, 1);
+        coord y1 = to_coord(y1o, 1);
+        coord x2 = to_coord(x2o, 1);
+        coord y2 = to_coord(y2o, 1);
+        if (!rt.error())
+        {
+            rt.drop(4);
+            Screen.rectangle(x1, y1, x2, y2,
+                             Settings.line_width, Settings.foreground);
+            ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
+            refresh_dirty();
+            return OK;
+        }
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(rrect)
+// ----------------------------------------------------------------------------
+//   Draw a rounded rectangle between the given coordinates
+// ----------------------------------------------------------------------------
+{
+    object_p x1o = rt.stack(4);
+    object_p y1o = rt.stack(3);
+    object_p x2o = rt.stack(2);
+    object_p y2o = rt.stack(1);
+    object_p ro  = rt.stack(0);
+    if (x1o && y1o && x2o && y2o && ro)
+    {
+        coord x1 = to_coord(x1o, 1);
+        coord y1 = to_coord(y1o, 1);
+        coord x2 = to_coord(x2o, 1);
+        coord y2 = to_coord(y2o, 1);
+        coord r  = to_coord(ro, 1);
+        if (!rt.error())
+        {
+            rt.drop(5);
+            Screen.rounded_rectangle(x1, y1, x2, y2, r,
+                                     Settings.line_width, Settings.foreground);
+            ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
+            refresh_dirty();
+            return OK;
+        }
+    }
+    return ERROR;
+}
+
+
 COMMAND_BODY(cllcd)
 // ----------------------------------------------------------------------------
 //   Clear the LCD screen before drawing stuff on it

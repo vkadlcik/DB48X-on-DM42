@@ -52,6 +52,7 @@
 #include "loops.h"
 #include "menu.h"
 #include "parser.h"
+#include "plot.h"
 #include "program.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -691,6 +692,35 @@ bool object::is_same_as(object_p other) const
         return false;
     return memcmp(this, other, sz) == 0;
 }
+
+
+algebraic_p object::algebraic_child(uint index) const
+// ----------------------------------------------------------------------------
+//    For a complex, list or array, return nth element as algebraic
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    switch (ty)
+    {
+    case ID_rectangular:
+        return index ? rectangular_p(this)->im() : rectangular_p(this)->re();
+    case ID_polar:
+        return index ? polar_p(this)->im() : polar_p(this)->re();
+
+    case ID_list:
+    case ID_array:
+        if (object_p obj = list_p(this)->at(index))
+            if (obj->is_algebraic())
+                return algebraic_p(obj);
+        rt.value_error();
+        break;
+    default:
+        rt.type_error();
+        break;
+    }
+    return nullptr;
+}
+
 
 
 #if SIMULATOR

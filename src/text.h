@@ -83,6 +83,11 @@ struct text : algebraic
         return make(utf8(str), len);
     }
 
+    static text_p make(cstring str)
+    {
+        return make(utf8(str), strlen(str));
+    }
+
     size_t length() const
     {
         byte_p p = payload(this);

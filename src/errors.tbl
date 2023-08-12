@@ -63,5 +63,6 @@ ERROR(malformed_directory,      "Malformed directory")
 ERROR(missing_variable,         "Expected variable name")
 ERROR(number_too_big,           "Number is too big")
 ERROR(too_many_rewrites,        "Too many rewrites")
+ERROR(invalid_ppar,             "Invalid PlotParameters")
 
 #undef ERROR

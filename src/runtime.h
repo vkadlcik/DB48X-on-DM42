@@ -770,6 +770,7 @@ using gcutf8    = gcp<byte>;
 using gcmutf8   = gcm<byte>;
 
 using object_g  = gcp<object>;
+typedef const object_g &object_r;
 
 #define GCP(T)                                  \
     struct T;                                   \

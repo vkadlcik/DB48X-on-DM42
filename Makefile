@@ -200,6 +200,7 @@ CXX_SOURCES +=				\
 	src/conditionals.cc		\
 	src/font.cc			\
 	src/graphics.cc			\
+	src/plot.cc			\
 	fonts/HelpFont.cc		\
 	fonts/EditorFont.cc		\
 	fonts/StackFont.cc

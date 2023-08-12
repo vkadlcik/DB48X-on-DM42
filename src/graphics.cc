@@ -40,37 +40,247 @@
 #include "sysmenu.h"
 #include "target.h"
 #include "user_interface.h"
+#include "variables.h"
 
 typedef const based_integer *based_integer_p;
 typedef const based_bignum  *based_bignum_p;
-using std::min;
 using std::max;
+using std::min;
 
 
-static coord to_coord(object_g pos, int scaling)
+
+// ============================================================================
+//
+//   Plot parameters
+//
+// ============================================================================
+
+PlotParameters::PlotParameters()
+// ----------------------------------------------------------------------------
+//   Default values
+// ----------------------------------------------------------------------------
+    : type(command::ID_Function),
+      xmin(integer::make(-10)),
+      ymin(integer::make(-6)),
+      xmax(integer::make(10)),
+      ymax(integer::make(6)),
+      independent(symbol::make("x")),
+      dependent(symbol::make("y")),
+      resolution(integer::make(0)),
+      xorigin(integer::make(0)),
+      yorigin(integer::make(0)),
+      xticks(integer::make(1)),
+      yticks(integer::make(1)),
+      xlabel(text::make("x")),
+      ylabel(text::make("y"))
+{
+    parse();
+}
+
+
+bool PlotParameters::parse(list_g parms)
+// ----------------------------------------------------------------------------
+//   Parse a PPAR / PlotParameters list
+// ----------------------------------------------------------------------------
+{
+    if (!parms)
+        return false;
+
+    uint index = 0;
+    for (object_p obj: *parms)
+    {
+        bool valid = false;
+        switch(index)
+        {
+        case 0:                 // xmin,ymin
+        case 1:                 // xmax,ymax
+            if (algebraic_g xa = obj->algebraic_child(0))
+            {
+                if (algebraic_g ya = obj->algebraic_child(1))
+                {
+                    (index ? xmax : xmin) = xa;
+                    (index ? ymax : ymin) = ya;
+                    valid = true;
+                }
+            }
+            break;
+
+        case 2:                 // Independent variable
+        case 6:                 // Dependent variable
+            if (symbol_g sym = obj->as<symbol>())
+            {
+                (index == 2 ? independent : dependent) = sym;
+                valid = true;
+            }
+            break;
+
+        case 3:
+            valid = obj->is_real() || obj->is_based();
+            if (valid)
+                resolution = algebraic_p(obj);
+            break;
+        case 4:
+            if (list_g origin = obj->as<list>())
+            {
+                obj = origin->at(0);
+                if (object_p ticks = origin->at(1))
+                {
+                    if (ticks->is_real() || ticks->is_based())
+                    {
+                        xticks = yticks = algebraic_p(ticks);
+                        valid = true;
+                    }
+                    else if (list_p tickxy = ticks->as<list>())
+                    {
+                        if (algebraic_g xa = tickxy->algebraic_child(0))
+                        {
+                            if (algebraic_g ya = tickxy->algebraic_child(0))
+                            {
+                                xticks = xa;
+                                yticks = ya;
+                                valid = true;
+                            }
+                        }
+                    }
+
+                }
+                if (valid)
+                {
+                    if (object_p xl = origin->at(2))
+                    {
+                        valid = false;
+                        if (object_p yl = origin->at(3))
+                        {
+                            if (text_p xt = xl->as<text>())
+                            {
+                                if (text_p yt = yl->as<text>())
+                                {
+                                    xlabel = xt;
+                                    ylabel = yt;
+                                    valid = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (!valid)
+                {
+                    rt.invalid_ppar_error();
+                    return false;
+                }
+            }
+            if (obj->is_complex())
+            {
+                if (algebraic_g xa = obj->algebraic_child(0))
+                {
+                    if (algebraic_g ya = obj->algebraic_child(1))
+                    {
+                        xorigin = xa;
+                        yorigin = ya;
+                        valid = true;
+                    }
+                }
+            }
+            break;
+        case 5:
+            valid = obj->is_plot();
+            if (valid)
+                type = obj->type();
+            break;
+
+        default:
+            break;
+        }
+        if (!valid)
+        {
+            rt.invalid_ppar_error();
+            return false;
+        }
+        index++;
+    }
+    return true;
+}
+
+
+bool PlotParameters::parse(symbol_g name)
+// ----------------------------------------------------------------------------
+//   Parse plot parameters from a variable name
+// ----------------------------------------------------------------------------
+{
+    if (object_p obj = directory::recall_all(name))
+        if (list_p parms = obj->as<list>())
+            return parse(parms);
+    return false;
+}
+
+
+bool PlotParameters::parse(cstring name)
+// ----------------------------------------------------------------------------
+//   Parse plot parameters from C variable name
+// ----------------------------------------------------------------------------
+{
+    symbol_p sym = symbol::make(name);
+    return parse(sym);
+}
+
+
+bool PlotParameters::parse()
+// ----------------------------------------------------------------------------
+//   Check if we have PlotParameters or PPAR
+// ----------------------------------------------------------------------------
+{
+    return parse("PlotParameters") || parse("PPAR");
+}
+
+
+
+// ============================================================================
+//
+//   Coordinate conversions
+//
+// ============================================================================
+
+coord PlotParameters::pixel_adjust(object_r obj,
+                                   algebraic_r min,
+                                   algebraic_r max,
+                                   uint scale)
 // ----------------------------------------------------------------------------
 //  Convert an object to a coordinate
 // ----------------------------------------------------------------------------
 {
-    coord y = 0;
-    object::id ty = pos->type();
+    if (!obj.Safe())
+        return 0;
+
+    coord       result = 0;
+    object::id  ty     = obj->type();
 
     switch(ty)
     {
     case object::ID_integer:
     case object::ID_neg_integer:
-        y = integer_p(pos.Safe())->value<uint16_t>();
-        if (ty == object::ID_neg_integer)
-            y = -y;
-        y = scaling * (y - 1);
-        break;
     case object::ID_bignum:
     case object::ID_neg_bignum:
-        y = bignum_p(pos.Safe())->value<uint16_t>();
-        if (ty == object::ID_neg_bignum)
-            y = -y;
-        y = scaling * (y - 1);
-        break;
+    case object::ID_fraction:
+    case object::ID_neg_fraction:
+    case object::ID_big_fraction:
+    case object::ID_neg_big_fraction:
+    case object::ID_decimal32:
+    case object::ID_decimal64:
+    case object::ID_decimal128:
+    {
+        algebraic_g range  = max - min;
+        algebraic_g pos    = algebraic_p(obj.Safe());
+        algebraic_g sa     = integer::make(scale);
+
+        // Avoid divide by zero for bogus input
+        if (!range || range->is_zero())
+            range = integer::make(1);
+
+        pos = (pos - min) / range * sa;
+        if (pos)
+            result = pos->as_int32(0, false);
+        return result;
+    }
 
 #if CONFIG_FIXED_BASED_OBJECTS
     case object::ID_hex_integer:
@@ -79,7 +289,7 @@ static coord to_coord(object_g pos, int scaling)
     case object::ID_bin_integer:
 #endif // CONFIG_FIXED_BASED_OBJECTS
     case object::ID_based_integer:
-        y = based_integer_p(pos.Safe())->value<coord>();
+        result = based_integer_p(obj.Safe())->value<coord>();
         break;
 
 #if CONFIG_FIXED_BASED_OBJECTS
@@ -89,41 +299,37 @@ static coord to_coord(object_g pos, int scaling)
     case object::ID_bin_bignum:
 #endif // CONFIG_FIXED_BASED_OBJECTS
     case object::ID_based_bignum:
-        y = based_bignum_p(pos.Safe())->value<coord>();
+        result = based_bignum_p(obj.Safe())->value<coord>();
         break;
 
-    case object::ID_neg_fraction:
-    case object::ID_neg_big_fraction:
-    case object::ID_fraction:
-    case object::ID_big_fraction:
-        y = scaling
-            * fraction_p(pos.Safe())->numerator()->value<coord>()
-            / fraction_p(pos.Safe())->denominator()->value<coord>()
-            * (1 - 2 * (ty == object::ID_neg_fraction ||
-                        ty == object::ID_neg_big_fraction))
-            - scaling;
-        break;
-
-    case object::ID_decimal32:
-    case object::ID_decimal64:
-    case object::ID_decimal128:
-    {
-        algebraic_g ya = algebraic_p(pos.Safe());
-        if (algebraic::real_promotion(ya, object::ID_decimal128))
-        {
-            algebraic_g scale = algebraic_p(integer::make(scaling));
-            ya = ya * scale;
-            if (ya.Safe())
-                y = ya->as_uint32(0, true);
-        }
-        break;
-    }
     default:
         rt.type_error();
         break;
     }
 
-    return y;
+    return result;
+}
+
+
+coord PlotParameters::pixel_x(object_r pos) const
+// ----------------------------------------------------------------------------
+//   Given a position (can be a complex, a list or a vector), return x
+// ----------------------------------------------------------------------------
+{
+    if (object_g x = pos->algebraic_child(0))
+        return pixel_adjust(x, xmin, xmax, Screen.area().width());
+    return 0;
+}
+
+
+coord PlotParameters::pixel_y(object_r pos) const
+// ----------------------------------------------------------------------------
+//   Given a position (can be a complex, a list or a vector), return y
+// ----------------------------------------------------------------------------
+{
+    if (object_g y = pos->algebraic_child(1))
+        return pixel_adjust(y, ymin, ymax, Screen.area().height());
+    return 0;
 }
 
 
@@ -144,58 +350,39 @@ COMMAND_BODY(Disp)
     {
         if (object_g todisp = rt.pop())
         {
-            coord  x       = 0;
-            coord  y       = 0;
-            font_p font    = settings::font(settings::STACK);
-            bool   erase   = true;
-            bool   invert  = false;
+            PlotParameters ppar;
+            coord          x      = 0;
+            coord          y      = 0;
+            font_p         font   = settings::font(settings::STACK);
+            bool           erase  = true;
+            bool           invert = false;
+            id             ty     = pos->type();
 
-            if (rectangular_g rpos = pos->as<rectangular>())
+            if (ty == ID_rectangular || ty == ID_polar ||
+                ty == ID_list || ty == ID_array)
             {
-                x = to_coord(rpos->x().Safe(), 30);
-                y = to_coord(rpos->y().Safe(), 30);
-            }
-            else if (list_p args = pos->as<list>())
-            {
-                int      fontid = -1;
-                uint     idx    = 0;
-                object_g xo, yo;
+                x = ppar.pixel_x(pos);
+                y = ppar.pixel_y(pos);
 
-                for (object_p obj : *args)
+                if (ty == ID_list || ty == ID_array)
                 {
-                    idx++;
-                    switch(idx)
+                    list_g args = list_p(pos.Safe());
+                    if (object_p fontid = args->at(2))
                     {
-                    case 1: xo = obj; break;
-                    case 2: yo = obj; break;
-                    case 3: fontid = obj->as_uint32(true); break;
-                    case 4: erase = obj->as_truth(true); break;
-                    case 5: invert = obj->as_truth(true); break;
-                    default: xo = nullptr; break;
+                        uint32_t i = fontid->as_uint32(settings::STACK, false);
+                        font = settings::font(settings::font_id(i));
                     }
-                }
-
-                if (!xo || !yo)
-                {
-                    rt.type_error();
-                    return ERROR;
-                }
-
-                if (fontid >= 0)
-                {
-                    font_p font = settings::font(settings::font_id(fontid));
-                    x = to_coord(xo, font->height());
-                    y = to_coord(yo, font->width('M'));
-                }
-                else
-                {
-                    x = to_coord(xo, 30);
-                    y = to_coord(yo, 30);
+                    if (object_p eflag = args->at(3))
+                        erase = eflag->as_truth(true);
+                    if (object_p iflag = args->at(4))
+                        invert = iflag->as_truth(true);
                 }
             }
-            else
+            else if (pos->is_algebraic())
             {
-                y = to_coord(pos, 30);
+                algebraic_g ya = algebraic_p(pos.Safe());
+                ya = ya * integer::make(LCD_H/8);
+                y = ya->as_uint32(0, false) - (LCD_H/8);
             }
 
             utf8          txt = nullptr;
@@ -207,8 +394,8 @@ COMMAND_BODY(Disp)
             else if (text_p tr = todisp->as_text(true, false))
                 txt = tr->value(&len);
 
-            pattern bg   = invert ? pattern::black : pattern::white;
-            pattern fg   = invert ? pattern::white : pattern::black;
+            pattern bg   = invert ? Settings.foreground : Settings.background;
+            pattern fg   = invert ? Settings.background : Settings.foreground;
             utf8    last = txt + len;
 
             ui.draw_start(false);
@@ -259,19 +446,18 @@ COMMAND_BODY(Line)
 //   Draw a line between the coordinates
 // ----------------------------------------------------------------------------
 {
-    object_p x1o = rt.stack(3);
-    object_p y1o = rt.stack(2);
-    object_p x2o = rt.stack(1);
-    object_p y2o = rt.stack(0);
-    if (x1o && y1o && x2o && y2o)
+    object_g p1 = rt.stack(1);
+    object_g p2 = rt.stack(0);
+    if (p1 && p2)
     {
-        coord x1 = to_coord(x1o, 1);
-        coord y1 = to_coord(y1o, 1);
-        coord x2 = to_coord(x2o, 1);
-        coord y2 = to_coord(y2o, 1);
+        PlotParameters ppar;
+        coord x1 = ppar.pixel_x(p1);
+        coord y1 = ppar.pixel_y(p1);
+        coord x2 = ppar.pixel_x(p2);
+        coord y2 = ppar.pixel_y(p2);
         if (!rt.error())
         {
-            rt.drop(4);
+            rt.drop(2);
             Screen.line(x1, y1, x2, y2,
                         Settings.line_width, Settings.foreground);
             ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
@@ -288,19 +474,18 @@ COMMAND_BODY(Ellipse)
 //   Draw an ellipse between the given coordinates
 // ----------------------------------------------------------------------------
 {
-    object_p x1o = rt.stack(3);
-    object_p y1o = rt.stack(2);
-    object_p x2o = rt.stack(1);
-    object_p y2o = rt.stack(0);
-    if (x1o && y1o && x2o && y2o)
+    object_g p1 = rt.stack(1);
+    object_g p2 = rt.stack(0);
+    if (p1 && p2)
     {
-        coord x1 = to_coord(x1o, 1);
-        coord y1 = to_coord(y1o, 1);
-        coord x2 = to_coord(x2o, 1);
-        coord y2 = to_coord(y2o, 1);
+        PlotParameters ppar;
+        coord x1 = ppar.pixel_x(p1);
+        coord y1 = ppar.pixel_y(p1);
+        coord x2 = ppar.pixel_x(p2);
+        coord y2 = ppar.pixel_y(p2);
         if (!rt.error())
         {
-            rt.drop(4);
+            rt.drop(2);
             Screen.ellipse(x1, y1, x2, y2,
                            Settings.line_width, Settings.foreground);
             ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
@@ -317,19 +502,20 @@ COMMAND_BODY(Circle)
 //   Draw a circle between the given coordinates
 // ----------------------------------------------------------------------------
 {
-    object_p xo = rt.stack(2);
-    object_p yo = rt.stack(1);
-    object_p ro = rt.stack(0);
-    if (xo && yo && ro)
+    object_g co = rt.stack(1);
+    object_g ro = rt.stack(0);
+    if (co && ro)
     {
-        coord x = to_coord(xo, 1);
-        coord y = to_coord(yo, 1);
-        coord r  = to_coord(ro, 1);
+        PlotParameters ppar;
+        coord x = ppar.pixel_x(co);
+        coord y = ppar.pixel_y(co);
+        coord r = ppar.pixel_adjust(ro, ppar.xmin, ppar.xmax,
+                                    Screen.area().width());
         if (r < 0)
             r = -r;
         if (!rt.error())
         {
-            rt.drop(3);
+            rt.drop(2);
             Screen.circle(x, y, r, Settings.line_width, Settings.foreground);
             ui.draw_dirty(x-r, y-r, x+r, y+r);
             refresh_dirty();
@@ -345,19 +531,18 @@ COMMAND_BODY(Rect)
 //   Draw a rectangle between the given coordinates
 // ----------------------------------------------------------------------------
 {
-    object_p x1o = rt.stack(3);
-    object_p y1o = rt.stack(2);
-    object_p x2o = rt.stack(1);
-    object_p y2o = rt.stack(0);
-    if (x1o && y1o && x2o && y2o)
+    object_g p1 = rt.stack(1);
+    object_g p2 = rt.stack(0);
+    if (p1 && p2)
     {
-        coord x1 = to_coord(x1o, 1);
-        coord y1 = to_coord(y1o, 1);
-        coord x2 = to_coord(x2o, 1);
-        coord y2 = to_coord(y2o, 1);
+        PlotParameters ppar;
+        coord x1 = ppar.pixel_x(p1);
+        coord y1 = ppar.pixel_y(p1);
+        coord x2 = ppar.pixel_x(p2);
+        coord y2 = ppar.pixel_y(p2);
         if (!rt.error())
         {
-            rt.drop(4);
+            rt.drop(2);
             Screen.rectangle(x1, y1, x2, y2,
                              Settings.line_width, Settings.foreground);
             ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
@@ -374,21 +559,21 @@ COMMAND_BODY(RRect)
 //   Draw a rounded rectangle between the given coordinates
 // ----------------------------------------------------------------------------
 {
-    object_p x1o = rt.stack(4);
-    object_p y1o = rt.stack(3);
-    object_p x2o = rt.stack(2);
-    object_p y2o = rt.stack(1);
-    object_p ro  = rt.stack(0);
-    if (x1o && y1o && x2o && y2o && ro)
+    object_g p1 = rt.stack(2);
+    object_g p2 = rt.stack(1);
+    object_g ro = rt.stack(0);
+    if (p1 && p2 && ro)
     {
-        coord x1 = to_coord(x1o, 1);
-        coord y1 = to_coord(y1o, 1);
-        coord x2 = to_coord(x2o, 1);
-        coord y2 = to_coord(y2o, 1);
-        coord r  = to_coord(ro, 1);
+        PlotParameters ppar;
+        coord x1 = ppar.pixel_x(p1);
+        coord y1 = ppar.pixel_y(p1);
+        coord x2 = ppar.pixel_x(p2);
+        coord y2 = ppar.pixel_y(p2);
+        coord r  = ppar.pixel_adjust(ro, ppar.xmin, ppar.xmax,
+                                     Screen.area().width());
         if (!rt.error())
         {
-            rt.drop(5);
+            rt.drop(3);
             Screen.rounded_rectangle(x1, y1, x2, y2, r,
                                      Settings.line_width, Settings.foreground);
             ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));

@@ -772,6 +772,24 @@ struct object
     }
 
 
+    static bool is_plot(id ty)
+    // ------------------------------------------------------------------------
+    //   Check if a type name denotes a plot type
+    // ------------------------------------------------------------------------
+    {
+        return ty >= ID_Function && ty <= ID_Parametric;
+    }
+
+
+    bool is_plot() const
+    // ------------------------------------------------------------------------
+    //   Check if an object is a plot type
+    // ------------------------------------------------------------------------
+    {
+        return is_plot(type());
+    }
+
+
     uint arity() const
     // ------------------------------------------------------------------------
     //   Return the arity for arithmetic operators
@@ -848,6 +866,12 @@ struct object
     bool is_same_as(object_p other) const;
     // ------------------------------------------------------------------------
     //   Compare two objects
+    // ------------------------------------------------------------------------
+
+
+    algebraic_p algebraic_child(uint index = 0) const;
+    // ------------------------------------------------------------------------
+    //   Return an algebraic child for a complex, list or array
     // ------------------------------------------------------------------------
 
 

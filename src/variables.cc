@@ -297,6 +297,19 @@ object_p directory::recall(object_p ref) const
 }
 
 
+object_p directory::recall_all(object_p name)
+// ----------------------------------------------------------------------------
+//   If the referenced object exists in directory, return associated value
+// ----------------------------------------------------------------------------
+{
+    directory *dir = nullptr;
+    for (uint depth = 0; (dir = rt.variables(depth)); depth++)
+        if (object_p value = dir->recall(name))
+            return value;
+    return nullptr;
+}
+
+
 size_t directory::purge(object_p ref)
 // ----------------------------------------------------------------------------
 //    Purge a name (and associated value) from the directory
@@ -448,16 +461,11 @@ COMMAND_BODY(Rcl)
     }
 
     // Lookup all directorys, starting with innermost one
-    directory *dir = nullptr;
-    for (uint depth = 0; (dir = rt.variables(depth)); depth++)
+    if (object_p value = directory::recall_all(name))
     {
-        if (object_p value = dir->recall(name))
-        {
-            if (rt.top(value))
-                return OK;
-            return ERROR;       // Out of memory, cannot happen?
-
-        }
+        if (rt.top(value))
+            return OK;
+        return ERROR;       // Out of memory, cannot happen?
     }
 
     // Otherwise, return an error

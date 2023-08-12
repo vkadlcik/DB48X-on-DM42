@@ -401,13 +401,22 @@ struct blitter
             clip(rect(x1, y1, x2, y2));
         }
 
-        const rect &clip()
+        const rect &clip() const
         // --------------------------------------------------------------------
         //   Return the clipping area
         // --------------------------------------------------------------------
         {
             return drawable;
         }
+
+        rect area() const
+        // --------------------------------------------------------------------
+        //   Return total drawing area
+        // --------------------------------------------------------------------
+        {
+            return rect(width, height);
+        }
+
 
 
         template <clipping Clip = FILL_SAFE>

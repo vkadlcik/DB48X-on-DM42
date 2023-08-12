@@ -419,6 +419,12 @@ CMD(Modes)
 CMD(Version)
 
 
+NAMED(Function,         "FunctionPlot")
+NAMED(Polar,            "PolarPlot")
+NAMED(Parametric,       "ParametricPlot")
+
+
+
 // ============================================================================
 //
 //   Menus

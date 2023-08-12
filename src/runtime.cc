@@ -424,8 +424,8 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
 
     // Adjust the protected pointers
     object_p last = scratch ? (object_p) Stack : from + size;
-    record(gc_details, "Adjustment range is %p-%p, %+s",
-           from, last, scratch ? "scratch" : "no scratch");
+    record(gc_details, "Move %p to %p size %u, %+s",
+           from, to, size, scratch ? "scratch" : "no scratch");
     for (gcptr *p = GCSafe; p; p = p->next)
     {
         if (p->safe >= (byte *) from && p->safe < (byte *) last)

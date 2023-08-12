@@ -97,6 +97,11 @@ struct directory : list
     //    Check if a name exists in the directory, return value pointer if it does
     // ------------------------------------------------------------------------
 
+    static object_p recall_all(object_p name);
+    // ------------------------------------------------------------------------
+    //    Check if a name exists in the directory, return value pointer if it does
+    // ------------------------------------------------------------------------
+
     object_p lookup(object_p name) const;
     // ------------------------------------------------------------------------
     //    Check if a name exists in the directory, return name pointer if it does

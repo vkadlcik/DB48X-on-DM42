@@ -66,7 +66,15 @@ struct PlotParameters
     static coord pixel_adjust(object_r p,
                               algebraic_r min,
                               algebraic_r max,
-                              uint scale);
+                              uint scale,
+                              bool isSize = false);
+    static coord size_adjust(object_r p,
+                             algebraic_r min,
+                             algebraic_r max,
+                             uint scale)
+    {
+        return pixel_adjust(p, min, max, scale, true);
+    }
     coord pixel_x(object_r pos) const;
     coord pixel_y(object_r pos) const;
 };

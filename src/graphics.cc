@@ -240,10 +240,11 @@ bool PlotParameters::parse()
 //
 // ============================================================================
 
-coord PlotParameters::pixel_adjust(object_r obj,
+coord PlotParameters::pixel_adjust(object_r    obj,
                                    algebraic_r min,
                                    algebraic_r max,
-                                   uint scale)
+                                   uint        scale,
+                                   bool        isSize)
 // ----------------------------------------------------------------------------
 //  Convert an object to a coordinate
 // ----------------------------------------------------------------------------
@@ -276,7 +277,9 @@ coord PlotParameters::pixel_adjust(object_r obj,
         if (!range || range->is_zero())
             range = integer::make(1);
 
-        pos = (pos - min) / range * sa;
+        if (!isSize)
+            pos = pos - min;
+        pos = pos / range * sa;
         if (pos)
             result = pos->as_int32(0, false);
         return result;
@@ -497,6 +500,15 @@ COMMAND_BODY(Ellipse)
 }
 
 
+static inline uint RadiusAdjust()
+// ----------------------------------------------------------------------------
+//   Adjustment for the radius of a circle or rounded rectangle
+// ----------------------------------------------------------------------------
+{
+    return Screen.area().width() * 2;
+}
+
+
 COMMAND_BODY(Circle)
 // ----------------------------------------------------------------------------
 //   Draw a circle between the given coordinates
@@ -509,8 +521,7 @@ COMMAND_BODY(Circle)
         PlotParameters ppar;
         coord x = ppar.pixel_x(co);
         coord y = ppar.pixel_y(co);
-        coord r = ppar.pixel_adjust(ro, ppar.xmin, ppar.xmax,
-                                    Screen.area().width());
+        coord r = ppar.size_adjust(ro, ppar.xmin, ppar.xmax, RadiusAdjust());
         if (r < 0)
             r = -r;
         if (!rt.error())
@@ -569,8 +580,7 @@ COMMAND_BODY(RRect)
         coord y1 = ppar.pixel_y(p1);
         coord x2 = ppar.pixel_x(p2);
         coord y2 = ppar.pixel_y(p2);
-        coord r  = ppar.pixel_adjust(ro, ppar.xmin, ppar.xmax,
-                                     Screen.area().width());
+        coord r  = ppar.size_adjust(ro, ppar.xmin, ppar.xmax, RadiusAdjust());
         if (!rt.error())
         {
             rt.drop(3);

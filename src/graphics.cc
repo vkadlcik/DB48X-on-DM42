@@ -127,7 +127,7 @@ static coord to_coord(object_g pos, int scaling)
 }
 
 
-COMMAND_BODY(disp)
+COMMAND_BODY(Disp)
 // ----------------------------------------------------------------------------
 //   Display text on the given line
 // ----------------------------------------------------------------------------
@@ -244,7 +244,7 @@ COMMAND_BODY(disp)
 }
 
 
-COMMAND_BODY(dispxy)
+COMMAND_BODY(DispXY)
 // ----------------------------------------------------------------------------
 //   To be implemented
 // ----------------------------------------------------------------------------
@@ -254,7 +254,7 @@ COMMAND_BODY(dispxy)
 }
 
 
-COMMAND_BODY(line)
+COMMAND_BODY(Line)
 // ----------------------------------------------------------------------------
 //   Draw a line between the coordinates
 // ----------------------------------------------------------------------------
@@ -283,7 +283,7 @@ COMMAND_BODY(line)
 }
 
 
-COMMAND_BODY(ellipse)
+COMMAND_BODY(Ellipse)
 // ----------------------------------------------------------------------------
 //   Draw an ellipse between the given coordinates
 // ----------------------------------------------------------------------------
@@ -312,7 +312,7 @@ COMMAND_BODY(ellipse)
 }
 
 
-COMMAND_BODY(circle)
+COMMAND_BODY(Circle)
 // ----------------------------------------------------------------------------
 //   Draw a circle between the given coordinates
 // ----------------------------------------------------------------------------
@@ -369,7 +369,7 @@ COMMAND_BODY(Rect)
 }
 
 
-COMMAND_BODY(rrect)
+COMMAND_BODY(RRect)
 // ----------------------------------------------------------------------------
 //   Draw a rounded rectangle between the given coordinates
 // ----------------------------------------------------------------------------
@@ -400,7 +400,7 @@ COMMAND_BODY(rrect)
 }
 
 
-COMMAND_BODY(cllcd)
+COMMAND_BODY(ClLCD)
 // ----------------------------------------------------------------------------
 //   Clear the LCD screen before drawing stuff on it
 // ----------------------------------------------------------------------------

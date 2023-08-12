@@ -325,14 +325,14 @@ NAMED(errn, "ErrorNumber")
 NAMED(err0, "ClearError")
 NAMED(doerr, "DoError")
 
-NAMED(disp, "DrawText")
-NAMED(dispxy, "DrawStyledText")
-NAMED(line, "DrawLine")
-NAMED(ellipse, "DrawEllipse")
-NAMED(circle, "DrawCircle")
+NAMED(Disp, "DrawText")
+NAMED(DispXY, "DrawStyledText")
+NAMED(Line, "DrawLine")
+NAMED(Ellipse, "DrawEllipse")
+NAMED(Circle, "DrawCircle")
 NAMED(Rect, "DrawRectangle")
-NAMED(rrect, "DrawRoundedRectangle")
-NAMED(cllcd, "ClearLCD")
+NAMED(RRect, "DrawRoundedRectangle")
+NAMED(ClLCD, "ClearLCD")
 
 
 // ============================================================================

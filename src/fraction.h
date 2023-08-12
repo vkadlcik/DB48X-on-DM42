@@ -87,6 +87,11 @@ struct fraction : algebraic
     bool is_zero() const { return numerator()->is_zero(); }
     bool is_one()  const { return (numerator() - denominator())->is_zero(); }
 
+    uint32_t as_uint32() const
+    {
+        return numerator()->value<ularge>() / denominator()->value<ularge>();
+    }
+
     static fraction_g make(integer_g n, integer_g d);
 
 public:
@@ -137,6 +142,11 @@ struct big_fraction : fraction
 
     bignum_g numerator() const;
     bignum_g denominator() const;
+
+    uint32_t as_uint32() const
+    {
+        return numerator()->value<ularge>() / denominator()->value<ularge>();
+    }
 
 public:
     OBJECT_DECL(big_fraction);

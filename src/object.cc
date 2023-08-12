@@ -286,6 +286,12 @@ uint32_t object::as_uint32(uint32_t def, bool err) const
         bid32_to_uint32_int(&result, &v.value);
         return result;
     }
+
+    case ID_fraction:
+        return fraction_p(this)->as_uint32();
+    case ID_big_fraction:
+        return big_fraction_p(this)->as_uint32();
+
     default:
         if (err)
             rt.type_error();
@@ -327,6 +333,16 @@ int32_t object::as_int32 (int32_t  def, bool err)  const
         bid32_to_int32_int(&result, &v.value);
         return result;
     }
+
+    case ID_fraction:
+        return fraction_p(this)->as_uint32();
+    case ID_neg_fraction:
+        return -fraction_p(this)->as_uint32();
+    case ID_big_fraction:
+        return big_fraction_p(this)->as_uint32();
+    case ID_neg_big_fraction:
+        return -big_fraction_p(this)->as_uint32();
+
     default:
         if (err)
             rt.type_error();

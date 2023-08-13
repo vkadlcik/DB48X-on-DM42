@@ -1709,9 +1709,11 @@ void blitter::surface<Mode>::line(coord   x1,
     size  wn = (width - 1) / 2;
     size  wp = width / 2;
 
-    while (x != x2 && y != y2)
+    while (true)
     {
         fill<Clip>(x - wn, y - wn, x + wp, y + wp, fg);
+        if (x == x2 && y == y2)
+            break;
         if (d >= 0)
         {
             x += sx;

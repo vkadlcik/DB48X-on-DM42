@@ -32,11 +32,13 @@
 #include "arithmetic.h"
 #include "bignum.h"
 #include "blitter.h"
+#include "compare.h"
 #include "complex.h"
 #include "decimal128.h"
 #include "fraction.h"
 #include "integer.h"
 #include "list.h"
+#include "program.h"
 #include "sysmenu.h"
 #include "target.h"
 #include "user_interface.h"
@@ -314,7 +316,7 @@ coord PlotParameters::pixel_adjust(object_r    obj,
 }
 
 
-coord PlotParameters::pixel_x(object_r pos) const
+coord PlotParameters::pair_pixel_x(object_r pos) const
 // ----------------------------------------------------------------------------
 //   Given a position (can be a complex, a list or a vector), return x
 // ----------------------------------------------------------------------------
@@ -325,7 +327,7 @@ coord PlotParameters::pixel_x(object_r pos) const
 }
 
 
-coord PlotParameters::pixel_y(object_r pos) const
+coord PlotParameters::pair_pixel_y(object_r pos) const
 // ----------------------------------------------------------------------------
 //   Given a position (can be a complex, a list or a vector), return y
 // ----------------------------------------------------------------------------
@@ -333,6 +335,26 @@ coord PlotParameters::pixel_y(object_r pos) const
     if (object_g y = pos->algebraic_child(1))
         return pixel_adjust(y, ymin, ymax, Screen.area().height());
     return 0;
+}
+
+
+coord PlotParameters::pixel_x(algebraic_r x) const
+// ----------------------------------------------------------------------------
+//   Adjust a position given as an algebraic value
+// ----------------------------------------------------------------------------
+{
+    object_g xo = object_p(x.Safe());
+    return pixel_adjust(xo, xmin, xmax, Screen.area().width());
+}
+
+
+coord PlotParameters::pixel_y(algebraic_r y) const
+// ----------------------------------------------------------------------------
+//   Adjust a position given as an algebraic value
+// ----------------------------------------------------------------------------
+{
+    object_g yo = object_p(y.Safe());
+    return pixel_adjust(yo, ymin, ymax, Screen.area().height());
 }
 
 
@@ -364,8 +386,8 @@ COMMAND_BODY(Disp)
             if (ty == ID_rectangular || ty == ID_polar ||
                 ty == ID_list || ty == ID_array)
             {
-                x = ppar.pixel_x(pos);
-                y = ppar.pixel_y(pos);
+                x = ppar.pair_pixel_x(pos);
+                y = ppar.pair_pixel_y(pos);
 
                 if (ty == ID_list || ty == ID_array)
                 {
@@ -454,10 +476,10 @@ COMMAND_BODY(Line)
     if (p1 && p2)
     {
         PlotParameters ppar;
-        coord x1 = ppar.pixel_x(p1);
-        coord y1 = ppar.pixel_y(p1);
-        coord x2 = ppar.pixel_x(p2);
-        coord y2 = ppar.pixel_y(p2);
+        coord x1 = ppar.pair_pixel_x(p1);
+        coord y1 = ppar.pair_pixel_y(p1);
+        coord x2 = ppar.pair_pixel_x(p2);
+        coord y2 = ppar.pair_pixel_y(p2);
         if (!rt.error())
         {
             rt.drop(2);
@@ -482,10 +504,10 @@ COMMAND_BODY(Ellipse)
     if (p1 && p2)
     {
         PlotParameters ppar;
-        coord x1 = ppar.pixel_x(p1);
-        coord y1 = ppar.pixel_y(p1);
-        coord x2 = ppar.pixel_x(p2);
-        coord y2 = ppar.pixel_y(p2);
+        coord x1 = ppar.pair_pixel_x(p1);
+        coord y1 = ppar.pair_pixel_y(p1);
+        coord x2 = ppar.pair_pixel_x(p2);
+        coord y2 = ppar.pair_pixel_y(p2);
         if (!rt.error())
         {
             rt.drop(2);
@@ -500,21 +522,21 @@ COMMAND_BODY(Ellipse)
 }
 
 
-static inline uint XRadiusAdjust()
+static inline uint ScreenWidth()
 // ----------------------------------------------------------------------------
 //   Adjustment for the radius of a circle or rounded rectangle
 // ----------------------------------------------------------------------------
 {
-    return Screen.area().width() * 2;
+    return Screen.area().width();
 }
 
 
-static inline uint YRadiusAdjust()
+static inline uint ScreenHeight()
 // ----------------------------------------------------------------------------
 //   Adjustment for the radius of a circle or rounded rectangle
 // ----------------------------------------------------------------------------
 {
-    return Screen.area().height() * 2;
+    return Screen.area().height();
 }
 
 
@@ -528,10 +550,10 @@ COMMAND_BODY(Circle)
     if (co && ro)
     {
         PlotParameters ppar;
-        coord x = ppar.pixel_x(co);
-        coord y = ppar.pixel_y(co);
-        coord rx = ppar.size_adjust(ro, ppar.xmin, ppar.xmax, XRadiusAdjust());
-        coord ry = ppar.size_adjust(ro, ppar.ymin, ppar.ymax, YRadiusAdjust());
+        coord x = ppar.pair_pixel_x(co);
+        coord y = ppar.pair_pixel_y(co);
+        coord rx = ppar.size_adjust(ro, ppar.xmin, ppar.xmax, 2*ScreenWidth());
+        coord ry = ppar.size_adjust(ro, ppar.ymin, ppar.ymax, 2*ScreenHeight());
         if (rx < 0)
             rx = -rx;
         if (ry < 0)
@@ -564,10 +586,10 @@ COMMAND_BODY(Rect)
     if (p1 && p2)
     {
         PlotParameters ppar;
-        coord x1 = ppar.pixel_x(p1);
-        coord y1 = ppar.pixel_y(p1);
-        coord x2 = ppar.pixel_x(p2);
-        coord y2 = ppar.pixel_y(p2);
+        coord x1 = ppar.pair_pixel_x(p1);
+        coord y1 = ppar.pair_pixel_y(p1);
+        coord x2 = ppar.pair_pixel_x(p2);
+        coord y2 = ppar.pair_pixel_y(p2);
         if (!rt.error())
         {
             rt.drop(2);
@@ -593,11 +615,11 @@ COMMAND_BODY(RRect)
     if (p1 && p2 && ro)
     {
         PlotParameters ppar;
-        coord x1 = ppar.pixel_x(p1);
-        coord y1 = ppar.pixel_y(p1);
-        coord x2 = ppar.pixel_x(p2);
-        coord y2 = ppar.pixel_y(p2);
-        coord r  = ppar.size_adjust(ro, ppar.xmin, ppar.xmax, XRadiusAdjust());
+        coord x1 = ppar.pair_pixel_x(p1);
+        coord y1 = ppar.pair_pixel_y(p1);
+        coord x2 = ppar.pair_pixel_x(p2);
+        coord y2 = ppar.pair_pixel_y(p2);
+        coord r  = ppar.size_adjust(ro, ppar.xmin, ppar.xmax, 2*ScreenWidth());
         if (!rt.error())
         {
             rt.drop(3);
@@ -623,6 +645,98 @@ COMMAND_BODY(ClLCD)
     ui.draw_dirty(0, 0, LCD_W-1, LCD_H-1);
     refresh_dirty();
     return OK;
+}
+
+
+object::result DrawFunctionPlot(const PlotParameters &ppar)
+// ----------------------------------------------------------------------------
+//   Draw a function plot
+// ----------------------------------------------------------------------------
+{
+    algebraic_g step = ppar.resolution;
+    if (step->is_zero())
+        step = (ppar.xmax - ppar.xmin) / integer::make(ScreenWidth());
+    algebraic_g x  = ppar.xmin;
+    object_g    eq = directory::recall_all(symbol::make("eq"));
+    if (!eq)
+        return object::ERROR;
+
+    coord lx   = -1;
+    coord ly   = -1;
+    uint  then = sys_current_ms();
+    while (!program::interrupted())
+    {
+        coord rx = ppar.pixel_x(x);
+        if (!rt.push(x.Safe()))
+            return object::ERROR;
+        object::result err = eq->execute();
+        if (err != object::OK)
+            return err;
+
+        algebraic_g y = algebraic_p(rt.pop());
+        if (!y || !y->is_algebraic())
+            return object::ERROR;
+        coord ry = ppar.pixel_y(y);
+
+        if (lx >= 0)
+        {
+            Screen.line(lx,ly,rx,ry, Settings.line_width, Settings.foreground);
+            ui.draw_dirty(lx, ly, rx, ry);
+            uint now = sys_current_ms();
+            if (then - now > 50)
+            {
+                then = now;
+                refresh_dirty();
+                ui.draw_clean();
+            }
+        }
+        lx = rx;
+        ly = ry;
+        x = x + step;
+        if ((x > ppar.xmax)->as_truth(false))
+            break;
+    }
+
+    refresh_dirty();
+
+    return object::OK;
+}
+
+
+object::result DrawParametricPlot(const PlotParameters &ppar)
+// ----------------------------------------------------------------------------
+//   Draw a parametric plot
+// ----------------------------------------------------------------------------
+{
+    return object::OK;
+}
+
+
+object::result DrawPolarPlot(const PlotParameters &ppar)
+// ----------------------------------------------------------------------------
+//   Draw a polar plot
+// ----------------------------------------------------------------------------
+{
+    return object::OK;
+}
+
+
+COMMAND_BODY(Draw)
+// ----------------------------------------------------------------------------
+//   Draw plot in EQ according to PPAR
+// ----------------------------------------------------------------------------
+{
+    PlotParameters ppar;
+    switch(ppar.type)
+    {
+    default:
+    case ID_Function:   return DrawFunctionPlot(ppar);
+    case ID_Parametric: return DrawParametricPlot(ppar);
+    case ID_Polar:      return DrawPolarPlot(ppar);
+
+    }
+    rt.invalid_plot_type_error();
+    return ERROR;
 }
 
 

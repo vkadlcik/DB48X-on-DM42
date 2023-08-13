@@ -75,8 +75,11 @@ struct PlotParameters
     {
         return pixel_adjust(p, min, max, scale, true);
     }
-    coord pixel_x(object_r pos) const;
-    coord pixel_y(object_r pos) const;
+    coord pair_pixel_x(object_r pos) const;
+    coord pair_pixel_y(object_r pos) const;
+
+    coord pixel_x(algebraic_r pos) const;
+    coord pixel_y(algebraic_r pos) const;
 };
 
 
@@ -88,6 +91,7 @@ COMMAND_DECLARE(Circle);
 COMMAND_DECLARE(Rect);
 COMMAND_DECLARE(RRect);
 COMMAND_DECLARE(ClLCD);
+COMMAND_DECLARE(Draw);
 COMMAND_DECLARE(Drax);
 
 #endif // GRAPHICS_H

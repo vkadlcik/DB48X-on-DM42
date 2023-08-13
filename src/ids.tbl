@@ -333,6 +333,7 @@ NAMED(Circle, "DrawCircle")
 NAMED(Rect, "DrawRectangle")
 NAMED(RRect, "DrawRoundedRectangle")
 NAMED(ClLCD, "ClearLCD")
+NAMED(Drax, "DrawAxes")
 
 
 // ============================================================================

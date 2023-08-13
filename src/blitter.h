@@ -195,7 +195,7 @@ struct blitter
     //   A rectangle is a point with a width and a height
     // ------------------------------------------------------------------------
     {
-        rect(coord x1 = 0, coord y1 = 0, coord x2 = 0, coord y2 = 0)
+        rect(coord x1 = 0, coord y1 = 0, coord x2 = -1, coord y2 = -1)
             : x1(x1),
               y1(y1),
               x2(x2),
@@ -284,7 +284,7 @@ struct blitter
         //   Check if a rectangle is empty
         // --------------------------------------------------------------------
         {
-            return x1 >= x2 || y1 >= y2;
+            return x1 > x2 || y1 > y2;
         }
 
         size width() const
@@ -292,7 +292,7 @@ struct blitter
         //   Return the width of a rectangle
         // --------------------------------------------------------------------
         {
-            return x2 - x1;
+            return x2 - x1 + 1;
         }
 
         size height() const
@@ -300,7 +300,7 @@ struct blitter
         //   Return the height of a rectangle
         // --------------------------------------------------------------------
         {
-            return y2 - y1;
+            return y2 - y1 + 1;
         }
 
       public:

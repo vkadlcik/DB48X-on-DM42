@@ -261,7 +261,7 @@ object_p directory::lookup(object_p ref) const
         size_t ns = name->size();
         if (name == ref)          // Optimization when name is from directory
             return name;
-        if (ns == rsize && memcmp(name, ref, rsize) == 0)
+        if (ns == rsize && strncasecmp(cstring(name), cstring(ref), rsize) == 0)
             return name;
 
         p += ns;

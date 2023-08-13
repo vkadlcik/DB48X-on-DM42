@@ -312,6 +312,7 @@ NAMED(updir, "UpDirectory")
 NAMED(pgdir, "PurgeDirectory")
 
 CMD(Ticks)
+CMD(Wait)
 CMD(Bytes)
 CMD(Type)
 CMD(TypeName)

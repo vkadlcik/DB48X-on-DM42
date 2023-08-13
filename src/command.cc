@@ -29,10 +29,12 @@
 
 #include "command.h"
 
+#include "arithmetic.h"
 #include "bignum.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
+#include "dmcp.h"
 #include "fraction.h"
 #include "integer.h"
 #include "parser.h"
@@ -313,6 +315,59 @@ COMMAND_BODY(Ticks)
     if (integer_p ti = rt.make<integer>(ID_integer, ticks))
         if (rt.push(ti))
             return OK;
+    return ERROR;
+}
+
+
+
+COMMAND_BODY(Wait)
+// ----------------------------------------------------------------------------
+//   Wait the specified amount of seconds
+// ----------------------------------------------------------------------------
+{
+    if (object_p obj = rt.top())
+    {
+        if (algebraic_g wtime = obj->as_algebraic())
+        {
+            rt.drop();
+            algebraic_g scale = integer::make(1000);
+            wtime = wtime * scale;
+            if (wtime)
+            {
+                bool     negative = wtime->is_negative();
+                uint32_t msec     = negative ? 0 : wtime->as_uint32(1000, true);
+                uint32_t end      = sys_current_ms() + msec;
+                bool     infinite = msec == 0 || negative;
+                int      key      = 0;
+
+                if (negative)
+                    ui.draw_menus();
+                while (!key)
+                {
+                    int remains = infinite ? 100 : int(end - sys_current_ms());
+                    if (remains <= 0)
+                        break;
+                    if (remains > 50)
+                        remains = 50;
+                    sys_delay(remains);
+                    if (!key_empty())
+                        key = key_pop();
+                }
+                if (infinite)
+                {
+                    if (integer_p ikey = integer::make(key))
+                        if (rt.push(ikey))
+                            return OK;
+                    return ERROR;
+                }
+                return OK;
+            }
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
     return ERROR;
 }
 

@@ -265,6 +265,12 @@ uint32_t object::as_uint32(uint32_t def, bool err) const
         if (err)
             rt.value_error();
         return def;
+    case ID_bignum:
+        return bignum_p(this)->value<uint32_t>();
+    case ID_neg_bignum:
+        if (err)
+            rt.value_error();
+        return def;
     case ID_decimal128:
     {
         uint result = def;
@@ -312,6 +318,11 @@ int32_t object::as_int32 (int32_t  def, bool err)  const
         return integer_p(this)->value<uint32_t>();
     case ID_neg_integer:
         return  -integer_p(this)->value<uint32_t>();
+    case ID_bignum:
+        return bignum_p(this)->value<uint32_t>();
+    case ID_neg_bignum:
+        return -bignum_p(this)->value<uint32_t>();
+
     case ID_decimal128:
     {
         int result = def;

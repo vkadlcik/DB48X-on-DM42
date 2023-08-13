@@ -500,12 +500,21 @@ COMMAND_BODY(Ellipse)
 }
 
 
-static inline uint RadiusAdjust()
+static inline uint XRadiusAdjust()
 // ----------------------------------------------------------------------------
 //   Adjustment for the radius of a circle or rounded rectangle
 // ----------------------------------------------------------------------------
 {
     return Screen.area().width() * 2;
+}
+
+
+static inline uint YRadiusAdjust()
+// ----------------------------------------------------------------------------
+//   Adjustment for the radius of a circle or rounded rectangle
+// ----------------------------------------------------------------------------
+{
+    return Screen.area().height() * 2;
 }
 
 
@@ -521,14 +530,22 @@ COMMAND_BODY(Circle)
         PlotParameters ppar;
         coord x = ppar.pixel_x(co);
         coord y = ppar.pixel_y(co);
-        coord r = ppar.size_adjust(ro, ppar.xmin, ppar.xmax, RadiusAdjust());
-        if (r < 0)
-            r = -r;
+        coord rx = ppar.size_adjust(ro, ppar.xmin, ppar.xmax, XRadiusAdjust());
+        coord ry = ppar.size_adjust(ro, ppar.ymin, ppar.ymax, YRadiusAdjust());
+        if (rx < 0)
+            rx = -rx;
+        if (ry < 0)
+            ry = -ry;
         if (!rt.error())
         {
             rt.drop(2);
-            Screen.circle(x, y, r, Settings.line_width, Settings.foreground);
-            ui.draw_dirty(x-r, y-r, x+r, y+r);
+            coord x1 = x - rx/2;
+            coord x2 = x + (rx-1)/2;
+            coord y1 = y - ry/2;
+            coord y2 = y + (ry-1)/2;
+            Screen.ellipse(x1, y1, x2, y2,
+                           Settings.line_width, Settings.foreground);
+            ui.draw_dirty(x1, y1, x2, y2);
             refresh_dirty();
             return OK;
         }
@@ -580,7 +597,7 @@ COMMAND_BODY(RRect)
         coord y1 = ppar.pixel_y(p1);
         coord x2 = ppar.pixel_x(p2);
         coord y2 = ppar.pixel_y(p2);
-        coord r  = ppar.size_adjust(ro, ppar.xmin, ppar.xmax, RadiusAdjust());
+        coord r  = ppar.size_adjust(ro, ppar.xmin, ppar.xmax, XRadiusAdjust());
         if (!rt.error())
         {
             rt.drop(3);

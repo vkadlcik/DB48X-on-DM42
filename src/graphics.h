@@ -83,6 +83,24 @@ struct PlotParameters
 };
 
 
+inline uint ScreenWidth()
+// ----------------------------------------------------------------------------
+//   Adjustment for the radius of a circle or rounded rectangle
+// ----------------------------------------------------------------------------
+{
+    return Screen.area().width();
+}
+
+
+inline uint ScreenHeight()
+// ----------------------------------------------------------------------------
+//   Adjustment for the radius of a circle or rounded rectangle
+// ----------------------------------------------------------------------------
+{
+    return Screen.area().height();
+}
+
+
 COMMAND_DECLARE(Disp);
 COMMAND_DECLARE(DispXY);
 COMMAND_DECLARE(Line);
@@ -91,7 +109,5 @@ COMMAND_DECLARE(Circle);
 COMMAND_DECLARE(Rect);
 COMMAND_DECLARE(RRect);
 COMMAND_DECLARE(ClLCD);
-COMMAND_DECLARE(Draw);
-COMMAND_DECLARE(Drax);
 
 #endif // GRAPHICS_H

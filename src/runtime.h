@@ -827,8 +827,10 @@ const Obj *runtime::make(typename Obj::id type, const Args &... args)
     // Move the editor up (available() checked we have room)
     move(Temporaries, (object_p) result, Editing + Scratch, true);
 
-    // Initialize the object in place
+    // Initialize the object in place (may GC and move result)
+    gcbytes ptr = (byte *) result;
     new(result) Obj(args..., type);
+    result = (Obj *) ptr.Safe();
 
 #ifdef SIMULATOR
     object_validate(type, (const object *) result, size);

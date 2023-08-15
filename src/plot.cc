@@ -110,7 +110,10 @@ object::result DrawFunctionPlot(const PlotParameters &ppar)
         lx = rx;
         ly = ry;
         x = x + step;
-        if ((x > ppar.xmax)->as_truth(false))
+        algebraic_g cmp = x > ppar.xmax;
+        if (!cmp)
+            return object::ERROR;
+        if (cmp->as_truth(false))
             break;
     }
 

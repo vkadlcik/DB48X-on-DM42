@@ -122,7 +122,7 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
     case ID_bignum:
     case ID_neg_bignum:
     {
-        bignum_p i = bignum_p(object_p(x));
+        bignum_g i = bignum_p(object_p(x));
         switch (type)
         {
         case ID_decimal32:
@@ -139,14 +139,14 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         }
         record(algebraic_error,
                "Cannot promote bignum %p from %+s to %+s",
-               i, object::name(xt), object::name(type));
+               i.Safe(), object::name(xt), object::name(type));
         break;
     }
 
     case ID_fraction:
     case ID_neg_fraction:
     {
-        fraction_p f = fraction_p(object_p(x));
+        fraction_g f = fraction_p(object_p(x));
         switch (type)
         {
         case ID_decimal32:
@@ -163,7 +163,7 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         }
         record(algebraic_error,
                "Cannot promote fraction %p from %+s to %+s",
-               f, object::name(xt), object::name(type));
+               f.Safe(), object::name(xt), object::name(type));
         break;
     }
 

@@ -81,12 +81,16 @@ decimal32::decimal32(bignum_p num, id type)
 }
 
 
-decimal32::decimal32(fraction_p f, id type)
+decimal32::decimal32(fraction_p fp, id type)
 // ----------------------------------------------------------------------------
 //   Create a decimal32 from a bignum value
 // ----------------------------------------------------------------------------
+// The `this` pointer and fp may move due to GC in this constructor caused
+// by the calls to `numerator()` and `denominator()`.
     : algebraic(type)
 {
+    gcmbytes p = (byte *) payload();            // Need to store before GC
+
     bid32 result, numerator, divisor;
     bid32 mul;
     unsigned z = 0;
@@ -96,7 +100,8 @@ decimal32::decimal32(fraction_p f, id type)
     bid32_from_uint32(&mul.value, &z);
 
     size_t size = 0;
-    bignum_p num = f->numerator();
+    fraction_g f = fp;                          // Need to store before GC
+    bignum_p num = f->numerator();              // GC may happen here
     byte_p n = num->value(&size);
     for (uint i = 0; i < size; i++)
     {
@@ -108,7 +113,7 @@ decimal32::decimal32(fraction_p f, id type)
         bid32_add(&numerator.value, &step.value, &add.value);
     }
 
-    bignum_p den = f->denominator();
+    bignum_p den = f->denominator();            // GC may happen here
     byte_p d = den->value(&size);
     for (uint i = 0; i < size; i++)
     {
@@ -123,9 +128,7 @@ decimal32::decimal32(fraction_p f, id type)
     bid32_div(&result.value, &numerator.value, &divisor.value);
     if (f->type() == ID_neg_fraction)
         bid32_negate(&result.value, &result.value);
-    byte *p = (byte *) payload();
     memcpy(p, &result, sizeof(result));
-
 }
 
 

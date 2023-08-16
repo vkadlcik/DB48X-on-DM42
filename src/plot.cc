@@ -216,5 +216,8 @@ COMMAND_BODY(Drax)
         Screen.fill(x - i, 3*i, x + i, 3*(i+1), pat);
     }
 
+    ui.draw_dirty(0, 0, w, h);
+    refresh_dirty();
+
     return OK;
 }

@@ -235,6 +235,16 @@ COMMAND_BODY(Modes)
 }
 
 
+COMMAND_BODY(ResetModes)
+// ----------------------------------------------------------------------------
+//   Reset the default modes
+// ----------------------------------------------------------------------------
+{
+    Settings = settings();
+    return OK;
+}
+
+
 font_p settings::font(font_id size)
 // ----------------------------------------------------------------------------
 //   Return a font based on a font size

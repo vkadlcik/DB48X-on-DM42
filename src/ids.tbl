@@ -418,13 +418,14 @@ CMD(LineWidth)
 CMD(Foreground)
 CMD(Background)
 
-CMD(Modes)
-CMD(Version)
-
-
 NAMED(Function,         "FunctionPlot")
 NAMED(Polar,            "PolarPlot")
 NAMED(Parametric,       "ParametricPlot")
+
+CMD(Modes)
+CMD(ResetModes)
+CMD(Version)
+
 
 
 

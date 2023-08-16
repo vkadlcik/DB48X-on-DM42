@@ -1575,12 +1575,14 @@ blitter::coord blitter::surface<Mode>::glyph(coord       x,
     font::glyph_info g;
     if (f->glyph(codepoint, g))
     {
+        // Fill background
+        fill<Clip>(x, y, x + g.advance - 1, y + f->height() - 1, bg);
+
         // Bitmap may be misaligned, if so, fixup
         uintptr_t bma = (uintptr_t) g.bitmap;
         g.bx += 8 * (bma & 3);
         bma &= ~3;
         surface<MONOCHROME> source((pixword *) bma, g.bw, g.bh);
-        fill<Clip>(x, y, x + g.advance - 1, y + g.h - 1, bg);
         rect  dest(x + g.x, y + g.y, x + g.x + g.w - 1, y + g.y + g.h - 1);
         point spos(g.bx, g.by);
         blit<Clip>(*this, source, dest, spos, blitop_mono_fg<Mode>, fg);

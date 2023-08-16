@@ -104,7 +104,7 @@ object::result DrawFunctionPlot(const PlotParameters &ppar)
             Screen.line(lx,ly,rx,ry, Settings.line_width, Settings.foreground);
             ui.draw_dirty(lx, ly, rx, ry);
             uint now = sys_current_ms();
-            if (then - now > 500)
+            if (now - then > 500)
             {
                 then = now;
                 refresh_dirty();

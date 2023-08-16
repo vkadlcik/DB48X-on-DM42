@@ -54,7 +54,10 @@
 #include <unistd.h>
 
 // The primary user interface of the calculator
-user_interface    ui;
+user_interface ui;
+
+using std::max;
+using std::min;
 
 RECORDER(user_interface, 16, "ui processing");
 RECORDER(text_editor, 16, "Text editor");
@@ -918,7 +921,7 @@ void user_interface::draw_dirty(coord x1, coord y1, coord x2, coord y2)
 //   Indicates that a component dirtied a given area of the screen
 // ----------------------------------------------------------------------------
 {
-    draw_dirty(rect(x1, y1, x2, y2));
+    draw_dirty(rect(min(x1,x2), min(y1,y2), max(x1,x2)+1, max(y1,y2)+1));
 }
 
 

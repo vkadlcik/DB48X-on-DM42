@@ -200,6 +200,13 @@ void settings::save(renderer &out, bool show_defaults)
     else if (show_defaults)
         out.put("RoundedMenus\n");
 
+    if (line_width != Defaults.line_width || show_defaults)
+        out.printf("%u LineWidth\n", line_width);
+    if (foreground.bits != Defaults.foreground.bits || show_defaults)
+        out.printf("#%llX foreground\n", foreground.bits);
+    if (background.bits != Defaults.background.bits || show_defaults)
+        out.printf("#%llX background\n", background.bits);
+
     // Save the current menu
     if (menu_p menu = ui.menu())
     {

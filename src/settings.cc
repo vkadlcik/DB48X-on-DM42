@@ -1136,7 +1136,7 @@ SETTINGS_COMMAND_LABEL(LineWidth)
 // ----------------------------------------------------------------------------
 {
     static char buffer[16];
-    snprintf(buffer, sizeof(buffer), "LineW %u", Settings.line_width);
+    snprintf(buffer, sizeof(buffer), "LineW %u", uint(Settings.line_width));
     return buffer;
 }
 

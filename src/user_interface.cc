@@ -1034,8 +1034,8 @@ bool user_interface::draw_menus()
             if (animating && (~animate & animask))
                 continue;
 
-            int x = (2 * m + 1) * mw / 2 + (m * sp) / 5 + 2;
-            int mcw = mw;
+            coord x = (2 * m + 1) * mw / 2 + (m * sp) / 5 + 2;
+            size mcw = mw;
             rect mrect(x - mw/2-1, my, x + mw/2, my+mh-1);
             if (animating)
                 draw_dirty(mrect);
@@ -1392,7 +1392,7 @@ bool user_interface::draw_battery()
     bat.inset(1,1);
 
     size batw = bat.width();
-    int w = (vdd - 2000) * batw / (3090 - 2000);
+    size w = (vdd - 2000) * batw / (3090 - 2000);
     if (w > batw)
         w = batw;
     else if (w < 1)
@@ -1667,11 +1667,11 @@ bool user_interface::draw_editor()
 
 
     // Draw the editor rows
-    int  hskip   = 180;
+    int  hskip = 180;
     size cursw = font->width('M');
     if (xoffset > cursx)
         xoffset = (cursx > hskip) ? cursx - hskip : 0;
-    else if (xoffset + LCD_W - cursw < cursx)
+    else if (coord(xoffset + LCD_W - cursw) < cursx)
         xoffset = cursx - LCD_W + cursw + hskip;
 
     coord x = -xoffset;
@@ -1762,7 +1762,7 @@ bool user_interface::draw_cursor(int show)
                        : mode == BASED ? 'B'
                                              : 'X';
     size    csrh       = cursorFont->height();
-    size    csrw       = cursorFont->width(cursorChar);
+    coord   csrw       = cursorFont->width(cursorChar);
     size    ch         = edFont->height();
 
     coord   x          = cx;

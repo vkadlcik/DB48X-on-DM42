@@ -52,8 +52,8 @@ struct blitter
     // ========================================================================
 
     // Basic types
-    typedef int16_t  coord;
-    typedef uint16_t size;
+    typedef int32_t  coord;
+    typedef uint32_t size;
     typedef size_t   offset;
     typedef uint32_t pixword;
     typedef uint16_t palette_index;

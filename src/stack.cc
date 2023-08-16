@@ -107,7 +107,7 @@ void stack::draw_stack()
     for (uint level = 0; level < depth; level++)
     {
         y -= lineHeight;
-        if (y + lineHeight  <= top)
+        if (coord(y + lineHeight) <= top)
             break;
 
         coord ytop = y < top ? top : y;

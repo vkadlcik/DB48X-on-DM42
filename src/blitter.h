@@ -1701,6 +1701,66 @@ void blitter::surface<Mode>::line(coord   x1,
 //   Draw a line between the given coordinates
 // --------------------------------------------------------------------
 {
+    if (Clip & CLIP_ALL)
+    {
+        if (x1 < drawable.x1)
+        {
+            if (x2 <= x1)
+                return;
+            y1 = y2 + (drawable.x1 - x2) * (y1 - y2) / (x1 - x2);
+            x1 = drawable.x1;
+        }
+        if (x1 > drawable.x2)
+        {
+            if (x2 >= x1)
+                return;
+            y1 = y2 + (drawable.x2 - x2) * (y1 - y2) / (x1 - x2);
+            x1 = drawable.x2;
+        }
+        if (x2 < drawable.x1)
+        {
+            if (x1 <= x2)
+                return;
+            y2 = y1 + (drawable.x1 - x1) * (y2 - y1) / (x2 - x1);
+            x2 = drawable.x1;
+        }
+        if (x2 > drawable.x2)
+        {
+            if (x1 >= x2)
+                return;
+            y2 = y1 + (drawable.x2 - x1) * (y1 - y2) / (x1 - x2);
+            x2 = drawable.x2;
+        }
+        if (y1 < drawable.y1)
+        {
+            if (y2 <= y1)
+                return;
+            x1 = x2 + (drawable.y1 - y2) * (x1 - x2) / (y1 - y2);
+            y1 = drawable.y1;
+        }
+        if (y1 > drawable.y2)
+        {
+            if (y2 >= y1)
+                return;
+            x1 = x2 + (drawable.y2 - y2) * (x1 - x2) / (y1 - y2);
+            y1 = drawable.y2;
+        }
+        if (y2 < drawable.y1)
+        {
+            if (y1 <= y2)
+                return;
+            x2 = x1 + (drawable.y1 - y1) * (x2 - x1) / (y2 - y1);
+            y2 = drawable.y1;
+        }
+        if (y2 > drawable.y2)
+        {
+            if (y1 >= y2)
+                return;
+            x2 = x1 + (drawable.y2 - y1) * (x1 - x2) / (y1 - y2);
+            y2 = drawable.y2;
+        }
+    }
+
     size  dx = x1 > x2 ? x1 - x2 : x2 - x1;
     size  dy = y1 > y2 ? y1 - y2 : y2 - y1;
     int   sx = x2 < x1 ? -1 : 1;

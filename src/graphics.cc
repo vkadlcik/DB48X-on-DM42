@@ -328,7 +328,7 @@ coord PlotParameters::pair_pixel_y(object_r pos) const
 // ----------------------------------------------------------------------------
 {
     if (object_g y = pos->algebraic_child(1))
-        return pixel_adjust(y, ymin, ymax, Screen.area().height());
+        return pixel_adjust(y, ymax, ymin, Screen.area().height());
     return 0;
 }
 
@@ -349,7 +349,7 @@ coord PlotParameters::pixel_y(algebraic_r y) const
 // ----------------------------------------------------------------------------
 {
     object_g yo = object_p(y.Safe());
-    return pixel_adjust(yo, ymin, ymax, Screen.area().height());
+    return pixel_adjust(yo, ymax, ymin, Screen.area().height());
 }
 
 

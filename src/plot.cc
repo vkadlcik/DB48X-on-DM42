@@ -70,6 +70,7 @@ object::result DrawFunctionPlot(const PlotParameters &ppar)
 //   Draw a function plot
 // ----------------------------------------------------------------------------
 {
+    object::result result = object::ERROR;
     algebraic_g step = ppar.resolution;
     if (step->is_zero())
         step = (ppar.xmax - ppar.xmin) / integer::make(ScreenWidth());
@@ -84,42 +85,59 @@ object::result DrawFunctionPlot(const PlotParameters &ppar)
     while (!program::interrupted())
     {
         coord rx = ppar.pixel_x(x);
+        size_t depth = rt.depth();
         if (!rt.push(x.Safe()))
-            return object::ERROR;
+            goto err;
         object::result err = eq->execute();
-        if (err != object::OK)
-            return err;
-
-        algebraic_g y = algebraic_p(rt.pop());
-        if (!y || !y->is_algebraic())
-            return object::ERROR;
-        coord ry = ppar.pixel_y(y);
-
-        if (lx >= 0)
+        if (err == object::OK && rt.depth() == depth + 1)
         {
+            algebraic_g y = algebraic_p(rt.pop());
+            if (!y || !y->is_algebraic())
+                goto err;
+            coord ry = ppar.pixel_y(y);
+
+            if (lx < 0)
+            {
+                lx = rx;
+                ly = ry;
+            }
             Screen.line(lx,ly,rx,ry, Settings.line_width, Settings.foreground);
             ui.draw_dirty(lx, ly, rx, ry);
             uint now = sys_current_ms();
-            if (then - now > 50)
+            if (then - now > 500)
             {
                 then = now;
                 refresh_dirty();
                 ui.draw_clean();
             }
+            lx = rx;
+            ly = ry;
         }
-        lx = rx;
-        ly = ry;
+        else
+        {
+            if (!rt.error())
+                rt.invalid_plot_function_error();
+            if (rt.depth() > depth)
+                rt.drop(rt.depth() - depth);
+            Screen.text(0, 0, rt.error(), ErrorFont,
+                        pattern::white, pattern::black);
+            ui.draw_dirty(0, 0, LCD_W, ErrorFont->height());
+            refresh_dirty();
+            ui.draw_clean();
+            lx = ly = -1;
+        }
         x = x + step;
         algebraic_g cmp = x > ppar.xmax;
         if (!cmp)
-            return object::ERROR;
+            goto err;
         if (cmp->as_truth(false))
             break;
     }
+    result = object::OK;
 
+err:
     refresh_dirty();
-
-    return object::OK;
+    return result;
 }
 
 
@@ -166,8 +184,8 @@ COMMAND_BODY(Drax)
 // ----------------------------------------------------------------------------
 {
     PlotParameters ppar;
-    blitter::size w = Screen.area().width();
-    blitter::size h = Screen.area().height();
+    coord w = Screen.area().width();
+    coord h = Screen.area().height();
     coord x = ppar.pixel_adjust(ppar.xorigin.Safe(), ppar.xmin, ppar.xmax, w);
     coord y = ppar.pixel_adjust(ppar.yorigin.Safe(), ppar.ymin, ppar.ymax, h);
 

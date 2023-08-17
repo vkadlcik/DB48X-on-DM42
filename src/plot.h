@@ -30,12 +30,13 @@
 // ****************************************************************************
 
 #include "command.h"
-
+#include "graphics.h"
 
 COMMAND_DECLARE(Function);
 COMMAND_DECLARE(Polar);
 COMMAND_DECLARE(Parametric);
 COMMAND_DECLARE(Draw);
 COMMAND_DECLARE(Drax);
+COMMAND_DECLARE(PlotFunction);
 
 #endif // PLOT_H

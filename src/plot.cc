@@ -65,20 +65,16 @@ COMMAND_BODY(Polar)
 }
 
 
-object::result DrawFunctionPlot(const PlotParameters &ppar)
+object::result DrawFunctionPlot(const PlotParameters &ppar, object_g eq)
 // ----------------------------------------------------------------------------
-//   Draw a function plot
+//  Draw an equation that takes input from the stack
 // ----------------------------------------------------------------------------
 {
-    object::result result = object::ERROR;
     algebraic_g step = ppar.resolution;
     if (step->is_zero())
         step = (ppar.xmax - ppar.xmin) / integer::make(ScreenWidth());
     algebraic_g x  = ppar.xmin;
-    object_g    eq = directory::recall_all(symbol::make("eq"));
-    if (!eq)
-        return object::ERROR;
-
+    object::result result = object::ERROR;
     coord lx   = -1;
     coord ly   = -1;
     uint  then = sys_current_ms();
@@ -141,6 +137,18 @@ err:
 }
 
 
+object::result DrawFunctionPlot(const PlotParameters &ppar)
+// ----------------------------------------------------------------------------
+//   Draw a function plot
+// ----------------------------------------------------------------------------
+{
+    object_g    eq = directory::recall_all(symbol::make("eq"));
+    if (!eq)
+        return object::ERROR;
+    return DrawFunctionPlot(ppar, eq);
+}
+
+
 object::result DrawParametricPlot(const PlotParameters &ppar)
 // ----------------------------------------------------------------------------
 //   Draw a parametric plot
@@ -156,6 +164,20 @@ object::result DrawPolarPlot(const PlotParameters &ppar)
 // ----------------------------------------------------------------------------
 {
     return object::OK;
+}
+
+
+COMMAND_BODY(PlotFunction)
+// ----------------------------------------------------------------------------
+//   Draw plot from function on the stack taking stack arguments
+// ----------------------------------------------------------------------------
+{
+    if (object_g eq = rt.pop())
+    {
+        PlotParameters ppar;
+        return DrawFunctionPlot(ppar, eq);
+    }
+    return ERROR;
 }
 
 

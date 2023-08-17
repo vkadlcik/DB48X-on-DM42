@@ -426,7 +426,7 @@ CMD(Modes)
 CMD(ResetModes)
 CMD(Version)
 
-
+CMD(PlotFunction)
 
 
 // ============================================================================

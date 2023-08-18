@@ -542,7 +542,7 @@ PARSE_BODY(complex)
         ylen = last - ybeg;
 
     // Compute size that we parsed
-    size_t parsed = last - first + paren;
+    size_t parsed = last - first + 2*paren;
 
     // Parse the first object
     gcutf8 ysrc = ybeg;

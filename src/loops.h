@@ -48,7 +48,7 @@ struct loop : command
 //    Loop structures
 // ----------------------------------------------------------------------------
 {
-    loop(object_g body, symbol_g name, id type);
+    loop(id type, object_g body, symbol_g name);
     result condition(bool &value) const;
 
     static size_t required_memory(id i, object_g body, symbol_g name)
@@ -94,7 +94,7 @@ struct conditional_loop : loop
 //    Loop structures
 // ----------------------------------------------------------------------------
 {
-    conditional_loop(object_g condition, object_g body, id type);
+    conditional_loop(id type, object_g condition, object_g body);
     static result condition(bool &value);
 
     static size_t required_memory(id i, object_g condition, object_g body)
@@ -116,8 +116,8 @@ struct DoUntil : conditional_loop
 //   do...until...end loop
 // ----------------------------------------------------------------------------
 {
-    DoUntil(object_g condition, object_g body, id type)
-        : conditional_loop(condition, body, type) {}
+    DoUntil(id type, object_g condition, object_g body)
+        : conditional_loop(type, condition, body) {}
 
 public:
     OBJECT_DECL(DoUntil);
@@ -133,8 +133,8 @@ struct WhileRepeat : conditional_loop
 //   while...repeat...end loop
 // ----------------------------------------------------------------------------
 {
-    WhileRepeat(object_g condition, object_g body, id type)
-        : conditional_loop(condition, body, type) {}
+    WhileRepeat(id type, object_g condition, object_g body)
+        : conditional_loop(type, condition, body) {}
 
 public:
     OBJECT_DECL(WhileRepeat);
@@ -150,8 +150,8 @@ struct StartNext : loop
 //   start..next loop
 // ----------------------------------------------------------------------------
 {
-    StartNext(object_g body, id type): loop(body, nullptr, type) {}
-    StartNext(object_g body, symbol_g n, id type): loop(body, n, type) {}
+    StartNext(id type, object_g body): loop(type, body, nullptr) {}
+    StartNext(id type, object_g body, symbol_g n): loop(type, body, n) {}
 
 public:
     OBJECT_DECL(StartNext);
@@ -167,7 +167,7 @@ struct StartStep : StartNext
 //   start..step loop
 // ----------------------------------------------------------------------------
 {
-    StartStep(object_g body, id type): StartNext(body, type) {}
+    StartStep(id type, object_g body): StartNext(type, body) {}
 
 public:
     OBJECT_DECL(StartStep);
@@ -183,8 +183,8 @@ struct ForNext : StartNext
 //   for..next loop
 // ----------------------------------------------------------------------------
 {
-    ForNext(object_g body, symbol_g name, id type)
-        : StartNext(body, name, type) {}
+    ForNext(id type, object_g body, symbol_g name)
+        : StartNext(type, body, name) {}
 
     static result counted(object_p o, bool stepping);
 
@@ -203,8 +203,7 @@ struct ForStep : ForNext
 //   for..step loop
 // ----------------------------------------------------------------------------
 {
-    ForStep(object_g body, symbol_g name, id type)
-        : ForNext(body, name, type) {}
+    ForStep(id type, object_g body, symbol_g name): ForNext(type, body, name) {}
 
 public:
     OBJECT_DECL(ForStep);

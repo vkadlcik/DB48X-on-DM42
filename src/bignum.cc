@@ -42,11 +42,11 @@
 
 RECORDER(bignum, 16, "Bignums");
 
-bignum::bignum(integer_g value, id type)
+bignum::bignum(id type, integer_g value)
 // ----------------------------------------------------------------------------
 //   Create a bignum from an integer value
 // ----------------------------------------------------------------------------
-    : text(value->payload(), bytesize(value), type)
+    : text(type, value->payload(), bytesize(value))
 {
     byte *p = (byte *) payload();
     size_t sz = leb128<size_t>(p);

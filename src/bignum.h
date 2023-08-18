@@ -107,8 +107,8 @@ struct bignum : text
     }
 
     template <typename Int>
-    bignum(Int value, id type = ID_bignum)
-        : text((utf8) &value, bytesize(value), type)
+    bignum(id type, Int value)
+        : text(type, (utf8) &value, bytesize(value))
     {
         byte *p = (byte *) payload(this);
         size_t sz = leb128<size_t>(p);
@@ -123,16 +123,14 @@ struct bignum : text
         return leb128size(i) + leb128size(size) + size;
     }
 
-    bignum(gcbytes ptr, size_t size, id type = ID_bignum)
-        : text(ptr, size, type)
-    {}
+    bignum(id type, gcbytes ptr, size_t size): text(type, ptr, size) {}
 
     static size_t required_memory(id i, gcbytes UNUSED ptr, size_t size)
     {
         return leb128size(i) + leb128size(size) + size;
     }
 
-    bignum(integer_g value, id type = ID_bignum);
+    bignum(id type, integer_g value);
     static size_t required_memory(id i, integer_g value);
 
     template <typename Int>
@@ -206,7 +204,7 @@ struct special_bignum : bignum
 // ----------------------------------------------------------------------------
 {
     template <typename Int>
-    special_bignum(Int value, id type = Type): bignum(value, type) {}
+    special_bignum(id type, Int value): bignum(type, value) {}
 
 public:
     // Can't use the OBJECT_DECL and RENDER_DECL macros here

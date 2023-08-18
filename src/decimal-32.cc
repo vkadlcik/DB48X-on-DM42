@@ -50,7 +50,7 @@ using std::max;
 RECORDER(decimal32, 32, "Decimal32 data type");
 
 
-decimal32::decimal32(bignum_p num, id type)
+decimal32::decimal32(id type, bignum_p num)
 // ----------------------------------------------------------------------------
 //   Create a decimal32 from a bignum value
 // ----------------------------------------------------------------------------
@@ -81,7 +81,7 @@ decimal32::decimal32(bignum_p num, id type)
 }
 
 
-decimal32::decimal32(fraction_p fp, id type)
+decimal32::decimal32(id type, fraction_p fp)
 // ----------------------------------------------------------------------------
 //   Create a decimal32 from a bignum value
 // ----------------------------------------------------------------------------

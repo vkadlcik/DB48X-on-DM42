@@ -829,7 +829,7 @@ const Obj *runtime::make(typename Obj::id type, const Args &... args)
 
     // Initialize the object in place (may GC and move result)
     gcbytes ptr = (byte *) result;
-    new(result) Obj(args..., type);
+    new(result) Obj(type, args...);
     result = (Obj *) ptr.Safe();
 
 #ifdef SIMULATOR

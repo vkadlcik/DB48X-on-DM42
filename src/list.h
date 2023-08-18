@@ -51,25 +51,16 @@ struct list : text
 //   RPL list type
 // ----------------------------------------------------------------------------
 {
-    list(gcbytes bytes, size_t len, id type = ID_list): text(bytes, len, type)
+    list(id type, gcbytes bytes, size_t len): text(type, bytes, len)
     { }
 
     template <typename... Args>
-    list(const gcp<Args> & ...args, id type = ID_list): text(utf8(""), 0, type)
+    list(id type, const gcp<Args> & ...args): text(type, utf8(""), 0)
     {
         byte *p = (byte *) payload();
         size_t sz = required_args_memory(args...);
-        leb128(p, sz);
-        copy(p, args...);
-    }
-
-    template <typename A, typename B, typename C, typename D>
-    list(const gcp<A> & a, const gcp<B> & b, const gcp<C> & c, const gcp<D> & d, id type = ID_list): text(utf8(""), 0, type)
-    {
-        byte *p = (byte *) payload();
-        size_t sz = required_args_memory(a,b,c,d);
         p = leb128(p, sz);
-        copy(p, a,b,c,d);
+        copy(p, args...);
     }
 
     static size_t required_memory(id i, gcbytes UNUSED bytes, size_t len)

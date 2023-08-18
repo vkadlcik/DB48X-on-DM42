@@ -44,21 +44,20 @@ struct equation : program
 // ----------------------------------------------------------------------------
 //   We also need special parsing and rendering of algebraic objects
 {
-    equation(gcbytes bytes, size_t len, id type = ID_equation)
-        : program(bytes, len, type) {}
+    equation(id type, gcbytes bytes, size_t len): program(type, bytes, len) {}
     static size_t required_memory(id i, gcbytes UNUSED bytes, size_t len)
     {
         return program::required_memory(i, bytes, len);
     }
 
     // Building an equation from an object
-    equation(algebraic_r arg, id type = ID_equation);
+    equation(id type, algebraic_r arg);
     static size_t required_memory(id i, algebraic_r arg);
 
     // Building equations from one or two arguments
-    equation(id op, algebraic_r arg, id type = ID_equation);
+    equation(id type, id op, algebraic_r arg);
     static size_t required_memory(id i, id op, algebraic_r arg);
-    equation(id op, algebraic_r x, algebraic_r y, id type = ID_equation);
+    equation(id type, id op, algebraic_r x, algebraic_r y);
     static size_t required_memory(id i, id op, algebraic_r x, algebraic_r y);
 
     object_p quoted(id type) const;

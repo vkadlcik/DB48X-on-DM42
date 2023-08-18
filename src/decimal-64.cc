@@ -50,7 +50,7 @@ using std::max;
 RECORDER(decimal64, 32, "Decimal64 data type");
 
 
-decimal64::decimal64(bignum_p num, id type)
+decimal64::decimal64(id type, bignum_p num)
 // ----------------------------------------------------------------------------
 //   Create a decimal64 from a bignum value
 // ----------------------------------------------------------------------------
@@ -81,7 +81,7 @@ decimal64::decimal64(bignum_p num, id type)
 }
 
 
-decimal64::decimal64(fraction_p fp, id type)
+decimal64::decimal64(id type, fraction_p fp)
 // ----------------------------------------------------------------------------
 //   Create a decimal64 from a bignum value
 // ----------------------------------------------------------------------------

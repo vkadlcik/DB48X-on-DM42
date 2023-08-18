@@ -39,8 +39,7 @@ struct program : list
 //   A program is a list with « and » as delimiters
 // ----------------------------------------------------------------------------
 {
-    program(gcbytes bytes, size_t len, id type = ID_program)
-        : list(bytes, len, type) {}
+    program(id type, gcbytes bytes, size_t len): list(type, bytes, len) {}
 
     static bool      interrupted(); // Program interrupted e.g. by EXIT key
     static program_p parse(utf8 source, size_t size);
@@ -60,8 +59,7 @@ struct block : program
 //   A block inside a program, e.g. in loops
 // ----------------------------------------------------------------------------
 {
-    block(gcbytes bytes, size_t len, id type = ID_block)
-        : program(bytes, len, type) {}
+    block(id type, gcbytes bytes, size_t len): program(type, bytes, len) {}
 
 public:
     OBJECT_DECL(block);

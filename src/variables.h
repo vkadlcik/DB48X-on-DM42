@@ -65,11 +65,10 @@ struct directory : list
 //   Representation of a directory
 // ----------------------------------------------------------------------------
 {
-    directory(id type = ID_directory): list(nullptr, 0, type)
+    directory(id type = ID_directory): list(type, nullptr, 0)
     {}
 
-    directory(gcbytes bytes, size_t len, id type = ID_directory)
-        : list(bytes, len, type)
+    directory(id type, gcbytes bytes, size_t len): list(type, bytes, len)
     { }
 
     static size_t required_memory(id i)

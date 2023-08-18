@@ -53,7 +53,7 @@ struct text : algebraic
 //    We derive from 'algebraic' because many algebraic objects
 //    derive from text (equation, symbol and local variables notably)
 {
-    text(gcutf8 source, size_t len, id type = ID_text): algebraic(type)
+    text(id type, gcutf8 source, size_t len): algebraic(type)
     {
         utf8 s = (utf8) source;
         byte *p = (byte *) payload(this);

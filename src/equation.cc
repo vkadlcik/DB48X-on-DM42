@@ -260,11 +260,11 @@ size_t equation::size_in_equation(object_p obj)
 }
 
 
-equation::equation(algebraic_r arg, id type)
+equation::equation(id type, algebraic_r arg)
 // ----------------------------------------------------------------------------
 //   Build an equation object from an object
 // ----------------------------------------------------------------------------
-    : program(nullptr, 0, type)
+    : program(type, nullptr, 0)
 {
     byte *p = (byte *) payload();
 
@@ -303,11 +303,11 @@ size_t equation::required_memory(id type, algebraic_r arg)
 }
 
 
-equation::equation(id op, algebraic_r arg, id type)
+equation::equation(id type, id op, algebraic_r arg)
 // ----------------------------------------------------------------------------
 //   Build an equation from one argument
 // ----------------------------------------------------------------------------
-    : program(nullptr, 0, type)
+    : program(type, nullptr, 0)
 {
     byte *p = (byte *) payload();
 
@@ -349,11 +349,11 @@ size_t equation::required_memory(id type, id op, algebraic_r arg)
 }
 
 
-equation::equation(id op, algebraic_r x, algebraic_r y, id type)
+equation::equation(id type, id op, algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Build an equation from two arguments
 // ----------------------------------------------------------------------------
-    : program(nullptr, 0, type)
+    : program(type, nullptr, 0)
 {
     byte *p = (byte *) payload();
 

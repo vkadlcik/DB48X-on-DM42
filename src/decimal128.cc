@@ -50,7 +50,7 @@ using std::max;
 RECORDER(decimal128, 32, "Decimal128 data type");
 
 
-decimal128::decimal128(bignum_p num, id type)
+decimal128::decimal128(id type, bignum_p num)
 // ----------------------------------------------------------------------------
 //   Create a decimal128 from a bignum value
 // ----------------------------------------------------------------------------
@@ -81,7 +81,7 @@ decimal128::decimal128(bignum_p num, id type)
 }
 
 
-decimal128::decimal128(fraction_p fp, id type)
+decimal128::decimal128(id type, fraction_p fp)
 // ----------------------------------------------------------------------------
 //   Create a decimal128 from a bignum value
 // ----------------------------------------------------------------------------

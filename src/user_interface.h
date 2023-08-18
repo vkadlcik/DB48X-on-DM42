@@ -117,7 +117,7 @@ struct user_interface
     uint        draw_refresh()          { return nextRefresh; }
     rect        draw_dirty()            { return dirty; }
     void        draw_clean()            { dirty = rect(); }
-    void        draw_user_screen()      { userScreen = true; }
+    void        draw_graphics();
 
     bool        draw_header();
     bool        draw_annunciators();
@@ -217,7 +217,7 @@ protected:
     bool     dynamicMenu  : 1;  // Menu is dynamic, needs update after keystroke
     bool     autoComplete : 1;  // Menu is auto-complete
     bool     adjustSeps   : 1;  // Need to adjust separators
-    bool     userScreen   : 1;  // Displaying user-defined screen
+    bool     graphics     : 1;  // Displaying user-defined graphics screen
 
 protected:
     // Key mappings

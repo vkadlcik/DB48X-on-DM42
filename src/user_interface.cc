@@ -123,7 +123,7 @@ user_interface::user_interface()
       dynamicMenu(false),
       autoComplete(false),
       adjustSeps(false),
-      userScreen(false),
+      graphics(false),
       helpfile()
 {
     for (uint p = 0; p < NUM_PLANES; p++)
@@ -902,7 +902,7 @@ void user_interface::draw_start(bool forceRedraw, uint refresh)
     dirty = rect();
     force = forceRedraw;
     nextRefresh = refresh;
-    userScreen = false;
+    graphics = false;
 }
 
 
@@ -934,6 +934,21 @@ void user_interface::draw_dirty(const rect &r)
         dirty = r;
     else
         dirty |= r;
+}
+
+
+void user_interface::draw_graphics()
+// ----------------------------------------------------------------------------
+//   Start graphics mode
+// ----------------------------------------------------------------------------
+{
+    if (!graphics)
+    {
+        draw_start(false);
+        graphics = true;
+        Screen.fill(pattern::white);
+        draw_dirty(0, 0, LCD_W, LCD_H);
+    }
 }
 
 
@@ -1425,7 +1440,7 @@ bool user_interface::draw_busy_cursor(unicode glyph)
 //    Draw the busy flying cursor
 // ----------------------------------------------------------------------------
 {
-    if (userScreen)
+    if (graphics)
         return false;
 
     size w  = 32;
@@ -1463,7 +1478,12 @@ bool user_interface::draw_idle()
 //   Clear busy indicator
 // ----------------------------------------------------------------------------
 {
-    userScreen = false;
+    if (graphics)
+    {
+        graphics = false;
+        wait_for_key_press();
+        redraw_lcd(true);
+    }
     draw_busy_cursor(0);
     alpha_drawn = !alpha_drawn;
     shift_drawn = !shift;

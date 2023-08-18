@@ -77,6 +77,7 @@ object::result DrawFunctionPlot(const PlotParameters &ppar, object_g eq)
     object::result result = object::ERROR;
     coord lx   = -1;
     coord ly   = -1;
+    ui.draw_graphics();
     uint  then = sys_current_ms();
     while (!program::interrupted())
     {
@@ -205,6 +206,8 @@ COMMAND_BODY(Drax)
 //   Draw plot axes
 // ----------------------------------------------------------------------------
 {
+    ui.draw_graphics();
+
     PlotParameters ppar;
     coord w = Screen.area().width();
     coord h = Screen.area().height();

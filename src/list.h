@@ -54,6 +54,24 @@ struct list : text
     list(gcbytes bytes, size_t len, id type = ID_list): text(bytes, len, type)
     { }
 
+    template <typename... Args>
+    list(const gcp<Args> & ...args, id type = ID_list): text(utf8(""), 0, type)
+    {
+        byte *p = (byte *) payload();
+        size_t sz = required_args_memory(args...);
+        leb128(p, sz);
+        copy(p, args...);
+    }
+
+    template <typename A, typename B, typename C, typename D>
+    list(const gcp<A> & a, const gcp<B> & b, const gcp<C> & c, const gcp<D> & d, id type = ID_list): text(utf8(""), 0, type)
+    {
+        byte *p = (byte *) payload();
+        size_t sz = required_args_memory(a,b,c,d);
+        p = leb128(p, sz);
+        copy(p, a,b,c,d);
+    }
+
     static size_t required_memory(id i, gcbytes UNUSED bytes, size_t len)
     {
         return text::required_memory(i, bytes, len);
@@ -69,6 +87,53 @@ struct list : text
         return rt.make<list>(ty, bytes, len);
     }
 
+    template<typename ...Args>
+    static list_p make(id ty, const gcp<Args> &...args)
+    {
+        return rt.make<list>(ty, args...);
+    }
+
+    template<typename ...Args>
+    static list_p make(const gcp<Args> &...args)
+    {
+        return rt.make<list>(ID_list, args...);
+    }
+
+    template <typename Arg>
+    static size_t required_args_memory(const gcp<Arg> &arg)
+    {
+        return arg->size();
+    }
+
+    template <typename Arg, typename ...Args>
+    static size_t required_args_memory(const gcp<Arg> &arg,
+                                       const gcp<Args> &...args)
+    {
+        return arg->size() + required_args_memory(args...);
+    }
+
+    template<typename ...Args>
+    static size_t required_memory(id i, const gcp<Args> &...args)
+    {
+        size_t sz = required_args_memory(args...);
+        return leb128size(i) + leb128size(sz) + sz;
+    }
+
+    template<typename Arg>
+    static void copy(byte *p, const gcp<Arg> &arg)
+    {
+        size_t sz = arg->size();
+        memmove(p, arg.Safe(), sz);
+    }
+
+    template<typename Arg, typename ...Args>
+    static void copy(byte *p, const gcp<Arg> &arg, const gcp<Args> &...args)
+    {
+        size_t sz = arg->size();
+        memmove(p, arg.Safe(), sz);
+        p += sz;
+        copy(p, args...);
+    }
 
     // Iterator, built in a way that is robust to garbage collection in loops
     struct iterator

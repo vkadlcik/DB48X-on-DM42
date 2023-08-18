@@ -623,3 +623,60 @@ COMMAND_BODY(ClLCD)
     refresh_dirty();
     return OK;
 }
+
+
+COMMAND_BODY(Clip)
+// ----------------------------------------------------------------------------
+//   Set the clipping rectangle
+// ----------------------------------------------------------------------------
+{
+    if (object_p top = rt.pop())
+    {
+        if (list_p parms = top->as<list>())
+        {
+            rect clip(Screen.area());
+            uint index = 0;
+            for (object_p parm : *parms)
+            {
+                coord arg = parm->as_int32(0, true);
+                if (rt.error())
+                    return ERROR;
+                switch(index++)
+                {
+                case 0: clip.x1 = arg; break;
+                case 1: clip.y1 = arg; break;
+                case 2: clip.x2 = arg; break;
+                case 3: clip.y2 = arg; break;
+                default:        rt.value_error(); return ERROR;
+                }
+            }
+            Screen.clip(clip);
+            return OK;
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(CurrentClip)
+// ----------------------------------------------------------------------------
+//   Retuyrn the current clipping rectangle
+// ----------------------------------------------------------------------------
+{
+    rect clip(Screen.clip());
+    integer_g x1 = integer::make(clip.x1);
+    integer_g y1 = integer::make(clip.y1);
+    integer_g x2 = integer::make(clip.x2);
+    integer_g y2 = integer::make(clip.y2);
+    if (x1 && y1 && x2 && y2)
+    {
+        list_g obj = list::make(x1, y1, x2, y2);
+        if (obj && rt.push(obj.Safe()))
+            return OK;
+    }
+    return ERROR;
+}

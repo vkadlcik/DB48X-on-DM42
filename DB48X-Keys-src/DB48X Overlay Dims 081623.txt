@@ -1,0 +1,25 @@
+DB48X_tabbed_nokeys_081623.png:
+Dims:  72.46mm W x 89.069mm H
+
+DB48X_overlay_nokeys_081623.png:
+Dims: 70.083mm W x 89.069mm H
+
+DB48X_tabbed_withkeys_081623.png:
+Dims:  72.46mm W x 89.069mm H
+
+DB48X_overlay_withkeys_081623.png:
+Dims: 70.083mm W x 89.069mm H
+
+DB48X_keysonly_081623.png:
+Dims: 26.25mm W x 18.10mm H
+
+
+
+DB48X_tabbed_overlay_080423.png:
+Dims:  72.46mm W x 89.069mm H
+
+DB48X_overlay_080423.png:
+Dims: 70.083mm W x 89.069mm H
+
+DB48X_Standalone_Key_Fronts_080423.png:
+Dims: 21.75mm W x 59.75mm H

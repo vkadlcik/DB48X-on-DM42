@@ -46,8 +46,8 @@
 #include <bid_functions.h>
 #include <cstring>
 
-struct bignum;
-typedef const bignum *bignum_p;
+GCP(bignum);
+GCP(fraction);
 
 struct decimal128 : algebraic
 // ----------------------------------------------------------------------------
@@ -116,6 +116,7 @@ struct decimal128 : algebraic
     }
 
     decimal128(bignum_p value, id type = ID_decimal128);
+    decimal128(fraction_p value, id type = ID_decimal128);
 
 #if 128 > 64
     decimal128(const bid64 &value, id type = ID_decimal128): algebraic(type)
@@ -251,6 +252,9 @@ struct decimal128 : algebraic
     {
         return is_negative_or_zero(value());
     }
+
+    algebraic_p to_fraction(uint count = Settings.fraciter,
+                            uint decimals = Settings.fracprec) const;
 
 public:
     OBJECT_DECL(decimal128);

@@ -92,21 +92,17 @@ bool arithmetic::complex_promotion(algebraic_g &x, algebraic_g &y)
     id xt = x->type();
     id yt = y->type();
 
+    // If both are complex, we do not do anything: Complex ops know best how
+    // to handle mixed inputs (mix of rectangular and polar). We should leave
+    // it to them to handle the different representations.
+    if (is_complex(xt) && is_complex(yt))
+        return true;
+
+    // Try to convert both types to the same complex type
     if (is_complex(xt))
-    {
-        // Success if the two complex types are identical
-        if (yt == xt)
-            return true;
-
-        // Try to convert both types to the same complex type
         return complex_promotion(y, xt);
-    }
-
     if (is_complex(yt))
-    {
-        // Try to convert both types to the same complex type
         return complex_promotion(x, yt);
-    }
 
     // Neither type is complex, no point to promote
     return false;
@@ -158,6 +154,20 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
             return x;
     }
 
+    // list + ...
+    if (list_g xl = x->as<list>())
+    {
+        if (list_g yl = y->as<list>())
+            return xl + yl;
+        if (list_g yl = rt.make<list>(byte_p(y.Safe()), y->size()))
+            return xl + yl;
+    }
+    else if (list_g yl = y->as<list>())
+    {
+        if (list_g xl = rt.make<list>(byte_p(x.Safe()), x->size()))
+            return xl + yl;
+    }
+
     // text + ...
     if (text_g xs = x->as<text>())
     {
@@ -174,20 +184,6 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
         // object + text
         if (text_g xs = x->as_text())
             return xs + ys;
-    }
-
-    // list + ...
-    else if (list_g xl = x->as<list>())
-    {
-        if (list_g yl = y->as<list>())
-            return xl + yl;
-        if (list_g yl = rt.make<list>(byte_p(y.Safe()), y->size()))
-            return xl + yl;
-    }
-    else if (list_g yl = y->as<list>())
-    {
-        if (list_g xl = rt.make<list>(byte_p(x.Safe()), x->size()))
-            return xl + yl;
     }
 
     // vector + vector or matrix + matrix
@@ -508,7 +504,14 @@ algebraic_p arithmetic::non_numeric<struct div>(algebraic_r x, algebraic_r y)
     if (Settings.auto_simplify && x->is_algebraic() && y->is_algebraic())
     {
         if (x->is_zero(false))                  // 0 / X = 0
+        {
+            if (y->is_zero(false))
+            {
+                rt.zero_divide_error();
+                return nullptr;
+            }
             return x;
+        }
         if (y->is_one(false))                   // X / 1 = X
             return x;
         if (x->is_one(false) && y->is_strictly_symbolic())
@@ -648,7 +651,7 @@ inline bool mod::integer_ok(object::id &xt, object::id &yt,
 
     // Perform the modulo
     xv = xv % yv;
-    if (xt == ID_neg_integer)
+    if (xt == ID_neg_integer && xv)
         xv = yv - xv;
 
     // The resulting type is always positive
@@ -665,7 +668,7 @@ inline bool mod::bignum_ok(bignum_g &x, bignum_g &y)
     bignum_g r = x % y;
     if (byte_p(r) == nullptr)
         return false;
-    if (y->type() == ID_neg_bignum)
+    if (y->type() == ID_neg_bignum && !r->is_zero())
         x = y - r;
     else
         x = r;
@@ -684,6 +687,8 @@ inline bool mod::fraction_ok(fraction_g &x, fraction_g &y)
         return false;
     }
     x = x % y;
+    if (y->type() == ID_neg_fraction && !x->is_zero())
+        x = y - x;
     return true;
 }
 
@@ -912,12 +917,18 @@ inline bool hypot::complex_ok(complex_g &, complex_g &)
 }
 
 
+
+// ============================================================================
+//
+//   atan2: Optimize exact cases when dealing with fractions of pi
+//
+// ============================================================================
+
 inline bool atan2::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
                               ularge &UNUSED xv, ularge &UNUSED yv)
 // ----------------------------------------------------------------------------
-//   atan2() involves a square root, so not working on integers
+//   Optimized for integers on the real axis
 // ----------------------------------------------------------------------------
-//   Not trying to optimize the few cases where it works, e.g. 3^2+4^2=5^2
 {
     return false;
 }
@@ -925,7 +936,7 @@ inline bool atan2::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
 
 inline bool atan2::bignum_ok(bignum_g &UNUSED x, bignum_g &UNUSED y)
 // ----------------------------------------------------------------------------
-//   Atan2 never works with big integers
+//   Optimize for bignums on the real axis
 // ----------------------------------------------------------------------------
 {
     return false;
@@ -934,7 +945,7 @@ inline bool atan2::bignum_ok(bignum_g &UNUSED x, bignum_g &UNUSED y)
 
 inline bool atan2::fraction_ok(fraction_g &UNUSED x, fraction_g &UNUSED y)
 // ----------------------------------------------------------------------------
-//   Atan2 never works with big integers
+//   Optimize for fractions on the real and complex axis and for diagonals
 // ----------------------------------------------------------------------------
 {
     return false;
@@ -947,6 +958,56 @@ inline bool atan2::complex_ok(complex_g &, complex_g &)
 // ----------------------------------------------------------------------------
 {
     return false;
+}
+
+
+template <>
+algebraic_p arithmetic::non_numeric<struct atan2>(algebraic_r y, algebraic_r x)
+// ----------------------------------------------------------------------------
+//   Deal with various exact angle optimizations for atan2
+// ----------------------------------------------------------------------------
+//   Note that the first argument to atan2 is traditionally called y,
+//   and represents the imaginary axis for complex numbers
+{
+    auto angle_mode = Settings.angle_mode;
+    if (angle_mode != settings::RADIANS)
+    {
+        // Deal with special cases without rounding
+        if (y->is_zero(false))
+        {
+            if (x->is_negative(false))
+                return integer::make(1);
+            return integer::make(0);
+        }
+        if (x->is_zero(false))
+        {
+            return fraction::make(integer::make(y->is_negative() ? -1 : 1),
+                                  integer::make(2));
+        }
+        algebraic_g s = x + y;
+        algebraic_g d = x - y;
+        if (!s.Safe() || !d.Safe())
+            return nullptr;
+        bool posdiag = d->is_zero(false);
+        bool negdiag = s->is_zero(false);
+        if (posdiag || negdiag)
+        {
+            bool xneg = x->is_negative();
+            int  num  = posdiag ? (xneg ? -3 : 1) : (xneg ? 3 : -1);
+            switch (angle_mode)
+            {
+            case settings::PI_RADIANS:
+                return fraction::make(integer::make(num), integer::make(4));
+            case settings::DEGREES:
+                return integer::make(num * 45);
+            case settings::GRADS:
+                return integer::make(num * 50);
+            default:
+                break;
+            }
+        }
+    }
+    return nullptr;
 }
 
 
@@ -1047,7 +1108,7 @@ algebraic_p arithmetic::evaluate(id          op,
             bid32 yv = y->as<decimal32>()->value();
             bid32 res;
             ops.op32(&res.value, &xv.value, &yv.value);
-            return rt.make<decimal32>(ID_decimal32, res);
+            x = rt.make<decimal32>(ID_decimal32, res);
         }
         case ID_decimal64:
         {
@@ -1055,7 +1116,7 @@ algebraic_p arithmetic::evaluate(id          op,
             bid64 yv = y->as<decimal64>()->value();
             bid64 res;
             ops.op64(&res.value, &xv.value, &yv.value);
-            return rt.make<decimal64>(ID_decimal64, res);
+            x = rt.make<decimal64>(ID_decimal64, res);
         }
         case ID_decimal128:
         {
@@ -1063,11 +1124,14 @@ algebraic_p arithmetic::evaluate(id          op,
             bid128 yv = y->as<decimal128>()->value();
             bid128 res;
             ops.op128(&res.value, &xv.value, &yv.value);
-            return rt.make<decimal128>(ID_decimal128, res);
+            x = rt.make<decimal128>(ID_decimal128, res);
         }
         default:
             break;
         }
+        if (op == ID_atan2)
+            function::adjust_to_angle(x);
+        return x;
     }
 
     // Complex data types
@@ -1330,6 +1394,15 @@ algebraic_g operator%(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 {
     return mod::evaluate(x, y);
+}
+
+
+algebraic_g pow(algebraic_r x, algebraic_r y)
+// ----------------------------------------------------------------------------
+//   Power
+// ----------------------------------------------------------------------------
+{
+    return pow::evaluate(x, y);
 }
 
 

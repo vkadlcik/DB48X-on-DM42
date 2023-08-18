@@ -65,10 +65,13 @@ void menu::items_init(info &mi, uint nitems, uint planes)
 //   Initialize the info structure
 // ----------------------------------------------------------------------------
 {
+    if (Settings.menu_flatten)
+        planes = 1;
     uint page0 = planes * ui.NUM_SOFTKEYS;
     mi.planes  = planes;
     mi.plane   = 0;
     mi.index   = 0;
+    mi.marker  = 0;
     if (nitems <= page0)
     {
         mi.page = 0;
@@ -146,7 +149,11 @@ void menu::items(info &mi, cstring label, object_p action)
             ui.menu(idx, label, action);
             if (action)
             {
-                if (unicode mark = action->marker())
+                unicode mark = action->marker();
+                if (!mark)
+                    mark = mi.marker;
+                mi.marker = 0;
+                if (mark)
                 {
                     if ((int) mark < 0)
                         ui.marker(idx, -mark, true);
@@ -250,8 +257,8 @@ MENU(RealMenu,
      "Max",     ID_Unimplemented,
      ID_mod,
      ID_abs,
-     "→Num",    ID_Unimplemented,
-     "→Frac",   ID_Unimplemented,
+     "→Num",    ID_ToDecimal,
+     "→Frac",   ID_ToFraction,
 
      "Ceil",    ID_Unimplemented,
      "Floor",   ID_Unimplemented,
@@ -585,12 +592,16 @@ MENU(TestsMenu,
 // ----------------------------------------------------------------------------
 //   Tests
 // ----------------------------------------------------------------------------
-     "IfThen",  ID_Unimplemented,
-     "IfElse",  ID_Unimplemented,
-     "IfErr",   ID_Unimplemented,
-     "IFTE",    ID_Unimplemented,
-     "Compare", ID_CompareMenu,
-     "Loops",   ID_LoopsMenu);
+     "IfThen",          ID_IfThen,
+     "IfElse",          ID_IfThenElse,
+     "IfErr",           ID_IfErrThen,
+     "IfErrElse",       ID_IfErrThen,
+     "IFT",             ID_IFT,
+     "IFTE",            ID_IFTE,
+
+     "Compare",         ID_CompareMenu,
+     "Loops",           ID_LoopsMenu,
+     "Prog",            ID_ProgramMenu);
 
 
 MENU(CompareMenu,
@@ -609,6 +620,12 @@ MENU(CompareMenu,
      "xor",     ID_Xor,
      "not",     ID_Not,
      "==",      ID_TestSame,
+     "",        ID_Unimplemented,
+
+     "true",    ID_True,
+     "false",   ID_False,
+     "Tests",   ID_TestsMenu,
+     "Loops",   ID_LoopsMenu,
      "Prog",    ID_ProgramMenu);
 
 
@@ -672,8 +689,8 @@ MENU(ObjectMenu,
 // ----------------------------------------------------------------------------
      "→Obj",    ID_Unimplemented,
      "Obj→",    ID_Unimplemented,
-     "Bytes",   ID_Unimplemented,
-     "Type",    ID_Unimplemented,
+     "Bytes",   ID_Bytes,
+     "Type",    ID_Type,
      "Clone",   ID_Unimplemented,
      "Size",    ID_Unimplemented,
 
@@ -681,7 +698,8 @@ MENU(ObjectMenu,
      "→List",   ID_Unimplemented,
      "→Prog",   ID_Unimplemented,
      "→Array",  ID_Unimplemented,
-     "→Num",    ID_Unimplemented,
+     "→Num",    ID_ToDecimal,
+     "→Frac",   ID_ToFraction,
      "→Graph",  ID_Unimplemented);
 
 
@@ -902,12 +920,15 @@ MENU(FractionsMenu,
      "%",       ID_Unimplemented,
      "%Chg",    ID_Unimplemented,
      "%Total",  ID_Unimplemented,
-     "→Frac",   ID_Unimplemented,
+     "→Frac",   ID_ToFraction,
      "Frac→",   ID_Unimplemented,
-     "→Num",    ID_Unimplemented,
+     "→Num",    ID_ToDecimal,
 
      "→HMS",    ID_Unimplemented,
-     "HMS→",    ID_Unimplemented);
+     "HMS→",    ID_Unimplemented,
+     ToFractionIterations::menu_label,  ID_ToFractionIterations,
+     ToFractionDigits::menu_label,      ID_ToFractionDigits
+);
 
 MENU(PlotMenu,
 // ----------------------------------------------------------------------------
@@ -994,6 +1015,7 @@ MENU(ModesMenu,
      "1'000",  ID_NumberTicks,
      "1_000",  ID_NumberUnderscore,
      "Fonts",  ID_FontsMenu,
+     "Menus",  ID_MenuSettingsMenu,
 
      "#1 000", ID_BasedSpaces,
      Settings.decimal_mark == '.' ? "#1,000" : "#1.000",  ID_BasedDotOrComma,
@@ -1007,11 +1029,27 @@ MENU(ModesMenu,
 
      ID_Modes);
 
+
 MENU(FontsMenu,
+// ----------------------------------------------------------------------------
+//   Font size information
+// ----------------------------------------------------------------------------
      ResultFontSize::menu_label,                ID_ResultFontSize,
      StackFontSize::menu_label,                 ID_StackFontSize,
      EditorFontSize::menu_label,                ID_EditorFontSize,
      EditorMultilineFontSize::menu_label,       ID_EditorMultilineFontSize);
+
+
+MENU(MenuSettingsMenu,
+// ----------------------------------------------------------------------------
+//   Setting menu settings
+// ----------------------------------------------------------------------------
+     "3-lines", ID_ThreeRowsMenus,
+     "1-line",  ID_SingleRowMenus,
+     "Flat",    ID_FlatMenus,
+     "Round",   ID_RoundedMenus,
+     "Square",  ID_SquareMenus,
+     ID_ModesMenu);
 
 
 
@@ -1028,9 +1066,18 @@ MENU(MemMenu,
 // ----------------------------------------------------------------------------
 //   Memory operations
 // ----------------------------------------------------------------------------
-     "GC",      ID_GarbageCollect,
-     "Free",    ID_FreeMemory,
+     "Home",    ID_home,
+     "Path",    ID_path,
+     "CrDir",   ID_crdir,
+     "UpDir",   ID_updir,
+     "Current", ID_CurrentDirectory,
      "Purge",   ID_Purge,
+
+     "GC",      ID_GarbageCollect,
+     "Avail",   ID_Mem,
+     "Free",    ID_FreeMemory,
+     "System",  ID_SystemMemory,
+     "Recall",  ID_Rcl,
      "PgAll",   ID_PurgeAll);
 
 

@@ -36,6 +36,7 @@
 #include "catalog.h"
 #include "compare.h"
 #include "complex.h"
+#include "conditionals.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
@@ -43,6 +44,7 @@
 #include "font.h"
 #include "fraction.h"
 #include "functions.h"
+#include "graphics.h"
 #include "integer.h"
 #include "list.h"
 #include "locals.h"
@@ -50,6 +52,7 @@
 #include "loops.h"
 #include "menu.h"
 #include "parser.h"
+#include "plot.h"
 #include "program.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -262,6 +265,12 @@ uint32_t object::as_uint32(uint32_t def, bool err) const
         if (err)
             rt.value_error();
         return def;
+    case ID_bignum:
+        return bignum_p(this)->value<uint32_t>();
+    case ID_neg_bignum:
+        if (err)
+            rt.value_error();
+        return def;
     case ID_decimal128:
     {
         uint result = def;
@@ -283,6 +292,12 @@ uint32_t object::as_uint32(uint32_t def, bool err) const
         bid32_to_uint32_int(&result, &v.value);
         return result;
     }
+
+    case ID_fraction:
+        return fraction_p(this)->as_uint32();
+    case ID_big_fraction:
+        return big_fraction_p(this)->as_uint32();
+
     default:
         if (err)
             rt.type_error();
@@ -303,6 +318,11 @@ int32_t object::as_int32 (int32_t  def, bool err)  const
         return integer_p(this)->value<uint32_t>();
     case ID_neg_integer:
         return  -integer_p(this)->value<uint32_t>();
+    case ID_bignum:
+        return bignum_p(this)->value<uint32_t>();
+    case ID_neg_bignum:
+        return -bignum_p(this)->value<uint32_t>();
+
     case ID_decimal128:
     {
         int result = def;
@@ -324,6 +344,16 @@ int32_t object::as_int32 (int32_t  def, bool err)  const
         bid32_to_int32_int(&result, &v.value);
         return result;
     }
+
+    case ID_fraction:
+        return fraction_p(this)->as_uint32();
+    case ID_neg_fraction:
+        return -fraction_p(this)->as_uint32();
+    case ID_big_fraction:
+        return big_fraction_p(this)->as_uint32();
+    case ID_neg_big_fraction:
+        return -big_fraction_p(this)->as_uint32();
+
     default:
         if (err)
             rt.type_error();
@@ -489,17 +519,21 @@ int object::as_truth(bool error) const
     case ID_False:
     case ID_integer:
     case ID_neg_integer:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_integer:
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_integer:
     case ID_bignum:
     case ID_neg_bignum:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_bignum:
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_fraction:
     case ID_neg_fraction:
     case ID_big_fraction:
@@ -533,22 +567,26 @@ bool object::is_zero(bool error) const
         return true;
     case ID_integer:
     case ID_neg_integer:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_integer:
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_integer:
         return integer_p(this)->is_zero();
     case ID_bignum:
     case ID_neg_bignum:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_bignum:
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
         return bignum_p(this)->is_zero();
     case ID_fraction:
     case ID_neg_fraction:
-        return fraction_p(this)->numerator()->is_zero();
+        return fraction_p(this)->is_zero();
     case ID_big_fraction:
     case ID_neg_big_fraction:
         return big_fraction_p(this)->numerator()->is_zero();
@@ -580,20 +618,24 @@ bool object::is_one(bool error) const
     switch(ty)
     {
     case ID_integer:
-    case ID_neg_integer:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_integer:
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_integer:
         return integer_p(this)->is_one();
     case ID_bignum:
-    case ID_neg_bignum:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_bignum:
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
         return bignum_p(this)->is_one();
+    case ID_fraction:
+        return fraction_p(this)->is_one();
     case ID_decimal128:
         return decimal128_p(this)->is_one();
     case ID_decimal64:
@@ -604,6 +646,10 @@ bool object::is_one(bool error) const
         return polar_p(this)->is_one();
     case ID_rectangular:
         return rectangular_p(this)->is_one();
+    case ID_neg_integer:
+    case ID_neg_bignum:
+    case ID_neg_fraction:
+        return false;
 
     default:
         if (error)
@@ -622,16 +668,20 @@ bool object::is_negative(bool error) const
     switch(ty)
     {
     case ID_integer:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_integer:
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_integer:
     case ID_bignum:
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_bignum:
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_fraction:
     case ID_big_fraction:
         return false;
@@ -639,7 +689,7 @@ bool object::is_negative(bool error) const
     case ID_neg_bignum:
     case ID_neg_fraction:
     case ID_neg_big_fraction:
-        return !is_zero();
+        return !fraction_p(this)->is_zero();
     case ID_decimal128:
         return decimal128_p(this)->is_negative();
     case ID_decimal64:
@@ -669,6 +719,35 @@ bool object::is_same_as(object_p other) const
         return false;
     return memcmp(this, other, sz) == 0;
 }
+
+
+algebraic_p object::algebraic_child(uint index) const
+// ----------------------------------------------------------------------------
+//    For a complex, list or array, return nth element as algebraic
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    switch (ty)
+    {
+    case ID_rectangular:
+        return index ? rectangular_p(this)->im() : rectangular_p(this)->re();
+    case ID_polar:
+        return index ? polar_p(this)->im() : polar_p(this)->re();
+
+    case ID_list:
+    case ID_array:
+        if (object_p obj = list_p(this)->at(index))
+            if (obj->is_algebraic())
+                return algebraic_p(obj);
+        rt.value_error();
+        break;
+    default:
+        rt.type_error();
+        break;
+    }
+    return nullptr;
+}
+
 
 
 #if SIMULATOR

@@ -12,8 +12,17 @@ Move an object to the clipboard
 Insert the clipboard contents on the stack
 
 
-## WAIT
-Wait for a key press or a time lapse
+## Wait
+
+Wait for a key press or a time lapse.
+
+When the argument is greater than 0, interrupt the program for the given number
+of seconds, which can be fractional.
+
+When the argument is 0 or negative, wait indefinitely until a key is
+pressed. The key code for the key that was pressed will be pushed in the
+stack. If the argument is negative, the current menu will be displayed on the
+screen during the wait.
 
 
 ## KEYEVAL
@@ -85,4 +94,3 @@ Set system color theme
 
 
 ## GETTHEME
-

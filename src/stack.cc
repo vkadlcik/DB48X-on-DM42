@@ -29,20 +29,20 @@
 
 #include "stack.h"
 
-#include "graphics.h"
-#include "user_interface.h"
+#include "blitter.h"
 #include "renderer.h"
 #include "runtime.h"
-#include "target.h"
 #include "settings.h"
+#include "target.h"
+#include "user_interface.h"
 
 #include <dmcp.h>
 
 
 stack    Stack;
 
-using coord = graphics::coord;
-using size  = graphics::size;
+using coord = blitter::coord;
+using size  = blitter::size;
 
 
 RECORDER(tests, 16, "Information about tests");
@@ -91,9 +91,6 @@ void stack::draw_stack()
     if (!depth)
         return;
 
-    utf8 saveError = rt.error();
-    utf8 saveSrc   = rt.source();
-    utf8 saveCmd   = rt.command();
     rect clip      = Screen.clip();
 
     Screen.fill(hdrx, top, hdrx, bottom, pattern::gray50);
@@ -161,7 +158,4 @@ void stack::draw_stack()
         lineHeight = font->height();
     }
     Screen.clip(clip);
-
-    // Clear any error raised during rendering
-    rt.error(saveError).source(saveSrc).command(saveCmd);
 }

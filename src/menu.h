@@ -40,7 +40,8 @@ struct menu_info
 // ----------------------------------------------------------------------------
 {
     uint page;   // In:  Page index
-    uint skip;   // Int: Items to skip
+    uint skip;   // In:  Items to skip
+    int  marker; // In:  Default marker
     uint pages;  // Out: Total number of pages
     uint index;  // Out: Last index written
     uint plane;  // Out: Last plane filled

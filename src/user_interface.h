@@ -29,9 +29,9 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
+#include "blitter.h"
 #include "dmcp.h"
 #include "file.h"
-#include "graphics.h"
 #include "object.h"
 #include "runtime.h"
 #include "types.h"
@@ -81,9 +81,9 @@ struct user_interface
     using result = object::result;
     using id     = object::id;
 
-    typedef graphics::coord coord;
-    typedef graphics::size  size;
-    typedef graphics::rect  rect;
+    typedef blitter::coord coord;
+    typedef blitter::size  size;
+    typedef blitter::rect  rect;
 
 
     bool        key(int key, bool repeating, bool transalpha);
@@ -117,6 +117,7 @@ struct user_interface
     uint        draw_refresh()          { return nextRefresh; }
     rect        draw_dirty()            { return dirty; }
     void        draw_clean()            { dirty = rect(); }
+    void        draw_user_screen()      { userScreen = true; }
 
     bool        draw_header();
     bool        draw_annunciators();
@@ -210,11 +211,13 @@ protected:
     bool     force        : 1;  // Force a redraw of everything
     bool     dirtyMenu    : 1;  // Menu label needs redraw
     bool     dirtyStack   : 1;  // Need to redraw the stack
+    bool     dirtyCommand : 1;  // Need to redraw the command
     bool     dirtyEditor  : 1;  // Need to redraw the text editor
     bool     dirtyHelp    : 1;  // Need to redraw the help
     bool     dynamicMenu  : 1;  // Menu is dynamic, needs update after keystroke
     bool     autoComplete : 1;  // Menu is auto-complete
     bool     adjustSeps   : 1;  // Need to adjust separators
+    bool     userScreen   : 1;  // Displaying user-defined screen
 
 protected:
     // Key mappings

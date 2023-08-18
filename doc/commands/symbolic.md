@@ -24,8 +24,21 @@ Examples:
 * `'(A+B)^3' 'X^N' 'X*X^(N-1)' rewrite` returns `(A+B)*(A+B)^2`.
 
 
-## AUTOSIMPLIFY
-Reduce numeric subexpressions
+## AutoSimplify
+
+Enable automatic reduction of numeric subexpressions according to usual
+arithmetic rules. After evaluating `AutoSimplify` `'X+0`' will evaluate as `'X'`
+and '`X*1-B*0'` witll evaluate as `'X'`.
+
+The opposite setting is [NoAutoSimplify](#noautosimplify)
+
+## NoAutoSimplify
+
+Disable automatic reduction of numeric subexpressions according to usual
+arithmetic rules. After evaluating `NoAutoSimplify`, equations such as`'X+0`'
+or `X*1-B*0` will no longer be simplified during evaluation.
+
+The opposite setting is [AutoSimplify](#autosimplify)
 
 
 ## RULEMATCH
@@ -36,9 +49,17 @@ Find if an expression matches a rule pattern
 Match and apply a rule to an expression repeatedly
 
 
-## TOFRACTION
-Convert number to fraction
+## →Num (→Decimal, ToDecimal)
 
+Convert fractions and symbolic constants to decimal form.
+For example, `1/4 →Num` results in `0.25`.
+
+## →Frac (→Q, ToFraction)
+
+Convert decimal values to fractions. For example `1.25 →Frac` gives `5/4`.
+The precision of the conversion in digits is defined by
+[→FracDigits](#ToFractionDigits), and the maximum number of iterations for the
+conversion is defined by [→FracDigits](#ToFractionIterations)
 
 ## RULEAPPLY1
 Match and apply a rule to an expression only once

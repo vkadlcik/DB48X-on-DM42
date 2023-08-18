@@ -58,6 +58,8 @@
 #include "menu.h"
 
 
+GCP(directory);
+
 struct directory : list
 // ----------------------------------------------------------------------------
 //   Representation of a directory
@@ -95,6 +97,11 @@ struct directory : list
     //    Check if a name exists in the directory, return value pointer if it does
     // ------------------------------------------------------------------------
 
+    static object_p recall_all(object_p name);
+    // ------------------------------------------------------------------------
+    //    Check if a name exists in the directory, return value pointer if it does
+    // ------------------------------------------------------------------------
+
     object_p lookup(object_p name) const;
     // ------------------------------------------------------------------------
     //    Check if a name exists in the directory, return name pointer if it does
@@ -113,7 +120,6 @@ struct directory : list
         return enumerate(nullptr, nullptr);
     }
 
-
     typedef bool (*enumeration_fn)(symbol_p name, object_p obj, void *arg);
     size_t enumerate(enumeration_fn callback, void *arg) const;
     // ------------------------------------------------------------------------
@@ -125,24 +131,40 @@ struct directory : list
     //   Render an entry in the directory
     // ------------------------------------------------------------------------
 
+    static list_p path(id type = ID_list);
+    // ------------------------------------------------------------------------
+    //   Return the current directory path
+    // ------------------------------------------------------------------------
+
 
 public:
     OBJECT_DECL(directory);
     PARSE_DECL(directory);
     RENDER_DECL(directory);
-};
+    EXEC_DECL(directory);
 
-typedef const directory *directory_p;
+private:
+    static void adjust_sizes(directory_r dir, int delta);
+};
 
 
 COMMAND_DECLARE(Sto);
 COMMAND_DECLARE(Rcl);
 COMMAND_DECLARE(Purge);
 COMMAND_DECLARE(PurgeAll);
+
 COMMAND_DECLARE(Mem);
 COMMAND_DECLARE(FreeMemory);
 COMMAND_DECLARE(SystemMemory);
 COMMAND_DECLARE(GarbageCollect);
+
+COMMAND_DECLARE(home);             // Return to home directory
+COMMAND_DECLARE(CurrentDirectory); // Return the current directory object
+COMMAND_DECLARE(path);             // Return a list describing current path
+COMMAND_DECLARE(crdir);            // Create a directory in current directly
+COMMAND_DECLARE(updir);            // Move one directory up
+COMMAND_DECLARE(pgdir);            // Purge directory
+
 
 struct VariablesMenu : menu
 // ----------------------------------------------------------------------------

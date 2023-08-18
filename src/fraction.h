@@ -84,6 +84,14 @@ struct fraction : algebraic
     integer_g numerator(int) const;
     integer_g denominator(int) const;
 
+    bool is_zero() const { return numerator()->is_zero(); }
+    bool is_one()  const { return (numerator() - denominator())->is_zero(); }
+
+    uint32_t as_uint32() const
+    {
+        return numerator()->value<ularge>() / denominator()->value<ularge>();
+    }
+
     static fraction_g make(integer_g n, integer_g d);
 
 public:
@@ -126,14 +134,19 @@ struct big_fraction : fraction
     // ------------------------------------------------------------------------
     {
         return leb128size(i)
-            + n->object::size() - leb128size(n->type())
-            + d->object::size() - leb128size(d->type());
+            + n->size() - leb128size(n->type())
+            + d->size() - leb128size(d->type());
     }
 
     static fraction_g make(bignum_g n, bignum_g d);
 
     bignum_g numerator() const;
     bignum_g denominator() const;
+
+    uint32_t as_uint32() const
+    {
+        return numerator()->value<ularge>() / denominator()->value<ularge>();
+    }
 
 public:
     OBJECT_DECL(big_fraction);
@@ -154,6 +167,7 @@ public:
     RENDER_DECL(neg_big_fraction);
 };
 
+fraction_g operator-(fraction_r x);
 fraction_g operator+(fraction_r x, fraction_r y);
 fraction_g operator-(fraction_r x, fraction_r y);
 fraction_g operator*(fraction_r x, fraction_r y);

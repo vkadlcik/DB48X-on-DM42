@@ -28,6 +28,7 @@
 // ****************************************************************************
 
 ERROR(unimplemented,            "Not yet implemented")
+ERROR(interrupted,              "Interrupted")
 ERROR(missing_argument,         "Too few arguments")
 ERROR(invalid_object,           "Invalid object")
 ERROR(out_of_memory,            "Out of memory")
@@ -51,6 +52,8 @@ ERROR(based_range,              "Based number is too big")
 ERROR(invalid_base,             "Invalid numeric base")
 ERROR(unterminated,             "Unterminated")
 ERROR(no_directory,             "No directory")
+ERROR(directory_path,           "Directory not in path")
+ERROR(name_exists,              "Name already exists")
 ERROR(invalid_name,             "Invalid name")
 ERROR(undefined_name,           "Undefined name")
 ERROR(recursion,                "Too many call")
@@ -60,5 +63,7 @@ ERROR(malformed_directory,      "Malformed directory")
 ERROR(missing_variable,         "Expected variable name")
 ERROR(number_too_big,           "Number is too big")
 ERROR(too_many_rewrites,        "Too many rewrites")
+ERROR(invalid_ppar,             "Invalid PlotParameters")
+ERROR(invalid_plot_type,        "Invalid plot type")
 
 #undef ERROR

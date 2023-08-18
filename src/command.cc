@@ -29,9 +29,12 @@
 
 #include "command.h"
 
+#include "arithmetic.h"
+#include "bignum.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
+#include "dmcp.h"
 #include "fraction.h"
 #include "integer.h"
 #include "parser.h"
@@ -317,6 +320,115 @@ COMMAND_BODY(Ticks)
 
 
 
+COMMAND_BODY(Wait)
+// ----------------------------------------------------------------------------
+//   Wait the specified amount of seconds
+// ----------------------------------------------------------------------------
+{
+    if (object_p obj = rt.top())
+    {
+        if (algebraic_g wtime = obj->as_algebraic())
+        {
+            rt.drop();
+            algebraic_g scale = integer::make(1000);
+            wtime = wtime * scale;
+            if (wtime)
+            {
+                bool     negative = wtime->is_negative();
+                uint32_t msec     = negative ? 0 : wtime->as_uint32(1000, true);
+                uint32_t end      = sys_current_ms() + msec;
+                bool     infinite = msec == 0 || negative;
+                int      key      = 0;
+
+                if (negative)
+                    ui.draw_menus();
+                while (!key)
+                {
+                    int remains = infinite ? 100 : int(end - sys_current_ms());
+                    if (remains <= 0)
+                        break;
+                    if (remains > 50)
+                        remains = 50;
+                    sys_delay(remains);
+                    if (!key_empty())
+                        key = key_pop();
+                }
+                if (infinite)
+                {
+                    if (integer_p ikey = integer::make(key))
+                        if (rt.push(ikey))
+                            return OK;
+                    return ERROR;
+                }
+                return OK;
+            }
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+    return ERROR;
+}
+
+
+
+COMMAND_BODY(Bytes)
+// ----------------------------------------------------------------------------
+//   Return the bytes and a binary represenetation of the object
+// ----------------------------------------------------------------------------
+{
+    if (object_p top = rt.top())
+    {
+        size_t size = top->size();
+        size_t maxsize = (Settings.wordsize + 7) / 8;
+        size_t hashsize = size > maxsize ? maxsize : size;
+        gcbytes bytes = byte_p(top);
+#if CONFIG_FIXED_BASED_OBJECTS
+        // Force base 16 if we have that option
+        const id type = ID_hex_bignum;
+#else // !CONFIG_FIXED_BASED_OBJECTS
+        const id type = ID_based_bignum;
+#endif // CONFIG_FIXED_BASED_OBJECTS
+        if (bignum_p bin = rt.make<bignum>(type, bytes, hashsize))
+            if (rt.top(bin))
+                if (rt.push(integer::make(size)))
+                    return OK;
+
+    }
+    return ERROR;
+}
+
+
+
+COMMAND_BODY(Type)
+// ----------------------------------------------------------------------------
+//   Return the type of the top of stack as a numerical value
+// ----------------------------------------------------------------------------
+{
+    if (object_p top = rt.top())
+        if (integer_p type = integer::make(uint(top->type())))
+            if (rt.top(type))
+                return OK;
+    return ERROR;
+}
+
+
+COMMAND_BODY(TypeName)
+// ----------------------------------------------------------------------------
+//   Return the type of the top of stack as text
+// ----------------------------------------------------------------------------
+{
+    if (object_p top = rt.top())
+        if (text_p type = text::make(top->fancy()))
+            if (rt.top(type))
+                return OK;
+    return ERROR;
+}
+
+
+
+
 COMMAND_BODY(Off)
 // ----------------------------------------------------------------------------
 //   Switch the calculator off
@@ -344,18 +456,6 @@ COMMAND_BODY(SystemSetup)
 {
     system_setup();
     return OK;
-}
-
-
-COMMAND_BODY(HomeDirectory)
-// ----------------------------------------------------------------------------
-//   Return the home directory
-// ----------------------------------------------------------------------------
-{
-    if (object_g dir = (object *) rt.variables(0))
-        if (rt.push(dir))
-            return OK;
-    return ERROR;
 }
 
 
@@ -414,15 +514,17 @@ COMMAND_BODY(Help)
                 case ID_neg_bignum:         topic = utf8("Big integers"); break;
                 case ID_polar:
                 case ID_rectangular:        topic = utf8("Complex numbers"); break;
+#if CONFIG_FIXED_BASED_OBJECTS
                 case ID_hex_integer:
                 case ID_dec_integer:
                 case ID_oct_integer:
                 case ID_bin_integer:
-                case ID_based_integer:
                 case ID_hex_bignum:
                 case ID_dec_bignum:
                 case ID_oct_bignum:
                 case ID_bin_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+                case ID_based_integer:
                 case ID_based_bignum:       topic = utf8("Based numbers"); break;
                 case ID_decimal128:
                 case ID_decimal64:
@@ -481,15 +583,17 @@ COMMAND_BODY(ToolsMenu)
             case ID_neg_big_fraction:   menu = ID_FractionsMenu; break;
             case ID_polar:
             case ID_rectangular:        menu = ID_ComplexMenu; break;
+#if CONFIG_FIXED_BASED_OBJECTS
             case ID_hex_integer:
             case ID_dec_integer:
             case ID_oct_integer:
             case ID_bin_integer:
-            case ID_based_integer:
             case ID_hex_bignum:
             case ID_dec_bignum:
             case ID_oct_bignum:
             case ID_bin_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+            case ID_based_integer:
             case ID_based_bignum:       menu = ID_BasesMenu; break;
             case ID_equation:           menu = ID_SymbolicMenu; break;
             case ID_list:               menu = ID_ListMenu; break;

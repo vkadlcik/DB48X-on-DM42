@@ -31,6 +31,7 @@
 
 #include "command.h"
 #include "menu.h"
+#include "target.h"
 
 #include <types.h>
 
@@ -80,6 +81,8 @@ struct settings
           wordsize(64),
           maxbignum(1024),
           maxrewrites(100),
+          fraciter(10),
+          fracprec(12),
           command_fmt(LONG_FORM),
           show_decimal(true),
           fancy_exponent(true),
@@ -91,11 +94,17 @@ struct settings
           show_dow(true),
           show_month(true),
           show_voltage(true),
+          menu_single_ln(false),
+          menu_flatten(false),
+          menu_square(false),
           date_separator('/'),
           result_sz(STACK),
           stack_sz(STACK),
           editor_sz(EDITOR),
-          editor_ml_sz(STACK)
+          editor_ml_sz(STACK),
+          line_width(1),
+          background(pattern::white),
+          foreground(pattern::black)
     {}
 
     enum angles
@@ -149,15 +158,14 @@ struct settings
         NUM_FONTS
     };
 
-    font_p font(font_id sz);
-    font_p cursor_font(font_id sz);
+    static font_p font(font_id sz);
+    static font_p cursor_font(font_id sz);
     font_p result_font()        { return font(result_sz); }
     font_p stack_font()         { return font(stack_sz); }
     font_p editor_font(bool ml) { return font(ml ? editor_ml_sz : editor_sz); }
     font_p cursor_font(bool ml) { return cursor_font(ml ? editor_ml_sz : editor_sz); }
 
     void save(renderer &out, bool show_defaults = false);
-
 
 
 public:
@@ -174,9 +182,11 @@ public:
     uint16_t standard_exp;      // Maximum exponent before switching to sci
     angles   angle_mode;        // Angle mode ( degrees, radians or grads)
     uint8_t  base;              // The default base for #numbers
-    uint16_t wordsize;          // Wordsize for binary numbers (in bits)
-    uint16_t maxbignum;         // Maximum size for a bignum (in bits)
+    size_t   wordsize;          // Wordsize for binary numbers (in bits)
+    size_t   maxbignum;         // Maximum size for a bignum (in bits)
     uint16_t maxrewrites;       // Maximum number of rewrites
+    uint16_t fraciter;          // Number of iterations for ->Q
+    uint16_t fracprec;          // Number of digits for ->Q
     commands command_fmt;       // How we prefer to display commands
     bool     show_decimal   :1; // Show decimal dot for integral real numbers
     bool     fancy_exponent :1; // Show exponent with fancy superscripts
@@ -188,11 +198,17 @@ public:
     bool     show_dow       :1; // Show day of week in status bar
     bool     show_month     :1; // Show month name in status bar
     bool     show_voltage   :1; // Show battery voltage in status bar
+    bool     menu_single_ln :1; // Single-line menu
+    bool     menu_flatten   :1; // Show same menu entries with shift
+    bool     menu_square    :1; // Square or rounded menus
     char     date_separator;    // Date separator
     font_id  result_sz;         // Size for stack top
     font_id  stack_sz;          // Size for other stack levels
     font_id  editor_sz;         // Size for normal editor
     font_id  editor_ml_sz;      // Size for editor in multi-line mode
+    size     line_width;        // Line width for drawing
+    pattern  background;        // Background color
+    pattern  foreground;        // Foreground color
 };
 
 
@@ -304,5 +320,19 @@ SETTINGS_COMMAND_DECLARE(NoAutoSimplify);
 
 SETTINGS_COMMAND_DECLARE(MaxBigNumBits);
 SETTINGS_COMMAND_DECLARE(MaxRewrites);
+
+SETTINGS_COMMAND_DECLARE(ToFractionIterations);
+SETTINGS_COMMAND_DECLARE(ToFractionDigits);
+
+SETTINGS_COMMAND_DECLARE(SingleRowMenus);
+SETTINGS_COMMAND_DECLARE(FlatMenus);
+SETTINGS_COMMAND_DECLARE(ThreeRowsMenus);
+SETTINGS_COMMAND_DECLARE(RoundedMenus);
+SETTINGS_COMMAND_DECLARE(SquareMenus);
+
+SETTINGS_COMMAND_DECLARE(LineWidth);
+SETTINGS_COMMAND_DECLARE(Foreground);
+SETTINGS_COMMAND_DECLARE(Background);
+
 
 #endif // SETTINGS_H

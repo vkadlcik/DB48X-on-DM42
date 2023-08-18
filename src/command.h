@@ -136,10 +136,13 @@ COMMAND_DECLARE(Eval);          // Evaluate an object
 COMMAND_DECLARE(ToText);        // Convert an object to text
 COMMAND_DECLARE(SelfInsert);    // Enter menu label in the editor
 COMMAND_DECLARE(Ticks);         // Return number of ticks
+COMMAND_DECLARE(Wait);          // Wait a given amount of time
+COMMAND_DECLARE(Bytes);         // Return the bytes representation of object
+COMMAND_DECLARE(Type);          // Return the type of the object
+COMMAND_DECLARE(TypeName);      // Return the type name of the object
 COMMAND_DECLARE(Off);           // Switch the calculator off
 COMMAND_DECLARE(SaveState);     // Save state to disk
 COMMAND_DECLARE(SystemSetup);   // Select the system menu
-COMMAND_DECLARE(HomeDirectory); // Return the home directory
 COMMAND_DECLARE(Version);       // Return a version string
 COMMAND_DECLARE(Help);          // Activate online help
 COMMAND_DECLARE(ToolsMenu);     // Automatic selection of the right menu

@@ -29,7 +29,9 @@
 
 #include "decimal-32.h"
 
+#include "arithmetic.h"
 #include "bignum.h"
+#include "fraction.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -75,6 +77,57 @@ decimal32::decimal32(bignum_p num, id type)
     if (num->type() == ID_neg_bignum)
         bid32_negate(&result.value, &result.value);
     byte *p = (byte *) payload();
+    memcpy(p, &result, sizeof(result));
+}
+
+
+decimal32::decimal32(fraction_p fp, id type)
+// ----------------------------------------------------------------------------
+//   Create a decimal32 from a bignum value
+// ----------------------------------------------------------------------------
+// The `this` pointer and fp may move due to GC in this constructor caused
+// by the calls to `numerator()` and `denominator()`.
+    : algebraic(type)
+{
+    gcmbytes p = (byte *) payload();            // Need to store before GC
+
+    bid32 result, numerator, divisor;
+    bid32 mul;
+    unsigned z = 0;
+    bid32_from_uint32(&result.value, &z);
+    numerator = divisor = result;
+    z = 256;
+    bid32_from_uint32(&mul.value, &z);
+
+    size_t size = 0;
+    fraction_g f = fp;                          // Need to store before GC
+    bignum_p num = f->numerator();              // GC may happen here
+    byte_p n = num->value(&size);
+    for (uint i = 0; i < size; i++)
+    {
+        unsigned digits = n[size - i - 1];
+        bid32 step;
+        bid32_mul(&step.value, &numerator.value, &mul.value);
+        bid32 add;
+        bid32_from_uint32(&add.value, &digits);
+        bid32_add(&numerator.value, &step.value, &add.value);
+    }
+
+    bignum_p den = f->denominator();            // GC may happen here
+    byte_p d = den->value(&size);
+    for (uint i = 0; i < size; i++)
+    {
+        unsigned digits = d[size - i - 1];
+        bid32 step;
+        bid32_mul(&step.value, &divisor.value, &mul.value);
+        bid32 add;
+        bid32_from_uint32(&add.value, &digits);
+        bid32_add(&divisor.value, &step.value, &add.value);
+    }
+
+    bid32_div(&result.value, &numerator.value, &divisor.value);
+    if (f->type() == ID_neg_fraction)
+        bid32_negate(&result.value, &result.value);
     memcpy(p, &result, sizeof(result));
 }
 
@@ -495,7 +548,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
 
             // Check if we need to reinsert the last separator
             uint limit = decpos > 0 ? mant_spc : decpos < 0 ? frac_spc : 0;
-            if (++sep == limit && decimals > 1)
+            if (limit && ++sep == limit && decimals > 1)
             {
                 out += utf8_encode(space, (byte *) out);
                 sep = 0;
@@ -592,6 +645,79 @@ RENDER_BODY(decimal32)
     // And return it to the caller
     return r.put(buf, sz) ? sz : 0;
 }
+
+
+RECORDER(debug32, 16, "Debug32 fractions");
+
+algebraic_p decimal32::to_fraction(uint count, uint decimals) const
+// ----------------------------------------------------------------------------
+//   Convert a decimal value to a fraction
+// ----------------------------------------------------------------------------
+{
+    int res;
+    BID_UINT32 next, whole_part, decimal_part, one;
+    BID_UINT32 v1num, v1den, v2num, v2den, t, s;
+
+    bid32 num = value();
+    bool neg = is_negative(&num.value);
+    if (neg)
+    {
+        bid32_negate(&t, &num.value);
+        num.value = t;
+    }
+
+    bid32_round_integral_zero(&whole_part, &num.value);
+    bid32_sub(&decimal_part, &num.value, &whole_part);
+    uint uone = 1;
+    bid32_from_uint32(&one, &uone);
+    v1num = whole_part;
+    v1den = one;
+    v2num = one;
+    uint uzero = 0;
+    bid32_from_uint32(&v2den, &uzero);
+
+    if (decimals > BID32_MAXDIGITS - 3)
+        decimals = BID32_MAXDIGITS - 3;
+
+    while (count--)
+    {
+        // Check if the decimal part is small enough
+        bid32_isZero(&res, &decimal_part);
+        if (res)
+            break;
+        bid32_ilogb(&res, &decimal_part);
+        if (-res > int(decimals))
+            break;
+
+        bid32_div(&next, &one, &decimal_part);
+        bid32_round_integral_zero(&whole_part, &next);
+
+        s = v1num;
+        bid32_mul(&t, &whole_part, &v1num);
+        bid32_add(&v1num, &t, &v2num);
+        v2num = s;
+
+        s = v1den;
+        bid32_mul(&t, &whole_part, &v1den);
+        bid32_add(&v1den, &t, &v2den);
+        v2den = s;
+
+        bid32_sub(&decimal_part, &next, &whole_part);
+    }
+
+    ularge numerator, denominator;
+    bid32_to_uint64_floor(&numerator, &v1num);
+    bid32_to_uint64_floor(&denominator, &v1den);
+    algebraic_g result;
+    if (denominator != 1)
+        result = fraction::make(integer::make(numerator),
+                                integer::make(denominator)).Safe();
+    else
+        result = integer::make(numerator);
+    if (neg)
+        result = -result;
+    return result.Safe();
+    }
 
 
 

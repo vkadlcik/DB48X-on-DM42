@@ -48,7 +48,7 @@ object::result comparison::evaluate()
 
 
 template <typename Cmp>
-algebraic_g comparison::evaluate(algebraic_g x, algebraic_g y)
+algebraic_g comparison::evaluate(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   The actual evaluation for all binary operators
 // ----------------------------------------------------------------------------
@@ -57,13 +57,13 @@ algebraic_g comparison::evaluate(algebraic_g x, algebraic_g y)
 }
 
 
-bool comparison::compare(int *cmp, algebraic_g x, algebraic_g y)
+bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Compare objects left and right, return -1, 0 or +1
 // ----------------------------------------------------------------------------
 {
     // Check if we had some error earlier, if so propagate
-    if (!x || !y)
+    if (!x.Safe() || !y.Safe())
         return false;
     id xt = x->type();
     id yt = y->type();
@@ -76,12 +76,14 @@ bool comparison::compare(int *cmp, algebraic_g x, algebraic_g y)
         // Check if this is a bignum comparison
         if (is_bignum(xt) || is_bignum(yt))
         {
+            algebraic_g xa = algebraic_p(x.Safe());
+            algebraic_g ya = algebraic_p(y.Safe());
             if (!is_bignum(xt))
-                xt = bignum_promotion(x);
+                xt = bignum_promotion(xa);
             if (!is_bignum(yt))
-                yt = bignum_promotion(y);
-            bignum_g xb = bignum_p(x.Safe());
-            bignum_g yb = bignum_p(y.Safe());
+                yt = bignum_promotion(ya);
+            bignum_g xb = bignum_p(xa.Safe());
+            bignum_g yb = bignum_p(ya.Safe());
             int cmpval = bignum::compare(xb, yb);
             *cmp = cmpval < 0 ? -1 : cmpval > 0 ? 1 : 0;
             return true;
@@ -106,18 +108,20 @@ bool comparison::compare(int *cmp, algebraic_g x, algebraic_g y)
     }
 
     /* Real data types */
-    if (!ok && real_promotion(x, y))
+    algebraic_g xa = algebraic_p(x.Safe());
+    algebraic_g ya = algebraic_p(y.Safe());
+    if (!ok && real_promotion(xa, ya))
     {
         /* Here, x and y have the same type, a decimal type */
         int rlt = 0;
         int rgt = 0;
-        xt = x->type();
+        xt = xa->type();
         switch(xt)
         {
         case ID_decimal32:
         {
-            bid32 xv = decimal32_p(object_p(x))->value();
-            bid32 yv = decimal32_p(object_p(y))->value();
+            bid32 xv = decimal32_p(object_p(xa))->value();
+            bid32 yv = decimal32_p(object_p(ya))->value();
             bid32_quiet_unordered(&rlt, &xv.value, &yv.value);
             if (rlt)
                 return false;
@@ -127,8 +131,8 @@ bool comparison::compare(int *cmp, algebraic_g x, algebraic_g y)
         }
         case ID_decimal64:
         {
-            bid64 xv = decimal64_p(object_p(x))->value();
-            bid64 yv = decimal64_p(object_p(y))->value();
+            bid64 xv = decimal64_p(object_p(xa))->value();
+            bid64 yv = decimal64_p(object_p(ya))->value();
             bid64_quiet_unordered(&rlt, &xv.value, &yv.value);
             if (rlt)
                 return false;
@@ -138,8 +142,8 @@ bool comparison::compare(int *cmp, algebraic_g x, algebraic_g y)
         }
         case ID_decimal128:
         {
-            bid128 xv = decimal128_p(object_p(x))->value();
-            bid128 yv = decimal128_p(object_p(y))->value();
+            bid128 xv = decimal128_p(object_p(xa))->value();
+            bid128 yv = decimal128_p(object_p(ya))->value();
             bid128_quiet_unordered(&rlt, &xv.value, &yv.value);
             if (rlt)
                 return false;
@@ -159,8 +163,8 @@ bool comparison::compare(int *cmp, algebraic_g x, algebraic_g y)
         // Lexical comparison
         size_t xl = 0;
         size_t yl = 0;
-        utf8 xs = text_p(object_p(x))->value(&xl);
-        utf8 ys = text_p(object_p(y))->value(&yl);
+        utf8 xs = text_p(object_p(x.Safe()))->value(&xl);
+        utf8 ys = text_p(object_p(y.Safe()))->value(&yl);
         size_t l = xl < yl ? xl : yl;
 
         // REVISIT: Unicode sorting?
@@ -212,8 +216,8 @@ object::result comparison::compare(comparison_fn comparator, id op)
 
 algebraic_g comparison::compare(comparison_fn comparator,
                                 id            op,
-                                algebraic_g   x,
-                                algebraic_g   y)
+                                algebraic_r   x,
+                                algebraic_r   y)
 // ----------------------------------------------------------------------------
 //   Compare two algebraic values without using the stack
 // ----------------------------------------------------------------------------

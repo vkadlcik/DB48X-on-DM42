@@ -29,7 +29,9 @@
 
 #include "decimal-64.h"
 
+#include "arithmetic.h"
 #include "bignum.h"
+#include "fraction.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -75,6 +77,57 @@ decimal64::decimal64(bignum_p num, id type)
     if (num->type() == ID_neg_bignum)
         bid64_negate(&result.value, &result.value);
     byte *p = (byte *) payload();
+    memcpy(p, &result, sizeof(result));
+}
+
+
+decimal64::decimal64(fraction_p fp, id type)
+// ----------------------------------------------------------------------------
+//   Create a decimal64 from a bignum value
+// ----------------------------------------------------------------------------
+// The `this` pointer and fp may move due to GC in this constructor caused
+// by the calls to `numerator()` and `denominator()`.
+    : algebraic(type)
+{
+    gcmbytes p = (byte *) payload();            // Need to store before GC
+
+    bid64 result, numerator, divisor;
+    bid64 mul;
+    unsigned z = 0;
+    bid64_from_uint32(&result.value, &z);
+    numerator = divisor = result;
+    z = 256;
+    bid64_from_uint32(&mul.value, &z);
+
+    size_t size = 0;
+    fraction_g f = fp;                          // Need to store before GC
+    bignum_p num = f->numerator();              // GC may happen here
+    byte_p n = num->value(&size);
+    for (uint i = 0; i < size; i++)
+    {
+        unsigned digits = n[size - i - 1];
+        bid64 step;
+        bid64_mul(&step.value, &numerator.value, &mul.value);
+        bid64 add;
+        bid64_from_uint32(&add.value, &digits);
+        bid64_add(&numerator.value, &step.value, &add.value);
+    }
+
+    bignum_p den = f->denominator();            // GC may happen here
+    byte_p d = den->value(&size);
+    for (uint i = 0; i < size; i++)
+    {
+        unsigned digits = d[size - i - 1];
+        bid64 step;
+        bid64_mul(&step.value, &divisor.value, &mul.value);
+        bid64 add;
+        bid64_from_uint32(&add.value, &digits);
+        bid64_add(&divisor.value, &step.value, &add.value);
+    }
+
+    bid64_div(&result.value, &numerator.value, &divisor.value);
+    if (f->type() == ID_neg_fraction)
+        bid64_negate(&result.value, &result.value);
     memcpy(p, &result, sizeof(result));
 }
 
@@ -495,7 +548,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
 
             // Check if we need to reinsert the last separator
             uint limit = decpos > 0 ? mant_spc : decpos < 0 ? frac_spc : 0;
-            if (++sep == limit && decimals > 1)
+            if (limit && ++sep == limit && decimals > 1)
             {
                 out += utf8_encode(space, (byte *) out);
                 sep = 0;
@@ -592,6 +645,79 @@ RENDER_BODY(decimal64)
     // And return it to the caller
     return r.put(buf, sz) ? sz : 0;
 }
+
+
+RECORDER(debug64, 16, "Debug64 fractions");
+
+algebraic_p decimal64::to_fraction(uint count, uint decimals) const
+// ----------------------------------------------------------------------------
+//   Convert a decimal value to a fraction
+// ----------------------------------------------------------------------------
+{
+    int res;
+    BID_UINT64 next, whole_part, decimal_part, one;
+    BID_UINT64 v1num, v1den, v2num, v2den, t, s;
+
+    bid64 num = value();
+    bool neg = is_negative(&num.value);
+    if (neg)
+    {
+        bid64_negate(&t, &num.value);
+        num.value = t;
+    }
+
+    bid64_round_integral_zero(&whole_part, &num.value);
+    bid64_sub(&decimal_part, &num.value, &whole_part);
+    uint uone = 1;
+    bid64_from_uint32(&one, &uone);
+    v1num = whole_part;
+    v1den = one;
+    v2num = one;
+    uint uzero = 0;
+    bid64_from_uint32(&v2den, &uzero);
+
+    if (decimals > BID64_MAXDIGITS - 3)
+        decimals = BID64_MAXDIGITS - 3;
+
+    while (count--)
+    {
+        // Check if the decimal part is small enough
+        bid64_isZero(&res, &decimal_part);
+        if (res)
+            break;
+        bid64_ilogb(&res, &decimal_part);
+        if (-res > int(decimals))
+            break;
+
+        bid64_div(&next, &one, &decimal_part);
+        bid64_round_integral_zero(&whole_part, &next);
+
+        s = v1num;
+        bid64_mul(&t, &whole_part, &v1num);
+        bid64_add(&v1num, &t, &v2num);
+        v2num = s;
+
+        s = v1den;
+        bid64_mul(&t, &whole_part, &v1den);
+        bid64_add(&v1den, &t, &v2den);
+        v2den = s;
+
+        bid64_sub(&decimal_part, &next, &whole_part);
+    }
+
+    ularge numerator, denominator;
+    bid64_to_uint64_floor(&numerator, &v1num);
+    bid64_to_uint64_floor(&denominator, &v1den);
+    algebraic_g result;
+    if (denominator != 1)
+        result = fraction::make(integer::make(numerator),
+                                integer::make(denominator)).Safe();
+    else
+        result = integer::make(numerator);
+    if (neg)
+        result = -result;
+    return result.Safe();
+    }
 
 
 

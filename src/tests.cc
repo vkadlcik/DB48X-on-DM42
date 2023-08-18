@@ -72,6 +72,7 @@ void tests::run(bool onlyCurrent)
         global_variables();
         local_variables();
         for_loops();
+        conditionals();
         command_display_formats();
         integer_display_formats();
         decimal_display_formats();
@@ -97,8 +98,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    rewrite_engine();
-    expand_collect_simplify();
+    global_variables();
 
 #if 0
     step("Testing sign of modulo for bignum");
@@ -127,17 +127,6 @@ void tests::reset_settings(bool fast)
     if (fast)
     {
         begin("Fast-track settings reset");
-        Settings.display_mode = Settings.NORMAL;
-        Settings.angle_mode = Settings.DEGREES;
-        Settings.command_fmt = Settings.LONG_FORM;
-        Settings.decimal_mark = '.';
-        Settings.show_decimal = true;
-        Settings.precision = 34;
-        Settings.fancy_exponent = false;
-        Settings.wordsize = 64;
-        Settings.spacing_fraction = 0;
-        Settings.spacing_mantissa = 0;
-        Settings.spacing_based = 0;
         return;
     }
 
@@ -151,15 +140,21 @@ void tests::reset_settings(bool fast)
     step("Using default 34-digit precision")
         .test("34 Precision", ENTER)
         .noerr();
-    step("Using 1E10, not fancy unicode exponent")
-        .test("ClassicExponent", ENTER)
+    step("Using fancy unicode exponent")
+        .test("FancyExponent", ENTER)
         .noerr();
     step("Using 64-bit word size").test("64 StoreWordSize", ENTER).noerr();
     step("Disable spacing")
-        .test("0 NumberSpacing", ENTER)         .noerr()
-        .test("0 MantissaSpacing", ENTER)       .noerr()
-        .test("0 FractionSpacing", ENTER)       .noerr()
-        .test("0 BasedSpacing", ENTER)          .noerr();
+        .test("3 NumberSpacing", ENTER)         .noerr()
+        .test("3 MantissaSpacing", ENTER)       .noerr()
+        .test("5 FractionSpacing", ENTER)       .noerr()
+        .test("4 BasedSpacing", ENTER)          .noerr();
+    step("Select Modes menu")
+        .test("ModesMenu", ENTER)               .noerr();
+    step("Checking output modes")
+        .test("Modes", ENTER)
+        .expect("« ModesMenu »");
+
 }
 
 
@@ -289,37 +284,40 @@ void tests::data_types()
     step("Negative integer");
     test(CLEAR, "1", CHS, ENTER).type(object::ID_neg_integer).expect("-1");
 
+#if CONFIG_FIXED_BASED_OBJECTS
     step("Binary based integer");
     test(CLEAR, "#10010101b", ENTER)
         .type(object::ID_bin_integer)
-        .expect("#10010101₂");
+        .expect("#1001 0101₂");
     test(CLEAR, "#101B", ENTER).type(object::ID_bin_integer).expect("#101₂");
 
     step("Decimal based integer");
     test(CLEAR, "#12345d", ENTER)
         .type(object::ID_dec_integer)
-        .expect("#12345₁₀");
+        .expect("#1 2345₁₀");
     test(CLEAR, "#123D", ENTER).type(object::ID_dec_integer).expect("#123₁₀");
 
     step("Octal based integer");
     test(CLEAR, "#12345o", ENTER)
         .type(object::ID_oct_integer)
-        .expect("#12345₈");
+        .expect("#1 2345₈");
     test(CLEAR, "#123O", ENTER).type(object::ID_oct_integer).expect("#123₈");
 
     step("Hexadecimal based integer");
     test(CLEAR, "#1234ABCDH", ENTER)
         .type(object::ID_hex_integer)
-        .expect("#1234ABCD₁₆");
+        .type(object::ID_hex_integer)
+        .expect("#1234 ABCD₁₆");
     test(CLEAR, "#DEADBEEFH", ENTER)
         .type(object::ID_hex_integer)
-        .expect("#DEADBEEF₁₆");
+        .expect("#DEAD BEEF₁₆");
+#endif // CONFIG_FIXED_BASED_OBJECTS
 
     step("Arbitrary base input");
     test(CLEAR, "8#777", ENTER).type(object::ID_based_integer).expect("#1FF₁₆");
     test(CLEAR, "2#10000#ABCDE", ENTER)
         .type(object::ID_based_integer)
-        .expect("#ABCDE₁₆");
+        .expect("#A BCDE₁₆");
 
     step("Symbols");
     cstring symbol = "ABC123Z";
@@ -341,14 +339,18 @@ void tests::data_types()
 
     step("Equation");
     cstring eqn = "'X+1'";
-    test(CLEAR, XEQ, "X", ENTER, KEY1, ADD).type(object::ID_equation).expect(eqn);
+    test(CLEAR, XEQ, "X", ENTER, KEY1, ADD)
+        .type(object::ID_equation)
+        .expect(eqn);
     cstring eqn2 = "'sin(X+1)'";
     test(SIN)
-        .type(object::ID_equation).expect(eqn2);
+        .type(object::ID_equation)
+        .expect(eqn2);
     test(DOWN)
         .editor(eqn2);
     test(ENTER, 1, ADD).
         type(object::ID_equation).expect("'sin(X+1)+1'");
+
     step("Equation parsing and simplification");
     test(CLEAR, "'(((A))+(B))-(C+D)'", ENTER)
         .type(object::ID_equation)
@@ -371,10 +373,11 @@ void tests::data_types()
     step("Large integers");
     cstring b = "123456789012345678901234567890123456789012345678901234567890";
     cstring mb =
-        "-123456789012345678901234567890123456789012345678901234567890";
-    test(CLEAR, b, ENTER).type(object::ID_bignum).expect(b);
+        "-123 456 789 012 345 678 901 234 567 890"
+        " 123 456 789 012 345 678 901 234 567 890";
+    test(CLEAR, b, ENTER).type(object::ID_bignum).expect(mb+1);
     test(DOWN, CHS, ENTER).type(object::ID_neg_bignum).expect(mb);
-    test(CHS).type(object::ID_bignum).expect(b);
+    test(CHS).type(object::ID_bignum).expect(mb + 1);
     test(DOWN, CHS, ENTER).type(object::ID_neg_bignum).expect(mb);
 
     step("Large fractions");
@@ -382,15 +385,43 @@ void tests::data_types()
         "123456789012345678901234567890123456789012345678901234567890/"
         "123456789012345678901234567890123456789012345678901234567891";
     cstring mbf =
-        "-123456789012345678901234567890123456789012345678901234567890/"
-        "123456789012345678901234567890123456789012345678901234567891";
-    test(CLEAR, bf, ENTER).type(object::ID_big_fraction).expect(bf);
+        "-123 456 789 012 345 678 901 234 567 890 123 456 789"
+        " 012 345 678 901 234 567 890/"
+        "123 456 789 012 345 678 901 234 567 890 123 456 789"
+        " 012 345 678 901 234 567 891";
+    test(CLEAR, bf, ENTER).type(object::ID_big_fraction).expect(mbf+1);
     test(DOWN, CHS, ENTER).type(object::ID_neg_big_fraction).expect(mbf);
-    test(CHS).type(object::ID_big_fraction).expect(bf);
+    test(CHS).type(object::ID_big_fraction).expect(mbf+1);
     test(CHS).type(object::ID_neg_big_fraction).expect(mbf);
-    test(DOWN, CHS, ENTER).type(object::ID_big_fraction).expect(bf);
+    test(DOWN, CHS, ENTER).type(object::ID_big_fraction).expect(mbf+1);
 
     clear();
+
+    step ("Bytes command");
+    test(CLEAR, "12", ENTER, "bytes", ENTER)
+        .expect("2")
+        .test(BSP)
+        .match("#C....");
+    test(CLEAR, "129", ENTER, "bytes", ENTER)
+        .expect("3")
+        .test(BSP)
+        .match("#1 81....");
+
+    step("Type command");
+    test(CLEAR, "12 type", ENTER)
+        .type(object::ID_integer)
+        .expect(object::ID_integer);
+    test(CLEAR, "'ABC*3' type", ENTER)
+        .type(object::ID_integer)
+        .expect(object::ID_equation);
+
+    step("TypeName command");
+    test(CLEAR, "12 typename", ENTER)
+        .type(object::ID_text)
+        .expect("\"integer\"");
+    test(CLEAR, "'ABC*3' typename", ENTER)
+        .type(object::ID_text)
+        .expect("\"equation\"");
 }
 
 
@@ -417,20 +448,21 @@ void tests::arithmetic()
     step("Integer addition overflow");
     test(CLEAR, (1ULL << 63) - 2ULL, ENTER, 1, ADD)
         .type(object::ID_integer)
-        .expect("9223372036854775807");
+        .expect("9 223 372 036 854 775 807");
     test(CLEAR, (1ULL << 63) - 3ULL, CHS, ENTER, -2, ADD)
         .type(object::ID_neg_integer)
-        .expect("-9223372036854775807");
+        .expect("-9 223 372 036 854 775 807");
 
     test(CLEAR, ~0ULL, ENTER, 1, ADD)
         .type(object::ID_bignum)
-        .expect("18446744073709551616");
+        .expect("18 446 744 073 709 551 616");
     test(CLEAR, ~0ULL, CHS, ENTER, -2, ADD)
         .type(object::ID_neg_bignum)
-        .expect("-18446744073709551617");
+        .expect("-18 446 744 073 709 551 617");
 
     step("Adding ten small integers at random");
     srand48(sys_current_ms());
+    Settings.spacing_mantissa = 0;
     for (int i = 0; i < 10; i++)
     {
         large x = (lrand48() & 0xFFFFFF) - 0x800000;
@@ -439,6 +471,7 @@ void tests::arithmetic()
             .explain("Computing ", x, " + ", y, ", ")
             .expect(x + y);
     }
+    Settings.spacing_mantissa = 3;
 
     step("Integer subtraction");
     test(CLEAR, 1, ENTER, 1, SUB).type(object::ID_integer).expect("0");
@@ -456,12 +489,13 @@ void tests::arithmetic()
     step("Integer subtraction overflow");
     test(CLEAR, 0xFFFFFFFFFFFFFFFFull, CHS, ENTER, 1, SUB)
         .type(object::ID_neg_bignum)
-        .expect("-18446744073709551616");
+        .expect("-18 446 744 073 709 551 616");
     test(CLEAR, -3, ENTER, 0xFFFFFFFFFFFFFFFFull, SUB)
         .type(object::ID_neg_bignum)
-        .expect("-18446744073709551618");
+        .expect("-18 446 744 073 709 551 618");
 
     step("Subtracting ten small integers at random");
+    Settings.spacing_mantissa = 0;
     for (int i = 0; i < 10; i++)
     {
         large x = (lrand48() & 0xFFFFFF) - 0x800000;
@@ -470,15 +504,17 @@ void tests::arithmetic()
             .explain("Computing ", x, " - ", y, ", ")
             .expect(x - y);
     }
+    Settings.spacing_mantissa = 3;
 
     step("Integer multiplication");
     test(CLEAR, 3, ENTER, 7, MUL).type(object::ID_integer).expect("21");
     test(3, MUL).type(object::ID_integer).expect("63");
     test(-3, MUL).type(object::ID_neg_integer).expect("-189");
     test(2, MUL).type(object::ID_neg_integer).expect("-378");
-    test(-7, MUL).type(object::ID_integer).expect("2646");
+    test(-7, MUL).type(object::ID_integer).expect("2 646");
 
     step("Multiplying ten small integers at random");
+    Settings.spacing_mantissa = 0;
     for (int i = 0; i < 10; i++)
     {
         large x = (lrand48() & 0xFFFFFF) - 0x800000;
@@ -487,6 +523,7 @@ void tests::arithmetic()
             .explain("Computing ", x, " * ", y, ", ")
             .expect(x * y);
     }
+    Settings.spacing_mantissa = 3;
 
     step("Integer division");
     test(CLEAR, 210, ENTER, 2, DIV).type(object::ID_integer).expect("105");
@@ -495,6 +532,7 @@ void tests::arithmetic()
     test(-7, DIV).type(object::ID_integer).expect("1");
 
     step("Dividing ten small integers at random");
+    Settings.spacing_mantissa = 0;
     for (int i = 0; i < 10; i++)
     {
         large x = (lrand48() & 0x3FFF) - 0x4000;
@@ -503,6 +541,7 @@ void tests::arithmetic()
             .explain("Computing ", x * y, " / ", y, ", ")
             .expect(x);
     }
+    Settings.spacing_mantissa = 3;
 
     step("Division with fractional output");
     test(CLEAR, 1, ENTER, 3, DIV).expect("1/3");
@@ -512,10 +551,10 @@ void tests::arithmetic()
     test(CLEAR, 1, ENTER);
     for (uint i = 1; i <= 100; i++)
         test(i, MUL, NOKEYS, WAIT(20));
-    expect(
-        "9332621544394415268169923885626670049071596826438162146859296389521"
-        "7599993229915608941463976156518286253697920827223758251185210916864"
-        "000000000000000000000000");
+    expect( "93 326 215 443 944 152 681 699 238 856 266 700 490 715 968 264 "
+           "381 621 468 592 963 895 217 599 993 229 915 608 941 463 976 156 "
+           "518 286 253 697 920 827 223 758 251 185 210 916 864 000 000 000 "
+           "000 000 000 000 000");
     step("Manual division by all factors of 100!");
     for (uint i = 1; i <= 100; i++)
         test(i * 997 % 101, DIV, NOKEYS, WAIT(20));
@@ -525,11 +564,11 @@ void tests::arithmetic()
     test(CLEAR, 997, ENTER);
     for (uint i = 1; i <= 100; i++)
         test(i * 997 % 101, DIV, NOKEYS, WAIT(20));
-    expect(
-        "997/"
-        "9332621544394415268169923885626670049071596826438162146859296389521"
-        "7599993229915608941463976156518286253697920827223758251185210916864"
-        "000000000000000000000000");
+    expect("997/"
+           "93 326 215 443 944 152 681 699 238 856 266 700 490 715 968 264 "
+           "381 621 468 592 963 895 217 599 993 229 915 608 941 463 976 156 "
+           "518 286 253 697 920 827 223 758 251 185 210 916 864 000 000 000 "
+           "000 000 000 000 000");
 
     step("Sign of modulo and remainder");
     test(CLEAR, " 7  3 MOD", ENTER).expect(1);
@@ -551,12 +590,21 @@ void tests::arithmetic()
     test(CLEAR, "-7/2  3 REM", ENTER).expect("-1/2");
     test(CLEAR, "-7/2 -3 REM", ENTER).expect("-1/2");
 
+    step("Modulo of negative value");
+    test(CLEAR, "-360 360 MOD", ENTER).expect("0");
+    test(CLEAR, "1/3 -1/3 MOD", ENTER).expect("0");
+    test(CLEAR, "360 -360 MOD", ENTER).expect("0");
+    test(CLEAR, "-1/3 1/3 MOD", ENTER).expect("0");
+
     step("Power");
     test(CLEAR, "2 3 ^", ENTER).expect("8");
     test(CLEAR, "-2 3 ^", ENTER).expect("-8");
     step("Negative power");
     test(CLEAR, "2 -3 ^", ENTER).expect("1/8");
     test(CLEAR, "-2 -3 ^", ENTER).expect("-1/8");
+
+    step("xroot");
+    test(CLEAR, "8 3 xroot", ENTER).expect("2.");
 }
 
 
@@ -568,12 +616,12 @@ void tests::global_variables()
     begin("Global variables");
 
     step("Store in global variable");
-    test(CLEAR, 12345, ENTER).expect(12345);
+    test(CLEAR, 12345, ENTER).expect("12 345");
     test(XEQ, "A", ENTER).expect("'A'");
     test(STO).noerr();
     step("Recall global variable");
     test(CLEAR, 1, ENTER, XEQ, "A", ENTER).expect("'A'");
-    test("RCL", ENTER).noerr().expect(12345);
+    test("RCL", ENTER).noerr().expect("12 345");
 
     step("Store in long-name global variable");
     test(CLEAR, "\"Hello World\"", ENTER, XEQ, "SomeLongVariable", ENTER, STO)
@@ -593,7 +641,7 @@ void tests::global_variables()
     step("Store program in global variable");
     test(CLEAR, "« 1 + »", ENTER, XEQ, "INCR", ENTER, STO).noerr();
     step("Evaluate global variable");
-    test(CLEAR, "A INCR", ENTER).expect(12346);
+    test(CLEAR, "A INCR", ENTER).expect("12 346");
 
     step("Purge global variable");
     test(CLEAR, XEQ, "A", ENTER, "PURGE", ENTER).noerr();
@@ -607,6 +655,43 @@ void tests::global_variables()
     test(CLEAR, XEQ, "SomeLongVariable", ENTER, "RCL", ENTER)
         .error("Undefined name")
         .clear();
+
+    step("Go to top-level");
+    test(CLEAR, "Home", ENTER).noerr();
+    step("Clear 'DirTest'");
+    test(CLEAR, "'DirTest' pgdir", ENTER);
+    step("Create directory");
+    test(CLEAR, "'DirTest' crdir", ENTER).noerr();
+    step("Enter directory");
+    test(CLEAR, "DirTest", ENTER).noerr();
+    step("Path function");
+    test(CLEAR, "PATH", ENTER).expect("{ HomeDirectory DirTest }");
+    step("Updir function");
+    test(CLEAR, "UpDir path", ENTER).expect("{ HomeDirectory }");
+    step("Enter directory again");
+    test(CLEAR, "DirTest path", ENTER).expect("{ HomeDirectory DirTest }");
+    step("Current directory content");
+    test(CLEAR, "CurrentDirectory", ENTER).expect("Directory { }");
+    step("Store in subdirectory");
+    test(CLEAR, "242 'Foo' STO", ENTER).noerr();
+    step("Recall from subdirectory");
+    test(CLEAR, "Foo", ENTER).expect("242");
+    step("Recursive directory");
+    test(CLEAR, "'DirTest2' crdir", ENTER).noerr();
+    step("Entering sub-subdirectory");
+    test(CLEAR, "DirTest2", ENTER).noerr();
+    step("Path in sub-subdirectory");
+    test(CLEAR, "path", ENTER).expect("{ HomeDirectory DirTest DirTest2 }");
+    step("Find variable from level above");
+    test(CLEAR, "Foo", ENTER).expect("242");
+    step("Create local variable");
+    test(CLEAR, "\"Hello\" 'Foo' sto", ENTER).noerr();
+    step("Local variable hides variable above");
+    test(CLEAR, "Foo", ENTER).expect("\"Hello\"");
+    step("Updir shows shadowed variable again");
+    test(CLEAR, "Updir Foo", ENTER).expect("242");
+    step("Two independent variables with the same name");
+    test(CLEAR, "DirTest2 Foo", ENTER).expect("\"Hello\"");
 }
 
 
@@ -670,7 +755,7 @@ void tests::for_loops()
     test(RUNSTOP)
         .noerr()
         .type(object::ID_equation)
-        .expect("'X+1+4+16+64+256+1024+4096'");
+        .expect("'X+1+4+16+64+256+1 024+4 096'");
 
     step("Negative stepping");
     pgm  = "« 0 10 1 FOR i i SQ + -1 STEP »";
@@ -713,6 +798,86 @@ void tests::for_loops()
 }
 
 
+void tests::conditionals()
+// ----------------------------------------------------------------------------
+//   Test conditionals
+// ----------------------------------------------------------------------------
+{
+    begin("Conditionals");
+    step("If-Then (true)");
+    test(CLEAR, "PASS if 0 0 > then FAIL end", ENTER)
+        .expect("'PASS'");
+    step("If-Then (false)");
+    test(CLEAR, "FAIL if 1 0 > then PASS end", ENTER)
+        .expect("'PASS'");
+    step("If-Then-Else (true)");
+    test(CLEAR, "if 1 0 > then PASS else FAIL end", ENTER)
+        .expect("'PASS'");
+    step("If-Then-Else (false)");
+    test(CLEAR, "if 1 0 = then FAIL else PASS end", ENTER)
+        .expect("'PASS'");
+
+    step("IFT command (true)");
+    test(CLEAR, "FAIL true PASS IFT", ENTER)
+        .expect("'PASS'");
+    step("IFT command (false)");
+    test(CLEAR, "PASS 0 FAIL IFT", ENTER)
+        .expect("'PASS'");
+    step("IFTE command (true)");
+    test(CLEAR, "true PASS FAIL IFTE", ENTER)
+        .expect("'PASS'");
+    step("IFTE command (false)");
+    test(CLEAR, "0 FAIL PASS IFTE", ENTER)
+        .expect("'PASS'");
+
+    step("IfErr-Then (true)");
+    test(CLEAR, "FAIL iferr 1 0 / drop then PASS end", ENTER)
+        .expect("'PASS'");
+    step("IfErr-Then (false)");
+    test(CLEAR, "PASS iferr 1 0 + drop then FAIL end", ENTER)
+        .expect("'PASS'");
+    step("IfErr-Then-Else (true)");
+    test(CLEAR, "iferr 1 0 / drop then PASS ELSE FAIL end", ENTER)
+        .expect("'PASS'");
+    step("IfErr-Then-Else (false)");
+    test(CLEAR, "IFERR 1 0 + drop then FAIL ELSE PASS end", ENTER)
+        .expect("'PASS'");
+
+    step("IfErr reading error message");
+    test(CLEAR, "iferr 1 0 / drop then errm end", ENTER)
+        .expect("\"Divide by zero\"");
+    step("IfErr reading error number");
+    test(CLEAR, "iferr 1 0 / drop then errn end", ENTER)
+        .type(object::ID_based_integer)
+        .expect("#A₁₆");        // May change if you update errors.tbl
+
+    step("DoErr with built-in message");
+    test(CLEAR, "3 DoErr", ENTER)
+        .error("Too few arguments");
+    step("DoErr with custom message");
+    test(CLEAR, "\"You lose!\" doerr \"You lose worse!\"", ENTER)
+        .error("You lose!");
+    step("errm for custom error message");
+    test(BSP, "errm", ENTER)
+        .expect("\"You lose!\"");
+    step("errn for custom error message");
+    test("errn", ENTER)
+        .expect("#7 0000₁₆");
+
+    step("Getting message after iferr");
+    test(CLEAR, "« FAILA iferr 1 0 / then FAILB end errm »",
+         ENTER, RUNSTOP)
+        .expect("\"Divide by zero\"");
+
+    step("err0 clearing message");
+    test(CLEAR, "« FAILA iferr 1 0 / then FAILB end err0 errm errn »",
+         ENTER, RUNSTOP)
+        .expect("#0₁₆")
+        .test(BSP)
+        .expect("\"\"");
+}
+
+
 void tests::logical_operations()
 // ----------------------------------------------------------------------------
 //   Perform logical operations on small and big integers
@@ -720,6 +885,7 @@ void tests::logical_operations()
 {
     begin("Logical operations");
 
+#if CONFIG_FIXED_BASED_OBJECTS
     step("Binary number");
     cstring binary  = "#10001b";
     cstring binaryf = "#1 0001₂";
@@ -739,6 +905,7 @@ void tests::logical_operations()
     cstring hexa  = "#135AFh";
     cstring hexaf = "#1 35AF₁₆";
     test(CLEAR, hexa, ENTER).type(object::ID_hex_integer).expect(hexaf);
+#endif // CONFIG_FIXED_BASED_OBJECTS
 
     step("Based number (default base)");
     cstring based  = "#1234A";
@@ -964,7 +1131,9 @@ void tests::integer_display_formats()
 
     step("Based number rendering");
     test(CLEAR, "#1234ABCDEFH", ENTER)
+#if CONFIG_FIXED_BASED_OBJECTS
         .type(object::ID_hex_integer)
+#endif // CONFIG_FIXED_BASED_OBJECTS
         .expect("#12 34AB CDEF₁₆");
 
     step("Two spacing");
@@ -1320,6 +1489,157 @@ void tests::decimal_numerical_functions()
 }
 
 
+void tests::exact_trig_cases()
+// ----------------------------------------------------------------------------
+//   Special trig cases that are handled accurately for polar representation
+// ----------------------------------------------------------------------------
+{
+    begin("Special trigonometry cases");
+
+    cstring unit_names[] = { "Grads", "Degrees", "PiRadians" };
+    int circle[] = { 400, 360, 2 };
+
+    for (uint unit = 0; unit < 3; unit++)
+    {
+        step(unit_names[unit]);
+        test(CLEAR, unit_names[unit], ENTER).noerr();
+
+        int base = ((lrand48() & 0xFF) - 0x80) * 360;
+        char buf[80];
+        snprintf(buf, sizeof(buf),
+                 "Selecting base %d degrees for %s angles",
+                 base, unit_names[unit]);
+        step(buf);
+        test(CLEAR, base, ENTER, 360, " mod", ENTER).expect("0");
+        test(CLEAR, base, ENTER, circle[unit], MUL, 360, DIV,
+             circle[unit], " mod", ENTER).expect("0");
+
+        step("sin(0) = 0")
+            .test(base + 0, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("0");
+        step("cos(0) = 1")
+            .test(base + 0, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("1");
+        step("tan(0) = 0")
+            .test(base + 0, ENTER, circle[unit], MUL, 360, DIV, TAN)
+            .expect("0");
+
+        step("sin(30) = 1/2")
+            .test(base + 30, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("1/2");
+        step("tan(45) = 1")
+            .test(base + 45, ENTER, circle[unit], MUL, 360, DIV, TAN)
+            .expect("1");
+        step("cos(60) = 1/2")
+            .test(base + 60, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("1/2");
+
+        step("sin(90) = 1")
+            .test(base + 90, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("1");
+        step("cos(90) = 0")
+            .test(base + 90, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("0");
+
+        step("cos(120) = -1/2")
+            .test(base + 120, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("-1/2");
+        step("tan(135) = -1")
+            .test(base + 135, ENTER, circle[unit], MUL, 360, DIV, TAN)
+            .expect("-1");
+        step("sin(150) = 1/2")
+            .test(base + 150, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("1/2");
+
+        step("sin(180) = 0")
+            .test(base + 180, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("0");
+        step("cos(180) = -1")
+            .test(base + 180, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("-1");
+        step("tan(180) = 0")
+            .test(base + 180, ENTER, circle[unit], MUL, 360, DIV, TAN)
+            .expect("0");
+
+        step("sin(210) = -1/2")
+            .test(base + 210, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("-1/2");
+        step("tan(225) = 1")
+            .test(base + 225, ENTER, circle[unit], MUL, 360, DIV, TAN)
+            .expect("1");
+        step("cos(240) = -1/2")
+            .test(base + 240, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("-1/2");
+
+        step("sin(270) = -1")
+            .test(base + 270, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("-1");
+        step("cos(270) = 0")
+            .test(base + 270, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("0");
+
+        step("cos(300) = 1/2")
+            .test(base + 300, ENTER, circle[unit], MUL, 360, DIV, COS)
+            .expect("1/2");
+        step("tan(315) = -1")
+            .test(base + 315, ENTER, circle[unit], MUL, 360, DIV, TAN)
+            .expect("-1");
+        step("sin(330) = -1/2")
+            .test(base + 330, ENTER, circle[unit], MUL, 360, DIV, SIN)
+            .expect("-1/2");
+    }
+
+    test(CLEAR, "DEG", ENTER).noerr();
+}
+
+
+void tests::fraction_decimal_conversions()
+// ----------------------------------------------------------------------------
+//   Exercise the conversion from decimal to fraction and back
+// ----------------------------------------------------------------------------
+{
+    cstring cases[] =
+    {
+        // Easy exact cases (decimal)
+        "1/2",          "0.5",
+        "1/4",          "0.25",
+        "5/4",          "1.25",
+        "-5/4",         "-1.25",
+
+        // More tricky fractions
+        "1/3",          "3.33333 33333 33333 3333⁳⁻¹",
+        "-1/7",         "-1.42857 14285 71428 5714⁳⁻¹",
+        "22/7",         "3.14285 71428 57142 8571",
+        "37/213",       "1.73708 92018 77934 2723⁳⁻¹"
+    };
+
+    begin("Simple conversion to decimal and back");
+    for (uint c = 0; c < sizeof(cases) / sizeof(*cases); c += 2)
+    {
+        step(cases[c]);
+        test(CLEAR, cases[c], ENTER).expect(cases[c]);
+        test("→Num", ENTER).expect(cases[c+1]);
+        test("→Q", ENTER).expect(cases[c]);
+    }
+
+    step("Alternate spellings");
+    test(CLEAR, "1/4 →Decimal", ENTER).expect("0.25");
+    test(CLEAR, "1/5 ToDecimal", ENTER).expect("0.2");
+    test(CLEAR, "0.25 →Frac", ENTER).expect("1/4");
+    test(CLEAR, "0.2 ToFraction", ENTER).expect("1/5");
+
+    step("Complex numbers");
+    test(CLEAR, "1-2ⅈ 4", ENTER, DIV).expect("1/4-1/2ⅈ");
+    test("→Num", ENTER).expect("0.25-0.5ⅈ");
+    test("→Q", ENTER).expect("1/4-1/2ⅈ");
+
+    step("Vectors");
+    test(CLEAR, "[1-2ⅈ 3] 4", ENTER, DIV).expect("[ 1/4-1/2ⅈ 3/4 ]");
+    test("→Num", ENTER).expect("[ 0.25-0.5ⅈ 0.75 ]");
+    test("→Q", ENTER).expect("[ 1/4-1/2ⅈ 3/4 ]");
+}
+
+
 void tests::complex_types()
 // ----------------------------------------------------------------------------
 //   Complex data types
@@ -1440,17 +1760,17 @@ void tests::complex_arithmetic()
         .expect("2.99269 21507 79472 7428+2.09269 42123 23759 0233⁳⁻¹ⅈ");
     step("Multiplication");
     test("7∡8", MUL)
-        .expect("20.54109 96154 09918 396+4.36614 55071 72946 0791ⅈ");
+        .expect("21.∡12.°");
     step("Division");
     test("7∡8", DIV)
-        .expect("2.99269 21507 79472 7428+2.09269 42123 23759 0233⁳⁻¹ⅈ");
+        .expect("3.∡4.°");
     test("2∡3", DIV)
-        .expect("1.49977 15427 34586 8587+2.61786 09655 92526 9229⁳⁻²ⅈ");
+        .expect("1.5∡1.°");
     test("2∡3", MUL)
-        .expect("2.99269 21507 79472 7428+2.09269 42123 23759 0233⁳⁻¹ⅈ");
+        .expect("3.∡4.°");
     step("Power");
     test("5", SHIFT, B)
-        .expect("228.34530 68509 75737 33+83.11089 48281 37502 13ⅈ");
+        .expect("243.∡20.°");
 
     step("Symbolic addition");
     test(CLEAR, "a∡b", ENTER, "c∡d", ENTER, ADD)
@@ -1528,7 +1848,7 @@ void tests::complex_functions()
         .expect("7.61577 31058 63908 2857∡-9.28490 56188 33822 9639⁳⁻¹ℼ");
 
     step("Logarithm");
-    test(CLEAR, "12+14ⅈ", ENTER, E)
+    test(CLEAR, "12+14ⅈ", ENTER, LN)
         .expect("2.91447 28088 05103 5368+8.62170 05466 72263 4884⁳⁻¹ⅈ");
     step("Exponential");
     test("exp", ENTER)
@@ -1547,8 +1867,8 @@ void tests::complex_functions()
         .expect("-29 637.47552 74860 62145-4 224.71967 95347 02126ⅈ");
 
     step("Tangent");
-    test(CLEAR, "2+8ⅈ", ENTER, TAN)
-        .expect("1.39772 11770 40026 1373⁳⁻⁴-1.00030 51824 41239 0233ⅈ");
+    test(CLEAR, "2+1ⅈ", ENTER, TAN)
+        .expect("-2.43458 20118 57252 527⁳⁻¹+1.16673 62572 40919 8818ⅈ");
 
     step("Arc sine");
     test(CLEAR, "3+5ⅈ", ENTER, SHIFT, SIN)
@@ -1560,7 +1880,7 @@ void tests::complex_functions()
 
     step("Arc tangent");
     test(CLEAR, "9.+2ⅈ", ENTER, SHIFT, TAN)
-        .expect("1.35459 24390 09627 6993+2.32726 05766 50298 8381⁳⁻²ⅈ");
+        .expect("1.46524 96601 83523 3458+2.32726 05766 50298 8381⁳⁻²ⅈ");
 
     step("Hyperbolic sine");
     test(CLEAR, "4+2ⅈ", ENTER, "SINH", ENTER)
@@ -1684,15 +2004,19 @@ void tests::list_functions()
     test(CLEAR, "2.5 { A B C D } +", ENTER)
         .expect("{ 2.5 A B C D }");
 
+    step("Concatenation of list and text");
+    test(CLEAR, "{ } \"Hello\" +", ENTER)
+        .expect("{ \"Hello\" }");
+
     step("Repetition of a list");
     test(CLEAR, "{ A B C D } 3 *", ENTER)
         .expect("{ A B C D A B C D A B C D }");
     test(CLEAR, "3 { A B C D } *", ENTER)
         .expect("{ A B C D A B C D A B C D }");
 
-    step("Applying a function to a list");
-    test(CLEAR, "[ A B C ] sin", ENTER)
-        .expect("[ 'sin A' 'sin B' 'sin C' ]");
+    step("Applying a function to a  list");
+    test(CLEAR, "{ A B C } sin", ENTER)
+        .expect("{ 'sin A' 'sin B' 'sin C' }");
 }
 
 
@@ -2128,6 +2452,8 @@ void tests::regression_checks()
 //   Checks for specific regressions
 // ----------------------------------------------------------------------------
 {
+    Settings = settings();
+
     begin("Regression checks");
     step("Bug 116: Rounding of gamma(7) and gamma(8)");
     test(CLEAR, "7 gamma", ENTER).expect("720.");
@@ -2144,6 +2470,29 @@ void tests::regression_checks()
     step("Bug 238: Parsing of power");
     test(CLEAR, "'X↑3'", ENTER).expect("'X↑3'");
     test(CLEAR, "'X×X↑(N-1)'", ENTER).expect("'X×X↑(N-1)'");
+
+    step("Bug 253: Complex cos outside domain");
+    test(CLEAR, "0+30000.ⅈ sin", ENTER).error("Argument outside domain");
+    test(CLEAR, "0+30000.ⅈ cos", ENTER).error("Argument outside domain");
+    test(CLEAR, "0+30000.ⅈ tan", ENTER).error("Argument outside domain");
+
+    step("Bug 272: Type error on logical operations");
+    test(CLEAR, "'x' #2134AF AND", ENTER).error("Bad argument type");
+
+    step("Bug 277: 1+i should have positive arg");
+    test(CLEAR, "1+1ⅈ arg", ENTER).expect("45");
+    test(CLEAR, "1-1ⅈ arg", ENTER).expect("-45");
+    test(CLEAR, "1 1 atan2", ENTER).expect("45");
+    test(CLEAR, "1+1ⅈ ToPolar", ENTER).match("1.414.*∡45°");
+
+    step("Bug 287: arg of negative number");
+    test(CLEAR, "-35 arg", ENTER).expect("180");
+
+    step("Bug 288: Abusive simplification of multiplication by -1");
+    test(CLEAR, "-1 3 *", ENTER).expect("-3");
+
+    step("Bug 279: 0/0 should error out");
+    test(CLEAR, "0 0 /", ENTER).error("Divide by zero");
 }
 
 
@@ -3093,16 +3442,13 @@ tests &tests::error(cstring msg)
     utf8 err = rt.error();
 
     if (!msg && err)
-        return explain("Expected no error, got [", err, "]").fail();
+        return explain("Expected no error, got [", err, "]")
+            .itest(CLEAR).fail();
     if (msg && !err)
         return explain("Expected error message [", msg, "], got none").fail();
     if (msg && err && strcmp(cstring(err), msg) != 0)
-        return explain("Expected error message [",
-                       msg,
-                       "], "
-                       "got [",
-                       err,
-                       "]")
+        return explain("Expected error message [", msg, "], "
+                       "got [", err, "]")
             .fail();
     return *this;
 }
@@ -3121,13 +3467,7 @@ tests &tests::command(cstring ref)
     if (ref && !cmd)
         return explain("Expected command [", ref, "], got none").fail();
     if (ref && cmd && strcmp(ref, cstring(cmd)) != 0)
-        return explain("Expected command [",
-                       ref,
-                       "], "
-                       "got [",
-                       cmd,
-                       "]")
-            .fail();
+        return explain("Expected command [", ref, "], got [", cmd, "]").fail();
 
     return *this;
 }

@@ -63,16 +63,22 @@
 // ============================================================================
 
 FLAGS(is_type,          directory,      decimal128)
+#if CONFIG_FIXED_BASED_OBJECTS
 FLAGS(is_integer,       hex_integer,    neg_integer)
 FLAGS(is_based,         hex_integer,    based_integer, hex_bignum, based_bignum)
 FLAGS(is_bignum,        hex_bignum,     neg_bignum)
+#else
+FLAGS(is_integer,       based_integer,  neg_integer)
+FLAGS(is_based,         based_integer,  based_integer, based_bignum, based_bignum)
+FLAGS(is_bignum,        based_bignum,   neg_bignum)
+#endif // CONFIG_FIXED_BASED_OBJECTS
 FLAGS(is_fraction,      fraction,       neg_big_fraction)
 FLAGS(is_decimal,       decimal32,      decimal128)
 FLAGS(is_real,          bignum,         decimal128)
 FLAGS(is_complex,       rectangular,    polar)
 FLAGS(is_command,       Drop,           Unimplemented)
 FLAGS(is_symbolic,      local,          equation,       pi, ImaginaryUnit)
-FLAGS(is_algebraic,     add,            det)
+FLAGS(is_algebraic,     add,            ToFraction)
 FLAGS(is_immediate,     MainMenu,       LastMenu)
 
 
@@ -103,16 +109,20 @@ ID(equation)
 ID(rectangular)
 ID(polar)
 
+#if CONFIG_FIXED_BASED_OBJECTS
 ID(hex_integer)
 ID(dec_integer)
 ID(oct_integer)
 ID(bin_integer)
+#endif // CONFIG_FIXED_BASED_OBJECTS
 ID(based_integer)
 
+#if CONFIG_FIXED_BASED_OBJECTS
 ID(hex_bignum)
 ID(dec_bignum)
 ID(oct_bignum)
 ID(bin_bignum)
+#endif // CONFIG_FIXED_BASED_OBJECTS
 ID(based_bignum)
 
 ID(bignum)
@@ -193,12 +203,12 @@ NAMED(TestLE,   "≤")
 NAMED(TestNE,   "≠")
 NAMED(TestGE,   "≥")
 
-NAMED(asin, "sin⁻¹")
+NAMED(asin, "sin⁻¹")            // WARNING: order used in functions.cc
 NAMED(acos,  "cos⁻¹")
 NAMED(atan,  "tan⁻¹")
 CMD(sin)
 CMD(cos)
-CMD(tan)
+CMD(tan)                        // WARNING: order used in function.cc
 
 NAMED(asinh, "sinh⁻¹")
 NAMED(acosh, "cosh⁻¹")
@@ -229,6 +239,7 @@ OP(pow, "↑")
 ALIAS(pow, "^")
 OP(hypot, "⊿")
 OP(atan2, "∠")
+CMD(xroot)
 
 CMD(sign)
 
@@ -236,8 +247,12 @@ CMD(re)
 CMD(im)
 CMD(arg)
 CMD(conj)
-NAMED(det, "Determinant")       // Last algebraic
+NAMED(det, "Determinant")
 
+NAMED(ToDecimal, "→Num")
+ALIAS(ToDecimal, "→Decimal")
+NAMED(ToFraction, "→Frac")         // Last algebraic
+ALIAS(ToFraction, "→Q")
 
 
 // ============================================================================
@@ -246,6 +261,8 @@ NAMED(det, "Determinant")       // Last algebraic
 //
 // ============================================================================
 
+CMD(IfThen)
+CMD(IfThenElse)
 CMD(DoUntil)
 CMD(WhileRepeat)
 CMD(StartNext)
@@ -264,11 +281,13 @@ CMD(Depth)
 NAMED(ToList, "→List")
 CMD(Get)
 
+/// Equations
 CMD(Rewrite)
 CMD(Expand)
 CMD(Collect)
 CMD(Simplify)
 
+// Complex numbers
 NAMED(RealToComplex, "ℝ→ℂ")
 ALIAS(RealToComplex, "R→C")
 NAMED(ComplexToReal, "ℂ→ℝ")
@@ -277,15 +296,46 @@ NAMED(ToRectangular, "→Rectangular")
 ALIAS(ToRectangular, "→Rect")
 NAMED(ToPolar, "→Polar")
 
+// Memory management
 CMD(Purge)
 CMD(PurgeAll)
 NAMED(Mem, "AvailableMemory")
 CMD(FreeMemory)
 CMD(SystemMemory)
 CMD(GarbageCollect)
-CMD(HomeDirectory)
+
+NAMED(home, "HomeDirectory")
+CMD(CurrentDirectory)
+NAMED(path, "DirectoryPath")
+NAMED(crdir, "CreateDirectory")
+NAMED(updir, "UpDirectory")
+NAMED(pgdir, "PurgeDirectory")
 
 CMD(Ticks)
+CMD(Wait)
+CMD(Bytes)
+CMD(Type)
+CMD(TypeName)
+
+NAMED(IFT, "IfThen")
+NAMED(IFTE, "IfThenElse")
+CMD(IfErrThen)
+CMD(IfErrThenElse)
+NAMED(errm, "ErrorMessage")
+NAMED(errn, "ErrorNumber")
+NAMED(err0, "ClearError")
+NAMED(doerr, "DoError")
+
+NAMED(Disp, "DrawText")
+NAMED(DispXY, "DrawStyledText")
+NAMED(Line, "DrawLine")
+NAMED(Ellipse, "DrawEllipse")
+NAMED(Circle, "DrawCircle")
+NAMED(Rect, "DrawRectangle")
+NAMED(RRect, "DrawRoundedRectangle")
+NAMED(ClLCD, "ClearLCD")
+NAMED(Draw, "DrawPlot")
+NAMED(Drax, "DrawAxes")
 
 
 // ============================================================================
@@ -353,8 +403,29 @@ CMD(NoAutoSimplify)
 CMD(MaxBigNumBits)
 CMD(MaxRewrites)
 
+NAMED(ToFractionIterations, "→FracIterations")
+ALIAS(ToFractionIterations, "→QIterations")
+NAMED(ToFractionDigits, "→FracDigits")
+ALIAS(ToFractionDigits, "→QDigits")
+
+CMD(SingleRowMenus)
+CMD(FlatMenus)
+CMD(ThreeRowsMenus)
+CMD(RoundedMenus)
+CMD(SquareMenus)
+
+CMD(LineWidth)
+CMD(Foreground)
+CMD(Background)
+
 CMD(Modes)
 CMD(Version)
+
+
+NAMED(Function,         "FunctionPlot")
+NAMED(Polar,            "PolarPlot")
+NAMED(Parametric,       "ParametricPlot")
+
 
 
 // ============================================================================
@@ -407,6 +478,7 @@ MENU(LastThingsMenu)
 MENU(CharsMenu)
 MENU(ModesMenu)
 MENU(FontsMenu)
+MENU(MenuSettingsMenu)
 MENU(IOMenu)
 MENU(TimeMenu)
 MENU(PlotMenu)

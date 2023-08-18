@@ -69,10 +69,12 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
             return OK;
         return ERROR;           // Out of memory
     }
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_integer:
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_integer:
     {
         integer_p xi = integer_p(object_p(x));
@@ -97,17 +99,25 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
         // Fall through to bignum variants
     }
 
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_bignum:
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_bignum:
     {
-        id yt = x->type();
+        id yt = y->type();
         if (!is_bignum(xt))
             xt = bignum_promotion(x);
         if (!is_bignum(yt))
+        {
             yt = bignum_promotion(y);
+            if (!is_bignum(yt))
+            {
+                rt.type_error();
+            }
+        }
 
         // Proceed with big integers if native did not fit
         bignum_g xg = (bignum *) object_p(x);
@@ -158,10 +168,12 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big)
             return OK;
         return ERROR;           // Out of memory
     }
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_integer:
     case ID_oct_integer:
     case ID_dec_integer:
     case ID_hex_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
     case ID_based_integer:
     {
         integer_p xi = integer_p(object_p(x));
@@ -179,10 +191,12 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big)
         // Fall-through to bignum case
     }
 
+#if CONFIG_FIXED_BASED_OBJECTS
     case ID_bin_bignum:
     case ID_oct_bignum:
     case ID_dec_bignum:
     case ID_hex_bignum:
+#endif
     case ID_based_bignum:
     {
         if (!is_bignum(xt))

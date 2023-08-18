@@ -39,15 +39,15 @@ struct comparison : arithmetic
     comparison(id i): arithmetic(i) {}
 
     typedef bool (*comparison_fn)(int cmp);
-    static bool compare(int *cmp, algebraic_g left, algebraic_g right);
+    static bool compare(int *cmp, algebraic_r left, algebraic_r right);
     static result compare(comparison_fn cmp, id op);
     static algebraic_g compare(comparison_fn cmp, id op,
-                               algebraic_g x, algebraic_g y);
+                               algebraic_r x, algebraic_r y);
     static result is_same(bool derefNames);
 
     template <typename Cmp> static result      evaluate();
-    template <typename Cmp> static algebraic_g evaluate(algebraic_g x,
-                                                        algebraic_g y);
+    template <typename Cmp> static algebraic_g evaluate(algebraic_r x,
+                                                        algebraic_r y);
 };
 
 
@@ -72,7 +72,7 @@ struct derived : comparison                                             \
     {                                                                   \
         return comparison::evaluate<derived>();                         \
     }                                                                   \
-    static algebraic_g evaluate(algebraic_g x, algebraic_g y)           \
+    static algebraic_g evaluate(algebraic_r x, algebraic_r y)           \
     {                                                                   \
         return comparison::evaluate<derived>(x, y);                     \
     }                                                                   \

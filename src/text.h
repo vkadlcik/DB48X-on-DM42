@@ -83,18 +83,15 @@ struct text : algebraic
         return make(utf8(str), len);
     }
 
+    static text_p make(cstring str)
+    {
+        return make(utf8(str), strlen(str));
+    }
+
     size_t length() const
     {
         byte_p p = payload(this);
         return leb128<size_t>(p);
-    }
-
-    static intptr_t size(object_p obj, object_p payload)
-    {
-        byte *p = (byte *) payload;
-        size_t len = leb128<size_t>(p);
-        p += len;
-        return ptrdiff(p, obj);
     }
 
     utf8 value(size_t *size = nullptr) const

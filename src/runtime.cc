@@ -60,6 +60,7 @@ runtime::runtime(byte *mem, size_t size)
 //   Runtime constructor
 // ----------------------------------------------------------------------------
     : Error(nullptr),
+      ErrorSave(nullptr),
       ErrorSource(nullptr),
       ErrorCommand(nullptr),
       Code(nullptr),
@@ -350,6 +351,7 @@ size_t runtime::gc()
             utf8 start = utf8(obj);
             utf8 end = utf8(next);
             found = (Error         >= start && Error         < end)
+                ||  (ErrorSave     >= start && ErrorSave     < end)
                 ||  (ErrorSource   >= start && ErrorSource   < end)
                 ||  (ErrorCommand  >= start && ErrorCommand  < end)
                 ||  (ui.command    >= start && ui.command    < end);
@@ -422,8 +424,8 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
 
     // Adjust the protected pointers
     object_p last = scratch ? (object_p) Stack : from + size;
-    record(gc_details, "Adjustment range is %p-%p, %+s",
-           from, last, scratch ? "scratch" : "no scratch");
+    record(gc_details, "Move %p to %p size %u, %+s",
+           from, to, size, scratch ? "scratch" : "no scratch");
     for (gcptr *p = GCSafe; p; p = p->next)
     {
         if (p->safe >= (byte *) from && p->safe < (byte *) last)
@@ -456,6 +458,8 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
     utf8 end   = utf8(last);
     if (Error >= start && Error < end)
         Error += delta;
+    if (ErrorSave >= start && ErrorSave < end)
+        ErrorSave += delta;
     if (ErrorSource >= start && ErrorSource < end)
         ErrorSource += delta;
     if (ErrorCommand >= start && ErrorCommand < end)
@@ -1019,6 +1023,64 @@ bool runtime::unlocals(size_t count)
 
 
 
+// ============================================================================
+//
+//   Directories
+//
+// ============================================================================
+
+bool runtime::enter(directory_p dir)
+// ----------------------------------------------------------------------------
+//   Enter a given directory
+// ----------------------------------------------------------------------------
+{
+    size_t sz = sizeof(dir);
+    if (available(sz) < sz)
+        return false;
+
+    // Move pointers down
+    Stack--;
+    Undos--;
+    Locals--;
+    Directories--;
+
+    size_t moving = Directories - Stack;
+    for (size_t i = 0; i < moving; i++)
+        Stack[i] = Stack[i + 1];
+
+    // Update directory
+    *Directories = dir;
+
+    return true;
+}
+
+
+bool runtime::updir(size_t count)
+// ----------------------------------------------------------------------------
+//   Move one directory up
+// ----------------------------------------------------------------------------
+{
+    size_t depth = (object_p *) Returns - Directories;
+    if (count >= depth - 1)
+        count = depth - 1;
+    if (!count)
+        return false;
+
+    // Move pointers up
+    object_p *oldp = Directories;
+    Stack += count;
+    Undos += count;
+    Locals += count;
+    Directories += count;
+
+    object_p *newp = Directories;
+    size_t moving = Directories - Stack;
+    for (size_t i = 0; i < moving; i++)
+        *(--newp) = *(--oldp);
+
+    return true;
+}
+
 
 // ============================================================================
 //
@@ -1066,7 +1128,7 @@ void runtime::ret()
 
 // ============================================================================
 //
-//
+//   Generation of the error functions
 //
 // ============================================================================
 

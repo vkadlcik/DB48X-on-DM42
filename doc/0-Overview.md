@@ -42,7 +42,7 @@ lacks a dedicated alpha key, does not provides left or right arrow keys (only up
 and down), and has no space key (_SPC_ on the HP48).
 
 
-### Keyboard interaction
+## Keyboard interaction
 
 The keyboard differences force us to revisit the user interaction with the
 calculator compared to the HP48:
@@ -76,7 +76,7 @@ calculator compared to the HP48:
   [built-in help](#help) for the corresponding function.
 
 
-## Alpha mode
+### Alpha mode
 
 Entering alphabetic characters is done using *Alpha* mode. These alphabetic
 characters are labeled on the right of each key on the DM42's keyboard.
@@ -244,7 +244,7 @@ as follows:
 * _HELP_ (🟦 _+_) activates the context-sensitive help system.
 
 
-### Soft menus
+## Soft menus
 
 The DM42 has 6 dedicated soft-menu keys at the top of the keyboard. Most of the
 advanced features of DB48X can be accessed through these soft menus.
@@ -274,7 +274,7 @@ The `Variables` menu (_RCL_ key) is special in the sense that:
 * The 🟦 function *stores* into the variable.
 
 
-### Differences with other RPLs
+## Differences with other RPLs
 
 Multiple implementations of RPL exist, most of them from Hewlett-Packard.
 A good reference to understand the differences between the various existing
@@ -365,7 +365,36 @@ unintentional differences, since the implementation is completely new.
   either in source or compiled form.
 
 
-#### Differences for vectors and matrices
+### List operation differences
+
+The application of a same operation on arrays or matrices has never been very
+consistent nor logical across RPL models from HP.
+
+* On HP48 and HP50, `{ 1 2 3 } 4 +` gives `{1 2 3 4}`. However, `{ 1 2 3} 4 *`
+  gives a type error on the HP48 but applies the operation to list elements on
+  the HP50, yielding `{ 4 8 12}`.
+
+* For arrays, `[ 1 2 3 ] 4 +` fails on both the HP48 and HP50, but
+  `[ 1 2 3 ] 4 *` works.
+
+* The HP50 has a `MAP` function, which works both for list and matrices.
+  `[ 1 2 3 ] « 3 + »` will return `[ 4 5 6 ]`, and `{ 1 2 3 } « 3 * »` will
+  return `{ 3 6 9 }`. That function has no direct equivalent on the HP48.
+
+DB48X considers lists as bags of items and treat them as a whole when it makes
+sense, whereas arrays are focusing more on the values they contain, and will
+operate on these items when it makes sense. Therefore:
+
+* `{ 1 2 3 } 4 +` gives `{ 1 2 3 4 }`, `{ 1 2 3 } 2 -` gives `{ 1 3 }`, and
+  `{ 1 2 3 } 3 ×` gives `{ 1 2 3 1 2 3 1 2 3 }`. The `÷` operator does not work
+  on lists.
+
+* `[ 1 2 3 ] 4 +` gives `[ 5 6 7 ]`, `[ 1 2 3 ] 2 -` gives `[ -1 0 1 ]`,
+  `[ 1 2 3 ] 3 ×` gives `[ 3 6 9 ]` and `[ 1 2 3 ] 5 ÷` gives
+  `[ 1/5 2/5 3/5 ]`.
+
+
+### Vectors and matrices differences
 
 * On DB48X, vectors like `[ 1 2 3 ]` are very similar to lists. The primary
   difference is the behavior in the presence of arithmetic operators.
@@ -411,13 +440,33 @@ unintentional differences, since the implementation is completely new.
   `[1 2 3] inv` gives `[1/1 1/2 1/3]`.
 
 
-### Differences handling equations
+### Equations handling differences
 
 * The DB48X dialect of RPL accepts equations with "empty slots". During equation
   evaluation, the value of these empty slots will be taken from the stack. In
-  the equation, a slot is represented as `()`. For example, the equation
-  `()+sin(cos())` will read two values from the stack. If evaluated in a stack
-  that contains `A` and `B`, it will evaluate a `A+sin(cos(B))`.
+  the equation, a slot is represented as `()`.
+
+* For example, the equation `()+sin(cos())` will read two values from the
+  stack. If evaluated in a stack that contains `A` and `B`, it will evaluate a
+  `A+sin(cos(B))`.
+
+* This feature is an accident of implementation. It is recommended to use local
+  variables to more precisely control where stack input is used in the
+  equation. Ideally, you should write the above equation as
+  `→ a b 'a+sin(cos(b))'` if you want better compatibility with other RPL
+  implementations.
+
+
+### Unicode support
+
+DB48X has almost complete support for Unicode, and stores text internally using
+the UTF-8 encoding. The built-in font has minor deviations in appearance for a
+few RPL-specific glyphs.
+
+Overall, a text file produced by DB48X should appear reliably in your
+favorite text editor, which should normally be GNU Emacs. This is notably the
+case for state files with extension `.48S` which you can find in the `STATE`
+directory on the calculator.
 
 
 ## Help

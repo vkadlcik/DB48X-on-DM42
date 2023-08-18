@@ -577,7 +577,7 @@ struct runtime
     //
     // ========================================================================
 
-    directory *variables(uint depth)
+    directory *variables(uint depth) const
     // ------------------------------------------------------------------------
     //   Current directory for global variables
     // ------------------------------------------------------------------------
@@ -586,6 +586,29 @@ struct runtime
             return nullptr;
         return (directory *) Directories[depth];
     }
+
+    directory *homedir() const
+    // ------------------------------------------------------------------------
+    //   Return the home directory
+    // ------------------------------------------------------------------------
+    {
+        directory **home = (directory **) (Returns - 1);
+        return *home;
+    }
+
+    size_t directories() const
+    // ------------------------------------------------------------------------
+    //   Return number of directories
+    // ------------------------------------------------------------------------
+    {
+        size_t depth = (object_p *) Returns - Directories;
+        return depth;
+    }
+
+
+    bool enter(directory_p dir);
+    bool updir(size_t count = 1);
+
 
 
     // ========================================================================
@@ -603,7 +626,7 @@ struct runtime
             record(errors, "Error [%s]", message);
         else
             record(runtime, "Clearing error");
-        Error = message;
+        Error = ErrorSave = message;
         return *this;
     }
 
@@ -617,10 +640,18 @@ struct runtime
 
     utf8 error()
     // ------------------------------------------------------------------------
-    //   Get the error message
+    //   Get the error message (as currently displayed)
     // ------------------------------------------------------------------------
     {
         return Error;
+    }
+
+    utf8 error_message()
+    // ------------------------------------------------------------------------
+    //   Get the error message (as saved for errm)
+    // ------------------------------------------------------------------------
+    {
+        return ErrorSave;
     }
 
     runtime &source(utf8 spos)
@@ -684,7 +715,7 @@ struct runtime
 
     void clear_error()
     // ------------------------------------------------------------------------
-    //   Clear error state
+    //   Clear error state (but _does not_ clear ErrorSave intentionally)
     // ------------------------------------------------------------------------
     {
         Error = nullptr;
@@ -706,6 +737,7 @@ struct runtime
 
 protected:
     utf8      Error;        // Error message if any
+    utf8      ErrorSave;    // Last error message (for ERRM)
     utf8      ErrorSource;  // Source of the error if known
     utf8      ErrorCommand; // Source of the error if known
     object_p  Code;         // Currently executing code
@@ -738,6 +770,7 @@ using gcutf8    = gcp<byte>;
 using gcmutf8   = gcm<byte>;
 
 using object_g  = gcp<object>;
+typedef const object_g &object_r;
 
 #define GCP(T)                                  \
     struct T;                                   \
@@ -794,8 +827,10 @@ const Obj *runtime::make(typename Obj::id type, const Args &... args)
     // Move the editor up (available() checked we have room)
     move(Temporaries, (object_p) result, Editing + Scratch, true);
 
-    // Initialize the object in place
+    // Initialize the object in place (may GC and move result)
+    gcbytes ptr = (byte *) result;
     new(result) Obj(args..., type);
+    result = (Obj *) ptr.Safe();
 
 #ifdef SIMULATOR
     object_validate(type, (const object *) result, size);

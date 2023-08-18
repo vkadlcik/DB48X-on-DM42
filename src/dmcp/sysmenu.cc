@@ -254,7 +254,7 @@ static int state_save_callback(cstring fpath,
     Settings.standard_exp = 1;
 
     // Save global variables
-    gcp<directory> home = rt.variables(0);
+    gcp<directory> home = rt.homedir();
     home->enumerate(state_save_variable, &render);
 
     // Save the stack
@@ -269,6 +269,13 @@ static int state_save_callback(cstring fpath,
 
     // Save current settings
     saved.save(render);
+
+    // Write the current path
+    if (list_p path = directory::path(object::ID_block))
+    {
+        path->render(render);
+        render.put('\n');
+    }
 
     // Restore the settings we had
     Settings = saved;
@@ -522,6 +529,7 @@ cstring state_name()
         char *p = buffer;
         while (p < end && name < last && (*p++ = *name++))
             /* Copy */;
+        *p = 0;
         return buffer;
     }
 
@@ -712,7 +720,7 @@ cstring menu_item_description(uint8_t menu_id, char *s, const int UNUSED len)
     case MI_48STATUS_TIME:
         ln = flag_str(s, "Time", Settings.show_time);                   break;
     case MI_48STATUS_SECONDS:
-        ln = flag_str(s, "Show seconds", Settings.show_time);           break;
+        ln = flag_str(s, "Show seconds", Settings.show_seconds);        break;
     case MI_48STATUS_24H:
         ln = flag_str(s, "Show 24h time", Settings.show_24h);           break;
     case MI_48STATUS_VOLTAGE:

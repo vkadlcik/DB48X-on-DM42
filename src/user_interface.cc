@@ -30,15 +30,16 @@
 #include "user_interface.h"
 
 #include "arithmetic.h"
+#include "blitter.h"
 #include "command.h"
 #include "functions.h"
-#include "graphics.h"
 #include "list.h"
 #include "menu.h"
 #include "program.h"
 #include "runtime.h"
 #include "settings.h"
 #include "stack.h"
+#include "symbol.h"
 #include "sysmenu.h"
 #include "target.h"
 #include "util.h"
@@ -70,9 +71,9 @@ RECORDER(help,  16, "On-line help");
 #define NUM_TOPICS      (sizeof(topics) / sizeof(topics[0]))
 
 user_interface::user_interface()
-// ----------------------------------------------------------------------------
-//   Initialize the user interface
-// ----------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------
+    //   Initialize the user interface
+    // ----------------------------------------------------------------------------
     : command(),
       help(-1u),
       line(0),
@@ -114,10 +115,12 @@ user_interface::user_interface()
       force(false),
       dirtyMenu(false),
       dirtyStack(false),
+      dirtyCommand(false),
       dirtyHelp(false),
       dynamicMenu(false),
       autoComplete(false),
       adjustSeps(false),
+      userScreen(false),
       helpfile()
 {
     for (uint p = 0; p < NUM_PLANES; p++)
@@ -345,7 +348,7 @@ void user_interface::clear_help()
 //   Clear help data
 // ----------------------------------------------------------------------------
 {
-    command     = nullptr;
+   command     = nullptr;
     help        = -1u;
     line        = 0;
     topic       = 0;
@@ -473,6 +476,7 @@ void user_interface::updateMode()
     uint    txts  = 0;
     uint    vecs  = 0;
     uint    based = 0;
+    uint    syms  = 0;
     uint    inum  = 0;
     uint    fnum  = 0;
     uint    hnum  = 0;
@@ -515,7 +519,7 @@ void user_interface::updateMode()
                     hnum++;
                 }
             }
-            else if (code >= '0' && code <= '9')
+            else if (!syms && !txts && code >= '0' && code <= '9')
             {
                 if (!num)
                     num = p;
@@ -535,6 +539,8 @@ void user_interface::updateMode()
                 // All other characters: reset numbering
                 based = inum = fnum = hnum = 0;
                 num = nullptr;
+                if (is_valid_as_name_initial(code))
+                    syms = true;
             }
 
             switch(code)
@@ -547,7 +553,9 @@ void user_interface::updateMode()
             case ']':       vecs--;                         break;
             case L'«':      progs++;                        break;
             case L'»':      progs--;                        break;
-            case '#':       based++; hnum = 0; num = nullptr; break;
+            case '#':       based++;
+                            hnum = inum = syms = 0;
+                            num = nullptr;                  break;
             }
         }
         else if (code == '"')
@@ -891,6 +899,7 @@ void user_interface::draw_start(bool forceRedraw, uint refresh)
     dirty = rect();
     force = forceRedraw;
     nextRefresh = refresh;
+    userScreen = false;
 }
 
 
@@ -966,13 +975,41 @@ bool user_interface::draw_menus()
     menuShift++;
 
     int planes = menuPlanes();
-    uint newMenuHeight = planes * mh;
+    int visiblePlanes = Settings.menu_single_ln ? 1 : planes;
+    uint newMenuHeight = 1 + visiblePlanes * mh;
     if (newMenuHeight != menuHeight)
     {
         menuHeight = newMenuHeight;
         dirtyStack = true;
         dirtyEditor = true;
     }
+
+    if (Settings.menu_flatten)
+    {
+        object_p prevo = command::static_object(command::ID_MenuPreviousPage);
+        object_p nexto = command::static_object(command::ID_MenuNextPage);
+        object_p what = function[0][KEY_F6-1];
+        bool prev = what == prevo;
+        bool next = what == nexto;
+        if (prev || next)
+        {
+            if (shplane != prev)
+            {
+                if (shplane)
+                {
+                    function[0][KEY_F6-1] = prevo;
+                    menu_label[0][NUM_SOFTKEYS-1] = "◀︎";
+                }
+                else
+                {
+                    function[0][KEY_F6-1] = nexto;
+                    menu_label[0][NUM_SOFTKEYS-1] = "▶";
+                }
+            }
+        }
+        shplane = 0;
+    }
+
 
     for (int plane = 0; plane < planes; plane++)
     {
@@ -986,7 +1023,11 @@ bool user_interface::draw_menus()
             labels = helpMenu;
         }
 
-        int my = LCD_H - (plane + 1) * mh;
+        if (Settings.menu_single_ln)
+            if (plane != shplane)
+                continue;
+
+        int my = LCD_H - (plane * !Settings.menu_single_ln + 1) * mh;
         for (int m = 0; m < NUM_SOFTKEYS; m++)
         {
             uint animask = (1<<(m + plane * NUM_SOFTKEYS));
@@ -999,22 +1040,33 @@ bool user_interface::draw_menus()
             if (animating)
                 draw_dirty(mrect);
 
-            Screen.fill(mrect, pattern::white);
+            bool alt = planes > 1 && plane != shplane;
+            pattern color = pattern::black;
 
-            mrect.inset(3,  1);
-            Screen.fill(mrect, pattern::black);
-            mrect.inset(-1, 1);
-            Screen.fill(mrect, pattern::black);
-            mrect.inset(-1, 1);
-            Screen.fill(mrect, pattern::black);
-
-            mrect.inset(2, 0);
-            pattern color = pattern::white;
-            if (planes > 1 && plane != shplane)
+            if (Settings.menu_square)
             {
+                mrect.x2++;
+                mrect.y2++;
+                Screen.fill(mrect, alt ? pattern::gray50 : pattern::black);
+                mrect.inset(1, 1);
                 Screen.fill(mrect, pattern::white);
-                color = pattern::black;
             }
+            else
+            {
+                if (!alt)
+                    color = pattern::white;
+                Screen.fill(mrect, pattern::white);
+                mrect.inset(3,  1);
+                Screen.fill(mrect, pattern::black);
+                mrect.inset(-1, 1);
+                Screen.fill(mrect, pattern::black);
+                mrect.inset(-1, 1);
+                Screen.fill(mrect, pattern::black);
+                mrect.inset(2, 0);
+                if (alt)
+                    Screen.fill(mrect, pattern::white);
+            }
+
 
             utf8 label = utf8(labels[m]);
             if (label)
@@ -1075,16 +1127,32 @@ bool user_interface::draw_menus()
                 {
                     x = (trect.x1 + trect.x2 - tw) / 2;
                 }
-                coord ty = mrect.y1 - 3;
+                coord ty = mrect.y1 - (Settings.menu_square ? 2 : 3);
                 Screen.text(x, ty, label, len, font, color);
                 if (marker)
                 {
                     Screen.clip(mrect);
-                    Screen.glyph(mkx, ty - 2*(marker==L'◥'), marker, font, color);
+                    bool dossier = marker==L'◥';
+                    if (dossier)
+                    {
+                        if (alt)
+                            Screen.glyph(mkx+3, ty-3, marker, font, color);
+                        Screen.clip(clip);
+                        Screen.glyph(mkx+4, ty-4, marker, font, pattern::white);
+                    }
+                    else
+                    {
+                        Screen.glyph(mkx, ty, marker, font, color);
+                    }
                 }
                 Screen.clip(clip);
             }
         }
+    }
+    if (Settings.menu_square && shplane < visiblePlanes)
+    {
+        int my = LCD_H - (shplane * !Settings.menu_single_ln + 1) * mh;
+        Screen.fill(0, my, LCD_W-1, my, pattern::black);
     }
 
     if (animate)
@@ -1144,19 +1212,19 @@ bool user_interface::draw_header()
         Screen.fill(header, pattern::black);
 
         char buffer[MAX_LCD_LINE_LEN];
-        size_t sz = snprintf(buffer, MAX_LCD_LINE_LEN, "%s", state_name());
+        size_t sz = 0;
 
         // Read the real-time clock
         if (Settings.show_date)
         {
             char mname[4];
             if (Settings.show_month)
-                snprintf(mname, 4, "%s", get_month_shortcut(month-1));
+                snprintf(mname, 4, "%s", get_month_shortcut(month));
             else
                 snprintf(mname, 4, "%d", month);
 
             if (Settings.show_dow)
-                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, " %s",
+                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%s ",
                                get_wday_shortcut(dow));
 
             char sep = Settings.date_separator;
@@ -1167,24 +1235,24 @@ bool user_interface::draw_header()
                 break;
             case settings::DMY:
                 sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
-                               " %d%c%s%c%d",
+                               "%d%c%s%c%d ",
                                day, sep, mname, sep, year);
                 break;
             case settings::MDY:
                 sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
-                               " %s%c%d%c%d",
+                               "%s%c%d%c%d ",
                                mname, sep, day, sep, year);
                 break;
             case settings::YMD:
                 sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
-                               " %d%c%s%c%d",
+                               "%d%c%s%c%d ",
                                year, sep, mname, sep, day);
                 break;
             }
         }
         if (Settings.show_time)
         {
-            sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, " %d",
+            sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%d",
                            Settings.show_24h ? hour : hour % 12);
             sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, ":%02d", minute);
 
@@ -1194,9 +1262,11 @@ bool user_interface::draw_header()
             if (!Settings.show_24h)
                 sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%c",
                                hour < 12 ? 'A' : 'P');
-
+            sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, " ");
             draw_refresh(Settings.show_seconds ? 1000 : 1000 * (60 - second));
         }
+
+        sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%s", state_name());
 
         Screen.text(1, 0, utf8(buffer), HeaderFont, pattern::white);
         Screen.clip(clip);
@@ -1220,10 +1290,10 @@ bool user_interface::draw_annunciators()
         utf8 label = utf8(lowercase ? "abc" : "ABC");
         size lw = HeaderFont->width(label);
         if (!force)
-            Screen.fill(280, 1, 280+lw, 1+lh, pattern::black);
+            Screen.fill(280, 0, 280+lw, 1+lh, pattern::black);
         if (alpha)
             Screen.text(280, 1, label, HeaderFont, pattern::white);
-        draw_dirty(280, 1, 280+lw, 1+lh);
+        draw_dirty(280, 0, 280+lw, 1+lh);
         alpha_drawn = alpha;
         lowerc_drawn = lowercase;
         result = true;
@@ -1306,7 +1376,7 @@ bool user_interface::draw_battery()
 
     coord x = Settings.show_voltage ? 311 : 370;
     rect bat(x + 3, ann_y+2, x + 25, ann_y + ann_height);
-    Screen.fill(x, 0, LCD_W, hfh + 1, pattern::black);
+    Screen.fill(x-3, 0, LCD_W, hfh + 1, pattern::black);
     if (Settings.show_voltage)
     {
         char buffer[64];
@@ -1352,12 +1422,15 @@ bool user_interface::draw_busy_cursor(unicode glyph)
 //    Draw the busy flying cursor
 // ----------------------------------------------------------------------------
 {
+    if (userScreen)
+        return false;
+
     size w  = 32;
     size h  = HeaderFont->height();
     size x  = 260;
     size y  = 0;
 
-    rect r(x, y, x + w, y + h);
+    rect r(x, y, x + w, y + h + 1);
     Screen.fill(r, pattern::black);
     if (glyph)
     {
@@ -1367,7 +1440,7 @@ bool user_interface::draw_busy_cursor(unicode glyph)
         Screen.glyph(gx, y, glyph, HeaderFont, pattern::white);
         Screen.clip(clip);
     }
-    draw_dirty(x, y, x + w - 1, y + h - 1);
+    draw_dirty(r);
     refresh_dirty();
     return true;
 }
@@ -1387,6 +1460,7 @@ bool user_interface::draw_idle()
 //   Clear busy indicator
 // ----------------------------------------------------------------------------
 {
+    userScreen = false;
     draw_busy_cursor(0);
     alpha_drawn = !alpha_drawn;
     shift_drawn = !shift;
@@ -1560,7 +1634,7 @@ bool user_interface::draw_editor()
     utf8  display         = ed;
     coord y               = bottom - rows * lineHeight;
 
-    graphics::rect clip = Screen.clip();
+    blitter::rect clip = Screen.clip();
     Screen.clip(0, top, LCD_W, bottom);
     record(text_editor, "Clip between %d and %d", top, bottom);
     if (rows > fullRows)
@@ -1750,23 +1824,25 @@ bool user_interface::draw_command()
 //   Draw the current command
 // ----------------------------------------------------------------------------
 {
-    if (!force)
-        return false;
-
-    if (command && !rt.error())
+    if (force || dirtyCommand)
     {
-        font_p font = HelpCodeFont;
-        size   w    = font->width(command);
-        size   h    = font->height();
-        coord  x    = 25;
-        coord  y    = HeaderFont->height() + 6;
+        dirtyCommand = false;
+        if (command && !rt.error())
+        {
+            font_p font = HelpCodeFont;
+            size   w    = font->width(command);
+            size   h    = font->height();
+            coord  x    = 25;
+            coord  y    = HeaderFont->height() + 6;
 
-        Screen.fill(x-2, y-1, x+w+2, y+h+1, pattern::black);
-        Screen.text(x, y, command, font, pattern::white);
-        draw_dirty(x-2, y-1, x+w+2, y+h+1);
+            Screen.fill(x-2, y-1, x+w+2, y+h+1, pattern::black);
+            Screen.text(x, y, command, font, pattern::white);
+            draw_dirty(x-2, y-1, x+w+2, y+h+1);
+            return true;
+        }
     }
 
-    return true;
+    return false;
 }
 
 
@@ -1790,12 +1866,15 @@ void user_interface::draw_user_command(utf8 cmd, size_t len)
         w = nw;
 
     // User-defined command, display in white
-    Screen.fill(x-2, y-1, x + w + 2, y + h + 1, pattern::black);
-    Screen.fill(x-1, y, x + w + 1, y + h, pattern::white);
+    rect r(x-2, y-1, x+w+2, y+h+1);
+    draw_dirty(r);
+    Screen.fill(r, pattern::black);
+    r.inset(1,1);
+    Screen.fill(r, pattern::white);
     Screen.text(x + (w - nw) / 2, y, cmd, len, font, pattern::black);
 
     // Update screen
-    lcd_refresh_lines(y - 1, h + 2);
+    refresh_dirty();
 }
 
 
@@ -1851,6 +1930,7 @@ bool user_interface::draw_stack()
     draw_dirty(0, HeaderFont->height() + 2, stack, LCD_H);
     draw_idle();
     dirtyStack = false;
+    dirtyCommand = true;
     return true;
 }
 
@@ -1864,9 +1944,9 @@ void user_interface::load_help(utf8 topic, size_t len)
 
     if (!len)
         len = strlen(cstring(topic));
-    command    = nullptr;
-    follow     = false;
-    dirtyHelp  = true;
+    command   = nullptr;
+    follow    = false;
+    dirtyHelp = true;
 
     // Need to have the help file open here
     if (!helpfile.valid())
@@ -1875,59 +1955,129 @@ void user_interface::load_help(utf8 topic, size_t len)
         if (!helpfile.valid())
         {
             help = -1u;
-            line          = 0;
+            line = 0;
             return;
         }
     }
     dirtyMenu = true;
 
     // Look for the topic in the file
-    uint         matching = 0;
-    uint         level    = 0;
-    bool         hadcr    = true;
+    int  matching = 0;
+    uint level    = 0;
+    bool hadcr    = true;
+    uint topicpos = 0;
+
+#if SIMULATOR
+    char debug[80];
+    uint debugindex = 0;
+#endif // SIMULATOR
+
     helpfile.seek(0);
-    for (unicode c        = helpfile.get(); c; c = helpfile.get())
+    for (char c = helpfile.getchar(); c; c = helpfile.getchar())
     {
-        if (((hadcr || matching) && c == '#') || (c == ' ' && matching == 1))
+        if (hadcr)
+        {
+            if (c == '#')
+                topicpos = helpfile.position() - 1;
+            matching = level = 0;
+        }
+
+#if SIMULATOR
+        if (matching && debugindex < sizeof(debug) - 1)
+        {
+            debug[debugindex++] = c;
+            if (RECORDER_TRACE(help) > 2)
+            {
+                debug[debugindex] = 0;
+                record(help, "Matching %2d: Scanning %s", matching, debug);
+            }
+        }
+#endif // SIMULATOR
+
+        if (((hadcr || matching == 1) && c == '#') ||
+            (matching == 1 && c == ' '))
         {
             level += c == '#';
             matching = 1;
+#if SIMULATOR
+            debugindex = 0;
+#endif // SIMULATOR
+        }
+        else if (matching < 0)
+        {
+            if (c == '(' || c == ',')
+            {
+                matching = -2;
+                matching = 1;
+            }
+            else if (matching == -2 && c == ' ')
+            {
+                matching = 1;
+            }
+
+#if SIMULATOR
+            if (matching == 1 || c =='\n' || c == ')')
+            {
+                if (RECORDER_TRACE(help) > 1)
+                {
+                    debug[debugindex-1] = 0;
+                    if (debugindex > 1)
+                        record(help, "Scanning topic %s", debug);
+                }
+                debugindex = 0;
+            }
+#endif // SIMULATOR
         }
         else if (matching)
         {
-            // Matching is case-independent, and matches markdown hyperlinks
-            if (tolower(c) == tolower(topic[matching-1]) ||
-                (c         == ' ' && topic[matching-1] == '-'))
-                matching++;
-            else
-                matching    = level = 0;
-            if (matching   == len + 1)
+            if (uint(matching) == len + 1)
             {
-                unicode next  = helpfile.peek();
-                if (next     == '\n')
+                bool match = c == '\n' || c == ')' || c == ',' || c == ' ';
+                record(help, "%+s topic len %u at position %u next [%c]",
+                       match ? "Matched" : "Mismatched",
+                       len, helpfile.position(), c);
+                if (match)
                     break;
-                if (next     == ' ')
+                matching = -1;
+            }
+
+            // Matching is case-independent, and matches markdown hyperlinks
+            else if (byte(c) == topic[matching-1] ||
+                tolower(c) == tolower(topic[matching-1]) ||
+                (c == ' ' && topic[matching-1] == '-'))
+            {
+                matching++;
+            }
+            else if (c == '\n')
+            {
+#if SIMULATOR
+                if (RECORDER_TRACE(help) > 1)
                 {
-                    // Case of something like ## Evaluate (EVAL)
-                    // We accept to match 'evaluate'
-                    uint pos = helpfile.position();
-                    helpfile.get();
-                    if (helpfile.peek() == '(')
-                    {
-                        helpfile.seek(pos);
-                        break;
-                    }
+                    debug[debugindex - 1] = 0;
+                    if (debugindex > 1)
+                        record(help, "Scanned topic %s", debug);
+                    debugindex = 0;
                 }
-                matching = 0;
+#endif // SIMULATOR
+                matching = level = 0;
+            }
+            else
+            {
+#if SIMULATOR
+                if (RECORDER_TRACE(help) > 2)
+                    record(help, "Mismatch at %u: %u != %u",
+                           matching, c, topic[matching-1]);
+#endif // SIMULATOR
+                matching = c == '(' ? -2 : -1;
             }
         }
         hadcr = c == '\n';
     }
 
     // Check if we found the topic
-    if (matching == len + 1)
+    if (uint(matching) == len + 1)
     {
-        help = helpfile.position() - (len+1) - level;
+        help = topicpos;
         line = 0;
         record(help, "Found topic %s at position %u level %u",
                topic, helpfile.position(), level);
@@ -1948,7 +2098,7 @@ void user_interface::load_help(utf8 topic, size_t len)
     else
     {
         static char buffer[50];
-        snprintf(buffer, sizeof(buffer), "No help for %s", topic);
+        snprintf(buffer, sizeof(buffer), "No help for %.*s", int(len), topic);
         rt.error(buffer);
     }
 }
@@ -2460,8 +2610,9 @@ bool user_interface::handle_help(int &key)
                 record(help, "Looking for help topic for key %d\n", key);
                 if (utf8 htopic = obj->help())
                 {
-                    record(help, "Found help topic %s\n", htopic);
+                    record(help, "Help topic is %s\n", htopic);
                     command = htopic;
+                    dirtyCommand = true;
                     if (longpress)
                     {
                         load_help(htopic);
@@ -2740,10 +2891,9 @@ bool user_interface::handle_editing(int key)
             // XEQ is used to enter algebraic / equation objects
             if ((!editing  || mode != BASED) && !shift && !xshift)
             {
-                bool iseq = editing && mode == ALGEBRAIC;
-                edit(editing && iseq ? '(' : '\'', ALGEBRAIC);
-                if (iseq)
-                    last = 0;
+                bool is_eqn = editing && mode == ALGEBRAIC;
+                edit(is_eqn ? '(' : '\'', ALGEBRAIC);
+                last = 0;
                 return true;
             }
             break;
@@ -2995,12 +3145,17 @@ bool user_interface::handle_alpha(int key)
 //    Handle alphabetic user_interface
 // ----------------------------------------------------------------------------
 {
+    // Things that we never handle in alpha mode
+    if (!key || (key >= KEY_F1 && key <= KEY_F6))
+        return false;
+
+    // Allow "alpha" mode for keys A-F in based number mode
+    // xshift-ENTER inserts quotes, xshift-BSP inserts \n
     bool editing = rt.editing();
     bool hex = editing && mode == BASED && key >= KB_A && key <= KB_F;
-    if (!alpha || !key || ((key == KEY_ENTER || key == KEY_BSP) && !xshift) ||
-        (key >= KEY_F1 && key <= KEY_F6))
-        if (!hex)
-            return false;
+    bool special = xshift && (key == KEY_ENTER || (key == KEY_BSP && editing));
+    if (!alpha && !hex && !special)
+        return false;
 
     static const char upper[] =
         "ABCDEF"
@@ -3172,9 +3327,9 @@ static const byte defaultUnshiftedCommand[2*user_interface::NUM_KEYS] =
 // ----------------------------------------------------------------------------
 //   All the default-assigned commands fit in one or two bytes
 {
-#define OP2BYTES(key, id)                                       \
-    [2*(key) - 2] = (id) < 0x80 ? (id) : ((id) & 0x7F) | 0x80,  \
-    [2*(key) - 1] = (id) < 0x80 ?   0  : ((id) >> 7)
+#define OP2BYTES(key, id)                                              \
+    [2*(key) - 2] = (id) < 0x80 ? (id) & 0x7F : ((id) & 0x7F) | 0x80,  \
+    [2*(key) - 1] = (id) < 0x80 ?           0 : ((id) >> 7)
 
     OP2BYTES(KEY_SIGMA, menu::ID_ToolsMenu),
     OP2BYTES(KEY_INV,   function::ID_inv),
@@ -3291,14 +3446,14 @@ static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
 //   All the default assigned commands fit in one or two bytes
 {
     OP2BYTES(KEY_SIGMA, menu::ID_MainMenu),
-    OP2BYTES(KEY_INV,   0),
-    OP2BYTES(KEY_SQRT,  0),
+    OP2BYTES(KEY_INV,   command::ID_xroot),
+    OP2BYTES(KEY_SQRT,  menu::ID_RealMenu),
     OP2BYTES(KEY_LOG,   function::ID_expm1),
     OP2BYTES(KEY_LN,    function::ID_log1p),
     OP2BYTES(KEY_XEQ,   menu::ID_TestsMenu),
     OP2BYTES(KEY_STO,   menu::ID_MemMenu),
     OP2BYTES(KEY_RCL,   menu::ID_LibsMenu),
-    OP2BYTES(KEY_RDN,   0),
+    OP2BYTES(KEY_RDN,   menu::ID_MathMenu),
     OP2BYTES(KEY_SIN,   function::ID_sinh),
     OP2BYTES(KEY_COS,   function::ID_cosh),
     OP2BYTES(KEY_TAN,   function::ID_tanh),
@@ -3306,7 +3461,7 @@ static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_SWAP,  0),
     OP2BYTES(KEY_CHS,   0),
     OP2BYTES(KEY_E,     0),
-    OP2BYTES(KEY_BSP,   0),
+    OP2BYTES(KEY_BSP,   function::ID_updir),
     OP2BYTES(KEY_UP,    0),
     OP2BYTES(KEY_7,     0),
     OP2BYTES(KEY_8,     0),

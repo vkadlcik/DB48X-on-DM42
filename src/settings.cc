@@ -30,6 +30,7 @@
 #include "settings.h"
 
 #include "arithmetic.h"
+#include "bignum.h"
 #include "command.h"
 #include "font.h"
 #include "functions.h"
@@ -58,12 +59,7 @@ void settings::save(renderer &out, bool show_defaults)
 //   Save the current settings to the given renderer
 // ----------------------------------------------------------------------------
 {
-    // Save the current menu
-    if (menu_p menu = ui.menu())
-    {
-        menu->render(out);
-        out.put('\n');
-    }
+    settings Defaults;
 
     // Save current computation precision
     if (precision != BID128_MAXDIGITS || show_defaults)
@@ -97,7 +93,7 @@ void settings::save(renderer &out, bool show_defaults)
         out.put("FancyExponent\n");
 
     // Save preferred expenent for switching to scientfiic mode
-    if (standard_exp != 9 || show_defaults)
+    if (standard_exp != Defaults.standard_exp || show_defaults)
         out.printf("%u StandardExponent\n", standard_exp);
 
     // Save current angle mode
@@ -111,11 +107,11 @@ void settings::save(renderer &out, bool show_defaults)
     }
 
     // Save default base
-    if( base != 16 || show_defaults)
+    if( base != Defaults.base || show_defaults)
         out.printf("%u Base\n", base);
 
     // Save default word size
-    if (wordsize != 64 || show_defaults)
+    if (wordsize != Defaults.wordsize || show_defaults)
         out.printf("%u WordSize\n", wordsize);
 
     // Save default command format
@@ -135,21 +131,21 @@ void settings::save(renderer &out, bool show_defaults)
         out.put("TrailingDecimal\n");
 
     // Font size
-    if (result_sz != STACK || show_defaults)
+    if (result_sz != Defaults.result_sz || show_defaults)
         out.printf("%u ResultFontSize\n", result_sz);
-    if (stack_sz != STACK || show_defaults)
+    if (stack_sz != Defaults.stack_sz || show_defaults)
         out.printf("%u StackFontSize\n", result_sz);
-    if (editor_sz != EDITOR || show_defaults)
+    if (editor_sz != Defaults.editor_sz || show_defaults)
         out.printf("%u EditorFontSize\n", result_sz);
-    if (editor_ml_sz != STACK || show_defaults)
+    if (editor_ml_sz != Defaults.editor_ml_sz || show_defaults)
         out.printf("%u EditorMultilineFontSize\n", result_sz);
 
     // Number spacing
-    if (spacing_mantissa != 3 || show_defaults)
+    if (spacing_mantissa != Defaults.spacing_mantissa || show_defaults)
         out.printf("%u MantissaSpacing\n", spacing_mantissa);
-    if (spacing_fraction != 3 || show_defaults)
+    if (spacing_fraction != Defaults.spacing_fraction || show_defaults)
         out.printf("%u FractionSpacing\n", spacing_fraction);
-    if (spacing_based != 4 || show_defaults)
+    if (spacing_based != Defaults.spacing_based || show_defaults)
         out.printf("%u BasedSpacing\n", spacing_based);
 
     switch (space)
@@ -174,15 +170,42 @@ void settings::save(renderer &out, bool show_defaults)
     case '_':                   out.put("BasedUnderscore\n");   break;
     }
 
-    if (auto_simplify || show_defaults)
-        out.put("AutoSimplify\n");
-    else
+    if (!auto_simplify)
         out.put("NoAutoSimplify\n");
+    else if (show_defaults)
+        out.put("AutoSimplify\n");
 
-    if (maxbignum != 1024 || show_defaults)
+    if (maxbignum != Defaults.maxbignum || show_defaults)
         out.printf("%u MaxBigNumBits\n", maxbignum);
-    if (maxrewrites != 100 || show_defaults)
+    if (maxrewrites != Defaults.maxrewrites || show_defaults)
         out.printf("%u MaxRewrites\n", maxbignum);
+    if (fraciter != Defaults.fraciter || show_defaults)
+        out.printf("%u ToFractionIterations\n", fraciter);
+    if (fracprec != Defaults.fracprec || show_defaults)
+        out.printf("%u ToFractionDigits\n", fracprec);
+
+    if (menu_single_ln)
+    {
+        if (menu_flatten)
+            out.put("FlatMenus\n");
+        else
+            out.put("SingleRowMenus\n");
+    }
+    else if (show_defaults)
+    {
+        out.put("ThreeRowsMenus\n");
+    }
+    if (menu_square)
+        out.put("SquareMenus\n");
+    else if (show_defaults)
+        out.put("RoundedMenus\n");
+
+    // Save the current menu
+    if (menu_p menu = ui.menu())
+    {
+        menu->render(out);
+        out.put('\n');
+    }
 }
 
 
@@ -257,6 +280,7 @@ font_p settings::cursor_font(font_id size)
     case FREE42:        return Free42Font;
     }
 }
+
 
 
 
@@ -735,7 +759,7 @@ SETTINGS_COMMAND_LABEL(stws)
 // ----------------------------------------------------------------------------
 {
     static char buffer[16];
-    snprintf(buffer, sizeof(buffer), "WSz %u", Settings.wordsize);
+    snprintf(buffer, sizeof(buffer), "WSz %zu", Settings.wordsize);
     return buffer;
 }
 
@@ -949,7 +973,7 @@ SETTINGS_COMMAND_LABEL(MaxBigNumBits)
 // ----------------------------------------------------------------------------
 {
     static char buffer[16];
-    snprintf(buffer, sizeof(buffer), "BigNum %u", Settings.maxbignum);
+    snprintf(buffer, sizeof(buffer), "BigNum %zu", Settings.maxbignum);
     return buffer;
 }
 
@@ -977,4 +1001,184 @@ SETTINGS_COMMAND_LABEL(MaxRewrites)
     static char buffer[16];
     snprintf(buffer, sizeof(buffer), "BigRwr %u", Settings.maxrewrites);
     return buffer;
+}
+
+
+SETTINGS_COMMAND_BODY(ToFractionIterations, false)
+// ----------------------------------------------------------------------------
+//   Select maximum number of loops trying to compute fraction in ->Q
+// ----------------------------------------------------------------------------
+{
+    uint fs = integer_arg(1, 30);
+    if (!rt.error())
+    {
+        Settings.fraciter = fs;
+        return OK;
+    }
+    return object::ERROR;
+}
+
+SETTINGS_COMMAND_LABEL(ToFractionIterations)
+// ----------------------------------------------------------------------------
+//   Return the label for ->Q iterations
+// ----------------------------------------------------------------------------
+{
+    static char buffer[16];
+    snprintf(buffer, sizeof(buffer), "Iter %u", Settings.fraciter);
+    return buffer;
+}
+
+
+SETTINGS_COMMAND_BODY(ToFractionDigits, false)
+// ----------------------------------------------------------------------------
+//   Select maximum number of digits for the ->Q operation
+// ----------------------------------------------------------------------------
+{
+    uint fs = integer_arg(1, BID128_MAXDIGITS - 3);
+    if (!rt.error())
+    {
+        Settings.fracprec = fs;
+        return OK;
+    }
+    return object::ERROR;
+}
+
+
+SETTINGS_COMMAND_LABEL(ToFractionDigits)
+// ----------------------------------------------------------------------------
+//   Return the label for maximum number of rewrites
+// ----------------------------------------------------------------------------
+{
+    static char buffer[16];
+    snprintf(buffer, sizeof(buffer), "Digits %u", Settings.fracprec);
+    return buffer;
+}
+
+
+SETTINGS_COMMAND_BODY(SingleRowMenus,
+                      Settings.menu_single_ln && !Settings.menu_flatten)
+// ----------------------------------------------------------------------------
+//   Select a single-line menu with entries selected using shift
+// ----------------------------------------------------------------------------
+{
+    Settings.menu_single_ln = true;
+    Settings.menu_flatten = false;
+    ui.menuNeedsRefresh();
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(FlatMenus,
+                      Settings.menu_single_ln && Settings.menu_flatten)
+// ----------------------------------------------------------------------------
+//   Select a single-line menu with entries selected using next (F6) key
+// ----------------------------------------------------------------------------
+{
+    Settings.menu_single_ln = true;
+    Settings.menu_flatten = true;
+    ui.menuNeedsRefresh();
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(ThreeRowsMenus, !Settings.menu_single_ln)
+// ----------------------------------------------------------------------------
+//   Select a three-lines menu with shift and xshift entries
+// ----------------------------------------------------------------------------
+{
+    Settings.menu_single_ln = false;
+    Settings.menu_flatten = false;
+    ui.menuNeedsRefresh();
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(RoundedMenus, !Settings.menu_square)
+// ----------------------------------------------------------------------------
+//   Select rounded menu entries
+// ----------------------------------------------------------------------------
+{
+    Settings.menu_square = false;
+    ui.menuNeedsRefresh();
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(SquareMenus, Settings.menu_square)
+// ----------------------------------------------------------------------------
+//   Select square menu entries
+// ----------------------------------------------------------------------------
+{
+    Settings.menu_square = true;
+    ui.menuNeedsRefresh();
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(LineWidth, false)
+// ----------------------------------------------------------------------------
+//   Set the line width
+// ----------------------------------------------------------------------------
+{
+    uint width = integer_arg(0, 128);
+    if (!rt.error())
+    {
+        Settings.line_width = width;
+        return object::OK;
+    }
+    return object::ERROR;
+}
+
+
+SETTINGS_COMMAND_LABEL(LineWidth)
+// ----------------------------------------------------------------------------
+//   Line width label
+// ----------------------------------------------------------------------------
+{
+    static char buffer[16];
+    snprintf(buffer, sizeof(buffer), "LineW %u", Settings.line_width);
+    return buffer;
+}
+
+
+static uint64_t pattern_arg()
+// ----------------------------------------------------------------------------
+//   Return a 64-bit argument value
+// ----------------------------------------------------------------------------
+{
+    if (object_p obj = rt.pop())
+    {
+        if (const based_integer *based = obj->as<based_integer>())
+            return based->value<uint64_t>();
+        if (const based_bignum *based = obj->as<based_bignum>())
+            return based->value<uint64_t>();
+        rt.type_error();
+    }
+    return ~0uLL;
+}
+
+
+SETTINGS_COMMAND_BODY(Foreground, false)
+// ----------------------------------------------------------------------------
+//   Set the pattern for foreground
+// ----------------------------------------------------------------------------
+{
+    uint64_t pat = pattern_arg();
+    if (rt.error())
+        return ERROR;
+    Settings.foreground.bits = pat;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(Background, false)
+// ----------------------------------------------------------------------------
+//  Set the pattern for background
+// ----------------------------------------------------------------------------
+{
+    uint64_t pat = pattern_arg();
+    if (rt.error())
+        return ERROR;
+    Settings.background.bits = pat;
+    return OK;
 }

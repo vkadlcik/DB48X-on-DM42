@@ -28,12 +28,11 @@
 //
 // This code is distantly derived from the SwissMicro SDKDemo calculator
 
-#include "dm42/main.h"
+#include "main.h"
 
-#include "dm42/sysmenu.h"
+#include "blitter.h"
 #include "equation.h"
 #include "font.h"
-#include "graphics.h"
 #include "num.h"
 #include "program.h"
 #include "recorder.h"
@@ -74,13 +73,12 @@ void refresh_dirty()
     if (!dirty.empty())
     {
         // We get garbagge on screen if we pass anything outside of it
-#if SIMULATOR
-        if (dirty.y1 < 0 || dirty.y1 >= LCD_W ||
-            dirty.y2 < 0 || dirty.y2 >= LCD_W)
-            record(main_error, "Dirty range is outside screen (%d to %d)",
-                   dirty.y1, dirty.y2);
-#endif
-        lcd_refresh_lines(dirty.y1, dirty.y2 - dirty.y1);
+        coord top = dirty.y1;
+        coord bottom = dirty.y2;
+        coord height = LCD_H - 1;
+        top = max(coord(0), min(height, top));
+        bottom = max(coord(0), min(height, bottom));
+        lcd_refresh_lines(top, bottom - top);
     }
     ui.draw_clean();
 }
@@ -191,8 +189,8 @@ void program_init()
     // Experimentally, this is the amount of memory we need to leave free
     size_t size = sys_free_mem() - 10 * 1024;
 #else
-    // Give 256 bytes to the runtime to stress-test the GC
-    size_t size = 2048;
+    // Give 4K bytes to the runtime to stress-test the GC
+    size_t size = 4096;
 #endif
     byte *memory = (byte *) malloc(size);
     rt.memory(memory, size);

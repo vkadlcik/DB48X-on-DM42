@@ -98,20 +98,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    global_variables();
-
-#if 0
-    step("Testing sign of modulo for bignum");
-#define ZEROS "00000000000000000000"
-    test(CLEAR, " 7" ZEROS "  3" ZEROS " MOD", ENTER).expect("1" ZEROS);
-    test(CLEAR, " 7" ZEROS " -3" ZEROS " MOD", ENTER).expect("1" ZEROS);
-    test(CLEAR, "-7" ZEROS "  3" ZEROS " MOD", ENTER).expect("2" ZEROS);
-    test(CLEAR, "-7" ZEROS " -3" ZEROS " MOD", ENTER).expect("2" ZEROS);
-    test(CLEAR, " 7" ZEROS "  3" ZEROS " REM", ENTER).expect("1" ZEROS);
-    test(CLEAR, " 7" ZEROS " -3" ZEROS " REM", ENTER).expect("1" ZEROS);
-    test(CLEAR, "-7" ZEROS "  3" ZEROS " REM", ENTER).expect("-1" ZEROS);
-    test(CLEAR, "-7" ZEROS " -3" ZEROS " REM", ENTER).expect("-1" ZEROS);
-#endif
+    fraction_decimal_conversions();
 }
 
 
@@ -552,9 +539,9 @@ void tests::arithmetic()
     for (uint i = 1; i <= 100; i++)
         test(i, MUL, NOKEYS, WAIT(20));
     expect( "93 326 215 443 944 152 681 699 238 856 266 700 490 715 968 264 "
-           "381 621 468 592 963 895 217 599 993 229 915 608 941 463 976 156 "
-           "518 286 253 697 920 827 223 758 251 185 210 916 864 000 000 000 "
-           "000 000 000 000 000");
+            "381 621 468 592 963 895 217 599 993 229 915 608 941 463 976 156 "
+            "518 286 253 697 920 827 223 758 251 185 210 916 864 000 000 000 "
+            "000 000 000 000 000");
     step("Manual division by all factors of 100!");
     for (uint i = 1; i <= 100; i++)
         test(i * 997 % 101, DIV, NOKEYS, WAIT(20));
@@ -1443,7 +1430,7 @@ void tests::decimal_numerical_functions()
     step("Setting radians mode");
     test(CLEAR, "RAD", ENTER).noerr();
 
-#define TFNA(name, arg, result)                                           \
+#define TFNA(name, arg, result)                                         \
     step(#name).test(CLEAR, #arg " " #name, ENTER).expect(result);
 #define TFN(name, result)  TFNA(name, 0.321, result)
 
@@ -1599,19 +1586,19 @@ void tests::fraction_decimal_conversions()
 // ----------------------------------------------------------------------------
 {
     cstring cases[] =
-    {
-        // Easy exact cases (decimal)
-        "1/2",          "0.5",
-        "1/4",          "0.25",
-        "5/4",          "1.25",
-        "-5/4",         "-1.25",
+        {
+            // Easy exact cases (decimal)
+            "1/2",          "0.5",
+            "1/4",          "0.25",
+            "5/4",          "1.25",
+            "-5/4",         "-1.25",
 
-        // More tricky fractions
-        "1/3",          "3.33333 33333 33333 3333⁳⁻¹",
-        "-1/7",         "-1.42857 14285 71428 5714⁳⁻¹",
-        "22/7",         "3.14285 71428 57142 8571",
-        "37/213",       "1.73708 92018 77934 2723⁳⁻¹"
-    };
+            // More tricky fractions
+            "1/3",          "3.33333 33333 33333 3333⁳⁻¹",
+            "-1/7",         "-1.42857 14285 71428 5714⁳⁻¹",
+            "22/7",         "3.14285 71428 57142 8571",
+            "37/213",       "1.73708 92018 77934 2723⁳⁻¹"
+        };
 
     begin("Simple conversion to decimal and back");
     for (uint c = 0; c < sizeof(cases) / sizeof(*cases); c += 2)
@@ -1637,6 +1624,10 @@ void tests::fraction_decimal_conversions()
     test(CLEAR, "[1-2ⅈ 3] 4", ENTER, DIV).expect("[ 1/4-1/2ⅈ 3/4 ]");
     test("→Num", ENTER).expect("[ 0.25-0.5ⅈ 0.75 ]");
     test("→Q", ENTER).expect("[ 1/4-1/2ⅈ 3/4 ]");
+
+    step("Expressions");
+    test(CLEAR, "355 113 / pi -", ENTER) .expect("'355/113-π'");
+    test("→Num", ENTER).expect("2.66764 18906 24223 1237⁳⁻⁷");
 }
 
 

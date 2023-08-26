@@ -145,6 +145,8 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
 
     case ID_fraction:
     case ID_neg_fraction:
+    case ID_big_fraction:
+    case ID_neg_big_fraction:
     {
         fraction_g f = fraction_p(object_p(x));
         switch (type)
@@ -352,6 +354,77 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
     case ID_neg_big_fraction:                                      return true;
     default: return false;
     }
+}
+
+
+bool algebraic::to_decimal(algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   Convert a value to decimal
+// ----------------------------------------------------------------------------
+{
+    id xt = x->type();
+
+    switch(xt)
+    {
+    case ID_rectangular:
+    {
+        rectangular_p z = rectangular_p(x.Safe());
+        algebraic_g re = z->re();
+        algebraic_g im = z->im();
+        if (arithmetic::real_promotion(re) && arithmetic::real_promotion(im))
+        {
+            x = rectangular::make(re, im);
+            return true;
+        }
+        break;
+    }
+    case ID_polar:
+    {
+        polar_p z = polar_p(x.Safe());
+        algebraic_g mod = z->mod();
+        algebraic_g arg = z->pifrac();
+        if (arithmetic::real_promotion(mod) &&
+            (mod->is_fraction() || arithmetic::real_promotion(arg)))
+        {
+            x = polar::make(mod, arg, settings::PI_RADIANS);
+            return true;
+        }
+        break;
+    }
+    case ID_integer:
+    case ID_neg_integer:
+    case ID_bignum:
+    case ID_neg_bignum:
+    case ID_fraction:
+    case ID_neg_fraction:
+    case ID_big_fraction:
+    case ID_neg_big_fraction:
+    case ID_decimal32:
+    case ID_decimal64:
+    case ID_decimal128:
+        return real_promotion(x);
+    case ID_pi:
+        x = algebraic::pi();
+        return true;
+    case ID_ImaginaryUnit:
+        x = rectangular::make(integer::make(0),integer::make(1));
+        return true;
+    case ID_equation:
+    {
+        bool save = Settings.numeric;
+        Settings.numeric = true;
+        result r = x->execute();
+        Settings.numeric = save;
+        if (r == OK)
+            if (object_p obj = rt.pop())
+                if (algebraic_p alg = obj->as_algebraic())
+                    x = alg;
+        return !rt.error();
+    }
+    default:
+        rt.type_error();
+    }
+    return false;
 }
 
 

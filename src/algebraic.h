@@ -58,8 +58,13 @@ struct algebraic : command
     // Promotion of integer to bignum
     static id   bignum_promotion(algebraic_g &x);
 
+    // Convert to a fraction
     static bool decimal_to_fraction(algebraic_g &x);
 
+    // Convert to decimal number
+    static bool to_decimal(algebraic_g &x);
+
+    // Numerical value of pi
     static algebraic_g pi();
 
     // Function pointers used by generic evaluation code

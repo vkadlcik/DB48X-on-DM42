@@ -400,6 +400,9 @@ CMD(BasedUnderscore)
 CMD(AutoSimplify)
 CMD(NoAutoSimplify)
 
+CMD(NumericResults)
+CMD(SymbolicResults)
+
 CMD(MaxBigNumBits)
 CMD(MaxRewrites)
 

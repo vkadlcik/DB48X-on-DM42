@@ -175,6 +175,11 @@ void settings::save(renderer &out, bool show_defaults)
     else if (show_defaults)
         out.put("AutoSimplify\n");
 
+    if (numeric)
+        out.put("NumericResults\n");
+    else if (show_defaults)
+        out.put("SymbolicResults\n");
+
     if (maxbignum != Defaults.maxbignum || show_defaults)
         out.printf("%u MaxBigNumBits\n", maxbignum);
     if (maxrewrites != Defaults.maxrewrites || show_defaults)
@@ -965,6 +970,26 @@ SETTINGS_COMMAND_NOLABEL(NoAutoSimplify, !Settings.auto_simplify)
 // ----------------------------------------------------------------------------
 {
     Settings.auto_simplify = false;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(NumericResults, Settings.numeric)
+// ----------------------------------------------------------------------------
+//   Compute only numeric results, e.g. 1/2 is turned to 0.5
+// ----------------------------------------------------------------------------
+{
+    Settings.numeric = true;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(SymbolicResults, !Settings.numeric)
+// ----------------------------------------------------------------------------
+//   Compute symbolic results, e.g. 1/2 stays as is
+// ----------------------------------------------------------------------------
+{
+    Settings.numeric = false;
     return OK;
 }
 

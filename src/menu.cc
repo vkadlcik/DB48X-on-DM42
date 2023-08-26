@@ -552,7 +552,7 @@ MENU(SymbolicMenu,
      "Apply",   ID_Unimplemented,
 
      "Ex/Co",   ID_Unimplemented,
-     "→Q",      ID_Unimplemented,
+     "→Q",      ID_ToFraction,
      "→Qπ",     ID_Unimplemented,
      "↑Match",  ID_Unimplemented,
      "↓Match",  ID_Unimplemented,
@@ -981,10 +981,9 @@ MENU(ModesMenu,
 
      "Frac .",  ID_DecimalDot,
      "Frac ,",  ID_DecimalComma,
-     "NumSpc",  ID_Unimplemented,
+     "Numeric", ID_NumericResults,
+     "Symbolic",ID_SymbolicResults,
      "()",      ID_Unimplemented,
-     "Use n/m", ID_Unimplemented,
-
 
      "Deg",     ID_Deg,
      "Rad",     ID_Rad,

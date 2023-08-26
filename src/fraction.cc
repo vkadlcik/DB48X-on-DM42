@@ -63,6 +63,22 @@ SIZE_BODY(fraction)
 }
 
 
+EVAL_BODY(fraction)
+// ----------------------------------------------------------------------------
+//   Evaluate either as a fraction or decimal
+// ----------------------------------------------------------------------------
+{
+    if (Settings.numeric)
+    {
+        algebraic_g x = o;
+        if (algebraic::real_promotion(x))
+            if (rt.push(x.Safe()))
+                return OK;
+    }
+    return rt.push(o) ? OK : ERROR;
+}
+
+
 fraction_g fraction::make(integer_g n, integer_g d)
 // ----------------------------------------------------------------------------
 //   Create a reduced fraction from n and d

@@ -1029,22 +1029,32 @@ algebraic_p arithmetic::evaluate(id          op,
     if (!xr.Safe() || !yr.Safe())
         return nullptr;
 
-    id xt = xr->type();
-    id yt = yr->type();
+    algebraic_g x = xr;
+    algebraic_g y = yr;
+
+    // Convert arguments to numeric if necessary
+    if (Settings.numeric)
+    {
+        (void) to_decimal(x);          // May fail silently
+        (void) to_decimal(y);
+    }
+
+    id xt = x->type();
+    id yt = y->type();
 
     // All non-numeric cases, e.g. string concatenation
     // Must come first, e.g. for optimization of X^3
-    if (algebraic_p result = ops.non_numeric(xr, yr))
+    if (algebraic_p result = ops.non_numeric(x, y))
         return result;
 
-    // Integer types
+    // Integer types%
     if (is_integer(xt) && is_integer(yt))
     {
         if (!is_bignum(xt) && !is_bignum(yt))
         {
             // Perform conversion of integer values to the same base
-            integer_p xi = integer_p(object_p(xr.Safe()));
-            integer_p yi = integer_p(object_p(yr.Safe()));
+            integer_p xi = integer_p(object_p(x.Safe()));
+            integer_p yi = integer_p(object_p(y.Safe()));
             if (xi->native() && yi->native())
             {
                 ularge xv = xi->value<ularge>();
@@ -1054,8 +1064,6 @@ algebraic_p arithmetic::evaluate(id          op,
             }
         }
 
-        algebraic_g x = xr;
-        algebraic_g y = yr;
         if (!is_bignum(xt))
             xt = bignum_promotion(x);
         if (!is_bignum(yt))
@@ -1069,11 +1077,9 @@ algebraic_p arithmetic::evaluate(id          op,
     }
 
     // Fraction types
-    if ((xr->is_fraction() || yr->is_fraction() ||
-         (op == ID_div && xr->is_fractionable() && yr->is_fractionable())))
+    if ((x->is_fraction() || y->is_fraction() ||
+         (op == ID_div && x->is_fractionable() && y->is_fractionable())))
     {
-        algebraic_g x = xr;
-        algebraic_g y = yr;
         if (fraction_g xf = fraction_promotion(x))
         {
             if (fraction_g yf = fraction_promotion(y))
@@ -1094,8 +1100,6 @@ algebraic_p arithmetic::evaluate(id          op,
     }
 
     // Real data types
-    algebraic_g x = xr;
-    algebraic_g y = yr;
     if (real_promotion(x, y))
     {
         // Here, x and y have the same type, a decimal type
@@ -1175,6 +1179,7 @@ object::result arithmetic::evaluate(id op, ops_t ops)
     // Evaluate the operation
     algebraic_g r = evaluate(op, y, x, ops);
 
+
     // If result is valid, drop second argument and push result on stack
     if (r)
     {
@@ -1185,6 +1190,7 @@ object::result arithmetic::evaluate(id op, ops_t ops)
 
     return ERROR;
 }
+
 
 
 // ============================================================================

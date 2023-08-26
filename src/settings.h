@@ -87,6 +87,7 @@ struct settings
           show_decimal(true),
           fancy_exponent(true),
           auto_simplify(true),
+          numeric(false),
           show_time(true),
           show_24h(true),
           show_seconds(true),
@@ -191,6 +192,7 @@ public:
     bool     show_decimal   :1; // Show decimal dot for integral real numbers
     bool     fancy_exponent :1; // Show exponent with fancy superscripts
     bool     auto_simplify  :1; // Automatically simplify symbolic results
+    bool     numeric        :1; // Convert results to numeric values
     bool     show_time      :1; // Show time in status bar
     bool     show_24h       :1; // Show 24-hours clock
     bool     show_seconds   :1; // Show seconds in status bar
@@ -318,6 +320,8 @@ SETTINGS_COMMAND_DECLARE(BasedUnderscore);
 
 SETTINGS_COMMAND_DECLARE(AutoSimplify);
 SETTINGS_COMMAND_DECLARE(NoAutoSimplify);
+SETTINGS_COMMAND_DECLARE(NumericResults);
+SETTINGS_COMMAND_DECLARE(SymbolicResults);
 
 SETTINGS_COMMAND_DECLARE(MaxBigNumBits);
 SETTINGS_COMMAND_DECLARE(MaxRewrites);

@@ -67,7 +67,8 @@ object::result function::evaluate(id op, bid128_fn op128, complex_fn zop)
     algebraic_g x = algebraic_p(rt.top());
     if (!x)
         return ERROR;
-    x = evaluate(x, op ,op128, zop);
+
+    x = evaluate(x, op, op128, zop);
     if (x && rt.top(x))
         return OK;
     return ERROR;
@@ -252,7 +253,6 @@ algebraic_p function::evaluate(algebraic_r xr,
     if (!xr.Safe())
         return nullptr;
 
-    id xt = xr->type();
     algebraic_g x = xr;
 
     // Check if we are computing exact trigonometric values
@@ -260,14 +260,16 @@ algebraic_p function::evaluate(algebraic_r xr,
         if (exact_trig(op, x))
             return x;
 
+    // Convert arguments to numeric if necessary
+    if (Settings.numeric)
+        (void) to_decimal(x);   // May fail silently, and that's OK
+
+    id xt = x->type();
     if (should_be_symbolic(xt))
-        return symbolic(op, xr);
+        return symbolic(op, x);
 
     if (is_complex(xt))
-    {
-        complex_r z = (complex_r) xr;
-        return algebraic_p(zop(z));
-    }
+        return algebraic_p(zop(complex_g(complex_p(x.Safe()))));
 
     // Check if need to promote integer values to decimal
     if (is_integer(xt))
@@ -706,38 +708,8 @@ FUNCTION_BODY(ToDecimal)
     if (!x.Safe())
         return nullptr;
     algebraic_g xg = x;
-    if (rectangular_p z = x->as<rectangular>())
-    {
-        algebraic_g re = z->re();
-        algebraic_g im = z->im();
-        if (arithmetic::real_promotion(re) &&
-            arithmetic::real_promotion(im))
-            return rectangular::make(re, im);
-    }
-    else if (polar_p z = x->as<polar>())
-    {
-        algebraic_g mod = z->mod();
-        algebraic_g arg = z->pifrac();
-        if (arithmetic::real_promotion(mod) &&
-            (mod->is_fraction() || arithmetic::real_promotion(arg)))
-            return polar::make(mod, arg, settings::PI_RADIANS);
-    }
-    else if (arithmetic::real_promotion(xg))
-    {
-        return xg;
-    }
-    else if (xg->type() == ID_pi)
-    {
-        return algebraic::pi();
-    }
-    else if (xg->type() == ID_ImaginaryUnit)
-    {
-        return rectangular::make(integer::make(0),integer::make(1));
-    }
-    else
-    {
-        rt.type_error();
-    }
+    if (algebraic::to_decimal(xg))
+        return xg.Safe();
     return nullptr;
 }
 

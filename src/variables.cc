@@ -30,6 +30,7 @@
 #include "variables.h"
 
 #include "command.h"
+#include "equation.h"
 #include "integer.h"
 #include "list.h"
 #include "locals.h"
@@ -302,6 +303,12 @@ object_p directory::recall_all(object_p name)
 //   If the referenced object exists in directory, return associated value
 // ----------------------------------------------------------------------------
 {
+    // Check independent / dependent values for plotting
+    if (equation::independent && name->is_same_as(*equation::independent))
+        return *equation::independent_value;
+    if (equation::dependent && name->is_same_as(*equation::dependent))
+        return *equation::dependent_value;
+
     directory *dir = nullptr;
     for (uint depth = 0; (dir = rt.variables(depth)); depth++)
         if (object_p value = dir->recall(name))

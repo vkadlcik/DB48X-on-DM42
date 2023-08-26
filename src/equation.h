@@ -127,6 +127,13 @@ public:
     OBJECT_DECL(equation);
     PARSE_DECL(equation);
     RENDER_DECL(equation);
+
+public:
+    // Dependent and independent variables
+    static symbol_g    *independent;
+    static object_g    *independent_value;
+    static symbol_g    *dependent;
+    static object_g    *dependent_value;
 };
 
 

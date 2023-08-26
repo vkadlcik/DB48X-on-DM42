@@ -31,6 +31,7 @@
 
 #include "arithmetic.h"
 #include "compare.h"
+#include "equation.h"
 #include "graphics.h"
 #include "program.h"
 #include "sysmenu.h"
@@ -70,15 +71,20 @@ object::result DrawFunctionPlot(const PlotParameters &ppar, object_g eq)
 //  Draw an equation that takes input from the stack
 // ----------------------------------------------------------------------------
 {
-    algebraic_g step = ppar.resolution;
+    algebraic_g    x      = ppar.xmin;
+    object::result result = object::ERROR;
+    coord          lx     = -1;
+    coord          ly     = -1;
+    uint           then   = sys_current_ms();
+    algebraic_g    step   = ppar.resolution;
     if (step->is_zero())
         step = (ppar.xmax - ppar.xmin) / integer::make(ScreenWidth());
-    algebraic_g x  = ppar.xmin;
-    object::result result = object::ERROR;
-    coord lx   = -1;
-    coord ly   = -1;
+
+    save<symbol_g *> iref(equation::independent,
+                          (symbol_g *) &ppar.independent);
+    save<object_g *> ival(equation::independent_value, (object_g *) &x);
+
     ui.draw_graphics();
-    uint  then = sys_current_ms();
     while (!program::interrupted())
     {
         coord rx = ppar.pixel_x(x);
@@ -86,9 +92,12 @@ object::result DrawFunctionPlot(const PlotParameters &ppar, object_g eq)
         if (!rt.push(x.Safe()))
             goto err;
         object::result err = eq->execute();
-        if (err == object::OK && rt.depth() == depth + 1)
+        size_t dnow = rt.depth();
+        if (err == object::OK && (dnow == depth + 1 || dnow == depth + 2))
         {
             algebraic_g y = algebraic_p(rt.pop());
+            if (dnow == depth + 2)
+                rt.drop();
             if (!y || !y->is_algebraic())
                 goto err;
             coord ry = ppar.pixel_y(y);
@@ -143,7 +152,7 @@ object::result DrawFunctionPlot(const PlotParameters &ppar)
 //   Draw a function plot
 // ----------------------------------------------------------------------------
 {
-    object_g    eq = directory::recall_all(symbol::make("eq"));
+    object_g eq = directory::recall_all(symbol::make("eq"));
     if (!eq)
         return object::ERROR;
     return DrawFunctionPlot(ppar, eq);

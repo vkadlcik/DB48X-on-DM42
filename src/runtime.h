@@ -81,7 +81,8 @@
 
 
 struct object;                  // RPL object
-struct directory;
+struct directory;               // Directory (storing global variables)
+struct symbol;                  // Symbols (references to a directory)
 typedef const object *object_p;
 typedef const directory *directory_p;
 

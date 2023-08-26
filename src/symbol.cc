@@ -46,11 +46,8 @@ EVAL_BODY(symbol)
 //   Evaluate a symbol by looking it up
 // ----------------------------------------------------------------------------
 {
-    size_t depth = rt.directories();
-    for (uint d = 0; d < depth; d++)
-        if (directory_p dir = rt.variables(d))
-            if (object_p found = dir->recall(o))
-                return found->execute();
+    if (object_p found = directory::recall_all(o))
+        return found->execute();
     if (object_g eq = equation::make(o))
         if (rt.push(eq))
             return OK;

@@ -37,6 +37,14 @@
 RECORDER(equation, 16, "Processing of equations and algebraic objects");
 RECORDER(equation_error, 16, "Errors with equations");
 
+
+symbol_g *equation::independent = nullptr;
+object_g *equation::independent_value = nullptr;
+symbol_g *equation::dependent = nullptr;
+object_g *equation::dependent_value = nullptr;
+
+
+
 // ============================================================================
 //
 //    Equation

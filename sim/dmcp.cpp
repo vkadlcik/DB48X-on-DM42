@@ -823,7 +823,7 @@ void wait_for_key_release(int tout)
 {
     record(dmcp_notyet, "wait_for_key_release not implemented");
     while (!key_empty() && key_pop())
-            sys_sleep();
+        sys_sleep();
 }
 
 int file_selection_screen(const char   *title,

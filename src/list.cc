@@ -141,7 +141,8 @@ object::result list::list_parse(id type,
                         return ERROR;
                     length = child.end;
                     record(list_parse,
-                           "Child parsed as %t length %u", object_p(obj), length);
+                           "Child parsed as %t length %u",
+                           object_p(obj), length);
                 }
             }
             else // precedence < 0)

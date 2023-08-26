@@ -93,7 +93,6 @@ PARSE_BODY(symbol)
     while (is_valid_in_name(s))
         s = utf8_next(s);
 
-
     size_t parsed = s - source;
     gcutf8 text   = source;
     p.end         = parsed;

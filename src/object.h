@@ -163,14 +163,15 @@ struct object
     // ========================================================================
 
     enum result
-    // ----------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     //   Return values for parsing
-    // ----------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     {
         OK,                     // Command ran successfully
         SKIP,                   // Command not for this handler, try next
         ERROR,                  // Error processing the command
-        WARN ,                  // Possible error (if no object succeeds)
+        WARN,                   // Possible error (if no object succeeds)
+        COMMENTED               // Code is commented out
     };
 
 

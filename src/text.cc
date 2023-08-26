@@ -50,7 +50,7 @@ SIZE_BODY(text)
 
 PARSE_BODY(text)
 // ----------------------------------------------------------------------------
-//    Try to parse this as an text
+//    Try to parse this as a text
 // ----------------------------------------------------------------------------
 //    For simplicity, this deals with all kinds of texts
 {

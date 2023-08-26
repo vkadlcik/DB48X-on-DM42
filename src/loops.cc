@@ -358,6 +358,7 @@ intptr_t loop::object_renderer(renderer &r,
     // Emit closing separator
     r.unindent();
     r.put(format, utf8(close));
+    r.wantCR();
 
     return r.size();
 }

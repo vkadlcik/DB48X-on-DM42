@@ -184,6 +184,7 @@ CXX_SOURCES +=				\
 	src/decimal128.cc		\
 	$(DECIMAL_SOURCES)		\
 	src/text.cc		        \
+	src/comment.cc		        \
 	src/symbol.cc			\
 	src/algebraic.cc		\
 	src/arithmetic.cc		\

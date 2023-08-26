@@ -317,9 +317,42 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
 //   Render the list into the given buffer
 // ----------------------------------------------------------------------------
 {
+    // Check if we need an indent in the body
+    bool need_indent = false;
+    for (object_p obj : *this)
+    {
+        switch(obj->type())
+        {
+        case ID_list:
+        case ID_program:
+        case ID_array:
+        case ID_locals:
+        case ID_comment:
+        case ID_IfThen:
+        case ID_IfThenElse:
+        case ID_DoUntil:
+        case ID_WhileRepeat:
+        case ID_StartStep:
+        case ID_ForNext:
+        case ID_ForStep:
+        case ID_IfErrThen:
+        case ID_IfErrThenElse:
+            need_indent = true;
+            break;
+        default:
+            break;
+        }
+        if (need_indent)
+            break;
+    }
+
     // Write the header, e.g. "{ "
     if (open)
+    {
         r.put(open);
+        if (need_indent)
+            r.indent();
+    }
 
     // Loop on all objects inside the list
     for (object_p obj : *this)
@@ -336,9 +369,11 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
     // Add final space and closing separator
     if (close)
     {
-        r.put(' ');
+        if (need_indent)
+            r.unindent();
         r.put(close);
     }
+    r.wantCR();
 
     return r.size();
 }

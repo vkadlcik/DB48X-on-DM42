@@ -55,6 +55,7 @@ SOURCES +=                                      \
         ../src/decimal-32.cc                    \
         ../src/runtime.cc                       \
         ../src/text.cc                          \
+        ../src/comment.cc                       \
         ../src/symbol.cc                        \
         ../src/algebraic.cc                     \
         ../src/arithmetic.cc                    \

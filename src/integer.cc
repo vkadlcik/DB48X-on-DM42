@@ -388,6 +388,8 @@ static size_t render_num(renderer &r,
     // Copy the '#' or '-' sign
     if (*fmt)
         r.put(*fmt++);
+    else
+        r.flush();
 
     // Get denominator for the base
     size_t findex = r.size();

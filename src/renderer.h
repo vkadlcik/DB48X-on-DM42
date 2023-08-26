@@ -44,13 +44,18 @@ struct renderer
     renderer(char *buffer = nullptr, size_t length = ~0U, bool flat = false)
         : target(buffer), length(length), written(0), saving(), tabs(0),
           edit(buffer == nullptr),
-          eq(false), flat(flat), space(false), sign(false) {}
+          eq(false), flat(flat), space(false), sign(false),
+          cr(false), txt(false), nl(false) {}
     renderer(bool equation, bool edit = false, bool flat = false)
         : target(nullptr), length(~0U), written(0), saving(), tabs(0),
-          edit(edit), eq(equation), flat(flat), space(false), sign(false) {}
-    renderer(file *f): target(), length(~0U), written(0), saving(f), tabs(0),
-                       edit(true), eq(false), flat(false),
-                       space(false), sign(false) {}
+          edit(edit),
+          eq(equation), flat(flat), space(false), sign(false),
+          cr(false), txt(false), nl(false) {}
+    renderer(file *f)
+        : target(), length(~0U), written(0), saving(f), tabs(0),
+          edit(true),
+          eq(false), flat(false), space(false), sign(false),
+          cr(false), txt(false), nl(false) {}
     ~renderer();
 
     bool put(char c);
@@ -102,6 +107,22 @@ struct renderer
         indent(-1);
         return put('\n');
     }
+    bool   hadCR()
+    {
+        return cr;
+    }
+    void   wantCR()
+    {
+        nl = true;
+    }
+    void   flush()
+    {
+        if (nl)
+        {
+            nl = false;
+            put('\n');
+        }
+    }
 
 protected:
     char        *target;        // Buffer where we render the object, or nullptr
@@ -114,6 +135,9 @@ protected:
     bool        flat  : 1;      // Flat (for stack rendering)
     bool        space : 1;      // Had a space
     bool        sign  : 1;      // Need to insert '+' if next char is not '-'
+    bool        cr    : 1;      // Just emitted a CR
+    bool        txt   : 1;      // Inside text
+    bool        nl    : 1;      // Pending CR
 };
 
 #endif // RENDERER_H

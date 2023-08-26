@@ -34,6 +34,7 @@
 #include "array.h"
 #include "bignum.h"
 #include "catalog.h"
+#include "comment.h"
 #include "compare.h"
 #include "complex.h"
 #include "conditionals.h"
@@ -159,29 +160,42 @@ object_p object::parse(utf8 source, size_t &size, int precedence)
     size -= skipped;
 
     parser p(source, size, precedence);
-    result r   = SKIP;
     utf8   err = nullptr;
     utf8   src = source;
+    result r   = SKIP;
 
     // Try parsing with the various handlers
-    for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
+    do
     {
-        // Parse ID_symbol last, we need to check commands first
-        uint candidate = (i + ID_symbol + 1) % NUM_IDS;
-        p.candidate = id(candidate);
-        record(parse_attempts, "Trying [%s] against %+s", src, name(id(i)));
-        r = handler[candidate].parse(p);
-        if (r != SKIP)
-            record(parse_attempts, "Result for ID %+s was %+s (%d) for [%s]",
-                   name(p.candidate), name(r), r, utf8(p.source));
-        if (r == WARN)
+        r = SKIP;
+        for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
         {
-            err = rt.error();
-            src = rt.source();
-            rt.clear_error();
-            r = SKIP;
+            // Parse ID_symbol last, we need to check commands first
+            uint candidate = (i + ID_symbol + 1) % NUM_IDS;
+            p.candidate = id(candidate);
+            record(parse_attempts, "Trying [%s] against %+s", src, name(id(i)));
+            r = handler[candidate].parse(p);
+            if (r == COMMENTED)
+            {
+                p.source += p.end;
+                skipped += p.end;
+                size_t skws = utf8_skip_whitespace(p.source);
+                skipped += skws;
+                break;
+            }
+            if (r != SKIP)
+                record(parse_attempts,
+                       "Result for ID %+s was %+s (%d) for [%s]",
+                       name(p.candidate), name(r), r, utf8(p.source));
+            if (r == WARN)
+            {
+                err = rt.error();
+                src = rt.source();
+                rt.clear_error();
+                r = SKIP;
+            }
         }
-    }
+    } while (r == COMMENTED);
 
     record(parse, "<Done parsing [%s], end is at %d", utf8(p.source), p.end);
     size = p.end + skipped;

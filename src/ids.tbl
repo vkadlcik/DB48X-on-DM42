@@ -140,6 +140,8 @@ ID(decimal32)
 ID(decimal64)
 ID(decimal128)
 
+ID(comment)
+
 CMD(Drop)
 CMD(Drop2)
 CMD(DropN)

@@ -205,7 +205,7 @@ RENDER_BODY(locals)
     {
         size_t len = leb128<size_t>(p.Safe());
         r.put(p.Safe(), len);
-        r.put(' ');
+        r.put(n + 1 < names ? ' ' : '\n');
         p += len;
     }
 

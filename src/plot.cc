@@ -174,6 +174,7 @@ object::result DrawFunctionPlot(const PlotParameters &ppar, object_g eq)
             refresh_dirty();
             ui.draw_clean();
             lx = ly = -1;
+            rt.clear_error();
         }
         x = x + step;
         algebraic_g cmp = x > ppar.xmax;

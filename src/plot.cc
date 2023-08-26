@@ -66,6 +66,47 @@ COMMAND_BODY(Polar)
 }
 
 
+void draw_axes(const PlotParameters &ppar)
+// ----------------------------------------------------------------------------
+//   Draw axes
+// ----------------------------------------------------------------------------
+{
+    coord w = Screen.area().width();
+    coord h = Screen.area().height();
+    coord x = ppar.pixel_adjust(ppar.xorigin.Safe(), ppar.xmin, ppar.xmax, w);
+    coord y = ppar.pixel_adjust(ppar.yorigin.Safe(), ppar.ymin, ppar.ymax, h);
+
+    // Draw axes proper
+    pattern pat = Settings.foreground;
+    Screen.fill(0, y, w, y, pat);
+    Screen.fill(x, 0, x, h, pat);
+
+    // Draw tick marks
+    coord tx = ppar.size_adjust(ppar.xticks.Safe(), ppar.xmin, ppar.xmax, w);
+    coord ty = ppar.size_adjust(ppar.yticks.Safe(), ppar.ymin, ppar.ymax, h);
+    if (tx)
+    {
+        for (coord i = tx; x + i <= w; i += tx)
+            Screen.fill(x + i, y - 2, x + i, y + 2, pat);
+        for (coord i = tx; x - i >= 0; i += tx)
+            Screen.fill(x - i, y - 2, x - i, y + 2, pat);
+        for (coord i = ty; y + i <= h; i += ty)
+            Screen.fill(x - 2, y + i, x + 2, y + i, pat);
+        for (coord i = ty; y - i >= 0; i += ty)
+            Screen.fill(x - 2, y - i, x + 2, y - i, pat);
+    }
+
+    // Draw arrows at end of axes
+    for (uint i = 0; i < 4; i++)
+    {
+        Screen.fill(w - 3*(i+1), y - i, w - 3*i, y + i, pat);
+        Screen.fill(x - i, 3*i, x + i, 3*(i+1), pat);
+    }
+
+    ui.draw_dirty(0, 0, w, h);
+}
+
+
 object::result DrawFunctionPlot(const PlotParameters &ppar, object_g eq)
 // ----------------------------------------------------------------------------
 //  Draw an equation that takes input from the stack
@@ -84,7 +125,9 @@ object::result DrawFunctionPlot(const PlotParameters &ppar, object_g eq)
                           (symbol_g *) &ppar.independent);
     save<object_g *> ival(equation::independent_value, (object_g *) &x);
 
-    ui.draw_graphics();
+    if (ui.draw_graphics())
+        draw_axes(ppar);
+
     while (!program::interrupted())
     {
         coord rx = ppar.pixel_x(x);
@@ -218,39 +261,7 @@ COMMAND_BODY(Drax)
     ui.draw_graphics();
 
     PlotParameters ppar;
-    coord w = Screen.area().width();
-    coord h = Screen.area().height();
-    coord x = ppar.pixel_adjust(ppar.xorigin.Safe(), ppar.xmin, ppar.xmax, w);
-    coord y = ppar.pixel_adjust(ppar.yorigin.Safe(), ppar.ymin, ppar.ymax, h);
-
-    // Draw axes proper
-    pattern pat = Settings.foreground;
-    Screen.fill(0, y, w, y, pat);
-    Screen.fill(x, 0, x, h, pat);
-
-    // Draw tick marks
-    coord tx = ppar.size_adjust(ppar.xticks.Safe(), ppar.xmin, ppar.xmax, w);
-    coord ty = ppar.size_adjust(ppar.yticks.Safe(), ppar.ymin, ppar.ymax, h);
-    if (tx)
-    {
-        for (coord i = tx; x + i <= w; i += tx)
-            Screen.fill(x + i, y - 2, x + i, y + 2, pat);
-        for (coord i = tx; x - i >= 0; i += tx)
-            Screen.fill(x - i, y - 2, x - i, y + 2, pat);
-        for (coord i = ty; y + i <= h; i += ty)
-            Screen.fill(x - 2, y + i, x + 2, y + i, pat);
-        for (coord i = ty; y - i >= 0; i += ty)
-            Screen.fill(x - 2, y - i, x + 2, y - i, pat);
-    }
-
-    // Draw arrows at end of axes
-    for (uint i = 0; i < 4; i++)
-    {
-        Screen.fill(w - 3*(i+1), y - i, w - 3*i, y + i, pat);
-        Screen.fill(x - i, 3*i, x + i, 3*(i+1), pat);
-    }
-
-    ui.draw_dirty(0, 0, w, h);
+    draw_axes(ppar);
     refresh_dirty();
 
     return OK;

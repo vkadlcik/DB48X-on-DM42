@@ -117,7 +117,7 @@ struct user_interface
     uint        draw_refresh()          { return nextRefresh; }
     rect        draw_dirty()            { return dirty; }
     void        draw_clean()            { dirty = rect(); }
-    void        draw_graphics();
+    bool        draw_graphics();
 
     bool        draw_header();
     bool        draw_annunciators();

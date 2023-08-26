@@ -937,7 +937,7 @@ void user_interface::draw_dirty(const rect &r)
 }
 
 
-void user_interface::draw_graphics()
+bool user_interface::draw_graphics()
 // ----------------------------------------------------------------------------
 //   Start graphics mode
 // ----------------------------------------------------------------------------
@@ -948,7 +948,9 @@ void user_interface::draw_graphics()
         graphics = true;
         Screen.fill(pattern::white);
         draw_dirty(0, 0, LCD_W, LCD_H);
+        return true;
     }
+    return false;
 }
 
 

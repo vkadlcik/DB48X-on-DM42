@@ -60,4 +60,25 @@ struct bid32   { BID_UINT32  value; };
 
 #define COMPILE_TIME_ASSERT(x)          extern int CompileTimeAssert(int[!!(x)-1])
 
+
+template <typename value_type>
+struct save
+// ----------------------------------------------------------------------------
+//   Save a value and reset it to what it was on scope exit
+// ----------------------------------------------------------------------------
+{
+    save(value_type &ref, value_type value): ref(ref), value(ref)
+    {
+        ref = value;
+    }
+    ~save()
+    {
+        ref = value;
+    }
+
+private:
+    value_type  &ref;
+    value_type  value;
+};
+
 #endif // TYPES_H

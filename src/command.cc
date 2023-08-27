@@ -351,7 +351,10 @@ COMMAND_BODY(Wait)
                         remains = 50;
                     sys_delay(remains);
                     if (!key_empty())
-                        key = key_pop();
+#if SIMULATOR
+                        if (key_tail() != KEY_EXIT)
+#endif
+                            key = key_pop();
                 }
                 if (infinite)
                 {

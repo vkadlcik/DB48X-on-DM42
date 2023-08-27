@@ -360,8 +360,7 @@ EVAL_BODY(local)
 // ----------------------------------------------------------------------------
 {
     if (object_g obj = o->recall())
-        if (rt.push(obj))
-            return OK;
+        return obj->execute();
     return ERROR;
 }
 

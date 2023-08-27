@@ -175,7 +175,7 @@ algebraic_g complex::convert_angle(algebraic_g a,
                 fraction_g f = fraction_p(a.Safe());
                 algebraic_g n = algebraic_p(f->numerator());
                 algebraic_g d = algebraic_p(f->denominator());
-                a = pi * d / n;
+                a = n / pi / d;
             }
             else
             {

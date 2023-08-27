@@ -870,6 +870,12 @@ struct object
     // ------------------------------------------------------------------------
 
 
+    object_p child(uint index = 0) const;
+    // ------------------------------------------------------------------------
+    //   Return a child for a complex, list or array
+    // ------------------------------------------------------------------------
+
+
     algebraic_p algebraic_child(uint index = 0) const;
     // ------------------------------------------------------------------------
     //   Return an algebraic child for a complex, list or array

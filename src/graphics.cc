@@ -316,7 +316,7 @@ coord PlotParameters::pair_pixel_x(object_r pos) const
 //   Given a position (can be a complex, a list or a vector), return x
 // ----------------------------------------------------------------------------
 {
-    if (object_g x = pos->algebraic_child(0))
+    if (object_g x = pos->child(0))
         return pixel_adjust(x, xmin, xmax, Screen.area().width());
     return 0;
 }
@@ -327,7 +327,7 @@ coord PlotParameters::pair_pixel_y(object_r pos) const
 //   Given a position (can be a complex, a list or a vector), return y
 // ----------------------------------------------------------------------------
 {
-    if (object_g y = pos->algebraic_child(1))
+    if (object_g y = pos->child(1))
         return pixel_adjust(y, ymax, ymin, Screen.area().height());
     return 0;
 }
@@ -417,6 +417,7 @@ COMMAND_BODY(Disp)
             pattern bg   = invert ? Settings.foreground : Settings.background;
             pattern fg   = invert ? Settings.background : Settings.foreground;
             utf8    last = txt + len;
+            coord   x0   = x;
 
             ui.draw_graphics();
             while (txt < last)
@@ -424,9 +425,10 @@ COMMAND_BODY(Disp)
                 unicode       cp = utf8_codepoint(txt);
                 blitter::size w  = font->width(cp);
 
+                txt = utf8_next(txt);
                 if (x + w >= LCD_W || cp == '\n')
                 {
-                    x = 0;
+                    x = x0;
                     y += font->height();
                     if (cp == '\n')
                         continue;
@@ -438,7 +440,6 @@ COMMAND_BODY(Disp)
                     Screen.fill(x, y, x+w-1, y+h-1, bg);
                 Screen.glyph(x, y, cp, font, fg);
                 ui.draw_dirty(x, y , x+w-1, y+h-1);
-                txt = utf8_next(txt);
                 x += w;
             }
 

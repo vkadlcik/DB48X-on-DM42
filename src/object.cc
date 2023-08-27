@@ -735,9 +735,9 @@ bool object::is_same_as(object_p other) const
 }
 
 
-algebraic_p object::algebraic_child(uint index) const
+object_p object::child(uint index) const
 // ----------------------------------------------------------------------------
-//    For a complex, list or array, return nth element as algebraic
+//    For a complex, list or array, return nth element
 // ----------------------------------------------------------------------------
 {
     id ty = type();
@@ -751,8 +751,7 @@ algebraic_p object::algebraic_child(uint index) const
     case ID_list:
     case ID_array:
         if (object_p obj = list_p(this)->at(index))
-            if (obj->is_algebraic())
-                return algebraic_p(obj);
+            return obj;
         rt.value_error();
         break;
     default:
@@ -762,6 +761,22 @@ algebraic_p object::algebraic_child(uint index) const
     return nullptr;
 }
 
+
+algebraic_p object::algebraic_child(uint index) const
+// ----------------------------------------------------------------------------
+//    For a complex, list or array, return nth element as algebraic
+// ----------------------------------------------------------------------------
+{
+    if (object_p obj = child(index))
+    {
+        if (obj->is_algebraic())
+            return algebraic_p(obj);
+        else
+            rt.type_error();
+    }
+
+    return nullptr;
+}
 
 
 #if SIMULATOR

@@ -127,17 +127,21 @@ PARSE_BODY(integer)
                 if (max < 2)
                 {
                     base = 2;
+                    endp--;
 #if CONFIG_FIXED_BASED_OBJECTS
                     type = ID_bin_integer;
 #endif // CONFIG_FIXED_BASED_OBJECTS
 
                 }
                 else
-                    endp++;
+                {
+                    endp = nullptr;
+                }
                 break;
             case 'O':
             case 'o':
                 base = 8;
+                endp--;
 #if CONFIG_FIXED_BASED_OBJECTS
                 type = ID_oct_integer;
 #endif // CONFIG_FIXED_BASED_OBJECTS
@@ -147,27 +151,30 @@ PARSE_BODY(integer)
                 if (max < 10)
                 {
                     base = 10;
+                    endp--;
 #if CONFIG_FIXED_BASED_OBJECTS
                     type = ID_dec_integer;
 #endif // CONFIG_FIXED_BASED_OBJECTS
                 }
                 else
-                    endp++;
+                {
+                    endp = nullptr;
+                }
                 break;
             case 'H':
             case 'h':
                 base = 16;
+                endp--;
 #if CONFIG_FIXED_BASED_OBJECTS
                 type = ID_hex_integer;
 #endif // CONFIG_FIXED_BASED_OBJECTS
                 break;
             default:
                 // Use current default base
-                endp++;
+                endp = nullptr;
                 break;
             }
-            endp--;
-            if (s >= endp)
+            if (endp && s >= endp)
             {
                 rt.based_number_error().source(s);
                 return ERROR;

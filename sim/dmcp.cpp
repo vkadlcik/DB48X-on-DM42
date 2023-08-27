@@ -213,11 +213,16 @@ enum {  nkeys = sizeof(keys) / sizeof(keys[0]) };
 
 int key_empty()
 {
-    record(keys_empty,
-           "Key empty %u-%u = %+s",
-           keyrd,
-           keywr,
-           keyrd == keywr ? "empty" : "full");
+    static bool empty = true;
+    if ((keyrd == keywr) != empty)
+    {
+        record(keys_empty,
+               "Key empty %u-%u = %+s",
+               keyrd,
+               keywr,
+               keyrd == keywr ? "empty" : "full");
+        empty = keyrd == keywr;
+    }
     return keyrd == keywr;
 }
 

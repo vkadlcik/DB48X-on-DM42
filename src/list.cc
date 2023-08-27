@@ -371,6 +371,8 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
     {
         if (need_indent)
             r.unindent();
+        else if (open == 1)
+            r.put(' ');
         r.put(close);
     }
     r.wantCR();

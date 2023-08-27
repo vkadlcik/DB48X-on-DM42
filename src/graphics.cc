@@ -307,7 +307,7 @@ coord PlotParameters::pixel_adjust(object_r    obj,
     case object::ID_bin_integer:
 #endif // CONFIG_FIXED_BASED_OBJECTS
     case object::ID_based_integer:
-        result = based_integer_p(obj.Safe())->value<coord>();
+        result = based_integer_p(obj.Safe())->value<ularge>();
         break;
 
 #if CONFIG_FIXED_BASED_OBJECTS
@@ -317,7 +317,7 @@ coord PlotParameters::pixel_adjust(object_r    obj,
     case object::ID_bin_bignum:
 #endif // CONFIG_FIXED_BASED_OBJECTS
     case object::ID_based_bignum:
-        result = based_bignum_p(obj.Safe())->value<coord>();
+        result = based_bignum_p(obj.Safe())->value<ularge>();
         break;
 
     default:

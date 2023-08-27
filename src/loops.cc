@@ -178,6 +178,11 @@ object::result loop::object_parser(parser  &p,
                 && (len >= remaining ||
                     command::is_separator(utf8(src) + len)))
             {
+                if (loopvar && sep != open)
+                {
+                    rt.missing_variable_error().source(src);
+                    return ERROR;
+                }
                 src += len;
                 found = true;
                 continue;
@@ -196,6 +201,11 @@ object::result loop::object_parser(parser  &p,
                     && (len2 >= remaining ||
                         command::is_separator(utf8(src) + len2)))
                 {
+                    if (loopvar && sep != open)
+                    {
+                        rt.missing_variable_error().source(src);
+                        return ERROR;
+                    }
                     src += len;
                     found = true;
                     type = id2;

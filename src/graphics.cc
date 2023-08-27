@@ -62,6 +62,8 @@ PlotParameters::PlotParameters()
       xmax(integer::make(10)),
       ymax(integer::make(6)),
       independent(symbol::make("x")),
+      imin(integer::make(-10)),
+      imax(integer::make(10)),
       dependent(symbol::make("y")),
       resolution(integer::make(0)),
       xorigin(integer::make(0)),
@@ -103,6 +105,22 @@ bool PlotParameters::parse(list_g parms)
             break;
 
         case 2:                 // Independent variable
+            if (list_g ilist = obj->as<list>())
+            {
+                int ok = 0;
+                if (object_p name = ilist->at(0))
+                    if (symbol_p sym = name->as<symbol>())
+                        ok++, independent = sym;
+                if (object_p obj = ilist->at(1))
+                    if (algebraic_p val = obj->as_algebraic())
+                        ok++, imin = val;
+                if (object_p obj = ilist->at(2))
+                    if (algebraic_p val = obj->as_algebraic())
+                        ok++, imax = val;
+                valid = ok == 3;
+                break;
+            }
+
         case 6:                 // Dependent variable
             if (symbol_g sym = obj->as<symbol>())
             {

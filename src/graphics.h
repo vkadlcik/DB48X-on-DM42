@@ -49,6 +49,8 @@ struct PlotParameters
     algebraic_g xmax;
     algebraic_g ymax;
     symbol_g    independent;
+    algebraic_g imin;
+    algebraic_g imax;
     symbol_g    dependent;
     algebraic_g resolution;
     algebraic_g xorigin;

@@ -32,38 +32,12 @@
 #include "arithmetic.h"
 #include "compare.h"
 #include "equation.h"
+#include "functions.h"
 #include "graphics.h"
 #include "program.h"
 #include "sysmenu.h"
 #include "target.h"
 #include "variables.h"
-
-
-COMMAND_BODY(Function)
-// ----------------------------------------------------------------------------
-//   Set function plot type
-// ----------------------------------------------------------------------------
-{
-    return OK;
-}
-
-
-COMMAND_BODY(Parametric)
-// ----------------------------------------------------------------------------
-//   Set parametric plot type
-// ----------------------------------------------------------------------------
-{
-    return OK;
-}
-
-
-COMMAND_BODY(Polar)
-// ----------------------------------------------------------------------------
-//   Set polar plot type
-// ----------------------------------------------------------------------------
-{
-    return OK;
-}
 
 
 void draw_axes(const PlotParameters &ppar)
@@ -107,19 +81,32 @@ void draw_axes(const PlotParameters &ppar)
 }
 
 
-object::result DrawFunctionPlot(const PlotParameters &ppar, object_g eq)
+object::result draw_plot(object::id            kind,
+                         const PlotParameters &ppar,
+                         object_g              eq = nullptr)
 // ----------------------------------------------------------------------------
 //  Draw an equation that takes input from the stack
 // ----------------------------------------------------------------------------
 {
-    algebraic_g    x      = ppar.xmin;
+    bool           isFn   = kind == object::ID_Function;
+    algebraic_g    x      = isFn ? ppar.xmin : ppar.imin;
     object::result result = object::ERROR;
     coord          lx     = -1;
     coord          ly     = -1;
     uint           then   = sys_current_ms();
     algebraic_g    step   = ppar.resolution;
     if (step->is_zero())
-        step = (ppar.xmax - ppar.xmin) / integer::make(ScreenWidth());
+        step = (isFn
+                ? (ppar.xmax - ppar.xmin)
+                : (ppar.imax - ppar.imin))
+            / integer::make(ScreenWidth());
+
+    if (!eq)
+    {
+        eq = directory::recall_all(symbol::make("eq"));
+        if (!eq)
+            return object::ERROR;
+    }
 
     save<symbol_g *> iref(equation::independent,
                           (symbol_g *) &ppar.independent);
@@ -130,21 +117,57 @@ object::result DrawFunctionPlot(const PlotParameters &ppar, object_g eq)
 
     while (!program::interrupted())
     {
-        coord rx = ppar.pixel_x(x);
+        coord  rx, ry;
         size_t depth = rt.depth();
         if (!rt.push(x.Safe()))
             goto err;
         object::result err = eq->execute();
         size_t dnow = rt.depth();
-        if (err == object::OK && (dnow == depth + 1 || dnow == depth + 2))
+        if (dnow != depth + 1 && dnow != depth + 2)
+            err = object::ERROR;
+        if (err == object::OK)
         {
             algebraic_g y = algebraic_p(rt.pop());
             if (dnow == depth + 2)
                 rt.drop();
             if (!y || !y->is_algebraic())
                 goto err;
-            coord ry = ppar.pixel_y(y);
 
+            switch(kind)
+            {
+            default:
+                case object::ID_Function:
+                rx = ppar.pixel_x(x);
+                ry = ppar.pixel_y(y);
+                break;
+            case object::ID_Polar:
+            {
+                algebraic_g i = rectangular::make(integer::make(0),
+                                                  integer::make(1));
+                y = y * exp::run(i * x);
+                if (!y)
+                    goto err;
+            }
+            // Fall-through
+            case object::ID_Parametric:
+                err = object::ERROR;
+                if (y->is_real())
+                    y = rectangular::make(y, integer::make(0));
+                if (algebraic_g cx = y->algebraic_child(0))
+                {
+                    if (algebraic_g cy = y->algebraic_child(1))
+                    {
+                        rx = ppar.pixel_x(cx);
+                        ry = ppar.pixel_y(cy);
+                        err = object::OK;
+                    }
+                }
+                break;
+            }
+        }
+
+        if (err == object::OK)
+        {
             if (lx < 0)
             {
                 lx = rx;
@@ -177,7 +200,7 @@ object::result DrawFunctionPlot(const PlotParameters &ppar, object_g eq)
             rt.clear_error();
         }
         x = x + step;
-        algebraic_g cmp = x > ppar.xmax;
+        algebraic_g cmp = x > (isFn ? ppar.xmax : ppar.imax);
         if (!cmp)
             goto err;
         if (cmp->as_truth(false))
@@ -191,37 +214,7 @@ err:
 }
 
 
-object::result DrawFunctionPlot(const PlotParameters &ppar)
-// ----------------------------------------------------------------------------
-//   Draw a function plot
-// ----------------------------------------------------------------------------
-{
-    object_g eq = directory::recall_all(symbol::make("eq"));
-    if (!eq)
-        return object::ERROR;
-    return DrawFunctionPlot(ppar, eq);
-}
-
-
-object::result DrawParametricPlot(const PlotParameters &ppar)
-// ----------------------------------------------------------------------------
-//   Draw a parametric plot
-// ----------------------------------------------------------------------------
-{
-    return object::OK;
-}
-
-
-object::result DrawPolarPlot(const PlotParameters &ppar)
-// ----------------------------------------------------------------------------
-//   Draw a polar plot
-// ----------------------------------------------------------------------------
-{
-    return object::OK;
-}
-
-
-COMMAND_BODY(PlotFunction)
+COMMAND_BODY(Function)
 // ----------------------------------------------------------------------------
 //   Draw plot from function on the stack taking stack arguments
 // ----------------------------------------------------------------------------
@@ -229,7 +222,35 @@ COMMAND_BODY(PlotFunction)
     if (object_g eq = rt.pop())
     {
         PlotParameters ppar;
-        return DrawFunctionPlot(ppar, eq);
+        return draw_plot(ID_Function, ppar, eq);
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(Parametric)
+// ----------------------------------------------------------------------------
+//   Draw plot from function on the stack taking stack arguments
+// ----------------------------------------------------------------------------
+{
+    if (object_g eq = rt.pop())
+    {
+        PlotParameters ppar;
+        return draw_plot(ID_Parametric, ppar, eq);
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(Polar)
+// ----------------------------------------------------------------------------
+//   Set polar plot type
+// ----------------------------------------------------------------------------
+{
+    if (object_g eq = rt.pop())
+    {
+        PlotParameters ppar;
+        return draw_plot(ID_Polar, ppar, eq);
     }
     return ERROR;
 }
@@ -244,10 +265,10 @@ COMMAND_BODY(Draw)
     switch(ppar.type)
     {
     default:
-    case ID_Function:   return DrawFunctionPlot(ppar);
-    case ID_Parametric: return DrawParametricPlot(ppar);
-    case ID_Polar:      return DrawPolarPlot(ppar);
-
+    case ID_Function:
+    case ID_Parametric:
+    case ID_Polar:
+        return draw_plot(ppar.type, ppar);
     }
     rt.invalid_plot_type_error();
     return ERROR;

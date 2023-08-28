@@ -154,3 +154,17 @@ bool symbol::store(object_g value) const
     object_g name = this;
     return dir->store(name, value);
 }
+
+
+bool symbol::is_same_as(symbol_p other) const
+// ----------------------------------------------------------------------------
+//   Return true of two symbols represent the same thing
+// ----------------------------------------------------------------------------
+{
+    size_t sz, osz;
+    utf8 txt = value(&sz);
+    utf8 otxt = other->value(&osz);
+    if (sz != osz)
+        return false;
+    return strncasecmp(cstring(txt), cstring(otxt), sz) == 0;
+}

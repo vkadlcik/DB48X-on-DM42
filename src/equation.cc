@@ -563,7 +563,7 @@ static size_t check_match(size_t eq, size_t eqsz,
                     for (size_t l = 0; l < symbols; l += 2)
                     {
                         symbol_p existing = symbol_p(rt.local(l+1));
-                        if (!existing || existing->is_same_as(ftop))
+                        if (!existing || existing->is_same_as(symbol_p(ftop)))
                             return 0;
                     }
                 }

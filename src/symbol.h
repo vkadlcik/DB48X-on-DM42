@@ -68,6 +68,7 @@ struct symbol : text
 
     object_p recall(bool noerror = true) const;
     bool     store(object_g obj) const;
+    bool     is_same_as(symbol_p other) const;
 
 public:
     OBJECT_DECL(symbol);

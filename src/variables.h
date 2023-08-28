@@ -91,12 +91,12 @@ struct directory : list
     //    Store an object in the directory
     // ------------------------------------------------------------------------
 
-    object_p recall(object_p name) const;
+    object_p recall(symbol_p name) const;
     // ------------------------------------------------------------------------
     //    Check if a name exists in the directory, return value pointer if it does
     // ------------------------------------------------------------------------
 
-    static object_p recall_all(object_p name);
+    static object_p recall_all(symbol_p name);
     // ------------------------------------------------------------------------
     //    Check if a name exists in the directory, return value pointer if it does
     // ------------------------------------------------------------------------

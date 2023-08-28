@@ -286,7 +286,7 @@ object_p directory::lookup(object_p ref) const
 }
 
 
-object_p directory::recall(object_p ref) const
+object_p directory::recall(symbol_p ref) const
 // ----------------------------------------------------------------------------
 //   If the referenced object exists in directory, return associated value
 // ----------------------------------------------------------------------------
@@ -298,7 +298,7 @@ object_p directory::recall(object_p ref) const
 }
 
 
-object_p directory::recall_all(object_p name)
+object_p directory::recall_all(symbol_p name)
 // ----------------------------------------------------------------------------
 //   If the referenced object exists in directory, return associated value
 // ----------------------------------------------------------------------------

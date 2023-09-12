@@ -81,6 +81,7 @@ struct tests
     void auto_simplification();
     void rewrite_engine();
     void expand_collect_simplify();
+    void tagged_objects();
     void regression_checks();
 
     enum key

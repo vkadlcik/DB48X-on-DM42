@@ -535,6 +535,7 @@ COMMAND_BODY(Help)
                 case ID_equation:           topic = utf8("Equations"); break;
                 case ID_list:               topic = utf8("Lists"); break;
                 case ID_array:              topic = utf8("Vectors and matrices"); break;
+                case ID_tag:                topic = utf8("Tagged objects"); break;
                 default:                    topic = fancy(top->type()); break;
                 }
             }
@@ -601,6 +602,7 @@ COMMAND_BODY(ToolsMenu)
             case ID_equation:           menu = ID_SymbolicMenu; break;
             case ID_list:               menu = ID_ListMenu; break;
             case ID_array:              menu = ID_MatrixMenu; break;
+            case ID_tag:                menu = ID_ObjectMenu; break;
             default:                    break;
             }
         }

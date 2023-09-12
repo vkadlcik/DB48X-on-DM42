@@ -41,6 +41,7 @@
 #include "list.h"
 #include "runtime.h"
 #include "settings.h"
+#include "tag.h"
 #include "text.h"
 
 #include <bit>
@@ -1169,12 +1170,20 @@ object::result arithmetic::evaluate(id op, ops_t ops)
 // ----------------------------------------------------------------------------
 {
     // Fetch arguments from the stack
-    algebraic_g y = (algebraic_p) rt.stack(1);
+    // Possibly wrong type, i.e. it migth not be an algebraic on the stack,
+    // but since we tend to do extensive type checking later, don't overdo it
+    algebraic_g y = algebraic_p(rt.stack(1));
     if (!y)
         return ERROR;
-    algebraic_g x = (algebraic_p) rt.stack(0);
+    algebraic_g x = algebraic_p(rt.stack(0));
     if (!x)
         return ERROR;
+
+    // Strip tags
+    while (tag_p xtag = x->as<tag>())
+        x = algebraic_p(xtag->tagged_object());
+    while (tag_p ytag = y->as<tag>())
+        y = algebraic_p(ytag->tagged_object());
 
     // Evaluate the operation
     algebraic_g r = evaluate(op, y, x, ops);

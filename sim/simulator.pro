@@ -74,6 +74,7 @@ SOURCES +=                                      \
 	../fonts/HelpFont.cc	                \
 	../fonts/StackFont.cc			\
 	../src/font.cc				\
+	../src/tag.cc				\
 	../src/graphics.cc			\
 	../src/plot.cc	                        \
 	../src/tests.cc

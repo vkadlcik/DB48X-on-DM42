@@ -85,6 +85,7 @@ void tests::run(bool onlyCurrent)
         text_functions();
         rewrite_engine();
         expand_collect_simplify();
+        tagged_objects();
         regression_checks();
     }
     summary();
@@ -98,7 +99,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    complex_arithmetic();
+    tagged_objects();
 }
 
 
@@ -2451,8 +2452,58 @@ void tests::expand_collect_simplify()
     test("collect ", ENTER)
         .expect("'2×(B↑2×A)+(2×(A↑2×B)+A↑3+B↑2×A+A↑2×B)+B↑3'");
     // .expect("'(A+B)³'");
+}
 
 
+void tests::tagged_objects()
+// ----------------------------------------------------------------------------
+//   Some very basic testing of tagged objects
+// ----------------------------------------------------------------------------
+{
+    begin("Tagged objects");
+
+    step("Parsing");
+    test(CLEAR, ":ABC:123", ENTER)
+        .type(object::ID_tag)
+        .expect("ABC :123");
+    test(CLEAR, ":Label:123/456", ENTER)
+        .type(object::ID_tag)
+        .expect("Label :41/152");
+    test(CLEAR, ":Nested::Label:123.456", ENTER)
+        .type(object::ID_tag)
+        .expect("Nested :Label :123.456");
+
+    step("Arithmetic");
+    test(CLEAR, ":First:1 :Second:2 +", ENTER)
+        .expect("3");
+    test(CLEAR, "5 :Second:2 -", ENTER)
+        .expect("3");
+    test(CLEAR, ":First:3/2 2 *", ENTER)
+        .expect("3");
+
+    step("Functions");
+    test(CLEAR, ":First:1 ABS", ENTER)
+        .expect("1");
+    test(CLEAR, ":First:0 SIN", ENTER)
+        .expect("0");
+
+    step("ToTag");
+    test(CLEAR, "125 \"Hello\" ToTag", ENTER)
+        .expect("Hello:125");
+    test(CLEAR, "125 127 ToTag", ENTER)
+        .type(object::ID_tag)
+        .expect("127:125");
+
+    step("FromTag");
+    test(CLEAR, ":Hello:123 FromTag", ENTER)
+        .type(object::ID_text)
+        .expect("\"Hello \"")
+        .test("Drop", ENTER)
+        .expect("123");
+
+    step("DeleteTag");
+    test(CLEAR, ":Hello:123 DeleteTag", ENTER)
+        .expect("123");
 }
 
 

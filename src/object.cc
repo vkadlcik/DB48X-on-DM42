@@ -60,6 +60,7 @@
 #include "settings.h"
 #include "stack-cmds.h"
 #include "symbol.h"
+#include "tag.h"
 #include "text.h"
 #include "user_interface.h"
 #include "variables.h"

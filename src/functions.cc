@@ -37,6 +37,7 @@
 #include "fraction.h"
 #include "integer.h"
 #include "list.h"
+#include "tag.h"
 
 
 bool function::should_be_symbolic(id type)
@@ -319,6 +320,11 @@ object::result function::evaluate(algebraic_fn op, bool mat)
     if (object_p top = rt.top())
     {
         id topty = top->type();
+        while(topty == ID_tag)
+        {
+            top = tag_p(top)->tagged_object();
+            topty = top->type();
+        }
         if (topty == ID_list || (topty == ID_array && !mat))
         {
             top = list_p(top)->map(op);

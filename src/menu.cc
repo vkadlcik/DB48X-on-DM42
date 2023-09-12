@@ -700,6 +700,10 @@ MENU(ObjectMenu,
      "→Array",  ID_Unimplemented,
      "→Num",    ID_ToDecimal,
      "→Frac",   ID_ToFraction,
+
+     "→Tag",    ID_ToTag,
+     "Tag→",    ID_FromTag,
+     "DTag",    ID_dtag,
      "→Graph",  ID_Unimplemented);
 
 

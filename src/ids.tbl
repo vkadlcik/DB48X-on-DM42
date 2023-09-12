@@ -339,6 +339,10 @@ NAMED(ClLCD, "ClearLCD")
 NAMED(Draw, "DrawPlot")
 NAMED(Drax, "DrawAxes")
 
+NAMED(ToTag, "→Tag")
+NAMED(FromTag, "Tag→")
+NAMED(dtag, "DeleteTag")
+
 
 // ============================================================================
 //
@@ -540,6 +544,7 @@ ID(dense_font)
 ID(sparse_font)
 ID(dmcp_font)
 
+ID(tag)
 
 
 #undef ID

@@ -200,6 +200,7 @@ CXX_SOURCES +=				\
 	src/loops.cc			\
 	src/conditionals.cc		\
 	src/font.cc			\
+	src/tag.cc			\
 	src/graphics.cc			\
 	src/plot.cc			\
 	fonts/HelpFont.cc		\

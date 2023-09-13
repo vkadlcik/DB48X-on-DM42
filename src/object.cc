@@ -46,6 +46,7 @@
 #include "fraction.h"
 #include "functions.h"
 #include "graphics.h"
+#include "grob.h"
 #include "integer.h"
 #include "list.h"
 #include "locals.h"

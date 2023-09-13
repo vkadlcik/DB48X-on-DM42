@@ -76,6 +76,7 @@ SOURCES +=                                      \
 	../src/font.cc				\
 	../src/tag.cc				\
 	../src/graphics.cc			\
+	../src/grob.cc                          \
 	../src/plot.cc	                        \
 	../src/tests.cc
 

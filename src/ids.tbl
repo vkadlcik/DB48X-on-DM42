@@ -141,6 +141,7 @@ ID(decimal64)
 ID(decimal128)
 
 ID(comment)
+ID(grob)
 
 CMD(Drop)
 CMD(Drop2)

@@ -284,7 +284,9 @@ DBGFLAGS = $(DBGFLAGS_$(OPT))
 DBGFLAGS_debug = -g
 
 CFLAGS_debug += -O0 -DDEBUG
-CFLAGS_release += -O2
+CFLAGS_release += $(CFLAGS_release_$(VARIANT))
+CFLAGS_release_DM42 = -Os
+CFLAGS_release_DM32 = -O2
 CFLAGS_small += -Os
 CFLAGS_fast += -O2
 CFLAGS_faster += -O3

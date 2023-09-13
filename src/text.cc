@@ -76,7 +76,7 @@ PARSE_BODY(text)
     p.end         = parsed;
     p.out         = rt.make<text>(ID_text, txt, slen);
 
-    return OK;
+    return p.out ? OK : ERROR;
 }
 
 

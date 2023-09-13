@@ -242,8 +242,9 @@ object::result list::list_parse(id type,
                 size_t objsize = obj->size();
 
                 // For equations, copy only the payload
-                if (precedence && obj->type() == ID_equation)
-                    obj = (object_p) equation_p(object_p(obj))->value(&objsize);
+                if (precedence)
+                    if (equation_p eq = obj->as<equation>())
+                        obj = object_p(eq->value(&objsize));
 
                 byte *objcopy = rt.allocate(objsize);
                 if (!objcopy)

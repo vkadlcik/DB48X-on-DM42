@@ -285,9 +285,9 @@ equation::equation(id type, algebraic_r arg)
     // Write the arguments
     size_t objsize = 0;
     byte_p objptr = nullptr;
-    if (arg->type() == ID_equation)
+    if (equation_p eq = arg->as<equation>())
     {
-        objptr = equation_p(algebraic_p(arg))->value(&objsize);
+        objptr = eq->value(&objsize);
     }
     else
     {
@@ -328,9 +328,9 @@ equation::equation(id type, id op, algebraic_r arg)
     // Write the arguments
     size_t objsize = 0;
     byte_p objptr = nullptr;
-    if (arg->type() == ID_equation)
+    if (equation_p eq = arg->as<equation>())
     {
-        objptr = equation_p(algebraic_p(arg))->value(&objsize);
+        objptr = eq->value(&objsize);
     }
     else
     {
@@ -374,9 +374,9 @@ equation::equation(id type, id op, algebraic_r x, algebraic_r y)
     // Write the first argument
     size_t objsize = 0;
     byte_p objptr = nullptr;
-    if (x->type() == ID_equation)
+    if (equation_p eq = x->as<equation>())
     {
-        objptr = equation_p(algebraic_p(x))->value(&objsize);
+        objptr = eq->value(&objsize);
     }
     else
     {
@@ -387,9 +387,9 @@ equation::equation(id type, id op, algebraic_r x, algebraic_r y)
     p += objsize;
 
     // Write the second argument
-    if (y->type() == ID_equation)
+    if (equation_p eq = y->as<equation>())
     {
-        objptr = equation_p(algebraic_p(y))->value(&objsize);
+        objptr = eq->value(&objsize);
     }
     else
     {

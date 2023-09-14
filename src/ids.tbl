@@ -439,6 +439,12 @@ CMD(Version)
 CMD(Clip)
 CMD(CurrentClip)
 
+NAMED(GXor, "GraphicXor")
+NAMED(GOr,  "GraphicOr")
+NAMED(GAnd, "GraphicAnd")
+NAMED(Pict, "GraphicPicture")
+
+
 
 // ============================================================================
 //

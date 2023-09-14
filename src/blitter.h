@@ -279,6 +279,18 @@ struct blitter
             inset(d, d);
         }
 
+        void offset(coord dx, coord dy)
+        // --------------------------------------------------------------------
+        //   Offset a rectangle by the given amounts
+        // --------------------------------------------------------------------
+        {
+            x1 += dx;
+            x2 += dx;
+            y1 += dy;
+            y2 += dy;
+        }
+
+
         bool empty() const
         // --------------------------------------------------------------------
         //   Check if a rectangle is empty
@@ -635,7 +647,7 @@ struct blitter
             return pixels + bitoffset / BPW;
         }
 
-      protected:
+    protected:
         friend struct blitter;
         pixword *pixels;   // Word-aligned address of surface buffer
         size     width;    // Pixel width of buffer
@@ -710,7 +722,7 @@ struct blitter
     //
     // =========================================================================
 
-  public:
+public:
     static pixword blitop_set(pixword UNUSED dst,
                               pixword UNUSED src,
                               pixword        arg)
@@ -748,12 +760,32 @@ struct blitter
     }
 
 
-    static pixword blitop_invert(pixword dst, pixword src, pixword arg)
+    static pixword blitop_xor(pixword dst, pixword src, pixword arg)
     // -------------------------------------------------------------------------
-    //   Inverting colors can always be achieved with a simple xor
+    //   Perform a 'xor' graphical operation (can also be used for inverting)
     // -------------------------------------------------------------------------
     {
         dst = src ^ arg;
+        return dst;
+    }
+
+
+    static pixword blitop_and(pixword dst, pixword src, pixword arg)
+    // -------------------------------------------------------------------------
+    //   Perform the 'and' operation
+    // -------------------------------------------------------------------------
+    {
+        dst = src & arg;
+        return dst;
+    }
+
+
+    static pixword blitop_or(pixword dst, pixword src, pixword arg)
+    // -------------------------------------------------------------------------
+    //   Perform a 'or' graphical operation
+    // -------------------------------------------------------------------------
+    {
+        dst = src | arg;
         return dst;
     }
 

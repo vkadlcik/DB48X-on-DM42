@@ -149,6 +149,14 @@ struct grob : object
     }
 
 
+    using blitop = blitter::blitop;
+
+    static object::result command(blitop op);
+    // ------------------------------------------------------------------------
+    //  Shared code for GXor, GOr, GAnd
+    // ------------------------------------------------------------------------
+
+
 public:
     OBJECT_DECL(grob);
     PARSE_DECL(grob);

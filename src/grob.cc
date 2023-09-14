@@ -29,8 +29,11 @@
 
 #include "grob.h"
 
+#include "graphics.h"
 #include "parser.h"
 #include "renderer.h"
+#include "sysmenu.h"
+#include "user_interface.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -175,4 +178,47 @@ RENDER_BODY(grob)
         bitflip(data0, w, h, true);
     }
     return r.size();
+}
+
+
+object::result grob::command(grob::blitop op)
+// ----------------------------------------------------------------------------
+//   The shared code for GXor, GOr and GAnd
+// ----------------------------------------------------------------------------
+{
+    if (object_p coords = rt.stack(1))
+    {
+        PlotParameters ppar;
+        coord x = ppar.pair_pixel_x(coords);
+        coord y = ppar.pair_pixel_y(coords);
+        object_p src = rt.stack(0);
+        object_p dst = rt.stack(2);
+
+        if (!rt.error())
+        {
+            if (grob_p sg = src->as<grob>())
+            {
+                ui.draw_graphics();
+                surface srcs = sg->pixels();
+                grob_p dg = dst->as<grob>();
+                if (dg || dst->type() == ID_Pict)
+                {
+                    surface dsts = dg ? dg->pixels() : Screen;
+                    point p(0,0);
+                    rect drect = srcs.area();
+                    drect.offset(x,y);
+
+                    rt.drop(2 + (dg == nullptr));
+                    blitter::blit<blitter::CLIP_ALL>(dsts, srcs,
+                                                     drect, p,
+                                                     op, pattern::black);
+                    ui.draw_dirty(drect);
+                    refresh_dirty();
+                    return OK;
+                }
+            }
+            rt.type_error();
+        }
+    }
+    return ERROR;
 }

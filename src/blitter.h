@@ -386,6 +386,8 @@ struct blitter
         void vertical_adjust(coord UNUSED &x1, coord UNUSED &x2) const
         {
         }
+        static bool horizontal_swap() { return false; }
+        static bool vertical_swap() { return false; }
 
         // Operations used by the blitting routine
         using color   = blitter::color<Mode>;
@@ -1282,26 +1284,27 @@ void blitter::blit(Dst           &dst,
     const uint DBPP     = Dst::BPP;
     const uint CBPP     = color<CMode>::BPP;
 
-    // Some platforms have the weird idea of flipping left and right
-    dst.horizontal_adjust(x1, x2);
-    dst.vertical_adjust(y1, y2);
-
     if (clip_src)
     {
-        if (x < src.drawable.x1)
+        coord sx1 = src.drawable.x1;
+        coord sx2 = src.drawable.x2;
+        coord sy1 = src.drawable.y1;
+        coord sy2 = src.drawable.y2;
+
+        if (x < sx1)
         {
-            x1 += src.drawable.x1 - x;
-            x = src.drawable.x1;
+            x1 += sx1 - x;
+            x = sx1;
         }
-        if (x + x2 - x1 > src.drawable.x2)
-            x2 = src.drawable.x2 - x + x1;
-        if (y < src.drawable.y1)
+        if (x + x2 - x1 > sx2)
+            x2 = sx2 - x + x1;
+        if (y < sy1)
         {
-            y1 += src.drawable.y1 - y;
-            y = src.drawable.y1;
+            y1 += sy1 - y;
+            y = sy1;
         }
-        if (y + y2 - y1 > src.drawable.y2)
-            y2 = src.drawable.y2 - y + y1;
+        if (y + y2 - y1 > sy2)
+            y2 = sy2 - y + y1;
     }
 
     if (clip_dst)
@@ -1311,15 +1314,19 @@ void blitter::blit(Dst           &dst,
         coord dx2 = dst.drawable.x2;
         coord dy1 = dst.drawable.y1;
         coord dy2 = dst.drawable.y2;
-        dst.horizontal_adjust(dx1, dx2);
-        dst.vertical_adjust(dy1, dy2);
+
         if (x1 < dx1)
         {
-            x += dx1 - x1;
+            if (dst.horizontal_swap() == src.horizontal_swap())
+                x += dx1 - x1;
             x1 = dx1;
         }
         if (x2 > dx2)
+        {
+            if (dst.horizontal_swap() != src.horizontal_swap())
+                x -= dx2 - x2;
             x2 = dx2;
+        }
         if (y1 < dy1)
         {
             y += dy1 - y1;
@@ -1328,6 +1335,10 @@ void blitter::blit(Dst           &dst,
         if (y2 > dy2)
             y2 = dy2;
     }
+
+    // Some platforms have the weird idea of flipping left and right
+    dst.horizontal_adjust(x1, x2);
+    dst.vertical_adjust(y1, y2);
 
     // Bail out if there is no effect
     if (x1 > x2 || y1 > y2)
@@ -1488,6 +1499,17 @@ inline void blitter::surface<blitter::MONOCHROME_REVERSE>::horizontal_adjust(
     x2        = width - x1;
     x1        = ox1;
 }
+
+
+template <>
+inline bool blitter::surface<blitter::MONOCHROME_REVERSE>::horizontal_swap()
+// ----------------------------------------------------------------------------
+//   On the DM42, we need horizontal adjustment for coordinates
+// ----------------------------------------------------------------------------
+{
+    return true;
+}
+
 
 
 // ============================================================================

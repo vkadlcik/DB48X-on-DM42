@@ -244,7 +244,7 @@ int key_pop()
 int key_tail()
 {
     if (keyrd != keywr)
-        return keys[keyrd % nkeys];
+        return keys[(keyrd + nkeys - 1) % nkeys];
     return -1;
 }
 

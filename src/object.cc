@@ -122,6 +122,7 @@ const object::dispatch object::handler[NUM_IDS] =
         .evaluate     = (evaluate_fn) id::do_evaluate,       \
         .execute      = (execute_fn) id::do_execute,         \
         .render       = (render_fn) id::do_render,           \
+        .graph        = (graph_fn) id::do_graph,             \
         .insert       = (insert_fn) id::do_insert,           \
         .menu         = (menu_fn) id::do_menu,               \
         .menu_marker  = (menu_marker_fn) id::do_menu_marker, \
@@ -478,6 +479,39 @@ RENDER_BODY(object)
 {
     r.printf("Internal:%s[%p]", name(o->type()), o);
     return r.size();
+}
+
+
+grob_p object::as_grob() const
+// ----------------------------------------------------------------------------
+//   Return object as a graphic object
+// ----------------------------------------------------------------------------
+{
+    grapher g;
+    return graph(g);
+}
+
+
+GRAPH_BODY(object)
+// ----------------------------------------------------------------------------
+//  The default for rendering is to render the text using default font
+// ----------------------------------------------------------------------------
+{
+    renderer r;
+    using pixsize  = blitter::size;
+    size_t  sz     = o->render(r);
+    gcutf8  txt    = r.text();
+    font_p  font   = Settings.font(g.font);
+    pixsize height = font->height();
+    pixsize width  = font->width(txt, sz);
+    if (width > g.maxw)
+        width = g.maxw;
+    if (height > g.maxh)
+        height = g.maxh;
+    grob_g  result = grob::make(width, height);
+    surface s      = result->pixels();
+    s.text(0, 0, txt, sz, font, g.foreground, g.background);
+    return result;
 }
 
 

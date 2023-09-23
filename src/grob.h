@@ -33,6 +33,9 @@
 #include "object.h"
 #include "runtime.h"
 #include "target.h"
+#include "renderer.h"
+#include "settings.h"
+
 
 GCP(grob);
 
@@ -43,8 +46,7 @@ struct grob : object
 {
     using pixsize = blitter::size;
 
-    grob(id type, pixsize w, pixsize h, gcbytes bits)
-        : object(type)
+    grob(id type, pixsize w, pixsize h, gcbytes bits): object(type)
     // ------------------------------------------------------------------------
     //   Graphic object constructor
     // ------------------------------------------------------------------------
@@ -79,7 +81,7 @@ struct grob : object
     }
 
 
-    static grob_p make(pixsize w, pixsize h, byte_p bits)
+    static grob_p make(pixsize w, pixsize h, byte_p bits = nullptr)
     // ------------------------------------------------------------------------
     //   Build a grob from the given parameters
     // ------------------------------------------------------------------------
@@ -162,6 +164,33 @@ public:
     PARSE_DECL(grob);
     SIZE_DECL(grob);
     RENDER_DECL(grob);
+};
+
+
+struct grapher
+// ----------------------------------------------------------------------------
+//   Information about graphing environment
+// ----------------------------------------------------------------------------
+{
+    using font_id = settings::font_id;
+
+    grapher(size    w  = LCD_W,
+            size    h  = LCD_H,
+            font_id f  = settings::EDITOR,
+            pattern fg = pattern::black,
+            pattern bg = pattern::white)
+        : maxw(w),
+          maxh(h),
+          font(f),
+          foreground(fg),
+          background(bg)
+    {}
+
+    size    maxw;
+    size    maxh;
+    font_id font;
+    pattern foreground;
+    pattern background;
 };
 
 #endif // GROB_H

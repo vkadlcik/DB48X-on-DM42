@@ -989,12 +989,11 @@ MENU(ModesMenu,
      "Symbolic",ID_SymbolicResults,
      "()",      ID_Unimplemented,
 
-     "Deg",     ID_Deg,
-     "Rad",     ID_Rad,
-     "Grad",    ID_Grad,
-     "a×π",     ID_PiRadians,
+     "GrStk",   ID_GraphicsStackDisplay,
+     "TxtStk",  ID_TextStackDisplay,
+
      "Angles",  ID_AnglesMenu,
-     "DMS",     ID_Unimplemented,
+
 
      "Rect",    ID_Unimplemented,
      "Polar",   ID_Unimplemented,

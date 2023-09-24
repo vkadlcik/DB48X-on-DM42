@@ -98,6 +98,7 @@ struct settings
           menu_single_ln(false),
           menu_flatten(false),
           menu_square(false),
+          graph_stack(true),
           date_separator('/'),
           result_sz(STACK),
           stack_sz(STACK),
@@ -203,6 +204,7 @@ public:
     bool     menu_single_ln :1; // Single-line menu
     bool     menu_flatten   :1; // Show same menu entries with shift
     bool     menu_square    :1; // Square or rounded menus
+    bool     graph_stack    :1; // Graphical rendering on stack
     char     date_separator;    // Date separator
     font_id  result_sz;         // Size for stack top
     font_id  stack_sz;          // Size for other stack levels
@@ -339,5 +341,7 @@ SETTINGS_COMMAND_DECLARE(LineWidth);
 SETTINGS_COMMAND_DECLARE(Foreground);
 SETTINGS_COMMAND_DECLARE(Background);
 
+SETTINGS_COMMAND_DECLARE(GraphicsStackDisplay);
+SETTINGS_COMMAND_DECLARE(TextStackDisplay);
 
 #endif // SETTINGS_H

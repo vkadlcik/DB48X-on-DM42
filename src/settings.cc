@@ -1224,3 +1224,24 @@ SETTINGS_COMMAND_BODY(Background, false)
     Settings.background.bits = pat;
     return OK;
 }
+
+
+
+SETTINGS_COMMAND_BODY(GraphicsStackDisplay, Settings.graph_stack)
+// ----------------------------------------------------------------------------
+//  Select graphic rendering of the stack
+// ----------------------------------------------------------------------------
+{
+    Settings.graph_stack = true;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(TextStackDisplay, !Settings.graph_stack)
+// ----------------------------------------------------------------------------
+//  Select text-only rendering of the stack
+// ----------------------------------------------------------------------------
+{
+    Settings.graph_stack = false;
+    return OK;
+}

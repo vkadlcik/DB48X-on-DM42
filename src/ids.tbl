@@ -260,7 +260,7 @@ ALIAS(ToFraction, "→Q")
 
 // ============================================================================
 //
-//    Loops
+//    Loops and tests
 //
 // ============================================================================
 
@@ -307,6 +307,7 @@ CMD(FreeMemory)
 CMD(SystemMemory)
 CMD(GarbageCollect)
 
+// Directories
 NAMED(home, "HomeDirectory")
 CMD(CurrentDirectory)
 NAMED(path, "DirectoryPath")
@@ -314,12 +315,7 @@ NAMED(crdir, "CreateDirectory")
 NAMED(updir, "UpDirectory")
 NAMED(pgdir, "PurgeDirectory")
 
-CMD(Ticks)
-CMD(Wait)
-CMD(Bytes)
-CMD(Type)
-CMD(TypeName)
-
+// Rare tests
 NAMED(IFT, "IfThen")
 NAMED(IFTE, "IfThenElse")
 CMD(IfErrThen)
@@ -328,6 +324,13 @@ NAMED(errm, "ErrorMessage")
 NAMED(errn, "ErrorNumber")
 NAMED(err0, "ClearError")
 NAMED(doerr, "DoError")
+
+
+// ============================================================================
+//
+//   Graphing and plotting
+//
+// ============================================================================
 
 NAMED(Disp, "DrawText")
 NAMED(DispXY, "DrawStyledText")
@@ -340,9 +343,41 @@ NAMED(ClLCD, "ClearLCD")
 NAMED(Draw, "DrawPlot")
 NAMED(Drax, "DrawAxes")
 
+NAMED(Function,         "FunctionPlot")
+NAMED(Polar,            "PolarPlot")
+NAMED(Parametric,       "ParametricPlot")
+
+CMD(Clip)
+CMD(CurrentClip)
+
+NAMED(GXor, "GraphicXor")
+NAMED(GOr,  "GraphicOr")
+NAMED(GAnd, "GraphicAnd")
+NAMED(Pict, "GraphicPicture")
+
+
+
+// ============================================================================
+//
+//   Rare functions
+//
+// ============================================================================
+//   These functions are put "late" in the IDs table to leave more room
+//   for single-byte commands above
+
+// Rare type f
 NAMED(ToTag, "→Tag")
 NAMED(FromTag, "Tag→")
 NAMED(dtag, "DeleteTag")
+
+// Timing and system commands
+CMD(Ticks)
+CMD(Wait)
+CMD(Bytes)
+CMD(Type)
+CMD(TypeName)
+CMD(Version)
+
 
 
 // ============================================================================
@@ -350,6 +385,9 @@ NAMED(dtag, "DeleteTag")
 //   Settings
 //
 // ============================================================================
+
+CMD(Modes)
+CMD(ResetModes)
 
 NAMED(Std, "StandardDisplay")
 NAMED(Fix, "FixedDisplay")
@@ -428,21 +466,8 @@ CMD(LineWidth)
 CMD(Foreground)
 CMD(Background)
 
-NAMED(Function,         "FunctionPlot")
-NAMED(Polar,            "PolarPlot")
-NAMED(Parametric,       "ParametricPlot")
-
-CMD(Modes)
-CMD(ResetModes)
-CMD(Version)
-
-CMD(Clip)
-CMD(CurrentClip)
-
-NAMED(GXor, "GraphicXor")
-NAMED(GOr,  "GraphicOr")
-NAMED(GAnd, "GraphicAnd")
-NAMED(Pict, "GraphicPicture")
+CMD(GraphicsStackDisplay)
+CMD(TextStackDisplay)
 
 
 

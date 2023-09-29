@@ -219,6 +219,8 @@ COMMAND_BODY(Function)
 //   Draw plot from function on the stack taking stack arguments
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     if (object_g eq = rt.pop())
     {
         PlotParameters ppar;
@@ -233,6 +235,8 @@ COMMAND_BODY(Parametric)
 //   Draw plot from function on the stack taking stack arguments
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     if (object_g eq = rt.pop())
     {
         PlotParameters ppar;
@@ -247,6 +251,8 @@ COMMAND_BODY(Polar)
 //   Set polar plot type
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     if (object_g eq = rt.pop())
     {
         PlotParameters ppar;
@@ -261,6 +267,8 @@ COMMAND_BODY(Draw)
 //   Draw plot in EQ according to PPAR
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     PlotParameters ppar;
     switch(ppar.type)
     {
@@ -280,6 +288,8 @@ COMMAND_BODY(Drax)
 //   Draw plot axes
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     ui.draw_graphics();
 
     PlotParameters ppar;

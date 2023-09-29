@@ -43,8 +43,10 @@
 //        [...]
 //        [Local 0]
 //      Locals
+//        [Last stack from command-line evaluation]
+//      Undo
 //        [Arguments to last command]
-//      LastArgs
+//      Args
 //        [User stack]
 //      Stack        Top of stack
 //        .
@@ -530,7 +532,7 @@ struct runtime
     //   Return the stack depth
     // ------------------------------------------------------------------------
     {
-        return LastArgs - Stack;
+        return Args - Stack;
     }
 
 
@@ -546,28 +548,38 @@ struct runtime
     //   Indicate how many arguments we need to save in last args
     // ------------------------------------------------------------------------
 
-    void results(uint count);
+    size_t args() const
     // ------------------------------------------------------------------------
-    //   Indicate how many results we got from a command
+    //   Return the number of args in the Args area
     // ------------------------------------------------------------------------
+    {
+        return Undo - Args;
+    }
 
     bool last();
     // ------------------------------------------------------------------------
     //   Push back last arguments
     // ------------------------------------------------------------------------
 
+
+    bool save();
+    // ------------------------------------------------------------------------
+    //  Save the state for undo
+    // ------------------------------------------------------------------------
+
+    size_t saved() const
+    // ------------------------------------------------------------------------
+    //   Return the size of the stack save area
+    // ------------------------------------------------------------------------
+    {
+        return Locals - Undo;
+    }
+
     bool undo();
     // ------------------------------------------------------------------------
     //   Undo and return earlier stack
     // ------------------------------------------------------------------------
 
-    size_t args() const
-    // ------------------------------------------------------------------------
-    //   Return the number of args in the LastArgs area
-    // ------------------------------------------------------------------------
-    {
-        return Locals - LastArgs;
-    }
 
 
     // ========================================================================
@@ -778,8 +790,8 @@ protected:
     size_t    Editing;      // Text editor (utf8 encoded)
     size_t    Scratch;      // Scratch pad (may be invalid objects)
     object_p *Stack;        // Top of user stack
-    object_p *LastArgs;     // Start of save area for Undo, end of stack
-    size_t    Results;      // Number of results pushed by last command
+    object_p *Args;     // Start of save area for last arguments
+    object_p *Undo;         // Start of undo stack
     object_p *Locals;       // Start of locals, end of undo
     object_p *Directories;  // Start of directories, end of returns
     object_p *Returns;      // Start of return stack, end of locals
@@ -838,8 +850,9 @@ inline void *operator new(size_t UNUSED size, Obj *where)
 }
 
 
-template <typename Obj, typename ... Args>
-const Obj *runtime::make(typename Obj::id type, const Args &... args)
+template <typename Obj, typename ... ArgsT>
+const Obj *runtime::make(typename Obj::id type, const
+                         ArgsT &... args)
 // ----------------------------------------------------------------------------
 //   Make a new temporary of the given size
 // ----------------------------------------------------------------------------
@@ -873,8 +886,8 @@ const Obj *runtime::make(typename Obj::id type, const Args &... args)
 }
 
 
-template <typename Obj, typename ... Args>
-const Obj *runtime::make(const Args &... args)
+template <typename Obj, typename ... ArgsT>
+const Obj *runtime::make(const ArgsT &... args)
 // ----------------------------------------------------------------------------
 //   Make a new temporary of the given size
 // ----------------------------------------------------------------------------

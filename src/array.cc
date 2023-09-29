@@ -930,17 +930,20 @@ COMMAND_BODY(det)
 //   Implement the 'det' command
 // ----------------------------------------------------------------------------
 {
-    if (object_p obj = rt.top())
+    if (rt.args(1))
     {
-        if (array_p arr = obj->as<array>())
+        if (object_p obj = rt.top())
         {
-            if (algebraic_g det = arr->determinant())
-                if (rt.top(det))
-                    return OK;
-        }
-        else
-        {
-            rt.type_error();
+            if (array_p arr = obj->as<array>())
+            {
+                if (algebraic_g det = arr->determinant())
+                    if (rt.top(det))
+                        return OK;
+            }
+            else
+            {
+                rt.type_error();
+            }
         }
     }
 

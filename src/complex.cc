@@ -843,6 +843,8 @@ COMMAND_BODY(RealToComplex)
 //   Take two values in x and y and turn them into a complex
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
     object_g re = rt.stack(1);
     object_g im = rt.stack(0);
     if (!re || !im)
@@ -868,6 +870,8 @@ COMMAND_BODY(ComplexToReal)
 //   Take a complex value and convert it into two real values
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     object_g z = rt.top();
     if (!z)
         return ERROR;
@@ -889,6 +893,8 @@ COMMAND_BODY(ToRectangular)
 //  Convert the top-level complex to rectangular form
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     object_g x = rt.top();
     if (!x)
         return ERROR;
@@ -912,6 +918,8 @@ COMMAND_BODY(ToPolar)
 //  Convert the top-level complex to polar form
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     object_g x = rt.top();
     if (!x)
         return ERROR;

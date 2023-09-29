@@ -122,6 +122,8 @@ COMMAND_BODY(dtag)
 //   Remove the tag from an object
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     if (object_p obj = rt.top())
     {
         if (tag_p tobj = obj->as<tag>())
@@ -144,6 +146,8 @@ COMMAND_BODY(ToTag)
 //   Build a tag object from a name and object
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
     if (object_g x = rt.stack(0))
     {
         if (object_g y = rt.stack(1))
@@ -170,6 +174,8 @@ COMMAND_BODY(FromTag)
 //   Expand a tagged object into its value and tag
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     if (object_p x = rt.top())
     {
         if (tag_g tagged = x->as<tag>())

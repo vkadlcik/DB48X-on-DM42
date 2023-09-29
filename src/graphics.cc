@@ -385,6 +385,9 @@ COMMAND_BODY(Disp)
 //   - A list { x y } with the same meaning as for a complex
 //   - A list { #x #y } to give pixel-precise coordinates
 {
+    if (!rt.args(2))
+        return ERROR;
+
     if (object_g pos = rt.pop())
     {
         if (object_g todisp = rt.pop())
@@ -485,6 +488,8 @@ COMMAND_BODY(Line)
 //   Draw a line between the coordinates
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
     object_g p1 = rt.stack(1);
     object_g p2 = rt.stack(0);
     if (p1 && p2)
@@ -514,6 +519,8 @@ COMMAND_BODY(Ellipse)
 //   Draw an ellipse between the given coordinates
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
     object_g p1 = rt.stack(1);
     object_g p2 = rt.stack(0);
     if (p1 && p2)
@@ -543,6 +550,8 @@ COMMAND_BODY(Circle)
 //   Draw a circle between the given coordinates
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
     object_g co = rt.stack(1);
     object_g ro = rt.stack(0);
     if (co && ro)
@@ -580,6 +589,8 @@ COMMAND_BODY(Rect)
 //   Draw a rectangle between the given coordinates
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
     object_g p1 = rt.stack(1);
     object_g p2 = rt.stack(0);
     if (p1 && p2)
@@ -609,6 +620,8 @@ COMMAND_BODY(RRect)
 //   Draw a rounded rectangle between the given coordinates
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(3))
+        return ERROR;
     object_g p1 = rt.stack(2);
     object_g p2 = rt.stack(1);
     object_g ro = rt.stack(0);
@@ -640,6 +653,8 @@ COMMAND_BODY(ClLCD)
 //   Clear the LCD screen before drawing stuff on it
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     ui.draw_graphics();
     Screen.fill(0, 0, LCD_W, LCD_H, pattern::white);
     ui.draw_dirty(0, 0, LCD_W-1, LCD_H-1);
@@ -653,6 +668,8 @@ COMMAND_BODY(Clip)
 //   Set the clipping rectangle
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     if (object_p top = rt.pop())
     {
         if (list_p parms = top->as<list>())
@@ -690,6 +707,8 @@ COMMAND_BODY(CurrentClip)
 //   Retuyrn the current clipping rectangle
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     rect clip(Screen.clip());
     integer_g x1 = integer::make(clip.x1);
     integer_g y1 = integer::make(clip.y1);
@@ -744,6 +763,8 @@ COMMAND_BODY(Pict)
 //   Reference to the graphic display
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     rt.push(static_object(ID_Pict));
     return OK;
 }

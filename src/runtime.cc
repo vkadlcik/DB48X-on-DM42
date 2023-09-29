@@ -70,8 +70,8 @@ runtime::runtime(byte *mem, size_t size)
       Editing(),
       Scratch(),
       Stack(),
-      LastArgs(),
-      Results(),
+      Args(),
+      Undo(),
       Locals(),
       Directories(),
       Returns(),
@@ -94,7 +94,8 @@ void runtime::memory(byte *memory, size_t size)
     Returns = HighMem;                          // No return stack
     Directories = Returns - 1;                  // Make room for one path
     Locals = Directories;                       // No locals
-    LastArgs = Locals;                              // No undo
+    Args = Locals;                          // No args
+    Undo = Locals;                              // No undo stack
     Stack = Locals;                             // Empty stack
 
     // Stuff at bottom of memory
@@ -800,7 +801,7 @@ object_p runtime::top()
 //   Return the top of the runtime stack
 // ----------------------------------------------------------------------------
 {
-    if (Stack >= LastArgs)
+    if (Stack >= Args)
     {
         missing_argument_error();
         return nullptr;
@@ -816,7 +817,7 @@ bool runtime::top(object_p obj)
 {
     ASSERT(obj && "Putting a NULL object on top of stack");
 
-    if (Stack >= LastArgs)
+    if (Stack >= Args)
     {
         missing_argument_error();
         return false;
@@ -831,7 +832,7 @@ object_p runtime::pop()
 //   Pop the top-level object from the stack, or return NULL
 // ----------------------------------------------------------------------------
 {
-    if (Stack >= LastArgs)
+    if (Stack >= Args)
     {
         missing_argument_error();
         return nullptr;
@@ -929,7 +930,7 @@ bool runtime::drop(uint count)
 
 // ============================================================================
 //
-//   LastArgs and undo management
+//   Args and undo management
 //
 // ============================================================================
 
@@ -938,29 +939,26 @@ bool runtime::args(uint count)
 //   Add 'count' stack objects to the saved arguments
 // ----------------------------------------------------------------------------
 {
-    size_t undo = Locals - LastArgs;
-    if (count > undo)
+    size_t nstk = depth();
+    if (count > nstk)
     {
-        size_t sz = (count - undo) * sizeof(object_p);
+        missing_argument_error();
+        return false;
+    }
+    size_t nargs = args();
+    if (count > nargs)
+    {
+        size_t sz = (count - nargs) * sizeof(object_p);
         if (available(sz) < sz)
             return false;
     }
 
-    memmove(Stack + undo - count, Stack, depth() * sizeof(object_p));
-    Stack = Stack + undo - count;
-    LastArgs = LastArgs + undo - count;
-    memmove(LastArgs, Stack, count * sizeof(object_p));
+    memmove(Stack + nargs - count, Stack, nstk * sizeof(object_p));
+    Stack = Stack + nargs - count;
+    Args = Args + nargs - count;
+    memmove(Args, Stack, count * sizeof(object_p));
 
     return true;
-}
-
-
-void runtime::results(uint count)
-// ----------------------------------------------------------------------------
-//   Record how many results we have
-// ----------------------------------------------------------------------------
-{
-    Results = count;
 }
 
 
@@ -969,13 +967,38 @@ bool runtime::last()
 //   Push back the last arguments on the stack
 // ----------------------------------------------------------------------------
 {
-    size_t count = args();
-    size_t sz = count * sizeof(object_p);
+    size_t nargs = args();
+    size_t sz = nargs * sizeof(object_p);
     if (available(sz) < sz)
         return false;
 
-    Stack -= count;
-    memmove(Stack, LastArgs, count * sizeof(object_p));
+    Stack -= nargs;
+    memmove(Stack, Args, nargs * sizeof(object_p));
+    return true;
+}
+
+
+bool runtime::save()
+// ----------------------------------------------------------------------------
+//   Save the stack in the undo area
+// ----------------------------------------------------------------------------
+{
+    size_t scount = depth();
+    size_t ucount = saved();
+    if (scount > ucount)
+    {
+        size_t sz = (scount - ucount) * sizeof(object_p);
+        if (available(sz) < sz)
+            return false;
+    }
+
+    object_p *ns = Stack + ucount - scount;
+    memmove(ns, Stack, (Undo - Stack) * sizeof(object_p));
+    Stack = ns;
+    Args = Args + ucount - scount;
+    Undo = Undo + ucount - scount;
+    memmove(Undo, Stack, depth() * sizeof(object_p));
+
     return true;
 }
 
@@ -985,24 +1008,17 @@ bool runtime::undo()
 //   Revert the stack to what it was before
 // ----------------------------------------------------------------------------
 {
-    size_t nargs = args();
-    size_t added = Results;
-    if (!nargs && !added)
-        return true;
-
-    if (nargs > added)
+    size_t ucount = saved();
+    size_t scount = depth();
+    if (ucount > scount)
     {
-        size_t sz = (nargs - added) * sizeof(object_p);
+        size_t sz = (ucount - scount) * sizeof(object_p);
         if (available(sz) < sz)
             return false;
     }
 
-    Stack = Stack + added - nargs;
-    memmove(Stack, LastArgs, nargs * sizeof(object_p));
-    memmove(Stack + nargs, Stack, depth() * sizeof(object_p));
-    Stack += nargs;
-    LastArgs += nargs;
-    Results = 0;
+    Stack = Stack + scount - ucount;
+    memmove(Stack, Undo, ucount * sizeof(object_p));
 
     return true;
 }
@@ -1077,7 +1093,8 @@ bool runtime::locals(size_t count)
 
     // Move pointers down
     Stack -= count;
-    LastArgs -= count;
+    Args -= count;
+    Undo -= count;
     Locals -= count;
     size_t moving = Locals - Stack;
     for (size_t i = 0; i < moving; i++)
@@ -1106,7 +1123,8 @@ bool runtime::unlocals(size_t count)
     // Move pointers up
     object_p *oldp = Locals;
     Stack += count;
-    LastArgs += count;
+    Args += count;
+    Undo += count;
     Locals += count;
     object_p *newp = Locals;
     size_t moving = Locals - Stack;
@@ -1135,7 +1153,8 @@ bool runtime::enter(directory_p dir)
 
     // Move pointers down
     Stack--;
-    LastArgs--;
+    Args--;
+    Undo--;
     Locals--;
     Directories--;
 
@@ -1164,7 +1183,8 @@ bool runtime::updir(size_t count)
     // Move pointers up
     object_p *oldp = Directories;
     Stack += count;
-    LastArgs += count;
+    Args += count;
+    Undo += count;
     Locals += count;
     Directories += count;
 

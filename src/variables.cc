@@ -405,6 +405,9 @@ COMMAND_BODY(Sto)
 //   Store a global variable into current directory
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
+
     directory *dir = rt.variables(0);
     if (!dir)
     {
@@ -449,6 +452,9 @@ COMMAND_BODY(Rcl)
 //   Recall a global variable from current directory
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
+
     object_p x = rt.stack(0);
     if (!x)
         return ERROR;
@@ -486,6 +492,8 @@ COMMAND_BODY(Purge)
 //   Purge a global variable from current directory
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     object_p x = rt.stack(0);
     if (!x)
         return ERROR;
@@ -516,6 +524,8 @@ COMMAND_BODY(PurgeAll)
 //   Purge a global variable from current directory and enclosing directories
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     object_p x = rt.stack(0);
     if (!x)
         return ERROR;
@@ -542,6 +552,8 @@ COMMAND_BODY(Mem)
 // ----------------------------------------------------------------------------
 //    The HP48 manual specifies that mem performs garbage collection
 {
+    if (!rt.args(0))
+        return ERROR;
     rt.gc();
     run<FreeMemory>();
     return OK;
@@ -553,9 +565,14 @@ COMMAND_BODY(GarbageCollect)
 //   Run the garbage collector
 // ----------------------------------------------------------------------------
 {
-    size_t saved = rt.gc();
-    integer_p result = rt.make<integer>(ID_integer, saved);
-    return rt.push(result) ? OK : ERROR;
+    if (rt.args(0))
+    {
+        size_t saved = rt.gc();
+        integer_p result = rt.make<integer>(ID_integer, saved);
+        if (rt.push(result))
+            return OK;
+    }
+    return  ERROR;
 }
 
 
@@ -564,9 +581,14 @@ COMMAND_BODY(FreeMemory)
 //   Return amount of free memory (available without garbage collection)
 // ----------------------------------------------------------------------------
 {
-    size_t available = rt.available();
-    integer_p result = rt.make<integer>(ID_integer, available);
-    return rt.push(result) ? OK : ERROR;
+    if (rt.args(0))
+    {
+        size_t available = rt.available();
+        integer_p result = rt.make<integer>(ID_integer, available);
+        if (rt.push(result))
+            return OK;
+    }
+    return ERROR;
 }
 
 
@@ -575,9 +597,14 @@ COMMAND_BODY(SystemMemory)
 //   Return the amount of memory that is seen as free by the system
 // ----------------------------------------------------------------------------
 {
-    size_t mem = sys_free_mem();
-    integer_p result = rt.make<integer>(ID_integer, mem);
-    return rt.push(result) ? OK : ERROR;
+    if (rt.args(0))
+    {
+        size_t mem = sys_free_mem();
+        integer_p result = rt.make<integer>(ID_integer, mem);
+        if (rt.push(result))
+            return OK;
+    }
+    return ERROR;
 }
 
 
@@ -586,6 +613,8 @@ COMMAND_BODY(home)
 //   Return the home directory
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     rt.updir(~0U);
     return OK;
 }
@@ -596,9 +625,12 @@ COMMAND_BODY(CurrentDirectory)
 //   Return the current directory as an object
 // ----------------------------------------------------------------------------
 {
-    directory_p dir = rt.variables(0);
-    if (rt.push(dir))
-        return OK;
+    if (rt.args(0))
+    {
+        directory_p dir = rt.variables(0);
+        if (rt.push(dir))
+            return OK;
+    }
     return ERROR;
 }
 
@@ -652,9 +684,10 @@ COMMAND_BODY(path)
 //   Build a path with the list of paths
 // ----------------------------------------------------------------------------
 {
-    if (list_p list = directory::path())
-        if (rt.push(list))
-            return OK;
+    if (rt.args(0))
+        if (list_p list = directory::path())
+            if (rt.push(list))
+                return OK;
 
     return ERROR;
 }
@@ -665,6 +698,9 @@ COMMAND_BODY(crdir)
 //   Create a directory
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
+
     directory *dir = rt.variables(0);
     if (!dir)
     {
@@ -699,6 +735,8 @@ COMMAND_BODY(updir)
 //   Go up one directory
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     rt.updir();
     return OK;
 }

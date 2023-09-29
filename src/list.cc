@@ -415,11 +415,8 @@ COMMAND_BODY(ToList)
     uint32_t depth = uint32_arg();
     if (!rt.error())
     {
-        if (rt.depth() < depth + 1)
-        {
-            rt.missing_argument_error();
+        if (!rt.args(depth + 1))
             return ERROR;
-        }
 
         if (rt.pop())
         {
@@ -450,6 +447,9 @@ COMMAND_BODY(Get)
 //   Get an element in a list
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
+
     // Check we have an object at level 2
     if (object_p items = rt.stack(1))
     {

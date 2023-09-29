@@ -226,16 +226,19 @@ COMMAND_BODY(Modes)
 //   Return a program that restores the current modes
 // ----------------------------------------------------------------------------
 {
-    renderer modes;
-    modes.put("«");
-    Settings.save(modes);
-    modes.put("»");
+    if (rt.args(0))
+    {
+        renderer modes;
+        modes.put("«");
+        Settings.save(modes);
+        modes.put("»");
 
-    size_t size = modes.size();
-    gcutf8 code = modes.text();
-    if (object_g program = object::parse(code, size))
-        if (rt.push(program))
-            return OK;
+        size_t size = modes.size();
+        gcutf8 code = modes.text();
+        if (object_g program = object::parse(code, size))
+            if (rt.push(program))
+                return OK;
+    }
     return ERROR;
 }
 
@@ -245,6 +248,8 @@ COMMAND_BODY(ResetModes)
 //   Reset the default modes
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     Settings = settings();
     return OK;
 }
@@ -347,26 +352,29 @@ static uint integer_arg(uint min, uint max, bool base = false)
 //   Get an integer argument from the stack
 // ----------------------------------------------------------------------------
 {
-    if (object_p arg = rt.top())
+    if (rt.args(1))
     {
-        if (integer_p argint = arg->as<integer>())
+        if (object_p arg = rt.top())
         {
-            uint value = argint->value<uint>();
-            if (value < min || value > max)
+            if (integer_p argint = arg->as<integer>())
             {
-                if (value < min)        value = min;
-                if (value > max)        value = max;
-                if (base)
-                    rt.invalid_base_error();
-                else
-                    rt.domain_error();
+                uint value = argint->value<uint>();
+                if (value < min || value > max)
+                {
+                    if (value < min)        value = min;
+                    if (value > max)        value = max;
+                    if (base)
+                        rt.invalid_base_error();
+                    else
+                        rt.domain_error();
+                }
+                rt.pop();
+                return value;
             }
-            rt.pop();
-            return value;
-        }
-        else
-        {
-            rt.type_error();
+            else
+            {
+                rt.type_error();
+            }
         }
     }
     return min;
@@ -791,9 +799,10 @@ COMMAND_BODY(rcws)
 //  Recall the current wordsize
 // ----------------------------------------------------------------------------
 {
-    if (object_g ws = integer::make(Settings.wordsize))
-        if (rt.push(ws))
-            return OK;
+    if (rt.args(0))
+        if (object_g ws = integer::make(Settings.wordsize))
+            if (rt.push(ws))
+                return OK;
     return ERROR;
 }
 

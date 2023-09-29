@@ -317,6 +317,8 @@ object::result function::evaluate(algebraic_fn op, bool mat)
 //   Perform the operation from the stack, using a C++ operation
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     if (object_p top = rt.top())
     {
         id topty = top->type();
@@ -579,24 +581,27 @@ FUNCTION_BODY(cubed)
 
 COMMAND_BODY(xroot)
 // ----------------------------------------------------------------------------
-//   Cubed is implemented as two multiplications
+//   Compute the x-th root
 // ----------------------------------------------------------------------------
 {
-    if (object_p x = rt.pop())
+    if (rt.args(2))
     {
-        if (object_p y = rt.top())
+        if (object_p x = rt.pop())
         {
-            algebraic_g xa = x->as_algebraic();
-            algebraic_g ya = y->as_algebraic();
-            if (!xa.Safe() || !ya.Safe())
+            if (object_p y = rt.top())
             {
-                rt.type_error();
-            }
-            else
-            {
-                xa = pow(ya, integer::make(1) / xa);
-                if (xa.Safe() && rt.top(xa))
-                    return OK;
+                algebraic_g xa = x->as_algebraic();
+                algebraic_g ya = y->as_algebraic();
+                if (!xa.Safe() || !ya.Safe())
+                {
+                    rt.type_error();
+                }
+                else
+                {
+                    xa = pow(ya, integer::make(1) / xa);
+                    if (xa.Safe() && rt.top(xa))
+                        return OK;
+                }
             }
         }
     }

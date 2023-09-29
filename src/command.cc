@@ -242,8 +242,9 @@ COMMAND_BODY(Eval)
 //   Evaluate an object
 // ----------------------------------------------------------------------------
 {
-    if (object_p x = rt.pop())
-        return x->execute();
+    if (rt.args(1))
+        if (object_p x = rt.pop())
+            return x->execute();
     return ERROR;
 }
 
@@ -252,10 +253,11 @@ COMMAND_BODY(ToText)
 //   Convert an object to text
 // ----------------------------------------------------------------------------
 {
-    if (object_g obj = rt.top())
-        if (object_g txt = obj->as_text(false, false))
-            if (rt.top(txt))
-                return OK;
+    if (rt.args(1))
+        if (object_g obj = rt.top())
+            if (object_g txt = obj->as_text(false, false))
+                if (rt.top(txt))
+                    return OK;
     return ERROR;
 }
 
@@ -305,19 +307,20 @@ MARKER_BODY(Unimplemented)
 }
 
 
-
 COMMAND_BODY(Ticks)
 // ----------------------------------------------------------------------------
 //   Return number of ticks
 // ----------------------------------------------------------------------------
 {
-    uint ticks = sys_current_ms();
-    if (integer_p ti = rt.make<integer>(ID_integer, ticks))
-        if (rt.push(ti))
-            return OK;
+    if (rt.args(0))
+    {
+        uint ticks = sys_current_ms();
+        if (integer_p ti = rt.make<integer>(ID_integer, ticks))
+            if (rt.push(ti))
+                return OK;
+    }
     return ERROR;
 }
-
 
 
 COMMAND_BODY(Wait)
@@ -325,6 +328,8 @@ COMMAND_BODY(Wait)
 //   Wait the specified amount of seconds
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     if (object_p obj = rt.top())
     {
         if (algebraic_g wtime = obj->as_algebraic())
@@ -381,23 +386,26 @@ COMMAND_BODY(Bytes)
 //   Return the bytes and a binary represenetation of the object
 // ----------------------------------------------------------------------------
 {
-    if (object_p top = rt.top())
+    if (rt.args(1))
     {
-        size_t size = top->size();
-        size_t maxsize = (Settings.wordsize + 7) / 8;
-        size_t hashsize = size > maxsize ? maxsize : size;
-        gcbytes bytes = byte_p(top);
+        if (object_p top = rt.top())
+        {
+            size_t size = top->size();
+            size_t maxsize = (Settings.wordsize + 7) / 8;
+            size_t hashsize = size > maxsize ? maxsize : size;
+            gcbytes bytes = byte_p(top);
 #if CONFIG_FIXED_BASED_OBJECTS
-        // Force base 16 if we have that option
-        const id type = ID_hex_bignum;
+            // Force base 16 if we have that option
+            const id type = ID_hex_bignum;
 #else // !CONFIG_FIXED_BASED_OBJECTS
-        const id type = ID_based_bignum;
+            const id type = ID_based_bignum;
 #endif // CONFIG_FIXED_BASED_OBJECTS
-        if (bignum_p bin = rt.make<bignum>(type, bytes, hashsize))
-            if (rt.top(bin))
-                if (rt.push(integer::make(size)))
-                    return OK;
+            if (bignum_p bin = rt.make<bignum>(type, bytes, hashsize))
+                if (rt.top(bin))
+                    if (rt.push(integer::make(size)))
+                        return OK;
 
+        }
     }
     return ERROR;
 }
@@ -409,10 +417,11 @@ COMMAND_BODY(Type)
 //   Return the type of the top of stack as a numerical value
 // ----------------------------------------------------------------------------
 {
-    if (object_p top = rt.top())
-        if (integer_p type = integer::make(uint(top->type())))
-            if (rt.top(type))
-                return OK;
+    if (rt.args(1))
+        if (object_p top = rt.top())
+            if (integer_p type = integer::make(uint(top->type())))
+                if (rt.top(type))
+                    return OK;
     return ERROR;
 }
 
@@ -422,14 +431,13 @@ COMMAND_BODY(TypeName)
 //   Return the type of the top of stack as text
 // ----------------------------------------------------------------------------
 {
-    if (object_p top = rt.top())
-        if (text_p type = text::make(top->fancy()))
-            if (rt.top(type))
-                return OK;
+    if (rt.args(1))
+        if (object_p top = rt.top())
+            if (text_p type = text::make(top->fancy()))
+                if (rt.top(type))
+                    return OK;
     return ERROR;
 }
-
-
 
 
 COMMAND_BODY(Off)
@@ -437,6 +445,8 @@ COMMAND_BODY(Off)
 //   Switch the calculator off
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     power_off();
     return OK;
 }
@@ -447,6 +457,8 @@ COMMAND_BODY(SaveState)
 //   Save the system state to disk
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     save_system_state();
     return OK;
 }
@@ -457,6 +469,8 @@ COMMAND_BODY(SystemSetup)
 //   Select the system menu
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     system_setup();
     return OK;
 }
@@ -474,9 +488,10 @@ COMMAND_BODY(Version)
         "and a tribute to\n"
         "Bill Hewlett and Dave Packard\n"
         "© 2022-2023 Christophe de Dinechin";
-    if (text_g version = text::make(version_text))
-        if (rt.push(object_p(version)))
-            return OK;
+    if (rt.args(0))
+        if (text_g version = text::make(version_text))
+            if (rt.push(object_p(version)))
+                return OK;
     return ERROR;
 }
 
@@ -491,6 +506,8 @@ COMMAND_BODY(Help)
 
     if (rt.depth())
     {
+        if (!rt.args(10))
+            return ERROR;
         if (object_p top = rt.top())
         {
             if (text_p index = top->as<text>())
@@ -541,6 +558,11 @@ COMMAND_BODY(Help)
             }
         }
     }
+    else
+    {
+        if (!rt.args(0))
+            return ERROR;
+    }
 
     ui.load_help(topic, length);
     return OK;
@@ -570,6 +592,8 @@ COMMAND_BODY(ToolsMenu)
     }
     else if (rt.depth())
     {
+        if (!rt.args(1))
+            return ERROR;
         if (object_p top = rt.top())
         {
             switch(top->type())
@@ -607,6 +631,10 @@ COMMAND_BODY(ToolsMenu)
             }
         }
     }
+    else if (!rt.args(0))
+    {
+        return ERROR;
+    }
 
     object_p obj = command::static_object(menu);
     return obj->execute();
@@ -618,6 +646,8 @@ COMMAND_BODY(LastMenu)
 //   Go back one entry in the menu history
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     ui.menu_pop();
     return OK;
 }

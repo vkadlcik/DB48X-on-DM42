@@ -343,8 +343,9 @@ COMMAND_BODY(True)
 //   Evaluate as self
 // ----------------------------------------------------------------------------
 {
-    if (rt.push(command::static_object(ID_True)))
-        return OK;
+    if (rt.args(0))
+        if (rt.push(command::static_object(ID_True)))
+            return OK;
     return ERROR;
 }
 
@@ -353,8 +354,9 @@ COMMAND_BODY(False)
 //   Evaluate as self
 // ----------------------------------------------------------------------------
 {
-    if (rt.push(command::static_object(ID_False)))
-        return OK;
+    if (rt.args(0))
+        if (rt.push(command::static_object(ID_False)))
+            return OK;
     return ERROR;
 }
 

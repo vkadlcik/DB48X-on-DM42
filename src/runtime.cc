@@ -70,7 +70,8 @@ runtime::runtime(byte *mem, size_t size)
       Editing(),
       Scratch(),
       Stack(),
-      Undos(),
+      LastArgs(),
+      Results(),
       Locals(),
       Directories(),
       Returns(),
@@ -93,7 +94,7 @@ void runtime::memory(byte *memory, size_t size)
     Returns = HighMem;                          // No return stack
     Directories = Returns - 1;                  // Make room for one path
     Locals = Directories;                       // No locals
-    Undos = Locals;                             // No undos
+    LastArgs = Locals;                              // No undo
     Stack = Locals;                             // Empty stack
 
     // Stuff at bottom of memory
@@ -799,7 +800,7 @@ object_p runtime::top()
 //   Return the top of the runtime stack
 // ----------------------------------------------------------------------------
 {
-    if (Stack >= Undos)
+    if (Stack >= LastArgs)
     {
         missing_argument_error();
         return nullptr;
@@ -815,7 +816,7 @@ bool runtime::top(object_p obj)
 {
     ASSERT(obj && "Putting a NULL object on top of stack");
 
-    if (Stack >= Undos)
+    if (Stack >= LastArgs)
     {
         missing_argument_error();
         return false;
@@ -830,7 +831,7 @@ object_p runtime::pop()
 //   Pop the top-level object from the stack, or return NULL
 // ----------------------------------------------------------------------------
 {
-    if (Stack >= Undos)
+    if (Stack >= LastArgs)
     {
         missing_argument_error();
         return nullptr;
@@ -928,6 +929,100 @@ bool runtime::drop(uint count)
 
 // ============================================================================
 //
+//   LastArgs and undo management
+//
+// ============================================================================
+
+bool runtime::args(uint count)
+// ----------------------------------------------------------------------------
+//   Add 'count' stack objects to the saved arguments
+// ----------------------------------------------------------------------------
+{
+    size_t undo = Locals - LastArgs;
+    if (count > undo)
+    {
+        size_t sz = (count - undo) * sizeof(object_p);
+        if (available(sz) < sz)
+            return false;
+    }
+
+    memmove(Stack + undo - count, Stack, depth() * sizeof(object_p));
+    Stack = Stack + undo - count;
+    LastArgs = LastArgs + undo - count;
+    memmove(LastArgs, Stack, count * sizeof(object_p));
+
+    return true;
+}
+
+
+void runtime::results(uint count)
+// ----------------------------------------------------------------------------
+//   Record how many results we have
+// ----------------------------------------------------------------------------
+{
+    Results = count;
+}
+
+
+bool runtime::last()
+// ----------------------------------------------------------------------------
+//   Push back the last arguments on the stack
+// ----------------------------------------------------------------------------
+{
+    size_t count = args();
+    size_t sz = count * sizeof(object_p);
+    if (available(sz) < sz)
+        return false;
+
+    Stack -= count;
+    memmove(Stack, LastArgs, count * sizeof(object_p));
+    return true;
+}
+
+
+bool runtime::undo()
+// ----------------------------------------------------------------------------
+//   Revert the stack to what it was before
+// ----------------------------------------------------------------------------
+{
+    size_t nargs = args();
+    size_t added = Results;
+    if (!nargs && !added)
+        return true;
+
+    if (nargs > added)
+    {
+        size_t sz = (nargs - added) * sizeof(object_p);
+        if (available(sz) < sz)
+            return false;
+    }
+
+    Stack = Stack + added - nargs;
+    memmove(Stack, LastArgs, nargs * sizeof(object_p));
+    memmove(Stack + nargs, Stack, depth() * sizeof(object_p));
+    Stack += nargs;
+    LastArgs += nargs;
+    Results = 0;
+
+    return true;
+}
+
+
+runtime &runtime::command(utf8 cmd)
+// ----------------------------------------------------------------------------
+//   Set the command name and initialize the undo setup
+// ----------------------------------------------------------------------------
+{
+    ErrorCommand = cmd;
+    return *this;
+}
+
+
+
+
+
+// ============================================================================
+//
 //   Local variables
 //
 // ============================================================================
@@ -982,7 +1077,7 @@ bool runtime::locals(size_t count)
 
     // Move pointers down
     Stack -= count;
-    Undos -= count;
+    LastArgs -= count;
     Locals -= count;
     size_t moving = Locals - Stack;
     for (size_t i = 0; i < moving; i++)
@@ -1011,7 +1106,7 @@ bool runtime::unlocals(size_t count)
     // Move pointers up
     object_p *oldp = Locals;
     Stack += count;
-    Undos += count;
+    LastArgs += count;
     Locals += count;
     object_p *newp = Locals;
     size_t moving = Locals - Stack;
@@ -1040,7 +1135,7 @@ bool runtime::enter(directory_p dir)
 
     // Move pointers down
     Stack--;
-    Undos--;
+    LastArgs--;
     Locals--;
     Directories--;
 
@@ -1069,7 +1164,7 @@ bool runtime::updir(size_t count)
     // Move pointers up
     object_p *oldp = Directories;
     Stack += count;
-    Undos += count;
+    LastArgs += count;
     Locals += count;
     Directories += count;
 

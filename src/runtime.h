@@ -43,10 +43,8 @@
 //        [...]
 //        [Local 0]
 //      Locals
-//        [undo N]
-//        [...]
-//        [undo 1, a list captured from the stack]
-//      Undos
+//        [Arguments to last command]
+//      LastArgs
 //        [User stack]
 //      Stack        Top of stack
 //        .
@@ -532,9 +530,44 @@ struct runtime
     //   Return the stack depth
     // ------------------------------------------------------------------------
     {
-        return Undos - Stack;
+        return LastArgs - Stack;
     }
 
+
+
+    // ========================================================================
+    //
+    //   Last Args and Undo
+    //
+    // ========================================================================
+
+    bool args(uint count);
+    // ------------------------------------------------------------------------
+    //   Indicate how many arguments we need to save in last args
+    // ------------------------------------------------------------------------
+
+    void results(uint count);
+    // ------------------------------------------------------------------------
+    //   Indicate how many results we got from a command
+    // ------------------------------------------------------------------------
+
+    bool last();
+    // ------------------------------------------------------------------------
+    //   Push back last arguments
+    // ------------------------------------------------------------------------
+
+    bool undo();
+    // ------------------------------------------------------------------------
+    //   Undo and return earlier stack
+    // ------------------------------------------------------------------------
+
+    size_t args() const
+    // ------------------------------------------------------------------------
+    //   Return the number of args in the LastArgs area
+    // ------------------------------------------------------------------------
+    {
+        return Locals - LastArgs;
+    }
 
 
     // ========================================================================
@@ -570,6 +603,7 @@ struct runtime
     {
         return Directories - Locals;
     }
+
 
 
     // ========================================================================
@@ -680,14 +714,10 @@ struct runtime
         return ErrorSource;
     }
 
-    runtime &command(utf8 cmd)
+    runtime &command(utf8 cmd);
     // ------------------------------------------------------------------------
     //   Set the faulting command
     // ------------------------------------------------------------------------
-    {
-        ErrorCommand = cmd;
-        return *this;
-    }
 
     runtime &command(cstring cmd)
     // ------------------------------------------------------------------------
@@ -748,8 +778,9 @@ protected:
     size_t    Editing;      // Text editor (utf8 encoded)
     size_t    Scratch;      // Scratch pad (may be invalid objects)
     object_p *Stack;        // Top of user stack
-    object_p *Undos;        // Start of Undos area, end of stack
-    object_p *Locals;       // Start of locals, end of undos
+    object_p *LastArgs;     // Start of save area for Undo, end of stack
+    size_t    Results;      // Number of results pushed by last command
+    object_p *Locals;       // Start of locals, end of undo
     object_p *Directories;  // Start of directories, end of returns
     object_p *Returns;      // Start of return stack, end of locals
     object_p *HighMem;      // End of available memory
@@ -771,7 +802,7 @@ using gcutf8    = gcp<byte>;
 using gcmutf8   = gcm<byte>;
 
 using object_g  = gcp<object>;
-typedef const object_g &object_r;
+using object_r  = const object_g &;
 
 #define GCP(T)                                  \
     struct T;                                   \

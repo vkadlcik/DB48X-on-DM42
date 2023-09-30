@@ -145,6 +145,8 @@ COMMAND_DECLARE(SaveState);     // Save state to disk
 COMMAND_DECLARE(SystemSetup);   // Select the system menu
 COMMAND_DECLARE(Version);       // Return a version string
 COMMAND_DECLARE(Help);          // Activate online help
+COMMAND_DECLARE(LastArg);       // Return last arguments
+COMMAND_DECLARE(Undo);          // Revert to the Undo stack
 COMMAND_DECLARE(ToolsMenu);     // Automatic selection of the right menu
 COMMAND_DECLARE(LastMenu);      // Return to
 COMMAND_DECLARE(ToList);        // Build a list from stack

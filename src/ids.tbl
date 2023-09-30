@@ -79,7 +79,7 @@ FLAGS(is_complex,       rectangular,    polar)
 FLAGS(is_command,       Drop,           Unimplemented)
 FLAGS(is_symbolic,      local,          equation,       pi, ImaginaryUnit)
 FLAGS(is_algebraic,     add,            ToFraction)
-FLAGS(is_immediate,     MainMenu,       LastMenu)
+FLAGS(is_immediate,     MainMenu,       Unimplemented)
 
 
 
@@ -280,6 +280,7 @@ CMD(ForStep)
 //
 // ============================================================================
 
+NAMED(LastArg, "LastArguments")
 CMD(Depth)
 NAMED(ToList, "→List")
 CMD(Get)
@@ -545,6 +546,7 @@ NAMED(Off, "PowerOff")
 CMD(SaveState)
 CMD(SystemSetup)
 CMD(Help)
+CMD(Undo)
 
 CMD(Unimplemented)
 

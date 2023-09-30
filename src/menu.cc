@@ -798,8 +798,8 @@ MENU(StackMenu,
      ID_RollD,
 
      ID_Depth,
-     "LastStk", ID_Unimplemented,
-     "LastArg", ID_Unimplemented,
+     "LastStk", ID_Undo,
+     "LastArg", ID_LastArg,
      "ClrStk",  ID_Unimplemented,
      "FillStk", ID_Unimplemented,
 
@@ -948,12 +948,10 @@ MENU(LastThingsMenu,
 // ----------------------------------------------------------------------------
 //   Menu with the last things
 // ----------------------------------------------------------------------------
-     "Arg",     ID_Unimplemented,
-     "Stack",   ID_Unimplemented,
+     "Arg",     ID_LastArg,
+     "Stack",   ID_Undo,
      "Menu",    ID_LastMenu,
-     "Cmd",     ID_Unimplemented,
-     "Undo",    ID_Unimplemented,
-     "Redo",    ID_Unimplemented);
+     "Cmd",     ID_Unimplemented);
 
 MENU(CharsMenu,
 // ----------------------------------------------------------------------------

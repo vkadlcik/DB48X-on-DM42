@@ -302,6 +302,7 @@ bool user_interface::end_edit()
                 // We successfully parsed the line
                 clear_editor();
                 this->editing = nullptr;
+                rt.save();
                 cmds->execute();
             }
             else
@@ -3560,7 +3561,8 @@ bool user_interface::handle_functions(int key)
     if (!key)
         return false;
 
-    record(user_interface, "Handle function for key %d (plane %d) ", key, shift_plane());
+    record(user_interface,
+           "Handle function for key %d (plane %d) ", key, shift_plane());
     if (object_p obj = object_for_key(key))
     {
         evaluating = key;
@@ -3610,6 +3612,8 @@ bool user_interface::handle_functions(int key)
 
         }
         draw_busy_cursor();
+        if (!imm)
+            rt.save();
         obj->execute();
         draw_idle();
         dirtyStack = true;

@@ -57,7 +57,7 @@ all: $(TARGET).$(PGM) help/$(TARGET).md
 
 dm32:	dm32-all
 dm32-%:
-	$(MAKE) PLATFORM=dmcp SDK=dmcp5/dmcp PGM=pg5 VARIANT=DM32 $*
+	$(MAKE) PLATFORM=dmcp SDK=dmcp5/dmcp PGM=pg5 VARIANT=DM32 TARGET=DB50X $*
 
 # installation steps
 install: install-pgm install-qspi install-help
@@ -102,8 +102,8 @@ sim/gcc111libbid.a: sim/gcc111libbid-$(shell uname)-$(shell uname -m).a
 	cp $< $@
 
 dist: all
-	mv $(BUILD)/$(TARGET)_qspi.bin  .
-	tar cvfz v$(VERSION).tgz $(TARGET).$(PGM) $(TARGET)_qspi.bin \
+	cp $(BUILD)/$(TARGET)_qspi.bin  .
+	tar cvfz $(TARGET)-v$(VERSION).tgz $(TARGET).$(PGM) $(TARGET)_qspi.bin \
 		help/*.md STATE/*.48S
 	@echo "# Distributing $(VERSION)"
 

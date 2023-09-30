@@ -3,7 +3,7 @@
 ######################################
 TARGET = DB48X
 PLATFORM = dmcp
-VARIANT = DM42
+VARIANT = dm42
 SDK = dmcp/dmcp
 PGM = pgm
 
@@ -57,7 +57,7 @@ all: $(TARGET).$(PGM) help/$(TARGET).md
 
 dm32:	dm32-all
 dm32-%:
-	$(MAKE) PLATFORM=dmcp SDK=dmcp5/dmcp PGM=pg5 VARIANT=DM32 TARGET=DB50X $*
+	$(MAKE) PLATFORM=dmcp SDK=dmcp5/dmcp PGM=pg5 VARIANT=dm32 TARGET=DB50X $*
 
 # installation steps
 install: install-pgm install-qspi install-help
@@ -150,9 +150,7 @@ ASM_SOURCES = $(SDK)/startup_pgm.s
 #######################################
 
 # Includes
-C_INCLUDES += $(C_INCLUDES_$(VARIANT)) -Isrc/$(PLATFORM) -Isrc -Iinc
-C_INCLUDES_DM42 = -Isrc/dm42
-C_INCLUDES_DM32 = -Isrc/dm32
+C_INCLUDES += -Isrc/$(VARIANT) -Isrc/$(PLATFORM) -Isrc -Iinc
 
 # C sources
 C_SOURCES +=
@@ -237,8 +235,8 @@ DEFINES_small=RELEASE
 DEFINES_fast=RELEASE
 DEFINES_faster=RELEASE
 DEFINES_fastes=RELEASE
-DEFINES_DM32 = DM32
-DEFINES_DM42 = DM42
+DEFINES_dm32 = DM32
+DEFINES_dm42 = DM42
 
 C_DEFS += $(DEFINES:%=-D%)
 
@@ -285,8 +283,8 @@ DBGFLAGS_debug = -g
 
 CFLAGS_debug += -O0 -DDEBUG
 CFLAGS_release += $(CFLAGS_release_$(VARIANT))
-CFLAGS_release_DM42 = -Os
-CFLAGS_release_DM32 = -O2
+CFLAGS_release_dm42 = -Os
+CFLAGS_release_dm32 = -O2
 CFLAGS_small += -Os
 CFLAGS_fast += -O2
 CFLAGS_faster += -O3
@@ -344,7 +342,7 @@ $(TARGET).$(PGM): $(BUILD)/$(TARGET).elf Makefile $(CRCFIX)
 	$(OBJCOPY) --only-section   .qspi -O binary  $<  $(QSPI)
 	$(OBJCOPY) --only-section   .qspi -O ihex    $<  $(QSPI:.bin=.hex)
 	$(TOOLS)/adjust_crc $(CRCFIX) $(QSPI)
-	$(TOOLS)/check_qspi_crc $(TARGET) $(BUILD)/$(TARGET)_qspi.bin src/qspi_crc.h || ( $(MAKE) clean && exit 1)
+	$(TOOLS)/check_qspi_crc $(TARGET) $(BUILD)/$(TARGET)_qspi.bin src/$(VARIANT)/qspi_crc.h || ( rm -rf build/$(VARIANT) && exit 1)
 	$(TOOLS)/add_pgm_chsum $(BUILD)/$(TARGET)_flash.bin $@
 	$(SIZE) $<
 	wc -c $@

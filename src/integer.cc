@@ -52,6 +52,15 @@ SIZE_BODY(integer)
 }
 
 
+HELP_BODY(integer)
+// ----------------------------------------------------------------------------
+//   Help topic for integers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Integers");
+}
+
+
 PARSE_BODY(integer)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an integer
@@ -455,6 +464,15 @@ RENDER_BODY(integer)
 
 
 template <>
+HELP_BODY(neg_integer)
+// ------------------------------------------------------------------------
+//   Help topic for negative integers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Integers");
+}
+
+template <>
 RENDER_BODY(neg_integer)
 // ----------------------------------------------------------------------------
 //   Render the negative integer value into the given string buffer
@@ -500,6 +518,43 @@ RENDER_BODY(bin_integer)
 {
     return render_num(r, o, 2, "#b");
 }
+
+template <>
+HELP_BODY(hex_integer)
+// ----------------------------------------------------------------------------
+//   Help topic for based numbers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Based numbers");
+}
+
+template <>
+HELP_BODY(oct_integer)
+// ----------------------------------------------------------------------------
+//   Help topic for based numbers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Based numbers");
+}
+
+template <>
+HELP_BODY(dec_integer)
+// ----------------------------------------------------------------------------
+//   Help topic for based numbers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Based numbers");
+}
+
+template <>
+HELP_BODY(bin_integer)
+// ----------------------------------------------------------------------------
+//   Help topic for based numbers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Based numbers");
+}
+
 #endif // CONFIG_FIXED_BASED_OBJECTS
 
 
@@ -510,6 +565,16 @@ RENDER_BODY(based_integer)
 // ----------------------------------------------------------------------------
 {
     return render_num(r, o, Settings.base, "#");
+}
+
+
+template <>
+HELP_BODY(based_integer)
+// ----------------------------------------------------------------------------
+//   Help topic for based numbers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Based numbers");
 }
 
 

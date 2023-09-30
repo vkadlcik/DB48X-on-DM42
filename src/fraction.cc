@@ -63,6 +63,15 @@ SIZE_BODY(fraction)
 }
 
 
+HELP_BODY(fraction)
+// ----------------------------------------------------------------------------
+//   Help topic for fractions
+// ----------------------------------------------------------------------------
+{
+    return utf8("Fractions");
+}
+
+
 EVAL_BODY(fraction)
 // ----------------------------------------------------------------------------
 //   Evaluate either as a fraction or decimal

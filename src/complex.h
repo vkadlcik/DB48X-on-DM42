@@ -103,6 +103,7 @@ public:
     SIZE_DECL(complex);
     PARSE_DECL(complex);
     PREC_DECL(COMPLEX);
+    HELP_DECL(complex);
 
 public:
     // Complex implementation for main functions

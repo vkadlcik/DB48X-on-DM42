@@ -506,7 +506,7 @@ COMMAND_BODY(Help)
 
     if (rt.depth())
     {
-        if (!rt.args(10))
+        if (!rt.args(1))
             return ERROR;
         if (object_p top = rt.top())
         {
@@ -522,39 +522,7 @@ COMMAND_BODY(Help)
             }
             else
             {
-                switch(top->type())
-                {
-                case ID_integer:
-                case ID_neg_integer:        topic = utf8("Integers"); break;
-                case ID_fraction:
-                case ID_neg_fraction:
-                case ID_big_fraction:
-                case ID_neg_big_fraction:   topic = utf8("Fractions"); break;
-                case ID_bignum:
-                case ID_neg_bignum:         topic = utf8("Big integers"); break;
-                case ID_polar:
-                case ID_rectangular:        topic = utf8("Complex numbers"); break;
-#if CONFIG_FIXED_BASED_OBJECTS
-                case ID_hex_integer:
-                case ID_dec_integer:
-                case ID_oct_integer:
-                case ID_bin_integer:
-                case ID_hex_bignum:
-                case ID_dec_bignum:
-                case ID_oct_bignum:
-                case ID_bin_bignum:
-#endif // CONFIG_FIXED_BASED_OBJECTS
-                case ID_based_integer:
-                case ID_based_bignum:       topic = utf8("Based numbers"); break;
-                case ID_decimal128:
-                case ID_decimal64:
-                case ID_decimal32:          topic = utf8("Decimal numbers"); break;
-                case ID_equation:           topic = utf8("Equations"); break;
-                case ID_list:               topic = utf8("Lists"); break;
-                case ID_array:              topic = utf8("Vectors and matrices"); break;
-                case ID_tag:                topic = utf8("Tagged objects"); break;
-                default:                    topic = fancy(top->type()); break;
-                }
+                topic = top->help();
             }
         }
     }

@@ -121,6 +121,7 @@ public:
     OBJECT_DECL(integer);
     PARSE_DECL(integer);
     SIZE_DECL(integer);
+    HELP_DECL(integer);
     RENDER_DECL(integer);
 };
 
@@ -138,7 +139,9 @@ public:
     static const id static_id = Type;
     PARSE_DECL(special_integer)         { return SKIP; }
     RENDER_DECL(special_integer);
+    HELP_DECL(special_integer);
 };
+
 
 using neg_integer   = special_integer<object::ID_neg_integer>;
 #if CONFIG_FIXED_BASED_OBJECTS

@@ -127,6 +127,7 @@ public:
     OBJECT_DECL(equation);
     PARSE_DECL(equation);
     RENDER_DECL(equation);
+    HELP_DECL(equation);
 
 public:
     // Dependent and independent variables

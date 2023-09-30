@@ -260,6 +260,7 @@ public:
     OBJECT_DECL(decimal128);
     PARSE_DECL(decimal128);
     SIZE_DECL(decimal128);
+    HELP_DECL(decimal128);
     RENDER_DECL(decimal128);
 };
 

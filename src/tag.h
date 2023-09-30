@@ -102,6 +102,7 @@ public:
     OBJECT_DECL(tag);
     PARSE_DECL(tag);
     SIZE_DECL(tag);
+    HELP_DECL(tag);
     RENDER_DECL(tag);
     EXEC_DECL(tag);
 };

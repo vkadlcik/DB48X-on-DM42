@@ -68,6 +68,15 @@ PARSE_BODY(equation)
 }
 
 
+HELP_BODY(equation)
+// ----------------------------------------------------------------------------
+//   Help topic for equations
+// ----------------------------------------------------------------------------
+{
+    return utf8("Equations");
+}
+
+
 symbol_g equation::parentheses(symbol_g arg)
 // ----------------------------------------------------------------------------
 //   Render, putting parentheses around an argument

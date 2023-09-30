@@ -97,6 +97,7 @@ struct fraction : algebraic
 public:
     OBJECT_DECL(fraction);
     SIZE_DECL(fraction);
+    HELP_DECL(fraction);
     EVAL_DECL(fraction);
     RENDER_DECL(fraction);
     PREC_DECL(MULTIPLICATIVE);

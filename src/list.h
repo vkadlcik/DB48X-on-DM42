@@ -284,6 +284,7 @@ public:
     OBJECT_DECL(list);
     PARSE_DECL(list);
     RENDER_DECL(list);
+    HELP_DECL(list);
 };
 typedef const list *list_p;
 

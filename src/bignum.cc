@@ -111,6 +111,15 @@ PARSE_BODY(bignum)
 }
 
 
+HELP_BODY(bignum)
+// ----------------------------------------------------------------------------
+//    Help topic for big integers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Big integers");
+}
+
+
 static size_t render_num(renderer &r,
                          bignum_p  num,
                          uint      base,

@@ -59,6 +59,15 @@ SIZE_BODY(complex)
 }
 
 
+HELP_BODY(complex)
+// ----------------------------------------------------------------------------
+//   Help topic for complex numbers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Complex numbers");
+}
+
+
 algebraic_g complex::re() const
 // ----------------------------------------------------------------------------
 //   Return real part in a format-independent way

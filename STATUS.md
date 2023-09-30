@@ -14,12 +14,12 @@
 - [x] Soft menus navigation
 - [x] Global variables
 - [x] Local variables
-- [ ] Home directory and subdirectories
+- [x] Home directory and subdirectories
 - [x] Variables menu accessible with **RCL** key
 - [x] Complete interactive catalog of available functions
 - [x] RPL program evaluattion
 - [ ] RPL program single-stepping / debugging
-- [ ] Stack undo / redo
+- [x] Stack undo / redo
 - [X] Accelerated [blitter code with 8x8 patterns](https://github.com/c3d/db48x/blob/dm42/firmware/include/ggl.h)
 - [X] Unicode-capable [text drawing replacement](https://github.com/c3d/db48x/blob/dm42/firmware/sys/graphics.c)
 - [X] Unicode / UTF-8 support
@@ -32,7 +32,7 @@
 - [x] [Per-function help](https://github.com/c3d/db48x/blob/dm42/firmware/hal_keyboard.c#L116)
       from [markdown files](doc/calc-help)
 - [ ] Character menu / table
-- [ ] Brezenham lines, circles and ellipses
+- [x] Brezenham lines, circles and ellipses
 - [ ] Polygon fill
 - [ ] RPL-controlled soft-menu system
 - [ ] Domain-specific features / customizaton from files on USB disk
@@ -46,10 +46,10 @@
 - [x] Object evaluation
 - [x] Object parsing
 - [x] Object text rendering
-- [ ] Object graphical rendering
+- [x] Object graphical rendering
 - [ ] Object graphical editor
 - [x] Errors and error display
-- [ ] Error trapping / handling, e.g `DOERR`.
+- [x] Error trapping / handling, e.g `DOERR`.
 
 ### RPL data types
 
@@ -57,7 +57,7 @@
 - [x] Integer data type, e.g. `123`
 - [x] Hexadecimal (`#123h`), decimal (`#123d`), octal (`#123o`) and binary
       (`#1001b`) based numbers
-- [ ] Based integers (arbitrary base between 2 and 36, e.g. `13#10231AC`)
+- [x] Based integers (arbitrary base between 2 and 36, e.g. `13#10231AC`)
 - [x] Arbitrary-size integers e.g. `123456789012345678901234567890`
 - [x] Fractions, e.g. `1/7`
 - [ [ Fraction formats, e.g. `22/7` vs `3 1/7` vs. `3,1428571429`
@@ -77,10 +77,10 @@
 - [x] Program objects, e.g `« IF 1 = THEN "Equal to one" END »`
 - [ ] Algebraic programs, e.g. `'if x = 1 then "Equal to one"` based on
       [XL-style parser](https://github.com/c3d/XL)
-- [ ] Bitmaps, e.g. `GROB 8 8 00000000000000FF`
+- [x] Bitmaps, e.g. `GROB 8 8 00000000000000FF`
 - [ ] Fonts, e.g. `FONT 000000`
 - [ ] Vector graphics
-- [ ] Tagged objects
+- [x] Tagged objects
 - [x] Algebraic expressions
 - [ ] Unit objects
 - [x] Directories
@@ -103,7 +103,7 @@
 - [x] Automatic selection of entered floating-point size based on user input
 - [x] Automatic selection of computed floating-point size based on `Precision`
 - [x] Fraction arithmetic
-- [ ] Automatic fraction promotion
+- [x] Automatic fraction promotion
 - [ ] Correct rounding (a la [crlibm](https://github.com/taschini/crlibm))
 - [ ] Range arithmetic
 

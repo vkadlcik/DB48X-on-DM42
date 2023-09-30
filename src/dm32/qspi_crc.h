@@ -1,3 +1,4 @@
 
-#define QSPI_DATA_SIZE  1525436
+#define QSPI_DATA_SIZE  1527092
 #define QSPI_DATA_CRC  0x000cfed6
+

@@ -35,6 +35,19 @@ Duplicate the same object twice on the stack
 ## DuplicateN (DUPN)
 Duplicate a group of N objects, N being given in stack level 1
 
+## LastArguments (LASTARG)
+Put the last arguments back on the stack
+
+## LastX
+Put the last first argument on the stack.
+
+This command does not exist on HP RPL calculators, and is here to make it easier
+to adapt RPN programs that use LastX a bit more often.
+
+## Undo
+Restore the stack to its last state before executing an interactive command.
+Note that this command can be used from a program, but it will restore the state
+prior to program execution.
 
 ## NDUPN
 Replicate one object N times and return N

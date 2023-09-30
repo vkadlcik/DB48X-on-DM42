@@ -280,7 +280,6 @@ CMD(ForStep)
 //
 // ============================================================================
 
-NAMED(LastArg, "LastArguments")
 CMD(Depth)
 NAMED(ToList, "→List")
 CMD(Get)
@@ -547,6 +546,8 @@ CMD(SaveState)
 CMD(SystemSetup)
 CMD(Help)
 CMD(Undo)
+NAMED(LastArg, "LastArguments")
+CMD(LastX)
 
 CMD(Unimplemented)
 

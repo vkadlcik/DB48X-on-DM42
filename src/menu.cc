@@ -948,7 +948,8 @@ MENU(LastThingsMenu,
 // ----------------------------------------------------------------------------
 //   Menu with the last things
 // ----------------------------------------------------------------------------
-     "Arg",     ID_LastArg,
+     "Args",    ID_LastArg,
+     "X",       ID_LastX,
      "Stack",   ID_Undo,
      "Menu",    ID_LastMenu,
      "Cmd",     ID_Unimplemented);

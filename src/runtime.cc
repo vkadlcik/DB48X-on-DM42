@@ -978,6 +978,26 @@ bool runtime::last()
 }
 
 
+bool runtime::last(uint index)
+// ----------------------------------------------------------------------------
+//   Push back the last argument on the stack
+// ----------------------------------------------------------------------------
+{
+    size_t nargs = args();
+    if (index >= nargs)
+    {
+        rt.missing_argument_error();
+        return false;
+    }
+    size_t sz = sizeof(object_p);
+    if (available(sz) < sz)
+        return false;
+
+    *--Stack = Args[index];
+    return true;
+}
+
+
 bool runtime::save()
 // ----------------------------------------------------------------------------
 //   Save the stack in the undo area

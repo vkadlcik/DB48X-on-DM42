@@ -64,13 +64,6 @@ RECORDER(text_editor, 16, "Text editor");
 RECORDER(menus, 16, "Menu operations");
 RECORDER(help,  16, "On-line help");
 
-
-#if SIMULATOR
-#define HELPFILE_NAME   "help/db48x.md"
-#else
-#define HELPFILE_NAME   "/HELP/DB48X.md"
-#endif // SIMULATOR
-
 #define NUM_TOPICS      (sizeof(topics) / sizeof(topics[0]))
 
 user_interface::user_interface()

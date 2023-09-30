@@ -122,7 +122,7 @@ fonts/StackFont.cc: $(TTF2FONT) $(BASE_FONT)
 fonts/HelpFont.cc: $(TTF2FONT) $(BASE_FONT)
 	$(TTF2FONT) -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
 help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md)
-	mkdir -p help && cat $^ > $@
+	mkdir -p help && cat $^ | sed -e 's/DB48X/$(TARGET)/g' > $@
 
 debug-%:
 	$(MAKE) $* OPT=debug
@@ -228,7 +228,8 @@ DEFINES += \
 	DECIMAL_GLOBAL_EXCEPTION_FLAGS \
 	DECIMAL_GLOBAL_EXCEPTION_FLAGS_ACCESS_FUNCTIONS \
 	$(DEFINES_$(OPT)) \
-	$(DEFINES_$(VARIANT))
+	$(DEFINES_$(VARIANT)) \
+	HELPFILE_NAME=\"/HELP/$(TARGET).md\"
 DEFINES_debug=DEBUG
 DEFINES_release=RELEASE
 DEFINES_small=RELEASE

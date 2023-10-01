@@ -3605,7 +3605,7 @@ bool user_interface::handle_functions(int key)
 
         }
         draw_busy_cursor();
-        if (!imm)
+        if (!imm && !rt.editing())
             rt.save();
         obj->execute();
         draw_idle();

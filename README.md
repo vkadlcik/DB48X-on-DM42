@@ -5,8 +5,9 @@ HP48 family of calculators, notably their "Reverse Polish Lisp" (RPL)
 language with its rich set of data types and built-in functions, and
 [Lisp-level programming power](http://www.paulgraham.com/avg.html).
 
-The project in this repository is presently targeting the [SwissMicro DM42
-calculator](https://www.swissmicros.com/product/dm42), and leveraging its
+The project in this repository is presently targeting the
+[SwissMicro DM42](https://www.swissmicros.com/product/dm42) and
+[DM32](https://www.swissmicros.com/product/dm42) calculators. It leverages their
 built-in software platform, known as
 [DMCP](https://technical.swissmicros.com/dmcp/doc/DMCP-ifc-html/). There is also
 a simulator that is tested on macOS or Linux.

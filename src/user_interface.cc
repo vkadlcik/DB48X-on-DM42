@@ -1709,9 +1709,9 @@ bool user_interface::draw_editor()
 
     if (y < top)
         y = top;
-    if (stack != y)
+    if (stack != y - 1)
     {
-        stack      = y;
+        stack      = y - 1;
         dirtyStack = true;
     }
     Screen.fill(0, stack, LCD_W, bottom, pattern::white);

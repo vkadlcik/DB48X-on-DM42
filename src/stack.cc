@@ -82,13 +82,13 @@ void stack::draw_stack()
     size   lineHeight = font->height();
     size   idxHeight  = idxfont->height();
     coord  top        = hdrfont->height() + 2;
-    coord  bottom     = ui.stack_screen_bottom() - 1;
+    coord  bottom     = ui.stack_screen_bottom();
     uint   depth      = rt.depth();
     uint   digits     = countDigits(depth);
     coord  hdrx       = idxfont->width('0') * digits + 2;
     size   avail      = LCD_W - hdrx - 5;
 
-    Screen.fill(0, top, LCD_W, bottom - 1, pattern::white);
+    Screen.fill(0, top, LCD_W, bottom, pattern::white);
     if (!depth)
         return;
 
@@ -96,7 +96,10 @@ void stack::draw_stack()
 
     Screen.fill(hdrx, top, hdrx, bottom, pattern::gray50);
     if (rt.editing())
+    {
+        bottom--;
         Screen.fill(0, bottom, LCD_W, bottom, pattern::gray50);
+    }
 
     char buf[8];
     coord y = bottom;

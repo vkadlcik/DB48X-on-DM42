@@ -60,17 +60,18 @@ dm32-%:
 	$(MAKE) PLATFORM=dmcp SDK=dmcp5/dmcp PGM=pg5 VARIANT=dm32 TARGET=DB50X $*
 
 # installation steps
+COPY=cp
 install: install-pgm install-qspi install-help
 	$(EJECT)
 	@echo "# Installed $(VERSION)"
 install-fast: install-pgm
 	$(EJECT)
 install-pgm: all
-	cp -v $(TARGET).$(PGM) $(MOUNTPOINT)
+	$(COPY) $(TARGET).$(PGM) $(MOUNTPOINT)
 install-qspi: all
-	cp -v $(QSPI) $(MOUNTPOINT)
+	$(COPY) $(QSPI) $(MOUNTPOINT)
 install-help: help/$(TARGET).md
-	cp -v help/$(TARGET).md $(MOUNTPOINT)help/
+	$(COPY) help/$(TARGET).md $(MOUNTPOINT)help/
 
 sim: sim/simulator.mak
 	cd sim; make -f $(<F)

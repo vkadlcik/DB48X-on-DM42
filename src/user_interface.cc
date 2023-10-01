@@ -471,6 +471,7 @@ void user_interface::updateMode()
     uint    lists = 0;
     uint    algs  = 0;
     uint    txts  = 0;
+    uint    cmts  = 0;
     uint    vecs  = 0;
     uint    based = 0;
     uint    syms  = 0;
@@ -488,7 +489,7 @@ void user_interface::updateMode()
     {
         unicode code = utf8_codepoint(p);
 
-        if (!txts)
+        if (!txts && !cmts)
         {
             if ((inum || fnum) && (code == emrk || code == '-'))
             {
@@ -516,7 +517,7 @@ void user_interface::updateMode()
                     hnum++;
                 }
             }
-            else if (!syms && !txts && code >= '0' && code <= '9')
+            else if (!syms && code >= '0' && code <= '9')
             {
                 if (!num)
                     num = p;
@@ -531,6 +532,10 @@ void user_interface::updateMode()
                     num = p;
                 fnum = 1;
             }
+            else if (code == '@')
+            {
+                cmts++;
+            }
             else
             {
                 // All other characters: reset numbering
@@ -538,6 +543,8 @@ void user_interface::updateMode()
                 num = nullptr;
                 if (is_valid_as_name_initial(code))
                     syms = true;
+                else if (syms && !is_valid_in_name(code))
+                    syms = false;
             }
 
             switch(code)
@@ -555,9 +562,13 @@ void user_interface::updateMode()
                             num = nullptr;                  break;
             }
         }
-        else if (code == '"')
+        else if (txts && code == '"')
         {
             txts = 1 - txts;
+        }
+        else if (cmts && code == '\n')
+        {
+            cmts = 0;
         }
     }
 

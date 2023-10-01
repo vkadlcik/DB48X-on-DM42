@@ -132,7 +132,9 @@ PARSE_BODY(integer)
             switch (endp[-1])
             {
             case 'b':
+#ifdef CONFIG_UPPERCASE_BASE_SUFFIXES
             case 'B':
+#endif // CONFIG_UPPERCASE_BASE_SUFFIXES
                 if (max < 2)
                 {
                     base = 2;
@@ -147,8 +149,10 @@ PARSE_BODY(integer)
                     endp = nullptr;
                 }
                 break;
-            case 'O':
             case 'o':
+#ifdef CONFIG_UPPERCASE_BASE_SUFFIXES
+            case 'O':
+#endif // CONFIG_UPPERCASE_BASE_SUFFIXES
                 base = 8;
                 endp--;
 #if CONFIG_FIXED_BASED_OBJECTS
@@ -156,7 +160,9 @@ PARSE_BODY(integer)
 #endif // CONFIG_FIXED_BASED_OBJECTS
                 break;
             case 'd':
+#ifdef CONFIG_UPPERCASE_BASE_SUFFIXES
             case 'D':
+#endif // CONFIG_UPPERCASE_BASE_SUFFIXES
                 if (max < 10)
                 {
                     base = 10;
@@ -170,8 +176,10 @@ PARSE_BODY(integer)
                     endp = nullptr;
                 }
                 break;
-            case 'H':
             case 'h':
+#ifdef CONFIG_UPPERCASE_BASE_SUFFIXES
+            case 'H':
+#endif // CONFIG_UPPERCASE_BASE_SUFFIXES
                 base = 16;
                 endp--;
 #if CONFIG_FIXED_BASED_OBJECTS

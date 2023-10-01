@@ -117,7 +117,7 @@ bool renderer::put(char c)
                     return false;
         cr = true;
     }
-    else
+    else if (!isspace(c))
     {
         cr = false;
     }

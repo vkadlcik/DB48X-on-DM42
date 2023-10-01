@@ -359,7 +359,7 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
     for (object_p obj : *this)
     {
         // Add space separator (except on first object when no separator)
-        if (open)
+        if (open && !r.hadCR())
             r.put(' ');
         open = 1;
 

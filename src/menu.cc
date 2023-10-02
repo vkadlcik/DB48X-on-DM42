@@ -197,39 +197,33 @@ MENU(MainMenu,
 // ----------------------------------------------------------------------------
 //   Top level menu, reached from Σ- key
 // ----------------------------------------------------------------------------
+     "Help",    ID_Help,
      "Math",    ID_MathMenu,
-     "Program", ID_ProgramMenu,
-     "Vars",    ID_VariablesMenu,
+     "Prog",    ID_ProgramMenu,
      "Plot",    ID_PlotMenu,
      "Solve",   ID_SolverMenu,
+     "Modes",   ID_ModesMenu,
+
+     "Cat",     ID_Catalog,
+     "Real",    ID_RealMenu,
+     "Matrix",  ID_MatrixMenu,
+     "Stack",   ID_StackMenu,
      "Eqns",    ID_EquationsMenu,
+     "User",    ID_UserInterfaceModesMenu,
 
      "Last",    ID_LastThingsMenu,
-     "Stack",   ID_StackMenu,
-     "Modes",   ID_ModesMenu,
      "Time",    ID_TimeMenu,
      "I/O",     ID_IOMenu,
      "Chars",   ID_CharsMenu);
 
 
-MENU(HomeMenu,
-// ----------------------------------------------------------------------------
-//   The default menu when the stack is empty
-// ----------------------------------------------------------------------------
-     "Help",    ID_Help,
-     "Cmplx",   ID_ComplexMenu,
-     "Matrix",  ID_MatrixMenu,
-     "Modes",   ID_ModesMenu,
-     "Fonts",   ID_FontsMenu);
-
 MENU(MathMenu,
 // ----------------------------------------------------------------------------
 //   Math menu, reached from the Σ+ key
 // ----------------------------------------------------------------------------
-
-     "Trig",    ID_CircularMenu,
      "Real",    ID_RealMenu,
      "Cmplx",   ID_ComplexMenu,
+     "Trig",    ID_CircularMenu,
      "Vector",  ID_VectorMenu,
      "Matrix",  ID_MatrixMenu,
      "Const",   ID_ConstantsMenu,
@@ -245,7 +239,7 @@ MENU(MathMenu,
      "Bases",   ID_BasesMenu,
      "Powers",  ID_PowersMenu,
      "Angles",  ID_AnglesMenu,
-     "List",    ID_ListMenu,
+     "Poly",    ID_PolynomialsMenu,
      "Frac",    ID_FractionsMenu);
 
 
@@ -296,9 +290,9 @@ MENU(AnglesMenu,
 // ----------------------------------------------------------------------------
 //   Operations on angles
 // ----------------------------------------------------------------------------
-     ID_Deg,
-     ID_Rad,
-     ID_Grad,
+     "Deg",     ID_Deg,
+     "Rad",     ID_Rad,
+     "Grad",    ID_Grad,
      "n×π",     ID_PiRadians,
      "→Angle",  ID_Unimplemented,
      "Angle→",  ID_Unimplemented,
@@ -313,7 +307,9 @@ MENU(AnglesMenu,
      "→DMS",    ID_Unimplemented,
      "DMS→",    ID_Unimplemented,
      "DMS+",    ID_Unimplemented,
-     "DMS-",    ID_Unimplemented);
+     "DMS-",    ID_Unimplemented,
+     "Math",    ID_MathModesMenu,
+     "Modes",   ID_ModesMenu);
 
 
 MENU(ComplexMenu,
@@ -377,12 +373,31 @@ MENU(MatrixMenu,
      "ColNrm",  ID_Unimplemented);
 
 
+MENU(PolynomialsMenu,
+// ----------------------------------------------------------------------------
+//   Root-finding operations
+// ----------------------------------------------------------------------------
+     "FCoef",   ID_Unimplemented,
+     "FRoots",  ID_Unimplemented,
+     "MRoot",   ID_Unimplemented,
+     "MSolvr",  ID_Unimplemented,
+     "PCoef",   ID_Unimplemented,
+     "PRoot",   ID_Unimplemented,
+     "Root",    ID_Unimplemented,
+     "Solve",   ID_Unimplemented,
+     "TVMRoot", ID_Unimplemented,
+     "XRoot",   ID_xroot,
+     "Zeros",   ID_Unimplemented,
+     "Square",  ID_sqrt,
+     "Cube",    ID_cbrt);
+
 MENU(HyperbolicMenu,
 // ----------------------------------------------------------------------------
 //   Hyperbolic operations
 // ----------------------------------------------------------------------------
      ID_sinh,   ID_cosh,        ID_tanh,
      ID_asinh,  ID_acosh,       ID_atanh,
+
      ID_exp,    ID_expm1,
      ID_log,    ID_log1p);
 
@@ -954,6 +969,17 @@ MENU(LastThingsMenu,
      "Menu",    ID_LastMenu,
      "Cmd",     ID_Unimplemented);
 
+MENU(ClearThingsMenu,
+// ----------------------------------------------------------------------------
+//  Clearing various things
+// ----------------------------------------------------------------------------
+     "Stack",   ID_Unimplemented,
+     "Dir",     ID_Unimplemented,
+     "Stats",   ID_Unimplemented,
+     "Mem",     ID_Unimplemented,
+     "Error",   ID_err0,
+     "LCD",     ID_ClLCD);
+
 MENU(CharsMenu,
 // ----------------------------------------------------------------------------
 //   Will be dynamic
@@ -965,10 +991,30 @@ MENU(CharsMenu,
      "∏",       ID_SelfInsert,
      "∆",       ID_SelfInsert);
 
-
 MENU(ModesMenu,
 // ----------------------------------------------------------------------------
 //   Mode settings
+// ----------------------------------------------------------------------------
+     "Deg",     ID_Deg,
+     "Rad",     ID_Rad,
+     "n×π",     ID_PiRadians,
+     "Rect",    ID_Unimplemented,
+     "Polar",   ID_Unimplemented,
+     "Spheric", ID_Unimplemented,
+
+     ID_Grad,
+     "Angles",  ID_AnglesMenu,
+     "Math",    ID_MathModesMenu,
+     "Display", ID_DisplayModesMenu,
+     "Seps",    ID_SeparatorModesMenu,
+     "User",    ID_UserInterfaceModesMenu,
+
+     "Modes",   ID_Modes,
+     "Reset",   ID_ResetModes);
+
+MENU(DisplayModesMenu,
+// ----------------------------------------------------------------------------
+//   Mode setting for numbers
 // ----------------------------------------------------------------------------
      Std::menu_label,   ID_Std,
      Fix::menu_label,   ID_Fix,
@@ -977,82 +1023,79 @@ MENU(ModesMenu,
      Sig::menu_label,   ID_Sig,
      Precision::menu_label, ID_Precision,
 
-     "NumSpc", ID_NumberSpacing,
      MantissaSpacing::menu_label, ID_MantissaSpacing,
      FractionSpacing::menu_label, ID_FractionSpacing,
      BasedSpacing::menu_label,    ID_BasedSpacing,
-
-     "Frac .",  ID_DecimalDot,
-     "Frac ,",  ID_DecimalComma,
-     "Numeric", ID_NumericResults,
-     "Symbolic",ID_SymbolicResults,
-     "()",      ID_Unimplemented,
-
-     "GrStk",   ID_GraphicsStackDisplay,
-     "TxtStk",  ID_TextStackDisplay,
-
-     "Angles",  ID_AnglesMenu,
-
-
-     "Rect",    ID_Unimplemented,
-     "Polar",   ID_Unimplemented,
-     "Spheric", ID_Unimplemented,
-     "iℂ",      ID_Unimplemented,
-     "Auto ℂ",  ID_Unimplemented,
-
-     "cmd",     ID_LowerCase,
-     "CMD",     ID_UpperCase,
-     "Cmd",     ID_Capitalized,
-     "Command", ID_LongForm,
-
      StandardExponent::menu_label, ID_StandardExponent,
+     "Seps",            ID_SeparatorModesMenu,
+     "Modes",           ID_ModesMenu,
+
+     "cmd",             ID_LowerCase,
+     "CMD",             ID_UpperCase,
+     "Cmd",             ID_Capitalized,
+     "Command",         ID_LongForm,
+     "User",            ID_UserInterfaceModesMenu,
+     "Math",            ID_MathModesMenu);
+
+MENU(SeparatorModesMenu,
+// ----------------------------------------------------------------------------
+//   Separators
+// ----------------------------------------------------------------------------
+
+     "1 000",   ID_NumberSpaces,
+     Settings.decimal_mark == '.' ? "1,000." : "1.000,",  ID_NumberDotOrComma,
+     "1'000",   ID_NumberTicks,
+     "1_000",   ID_NumberUnderscore,
+     "2.3",     ID_DecimalDot,
+     "2,3",     ID_DecimalComma,
+
+     "#1 000",  ID_BasedSpaces,
+     Settings.decimal_mark == '.' ? "#1,000" : "#1.000",  ID_BasedDotOrComma,
+     "#1'000",  ID_BasedTicks,
+     "#1_000",  ID_BasedUnderscore,
+     "Disp",    ID_DisplayModesMenu,
+     "Modes",   ID_ModesMenu,
+
      "1.2x10³²", ID_FancyExponent,
      "1.2E32", ID_ClassicExponent,
      "1.0→1.", ID_TrailingDecimal,
-     "1.0→1",  ID_NoTrailingDecimal,
+     "1.0→1",  ID_NoTrailingDecimal);
 
-     "1 000",  ID_NumberSpaces,
-     Settings.decimal_mark == '.' ? "1,000." : "1.000,",  ID_NumberDotOrComma,
-     "1'000",  ID_NumberTicks,
-     "1_000",  ID_NumberUnderscore,
-     "Fonts",  ID_FontsMenu,
-     "Menus",  ID_MenuSettingsMenu,
-
-     "#1 000", ID_BasedSpaces,
-     Settings.decimal_mark == '.' ? "#1,000" : "#1.000",  ID_BasedDotOrComma,
-     "#1'000", ID_BasedTicks,
-     "#1_000", ID_BasedUnderscore,
-
-     "Simplify",ID_AutoSimplify,
-     "KeepAll", ID_NoAutoSimplify,
-     MaxBigNumBits::menu_label, ID_MaxBigNumBits,
-     MaxRewrites::menu_label, ID_MaxRewrites,
-
-     ID_Modes);
-
-
-MENU(FontsMenu,
+MENU(UserInterfaceModesMenu,
 // ----------------------------------------------------------------------------
-//   Font size information
+//   Mode setting for numbers
 // ----------------------------------------------------------------------------
+     "GrStk",                                   ID_GraphicsStackDisplay,
+     "TxtStk",                                  ID_TextStackDisplay,
      ResultFontSize::menu_label,                ID_ResultFontSize,
      StackFontSize::menu_label,                 ID_StackFontSize,
      EditorFontSize::menu_label,                ID_EditorFontSize,
-     EditorMultilineFontSize::menu_label,       ID_EditorMultilineFontSize);
+     EditorMultilineFontSize::menu_label,       ID_EditorMultilineFontSize,
 
+     "3-lines",                                 ID_ThreeRowsMenus,
+     "1-line",                                  ID_SingleRowMenus,
+     "Flat",                                    ID_FlatMenus,
+     "Round",                                   ID_RoundedMenus,
+     "Square",                                  ID_SquareMenus,
+     "Modes",                                   ID_ModesMenu);
 
-MENU(MenuSettingsMenu,
+MENU(MathModesMenu,
 // ----------------------------------------------------------------------------
-//   Setting menu settings
+//   Mode setting for numbers
 // ----------------------------------------------------------------------------
-     "3-lines", ID_ThreeRowsMenus,
-     "1-line",  ID_SingleRowMenus,
-     "Flat",    ID_FlatMenus,
-     "Round",   ID_RoundedMenus,
-     "Square",  ID_SquareMenus,
-     ID_ModesMenu);
+     "Num",                     ID_NumericResults,
+     "Sym",                     ID_SymbolicResults,
+     "Simplify",                ID_AutoSimplify,
+     "KeepAll",                 ID_NoAutoSimplify,
+     MaxBigNumBits::menu_label, ID_MaxBigNumBits,
+     MaxRewrites::menu_label,   ID_MaxRewrites,
 
-
+     "iℂ",                      ID_Unimplemented,
+     "Auto ℂ",                  ID_Unimplemented,
+     "Modes",                   ID_ModesMenu,
+     "Display",                 ID_DisplayModesMenu,
+     "Yser",                    ID_UserInterfaceModesMenu,
+     "Modes",                   ID_Modes);
 
 MENU(IOMenu,
 // ----------------------------------------------------------------------------

@@ -542,7 +542,7 @@ COMMAND_BODY(ToolsMenu)
 //   Contextual tool menu
 // ----------------------------------------------------------------------------
 {
-    id menu = ID_HomeMenu;
+    id menu = ID_MainMenu;
 
     if (rt.editing())
     {

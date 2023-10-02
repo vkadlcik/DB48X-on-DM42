@@ -67,9 +67,9 @@ RECORDER(help,  16, "On-line help");
 #define NUM_TOPICS      (sizeof(topics) / sizeof(topics[0]))
 
 user_interface::user_interface()
-    // ----------------------------------------------------------------------------
-    //   Initialize the user interface
-    // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+//   Initialize the user interface
+// ----------------------------------------------------------------------------
     : command(),
       help(-1u),
       line(0),
@@ -3430,11 +3430,11 @@ static const byte defaultShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_SIN,   function::ID_asin),
     OP2BYTES(KEY_COS,   function::ID_acos),
     OP2BYTES(KEY_TAN,   function::ID_atan),
-    OP2BYTES(KEY_ENTER, 0),
+    OP2BYTES(KEY_ENTER, 0),     // Alpha
     OP2BYTES(KEY_SWAP,  menu::ID_LastThingsMenu),
     OP2BYTES(KEY_CHS,   menu::ID_ModesMenu),
-    OP2BYTES(KEY_E,     menu::ID_PlotMenu),
-    OP2BYTES(KEY_BSP,   0),
+    OP2BYTES(KEY_E,     menu::ID_DisplayModesMenu),
+    OP2BYTES(KEY_BSP,   menu::ID_ClearThingsMenu),
     OP2BYTES(KEY_UP,    0),
     OP2BYTES(KEY_7,     menu::ID_SolverMenu),
     OP2BYTES(KEY_8,     menu::ID_SymbolicMenu),
@@ -3477,20 +3477,20 @@ static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
 {
     OP2BYTES(KEY_SIGMA, menu::ID_MainMenu),
     OP2BYTES(KEY_INV,   command::ID_xroot),
-    OP2BYTES(KEY_SQRT,  menu::ID_RealMenu),
+    OP2BYTES(KEY_SQRT,  menu::ID_PolynomialsMenu),
     OP2BYTES(KEY_LOG,   function::ID_expm1),
     OP2BYTES(KEY_LN,    function::ID_log1p),
     OP2BYTES(KEY_XEQ,   menu::ID_TestsMenu),
     OP2BYTES(KEY_STO,   menu::ID_MemMenu),
     OP2BYTES(KEY_RCL,   menu::ID_LibsMenu),
     OP2BYTES(KEY_RDN,   menu::ID_MathMenu),
-    OP2BYTES(KEY_SIN,   function::ID_sinh),
-    OP2BYTES(KEY_COS,   function::ID_cosh),
-    OP2BYTES(KEY_TAN,   function::ID_tanh),
-    OP2BYTES(KEY_ENTER, 0),
+    OP2BYTES(KEY_SIN,   menu::ID_HyperbolicMenu),
+    OP2BYTES(KEY_COS,   menu::ID_CircularMenu),
+    OP2BYTES(KEY_TAN,   menu::ID_RealMenu),
+    OP2BYTES(KEY_ENTER, 0),     // Text
     OP2BYTES(KEY_SWAP,  function::ID_Undo),
-    OP2BYTES(KEY_CHS,   0),
-    OP2BYTES(KEY_E,     0),
+    OP2BYTES(KEY_CHS,   menu::ID_ObjectMenu),
+    OP2BYTES(KEY_E,     menu::ID_PlotMenu),
     OP2BYTES(KEY_BSP,   function::ID_updir),
     OP2BYTES(KEY_UP,    0),
     OP2BYTES(KEY_7,     0),

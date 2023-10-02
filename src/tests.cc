@@ -133,7 +133,6 @@ void tests::reset_settings(bool fast)
         .noerr();
     step("Using 64-bit word size").test("64 StoreWordSize", ENTER).noerr();
     step("Disable spacing")
-        .test("3 NumberSpacing", ENTER)         .noerr()
         .test("3 MantissaSpacing", ENTER)       .noerr()
         .test("5 FractionSpacing", ENTER)       .noerr()
         .test("4 BasedSpacing", ENTER)          .noerr();
@@ -1033,7 +1032,6 @@ void tests::integer_display_formats()
 
     step("Reset settings to defaults");
     test(CLEAR)
-        .test("3 NumberSpacing", ENTER)         .noerr()
         .test("3 MantissaSpacing", ENTER)       .noerr()
         .test("5 FractionSpacing", ENTER)       .noerr()
         .test("4 BasedSpacing", ENTER)          .noerr()
@@ -1065,11 +1063,11 @@ void tests::integer_display_formats()
         .expect("123456789");
 
     step("Four spacing");
-    test("4 NumberSpacing", ENTER)
+    test("4 MantissaSpacing", ENTER)
         .expect("1 2345 6789");
 
     step("Five spacing");
-    test("5 NumberSpacing", ENTER)
+    test("5 MantissaSpacing", ENTER)
         .expect("1234 56789");
 
     step("Three spacing");

@@ -857,22 +857,6 @@ SETTINGS_COMMAND_LABEL(id)                              \
 }
 
 
-COMMAND_BODY(NumberSpacing)
-// ----------------------------------------------------------------------------
-//  Set same spacing for both mantissa and fraction
-// ----------------------------------------------------------------------------
-{
-    uint fs = integer_arg(0, BID128_MAXDIGITS);
-    if (!rt.error())
-    {
-        Settings.spacing_mantissa = fs;
-        Settings.spacing_fraction = fs;
-        ui.menuNeedsRefresh();
-        return OK;
-    }
-    return object::ERROR;
-}
-
 SPACING_SIZE_SETTING(MantissaSpacing, spacing_mantissa, "Mant")
 SPACING_SIZE_SETTING(FractionSpacing, spacing_fraction, "Frac")
 SPACING_SIZE_SETTING(BasedSpacing,    spacing_based,    "Based")

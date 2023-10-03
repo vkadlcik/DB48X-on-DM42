@@ -3604,6 +3604,11 @@ bool user_interface::handle_functions(int key)
                     dirtyEditor = true;
                     return obj->insert(*this) != object::ERROR;
                 }
+                else if (obj->type() == object::ID_Sto)
+                {
+                    if (!end_edit())
+                        return false;
+                }
                 break;
 
             default:

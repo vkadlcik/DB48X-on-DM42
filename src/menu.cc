@@ -266,25 +266,36 @@ MENU(PartsMenu,
 // ----------------------------------------------------------------------------
 //   Extract parts of a number
 // ----------------------------------------------------------------------------
+     ID_abs,
      ID_sign,
+     ID_re,
+     ID_im,
+     ID_arg,
+     ID_conj,
+
      "Round",   ID_Unimplemented,
      "Trunc",   ID_Unimplemented,
      "IPart",   ID_Unimplemented,
      "FPart",   ID_Unimplemented,
-     ID_abs,
-
-     ID_re,
-     ID_im,
-     ID_abs,
-     ID_arg,
-     ID_conj,
-
      "Mant",    ID_Unimplemented,
      "Xpon",    ID_Unimplemented,
-     "Type",    ID_Unimplemented,
-     "Trunc",   ID_Unimplemented,
-     "Round",   ID_Unimplemented);
 
+     "RowNorm", ID_Unimplemented,
+     "ColNorm", ID_Unimplemented,
+     "Dim",     ID_Unimplemented,
+     "Type",    ID_Unimplemented);
+
+
+MENU(NumbersMenu,
+// ----------------------------------------------------------------------------
+//   Number operations
+// ----------------------------------------------------------------------------
+     "IsPrime", ID_Unimplemented,
+     "NextPr",  ID_Unimplemented,
+     "PrevPr",  ID_Unimplemented,
+     "Factors", ID_Unimplemented,
+     "Random",  ID_Unimplemented,
+     "Seed",    ID_Unimplemented);
 
 MENU(AnglesMenu,
 // ----------------------------------------------------------------------------
@@ -396,11 +407,20 @@ MENU(HyperbolicMenu,
 //   Hyperbolic operations
 // ----------------------------------------------------------------------------
      ID_sinh,   ID_cosh,        ID_tanh,
-     ID_asinh,  ID_acosh,       ID_atanh,
+     ID_asinh,  ID_acosh,       ID_atanh);
 
-     ID_exp,    ID_expm1,
-     ID_log,    ID_log1p);
-
+MENU(ExpLogMenu,
+// ----------------------------------------------------------------------------
+//   Exp and log operations
+// ----------------------------------------------------------------------------
+     ID_exp,    ID_log,
+     ID_exp10,  ID_log10,
+     ID_expm1,  ID_log1p,
+     "exp2",    ID_Unimplemented,
+     "log2",    ID_Unimplemented,
+     "fhbs",    ID_Unimplemented,
+     "flbsc",   ID_Unimplemented,
+     "popcnt",  ID_Unimplemented);
 
 MENU(CircularMenu,
 // ----------------------------------------------------------------------------
@@ -415,7 +435,6 @@ MENU(CircularMenu,
      "sec⁻¹",   ID_Unimplemented,
      "csc⁻¹",   ID_Unimplemented,
      "cot⁻¹",   ID_Unimplemented);
-
 
 MENU(BasesMenu,
 // ----------------------------------------------------------------------------
@@ -596,12 +615,26 @@ MENU(ProgramMenu,
      "Loops",   ID_LoopsMenu,
      "Bases",   ID_BasesMenu,
      "Stack",   ID_StackMenu,
+     "Debug",   ID_DebugMenu,
 
      "Objects", ID_ObjectMenu,
      "Lists",   ID_ListMenu,
      "Flags",   ID_FlagsMenu,
                 ID_Version);
 
+
+MENU(DebugMenu,
+// ----------------------------------------------------------------------------
+//   Debugging menu
+// ----------------------------------------------------------------------------
+     "Over",            ID_Unimplemented,
+     "Into",            ID_Unimplemented,
+     "Break",           ID_Unimplemented,
+     "Trace",           ID_Unimplemented,
+     "Resume",          ID_Unimplemented,
+     "Inspect",         ID_Unimplemented,
+
+     "Prog",            ID_ProgramMenu);
 
 MENU(TestsMenu,
 // ----------------------------------------------------------------------------
@@ -824,6 +857,28 @@ MENU(StackMenu,
      "4-Stk",   ID_Unimplemented,
      "8-Stk",   ID_Unimplemented);
 
+
+MENU(IntegrationMenu,
+// ----------------------------------------------------------------------------
+//   Symbolic and numerical integration
+// ----------------------------------------------------------------------------
+     "Num",     ID_Unimplemented,
+     "Symb",    ID_Unimplemented,
+     "Prim",    ID_Unimplemented,
+
+     "Eq",      ID_Unimplemented,
+     "Indep",   ID_Unimplemented);
+
+MENU(DifferentiationMenu,
+// ----------------------------------------------------------------------------
+//   Symbolic and numerical differentiation
+// ----------------------------------------------------------------------------
+     "Num",     ID_Unimplemented,
+     "Symb",    ID_Unimplemented,
+     "Diff",    ID_Unimplemented,
+
+     "Eq",      ID_Unimplemented,
+     "Indep",   ID_Unimplemented);
 
 MENU(SolverMenu,
 // ----------------------------------------------------------------------------
@@ -1097,6 +1152,15 @@ MENU(MathModesMenu,
      "Yser",                    ID_UserInterfaceModesMenu,
      "Modes",                   ID_Modes);
 
+MENU(PrintingMenu,
+// ----------------------------------------------------------------------------
+//   Printing operations
+// ----------------------------------------------------------------------------
+     "Print",   ID_Unimplemented,
+     "Screen",  ID_Unimplemented,
+     "Disk",    ID_Unimplemented,
+     "IR",      ID_Unimplemented);
+
 MENU(IOMenu,
 // ----------------------------------------------------------------------------
 //   I/O operations
@@ -1105,6 +1169,37 @@ MENU(IOMenu,
      "Load",    ID_Unimplemented,
      "Print",   ID_Unimplemented);
 
+MENU(FilesMenu,
+// ----------------------------------------------------------------------------
+//   Files and disk operations
+// ----------------------------------------------------------------------------
+     "Open",    ID_Unimplemented,
+     "Close",   ID_Unimplemented,
+     "Read",    ID_Unimplemented,
+     "Write",   ID_Unimplemented,
+     "Seek",    ID_Unimplemented,
+     "Dir",     ID_Unimplemented);
+
+MENU(GraphicsMenu,
+// ----------------------------------------------------------------------------
+//   Graphics operations
+// ----------------------------------------------------------------------------
+     "Disp",    ID_Disp,
+     "Line",    ID_Line,
+     "Rect",    ID_Rect,
+     "Rounded", ID_RRect,
+     "Ellipse", ID_Ellipse,
+     "Circle",  ID_Circle,
+
+     "DispXY",  ID_DispXY,
+     "Pict",    ID_Pict,
+     "GOr",     ID_GOr,
+     "GXor",    ID_GXor,
+     "GXor",    ID_And,
+     "ClLCD",   ID_ClLCD,
+
+     "Clip",    ID_Clip,
+     "Current", ID_CurrentClip);
 
 MENU(MemMenu,
 // ----------------------------------------------------------------------------

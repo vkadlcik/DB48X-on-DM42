@@ -833,30 +833,44 @@ MENU(StackMenu,
 // ----------------------------------------------------------------------------
 //   Operations on the stack
 // ----------------------------------------------------------------------------
-     ID_Dup,
-     ID_Drop,
-     ID_Swap,
-     ID_Pick,
-     ID_Roll,
+     "Dup",     ID_Dup,
+     "Drop",    ID_Drop,
+     "Swap",    ID_Swap,
+     "Pick",    ID_Pick,
+     "Roll",    ID_Roll,
+     "Depth",   ID_Depth,
 
-     ID_Dup2,
-     ID_Drop2,
-     ID_Over,
-     ID_Rot,
-     ID_RollD,
-
-     ID_Depth,
-     "LastStk", ID_Undo,
+     "Dup2",    ID_Dup2,
+     "Drop2",   ID_Drop2,
+     "Over",    ID_Over,
+     "Rot",     ID_Rot,
+     "RoolDn",  ID_RollD,
      "LastArg", ID_LastArg,
-     "ClrStk",  ID_Unimplemented,
-     "FillStk", ID_Unimplemented,
 
      ID_DupN,
      ID_DropN,
-     "→Depth",  ID_Unimplemented,
-     "4-Stk",   ID_Unimplemented,
-     "8-Stk",   ID_Unimplemented);
+     "ClearStk",ID_Unimplemented,
+     "FillStk", ID_Unimplemented,
+     "LastX",   ID_LastX,
+     "LastStk", ID_Undo);
 
+MENU(EditMenu,
+// ----------------------------------------------------------------------------
+//   Operations in the editor
+// ----------------------------------------------------------------------------
+     "Select",  ID_Unimplemented,
+     "←Word",   ID_Unimplemented,
+     "Word→",   ID_Unimplemented,
+     "Cut",     ID_Unimplemented,
+     "Copy",    ID_Unimplemented,
+     "Paste",   ID_Unimplemented,
+
+     "Flip",    ID_Unimplemented,
+     "|←",      ID_Unimplemented,
+     "→|",      ID_Unimplemented,
+     "Search",  ID_Unimplemented,
+     "Replace", ID_Unimplemented,
+     "Clear",   ID_Unimplemented);
 
 MENU(IntegrationMenu,
 // ----------------------------------------------------------------------------

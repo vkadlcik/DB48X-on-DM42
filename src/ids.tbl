@@ -539,6 +539,8 @@ MENU(MemMenu)
 MENU(LibsMenu)
 MENU(TextMenu)
 
+MENU(EditMenu)
+
 
 // ============================================================================
 //

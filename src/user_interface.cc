@@ -2787,6 +2787,10 @@ bool user_interface::handle_shifts(int &key, bool talpha)
         {
             if (key == KEY_UP || key == KEY_DOWN)
             {
+                // Let menu and normal keys go through
+                if (xshift)
+                    return false;
+
                 // Delay processing of up or down until after delay
                 if (longpress)
                 {
@@ -3047,9 +3051,7 @@ bool user_interface::handle_editing(int key)
             }
             else if (xshift)
             {
-                cursor = 0;
-                edRows = 0;
-                dirtyEditor = true;
+                return false;
             }
             else if (cursor > 0)
             {
@@ -3089,9 +3091,7 @@ bool user_interface::handle_editing(int key)
             }
             else if (xshift)
             {
-                cursor = editing;
-                edRows = 0;
-                dirtyEditor = true;
+                return false;
             }
             else if (cursor < editing)
             {
@@ -3161,7 +3161,6 @@ bool user_interface::handle_editing(int key)
                     }
                 }
             }
-            break;
         }
     }
 
@@ -3222,7 +3221,7 @@ bool user_interface::handle_alpha(int key)
         '"',  '~', L'°', L'ε', '\n',
         '_',  '?', L'∫',   '[',  '/',
         '_',  '#',  L'∞', '|' , '*',
-        '_',  '&',   '@', '$',  '_',
+        '_',  '&',   '@', '$',  L'…',
         '_',  ';',  L'·', '{',  '!'
     };
 
@@ -3497,7 +3496,7 @@ static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_8,     menu::ID_DifferentiationMenu),
     OP2BYTES(KEY_9,     menu::ID_MatrixMenu),
     OP2BYTES(KEY_DIV,   menu::ID_FinanceSolverMenu),
-    OP2BYTES(KEY_DOWN,  0),
+    OP2BYTES(KEY_DOWN,  menu::ID_EditMenu),
     OP2BYTES(KEY_4,     menu::ID_TextMenu),
     OP2BYTES(KEY_5,     menu::ID_UnitsConversionsMenu),
     OP2BYTES(KEY_6,     menu::ID_TimeMenu),
@@ -3628,6 +3627,8 @@ bool user_interface::handle_functions(int key)
         dirtyStack = true;
         if (!imm)
             alpha = false;
+        xshift = false;
+        shift = false;
         return true;
     }
 

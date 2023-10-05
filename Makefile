@@ -84,10 +84,19 @@ sim:	sim/gcc111libbid.a	\
 	fonts/EditorFont.cc	\
 	fonts/StackFont.cc	\
 	fonts/HelpFont.cc	\
+	keyboard		\
 	.ALWAYS
 
 clangdb: sim/simulator.mak .ALWAYS
 	cd sim && rm -f *.o && compiledb make -f simulator.mak && mv compile_commands.json ..
+
+keyboard: sim/keyboard-db48x.png Keyboard-Layout.png Keyboard-Cutout.png
+Keyboard-Layout.png: DB48X-Keys/DB48X-Keys.001.png
+	cp $< $@
+Keyboard-Cutout.png: DB48X-Keys/DB48X-Keys.002.png
+	cp $< $@
+sim/keyboard-db48x.png: DB48X-Keys/DB48X-Keys.001.png
+	convert $< -crop 698x878+151+138 $@
 
 QMAKE_debug=debug
 QMAKE_release=release

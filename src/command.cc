@@ -626,9 +626,7 @@ COMMAND_BODY(LastArg)
 //   Return the last arguments
 // ----------------------------------------------------------------------------
 {
-    if (!rt.last())
-        return ERROR;
-    return OK;
+    return rt.last() ? OK : ERROR;
 }
 
 
@@ -637,9 +635,7 @@ COMMAND_BODY(LastX)
 //   Return the last first argument
 // ----------------------------------------------------------------------------
 {
-    if (!rt.last(0))
-        return ERROR;
-    return OK;
+    return rt.last(0) ? OK : ERROR;
 }
 
 
@@ -648,7 +644,113 @@ COMMAND_BODY(Undo)
 //   Return the undo stack
 // ----------------------------------------------------------------------------
 {
-    if (!rt.undo())
-        return ERROR;
-    return OK;
+    return rt.undo() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorSelect)
+// ----------------------------------------------------------------------------
+//   Select current cursor position
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_select() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorWordLeft)
+// ----------------------------------------------------------------------------
+//   Move cursor one word to the left
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_word_left() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorWordRight)
+// ----------------------------------------------------------------------------
+//   Move cursor one word to the right
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_word_right() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorBegin)
+// ----------------------------------------------------------------------------
+//   Move cursor to beginning of editor
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_begin() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorEnd)
+// ----------------------------------------------------------------------------
+//   Move cursor to end of editor
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_end() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorCut)
+// ----------------------------------------------------------------------------
+//   Cut selection
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_cut() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorCopy)
+// ----------------------------------------------------------------------------
+//   Copy selection
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_copy() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorPaste)
+// ----------------------------------------------------------------------------
+//   Paste selection
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_paste() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorSearch)
+// ----------------------------------------------------------------------------
+//   Search selection
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_search() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorReplace)
+// ----------------------------------------------------------------------------
+//   Replace selection
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_replace() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorClear)
+// ----------------------------------------------------------------------------
+//   Clear selection
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_clear() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorFlip)
+// ----------------------------------------------------------------------------
+//   Flip selection point and cursor
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_selection_flip() ? OK : ERROR;
 }

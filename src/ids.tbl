@@ -557,8 +557,22 @@ CMD(SaveState)
 CMD(SystemSetup)
 CMD(Help)
 CMD(Undo)
+
 NAMED(LastArg, "LastArguments")
 CMD(LastX)
+
+CMD(EditorSelect)
+CMD(EditorWordLeft)
+CMD(EditorWordRight)
+CMD(EditorBegin)
+CMD(EditorEnd)
+CMD(EditorCut)
+CMD(EditorCopy)
+CMD(EditorPaste)
+CMD(EditorSearch)
+CMD(EditorReplace)
+CMD(EditorClear)
+CMD(EditorFlip)
 
 CMD(Unimplemented)
 

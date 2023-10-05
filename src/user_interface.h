@@ -157,6 +157,18 @@ struct user_interface
     bool        end_edit();
     void        clear_editor();
     void        edit_history();
+    bool        editor_select();
+    bool        editor_word_left();
+    bool        editor_word_right();
+    bool        editor_begin();
+    bool        editor_end();
+    bool        editor_cut();
+    bool        editor_copy();
+    bool        editor_paste();
+    bool        editor_search();
+    bool        editor_replace();
+    bool        editor_clear();
+    bool        editor_selection_flip();
     void        load_help(utf8 topic, size_t len = 0);
 
 protected:

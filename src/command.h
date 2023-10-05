@@ -149,7 +149,20 @@ COMMAND_DECLARE(LastArg);       // Return last arguments
 COMMAND_DECLARE(LastX);         // Return last X argument
 COMMAND_DECLARE(Undo);          // Revert to the Undo stack
 COMMAND_DECLARE(ToolsMenu);     // Automatic selection of the right menu
-COMMAND_DECLARE(LastMenu);      // Return to
+COMMAND_DECLARE(LastMenu);      // Return to previous menu
 COMMAND_DECLARE(ToList);        // Build a list from stack
+
+COMMAND_DECLARE(EditorSelect);  // Select from current cursor position
+COMMAND_DECLARE(EditorWordLeft); // Move cursor one word left
+COMMAND_DECLARE(EditorWordRight); // Move cursor one word right
+COMMAND_DECLARE(EditorBegin);   // Move cursor to beginning of buffer
+COMMAND_DECLARE(EditorEnd);     // Move cursor to end of buffer
+COMMAND_DECLARE(EditorCut);     // Cut current selection
+COMMAND_DECLARE(EditorCopy);    // Copy current selection
+COMMAND_DECLARE(EditorPaste);   // Paste to cursor position
+COMMAND_DECLARE(EditorSearch);  // Begin search
+COMMAND_DECLARE(EditorReplace); // Replace search with cursor
+COMMAND_DECLARE(EditorClear);   // Clear editor
+COMMAND_DECLARE(EditorFlip);    // Flip cursor and selection
 
 #endif // COMMAND_H

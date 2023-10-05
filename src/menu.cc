@@ -857,19 +857,19 @@ MENU(EditMenu,
 // ----------------------------------------------------------------------------
 //   Operations in the editor
 // ----------------------------------------------------------------------------
-     "Select",  ID_Unimplemented,
-     "←Word",   ID_Unimplemented,
-     "Word→",   ID_Unimplemented,
-     "Cut",     ID_Unimplemented,
-     "Copy",    ID_Unimplemented,
-     "Paste",   ID_Unimplemented,
+     "Select",  ID_EditorSelect,
+     "←Word",   ID_EditorWordLeft,
+     "Word→",   ID_EditorWordRight,
+     "Cut",     ID_EditorCut,
+     "Copy",    ID_EditorCopy,
+     "Paste",   ID_EditorPaste,
 
-     "Flip",    ID_Unimplemented,
-     "|←",      ID_Unimplemented,
-     "→|",      ID_Unimplemented,
-     "Search",  ID_Unimplemented,
-     "Replace", ID_Unimplemented,
-     "Clear",   ID_Unimplemented);
+     "Flip",    ID_EditorFlip,
+     "|←",      ID_EditorBegin,
+     "→|",      ID_EditorEnd,
+     "Search",  ID_EditorSearch,
+     "Replace", ID_EditorReplace,
+     "Clear",   ID_EditorClear);
 
 MENU(IntegrationMenu,
 // ----------------------------------------------------------------------------

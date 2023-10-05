@@ -83,8 +83,10 @@
 struct object;                  // RPL object
 struct directory;               // Directory (storing global variables)
 struct symbol;                  // Symbols (references to a directory)
+struct text;
 typedef const object *object_p;
 typedef const directory *directory_p;
+typedef const text *text_p;
 
 RECORDER_DECLARE(runtime);
 RECORDER_DECLARE(runtime_error);
@@ -213,7 +215,7 @@ struct runtime
     // ------------------------------------------------------------------------
 
 
-    utf8 close_editor(bool convert = false);
+    text_p close_editor(bool convert = false);
     // ------------------------------------------------------------------------
     //   Close the editor and encapsulate its content in a temporary string
     // ------------------------------------------------------------------------

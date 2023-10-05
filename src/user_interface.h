@@ -34,6 +34,7 @@
 #include "file.h"
 #include "object.h"
 #include "runtime.h"
+#include "text.h"
 #include "types.h"
 
 #include <string>
@@ -70,7 +71,7 @@ struct user_interface
     //   Dimensioning constants
     // ------------------------------------------------------------------------
     {
-        HISTORY         = 8,    // Number of menus kept in history
+        HISTORY         = 8,    // Number of menus and commands kept in history
         NUM_PLANES      = 3,    // NONE, Shift and "extended" shift
         NUM_KEYS        = 46,   // Including SCREENSHOT, SH_UP and SH_DN
         NUM_SOFTKEYS    = 6,    // Number of softkeys
@@ -155,6 +156,7 @@ struct user_interface
     result      edit(utf8 s, modes m, int off = 0);
     bool        end_edit();
     void        clear_editor();
+    void        edit_history();
     void        load_help(utf8 topic, size_t len = 0);
 
 protected:
@@ -174,7 +176,7 @@ protected:
     uint     help;              // Offset of help being displayed in help file
     uint     line;              // Line offset in the help display
     uint     topic;             // Offset of topic being highlighted
-    uint     history;           // History depth
+    uint     topics_history;    // History depth
     uint     topics[8];         // Topics history
     uint     cursor;            // Cursor position in buffer
     coord    xoffset;           // Offset of the cursor
@@ -193,6 +195,8 @@ protected:
     uint     nextRefresh;       // Time for next refresh
     rect     dirty;             // Dirty rectangles
     object_g editing;           // Object being edited if any
+    uint     cmdIndex;          // Command index
+    text_g   history[HISTORY];  // Command-line history
     bool     shift        : 1;  // Normal shift active
     bool     xshift       : 1;  // Extended shift active (simulate Right)
     bool     alpha        : 1;  // Alpha mode active

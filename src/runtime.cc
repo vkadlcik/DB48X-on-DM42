@@ -547,7 +547,7 @@ void runtime::remove(size_t offset, size_t len)
 }
 
 
-utf8 runtime::close_editor(bool convert)
+text_p runtime::close_editor(bool convert)
 // ----------------------------------------------------------------------------
 //   Close the editor and encapsulate its content into a string
 // ----------------------------------------------------------------------------
@@ -580,16 +580,12 @@ utf8 runtime::close_editor(bool convert)
     // We are no longer editing
     Editing = 0;
 
-    // Import special characters
+    // Import special characters if necessary (importing text file)
     if (convert)
-    {
-        text_p imported = obj->import();
-        if (imported != obj)
-            str = (char *) imported->value();
-    }
+        obj = obj->import();
 
     // Return a pointer to a valid C string safely wrapped in a RPL string
-    return utf8(str);
+    return obj;
 }
 
 

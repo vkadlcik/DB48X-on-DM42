@@ -74,7 +74,7 @@ user_interface::user_interface()
       help(-1u),
       line(0),
       topic(0),
-      history(0),
+      topics_history(0),
       topics(),
       cursor(0),
       xoffset(0),
@@ -93,6 +93,8 @@ user_interface::user_interface()
       busy(0),
       nextRefresh(~0U),
       dirty(),
+      editing(),
+      cmdIndex(0),
       shift(false),
       xshift(false),
       alpha(false),
@@ -258,14 +260,18 @@ bool user_interface::end_edit()
     size_t edlen = rt.editing();
     if (edlen)
     {
-        // Remove all additional decorative number spacing
-        byte   *ed   = rt.editor();
+        gcutf8  ed   = rt.editor();
         size_t  o    = 0;
         bool    text = false;
         unicode nspc = Settings.space;
         unicode hspc = Settings.space_based;
 
         draw_busy_cursor();
+
+        // Save the command-line history (without removing spaces)
+        history[cmdIndex] = text::make(ed, edlen);
+
+        // Remove all additional decorative number spacing
         while (o < edlen)
         {
             unicode cp = utf8_codepoint(ed + o);
@@ -286,13 +292,15 @@ bool user_interface::end_edit()
             }
         }
 
-        gcutf8 editor = rt.close_editor();
-        if (editor)
+        text_g edstr = rt.close_editor();
+        if (edstr)
         {
+            gcutf8 editor = edstr->value();
             program_g cmds = program::parse(editor, edlen);
             if (cmds)
             {
                 // We successfully parsed the line
+                cmdIndex = (cmdIndex + 1) % HISTORY;
                 clear_editor();
                 this->editing = nullptr;
                 rt.save();
@@ -337,6 +345,31 @@ void user_interface::clear_editor()
     dirtyEditor = true;
     dirtyStack  = true;
     clear_help();
+}
+
+
+void user_interface::edit_history()
+// ----------------------------------------------------------------------------
+//   Restore editor buffer from history
+// ----------------------------------------------------------------------------
+{
+    if (rt.editing())
+        history[cmdIndex] = rt.close_editor(false);
+    for (uint h = 0; h < HISTORY; h++)
+    {
+        cmdIndex = (cmdIndex + HISTORY - 1) % HISTORY;
+        if (history[cmdIndex])
+        {
+            size_t sz = 0;
+            gcutf8 ed = history[cmdIndex]->value(&sz);
+            rt.edit(ed, sz);
+            cursor = 0;
+            xshift = shift = false;
+            edRows = 0;
+            dirtyEditor = true;
+            break;
+        }
+    }
 }
 
 
@@ -2112,17 +2145,17 @@ void user_interface::load_help(utf8 topic, size_t len)
         record(help, "Found topic %s at position %u level %u",
                topic, helpfile.position(), level);
 
-        if (history >= NUM_TOPICS)
+        if (topics_history >= NUM_TOPICS)
         {
             // Overflow, keep the last topics
             for (uint i         = 1; i < NUM_TOPICS; i++)
                 topics[i - 1]   = topics[i];
-            topics[history - 1] = help;
+            topics[topics_history - 1] = help;
         }
         else
         {
             // New topic, store it
-            topics[history++] = help;
+            topics[topics_history++] = help;
         }
     }
     else
@@ -2421,8 +2454,8 @@ bool user_interface::draw_help()
                         p[-1]                = 0;
                         if (follow && style == HIGHLIGHTED_TOPIC)
                         {
-                            if (history)
-                                topics[history-1] = shown;
+                            if (topics_history)
+                                topics[topics_history-1] = shown;
                             load_help(utf8(link));
                             Screen.clip(clip);
                             return draw_help();
@@ -2750,12 +2783,12 @@ bool user_interface::handle_help(int &key)
 
     case KEY_F6:
     case KEY_BSP:
-        if (history)
+        if (topics_history)
         {
-            --history;
-            if (history)
+            --topics_history;
+            if (topics_history)
             {
-                help = topics[history-1];
+                help = topics[topics_history-1];
                 line = 0;
                 dirtyHelp = true;
                 break;
@@ -3051,7 +3084,9 @@ bool user_interface::handle_editing(int key)
             }
             else if (xshift)
             {
-                return false;
+                // Command-line history
+                edit_history();
+                return true;
             }
             else if (cursor > 0)
             {
@@ -3161,6 +3196,14 @@ bool user_interface::handle_editing(int key)
                     }
                 }
             }
+            break;
+        case KEY_UP:
+            if (xshift)
+            {
+                edit_history();
+                return true;
+            }
+            break;
         }
     }
 

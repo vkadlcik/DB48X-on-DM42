@@ -403,9 +403,10 @@ static int state_load_callback(cstring path, cstring name, void *merge)
     size_t edlen = rt.editing();
     if (edlen)
     {
-        gcutf8 editor = rt.close_editor(true);
-        if (editor)
+        text_g edstr = rt.close_editor(true);
+        if (edstr)
         {
+            gcutf8 editor = edstr->value();
             char ds = Settings.decimal_mark;
             Settings.decimal_mark = '.';
             program_g cmds = program::parse(editor, edlen);

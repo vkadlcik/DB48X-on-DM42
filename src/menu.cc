@@ -211,7 +211,6 @@ MENU(MainMenu,
      "Eqns",    ID_EquationsMenu,
      "User",    ID_UserInterfaceModesMenu,
 
-     "Last",    ID_LastThingsMenu,
      "Time",    ID_TimeMenu,
      "I/O",     ID_IOMenu,
      "Chars",   ID_CharsMenu);
@@ -1026,17 +1025,6 @@ MENU(PlotMenu,
      "Clear",   ID_Unimplemented,
      "Axes",    ID_Unimplemented,
      "Auto",    ID_Unimplemented);
-
-
-MENU(LastThingsMenu,
-// ----------------------------------------------------------------------------
-//   Menu with the last things
-// ----------------------------------------------------------------------------
-     "Args",    ID_LastArg,
-     "X",       ID_LastX,
-     "Stack",   ID_Undo,
-     "Menu",    ID_LastMenu,
-     "Cmd",     ID_Unimplemented);
 
 MENU(ClearThingsMenu,
 // ----------------------------------------------------------------------------

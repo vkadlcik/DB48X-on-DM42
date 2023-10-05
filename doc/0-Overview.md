@@ -158,17 +158,25 @@ as follows:
 
 * _X⇆Y_ executes the matching [Swap](#swap) function
 
-* _LAST x_ will open a [LastThingsMenu](#LastThingsMenu), with options to Undo
-  the last operation, functions like `LastX`, `LastStack`, `LastArgs`, `LastKey`
-  and [LastMenu](#LastMenu).
+* _LAST x_ (🟨 _X⇆Y_) executes [LastArg](#LastArguments) command, recalling the
+  arguments of the last command. There is also a [LastX](#LastX) command for
+  compatibility with RPN, which is available from the [StackMenu](#StackMenu).
+
+* _Undo_(🟦 _X⇆Y_) restores the previous state of the stack. This is like
+  `Last Stack` on the HP48, but it is a real command that can be used in
+  programs.
 
 * _+/-_ executes the equivalent RPL `Negate` function
 
-* _Modes_ calls the [ModesMenu](#ModesMenu), with submenus for various settings,
-  including computation precision, display modes, etc.
+* _Modes_ (🟨 _+/-_ ) calls the [ModesMenu](#ModesMenu), with submenus for
+  various settings, including computation precision, display modes, etc.
 
-* _Disp_ calls the [DisplayMenu](#DisplayMenu), with submenus for graphic
-  operations, plotting, shapes, and forms.
+* _Obj_ (🟦 _+/-_ ) calls the [ObjectMenu](#ObjectMenu), with various
+  object-related operations.
+
+* _Disp_ (🟨 _EEX_ ) calls the [DisplayModesMenu](#DisplayModesMenu), which
+  controls settings related to the display, such as number of digits shown or
+  separators.
 
 * _Clear_ calls a [ClearThingsMenu](#ClearThingsMenu) with options to clear
   various items, including [ClearStack](#ClearStack) and

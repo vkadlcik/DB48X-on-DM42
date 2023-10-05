@@ -3430,7 +3430,7 @@ static const byte defaultShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_COS,   function::ID_acos),
     OP2BYTES(KEY_TAN,   function::ID_atan),
     OP2BYTES(KEY_ENTER, 0),     // Alpha
-    OP2BYTES(KEY_SWAP,  menu::ID_LastThingsMenu),
+    OP2BYTES(KEY_SWAP,  menu::ID_LastArg),
     OP2BYTES(KEY_CHS,   menu::ID_ModesMenu),
     OP2BYTES(KEY_E,     menu::ID_DisplayModesMenu),
     OP2BYTES(KEY_BSP,   menu::ID_ClearThingsMenu),

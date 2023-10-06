@@ -1495,8 +1495,9 @@ inline void blitter::surface<blitter::MONOCHROME_REVERSE>::horizontal_adjust(
 //   On the DM42, we need horizontal adjustment for coordinates
 // ----------------------------------------------------------------------------
 {
-    coord ox1 = width - x2;
-    x2        = width - x1;
+    size  w   = width - 1;
+    coord ox1 = w - x2;
+    x2        = w - x1;
     x1        = ox1;
 }
 

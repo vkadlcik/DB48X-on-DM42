@@ -3640,7 +3640,7 @@ bool user_interface::handle_functions(int key)
             if (key == KEY_ENTER || key == KEY_BSP)
                 return false;
 
-            if (key >= KEY_F1 && key <= KEY_F6 && autoComplete)
+            if (autoComplete && key >= KEY_F1 && key <= KEY_F6)
             {
                 size_t start = 0;
                 size_t size  = 0;

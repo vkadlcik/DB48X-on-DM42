@@ -864,7 +864,7 @@ MENU(EditMenu,
      "Copy",    ID_EditorCopy,
      "Paste",   ID_EditorPaste,
 
-     "Flip",    ID_EditorFlip,
+     "Csr⇄Sel", ID_EditorFlip,
      "|←",      ID_EditorBegin,
      "→|",      ID_EditorEnd,
      "Search",  ID_EditorSearch,

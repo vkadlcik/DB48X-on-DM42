@@ -3896,6 +3896,9 @@ bool user_interface::editor_selection_flip()
 //   Flip cursor and selection point
 // ----------------------------------------------------------------------------
 {
+    if (~select)
+        std::swap(select, cursor);
+    edRows = 0;
     dirtyEditor = true;
     return true;
 }

@@ -1,5 +1,5 @@
-#ifndef INPUT_H
-#define INPUT_H
+#ifndef USER_INTERFACE_H
+#define USER_INTERFACE_H
 // ****************************************************************************
 //  user_interface.h                                             DB48X project
 // ****************************************************************************
@@ -131,7 +131,7 @@ struct user_interface
 
     bool        draw_menus();
     bool        draw_battery();
-    bool        draw_cursor(int show);
+    bool        draw_cursor(int show, uint ncursor);
     bool        draw_busy();
     bool        draw_idle();
     bool        draw_busy_cursor(unicode glyph = L'▶');
@@ -169,6 +169,9 @@ struct user_interface
     bool        editor_replace();
     bool        editor_clear();
     bool        editor_selection_flip();
+    size_t      insert(size_t offset, utf8 data, size_t len);
+    size_t      insert(size_t offset, byte c) { return insert(offset, &c, 1); }
+    size_t      remove(size_t offset, size_t len);
     void        load_help(utf8 topic, size_t len = 0);
 
 protected:

@@ -528,7 +528,7 @@ size_t runtime::insert(size_t offset, utf8 data, size_t len)
 }
 
 
-void runtime::remove(size_t offset, size_t len)
+size_t runtime::remove(size_t offset, size_t len)
 // ----------------------------------------------------------------------------
 //   Remove characers from the editor
 // ----------------------------------------------------------------------------
@@ -544,6 +544,7 @@ void runtime::remove(size_t offset, size_t len)
     byte_p edr = (byte_p) editor() + offset;
     move(object_p(edr), object_p(edr + len), moving);
     Editing -= len;
+    return len;
 }
 
 

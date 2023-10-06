@@ -151,7 +151,10 @@ void user_interface::edit(unicode c, modes m)
     byte utf8buf[4];
     uint savec = cursor;
     size_t len = utf8_encode(c, utf8buf);
-    cursor += rt.insert(cursor, utf8buf, len);
+    int move = rt.insert(cursor, utf8buf, len);
+    if (~select && select >= cursor)
+        select += move;
+    cursor += move;
 
     // Test delimiters
     unicode closing = 0;
@@ -202,6 +205,7 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
     if (!editing)
     {
         cursor = 0;
+        select = ~0U;
         dirtyStack = true;
     }
     else if ((mode != ALGEBRAIC || m != ALGEBRAIC) &&
@@ -285,7 +289,7 @@ bool user_interface::end_edit()
             else if (!text && (cp == nspc || cp == hspc))
             {
                 size_t ulen = utf8_size(cp);
-                rt.remove(o, ulen);
+                ulen = remove(o, ulen);
                 edlen -= ulen;
             }
             else
@@ -314,9 +318,12 @@ bool user_interface::end_edit()
                 utf8 pos = rt.source();
                 utf8 ed = editor;
                 if (pos >= editor && pos <= ed + edlen)
-                    cursor = pos - ed;
+                    cursor = select = pos - ed;
                 if (!rt.edit(ed, edlen))
+                {
                     cursor = 0;
+                    select = ~0U;
+                }
                 draw_idle();
                 beep(3300, 100);
                 return false;
@@ -336,6 +343,7 @@ void user_interface::clear_editor()
 {
     rt.clear();
     cursor      = 0;
+    select      = ~0U;
     xoffset     = 0;
     edRows      = 0;
     alpha       = false;
@@ -366,6 +374,7 @@ void user_interface::edit_history()
             gcutf8 ed = history[cmdIndex]->value(&sz);
             rt.edit(ed, sz);
             cursor = 0;
+            select = ~0U;
             xshift = shift = false;
             edRows = 0;
             dirtyEditor = true;
@@ -640,11 +649,9 @@ void user_interface::updateMode()
                 // Remove all spacing in the range
                 if (code == nspc || code == hspc)
                 {
-                    size_t remove = utf8_size(code);
-                    rt.remove(o, remove);
-                    if (cursor > o)
-                        cursor -= remove;
-                    len -= remove;
+                    size_t rlen = utf8_size(code);
+                    rlen = remove(o, rlen);
+                    len -= rlen;
                     ed = rt.editor(); // Defensive coding (no move on remove)
                     continue;
                 }
@@ -1763,10 +1770,14 @@ bool user_interface::draw_editor()
         if (display >= last)
             break;
 
-        unicode c = utf8_codepoint(display);
-        display = utf8_next(display);
+        unicode c   = utf8_codepoint(display);
+        uint    pos = display - ed;
+        bool    sel = ~select && int((pos - cursor) ^ (pos - select)) < 0;
+        display     = utf8_next(display);
         if (c == '\n')
         {
+            if (sel && x >= 0 && x < LCD_W)
+                Screen.fill(x, y, LCD_W, y + lineHeight - 1, pattern::black);
             y += lineHeight;
             x  = -xoffset;
             r++;
@@ -1774,9 +1785,15 @@ bool user_interface::draw_editor()
         }
         int cw = font->width(c);
         if (x + cw >= 0 && x < LCD_W)
-            x = Screen.glyph(x, y, c, font);
+        {
+            pattern fg  = sel ? pattern::white : pattern::black;
+            pattern bg  = sel ? pattern::black : pattern::white;
+            x = Screen.glyph(x, y, c, font, fg, bg);
+        }
         else
+        {
             x += cw;
+        }
     }
     if (cursor >= len)
     {
@@ -1790,7 +1807,7 @@ bool user_interface::draw_editor()
 }
 
 
-bool user_interface::draw_cursor(int show)
+bool user_interface::draw_cursor(int show, uint ncursor)
 // ----------------------------------------------------------------------------
 //   Draw the cursor at the location
 // ----------------------------------------------------------------------------
@@ -1841,7 +1858,7 @@ bool user_interface::draw_cursor(int show)
     while (x <= cx + csrw + 1)
     {
         unicode cchar  = p < last ? utf8_codepoint(p) : ' ';
-        if (cchar     == '\n')
+        if (cchar == '\n')
             spaces = true;
         if (spaces)
             cchar = ' ';
@@ -1852,7 +1869,11 @@ bool user_interface::draw_cursor(int show)
         draw_dirty(x, cy, x + cw - 1, cy + ch - 1);
 
         // Write the character under the cursor
-        x = Screen.glyph(x, cy, cchar, edFont);
+        uint pos = p - ed;
+        bool sel = ~select && int((pos - ncursor) ^ (pos - select)) < 0;
+        pattern fg = sel ? pattern::white : pattern::black;
+        pattern bg = sel ? pattern::black : pattern::white;
+        x = Screen.glyph(x, cy, cchar, edFont, fg, bg);
         if (p < last)
             p = utf8_next(p);
     }
@@ -3017,7 +3038,7 @@ bool user_interface::handle_editing(int key)
                 uint after           = utf8_next(ed, cursor, editing);
                 if (utf8_codepoint(ed + cursor) == '\n')
                     edRows = 0;
-                rt.remove(cursor, after - cursor);
+                remove(cursor, after - cursor);
                 dirtyEditor = true;
                 adjustSeps = true;
             }
@@ -3029,7 +3050,7 @@ bool user_interface::handle_editing(int key)
                 cursor       = utf8_previous(ed, cursor);
                 if (utf8_codepoint(ed + cursor) == '\n')
                     edRows = 0;
-                rt.remove(cursor, before - cursor);
+                remove(cursor, before - cursor);
                 dirtyEditor = true;
                 adjustSeps = true;
             }
@@ -3098,11 +3119,11 @@ bool user_interface::handle_editing(int key)
                 unicode cp = utf8_codepoint(ed + pcursor);
                 if (cp != '\n')
                 {
-                    draw_cursor(-1);
+                    draw_cursor(-1, pcursor);
                     cursor = pcursor;
                     cx -= edFont->width(cp);
                     edColumn = cx;
-                    draw_cursor(1);
+                    draw_cursor(1, pcursor);
                     if (cx < 0)
                         dirtyEditor = true;
                 }
@@ -3138,11 +3159,11 @@ bool user_interface::handle_editing(int key)
                 uint ncursor = utf8_next(ed, cursor, editing);
                 if (cp != '\n')
                 {
-                    draw_cursor(-1);
+                    draw_cursor(-1, ncursor);
                     cursor = ncursor;
                     cx += edFont->width(cp);
                     edColumn = cx;
-                    draw_cursor(1);
+                    draw_cursor(1, ncursor);
                     if (cx >= LCD_W - edFont->width('M'))
                         dirtyEditor = true;
                 }
@@ -3208,7 +3229,6 @@ bool user_interface::handle_editing(int key)
             break;
         }
     }
-
 
     return consumed;
 }
@@ -3351,9 +3371,7 @@ bool user_interface::handle_digits(int key)
             }
             else if (c == '-')
             {
-                rt.remove(p - ed, 1);
-                if (cursor)
-                    cursor--;
+                remove(p - ed, 1);
             }
             else
             {
@@ -3626,10 +3644,7 @@ bool user_interface::handle_functions(int key)
                 size_t start = 0;
                 size_t size  = 0;
                 if (currentWord(start, size))
-                {
-                    rt.remove(start, size);
-                    cursor = start;
-                }
+                    remove(start, size);
             }
 
             switch (mode)
@@ -3901,4 +3916,41 @@ bool user_interface::editor_selection_flip()
     edRows = 0;
     dirtyEditor = true;
     return true;
+}
+
+
+size_t user_interface::insert(size_t offset, utf8 data, size_t len)
+// ----------------------------------------------------------------------------
+//   Insert data in the editor
+// ----------------------------------------------------------------------------
+{
+    size_t d = rt.insert(offset, data, len);
+    if (~select && select >= cursor)
+        select += d;
+    cursor += d;
+    return d;
+}
+
+
+size_t user_interface::remove(size_t offset, size_t len)
+// ----------------------------------------------------------------------------
+//   Remove data from the editor
+// ----------------------------------------------------------------------------
+{
+    len = rt.remove(offset, len);
+    if (~select && select >= offset)
+    {
+        if (select >= offset + len)
+            select -= len;
+        else
+            select = offset;
+    }
+    if (cursor >= offset)
+    {
+        if (cursor >= offset + len)
+            cursor -= len;
+        else
+            cursor = offset;
+    }
+    return len;
 }

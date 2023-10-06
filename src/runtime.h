@@ -263,7 +263,7 @@ struct runtime
     }
 
 
-    void remove(size_t offset, size_t len);
+    size_t remove(size_t offset, size_t len);
     // ------------------------------------------------------------------------
     //   Remove characers from the editor
     // ------------------------------------------------------------------------

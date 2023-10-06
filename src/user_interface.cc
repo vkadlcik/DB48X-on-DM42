@@ -42,6 +42,7 @@
 #include "symbol.h"
 #include "sysmenu.h"
 #include "target.h"
+#include "utf8.h"
 #include "util.h"
 
 #ifdef SIMULATOR
@@ -77,6 +78,7 @@ user_interface::user_interface()
       topics_history(0),
       topics(),
       cursor(0),
+      select(~0U),
       xoffset(0),
       mode(STACK),
       last(0),
@@ -3733,6 +3735,7 @@ bool user_interface::editor_select()
 //   Set selection to current cursor position
 // ----------------------------------------------------------------------------
 {
+    select = cursor;
     dirtyEditor = true;
     return true;
 }
@@ -3743,7 +3746,31 @@ bool user_interface::editor_word_left()
 //   Move cursor one word to the left
 // ----------------------------------------------------------------------------
 {
-    dirtyEditor = true;
+    if (rt.editing())
+    {
+        utf8 ed = rt.editor();
+
+        // Skip whitespace
+        while (cursor > 0)
+        {
+            unicode code = utf8_codepoint(ed + cursor);
+            if (!isspace(code))
+                break;
+            cursor = utf8_previous(ed, cursor);
+        }
+
+        // Skip word
+        while (cursor > 0)
+        {
+            unicode code = utf8_codepoint(ed + cursor);
+            if (isspace(code))
+                break;
+            cursor = utf8_previous(ed, cursor);
+        }
+
+        edRows = 0;
+        dirtyEditor = true;
+    }
     return true;
 }
 
@@ -3753,7 +3780,31 @@ bool user_interface::editor_word_right()
 //   Move cursor one word to the right
 // ----------------------------------------------------------------------------
 {
-    dirtyEditor = true;
+    if (size_t editing = rt.editing())
+    {
+        utf8 ed = rt.editor();
+
+        // Skip whitespace
+        while (cursor < editing)
+        {
+            unicode code = utf8_codepoint(ed + cursor);
+            if (!isspace(code))
+                break;
+            cursor = utf8_next(ed, cursor, editing);
+        }
+
+        // Skip word
+        while (cursor < editing)
+        {
+            unicode code = utf8_codepoint(ed + cursor);
+            if (isspace(code))
+                break;
+            cursor = utf8_next(ed, cursor, editing);
+        }
+
+        edRows = 0;
+        dirtyEditor = true;
+    }
     return true;
 }
 
@@ -3763,6 +3814,7 @@ bool user_interface::editor_begin()
 // ----------------------------------------------------------------------------
 {
     cursor = 0;
+    edRows = 0;
     dirtyEditor = true;
     return true;
 }
@@ -3772,6 +3824,8 @@ bool user_interface::editor_end()
 //   Move cursor one word to the right
 // ----------------------------------------------------------------------------
 {
+    cursor = rt.editing();
+    edRows = 0;
     dirtyEditor = true;
     return true;
 }

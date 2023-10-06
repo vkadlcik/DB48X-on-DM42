@@ -191,6 +191,7 @@ protected:
     uint     topics_history;    // History depth
     uint     topics[8];         // Topics history
     uint     cursor;            // Cursor position in buffer
+    uint     select;            // Cursor position for selection marker
     coord    xoffset;           // Offset of the cursor
     modes    mode;              // Current editing mode
     int      last;              // Last key

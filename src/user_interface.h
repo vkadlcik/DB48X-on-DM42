@@ -213,6 +213,7 @@ protected:
     object_g editing;           // Object being edited if any
     uint     cmdIndex;          // Command index
     text_g   history[HISTORY];  // Command-line history
+    text_g   clipboard;         // Clipboard for copy/paste operations
     bool     shift        : 1;  // Normal shift active
     bool     xshift       : 1;  // Extended shift active (simulate Right)
     bool     alpha        : 1;  // Alpha mode active

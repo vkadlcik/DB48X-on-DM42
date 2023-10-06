@@ -97,6 +97,7 @@ user_interface::user_interface()
       dirty(),
       editing(),
       cmdIndex(0),
+      clipboard(),
       shift(false),
       xshift(false),
       alpha(false),
@@ -3848,10 +3849,11 @@ bool user_interface::editor_end()
 
 bool user_interface::editor_cut()
 // ----------------------------------------------------------------------------
-//   Cut to clipboard
+//   Cut to clipboard (most recent history)
 // ----------------------------------------------------------------------------
 {
-    dirtyEditor = true;
+    editor_copy();
+    editor_clear();
     return true;
 }
 
@@ -3861,7 +3863,15 @@ bool user_interface::editor_copy()
 //   Copy to clipboard
 // ----------------------------------------------------------------------------
 {
-    dirtyEditor = true;
+    if (~select && select != cursor)
+    {
+        uint start = cursor;
+        uint end = select;
+        if (start > end)
+            std::swap(start, end);
+        utf8 ed = rt.editor();
+        clipboard = text::make(ed + start, end - start);
+    }
     return true;
 }
 
@@ -3871,7 +3881,14 @@ bool user_interface::editor_paste()
 //   Paste from clipboard
 // ----------------------------------------------------------------------------
 {
-    dirtyEditor = true;
+    if (clipboard)
+    {
+        size_t len = 0;
+        utf8 ed = clipboard->value(&len);
+        insert(cursor, ed, len);
+        edRows = 0;
+        dirtyEditor = true;
+    }
     return true;
 }
 
@@ -3901,7 +3918,17 @@ bool user_interface::editor_clear()
 //   Paste from clipboard
 // ----------------------------------------------------------------------------
 {
-    dirtyEditor = true;
+    if (~select && select != cursor)
+    {
+        uint start = cursor;
+        uint end = select;
+        if (start > end)
+            std::swap(start, end);
+        remove(start, end - start);
+        select = ~0U;
+        edRows = 0;
+        dirtyEditor = true;
+    }
     return true;
 }
 

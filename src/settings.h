@@ -98,7 +98,7 @@ struct settings
           menu_single_ln(false),
           menu_flatten(false),
           menu_square(false),
-          graph_stack(true),
+          graph_stack(false),
           date_separator('/'),
           result_sz(STACK),
           stack_sz(STACK),

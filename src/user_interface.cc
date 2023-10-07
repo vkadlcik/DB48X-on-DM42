@@ -1886,7 +1886,7 @@ bool user_interface::draw_cursor(int show, uint ncursor)
     {
         coord csrx = cx + 1;
         coord csry = cy + (ch - csrh)/2;
-        Screen.invert(csrx, cy, csrx+1, cy + ch - 1, pattern::black);
+        Screen.invert(csrx, cy, csrx+1, cy + ch - 1);
         rect  r(csrx, csry - 1, csrx+csrw, csry + csrh);
         if (alpha)
         {

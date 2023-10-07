@@ -160,6 +160,9 @@ struct blitter
         pattern(color a, color b);
         pattern(color a, color b, color c, color d);
 
+        // Pattern from bits
+        pattern(uint64_t bits = ~0ULL): bits(bits) {}
+
         // Some pre-defined shades of gray
         static const pattern black;
         static const pattern gray10;
@@ -168,6 +171,7 @@ struct blitter
         static const pattern gray75;
         static const pattern gray90;
         static const pattern white;
+        static const pattern invert;
     };
 
 
@@ -463,12 +467,12 @@ struct blitter
         }
 
         template <clipping Clip = FILL_SAFE>
-        void invert(const rect &r, pattern colors = pattern::black)
+        void invert(const rect &r, pattern colors = pattern::invert)
         // --------------------------------------------------------------------
         //   Invert a rectangle
         // --------------------------------------------------------------------
         {
-            blit<Clip>(*this, *this, r, point(), blitop_set, colors);
+            blit<Clip>(*this, *this, r, point(), blitop_xor, colors);
         }
 
         template <clipping Clip = FILL_SAFE>
@@ -476,7 +480,7 @@ struct blitter
                     coord   y1,
                     coord   x2,
                     coord   y2,
-                    pattern colors = pattern::black)
+                    pattern colors = pattern::invert)
         // --------------------------------------------------------------------
         //   Invert a rectangle with a color pattern
         // --------------------------------------------------------------------
@@ -485,7 +489,7 @@ struct blitter
         }
 
         template <clipping Clip = FILL_SAFE>
-        void invert(pattern colors = pattern::black)
+        void invert(pattern colors = pattern::invert)
         // --------------------------------------------------------------------
         //   Invert the entire area with the chosen color
         // --------------------------------------------------------------------
@@ -796,7 +800,7 @@ public:
     //   Perform a 'xor' graphical operation (can also be used for inverting)
     // -------------------------------------------------------------------------
     {
-        dst = src ^ arg;
+        dst ^= src ^ arg;
         return dst;
     }
 
@@ -806,7 +810,7 @@ public:
     //   Perform the 'and' operation
     // -------------------------------------------------------------------------
     {
-        dst = src & arg;
+        dst &= src ^ arg;
         return dst;
     }
 
@@ -816,7 +820,7 @@ public:
     //   Perform a 'or' graphical operation
     // -------------------------------------------------------------------------
     {
-        dst = src | arg;
+        dst |= src ^ arg;
         return dst;
     }
 
@@ -1038,13 +1042,14 @@ inline blitter::pattern<Mode>::pattern(color a, color b, color c, color d)
 #define TGPAT                     \
     template <blitter::mode Mode> \
     const GPAT
-TGPAT GPAT::black  = GPAT(0, 0, 0);
-TGPAT GPAT::gray10 = GPAT(32, 32, 32);
-TGPAT GPAT::gray25 = GPAT(64, 64, 64);
+TGPAT GPAT::black  = GPAT(0,     0,    0);
+TGPAT GPAT::gray10 = GPAT(32,   32,   32);
+TGPAT GPAT::gray25 = GPAT(64,   64,   64);
 TGPAT GPAT::gray50 = GPAT(128, 128, 128);
 TGPAT GPAT::gray75 = GPAT(192, 192, 192);
 TGPAT GPAT::gray90 = GPAT(224, 224, 224);
 TGPAT GPAT::white  = GPAT(255, 255, 255);
+TGPAT GPAT::invert = GPAT();
 #undef TGPAT
 #undef GPAT
 
@@ -1093,6 +1098,9 @@ union blitter::pattern<blitter::mode::MONOCHROME>
     pattern(color a, color b);
     pattern(color a, color b, color c, color d);
 
+    // Pattern from bits
+    pattern(uint64_t bits = ~0ULL): bits(bits) {}
+
     // Some pre-defined shades of gray
     static const pattern black;
     static const pattern gray10;
@@ -1101,6 +1109,7 @@ union blitter::pattern<blitter::mode::MONOCHROME>
     static const pattern gray75;
     static const pattern gray90;
     static const pattern white;
+    static const pattern invert;
 };
 
 
@@ -1148,6 +1157,9 @@ union blitter::pattern<blitter::mode::MONOCHROME_REVERSE>
     pattern(color a, color b);
     pattern(color a, color b, color c, color d);
 
+    // Pattern from bits
+    pattern(uint64_t bits = ~0ULL): bits(bits) {}
+
     // Some pre-defined shades of gray
     static const pattern black;
     static const pattern gray10;
@@ -1156,6 +1168,7 @@ union blitter::pattern<blitter::mode::MONOCHROME_REVERSE>
     static const pattern gray75;
     static const pattern gray90;
     static const pattern white;
+    static const pattern invert;
 };
 
 
@@ -1198,6 +1211,9 @@ union blitter::pattern<blitter::mode::GRAY_4BPP>
     pattern(color a, color b);
     pattern(color a, color b, color c, color d);
 
+    // Pattern from bits
+    pattern(uint64_t bits = ~0ULL): bits(bits) {}
+
     // Some pre-defined shades of gray
     static const pattern black;
     static const pattern gray10;
@@ -1206,6 +1222,7 @@ union blitter::pattern<blitter::mode::GRAY_4BPP>
     static const pattern gray75;
     static const pattern gray90;
     static const pattern white;
+    static const pattern invert;
 };
 
 
@@ -1256,6 +1273,7 @@ union blitter::pattern<blitter::mode::RGB_16BPP>
     static const pattern gray75;
     static const pattern gray90;
     static const pattern white;
+    static const pattern invert;
 };
 
 

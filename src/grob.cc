@@ -213,7 +213,7 @@ object::result grob::command(grob::blitop op)
                     rt.drop(2 + (dg == nullptr));
                     blitter::blit<blitter::CLIP_ALL>(dsts, srcs,
                                                      drect, p,
-                                                     op, pattern::black);
+                                                     op, pattern::white);
                     ui.draw_dirty(drect);
                     refresh_dirty();
                     return OK;

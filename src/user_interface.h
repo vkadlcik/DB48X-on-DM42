@@ -182,6 +182,7 @@ protected:
     bool        handle_functions(int key);
     bool        handle_digits(int key);
     bool        noHelpForKey(int key);
+    bool        do_search(unicode with = 0, bool restart = false);
 
 public:
     int      evaluating;        // Key being evaluated
@@ -195,6 +196,7 @@ protected:
     uint     topics[8];         // Topics history
     uint     cursor;            // Cursor position in buffer
     uint     select;            // Cursor position for selection marker
+    uint     searching;         // Searching start point
     coord    xoffset;           // Offset of the cursor
     modes    mode;              // Current editing mode
     int      last;              // Last key

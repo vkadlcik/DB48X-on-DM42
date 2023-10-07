@@ -431,8 +431,6 @@ struct blitter
             return rect(width, height);
         }
 
-
-
         template <clipping Clip = FILL_SAFE>
         void fill(const rect &r, pattern colors = pattern::black)
         // --------------------------------------------------------------------
@@ -462,6 +460,37 @@ struct blitter
         // --------------------------------------------------------------------
         {
             fill<Clip>(drawable, colors);
+        }
+
+        template <clipping Clip = FILL_SAFE>
+        void invert(const rect &r, pattern colors = pattern::black)
+        // --------------------------------------------------------------------
+        //   Invert a rectangle
+        // --------------------------------------------------------------------
+        {
+            blit<Clip>(*this, *this, r, point(), blitop_set, colors);
+        }
+
+        template <clipping Clip = FILL_SAFE>
+        void invert(coord   x1,
+                    coord   y1,
+                    coord   x2,
+                    coord   y2,
+                    pattern colors = pattern::black)
+        // --------------------------------------------------------------------
+        //   Invert a rectangle with a color pattern
+        // --------------------------------------------------------------------
+        {
+            invert<Clip>(rect(x1, y1, x2, y2), colors);
+        }
+
+        template <clipping Clip = FILL_SAFE>
+        void invert(pattern colors = pattern::black)
+        // --------------------------------------------------------------------
+        //   Invert the entire area with the chosen color
+        // --------------------------------------------------------------------
+        {
+            invert<Clip>(drawable, colors);
         }
 
         template <clipping Clip = COPY>

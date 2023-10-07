@@ -79,6 +79,7 @@ user_interface::user_interface()
       topics(),
       cursor(0),
       select(~0U),
+      searching(~0U),
       xoffset(0),
       mode(STACK),
       last(0),
@@ -1788,7 +1789,8 @@ bool user_interface::draw_editor()
         if (x + cw >= 0 && x < LCD_W)
         {
             pattern fg  = sel ? pattern::white : pattern::black;
-            pattern bg  = sel ? pattern::black : pattern::white;
+            pattern bg  = sel ? (~searching ? pattern::gray25 : pattern::black)
+                              : pattern::white;
             x = Screen.glyph(x, y, c, font, fg, bg);
         }
         else
@@ -1837,13 +1839,13 @@ bool user_interface::draw_cursor(int show, uint ncursor)
     utf8   last       = ed + len;
 
     // Select cursor character
-    unicode cursorChar = mode == DIRECT      ? 'D'
-                       : mode == TEXT        ? (lowercase ? 'L' : 'C')
-                       : mode == PROGRAM     ? 'P'
-                       : mode == ALGEBRAIC   ? 'A'
-                       : mode == MATRIX      ? 'M'
-                       : mode == BASED ? 'B'
-                                             : 'X';
+    unicode cursorChar = mode == DIRECT    ? 'D'
+                       : mode == TEXT      ? (lowercase ? 'L' : 'C')
+                       : mode == PROGRAM   ? 'P'
+                       : mode == ALGEBRAIC ? 'A'
+                       : mode == MATRIX    ? 'M'
+                       : mode == BASED     ? 'B'
+                                           : 'X';
     size    csrh       = cursorFont->height();
     coord   csrw       = cursorFont->width(cursorChar);
     size    ch         = edFont->height();
@@ -1873,7 +1875,8 @@ bool user_interface::draw_cursor(int show, uint ncursor)
         uint pos = p - ed;
         bool sel = ~select && int((pos - ncursor) ^ (pos - select)) < 0;
         pattern fg = sel ? pattern::white : pattern::black;
-        pattern bg = sel ? pattern::black : pattern::white;
+        pattern bg  = sel ? (~searching ? pattern::gray25 : pattern::black)
+                          : pattern::white;
         x = Screen.glyph(x, cy, cchar, edFont, fg, bg);
         if (p < last)
             p = utf8_next(p);
@@ -1883,7 +1886,7 @@ bool user_interface::draw_cursor(int show, uint ncursor)
     {
         coord csrx = cx + 1;
         coord csry = cy + (ch - csrh)/2;
-        Screen.fill(csrx, cy, csrx+1, cy + ch - 1, pattern::black);
+        Screen.invert(csrx, cy, csrx+1, cy + ch - 1, pattern::black);
         rect  r(csrx, csry - 1, csrx+csrw, csry + csrh);
         if (alpha)
         {
@@ -3032,7 +3035,19 @@ bool user_interface::handle_editing(int key)
             if (xshift)
                 return false;
             repeat = true;
-            if (shift && cursor < editing)
+            if (~searching)
+            {
+                utf8 ed = rt.editor();
+                if (cursor > select)
+                    cursor = utf8_previous(ed, cursor);
+                else
+                    select = utf8_previous(ed, select);
+                if (cursor == select)
+                    cursor = select = searching;
+                else
+                    do_search(0, true);
+            }
+            else if (shift && cursor < editing)
             {
                 // Shift + Backspace = Delete to right of cursor
                 utf8 ed              = rt.editor();
@@ -3071,7 +3086,16 @@ bool user_interface::handle_editing(int key)
             // Finish editing and parse the result
             if (!shift && !xshift)
             {
-                end_edit();
+                if (~searching)
+                {
+                    searching = ~0U;
+                    dirtyEditor = true;
+                    edRows = 0;
+                }
+                else
+                {
+                    end_edit();
+                }
                 return true;
             }
         }
@@ -3306,10 +3330,18 @@ bool user_interface::handle_alpha(int key)
         shift     ? shifted[key]  :
         lowercase ? lower[key]    :
         upper[key];
-    edit(c, TEXT);
-    if (c == '"')
-        alpha = true;
-    repeat = true;
+    if (~searching)
+    {
+        if (!do_search(c))
+            beep(2400, 100);
+    }
+    else
+    {
+        edit(c, TEXT);
+        if (c == '"')
+            alpha = true;
+        repeat = true;
+    }
     return true;
 }
 
@@ -3751,7 +3783,10 @@ bool user_interface::editor_select()
 //   Set selection to current cursor position
 // ----------------------------------------------------------------------------
 {
-    select = cursor;
+    if (select == cursor)
+        select = ~0U;
+    else
+        select = cursor;
     dirtyEditor = true;
     return true;
 }
@@ -3893,12 +3928,79 @@ bool user_interface::editor_paste()
 }
 
 
-bool user_interface::editor_search()
+bool user_interface::do_search(unicode with, bool restart)
 // ----------------------------------------------------------------------------
-//   Start a search
+//   Perform the actual search
 // ----------------------------------------------------------------------------
 {
-    dirtyEditor = true;
+    // Already search, find next position
+    size_t max      = rt.editing();
+    utf8   ed       = rt.editor();
+    bool   forward  = cursor >= select;
+    size_t selected = forward ? cursor - select : select - cursor;
+    size_t count    = max - selected - (with == 0);
+    size_t found    = ~0;
+    uint   ref      = forward ? select : cursor;
+    uint   start    = restart ? searching : ref;
+
+    for (size_t search = with == 0; search < count; search++)
+    {
+        size_t offset = (forward ? start+search : start+count-search) % count;
+        bool   check  = true;
+        for (size_t s = 0; check && s < selected; s++)
+            check = tolower(ed[offset + s]) == tolower(ed[ref + s]);
+        if (check && with)
+            check = tolower(ed[offset + selected]) == tolower(with);
+        if (check)
+        {
+            found = search;
+            break;
+        }
+    }
+    if (~found)
+    {
+        if (with)
+            selected++;
+        if (forward)
+        {
+            select = (start + found) % count;
+            cursor = select + selected;
+        }
+        else
+        {
+            cursor = (start + count - found) % count;
+            select = cursor + selected;
+        }
+        edRows = 0;
+        dirtyEditor = true;
+        return true;
+    }
+    return false;
+}
+
+
+bool user_interface::editor_search()
+// ----------------------------------------------------------------------------
+//   Start or repeat a search a search
+// ----------------------------------------------------------------------------
+{
+    if (~select && cursor != select)
+    {
+        // Keep searching
+        if (~searching == 0)
+            searching = cursor > select ? select : cursor;
+        if (!do_search())
+            beep(2500, 100);
+        edRows = 0;
+        dirtyEditor = true;
+    }
+    else
+    {
+        // Start search
+        searching = select = cursor;
+        alpha = true;
+        shift = xshift = false;
+    }
     return true;
 }
 
@@ -3908,7 +4010,22 @@ bool user_interface::editor_replace()
 //   Perform a search replacement
 // ----------------------------------------------------------------------------
 {
-    dirtyEditor = true;
+    if (~searching && ~select && cursor != select && clipboard.Safe())
+    {
+        uint start = cursor;
+        uint end = select;
+        if (start > end)
+            std::swap(start, end);
+        do_search();
+        remove(start, end - start);
+
+        size_t len = 0;
+        utf8 ed = clipboard->value(&len);
+        insert(start, ed, len);
+
+        edRows = 0;
+        dirtyEditor = true;
+    }
     return true;
 }
 

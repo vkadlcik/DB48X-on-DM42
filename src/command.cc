@@ -609,6 +609,233 @@ COMMAND_BODY(ToolsMenu)
 }
 
 
+COMMAND_BODY(Cycle)
+// ----------------------------------------------------------------------------
+//  Cycle object across multiple representations
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    if (object_p top = rt.top())
+    {
+        id cmd  = ID_object;
+        id type = ID_object;
+
+        switch(top->type())
+        {
+        case ID_integer:
+        case ID_neg_integer:
+        case ID_neg_bignum:
+        case ID_bignum:
+            cmd = ID_RealToBinary;
+            break;
+        case ID_decimal128:
+        case ID_decimal64:
+        case ID_decimal32:
+            cmd = ID_ToFraction;
+            break;
+        case ID_fraction:
+        case ID_neg_fraction:
+        case ID_big_fraction:
+        case ID_neg_big_fraction:
+            cmd = ID_ToDecimal;
+            break;
+        case ID_polar:
+            cmd = ID_ToRectangular;
+            break;
+        case ID_rectangular:
+            cmd = ID_ToPolar;
+            break;
+#if CONFIG_FIXED_BASED_OBJECTS
+        case ID_hex_integer:
+        case ID_dec_integer:
+        case ID_oct_integer:
+        case ID_bin_integer:
+        case ID_hex_bignum:
+        case ID_dec_bignum:
+        case ID_oct_bignum:
+        case ID_bin_bignum:
+            cmd = ID_BinaryToReal;
+#endif // CONFIG_FIXED_BASED_OBJECTS
+        case ID_based_integer:
+        case ID_based_bignum:
+            switch(Settings.base)
+            {
+            case 2:
+                Settings.base = 8;
+                return OK;
+            case 8:
+                Settings.base = 10;
+                return OK;
+            case 10:
+                Settings.base = 16;
+                cmd = ID_BinaryToReal;
+                break;
+            case 16:
+                Settings.base = 2;
+                return OK;
+            default:
+                Settings.base = 16;
+                break;
+            }
+            break;
+        case ID_equation:
+            Settings.graph_stack = !Settings.graph_stack;
+            break;
+        case ID_list:
+            type = ID_array;
+            break;
+        case ID_array:
+            type = ID_program;
+            break;
+        case ID_program:
+            type = ID_list;
+            break;
+        case ID_symbol:
+            type = ID_text;
+            break;
+        case ID_text:
+            type = ID_symbol;
+            break;
+        case ID_tag:
+            cmd = ID_dtag;
+            break;
+        default:
+            rt.type_error();
+            return ERROR;
+        }
+
+        // In-place retyping
+        if (type != ID_object)
+        {
+            ASSERT(leb128size(type) == leb128size(top->type()));
+            if (object_p clone = rt.clone(top))
+            {
+                byte *p = (byte *) clone;
+                leb128(p, type);
+                if (rt.top(clone))
+                    return OK;
+            }
+            return ERROR;
+        }
+
+        // Evaluation of a command
+        if (cmd != ID_object)
+            return command::static_object(cmd)->evaluate();
+
+        return OK;
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(BinaryToReal)
+// ----------------------------------------------------------------------------
+//    Convert binary values to real (really integer)
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    if (object_p top = rt.top())
+    {
+        id type = top->type();
+        id to = ID_object;
+
+        switch (type)
+        {
+#if CONFIG_FIXED_BASED_OBJECTS
+        case ID_hex_integer:
+        case ID_dec_integer:
+        case ID_oct_integer:
+        case ID_bin_integer:
+            to = ID_integer;
+            break;
+        case ID_hex_bignum:
+        case ID_dec_bignum:
+        case ID_oct_bignum:
+        case ID_bin_bignum:
+            to = ID_big_integer;
+            break;
+#endif // CONFIG_FIXED_BASED_OBJECTS
+        case ID_based_integer:
+            to = ID_integer;
+            break;
+        case ID_based_bignum:
+            to = ID_bignum;
+            break;
+        default:
+            rt.type_error();
+            return ERROR;
+        }
+
+        ASSERT(leb128size(type) == leb128size(to));
+        if (object_p clone = rt.clone(top))
+        {
+            byte *p = (byte *) clone;
+            leb128(p, to);
+            if (rt.top(clone))
+                return OK;
+        }
+        return ERROR;
+
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(RealToBinary)
+// ----------------------------------------------------------------------------
+//    Convert real and integer values to binary
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    if (object_p top = rt.top())
+    {
+        id type = top->type();
+        id to = ID_object;
+
+        switch (type)
+        {
+        case ID_neg_integer:
+        case ID_neg_bignum:
+        case ID_neg_fraction:
+        case ID_neg_big_fraction:
+            rt.domain_error();
+            return ERROR;
+        case ID_integer:
+            to = ID_based_integer;
+            break;
+        case ID_bignum:
+            to = ID_based_bignum;
+            break;
+        case ID_fraction:
+        case ID_big_fraction:
+        case ID_decimal128:
+        case ID_decimal64:
+        case ID_decimal32:
+            rt.unimplemented_error();
+            return ERROR;
+        default:
+            rt.type_error();
+            return ERROR;
+        }
+
+        ASSERT(leb128size(type) == leb128size(to));
+        if (object_p clone = rt.clone(top))
+        {
+            byte *p = (byte *) clone;
+            leb128(p, to);
+            if (rt.top(clone))
+                return OK;
+        }
+        return ERROR;
+
+    }
+    return ERROR;
+}
+
+
 COMMAND_BODY(LastMenu)
 // ----------------------------------------------------------------------------
 //   Go back one entry in the menu history

@@ -3474,7 +3474,7 @@ static const byte defaultUnshiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_ENTER, function::ID_Dup),
     OP2BYTES(KEY_SWAP,  function::ID_Swap),
     OP2BYTES(KEY_CHS,   function::ID_neg),
-    OP2BYTES(KEY_E, 0),
+    OP2BYTES(KEY_E,     function::ID_Cycle),
     OP2BYTES(KEY_BSP,   command::ID_Drop),
     OP2BYTES(KEY_UP,    0),
     OP2BYTES(KEY_7,     0),

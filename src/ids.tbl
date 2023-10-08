@@ -370,6 +370,13 @@ NAMED(ToTag, "→Tag")
 NAMED(FromTag, "Tag→")
 NAMED(dtag, "DeleteTag")
 
+// Object cycle
+CMD(Cycle)
+CMD(RealToBinary)
+ALIAS(RealToBinary, "R→B")
+CMD(BinaryToReal)
+ALIAS(BinaryToReal, "B→R")
+
 // Timing and system commands
 CMD(Ticks)
 CMD(Wait)
@@ -418,7 +425,7 @@ CMD(Base)
 NAMED(Bin, "Binary")
 NAMED(Oct, "Octal")
 NAMED(Dec, "Decimal")
-NAMED(Hex, "Hexadeimcal")
+NAMED(Hex, "Hexadecimal")
 
 NAMED(stws, "StoreWordSize")
 NAMED(rcws, "WordSize")

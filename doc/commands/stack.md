@@ -31,7 +31,6 @@ Duplicate two objects on the stack
 ## DuplicateTwice (DUPDUP)
 Duplicate the same object twice on the stack
 
-
 ## DuplicateN (DUPN)
 Duplicate a group of N objects, N being given in stack level 1
 

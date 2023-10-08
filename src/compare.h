@@ -59,6 +59,7 @@ struct derived : comparison                                             \
 {                                                                       \
     derived(id i = ID_##derived) : comparison(i) {}                     \
                                                                         \
+    OBJECT_DECL(derived);                                               \
     ARITY_DECL(2);                                                      \
     PREC_DECL(RELATIONAL);                                              \
                                                                         \

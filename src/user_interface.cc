@@ -3008,7 +3008,10 @@ bool user_interface::handle_editing(int key)
             else if (editing)
             {
                 // Stick to space role while editing, do not EVAL, repeat
-                edit(' ', PROGRAM);
+                if (mode == ALGEBRAIC)
+                    edit('=', ALGEBRAIC);
+                else
+                    edit(' ', PROGRAM);
                 repeat = true;
                 return true;
             }

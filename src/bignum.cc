@@ -160,9 +160,8 @@ static size_t render_num(renderer &r,
         r.flush();
 
     // Get denominator for the base
-    object::id ntype = num->type();
     size_t findex = r.size();
-    bignum_g b = rt.make<bignum>(ntype, base);
+    bignum_g b = rt.make<bignum>(object::ID_bignum, base);
     bignum_g n = (bignum *) num;
 
     // Keep dividing by the base until we get 0

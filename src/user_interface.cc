@@ -119,7 +119,6 @@ user_interface::user_interface()
       dirtyStack(false),
       dirtyCommand(false),
       dirtyHelp(false),
-      dynamicMenu(false),
       autoComplete(false),
       adjustSeps(false),
       graphics(false),
@@ -473,13 +472,6 @@ bool user_interface::key(int key, bool repeating, bool talpha)
 
     if (!skey)
         command = nullptr;
-
-    // Refresh dynamic menus like VariablesMenu
-    if (menuStack[0] && dynamicMenu)
-    {
-        menu_p m = menu_p(menu::static_object(menuStack[0]));
-        m->update(menuPage);
-    }
 
     return result;
 }
@@ -844,7 +836,6 @@ void user_interface::menus(uint count, cstring labels[], object_p function[])
         else
             menu(m, cstring(nullptr), nullptr);
     }
-    dynamicMenu = false;
     autoComplete = false;
 }
 
@@ -876,6 +867,30 @@ void user_interface::menu(uint id, symbol_p label, object_p fn)
     menu(id, (cstring) label, fn);
 }
 
+
+bool user_interface::menu_refresh()
+// ----------------------------------------------------------------------------
+//   Udpate current menu
+// ----------------------------------------------------------------------------
+{
+    if (menuStack[0])
+    {
+        menu_p m = menu_p(menu::static_object(menuStack[0]));
+        return m->update(menuPage) == object::OK;
+    }
+    return false;
+}
+
+
+bool user_interface::menu_refresh(object::id menu)
+// ----------------------------------------------------------------------------
+//   Request a refresh of a menu
+// ----------------------------------------------------------------------------
+{
+    if (menuStack[0] == menu)
+        return menu_refresh();
+    return false;
+}
 
 void user_interface::marker(uint menu_id, unicode mark, bool alignLeft)
 // ----------------------------------------------------------------------------
@@ -3050,35 +3065,39 @@ bool user_interface::handle_editing(int key)
                 else
                     do_search(0, true);
             }
-            else if (shift && cursor < editing)
-            {
-                // Shift + Backspace = Delete to right of cursor
-                utf8 ed              = rt.editor();
-                uint after           = utf8_next(ed, cursor, editing);
-                if (utf8_codepoint(ed + cursor) == '\n')
-                    edRows = 0;
-                remove(cursor, after - cursor);
-                dirtyEditor = true;
-                adjustSeps = true;
-            }
-            else if (!shift && cursor > 0)
-            {
-                // Backspace = Erase on left of cursor
-                utf8 ed      = rt.editor();
-                uint before  = cursor;
-                cursor       = utf8_previous(ed, cursor);
-                if (utf8_codepoint(ed + cursor) == '\n')
-                    edRows = 0;
-                remove(cursor, before - cursor);
-                dirtyEditor = true;
-                adjustSeps = true;
-            }
             else
             {
-                // Limits of line: beep
-                repeat = false;
-                beep(4400, 50);
+                utf8 ed              = rt.editor();
+                if (shift && cursor < editing)
+                {
+                    // Shift + Backspace = Delete to right of cursor
+                    uint after           = utf8_next(ed, cursor, editing);
+                    if (utf8_codepoint(ed + cursor) == '\n')
+                        edRows = 0;
+                    remove(cursor, after - cursor);
+                }
+                else if (!shift && cursor > 0)
+                {
+                    // Backspace = Erase on left of cursor
+                    utf8 ed      = rt.editor();
+                    uint before  = cursor;
+                    cursor       = utf8_previous(ed, cursor);
+                    if (utf8_codepoint(ed + cursor) == '\n')
+                        edRows = 0;
+                    remove(cursor, before - cursor);
+                }
+                else
+                {
+                    // Limits of line: beep
+                    repeat = false;
+                    beep(4400, 50);
+                }
+
+                dirtyEditor = true;
+                adjustSeps = true;
+                menu_refresh(object::ID_Catalog);
             }
+
             // Do not stop editing if we delete last character
             if (!rt.editing())
                 edit(' ', DIRECT);
@@ -3345,6 +3364,7 @@ bool user_interface::handle_alpha(int key)
             alpha = true;
         repeat = true;
     }
+    menu_refresh(object::ID_Catalog);
     return true;
 }
 

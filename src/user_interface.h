@@ -106,7 +106,8 @@ struct user_interface
     void        menu(uint index, cstring label, object_p function);
     void        menu(uint index, symbol_p label, object_p function);
     void        marker(uint index, unicode mark, bool alignLeft = false);
-    void        menuNeedsRefresh()      { dynamicMenu = true; }
+    bool        menu_refresh();
+    bool        menu_refresh(object::id menu);
     void        menuAutoComplete()      { autoComplete = true; }
     symbol_p    label(uint index);
     cstring     labelText(uint index);
@@ -237,7 +238,6 @@ protected:
     bool     dirtyCommand : 1;  // Need to redraw the command
     bool     dirtyEditor  : 1;  // Need to redraw the text editor
     bool     dirtyHelp    : 1;  // Need to redraw the help
-    bool     dynamicMenu  : 1;  // Menu is dynamic, needs update after keystroke
     bool     autoComplete : 1;  // Menu is auto-complete
     bool     adjustSeps   : 1;  // Need to adjust separators
     bool     graphics     : 1;  // Displaying user-defined graphics screen

@@ -1098,7 +1098,7 @@ SETTINGS_COMMAND_BODY(SingleRowMenus,
 {
     Settings.menu_single_ln = true;
     Settings.menu_flatten = false;
-    ui.menuNeedsRefresh();
+    ui.menu_refresh();
     return OK;
 }
 
@@ -1111,7 +1111,7 @@ SETTINGS_COMMAND_BODY(FlatMenus,
 {
     Settings.menu_single_ln = true;
     Settings.menu_flatten = true;
-    ui.menuNeedsRefresh();
+    ui.menu_refresh();
     return OK;
 }
 
@@ -1123,7 +1123,7 @@ SETTINGS_COMMAND_BODY(ThreeRowsMenus, !Settings.menu_single_ln)
 {
     Settings.menu_single_ln = false;
     Settings.menu_flatten = false;
-    ui.menuNeedsRefresh();
+    ui.menu_refresh();
     return OK;
 }
 
@@ -1134,7 +1134,7 @@ SETTINGS_COMMAND_BODY(RoundedMenus, !Settings.menu_square)
 // ----------------------------------------------------------------------------
 {
     Settings.menu_square = false;
-    ui.menuNeedsRefresh();
+    ui.menu_refresh();
     return OK;
 }
 
@@ -1145,7 +1145,7 @@ SETTINGS_COMMAND_BODY(SquareMenus, Settings.menu_square)
 // ----------------------------------------------------------------------------
 {
     Settings.menu_square = true;
-    ui.menuNeedsRefresh();
+    ui.menu_refresh();
     return OK;
 }
 

@@ -144,7 +144,10 @@ EXEC_BODY(directory)
 // ----------------------------------------------------------------------------
 {
     if (rt.enter(o))
+    {
+        ui.menu_refresh(ID_VariablesMenu);
         return OK;
+    }
     return ERROR;
 }
 
@@ -211,6 +214,10 @@ bool directory::store(object_g name, object_g value)
 
     // Adjust all directory sizes
     adjust_sizes(thisdir, delta);
+
+    // Refresh the variables menu
+    ui.menu_refresh(ID_VariablesMenu);
+
     return true;
 }
 
@@ -344,6 +351,10 @@ size_t directory::purge(object_p ref)
         }
 
         adjust_sizes(thisdir, -int(purged));
+
+        // Adjust variables menu
+        ui.menu_refresh(ID_VariablesMenu);
+
         return purged;
     }
 
@@ -616,6 +627,7 @@ COMMAND_BODY(home)
     if (!rt.args(0))
         return ERROR;
     rt.updir(~0U);
+    ui.menu_refresh(ID_VariablesMenu);
     return OK;
 }
 
@@ -738,6 +750,7 @@ COMMAND_BODY(updir)
     if (!rt.args(0))
         return ERROR;
     rt.updir();
+    ui.menu_refresh(ID_VariablesMenu);
     return OK;
 }
 
@@ -857,8 +870,6 @@ void VariablesMenu::list_variables(info &mi)
         ui.marker(k + 1 * ui.NUM_SOFTKEYS, L'▶', false);
         ui.marker(k + 2 * ui.NUM_SOFTKEYS, L'▶', true);
     }
-
-    ui.menuNeedsRefresh();
 }
 
 

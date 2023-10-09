@@ -78,6 +78,7 @@ SOURCES +=                                      \
 	../src/graphics.cc			\
 	../src/grob.cc                          \
 	../src/plot.cc	                        \
+	../src/solve.cc	                        \
 	../src/tests.cc
 
 HEADERS +=                                      \

@@ -138,6 +138,16 @@ struct decimal64 : algebraic
     }
 #endif
 
+    decimal64(id type, int exp, bool): algebraic(type)
+    {
+        char buf[32];
+        bid64 num;
+        snprintf(buf, sizeof(buf), "1E%d", exp);
+        bid64_from_string(&num.value, buf);
+        byte *p = (byte *) payload(this);
+        memcpy(p, &num, sizeof(num));
+    }
+
     template <typename Value>
     static size_t required_memory(id i, Value UNUSED value)
     {

@@ -385,6 +385,8 @@ CMD(Type)
 CMD(TypeName)
 CMD(Version)
 
+// Numerical solver
+CMD(Root)
 
 
 // ============================================================================

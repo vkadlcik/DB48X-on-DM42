@@ -212,6 +212,7 @@ CXX_SOURCES +=				\
 	src/graphics.cc			\
 	src/grob.cc			\
 	src/plot.cc			\
+	src/solve.cc			\
 	fonts/HelpFont.cc		\
 	fonts/EditorFont.cc		\
 	fonts/StackFont.cc

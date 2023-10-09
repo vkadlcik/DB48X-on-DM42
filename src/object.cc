@@ -59,6 +59,7 @@
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
+#include "solve.h"
 #include "stack-cmds.h"
 #include "symbol.h"
 #include "tag.h"

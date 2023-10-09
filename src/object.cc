@@ -816,6 +816,47 @@ algebraic_p object::algebraic_child(uint index) const
 }
 
 
+bool object::is_big() const
+// ----------------------------------------------------------------------------
+//   Return true if any component is a big num
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    switch(ty)
+    {
+    case ID_bignum:
+    case ID_neg_bignum:
+    case ID_big_fraction:
+    case ID_neg_big_fraction:
+#if CONFIG_FIXED_BASED_OBJECTS
+    case ID_hex_bignum:
+    case ID_dec_bignum:
+    case ID_oct_bignum:
+    case ID_bin_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+    case ID_based_bignum:
+        return true;
+
+    case ID_list:
+    case ID_program:
+    case ID_block:
+    case ID_array:
+    case ID_equation:
+        for (object_p o : *(list_p(this)))
+            if (o->is_big())
+                return true;
+        return false;
+
+    case ID_rectangular:
+    case ID_polar:
+        return complex_p(this)->x()->is_big() || complex_p(this)->y()->is_big();
+
+    default:
+        return false;
+    }
+}
+
+
 #if SIMULATOR
 cstring object::debug() const
 // ----------------------------------------------------------------------------

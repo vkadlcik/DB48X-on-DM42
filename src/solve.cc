@@ -29,16 +29,16 @@
 
 #include "solve.h"
 
+#include "algebraic.h"
 #include "arithmetic.h"
 #include "compare.h"
 #include "equation.h"
 #include "functions.h"
 #include "integer.h"
+#include "recorder.h"
 #include "settings.h"
 #include "symbol.h"
 #include "tag.h"
-#include "recorder.h"
-
 
 RECORDER(solve,         16, "Numerical solver");
 RECORDER(solve_error,   16, "Numerical solver");
@@ -182,10 +182,10 @@ COMMAND_BODY(Root)
             {
                 record(solve, "Not largest");
                 // Between smaller and biggest
-                hx   = x;
+                hx = x;
                 hy = y;
             }
-            else
+            else if (smaller(hy, y))
             {
                 // y is bigger, try to get closer to low
                 record(solve, "Unsuccessful");
@@ -195,6 +195,13 @@ COMMAND_BODY(Root)
                     return ERROR;
                 unsuccessful++;
                 continue;
+            }
+            else
+            {
+                record(solve, "Constant?");
+                hx = x;
+                hy = y;
+                unmoving++;
             }
 
             dy = hy - ly;
@@ -228,6 +235,21 @@ COMMAND_BODY(Root)
                 record(solve, "[%u] Moving to %t - %t / %t",
                        i, lx.Safe(), dy.Safe(), dx.Safe());
             }
+
+            // If we are starting to use really big numbers, approximate
+            if (x->is_big())
+            {
+                if (!algebraic::to_decimal(x))
+                {
+                    rt.invalid_solve_function_error();
+                    break;
+                }
+            }
+            if (x->is_strictly_symbolic())
+            {
+                rt.invalid_solve_function_error();
+                break;
+            }
         }
     }
 
@@ -241,7 +263,7 @@ COMMAND_BODY(Root)
         else if (unmoving)
             rt.constant_value_error();
         else if (unsuccessful)
-            rt.bad_guess_error();
+            rt.no_solution_error();
         if (top && rt.push(top))
             return rt.error() ? ERROR : OK;
     }

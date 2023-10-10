@@ -68,6 +68,7 @@ ERROR(invalid_plot_type,        "Invalid plot type")
 ERROR(invalid_plot_function,    "Invalid plot function")
 ERROR(invalid_solve_function,   "Invalid solve function")
 ERROR(constant_value,           "Constant?")
+ERROR(bad_guess,                "Bad guess?")
 ERROR(no_solution,              "No solution?")
 
 #undef ERROR

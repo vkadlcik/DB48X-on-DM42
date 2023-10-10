@@ -96,7 +96,7 @@ COMMAND_BODY(Root)
         gcutf8 ntxt = name->value(&nlen);
         object_g top = tag::make(ntxt, nlen, x.Safe());
         if (rt.push(top))
-            return OK;
+            return rt.error() ? ERROR : OK;
     }
 
     return ERROR;
@@ -134,11 +134,11 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
     save<symbol_g *> iref(equation::independent, &name);
     save<object_g *> ival(equation::independent_value, (object_g *) &x);
     int              prec = -Settings.solveprec;
-    algebraic_g      eps = rt.make<decimal128>(object::ID_decimal128, prec, true);
+    algebraic_g      eps = rt.make<decimal128>(object::ID_decimal128,
+                                               prec, true);
 
-    uint errors = 0;
-    uint unmoving = 0;
-    uint unsuccessful = 0;
+    bool is_constant = true;
+    bool is_valid = false;
     uint max = Settings.maxsolve;
     for (uint i = 0; i < max && !program::interrupted(); i++)
     {
@@ -147,8 +147,10 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
         if (!rt.push(x.Safe()))
             return nullptr;
         record(solve, "[%u] x=%t", i, x.Safe());
-        object::result err = eq->execute();
-        size_t dnow = rt.depth();
+
+        object::result err    = eq->execute();
+        size_t         dnow   = rt.depth();
+        bool           jitter = false;
         if (dnow != depth + 1 && dnow != depth + 2)
         {
             record(solve_error, "Depth moved from %u to %u", depth, dnow);
@@ -159,12 +161,16 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
         {
             // Error on last function evaluation, try again
             record(solve_error, "Got error %+s", rt.error());
-            dx = integer::make(1000);
-            x = x->is_zero() ? inv::run(dx) : x + x / dx;
-            errors++;
+            if (!ly || !hy)
+            {
+                rt.bad_guess_error();
+                return nullptr;
+            }
+            jitter = true;
         }
         else
         {
+            is_valid = true;
             y = algebraic_p(rt.pop());
             if (dnow == depth + 2)
                 rt.drop();
@@ -174,8 +180,12 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
                 rt.invalid_solve_function_error();
                 return nullptr;
             }
-            if (y->is_zero())
-                break;
+            if (y->is_zero() || smaller(y, eps))
+            {
+                record(solve, "[%u] Solution=%t value=%t",
+                       i, x.Safe(), y.Safe());
+                return x;
+            }
 
             if (!ly)
             {
@@ -195,75 +205,90 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
             {
                 // Smaller than the smallest
                 record(solve, "Smallest");
-                hx   = lx;
+                hx = lx;
                 hy = ly;
-                lx    = x;
+                lx = x;
                 ly = y;
             }
             else if (smaller(y, hy))
             {
-                record(solve, "Not largest");
+                record(solve, "Improvement");
                 // Between smaller and biggest
                 hx = x;
                 hy = y;
             }
             else if (smaller(hy, y))
             {
-                // y is bigger, try to get closer to low
-                record(solve, "Unsuccessful");
-                y = integer::make(2);
-                x = (lx + x) / y;
+                // y became bigger, try to get closer to low
+                bool crosses = (ly * hy)->is_negative(false);
+                record(solve, "New value is worse");
+                is_constant = false;
+
+                // Try to bisect
+                dx = integer::make(2);
+                x = (lx + x) / dx;
                 if (!x)
                     return nullptr;
-                unsuccessful++;
-                continue;
+                if (crosses)    // For positive and negative values, as is
+                    continue;
+
+                // Otherwise, try to jitter around
+                jitter = true;
             }
             else
             {
-                record(solve, "Constant?");
-                hx = x;
-                hy = y;
-                unmoving++;
+                // y is constant - Try a random spot
+                record(solve, "Unmoving");
+                jitter = true;
             }
 
-            dx = hx - lx;
-            if (!dx)
-                return nullptr;
-            if (dx->is_zero() ||
-                smaller(abs::run(dx) / (abs::run(hx) + abs::run(lx)), eps))
+            if (!jitter)
             {
-                record(solve, "[%u] Solution=%t value=%t",
-                       i, x.Safe(), y.Safe());
-                x = lx;
-                break;
-            }
-
-            dy = hy - ly;
-            if (!dy)
-                return nullptr;
-            if (dy->is_zero())
-            {
-                unmoving++;
-                record(solve, "[%u] unmoving=%u", i, unmoving);
-                dx = integer::make(1000);
-                hx = hx->is_zero() ? dx : hx + hx / dx;
-                x = hx;
-                if (!x)
+                dx = hx - lx;
+                if (!dx)
                     return nullptr;
-            }
-            else
-            {
-                errors = unmoving = unsuccessful = 0;
-                x = lx - y * dx / dy;
-                record(solve, "[%u] Moving to %t - %t / %t",
-                       i, lx.Safe(), dy.Safe(), dx.Safe());
+                if (dx->is_zero() ||
+                    smaller(abs::run(dx) / (abs::run(hx) + abs::run(lx)), eps))
+                {
+                    x = lx;
+                    if ((ly * hy)->is_negative(false))
+                    {
+                        record(solve, "[%u] Cross solution=%t value=%t",
+                               i, x.Safe(), y.Safe());
+                    }
+                    else
+                    {
+                        record(solve, "[%u] Minimum=%t value=%t",
+                               i, x.Safe(), y.Safe());
+                        rt.no_solution_error();
+                    }
+                    return x;
+                }
+
+                dy = hy - ly;
+                if (!dy)
+                    return nullptr;
+                if (dy->is_zero())
+                {
+                    record(solve,
+                           "[%u] unmoving %t between %t and %t",
+                           hy.Safe(), lx.Safe(), hx.Safe());
+                    jitter = true;
+                }
+                else
+                {
+                    record(solve, "[%u] Moving to %t - %t / %t",
+                           i, lx.Safe(), dy.Safe(), dx.Safe());
+                    is_constant = false;
+                    x = lx - y * dx / dy;
+                }
             }
 
             // Check if there are unresolved symbols
             if (x->is_strictly_symbolic())
             {
                 rt.invalid_solve_function_error();
-                break;
+                return x;
             }
 
             // If we are starting to use really big numbers, approximate
@@ -272,21 +297,40 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
                 if (!algebraic::to_decimal(x))
                 {
                     rt.invalid_solve_function_error();
-                    break;
+                    return x;
                 }
             }
         }
+
+        // If we have some issue improving things, shake it a bit
+        if (jitter)
+        {
+            int s = (i & 2)- 1;
+            if (x->is_complex())
+                dx = polar::make(integer::make(997 * s * i),
+                                 integer::make(421 * s * i * i),
+                                 settings::DEGREES);
+            else
+                dx = integer::make(0x1081 * s * i);
+            dx = dx * eps;
+            if (x->is_zero())
+                x = dx;
+            else
+                x = x + x * dx;
+            if (!x)
+                return nullptr;
+            record(solve, "Jitter x=%t", x.Safe());
+        }
     }
 
-    if (!rt.error())
-    {
-        if (errors)
-            rt.invalid_solve_function_error();
-        else if (unmoving)
-            rt.constant_value_error();
-        else if (unsuccessful)
-            rt.no_solution_error();
-    }
+    record(solve, "Exited after too many loops, x=%t y=%t lx=%t ly=%t",
+           x.Safe(), y.Safe(), lx.Safe(), ly.Safe());
 
-    return x;
+    if (!is_valid)
+        rt.invalid_solve_function_error();
+    else if (is_constant)
+        rt.constant_value_error();
+    else
+        rt.no_solution_error();
+    return lx;
 }

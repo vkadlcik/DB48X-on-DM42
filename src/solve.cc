@@ -83,6 +83,8 @@ COMMAND_BODY(Root)
         rt.type_error();
         return ERROR;
     }
+    if (eqty == ID_equation)
+        eq = equation_p(eq.Safe())->as_difference_for_solve();
 
     // Drop input parameters
     rt.drop(3);

@@ -117,6 +117,7 @@ struct equation : program
     equation_p expand() const;
     equation_p collect() const;
     equation_p simplify() const;
+    equation_p as_difference_for_solve() const;
 
 protected:
     static symbol_g render(uint depth, int &precedence, bool edit);

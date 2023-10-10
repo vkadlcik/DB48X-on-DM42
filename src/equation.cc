@@ -953,3 +953,12 @@ equation_p equation::simplify() const
         (x^n)*(x^m), x ^ (n+m)
         );
 }
+
+
+equation_p equation::as_difference_for_solve() const
+// ----------------------------------------------------------------------------
+//   For the solver, transform A=B into A-B
+// ----------------------------------------------------------------------------
+{
+    return rewrite(x == y, x - y);
+}

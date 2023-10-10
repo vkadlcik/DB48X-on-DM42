@@ -84,10 +84,33 @@ COMMAND_BODY(Root)
         return ERROR;
     }
 
+    // Drop input parameters
+    rt.drop(3);
+
+    // Actual solving
+    if (algebraic_g x = solve(eq, name, guess))
+    {
+        size_t nlen = 0;
+        gcutf8 ntxt = name->value(&nlen);
+        object_g top = tag::make(ntxt, nlen, x.Safe());
+        if (rt.push(top))
+            return OK;
+    }
+
+    return ERROR;
+}
+
+
+
+algebraic_p solve(object_g eq, symbol_g name, object_g guess)
+// ----------------------------------------------------------------------------
+//   The core of the solver
+// ----------------------------------------------------------------------------
+{
     // Check if the guess is an algebraic or if we need to extract one
     algebraic_g x, dx, lx, hx;
     algebraic_g y, dy, ly, hy;
-    id gty = guess->type();
+    object::id gty = guess->type();
     if (object::is_real(gty) || object::is_complex(gty))
     {
         lx = algebraic_p(guess.Safe());
@@ -95,24 +118,21 @@ COMMAND_BODY(Root)
         y = integer::make(1000);
         hx = hx->is_zero() ? inv::run(y) : hx + hx / y;
     }
-    else if (gty == ID_list || gty == ID_array)
+    else if (gty == object::ID_list || gty == object::ID_array)
     {
         lx = guess->algebraic_child(0);
         hx = guess->algebraic_child(1);
         if (!lx || !hx)
-            return ERROR;
+            return nullptr;
     }
     x = lx;
     record(solve, "Initial range %t-%t", lx.Safe(), hx.Safe());
-
-    // Drop input parameters
-    rt.drop(3);
 
     // Set independent variable
     save<symbol_g *> iref(equation::independent, &name);
     save<object_g *> ival(equation::independent_value, (object_g *) &x);
     int              prec = -Settings.solveprec;
-    algebraic_g      eps = rt.make<decimal128>(ID_decimal128, prec, true);
+    algebraic_g      eps = rt.make<decimal128>(object::ID_decimal128, prec, true);
 
     uint errors = 0;
     uint unmoving = 0;
@@ -123,7 +143,7 @@ COMMAND_BODY(Root)
         // Evaluate equation
         size_t depth = rt.depth();
         if (!rt.push(x.Safe()))
-            return ERROR;
+            return nullptr;
         record(solve, "[%u] x=%t", i, x.Safe());
         object::result err = eq->execute();
         size_t dnow = rt.depth();
@@ -131,7 +151,7 @@ COMMAND_BODY(Root)
         {
             record(solve_error, "Depth moved from %u to %u", depth, dnow);
             rt.invalid_solve_function_error();
-            return ERROR;
+            return nullptr;
         }
         if (err != object::OK)
         {
@@ -150,7 +170,7 @@ COMMAND_BODY(Root)
             if (!y || !y->is_algebraic())
             {
                 rt.invalid_solve_function_error();
-                return ERROR;
+                return nullptr;
             }
             if (y->is_zero())
                 break;
@@ -192,7 +212,7 @@ COMMAND_BODY(Root)
                 y = integer::make(2);
                 x = (lx + x) / y;
                 if (!x)
-                    return ERROR;
+                    return nullptr;
                 unsuccessful++;
                 continue;
             }
@@ -204,9 +224,21 @@ COMMAND_BODY(Root)
                 unmoving++;
             }
 
+            dx = hx - lx;
+            if (!dx)
+                return nullptr;
+            if (dx->is_zero() ||
+                smaller(abs::run(dx) / (abs::run(hx) + abs::run(lx)), eps))
+            {
+                record(solve, "[%u] Solution=%t value=%t",
+                       i, x.Safe(), y.Safe());
+                x = lx;
+                break;
+            }
+
             dy = hy - ly;
             if (!dy)
-                return ERROR;
+                return nullptr;
             if (dy->is_zero())
             {
                 unmoving++;
@@ -215,25 +247,21 @@ COMMAND_BODY(Root)
                 hx = hx->is_zero() ? dx : hx + hx / dx;
                 x = hx;
                 if (!x)
-                    return ERROR;
+                    return nullptr;
             }
             else
             {
                 errors = unmoving = unsuccessful = 0;
-                dx = hx - lx;
-                if (!dx)
-                    return ERROR;
-                if (dx->is_zero() ||
-                    smaller(abs::run(dx) / (abs::run(hx) + abs::run(lx)), eps))
-                {
-                    record(solve, "[%u] Solution=%t value=%t",
-                           i, x.Safe(), y.Safe());
-                    x = lx;
-                    break;
-                }
                 x = lx - y * dx / dy;
                 record(solve, "[%u] Moving to %t - %t / %t",
                        i, lx.Safe(), dy.Safe(), dx.Safe());
+            }
+
+            // Check if there are unresolved symbols
+            if (x->is_strictly_symbolic())
+            {
+                rt.invalid_solve_function_error();
+                break;
             }
 
             // If we are starting to use really big numbers, approximate
@@ -245,28 +273,18 @@ COMMAND_BODY(Root)
                     break;
                 }
             }
-            if (x->is_strictly_symbolic())
-            {
-                rt.invalid_solve_function_error();
-                break;
-            }
         }
     }
 
-    if (x)
+    if (!rt.error())
     {
-        size_t nlen = 0;
-        gcutf8 ntxt = name->value(&nlen);
-        object_g top = tag::make(ntxt, nlen, x.Safe());
         if (errors)
             rt.invalid_solve_function_error();
         else if (unmoving)
             rt.constant_value_error();
         else if (unsuccessful)
             rt.no_solution_error();
-        if (top && rt.push(top))
-            return rt.error() ? ERROR : OK;
     }
 
-    return OK;
+    return x;
 }

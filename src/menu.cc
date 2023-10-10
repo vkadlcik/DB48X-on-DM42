@@ -209,7 +209,7 @@ MENU(MainMenu,
      "Matrix",  ID_MatrixMenu,
      "Stack",   ID_StackMenu,
      "Eqns",    ID_EquationsMenu,
-     "User",    ID_UserInterfaceModesMenu,
+     "UI",      ID_UserInterfaceModesMenu,
 
      "Time",    ID_TimeMenu,
      "I/O",     ID_IOMenu,
@@ -1065,7 +1065,7 @@ MENU(ModesMenu,
      "Math",    ID_MathModesMenu,
      "Display", ID_DisplayModesMenu,
      "Seps",    ID_SeparatorModesMenu,
-     "User",    ID_UserInterfaceModesMenu,
+     "UI",      ID_UserInterfaceModesMenu,
 
      "Modes",   ID_Modes,
      "Reset",   ID_ResetModes);
@@ -1092,7 +1092,7 @@ MENU(DisplayModesMenu,
      "CMD",             ID_UpperCase,
      "Cmd",             ID_Capitalized,
      "Command",         ID_LongForm,
-     "User",            ID_UserInterfaceModesMenu,
+     "UI",              ID_UserInterfaceModesMenu,
      "Math",            ID_MathModesMenu);
 
 MENU(SeparatorModesMenu,
@@ -1152,7 +1152,7 @@ MENU(MathModesMenu,
      "Auto ℂ",                  ID_Unimplemented,
      "Modes",                   ID_ModesMenu,
      "Display",                 ID_DisplayModesMenu,
-     "Yser",                    ID_UserInterfaceModesMenu,
+     "UI",                      ID_UserInterfaceModesMenu,
      "Modes",                   ID_Modes);
 
 MENU(PrintingMenu,

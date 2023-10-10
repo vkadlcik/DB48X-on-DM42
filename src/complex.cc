@@ -254,7 +254,7 @@ complex_g operator-(complex_r x)
         polar_p p = polar_p(complex_p(x));
         return polar::make(-p->mod(), p->pifrac(), settings::PI_RADIANS);
     }
-    rectangular_p r = rectangular_p(complex_p(x));
+    rectangular_g r = rectangular_p(complex_p(x));
     return rectangular::make(-r->re(), -r->im());
 }
 

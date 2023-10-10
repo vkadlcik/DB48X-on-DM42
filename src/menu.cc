@@ -393,7 +393,7 @@ MENU(PolynomialsMenu,
      "MSolvr",  ID_Unimplemented,
      "PCoef",   ID_Unimplemented,
      "PRoot",   ID_Unimplemented,
-     "Root",    ID_Unimplemented,
+     "Root",    ID_Root,
      "Solve",   ID_Unimplemented,
      "TVMRoot", ID_Unimplemented,
      "XRoot",   ID_xroot,
@@ -897,6 +897,12 @@ MENU(SolverMenu,
 // ----------------------------------------------------------------------------
 //   The solver menu / application
 // ----------------------------------------------------------------------------
+     "Eq",      ID_Unimplemented,
+     "Indep",   ID_Unimplemented,
+     "Root",    ID_Root,
+     "MultiR",  ID_Unimplemented,
+     "PolyR",   ID_Unimplemented,
+
      "Num",     ID_NumericalSolverMenu,
      "Diff",    ID_DifferentialSolverMenu,
      "Symb",    ID_SymbolicSolverMenu,
@@ -909,11 +915,6 @@ MENU(SolverMenu,
      "L.R.",    ID_StatisticsMenu,
      "Eqns",    ID_EquationsMenu,
 
-     "Eq",      ID_Unimplemented,
-     "Indep",   ID_Unimplemented,
-     "Root",    ID_Unimplemented,
-     "MultiR",  ID_Unimplemented,
-     "PolyR",   ID_Unimplemented,
 
      "Parms",   ID_Unimplemented,
      "Auto",    ID_Unimplemented);

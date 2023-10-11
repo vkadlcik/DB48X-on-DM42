@@ -41,17 +41,7 @@
 #include "tag.h"
 
 RECORDER(solve,         16, "Numerical solver");
-RECORDER(solve_error,   16, "Numerical solver");
-
-
-static inline bool smaller(algebraic_r x, algebraic_r y)
-// ----------------------------------------------------------------------------
-//   Compare magnitude
-// ----------------------------------------------------------------------------
-{
-    algebraic_p cmp = abs::run(x) < abs::run(y);
-    return cmp && cmp->as_truth(false);
-}
+RECORDER(solve_error,   16, "Numerical solver errors");
 
 
 COMMAND_BODY(Root)
@@ -180,7 +170,7 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
                 rt.invalid_solve_function_error();
                 return nullptr;
             }
-            if (y->is_zero() || smaller(y, eps))
+            if (y->is_zero() || smaller_magnitude(y, eps))
             {
                 record(solve, "[%u] Solution=%t value=%t",
                        i, x.Safe(), y.Safe());
@@ -201,7 +191,7 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
                 hy = y;
                 hx = x;
             }
-            else if (smaller(y, ly))
+            else if (smaller_magnitude(y, ly))
             {
                 // Smaller than the smallest
                 record(solve, "Smallest");
@@ -210,14 +200,14 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
                 lx = x;
                 ly = y;
             }
-            else if (smaller(y, hy))
+            else if (smaller_magnitude(y, hy))
             {
                 record(solve, "Improvement");
                 // Between smaller and biggest
                 hx = x;
                 hy = y;
             }
-            else if (smaller(hy, y))
+            else if (smaller_magnitude(hy, y))
             {
                 // y became bigger, try to get closer to low
                 bool crosses = (ly * hy)->is_negative(false);
@@ -248,7 +238,8 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
                 if (!dx)
                     return nullptr;
                 if (dx->is_zero() ||
-                    smaller(abs::run(dx) / (abs::run(hx) + abs::run(lx)), eps))
+                    smaller_magnitude(abs::run(dx) /
+                                      (abs::run(hx) + abs::run(lx)), eps))
                 {
                     x = lx;
                     if ((ly * hy)->is_negative(false))

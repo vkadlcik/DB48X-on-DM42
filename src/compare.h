@@ -30,6 +30,7 @@
 // ****************************************************************************
 
 #include "arithmetic.h"
+#include "functions.h"
 
 struct comparison : arithmetic
 // ----------------------------------------------------------------------------
@@ -46,8 +47,8 @@ struct comparison : arithmetic
     static result is_same(bool derefNames);
 
     template <typename Cmp> static result      evaluate();
-    template <typename Cmp> static algebraic_g evaluate(algebraic_r x,
-                                                        algebraic_r y);
+    template <typename Cmp>
+    static algebraic_g evaluate(algebraic_r x, algebraic_r y);
 };
 
 
@@ -95,8 +96,8 @@ template <> object::result comparison::evaluate<same>();
 COMPARISON_DECLARE(same, cmp == 0);
 
 // Truth results
-COMMAND_DECLARE_SPECIAL(True,  algebraic, );          // Evaluate as self
-COMMAND_DECLARE_SPECIAL(False, algebraic, );         // Evaluate as self
+COMMAND_DECLARE_SPECIAL(True,  algebraic, ); // Evaluate as self
+COMMAND_DECLARE_SPECIAL(False, algebraic, ); // Evaluate as self
 
 
 
@@ -112,5 +113,7 @@ algebraic_g operator>=(algebraic_r x, algebraic_r y);
 algebraic_g operator <(algebraic_r x, algebraic_r y);
 algebraic_g operator >(algebraic_r x, algebraic_r y);
 algebraic_g operator!=(algebraic_r x, algebraic_r y);
+
+bool smaller_magnitude(algebraic_r x, algebraic_r y);
 
 #endif // COMPARE_H

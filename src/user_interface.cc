@@ -161,13 +161,13 @@ void user_interface::edit(unicode c, modes m)
     unicode closing = 0;
     switch(c)
     {
-    case '(':  closing = ')';  m = ALGEBRAIC; break;
-    case '[':  closing = ']';  m = MATRIX;    break;
-    case '{':  closing = '}';  m = PROGRAM;   break;
-    case ':':  closing = ':';  m = DIRECT;    break;
-    case '"':  closing = '"';  m = TEXT;      break;
-    case '\'': closing = '\''; m = ALGEBRAIC; break;
-    case L'«': closing = L'»'; m = PROGRAM;   break;
+    case '(':                   closing = ')';  m = ALGEBRAIC; break;
+    case '[':                   closing = ']';  m = MATRIX;    break;
+    case '{':                   closing = '}';  m = PROGRAM;   break;
+    case ':':  if (m != TEXT)   closing = ':';  m = DIRECT;    break;
+    case '"':                   closing = '"';  m = TEXT;      break;
+    case '\'':                  closing = '\''; m = ALGEBRAIC; break;
+    case L'«':                  closing = L'»'; m = PROGRAM;   break;
     case '\n': edRows = 0;                    break; // Recompute rows
     }
     if (closing)

@@ -144,7 +144,7 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
         if (dnow != depth + 1 && dnow != depth + 2)
         {
             record(solve_error, "Depth moved from %u to %u", depth, dnow);
-            rt.invalid_solve_function_error();
+            rt.invalid_function_error();
             return nullptr;
         }
         if (err != object::OK)
@@ -165,9 +165,11 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
             if (dnow == depth + 2)
                 rt.drop();
             record(solve, "[%u] x=%t y=%t", i, x.Safe(), y.Safe());
-            if (!y || !y->is_algebraic())
+            if (!y)
+                return nullptr;
+            if (!y->is_algebraic())
             {
-                rt.invalid_solve_function_error();
+                rt.invalid_function_error();
                 return nullptr;
             }
             if (y->is_zero() || smaller_magnitude(y, eps))
@@ -278,7 +280,7 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
             // Check if there are unresolved symbols
             if (x->is_strictly_symbolic())
             {
-                rt.invalid_solve_function_error();
+                rt.invalid_function_error();
                 return x;
             }
 
@@ -287,7 +289,7 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
             {
                 if (!algebraic::to_decimal(x))
                 {
-                    rt.invalid_solve_function_error();
+                    rt.invalid_function_error();
                     return x;
                 }
             }
@@ -318,7 +320,7 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
            x.Safe(), y.Safe(), lx.Safe(), ly.Safe());
 
     if (!is_valid)
-        rt.invalid_solve_function_error();
+        rt.invalid_function_error();
     else if (is_constant)
         rt.constant_value_error();
     else

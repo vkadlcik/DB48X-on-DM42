@@ -875,7 +875,7 @@ MENU(IntegrationMenu,
 // ----------------------------------------------------------------------------
 //   Symbolic and numerical integration
 // ----------------------------------------------------------------------------
-     "Num",     ID_Unimplemented,
+     "Num",     ID_Integrate,
      "Symb",    ID_Unimplemented,
      "Prim",    ID_Unimplemented,
 

@@ -385,9 +385,9 @@ CMD(Type)
 CMD(TypeName)
 CMD(Version)
 
-// Numerical solver
+// High-level applications
 CMD(Root)
-
+NAMED(Integrate, "∫")
 
 // ============================================================================
 //

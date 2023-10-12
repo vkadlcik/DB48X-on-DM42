@@ -188,7 +188,7 @@ object::result draw_plot(object::id            kind,
         else
         {
             if (!rt.error())
-                rt.invalid_plot_function_error();
+                rt.invalid_function_error();
             if (rt.depth() > depth)
                 rt.drop(rt.depth() - depth);
             Screen.text(0, 0, rt.error(), ErrorFont,

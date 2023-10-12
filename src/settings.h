@@ -81,7 +81,9 @@ struct settings
           wordsize(64),
           maxbignum(1024),
           maxsolve(1024),
+          maxinteg(1024),
           solveprec(24),
+          integprec(24),
           maxrewrites(100),
           fraciter(10),
           fracprec(12),
@@ -189,7 +191,9 @@ public:
     size_t   wordsize;          // Wordsize for binary numbers (in bits)
     size_t   maxbignum;         // Maximum size for a bignum (in bits)
     size_t   maxsolve;          // Maximum number of iterations for solver
+    size_t   maxinteg;          // Maximum number of iterations for integration
     uint16_t solveprec;         // Precision of solver in digits
+    uint16_t integprec;         // Precision of integration in digits
     uint16_t maxrewrites;       // Maximum number of rewrites
     uint16_t fraciter;          // Number of iterations for ->Q
     uint16_t fracprec;          // Number of digits for ->Q

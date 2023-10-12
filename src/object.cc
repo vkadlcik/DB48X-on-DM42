@@ -48,6 +48,7 @@
 #include "graphics.h"
 #include "grob.h"
 #include "integer.h"
+#include "integrate.h"
 #include "list.h"
 #include "locals.h"
 #include "logical.h"

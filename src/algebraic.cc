@@ -30,8 +30,10 @@
 #include "algebraic.h"
 
 #include "arithmetic.h"
+#include "array.h"
 #include "bignum.h"
 #include "complex.h"
+#include "functions.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
@@ -345,14 +347,41 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
     id ty = x->type();
     switch(ty)
     {
-    case ID_decimal128: x = decimal128_p(x.Safe())->to_fraction(); return true;
-    case ID_decimal64:  x = decimal64_p(x.Safe())->to_fraction();  return true;
-    case ID_decimal32:  x = decimal32_p(x.Safe())->to_fraction();  return true;
+    case ID_decimal64:
+    case ID_decimal32:
+        if (!real_promotion(x, ID_decimal128))
+            return false;
+    case ID_decimal128:
+        x = decimal128_p(x.Safe())->to_fraction();
+        return true;
     case ID_fraction:
     case ID_neg_fraction:
     case ID_big_fraction:
-    case ID_neg_big_fraction:                                      return true;
-    default: return false;
+    case ID_neg_big_fraction:
+        return true;
+
+    case ID_rectangular:
+    {
+        rectangular_p z = rectangular_p(x.Safe());
+        algebraic_g re = z->re();
+        algebraic_g im = z->im();
+        if (!decimal_to_fraction(re) || !decimal_to_fraction(im))
+            return false;
+        x = rectangular::make(re, im);
+        return true;
+    }
+    case ID_polar:
+    {
+        polar_p z = polar_p(x.Safe());
+        algebraic_g mod = z->mod();
+        algebraic_g arg = z->pifrac();
+        if (!decimal_to_fraction(mod) || !decimal_to_fraction(arg))
+            return false;
+        x = polar::make(mod, arg, settings::PI_RADIANS);
+        return true;
+    }
+    default:
+        return false;
     }
 }
 

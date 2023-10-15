@@ -94,110 +94,129 @@ algebraic_p integrate(object_g     eq,
                       algebraic_g lx,
                       algebraic_g hx)
 // ----------------------------------------------------------------------------
-//   The core of the integration function
+//   Romberg algorithm - The core of the integration function
 // ----------------------------------------------------------------------------
+//   The Romberg algorithm uses two buffers, one keeping the approximations
+//   from the previous loop, called P, and one for the current loop, called C.
+//   At each step, the size of C is one more than P.
+//   In the implementation below, those arrays are on the stack, P above C.
 {
     // Check if the guess is an algebraic or if we need to extract one
     algebraic_g x, dx, dx2;
     algebraic_g y, dy, sy, sy2;
+    algebraic_g one = integer::make(1);
     algebraic_g two = integer::make(2);
+    algebraic_g four = integer::make(4);
+    algebraic_g pow4;
     record(integrate, "Initial range %t-%t", lx.Safe(), hx.Safe());
 
     // Set independent variable
     save<symbol_g *> iref(equation::independent, &name);
-    save<object_g *> ival(equation::independent_value, (object_g *) &x);
     int              prec = -Settings.integprec;
     algebraic_g      eps = rt.make<decimal128>(object::ID_decimal128,
                                                prec, true);
 
-    // Initial integration step and sum
+    // Initial integration step and first trapezoidal step
     dx = hx - lx;
-    sy = integer::make(0);
+    sy = algebraic::evaluate_function(eq, lx);
+    sy2 = algebraic::evaluate_function(eq, hx);
+    sy = (sy + sy2) * dx / two;
     if (!dx || !sy)
         return nullptr;
 
     // Loop for a maximum number of conversion iterations
+    size_t loops = 1;
     uint max = Settings.maxinteg;
-    uint iter = 1;
-    for (uint d = 0; iter <= max && !program::interrupted(); d++)
+
+    // Depth of the original stack, to return to after computation
+    size_t depth = rt.depth();
+    if (!rt.push(sy.Safe()))
+        goto error;
+
+    for (uint d = 0; d <= max && !program::interrupted(); d++)
     {
-        sy2 = sy;
         dx2 = dx / two;
+        sy = integer::make(0);
         x   = lx + dx2;
-        sy  = integer::make(0);
-        if (!x || !sy)
-            return nullptr;
+        if (!x || !sy || !dx)
+            goto error;
 
-        for (uint i = 0; i < iter; i++)
+        // Compute the sum of f(low + k*i)
+        for (uint i = 0; i < loops; i++)
         {
-            // If we are starting to use really big numbers, approximate
-            if (x->is_big())
-                if (!algebraic::to_decimal(x))
-                    return nullptr;
-
             // Evaluate equation
-            size_t depth = rt.depth();
-            if (!rt.push(x.Safe()))
-                return nullptr;
-            record(integrate, "[%u:%u] x=%t", d, i, x.Safe());
-
-            object::result err    = eq->execute();
-            size_t         dnow   = rt.depth();
-            if (dnow != depth + 1 && dnow != depth + 2)
-            {
-                record(integrate_error, "Depth moved from %u to %u", depth, dnow);
-                rt.invalid_function_error();
-                return nullptr;
-            }
-
-            if (err != object::OK)
-            {
-                // Error on last function evaluation, try again
-                record(integrate_error, "Got error %+s", rt.error());
-                return nullptr;
-            }
-
-            y = algebraic_p(rt.pop());
-            if (dnow == depth + 2)
-                rt.drop();
-            record(integrate, "[%u:%u] x=%t y=%t", d, i, x.Safe(), y.Safe());
-
-            if (!y)
-                return nullptr;
-            if (!y->is_algebraic())
-            {
-                rt.invalid_function_error();
-                return nullptr;
-            }
-
+            y = algebraic::evaluate_function(eq, x);
             sy = sy + y;
+            record(integrate, "[%u:%u] x=%t y=%t sum=%t",
+                   d, i, x.Safe(), y.Safe(), sy.Safe());
             x = x + dx;
-            record(integrate, "[%u:%u] sy=%t", d, i, sy.Safe());
             if (!sy || !x)
-                return nullptr;
-
-            if (sy->is_big())
-                if (!algebraic::to_decimal(sy))
-                    return nullptr;
+                goto error;
         }
-        sy = sy * dx;
-        record(integrate, "[%u] Sum sy=%t sy2=%t dx=%t",
-               d, sy.Safe(), sy2.Safe(), dx.Safe());
-        if (!sy)
-            return nullptr;
-        if (smaller_magnitude(sy - sy2, eps * sy2))
+
+        // Get P[0]
+        y = algebraic_p(rt.stack(d));
+
+        // Compute C[0]
+        sy2 = dx2 * sy + y / two;
+        if (!sy2 || !rt.push(sy2.Safe()))
+            goto error;
+
+        // Prepare 4^i for i=0
+        pow4 = four;
+
+        // Loop to compute C[i] for i > 0
+        for (uint i = 0; i <= d; i++)
         {
-            sy = (sy + sy2) / two;
-            break;
+            // Compute (C[i] * 4^(i+1) - P[i]) / (4^(i+1)-1)
+            x = algebraic_p(rt.stack(d+1)); // P[i]
+            y = algebraic_p(rt.top());    // C[i]
+            y = (y * pow4 - x) / (pow4 - one);
+
+            // If we are starting to get really big numbers, approximate
+            if (y && y->is_big())
+                if (!algebraic::to_decimal(y))
+                    goto error;
+
+            // Compute next power of 4
+            pow4 = pow4 * four;
+
+            // Save C[i]
+            if (!y || !pow4 || !rt.push(y.Safe()))
+                goto error;
         }
 
-        dx = dx2;
-        sy = sy + sy2 / two;
-        if (!sy)
-            return nullptr;
+        // Check if we converged
+        if (d > 0)
+        {
+            // Check if abs(P[i-1] - C[i]) < eps
+            y = algebraic_p(rt.top());
+            x = algebraic_p(rt.stack(d+2));
+            x = y - x;
+            if (y && !y->is_zero())
+                x = x / y;
+            if (smaller_magnitude(x, eps) || d == max)
+            {
+                rt.drop(rt.depth() - depth);
+                return y;
+            }
+        }
 
-        iter <<= 1;
+        // Copy C to P
+        uint off_p = 2 * d + 2; // P[d+1], C[d+2], -1 to get end of array
+        uint off_c = d + 1;
+        for (size_t i = 0; i <= d + 1; i++)
+            rt.stack(off_p - i, rt.stack(off_c - i));
+
+        // Drop P
+        rt.drop(off_c);
+
+        // Twice as many items to evaluate in next loop
+        loops += loops;
+        dx = dx2;
     }
 
-    return sy;
+error:
+    rt.drop(rt.depth() - depth);
+    return nullptr;
 }

@@ -122,7 +122,6 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
 
     // Set independent variable
     save<symbol_g *> iref(equation::independent, &name);
-    save<object_g *> ival(equation::independent_value, (object_g *) &x);
     int              prec = -Settings.solveprec;
     algebraic_g      eps = rt.make<decimal128>(object::ID_decimal128,
                                                prec, true);

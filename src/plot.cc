@@ -110,8 +110,6 @@ object::result draw_plot(object::id            kind,
 
     save<symbol_g *> iref(equation::independent,
                           (symbol_g *) &ppar.independent);
-    save<object_g *> ival(equation::independent_value, (object_g *) &x);
-
     if (ui.draw_graphics())
         draw_axes(ppar);
 

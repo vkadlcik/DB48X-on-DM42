@@ -81,7 +81,7 @@ struct settings
           wordsize(64),
           maxbignum(1024),
           maxsolve(1024),
-          maxinteg(1024),
+          maxinteg(10),
           solveprec(24),
           integprec(24),
           maxrewrites(100),

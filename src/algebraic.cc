@@ -33,6 +33,7 @@
 #include "array.h"
 #include "bignum.h"
 #include "complex.h"
+#include "equation.h"
 #include "functions.h"
 #include "integer.h"
 #include "parser.h"
@@ -489,6 +490,7 @@ algebraic_p algebraic::evaluate_function(object_r eq, algebraic_r x)
 {
     if (!rt.push(x.Safe()))
         return nullptr;
+    save<object_g *> ival(equation::independent_value, (object_g *) &x);
     size_t   depth  = rt.depth();
     result   err    = eq->execute();
     size_t   dnow   = rt.depth();

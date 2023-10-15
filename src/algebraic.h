@@ -67,6 +67,14 @@ struct algebraic : command
     // Numerical value of pi
     static algebraic_g pi();
 
+    // Evaluate an object as a function
+    static algebraic_p evaluate_function(object_r eq, algebraic_r x);
+    algebraic_p evaluate_function(object_r eq)
+    {
+        algebraic_g x = this;
+        return evaluate_function(eq, x);
+    }
+
     // Function pointers used by generic evaluation code
     typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x);
     typedef void (*bid64_fn) (BID_UINT64  *res, BID_UINT64  *x);

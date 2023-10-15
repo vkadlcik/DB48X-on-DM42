@@ -477,6 +477,48 @@ algebraic_g algebraic::pi()
 }
 
 
+algebraic_p algebraic::evaluate_function(object_r eq, algebraic_r x)
+// ----------------------------------------------------------------------------
+//   Evaluate the eq object as a function
+// ----------------------------------------------------------------------------
+//   Equation objects can be one of:
+//   - Something that takes value from the stack and returns it on the stack
+//     for example << 1 + >>
+//   - Something that evaluates using the indep and returns it on the stack,
+//     for example 'X + 1' (assuming X is the independent variable)
+{
+    if (!rt.push(x.Safe()))
+        return nullptr;
+    size_t   depth  = rt.depth();
+    result   err    = eq->execute();
+    size_t   dnow   = rt.depth();
+    object_p result = rt.pop();
+    if (dnow == depth + 1)
+    {
+        object_p indep = rt.pop();
+        if (indep != x.Safe())
+        {
+            rt.invalid_function_error();
+            err = ERROR;
+        }
+    }
+    if (!result || !result->is_algebraic())
+    {
+        rt.type_error();
+        err = ERROR;
+    }
+    if (err != OK || (dnow != depth && dnow != depth + 1))
+    {
+        if (dnow > depth)
+            rt.drop(dnow - depth);
+        if (err == OK)
+            rt.invalid_function_error();
+        return nullptr;
+    }
+    return algebraic_p(result);
+}
+
+
 EVAL_BODY(ImaginaryUnit)
 // ----------------------------------------------------------------------------
 //   Push a unit complex number on the stack

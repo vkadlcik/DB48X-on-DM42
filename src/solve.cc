@@ -132,22 +132,12 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
     uint max = Settings.maxsolve;
     for (uint i = 0; i < max && !program::interrupted(); i++)
     {
-        // Evaluate equation
-        size_t depth = rt.depth();
-        if (!rt.push(x.Safe()))
-            return nullptr;
-        record(solve, "[%u] x=%t", i, x.Safe());
-
-        object::result err    = eq->execute();
-        size_t         dnow   = rt.depth();
         bool           jitter = false;
-        if (dnow != depth + 1 && dnow != depth + 2)
-        {
-            record(solve_error, "Depth moved from %u to %u", depth, dnow);
-            rt.invalid_function_error();
-            return nullptr;
-        }
-        if (err != object::OK)
+
+        // Evaluate equation
+        y = algebraic::evaluate_function(eq, x);
+        record(solve, "[%u] x=%t y=%t", i, x.Safe(), y.Safe());
+        if (!y)
         {
             // Error on last function evaluation, try again
             record(solve_error, "Got error %+s", rt.error());
@@ -161,17 +151,6 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
         else
         {
             is_valid = true;
-            y = algebraic_p(rt.pop());
-            if (dnow == depth + 2)
-                rt.drop();
-            record(solve, "[%u] x=%t y=%t", i, x.Safe(), y.Safe());
-            if (!y)
-                return nullptr;
-            if (!y->is_algebraic())
-            {
-                rt.invalid_function_error();
-                return nullptr;
-            }
             if (y->is_zero() || smaller_magnitude(y, eps))
             {
                 record(solve, "[%u] Solution=%t value=%t",

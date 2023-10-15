@@ -551,7 +551,8 @@ FUNCTION_BODY(sq)
     if (!x.Safe())
         return nullptr;
     if (x->is_strictly_symbolic())
-        return equation::make(ID_sq, x);
+        if (!Settings.auto_simplify || x->type() != ID_ImaginaryUnit)
+            return equation::make(ID_sq, x);
     return x * x;
 }
 
@@ -574,7 +575,8 @@ FUNCTION_BODY(cubed)
     if (!x.Safe())
         return nullptr;
     if (x->is_strictly_symbolic())
-        return equation::make(ID_cubed, x);
+        if (!Settings.auto_simplify || x->type() != ID_ImaginaryUnit)
+            return equation::make(ID_cubed, x);
     return x * x * x;
 }
 

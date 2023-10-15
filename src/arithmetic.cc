@@ -400,6 +400,16 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
             return y;
         if (y->is_one(false))                   // X * 1 = X
             return x;
+        if (x->type() == ID_ImaginaryUnit)
+        {
+            if (y->type() == ID_ImaginaryUnit)
+                return integer::make(-1);
+            if (y->is_real())
+                return rectangular::make(integer::make(0), y);
+        }
+        if (y->type() == ID_ImaginaryUnit)
+            if (x->is_real())
+                return rectangular::make(integer::make(0), x);
         if (x->is_strictly_symbolic() && x->is_same_as(y))
             return sq::run(x);                  // X * X = X²
     }

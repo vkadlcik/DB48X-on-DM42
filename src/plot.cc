@@ -117,22 +117,10 @@ object::result draw_plot(object::id            kind,
 
     while (!program::interrupted())
     {
-        coord  rx, ry;
-        size_t depth = rt.depth();
-        if (!rt.push(x.Safe()))
-            goto err;
-        object::result err = eq->execute();
-        size_t dnow = rt.depth();
-        if (dnow != depth + 1 && dnow != depth + 2)
-            err = object::ERROR;
-        if (err == object::OK)
+        coord  rx = 0, ry = 0;
+        algebraic_g y = algebraic::evaluate_function(eq, x);
+        if (y)
         {
-            algebraic_g y = algebraic_p(rt.pop());
-            if (dnow == depth + 2)
-                rt.drop();
-            if (!y || !y->is_algebraic())
-                goto err;
-
             switch(kind)
             {
             default:
@@ -145,28 +133,23 @@ object::result draw_plot(object::id            kind,
                 algebraic_g i = rectangular::make(integer::make(0),
                                                   integer::make(1));
                 y = y * exp::run(i * x);
-                if (!y)
-                    goto err;
             }
             // Fall-through
             case object::ID_Parametric:
-                err = object::ERROR;
                 if (y->is_real())
                     y = rectangular::make(y, integer::make(0));
-                if (algebraic_g cx = y->algebraic_child(0))
+                if (y)
                 {
-                    if (algebraic_g cy = y->algebraic_child(1))
-                    {
+                    if (algebraic_g cx = y->algebraic_child(0))
                         rx = ppar.pixel_x(cx);
+                    if (algebraic_g cy = y->algebraic_child(1))
                         ry = ppar.pixel_y(cy);
-                        err = object::OK;
-                    }
                 }
                 break;
             }
         }
 
-        if (err == object::OK)
+        if (y)
         {
             if (lx < 0)
             {
@@ -189,8 +172,6 @@ object::result draw_plot(object::id            kind,
         {
             if (!rt.error())
                 rt.invalid_function_error();
-            if (rt.depth() > depth)
-                rt.drop(rt.depth() - depth);
             Screen.text(0, 0, rt.error(), ErrorFont,
                         pattern::white, pattern::black);
             ui.draw_dirty(0, 0, LCD_W, ErrorFont->height());

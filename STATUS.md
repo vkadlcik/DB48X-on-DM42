@@ -163,6 +163,11 @@
 - [ ] Symbolic integration
 
 
+### Numerical evaluation
+
+- [X] Integration
+- [X] Root finding
+
 ### Other RPL functional areas (to be expanded)
 
 - [ ] Real-time clock

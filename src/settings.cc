@@ -470,8 +470,7 @@ SETTINGS_COMMAND_LABEL(Eng)
 
 SETTINGS_COMMAND_BODY(Sig,
                       Settings.display_mode == settings::NORMAL
-                      && Settings.displayed != settings::STD_DISPLAYED
-                     )
+                      && Settings.displayed != settings::STD_DISPLAYED)
 // ----------------------------------------------------------------------------
 //   Switch to significant display mode
 // ----------------------------------------------------------------------------
@@ -645,7 +644,6 @@ SETTINGS_COMMAND_LABEL(Precision)
 //   Return the label for the current precision
 // ----------------------------------------------------------------------------
 {
-    // We can share the buffer here since only one mode is active
     static char buffer[12];
     snprintf(buffer, sizeof(buffer), "Prec %u", Settings.precision);
     return buffer;
@@ -672,7 +670,6 @@ SETTINGS_COMMAND_LABEL(StandardExponent)
 //   Return the label for the current standard exponent
 // ----------------------------------------------------------------------------
 {
-    // We can share the buffer here since only one mode is active
     static char buffer[12];
     snprintf(buffer, sizeof(buffer), "Exp %u", Settings.standard_exp);
     return buffer;
@@ -721,7 +718,6 @@ SETTINGS_COMMAND_LABEL(Base)
 //   Return the label for the current base
 // ----------------------------------------------------------------------------
 {
-    // We can share the buffer here since only one mode is active
     static char buffer[12];
     snprintf(buffer, sizeof(buffer), "Base %u", Settings.base);
     return buffer;
@@ -1098,7 +1094,6 @@ SETTINGS_COMMAND_BODY(SingleRowMenus,
 {
     Settings.menu_single_ln = true;
     Settings.menu_flatten = false;
-    ui.menu_refresh();
     return OK;
 }
 
@@ -1111,7 +1106,6 @@ SETTINGS_COMMAND_BODY(FlatMenus,
 {
     Settings.menu_single_ln = true;
     Settings.menu_flatten = true;
-    ui.menu_refresh();
     return OK;
 }
 
@@ -1123,7 +1117,6 @@ SETTINGS_COMMAND_BODY(ThreeRowsMenus, !Settings.menu_single_ln)
 {
     Settings.menu_single_ln = false;
     Settings.menu_flatten = false;
-    ui.menu_refresh();
     return OK;
 }
 
@@ -1134,7 +1127,6 @@ SETTINGS_COMMAND_BODY(RoundedMenus, !Settings.menu_square)
 // ----------------------------------------------------------------------------
 {
     Settings.menu_square = false;
-    ui.menu_refresh();
     return OK;
 }
 
@@ -1145,7 +1137,6 @@ SETTINGS_COMMAND_BODY(SquareMenus, Settings.menu_square)
 // ----------------------------------------------------------------------------
 {
     Settings.menu_square = true;
-    ui.menu_refresh();
     return OK;
 }
 

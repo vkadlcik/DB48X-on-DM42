@@ -237,8 +237,9 @@ extern settings Settings;
         EVAL_DECL(derived)                              \
         {                                               \
             rt.command(fancy(ID_##derived));            \
+            result r = evaluate();                      \
             ui.menu_refresh();                          \
-            return evaluate();                          \
+            return r;                                   \
         }                                               \
         EXEC_DECL(derived)                              \
         {                                               \

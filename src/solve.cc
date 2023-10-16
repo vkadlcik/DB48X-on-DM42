@@ -263,14 +263,8 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
             }
 
             // If we are starting to use really big numbers, approximate
-            if (x->is_big())
-            {
-                if (!algebraic::to_decimal(x))
-                {
-                    rt.invalid_function_error();
-                    return x;
-                }
-            }
+            if (!algebraic::to_decimal_if_big(x))
+                return x;
         }
 
         // If we have some issue improving things, shake it a bit

@@ -144,9 +144,16 @@ algebraic_p integrate(object_g     eq,
         // Compute the sum of f(low + k*i)
         for (uint i = 0; i < loops; i++)
         {
+            if (!algebraic::to_decimal_if_big(x))
+                goto error;
+
             // Evaluate equation
             y = algebraic::evaluate_function(eq, x);
+
+            // Sum elements, and approximate when necessary
             sy = sy + y;
+            if (!algebraic::to_decimal_if_big(sy))
+                goto error;
             record(integrate, "[%u:%u] x=%t y=%t sum=%t",
                    d, i, x.Safe(), y.Safe(), sy.Safe());
             x = x + dx;
@@ -159,6 +166,8 @@ algebraic_p integrate(object_g     eq,
 
         // Compute C[0]
         sy2 = dx2 * sy + y / two;
+        if (!algebraic::to_decimal_if_big(sy2))
+            goto error;
         if (!sy2 || !rt.push(sy2.Safe()))
             goto error;
 
@@ -174,9 +183,8 @@ algebraic_p integrate(object_g     eq,
             y = (y * pow4 - x) / (pow4 - one);
 
             // If we are starting to get really big numbers, approximate
-            if (y && y->is_big())
-                if (!algebraic::to_decimal(y))
-                    goto error;
+            if (!algebraic::to_decimal_if_big(y))
+                goto error;
 
             // Compute next power of 4
             pow4 = pow4 * four;

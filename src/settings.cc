@@ -92,9 +92,13 @@ void settings::save(renderer &out, bool show_defaults)
     else if (show_defaults)
         out.put("FancyExponent\n");
 
-    // Save preferred expenent for switching to scientfiic mode
+    // Save preferred expenent for switching to scientfic mode
     if (standard_exp != Defaults.standard_exp || show_defaults)
         out.printf("%u StandardExponent\n", standard_exp);
+
+    // Save minimum number of digits for switching to scientfic mode
+    if (min_fix_digits != Defaults.min_fix_digits || show_defaults)
+        out.printf("%u MinimumSignificantDigits\n", min_fix_digits);
 
     // Save current angle mode
     switch(angle_mode)
@@ -672,6 +676,32 @@ SETTINGS_COMMAND_LABEL(StandardExponent)
 {
     static char buffer[12];
     snprintf(buffer, sizeof(buffer), "Exp %u", Settings.standard_exp);
+    return buffer;
+}
+
+
+SETTINGS_COMMAND_BODY(MinimumSignificantDigits, 0)
+// ----------------------------------------------------------------------------
+//   Setting the minimum number of significant digits in FIX mode
+// ----------------------------------------------------------------------------
+{
+    uint digits = integer_arg(0, BID128_MAXDIGITS);
+    if (!rt.error())
+    {
+        Settings.min_fix_digits = digits;
+        return object::OK;
+    }
+    return object::ERROR;
+}
+
+
+SETTINGS_COMMAND_LABEL(MinimumSignificantDigits)
+// ----------------------------------------------------------------------------
+//   Display label for minimum significant digits
+// ----------------------------------------------------------------------------
+{
+    static char buffer[12];
+    snprintf(buffer, sizeof(buffer), "Dig %u", Settings.min_fix_digits);
     return buffer;
 }
 

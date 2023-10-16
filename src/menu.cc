@@ -1086,8 +1086,8 @@ MENU(DisplayModesMenu,
      FractionSpacing::menu_label, ID_FractionSpacing,
      BasedSpacing::menu_label,    ID_BasedSpacing,
      StandardExponent::menu_label, ID_StandardExponent,
+     MinimumSignificantDigits::menu_label, ID_MinimumSignificantDigits,
      "Seps",            ID_SeparatorModesMenu,
-     "Modes",           ID_ModesMenu,
 
      "cmd",             ID_LowerCase,
      "CMD",             ID_UpperCase,
@@ -1100,7 +1100,6 @@ MENU(SeparatorModesMenu,
 // ----------------------------------------------------------------------------
 //   Separators
 // ----------------------------------------------------------------------------
-
      "1 000",   ID_NumberSpaces,
      Settings.decimal_mark == '.' ? "1,000." : "1.000,",  ID_NumberDotOrComma,
      "1'000",   ID_NumberTicks,

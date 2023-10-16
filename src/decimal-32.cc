@@ -398,7 +398,8 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         // Note that the behaviour here is purposely different than HP's
         // when in FIX mode. In FIX 5, for example, 1.2345678E-5 is shown
         // on HP50s as 0.00001, and is shown here as 1.23457E-5, which I believe
-        // is more useful.
+        // is more useful. This behaviour is enabled by setting min_fix_digits
+        // to a non-zero value. If the value is zero, FIX works like on HP.
         // Also, since DB48X can compute on 34 digits, and counting zeroes
         // can be annoying, there is a separate setting for when to switch
         // to scientific notation.
@@ -407,8 +408,19 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         {
             if (realexp < 0)
             {
-                int minexp = digits < std_exp ? digits : std_exp;
-                hasexp = mexp - realexp - 1 >= minexp;
+                if (mode == settings::display::FIX)
+                {
+                    int shown = digits + realexp + 1;
+                    int minfix = display.min_fix_digits;
+                    if (minfix > mexp + 1)
+                        minfix = mexp + 1;
+                    hasexp = shown < minfix;
+                }
+                else
+                {
+                    int minexp = digits < std_exp ? digits : std_exp;
+                    hasexp = mexp - realexp - 1 >= minexp;
+                }
             }
             else
             {

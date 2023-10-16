@@ -76,6 +76,7 @@ struct settings
           space(SPACE_DEFAULT),
           space_based(SPACE_DEFAULT),
           standard_exp(9),
+          min_fix_digits(0),
           angle_mode(DEGREES),
           base(16),
           wordsize(64),
@@ -186,6 +187,7 @@ public:
     unicode  space;             // Space to use for normal numbers
     unicode  space_based;       // Space to use for based numbers
     uint16_t standard_exp;      // Maximum exponent before switching to sci
+    uint16_t min_fix_digits;   // Minimum number of digits to display in FIX
     angles   angle_mode;        // Angle mode ( degrees, radians or grads)
     uint8_t  base;              // The default base for #numbers
     size_t   wordsize;          // Wordsize for binary numbers (in bits)
@@ -298,6 +300,7 @@ SETTINGS_COMMAND_DECLARE(NoTrailingDecimal);
 SETTINGS_COMMAND_DECLARE(TrailingDecimal);
 SETTINGS_COMMAND_DECLARE(Precision);
 SETTINGS_COMMAND_DECLARE(StandardExponent);
+SETTINGS_COMMAND_DECLARE(MinimumSignificantDigits);
 SETTINGS_COMMAND_DECLARE(FancyExponent);
 SETTINGS_COMMAND_DECLARE(ClassicExponent);
 

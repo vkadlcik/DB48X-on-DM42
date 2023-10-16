@@ -420,6 +420,7 @@ CMD(NoTrailingDecimal)
 CMD(TrailingDecimal)
 CMD(Precision)
 CMD(StandardExponent)
+CMD(MinimumSignificantDigits)
 CMD(FancyExponent)
 CMD(ClassicExponent)
 

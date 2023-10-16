@@ -61,6 +61,15 @@ while `12 SignificantDisplay` should approximate the HP48 standard mode using
 
 Select the maximum exponent before switching to scientific notation. The default value is 9, meaning that display uses scientific notation for exponents outside of -9..9.
 
+## MinimumSignificantDigits
+
+Select the minimum number of significant digits before switching to scientific notation in `FIX` mode.
+
+The default value is 0, which is similar to how HP calculators perform. For example, with `2 FIX`, the value `0.055` will display as `0.06`, and `0.0055` will display as `0.01`.
+
+A higher value will switch to scienfic mode to show at least the given number of digits. For instance, with `2 FIX`, if the value is `1`, then `0.055` will still display as `0.06` but `0.0055` will display as `5.50E-3`. If the value is `2`, then `0.055` will display as `5.5E-2`.
+
+
 ## TrailingDecimal
 
 Display a trailing decimal separator to distinguish decimal from integer types. With this setting, `1.0` will display as `1.`. This can be disabled with [NoTrailingDecimal](#NoTrailingDecimal).

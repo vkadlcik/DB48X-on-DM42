@@ -63,14 +63,14 @@ patches. To run these tests, pass the `-T` option to the simulator, or hit the
 
 ## Built-in documentation
 
-The calculator features an extensive [built-in documentation](doc/) that uses
-a restricted version of [Markdown](https://www.markdownguide.org). You access
-that built-in help by [holding a key down](doc/0-Overview.md#help), or using
-the [`Help` command](doc/commands/system.md#help)
+The calculator features an extensive [built-in documentation](help/db48x.md)
+that uses a restricted version of [Markdown](https://www.markdownguide.org).
+You access that built-in help by [holding a key down](help/db48x.md#help), or
+using the [`Help` command](doc/commands/system.md#help)
 
-* [Design overview](doc/0-Overview.md#design-overview)
-* [Keyboard interaction](doc/0-Overview.md#keyboard-interaction)
-* [Soft menus](doc/0-Overview.md#soft-menus)
+* [Design overview](help/db48x.md#design-overview)
+* [Keyboard interaction](help/db48x.md#keyboard-interaction)
+* [Soft menus](help/db48x.md#soft-menus)
 
 
 ## Other documentation

@@ -515,8 +515,16 @@ To navigate the help on the calculator, use the following keys:
 
 DB48X is Free Software, see the LICENSE file for details.
 You can obtain the source code for this software at the following URL:
-https://github.com/c3d/DB48X-on-DM42
-(C) 2022-2023 Christophe de Dinechin and the DB48X team
+https://github.com/c3d/DB48X-on-DM42.
+
+### Authors
+
+This software is (C) 2022-2023 Christophe de Dinechin and the DB48X team.
+
+Additional contributors to the project include:
+
+* Camille Wormser
+* Jeff, aka spiff72
 
 The authors would like to acknowledge
 

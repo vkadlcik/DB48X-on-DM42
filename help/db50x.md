@@ -515,8 +515,16 @@ To navigate the help on the calculator, use the following keys:
 
 DB50X is Free Software, see the LICENSE file for details.
 You can obtain the source code for this software at the following URL:
-https://github.com/c3d/DB50X-on-DM42
-(C) 2022-2023 Christophe de Dinechin and the DB50X team
+https://github.com/c3d/DB50X-on-DM42.
+
+### Authors
+
+This software is (C) 2022-2023 Christophe de Dinechin and the DB50X team.
+
+Additional contributors to the project include:
+
+* Camille Wormser
+* Jeff, aka spiff72
 
 The authors would like to acknowledge
 
@@ -2873,6 +2881,15 @@ while `12 SignificantDisplay` should approximate the HP48 standard mode using
 ## StandardExponent
 
 Select the maximum exponent before switching to scientific notation. The default value is 9, meaning that display uses scientific notation for exponents outside of -9..9.
+
+## MinimumSignificantDigits
+
+Select the minimum number of significant digits before switching to scientific notation in `FIX` mode.
+
+The default value is 0, which is similar to how HP calculators perform. For example, with `2 FIX`, the value `0.055` will display as `0.06`, and `0.0055` will display as `0.01`.
+
+A higher value will switch to scienfic mode to show at least the given number of digits. For instance, with `2 FIX`, if the value is `1`, then `0.055` will still display as `0.06` but `0.0055` will display as `5.50E-3`. If the value is `2`, then `0.055` will display as `5.5E-2`.
+
 
 ## TrailingDecimal
 

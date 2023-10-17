@@ -4,8 +4,8 @@
 /cscope.files
 /cscope.out
 /sim/.qmake.stash
-/sim/simulator.app/
-/sim/simulator.mak
+/sim/db48x.app/
+/sim/db48x.mak
 /sim/*.o
 /sim/ui_sim-window.h
 /sim/moc_predefs.h
@@ -27,5 +27,6 @@
 /.cache/
 /*.bin
 /*.tgz
-/DB50X.pg5
+/db50x.pg5
+/db48x.pgm
 /src/dmcp/version.h

@@ -1,7 +1,7 @@
 #######################################
 # target
 ######################################
-TARGET = DB48X
+TARGET = db48x
 PLATFORM = dmcp
 VARIANT = dm42
 SDK = dmcp/dmcp
@@ -57,7 +57,7 @@ all: $(TARGET).$(PGM) help/$(TARGET).md
 
 dm32:	dm32-all
 dm32-%:
-	$(MAKE) PLATFORM=dmcp SDK=dmcp5/dmcp PGM=pg5 VARIANT=dm32 TARGET=DB50X $*
+	$(MAKE) PLATFORM=dmcp SDK=dmcp5/dmcp PGM=pg5 VARIANT=dm32 TARGET=db50x $*
 
 # installation steps
 COPY=cp
@@ -73,9 +73,9 @@ install-qspi: all
 install-help: help/$(TARGET).md
 	$(COPY) help/$(TARGET).md $(MOUNTPOINT)help/
 
-sim: sim/simulator.mak
+sim: sim/$(TARGET).mak
 	cd sim; make -f $(<F)
-sim/simulator.mak: sim/simulator.pro Makefile $(VERSION_H)
+sim/$(TARGET).mak: sim/$(TARGET).pro Makefile $(VERSION_H)
 	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(QMAKE_$(OPT))
 
 sim:	sim/gcc111libbid.a	\
@@ -87,8 +87,8 @@ sim:	sim/gcc111libbid.a	\
 	keyboard		\
 	.ALWAYS
 
-clangdb: sim/simulator.mak .ALWAYS
-	cd sim && rm -f *.o && compiledb make -f simulator.mak && mv compile_commands.json ..
+clangdb: sim/$(TARGET).mak .ALWAYS
+	cd sim && rm -f *.o && compiledb make -f $(TARGET).mak && mv compile_commands.json ..
 
 keyboard: sim/keyboard-db48x.png Keyboard-Layout.png Keyboard-Cutout.png
 Keyboard-Layout.png: DB48X-Keys/DB48X-Keys.001.png

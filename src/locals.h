@@ -76,8 +76,7 @@ struct locals : program
 //   A locals block
 // ----------------------------------------------------------------------------
 {
-    locals(gcbytes bytes, size_t len, id type = ID_locals)
-        : program(bytes, len, type) {}
+    locals(id type, gcbytes bytes, size_t len): program(type, bytes, len) {}
 
 public:
     OBJECT_DECL(locals);
@@ -92,7 +91,7 @@ struct local : object
 //   A local variable name (represented by its index in enclosing local block)
 // ----------------------------------------------------------------------------
 {
-    local(uint index, id type = ID_local): object(type)
+    local(id type, uint index): object(type)
     {
         byte *p = (byte *) payload();
         leb128(p, index);
@@ -103,7 +102,7 @@ struct local : object
         return leb128size(i) + leb128size(index);
     }
 
-    local(gcbytes ptr, size_t size, id type = ID_local): object(type)
+    local(id type, gcbytes ptr, size_t size): object(type)
     {
         byte *p = (byte *) payload();
         memmove(p, byte_p(ptr), size);

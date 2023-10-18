@@ -50,7 +50,7 @@ SIZE_BODY(text)
 
 PARSE_BODY(text)
 // ----------------------------------------------------------------------------
-//    Try to parse this as an text
+//    Try to parse this as a text
 // ----------------------------------------------------------------------------
 //    For simplicity, this deals with all kinds of texts
 {
@@ -76,7 +76,7 @@ PARSE_BODY(text)
     p.end         = parsed;
     p.out         = rt.make<text>(ID_text, txt, slen);
 
-    return OK;
+    return p.out ? OK : ERROR;
 }
 
 

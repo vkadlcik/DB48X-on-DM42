@@ -205,7 +205,7 @@ RENDER_BODY(locals)
     {
         size_t len = leb128<size_t>(p.Safe());
         r.put(p.Safe(), len);
-        r.put(' ');
+        r.put(n + 1 < names ? ' ' : '\n');
         p += len;
     }
 
@@ -360,8 +360,7 @@ EVAL_BODY(local)
 // ----------------------------------------------------------------------------
 {
     if (object_g obj = o->recall())
-        if (rt.push(obj))
-            return OK;
+        return obj->execute();
     return ERROR;
 }
 

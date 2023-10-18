@@ -37,6 +37,14 @@
 RECORDER(equation, 16, "Processing of equations and algebraic objects");
 RECORDER(equation_error, 16, "Errors with equations");
 
+
+symbol_g *equation::independent = nullptr;
+object_g *equation::independent_value = nullptr;
+symbol_g *equation::dependent = nullptr;
+object_g *equation::dependent_value = nullptr;
+
+
+
 // ============================================================================
 //
 //    Equation
@@ -57,6 +65,15 @@ PARSE_BODY(equation)
     p.precedence = 0;
 
     return result;
+}
+
+
+HELP_BODY(equation)
+// ----------------------------------------------------------------------------
+//   Help topic for equations
+// ----------------------------------------------------------------------------
+{
+    return utf8("Equations");
 }
 
 
@@ -260,11 +277,11 @@ size_t equation::size_in_equation(object_p obj)
 }
 
 
-equation::equation(algebraic_r arg, id type)
+equation::equation(id type, algebraic_r arg)
 // ----------------------------------------------------------------------------
 //   Build an equation object from an object
 // ----------------------------------------------------------------------------
-    : program(nullptr, 0, type)
+    : program(type, nullptr, 0)
 {
     byte *p = (byte *) payload();
 
@@ -277,9 +294,9 @@ equation::equation(algebraic_r arg, id type)
     // Write the arguments
     size_t objsize = 0;
     byte_p objptr = nullptr;
-    if (arg->type() == ID_equation)
+    if (equation_p eq = arg->as<equation>())
     {
-        objptr = equation_p(algebraic_p(arg))->value(&objsize);
+        objptr = eq->value(&objsize);
     }
     else
     {
@@ -303,11 +320,11 @@ size_t equation::required_memory(id type, algebraic_r arg)
 }
 
 
-equation::equation(id op, algebraic_r arg, id type)
+equation::equation(id type, id op, algebraic_r arg)
 // ----------------------------------------------------------------------------
 //   Build an equation from one argument
 // ----------------------------------------------------------------------------
-    : program(nullptr, 0, type)
+    : program(type, nullptr, 0)
 {
     byte *p = (byte *) payload();
 
@@ -320,9 +337,9 @@ equation::equation(id op, algebraic_r arg, id type)
     // Write the arguments
     size_t objsize = 0;
     byte_p objptr = nullptr;
-    if (arg->type() == ID_equation)
+    if (equation_p eq = arg->as<equation>())
     {
-        objptr = equation_p(algebraic_p(arg))->value(&objsize);
+        objptr = eq->value(&objsize);
     }
     else
     {
@@ -349,11 +366,11 @@ size_t equation::required_memory(id type, id op, algebraic_r arg)
 }
 
 
-equation::equation(id op, algebraic_r x, algebraic_r y, id type)
+equation::equation(id type, id op, algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Build an equation from two arguments
 // ----------------------------------------------------------------------------
-    : program(nullptr, 0, type)
+    : program(type, nullptr, 0)
 {
     byte *p = (byte *) payload();
 
@@ -366,9 +383,9 @@ equation::equation(id op, algebraic_r x, algebraic_r y, id type)
     // Write the first argument
     size_t objsize = 0;
     byte_p objptr = nullptr;
-    if (x->type() == ID_equation)
+    if (equation_p eq = x->as<equation>())
     {
-        objptr = equation_p(algebraic_p(x))->value(&objsize);
+        objptr = eq->value(&objsize);
     }
     else
     {
@@ -379,9 +396,9 @@ equation::equation(id op, algebraic_r x, algebraic_r y, id type)
     p += objsize;
 
     // Write the second argument
-    if (y->type() == ID_equation)
+    if (equation_p eq = y->as<equation>())
     {
-        objptr = equation_p(algebraic_p(y))->value(&objsize);
+        objptr = eq->value(&objsize);
     }
     else
     {
@@ -555,7 +572,7 @@ static size_t check_match(size_t eq, size_t eqsz,
                     for (size_t l = 0; l < symbols; l += 2)
                     {
                         symbol_p existing = symbol_p(rt.local(l+1));
-                        if (!existing || existing->is_same_as(ftop))
+                        if (!existing || existing->is_same_as(symbol_p(ftop)))
                             return 0;
                     }
                 }
@@ -798,6 +815,8 @@ COMMAND_BODY(Rewrite)
 //   Rewrite (From, To, Value): Apply rewrites
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(3))
+        return ERROR;
     object_p x = rt.stack(0);
     object_p y = rt.stack(1);
     object_p z = rt.stack(2);
@@ -933,4 +952,13 @@ equation_p equation::simplify() const
         x ^ mone,    inv(x),
         (x^n)*(x^m), x ^ (n+m)
         );
+}
+
+
+equation_p equation::as_difference_for_solve() const
+// ----------------------------------------------------------------------------
+//   For the solver, transform A=B into A-B
+// ----------------------------------------------------------------------------
+{
+    return rewrite(x == y, x - y);
 }

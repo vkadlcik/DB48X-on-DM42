@@ -79,7 +79,7 @@ FLAGS(is_complex,       rectangular,    polar)
 FLAGS(is_command,       Drop,           Unimplemented)
 FLAGS(is_symbolic,      local,          equation,       pi, ImaginaryUnit)
 FLAGS(is_algebraic,     add,            ToFraction)
-FLAGS(is_immediate,     MainMenu,       LastMenu)
+FLAGS(is_immediate,     MainMenu,       SelfInsert)
 
 
 
@@ -139,6 +139,9 @@ ID(neg_big_fraction)
 ID(decimal32)
 ID(decimal64)
 ID(decimal128)
+
+ID(comment)
+ID(grob)
 
 CMD(Drop)
 CMD(Drop2)
@@ -257,7 +260,7 @@ ALIAS(ToFraction, "→Q")
 
 // ============================================================================
 //
-//    Loops
+//    Loops and tests
 //
 // ============================================================================
 
@@ -304,6 +307,7 @@ CMD(FreeMemory)
 CMD(SystemMemory)
 CMD(GarbageCollect)
 
+// Directories
 NAMED(home, "HomeDirectory")
 CMD(CurrentDirectory)
 NAMED(path, "DirectoryPath")
@@ -311,12 +315,7 @@ NAMED(crdir, "CreateDirectory")
 NAMED(updir, "UpDirectory")
 NAMED(pgdir, "PurgeDirectory")
 
-CMD(Ticks)
-CMD(Wait)
-CMD(Bytes)
-CMD(Type)
-CMD(TypeName)
-
+// Rare tests
 NAMED(IFT, "IfThen")
 NAMED(IFTE, "IfThenElse")
 CMD(IfErrThen)
@@ -325,6 +324,13 @@ NAMED(errm, "ErrorMessage")
 NAMED(errn, "ErrorNumber")
 NAMED(err0, "ClearError")
 NAMED(doerr, "DoError")
+
+
+// ============================================================================
+//
+//   Graphing and plotting
+//
+// ============================================================================
 
 NAMED(Disp, "DrawText")
 NAMED(DispXY, "DrawStyledText")
@@ -337,12 +343,60 @@ NAMED(ClLCD, "ClearLCD")
 NAMED(Draw, "DrawPlot")
 NAMED(Drax, "DrawAxes")
 
+NAMED(Function,         "FunctionPlot")
+NAMED(Polar,            "PolarPlot")
+NAMED(Parametric,       "ParametricPlot")
+
+CMD(Clip)
+CMD(CurrentClip)
+
+NAMED(GXor, "GraphicXor")
+NAMED(GOr,  "GraphicOr")
+NAMED(GAnd, "GraphicAnd")
+NAMED(Pict, "GraphicPicture")
+
+
+
+// ============================================================================
+//
+//   Rare functions
+//
+// ============================================================================
+//   These functions are put "late" in the IDs table to leave more room
+//   for single-byte commands above
+
+// Rare type f
+NAMED(ToTag, "→Tag")
+NAMED(FromTag, "Tag→")
+NAMED(dtag, "DeleteTag")
+
+// Object cycle
+CMD(Cycle)
+CMD(RealToBinary)
+ALIAS(RealToBinary, "R→B")
+CMD(BinaryToReal)
+ALIAS(BinaryToReal, "B→R")
+
+// Timing and system commands
+CMD(Ticks)
+CMD(Wait)
+CMD(Bytes)
+CMD(Type)
+CMD(TypeName)
+CMD(Version)
+
+// High-level applications
+CMD(Root)
+NAMED(Integrate, "∫")
 
 // ============================================================================
 //
 //   Settings
 //
 // ============================================================================
+
+CMD(Modes)
+CMD(ResetModes)
 
 NAMED(Std, "StandardDisplay")
 NAMED(Fix, "FixedDisplay")
@@ -373,7 +427,7 @@ CMD(Base)
 NAMED(Bin, "Binary")
 NAMED(Oct, "Octal")
 NAMED(Dec, "Decimal")
-NAMED(Hex, "Hexadeimcal")
+NAMED(Hex, "Hexadecimal")
 
 NAMED(stws, "StoreWordSize")
 NAMED(rcws, "WordSize")
@@ -383,7 +437,6 @@ CMD(StackFontSize)
 CMD(EditorFontSize)
 CMD(EditorMultilineFontSize)
 
-CMD(NumberSpacing)
 CMD(MantissaSpacing)
 CMD(FractionSpacing)
 CMD(BasedSpacing)
@@ -399,6 +452,9 @@ CMD(BasedUnderscore)
 
 CMD(AutoSimplify)
 CMD(NoAutoSimplify)
+
+CMD(NumericResults)
+CMD(SymbolicResults)
 
 CMD(MaxBigNumBits)
 CMD(MaxRewrites)
@@ -418,13 +474,8 @@ CMD(LineWidth)
 CMD(Foreground)
 CMD(Background)
 
-CMD(Modes)
-CMD(Version)
-
-
-NAMED(Function,         "FunctionPlot")
-NAMED(Polar,            "PolarPlot")
-NAMED(Parametric,       "ParametricPlot")
+CMD(GraphicsStackDisplay)
+CMD(TextStackDisplay)
 
 
 
@@ -435,7 +486,6 @@ NAMED(Parametric,       "ParametricPlot")
 // ============================================================================
 
 MENU(MainMenu)
-MENU(HomeMenu)
 
 MENU(MathMenu)
 MENU(RealMenu)
@@ -447,9 +497,12 @@ MENU(VectorMenu)
 MENU(MatrixMenu)
 MENU(AnglesMenu)
 MENU(HyperbolicMenu)
+MENU(ExpLogMenu)
 MENU(CircularMenu)
 MENU(BasesMenu)
 MENU(ProbabilitiesMenu)
+MENU(NumbersMenu)
+MENU(DebugMenu)
 MENU(StatisticsMenu)
 MENU(SignalProcessingMenu)
 MENU(ConstantsMenu)
@@ -457,7 +510,10 @@ MENU(EquationsMenu)
 MENU(UnitsMenu)
 MENU(UnitsConversionsMenu)
 MENU(SymbolicMenu)
+MENU(IntegrationMenu)
+MENU(DifferentiationMenu)
 MENU(SolverMenu)
+MENU(PolynomialsMenu)
 MENU(NumericalSolverMenu)
 MENU(DifferentialSolverMenu)
 MENU(SymbolicSolverMenu)
@@ -472,19 +528,26 @@ MENU(CompareMenu)
 MENU(LoopsMenu)
 MENU(ListMenu)
 MENU(StackMenu)
+MENU(ClearThingsMenu)
 MENU(ObjectMenu)
 MENU(FlagsMenu)
-MENU(LastThingsMenu)
 MENU(CharsMenu)
 MENU(ModesMenu)
-MENU(FontsMenu)
-MENU(MenuSettingsMenu)
+MENU(DisplayModesMenu)
+MENU(SeparatorModesMenu)
+MENU(UserInterfaceModesMenu)
+MENU(MathModesMenu)
+MENU(PrintingMenu)
 MENU(IOMenu)
+MENU(FilesMenu)
 MENU(TimeMenu)
 MENU(PlotMenu)
+MENU(GraphicsMenu)
 MENU(MemMenu)
 MENU(LibsMenu)
 MENU(TextMenu)
+
+MENU(EditMenu)
 
 
 // ============================================================================
@@ -502,6 +565,23 @@ NAMED(Off, "PowerOff")
 CMD(SaveState)
 CMD(SystemSetup)
 CMD(Help)
+CMD(Undo)
+
+NAMED(LastArg, "LastArguments")
+CMD(LastX)
+
+CMD(EditorSelect)
+CMD(EditorWordLeft)
+CMD(EditorWordRight)
+CMD(EditorBegin)
+CMD(EditorEnd)
+CMD(EditorCut)
+CMD(EditorCopy)
+CMD(EditorPaste)
+CMD(EditorSearch)
+CMD(EditorReplace)
+CMD(EditorClear)
+CMD(EditorFlip)
 
 CMD(Unimplemented)
 
@@ -533,6 +613,7 @@ ID(dense_font)
 ID(sparse_font)
 ID(dmcp_font)
 
+ID(tag)
 
 
 #undef ID

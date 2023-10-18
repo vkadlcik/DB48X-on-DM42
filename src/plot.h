@@ -30,7 +30,7 @@
 // ****************************************************************************
 
 #include "command.h"
-
+#include "graphics.h"
 
 COMMAND_DECLARE(Function);
 COMMAND_DECLARE(Polar);

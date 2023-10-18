@@ -59,6 +59,15 @@ SIZE_BODY(complex)
 }
 
 
+HELP_BODY(complex)
+// ----------------------------------------------------------------------------
+//   Help topic for complex numbers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Complex numbers");
+}
+
+
 algebraic_g complex::re() const
 // ----------------------------------------------------------------------------
 //   Return real part in a format-independent way
@@ -175,7 +184,7 @@ algebraic_g complex::convert_angle(algebraic_g a,
                 fraction_g f = fraction_p(a.Safe());
                 algebraic_g n = algebraic_p(f->numerator());
                 algebraic_g d = algebraic_p(f->denominator());
-                a = pi * d / n;
+                a = n / pi / d;
             }
             else
             {
@@ -245,25 +254,35 @@ complex_g operator-(complex_r x)
         polar_p p = polar_p(complex_p(x));
         return polar::make(-p->mod(), p->pifrac(), settings::PI_RADIANS);
     }
-    rectangular_p r = rectangular_p(complex_p(x));
+    rectangular_g r = rectangular_p(complex_p(x));
     return rectangular::make(-r->re(), -r->im());
 }
 
 
 complex_g operator+(complex_r x, complex_r y)
 // ----------------------------------------------------------------------------
-//   Complex addition - Don't even bother doing it in polar form
+//   Complex addition - In rectangular form, unless polar args are aligned
 // ----------------------------------------------------------------------------
 {
     if (!x.Safe() || !y.Safe())
         return nullptr;
+    if (x->type() == object::ID_polar &&
+        y->type() == object::ID_polar)
+    {
+        algebraic_g two = integer::make(2);
+        algebraic_g angle_diff = (x->y() - y->y()) % two;
+        if (angle_diff->is_zero(false))
+            return polar::make(x->x() + y->x(), x->y(), settings::PI_RADIANS);
+        if (angle_diff->is_one(false))
+            return polar::make(x->x() - y->x(), x->y(), settings::PI_RADIANS);
+    }
     return rectangular::make(x->re() + y->re(), x->im() + y->im());
 }
 
 
 complex_g operator-(complex_r x, complex_r y)
 // ----------------------------------------------------------------------------
-//   Complex subtraction - Always in rectangular form
+//   Complex subtraction - In rectangular form, unless polar args are aligned
 // ----------------------------------------------------------------------------
 {
     if (!x.Safe() || !y.Safe())
@@ -272,6 +291,16 @@ complex_g operator-(complex_r x, complex_r y)
         return -y;
     if (y->is_zero())
         return x;
+    if (x->type() == object::ID_polar &&
+        y->type() == object::ID_polar)
+    {
+        algebraic_g two = integer::make(2);
+        algebraic_g angle_diff = (x->y() - y->y()) % two;
+        if (angle_diff->is_zero(false))
+            return polar::make(x->x() - y->x(), x->y(), settings::PI_RADIANS);
+        if (angle_diff->is_one(false))
+            return polar::make(x->x() + y->x(), x->y(), settings::PI_RADIANS);
+    }
     return rectangular::make(x->re() - y->re(), x->im() - y->im());
 }
 
@@ -542,7 +571,7 @@ PARSE_BODY(complex)
         ylen = last - ybeg;
 
     // Compute size that we parsed
-    size_t parsed = last - first + paren;
+    size_t parsed = last - first + 2*paren;
 
     // Parse the first object
     gcutf8 ysrc = ybeg;
@@ -823,6 +852,8 @@ COMMAND_BODY(RealToComplex)
 //   Take two values in x and y and turn them into a complex
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
     object_g re = rt.stack(1);
     object_g im = rt.stack(0);
     if (!re || !im)
@@ -848,6 +879,8 @@ COMMAND_BODY(ComplexToReal)
 //   Take a complex value and convert it into two real values
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     object_g z = rt.top();
     if (!z)
         return ERROR;
@@ -869,6 +902,8 @@ COMMAND_BODY(ToRectangular)
 //  Convert the top-level complex to rectangular form
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     object_g x = rt.top();
     if (!x)
         return ERROR;
@@ -892,6 +927,8 @@ COMMAND_BODY(ToPolar)
 //  Convert the top-level complex to polar form
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     object_g x = rt.top();
     if (!x)
         return ERROR;

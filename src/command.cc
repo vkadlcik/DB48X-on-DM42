@@ -63,7 +63,7 @@ PARSE_BODY(command)
     bool    eq     = p.precedence;
 
     // If we are parsing an equation, only accept algebraic command
-    if (eq && !is_algebraic_function(i))
+    if (eq && !is_algebraic(i))
         return SKIP;
 
     id      found  = id(0);
@@ -242,8 +242,9 @@ COMMAND_BODY(Eval)
 //   Evaluate an object
 // ----------------------------------------------------------------------------
 {
-    if (object_p x = rt.pop())
-        return x->execute();
+    if (rt.args(1))
+        if (object_p x = rt.pop())
+            return x->execute();
     return ERROR;
 }
 
@@ -252,10 +253,11 @@ COMMAND_BODY(ToText)
 //   Convert an object to text
 // ----------------------------------------------------------------------------
 {
-    if (object_g obj = rt.top())
-        if (object_g txt = obj->as_text(false, false))
-            if (rt.top(txt))
-                return OK;
+    if (rt.args(1))
+        if (object_g obj = rt.top())
+            if (object_g txt = obj->as_text(false, false))
+                if (rt.top(txt))
+                    return OK;
     return ERROR;
 }
 
@@ -305,19 +307,20 @@ MARKER_BODY(Unimplemented)
 }
 
 
-
 COMMAND_BODY(Ticks)
 // ----------------------------------------------------------------------------
 //   Return number of ticks
 // ----------------------------------------------------------------------------
 {
-    uint ticks = sys_current_ms();
-    if (integer_p ti = rt.make<integer>(ID_integer, ticks))
-        if (rt.push(ti))
-            return OK;
+    if (rt.args(0))
+    {
+        uint ticks = sys_current_ms();
+        if (integer_p ti = rt.make<integer>(ID_integer, ticks))
+            if (rt.push(ti))
+                return OK;
+    }
     return ERROR;
 }
-
 
 
 COMMAND_BODY(Wait)
@@ -325,6 +328,8 @@ COMMAND_BODY(Wait)
 //   Wait the specified amount of seconds
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     if (object_p obj = rt.top())
     {
         if (algebraic_g wtime = obj->as_algebraic())
@@ -351,7 +356,10 @@ COMMAND_BODY(Wait)
                         remains = 50;
                     sys_delay(remains);
                     if (!key_empty())
-                        key = key_pop();
+#if SIMULATOR
+                        if (key_tail() != KEY_EXIT)
+#endif
+                            key = key_pop();
                 }
                 if (infinite)
                 {
@@ -378,23 +386,26 @@ COMMAND_BODY(Bytes)
 //   Return the bytes and a binary represenetation of the object
 // ----------------------------------------------------------------------------
 {
-    if (object_p top = rt.top())
+    if (rt.args(1))
     {
-        size_t size = top->size();
-        size_t maxsize = (Settings.wordsize + 7) / 8;
-        size_t hashsize = size > maxsize ? maxsize : size;
-        gcbytes bytes = byte_p(top);
+        if (object_p top = rt.top())
+        {
+            size_t size = top->size();
+            size_t maxsize = (Settings.wordsize + 7) / 8;
+            size_t hashsize = size > maxsize ? maxsize : size;
+            gcbytes bytes = byte_p(top);
 #if CONFIG_FIXED_BASED_OBJECTS
-        // Force base 16 if we have that option
-        const id type = ID_hex_bignum;
+            // Force base 16 if we have that option
+            const id type = ID_hex_bignum;
 #else // !CONFIG_FIXED_BASED_OBJECTS
-        const id type = ID_based_bignum;
+            const id type = ID_based_bignum;
 #endif // CONFIG_FIXED_BASED_OBJECTS
-        if (bignum_p bin = rt.make<bignum>(type, bytes, hashsize))
-            if (rt.top(bin))
-                if (rt.push(integer::make(size)))
-                    return OK;
+            if (bignum_p bin = rt.make<bignum>(type, bytes, hashsize))
+                if (rt.top(bin))
+                    if (rt.push(integer::make(size)))
+                        return OK;
 
+        }
     }
     return ERROR;
 }
@@ -406,10 +417,11 @@ COMMAND_BODY(Type)
 //   Return the type of the top of stack as a numerical value
 // ----------------------------------------------------------------------------
 {
-    if (object_p top = rt.top())
-        if (integer_p type = integer::make(uint(top->type())))
-            if (rt.top(type))
-                return OK;
+    if (rt.args(1))
+        if (object_p top = rt.top())
+            if (integer_p type = integer::make(uint(top->type())))
+                if (rt.top(type))
+                    return OK;
     return ERROR;
 }
 
@@ -419,14 +431,13 @@ COMMAND_BODY(TypeName)
 //   Return the type of the top of stack as text
 // ----------------------------------------------------------------------------
 {
-    if (object_p top = rt.top())
-        if (text_p type = text::make(top->fancy()))
-            if (rt.top(type))
-                return OK;
+    if (rt.args(1))
+        if (object_p top = rt.top())
+            if (text_p type = text::make(top->fancy()))
+                if (rt.top(type))
+                    return OK;
     return ERROR;
 }
-
-
 
 
 COMMAND_BODY(Off)
@@ -434,6 +445,8 @@ COMMAND_BODY(Off)
 //   Switch the calculator off
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     power_off();
     return OK;
 }
@@ -444,6 +457,8 @@ COMMAND_BODY(SaveState)
 //   Save the system state to disk
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     save_system_state();
     return OK;
 }
@@ -454,6 +469,8 @@ COMMAND_BODY(SystemSetup)
 //   Select the system menu
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     system_setup();
     return OK;
 }
@@ -471,9 +488,10 @@ COMMAND_BODY(Version)
         "and a tribute to\n"
         "Bill Hewlett and Dave Packard\n"
         "© 2022-2023 Christophe de Dinechin";
-    if (text_g version = text::make(version_text))
-        if (rt.push(object_p(version)))
-            return OK;
+    if (rt.args(0))
+        if (text_g version = text::make(version_text))
+            if (rt.push(object_p(version)))
+                return OK;
     return ERROR;
 }
 
@@ -488,6 +506,8 @@ COMMAND_BODY(Help)
 
     if (rt.depth())
     {
+        if (!rt.args(1))
+            return ERROR;
         if (object_p top = rt.top())
         {
             if (text_p index = top->as<text>())
@@ -502,40 +522,14 @@ COMMAND_BODY(Help)
             }
             else
             {
-                switch(top->type())
-                {
-                case ID_integer:
-                case ID_neg_integer:        topic = utf8("Integers"); break;
-                case ID_fraction:
-                case ID_neg_fraction:
-                case ID_big_fraction:
-                case ID_neg_big_fraction:   topic = utf8("Fractions"); break;
-                case ID_bignum:
-                case ID_neg_bignum:         topic = utf8("Big integers"); break;
-                case ID_polar:
-                case ID_rectangular:        topic = utf8("Complex numbers"); break;
-#if CONFIG_FIXED_BASED_OBJECTS
-                case ID_hex_integer:
-                case ID_dec_integer:
-                case ID_oct_integer:
-                case ID_bin_integer:
-                case ID_hex_bignum:
-                case ID_dec_bignum:
-                case ID_oct_bignum:
-                case ID_bin_bignum:
-#endif // CONFIG_FIXED_BASED_OBJECTS
-                case ID_based_integer:
-                case ID_based_bignum:       topic = utf8("Based numbers"); break;
-                case ID_decimal128:
-                case ID_decimal64:
-                case ID_decimal32:          topic = utf8("Decimal numbers"); break;
-                case ID_equation:           topic = utf8("Equations"); break;
-                case ID_list:               topic = utf8("Lists"); break;
-                case ID_array:              topic = utf8("Vectors and matrices"); break;
-                default:                    topic = fancy(top->type()); break;
-                }
+                topic = top->help();
             }
         }
+    }
+    else
+    {
+        if (!rt.args(0))
+            return ERROR;
     }
 
     ui.load_help(topic, length);
@@ -548,7 +542,7 @@ COMMAND_BODY(ToolsMenu)
 //   Contextual tool menu
 // ----------------------------------------------------------------------------
 {
-    id menu = ID_HomeMenu;
+    id menu = ID_MainMenu;
 
     if (rt.editing())
     {
@@ -566,6 +560,8 @@ COMMAND_BODY(ToolsMenu)
     }
     else if (rt.depth())
     {
+        if (!rt.args(1))
+            return ERROR;
         if (object_p top = rt.top())
         {
             switch(top->type())
@@ -598,13 +594,245 @@ COMMAND_BODY(ToolsMenu)
             case ID_equation:           menu = ID_SymbolicMenu; break;
             case ID_list:               menu = ID_ListMenu; break;
             case ID_array:              menu = ID_MatrixMenu; break;
+            case ID_tag:                menu = ID_ObjectMenu; break;
             default:                    break;
             }
         }
     }
+    else if (!rt.args(0))
+    {
+        return ERROR;
+    }
 
     object_p obj = command::static_object(menu);
     return obj->execute();
+}
+
+
+COMMAND_BODY(Cycle)
+// ----------------------------------------------------------------------------
+//  Cycle object across multiple representations
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    if (object_p top = rt.top())
+    {
+        id cmd  = ID_object;
+        id type = ID_object;
+
+        switch(top->type())
+        {
+        case ID_integer:
+        case ID_neg_integer:
+        case ID_neg_bignum:
+        case ID_bignum:
+            cmd = ID_RealToBinary;
+            break;
+        case ID_decimal128:
+        case ID_decimal64:
+        case ID_decimal32:
+            cmd = ID_ToFraction;
+            break;
+        case ID_fraction:
+        case ID_neg_fraction:
+        case ID_big_fraction:
+        case ID_neg_big_fraction:
+            cmd = ID_ToDecimal;
+            break;
+        case ID_polar:
+            cmd = ID_ToRectangular;
+            break;
+        case ID_rectangular:
+            cmd = ID_ToPolar;
+            break;
+#if CONFIG_FIXED_BASED_OBJECTS
+        case ID_hex_integer:
+        case ID_dec_integer:
+        case ID_oct_integer:
+        case ID_bin_integer:
+        case ID_hex_bignum:
+        case ID_dec_bignum:
+        case ID_oct_bignum:
+        case ID_bin_bignum:
+            cmd = ID_BinaryToReal;
+#endif // CONFIG_FIXED_BASED_OBJECTS
+        case ID_based_integer:
+        case ID_based_bignum:
+            switch(Settings.base)
+            {
+            case 2:
+                Settings.base = 8;
+                return OK;
+            case 8:
+                Settings.base = 10;
+                return OK;
+            case 10:
+                Settings.base = 16;
+                cmd = ID_BinaryToReal;
+                break;
+            case 16:
+                Settings.base = 2;
+                return OK;
+            default:
+                Settings.base = 16;
+                break;
+            }
+            break;
+        case ID_equation:
+            Settings.graph_stack = !Settings.graph_stack;
+            break;
+        case ID_list:
+            type = ID_array;
+            break;
+        case ID_array:
+            type = ID_program;
+            break;
+        case ID_program:
+            type = ID_list;
+            break;
+        case ID_symbol:
+            type = ID_text;
+            break;
+        case ID_text:
+            type = ID_symbol;
+            break;
+        case ID_tag:
+            cmd = ID_dtag;
+            break;
+        default:
+            rt.type_error();
+            return ERROR;
+        }
+
+        // In-place retyping
+        if (type != ID_object)
+        {
+            ASSERT(leb128size(type) == leb128size(top->type()));
+            if (object_p clone = rt.clone(top))
+            {
+                byte *p = (byte *) clone;
+                leb128(p, type);
+                if (rt.top(clone))
+                    return OK;
+            }
+            return ERROR;
+        }
+
+        // Evaluation of a command
+        if (cmd != ID_object)
+            return command::static_object(cmd)->evaluate();
+
+        return OK;
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(BinaryToReal)
+// ----------------------------------------------------------------------------
+//    Convert binary values to real (really integer)
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    if (object_p top = rt.top())
+    {
+        id type = top->type();
+        id to = ID_object;
+
+        switch (type)
+        {
+#if CONFIG_FIXED_BASED_OBJECTS
+        case ID_hex_integer:
+        case ID_dec_integer:
+        case ID_oct_integer:
+        case ID_bin_integer:
+            to = ID_integer;
+            break;
+        case ID_hex_bignum:
+        case ID_dec_bignum:
+        case ID_oct_bignum:
+        case ID_bin_bignum:
+            to = ID_big_integer;
+            break;
+#endif // CONFIG_FIXED_BASED_OBJECTS
+        case ID_based_integer:
+            to = ID_integer;
+            break;
+        case ID_based_bignum:
+            to = ID_bignum;
+            break;
+        default:
+            rt.type_error();
+            return ERROR;
+        }
+
+        ASSERT(leb128size(type) == leb128size(to));
+        if (object_p clone = rt.clone(top))
+        {
+            byte *p = (byte *) clone;
+            leb128(p, to);
+            if (rt.top(clone))
+                return OK;
+        }
+        return ERROR;
+
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(RealToBinary)
+// ----------------------------------------------------------------------------
+//    Convert real and integer values to binary
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    if (object_p top = rt.top())
+    {
+        id type = top->type();
+        id to = ID_object;
+
+        switch (type)
+        {
+        case ID_neg_integer:
+        case ID_neg_bignum:
+        case ID_neg_fraction:
+        case ID_neg_big_fraction:
+            rt.domain_error();
+            return ERROR;
+        case ID_integer:
+            to = ID_based_integer;
+            break;
+        case ID_bignum:
+            to = ID_based_bignum;
+            break;
+        case ID_fraction:
+        case ID_big_fraction:
+        case ID_decimal128:
+        case ID_decimal64:
+        case ID_decimal32:
+            rt.unimplemented_error();
+            return ERROR;
+        default:
+            rt.type_error();
+            return ERROR;
+        }
+
+        ASSERT(leb128size(type) == leb128size(to));
+        if (object_p clone = rt.clone(top))
+        {
+            byte *p = (byte *) clone;
+            leb128(p, to);
+            if (rt.top(clone))
+                return OK;
+        }
+        return ERROR;
+
+    }
+    return ERROR;
 }
 
 
@@ -613,6 +841,143 @@ COMMAND_BODY(LastMenu)
 //   Go back one entry in the menu history
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
     ui.menu_pop();
     return OK;
+}
+
+
+COMMAND_BODY(LastArg)
+// ----------------------------------------------------------------------------
+//   Return the last arguments
+// ----------------------------------------------------------------------------
+{
+    return rt.last() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(LastX)
+// ----------------------------------------------------------------------------
+//   Return the last first argument
+// ----------------------------------------------------------------------------
+{
+    return rt.last(0) ? OK : ERROR;
+}
+
+
+COMMAND_BODY(Undo)
+// ----------------------------------------------------------------------------
+//   Return the undo stack
+// ----------------------------------------------------------------------------
+{
+    return rt.undo() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorSelect)
+// ----------------------------------------------------------------------------
+//   Select current cursor position
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_select() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorWordLeft)
+// ----------------------------------------------------------------------------
+//   Move cursor one word to the left
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_word_left() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorWordRight)
+// ----------------------------------------------------------------------------
+//   Move cursor one word to the right
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_word_right() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorBegin)
+// ----------------------------------------------------------------------------
+//   Move cursor to beginning of editor
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_begin() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorEnd)
+// ----------------------------------------------------------------------------
+//   Move cursor to end of editor
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_end() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorCut)
+// ----------------------------------------------------------------------------
+//   Cut selection
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_cut() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorCopy)
+// ----------------------------------------------------------------------------
+//   Copy selection
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_copy() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorPaste)
+// ----------------------------------------------------------------------------
+//   Paste selection
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_paste() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorSearch)
+// ----------------------------------------------------------------------------
+//   Search selection
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_search() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorReplace)
+// ----------------------------------------------------------------------------
+//   Replace selection
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_replace() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorClear)
+// ----------------------------------------------------------------------------
+//   Clear selection
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_clear() ? OK : ERROR;
+}
+
+
+COMMAND_BODY(EditorFlip)
+// ----------------------------------------------------------------------------
+//   Flip selection point and cursor
+// ----------------------------------------------------------------------------
+{
+    return ui.editor_selection_flip() ? OK : ERROR;
 }

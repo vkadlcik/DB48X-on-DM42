@@ -53,7 +53,7 @@ struct fraction : algebraic
 //   A fraction is a ratio of two integers
 // ----------------------------------------------------------------------------
 {
-    fraction(integer_g n, integer_g d, id type)
+    fraction(id type, integer_g n, integer_g d)
     // ------------------------------------------------------------------------
     //   Constructs a fraction from two integers or two bignums
     // ------------------------------------------------------------------------
@@ -97,6 +97,8 @@ struct fraction : algebraic
 public:
     OBJECT_DECL(fraction);
     SIZE_DECL(fraction);
+    HELP_DECL(fraction);
+    EVAL_DECL(fraction);
     RENDER_DECL(fraction);
     PREC_DECL(MULTIPLICATIVE);
 };
@@ -107,8 +109,8 @@ struct neg_fraction : fraction
 //   Negative fraction, the numerator is seen as negative
 // ----------------------------------------------------------------------------
 {
-    neg_fraction(integer_g num, integer_g den, id type = ID_neg_fraction)
-        : fraction(num, den, type) {}
+    neg_fraction(id type, integer_g num, integer_g den)
+        : fraction(type, num, den) {}
 
 public:
     OBJECT_DECL(neg_fraction);
@@ -120,12 +122,12 @@ struct big_fraction : fraction
 //   A fraction where numerator and denominator are bignum
 // ----------------------------------------------------------------------------
 {
-    big_fraction(bignum_g n, bignum_g d, id type):
+    big_fraction(id type, bignum_g n, bignum_g d):
     // ------------------------------------------------------------------------
     //   Constructor for a big fraction
     // ------------------------------------------------------------------------
         // We play a rather ugly wrong-cast game here...
-        fraction((integer *) bignum_p(n), (integer *) bignum_p(d), type)
+        fraction(type, (integer *) bignum_p(n), (integer *) bignum_p(d))
     {}
 
     static size_t required_memory(id i, bignum_g n, bignum_g d)
@@ -160,8 +162,8 @@ struct neg_big_fraction : big_fraction
 //   A negative fraction where numerator and denominator are bignum
 // ----------------------------------------------------------------------------
 {
-    neg_big_fraction(bignum_g num, bignum_g den, id type = ID_neg_big_fraction)
-        : big_fraction(num, den, type) {}
+    neg_big_fraction(id type, bignum_g num, bignum_g den)
+        : big_fraction(type, num, den) {}
 public:
     OBJECT_DECL(neg_big_fraction);
     RENDER_DECL(neg_big_fraction);

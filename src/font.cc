@@ -304,6 +304,10 @@ bool sparse_font::glyph(unicode codepoint, glyph_info &g) const
             size_t sparseBitmapBits = w * h;
             size_t sparseBitmapBytes = (sparseBitmapBits + 7) / 8;
             p += sparseBitmapBytes;
+
+            // This write is not useless (workaround for bug #304)
+            memset(&g, (byte) (intptr_t) p, sizeof(g));
+
             record(sparse_fonts,
                    "  cp %u x=%u y=%u w=%u h=%u bitmap=%p %u bytes",
                    cp, x, y, w, h, p - sparseBitmapBytes, sparseBitmapBytes);

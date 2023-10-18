@@ -63,6 +63,31 @@ SIZE_BODY(fraction)
 }
 
 
+HELP_BODY(fraction)
+// ----------------------------------------------------------------------------
+//   Help topic for fractions
+// ----------------------------------------------------------------------------
+{
+    return utf8("Fractions");
+}
+
+
+EVAL_BODY(fraction)
+// ----------------------------------------------------------------------------
+//   Evaluate either as a fraction or decimal
+// ----------------------------------------------------------------------------
+{
+    if (Settings.numeric)
+    {
+        algebraic_g x = o;
+        if (algebraic::real_promotion(x))
+            if (rt.push(x.Safe()))
+                return OK;
+    }
+    return rt.push(o) ? OK : ERROR;
+}
+
+
 fraction_g fraction::make(integer_g n, integer_g d)
 // ----------------------------------------------------------------------------
 //   Create a reduced fraction from n and d
@@ -191,7 +216,7 @@ static bignum_g gcd(bignum_g a, bignum_g b)
 //   Compute the greatest common denominator between a and b
 // ----------------------------------------------------------------------------
 {
-    while (!b->is_zero())
+    while (b && !b->is_zero())
     {
         bignum_g na = b;
         b = a % b;
@@ -207,11 +232,16 @@ fraction_g big_fraction::make(bignum_g n, bignum_g d)
 // ----------------------------------------------------------------------------
 {
     bignum_g cd = gcd(n, d);
+    if (!cd)
+        return nullptr;
     if (!cd->is(1))
     {
         n = n / cd;
         d = d / cd;
     }
+    if (!n || !d)
+        return nullptr;
+
     // Check if numerator and denominator are small enough to use LEB128
     if (integer_g ni = (integer *) n->as_integer())
         if (integer_g di = (integer *) d->as_integer())

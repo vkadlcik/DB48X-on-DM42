@@ -213,11 +213,16 @@ enum {  nkeys = sizeof(keys) / sizeof(keys[0]) };
 
 int key_empty()
 {
-    record(keys_empty,
-           "Key empty %u-%u = %+s",
-           keyrd,
-           keywr,
-           keyrd == keywr ? "empty" : "full");
+    static bool empty = true;
+    if ((keyrd == keywr) != empty)
+    {
+        record(keys_empty,
+               "Key empty %u-%u = %+s",
+               keyrd,
+               keywr,
+               keyrd == keywr ? "empty" : "full");
+        empty = keyrd == keywr;
+    }
     return keyrd == keywr;
 }
 
@@ -239,7 +244,7 @@ int key_pop()
 int key_tail()
 {
     if (keyrd != keywr)
-        return keys[keyrd % nkeys];
+        return keys[(keyrd + nkeys - 1) % nkeys];
     return -1;
 }
 
@@ -823,7 +828,7 @@ void wait_for_key_release(int tout)
 {
     record(dmcp_notyet, "wait_for_key_release not implemented");
     while (!key_empty() && key_pop())
-            sys_sleep();
+        sys_sleep();
 }
 
 int file_selection_screen(const char   *title,

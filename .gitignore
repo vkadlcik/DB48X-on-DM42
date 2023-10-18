@@ -27,3 +27,5 @@
 /.cache/
 /*.bin
 /*.tgz
+/DB50X.pg5
+/src/dmcp/version.h

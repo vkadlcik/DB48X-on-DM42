@@ -42,6 +42,7 @@
 #include "symbol.h"
 #include "sysmenu.h"
 #include "target.h"
+#include "utf8.h"
 #include "util.h"
 
 #ifdef SIMULATOR
@@ -54,33 +55,31 @@
 #include <unistd.h>
 
 // The primary user interface of the calculator
-user_interface    ui;
+user_interface ui;
+
+using std::max;
+using std::min;
 
 RECORDER(user_interface, 16, "ui processing");
 RECORDER(text_editor, 16, "Text editor");
 RECORDER(menus, 16, "Menu operations");
 RECORDER(help,  16, "On-line help");
 
-
-#if SIMULATOR
-#define HELPFILE_NAME   "help/db48x.md"
-#else
-#define HELPFILE_NAME   "/HELP/DB48X.md"
-#endif // SIMULATOR
-
 #define NUM_TOPICS      (sizeof(topics) / sizeof(topics[0]))
 
 user_interface::user_interface()
-    // ----------------------------------------------------------------------------
-    //   Initialize the user interface
-    // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+//   Initialize the user interface
+// ----------------------------------------------------------------------------
     : command(),
       help(-1u),
       line(0),
       topic(0),
-      history(0),
+      topics_history(0),
       topics(),
       cursor(0),
+      select(~0U),
+      searching(~0U),
       xoffset(0),
       mode(STACK),
       last(0),
@@ -97,6 +96,9 @@ user_interface::user_interface()
       busy(0),
       nextRefresh(~0U),
       dirty(),
+      editing(),
+      cmdIndex(0),
+      clipboard(),
       shift(false),
       xshift(false),
       alpha(false),
@@ -117,10 +119,9 @@ user_interface::user_interface()
       dirtyStack(false),
       dirtyCommand(false),
       dirtyHelp(false),
-      dynamicMenu(false),
       autoComplete(false),
       adjustSeps(false),
-      userScreen(false),
+      graphics(false),
       helpfile()
 {
     for (uint p = 0; p < NUM_PLANES; p++)
@@ -151,19 +152,22 @@ void user_interface::edit(unicode c, modes m)
     byte utf8buf[4];
     uint savec = cursor;
     size_t len = utf8_encode(c, utf8buf);
-    cursor += rt.insert(cursor, utf8buf, len);
+    int move = rt.insert(cursor, utf8buf, len);
+    if (~select && select >= cursor)
+        select += move;
+    cursor += move;
 
     // Test delimiters
     unicode closing = 0;
     switch(c)
     {
-    case '(':  closing = ')';  m = ALGEBRAIC; break;
-    case '[':  closing = ']';  m = MATRIX;    break;
-    case '{':  closing = '}';  m = PROGRAM;   break;
-    case ':':  closing = ':';  m = DIRECT;    break;
-    case '"':  closing = '"';  m = TEXT;      break;
-    case '\'': closing = '\''; m = ALGEBRAIC; break;
-    case L'«': closing = L'»'; m = PROGRAM;   break;
+    case '(':                   closing = ')';  m = ALGEBRAIC; break;
+    case '[':                   closing = ']';  m = MATRIX;    break;
+    case '{':                   closing = '}';  m = PROGRAM;   break;
+    case ':':  if (m != TEXT)   closing = ':';  m = DIRECT;    break;
+    case '"':                   closing = '"';  m = TEXT;      break;
+    case '\'':                  closing = '\''; m = ALGEBRAIC; break;
+    case L'«':                  closing = L'»'; m = PROGRAM;   break;
     case '\n': edRows = 0;                    break; // Recompute rows
     }
     if (closing)
@@ -202,6 +206,7 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
     if (!editing)
     {
         cursor = 0;
+        select = ~0U;
         dirtyStack = true;
     }
     else if ((mode != ALGEBRAIC || m != ALGEBRAIC) &&
@@ -262,14 +267,18 @@ bool user_interface::end_edit()
     size_t edlen = rt.editing();
     if (edlen)
     {
-        // Remove all additional decorative number spacing
-        byte   *ed   = rt.editor();
+        gcutf8  ed   = rt.editor();
         size_t  o    = 0;
         bool    text = false;
         unicode nspc = Settings.space;
         unicode hspc = Settings.space_based;
 
         draw_busy_cursor();
+
+        // Save the command-line history (without removing spaces)
+        history[cmdIndex] = text::make(ed, edlen);
+
+        // Remove all additional decorative number spacing
         while (o < edlen)
         {
             unicode cp = utf8_codepoint(ed + o);
@@ -281,7 +290,7 @@ bool user_interface::end_edit()
             else if (!text && (cp == nspc || cp == hspc))
             {
                 size_t ulen = utf8_size(cp);
-                rt.remove(o, ulen);
+                ulen = remove(o, ulen);
                 edlen -= ulen;
             }
             else
@@ -290,15 +299,18 @@ bool user_interface::end_edit()
             }
         }
 
-        gcutf8 editor = rt.close_editor();
-        if (editor)
+        text_g edstr = rt.close_editor();
+        if (edstr)
         {
+            gcutf8 editor = edstr->value();
             program_g cmds = program::parse(editor, edlen);
             if (cmds)
             {
                 // We successfully parsed the line
+                cmdIndex = (cmdIndex + 1) % HISTORY;
                 clear_editor();
                 this->editing = nullptr;
+                rt.save();
                 cmds->execute();
             }
             else
@@ -307,9 +319,12 @@ bool user_interface::end_edit()
                 utf8 pos = rt.source();
                 utf8 ed = editor;
                 if (pos >= editor && pos <= ed + edlen)
-                    cursor = pos - ed;
+                    cursor = select = pos - ed;
                 if (!rt.edit(ed, edlen))
+                {
                     cursor = 0;
+                    select = ~0U;
+                }
                 draw_idle();
                 beep(3300, 100);
                 return false;
@@ -329,6 +344,7 @@ void user_interface::clear_editor()
 {
     rt.clear();
     cursor      = 0;
+    select      = ~0U;
     xoffset     = 0;
     edRows      = 0;
     alpha       = false;
@@ -340,6 +356,32 @@ void user_interface::clear_editor()
     dirtyEditor = true;
     dirtyStack  = true;
     clear_help();
+}
+
+
+void user_interface::edit_history()
+// ----------------------------------------------------------------------------
+//   Restore editor buffer from history
+// ----------------------------------------------------------------------------
+{
+    if (rt.editing())
+        history[cmdIndex] = rt.close_editor(false);
+    for (uint h = 0; h < HISTORY; h++)
+    {
+        cmdIndex = (cmdIndex + HISTORY - 1) % HISTORY;
+        if (history[cmdIndex])
+        {
+            size_t sz = 0;
+            gcutf8 ed = history[cmdIndex]->value(&sz);
+            rt.edit(ed, sz);
+            cursor = 0;
+            select = ~0U;
+            xshift = shift = false;
+            edRows = 0;
+            dirtyEditor = true;
+            break;
+        }
+    }
 }
 
 
@@ -431,13 +473,6 @@ bool user_interface::key(int key, bool repeating, bool talpha)
     if (!skey)
         command = nullptr;
 
-    // Refresh dynamic menus like VariablesMenu
-    if (menuStack[0] && dynamicMenu)
-    {
-        menu_p m = menu_p(menu::static_object(menuStack[0]));
-        m->update(menuPage);
-    }
-
     return result;
 }
 
@@ -474,6 +509,7 @@ void user_interface::updateMode()
     uint    lists = 0;
     uint    algs  = 0;
     uint    txts  = 0;
+    uint    cmts  = 0;
     uint    vecs  = 0;
     uint    based = 0;
     uint    syms  = 0;
@@ -491,7 +527,7 @@ void user_interface::updateMode()
     {
         unicode code = utf8_codepoint(p);
 
-        if (!txts)
+        if (!txts && !cmts)
         {
             if ((inum || fnum) && (code == emrk || code == '-'))
             {
@@ -519,7 +555,7 @@ void user_interface::updateMode()
                     hnum++;
                 }
             }
-            else if (!syms && !txts && code >= '0' && code <= '9')
+            else if (!syms && code >= '0' && code <= '9')
             {
                 if (!num)
                     num = p;
@@ -534,6 +570,10 @@ void user_interface::updateMode()
                     num = p;
                 fnum = 1;
             }
+            else if (code == '@')
+            {
+                cmts++;
+            }
             else
             {
                 // All other characters: reset numbering
@@ -541,6 +581,8 @@ void user_interface::updateMode()
                 num = nullptr;
                 if (is_valid_as_name_initial(code))
                     syms = true;
+                else if (syms && !is_valid_in_name(code))
+                    syms = false;
             }
 
             switch(code)
@@ -558,9 +600,13 @@ void user_interface::updateMode()
                             num = nullptr;                  break;
             }
         }
-        else if (code == '"')
+        else if (txts && code == '"')
         {
             txts = 1 - txts;
+        }
+        else if (cmts && code == '\n')
+        {
+            cmts = 0;
         }
     }
 
@@ -597,11 +643,9 @@ void user_interface::updateMode()
                 // Remove all spacing in the range
                 if (code == nspc || code == hspc)
                 {
-                    size_t remove = utf8_size(code);
-                    rt.remove(o, remove);
-                    if (cursor > o)
-                        cursor -= remove;
-                    len -= remove;
+                    size_t rlen = utf8_size(code);
+                    rlen = remove(o, rlen);
+                    len -= rlen;
                     ed = rt.editor(); // Defensive coding (no move on remove)
                     continue;
                 }
@@ -792,7 +836,6 @@ void user_interface::menus(uint count, cstring labels[], object_p function[])
         else
             menu(m, cstring(nullptr), nullptr);
     }
-    dynamicMenu = false;
     autoComplete = false;
 }
 
@@ -824,6 +867,30 @@ void user_interface::menu(uint id, symbol_p label, object_p fn)
     menu(id, (cstring) label, fn);
 }
 
+
+bool user_interface::menu_refresh()
+// ----------------------------------------------------------------------------
+//   Udpate current menu
+// ----------------------------------------------------------------------------
+{
+    if (menuStack[0])
+    {
+        menu_p m = menu_p(menu::static_object(menuStack[0]));
+        return m->update(menuPage) == object::OK;
+    }
+    return false;
+}
+
+
+bool user_interface::menu_refresh(object::id menu)
+// ----------------------------------------------------------------------------
+//   Request a refresh of a menu
+// ----------------------------------------------------------------------------
+{
+    if (menuStack[0] == menu)
+        return menu_refresh();
+    return false;
+}
 
 void user_interface::marker(uint menu_id, unicode mark, bool alignLeft)
 // ----------------------------------------------------------------------------
@@ -899,7 +966,7 @@ void user_interface::draw_start(bool forceRedraw, uint refresh)
     dirty = rect();
     force = forceRedraw;
     nextRefresh = refresh;
-    userScreen = false;
+    graphics = false;
 }
 
 
@@ -918,7 +985,7 @@ void user_interface::draw_dirty(coord x1, coord y1, coord x2, coord y2)
 //   Indicates that a component dirtied a given area of the screen
 // ----------------------------------------------------------------------------
 {
-    draw_dirty(rect(x1, y1, x2, y2));
+    draw_dirty(rect(min(x1,x2), min(y1,y2), max(x1,x2)+1, max(y1,y2)+1));
 }
 
 
@@ -931,6 +998,23 @@ void user_interface::draw_dirty(const rect &r)
         dirty = r;
     else
         dirty |= r;
+}
+
+
+bool user_interface::draw_graphics()
+// ----------------------------------------------------------------------------
+//   Start graphics mode
+// ----------------------------------------------------------------------------
+{
+    if (!graphics)
+    {
+        draw_start(false);
+        graphics = true;
+        Screen.fill(pattern::white);
+        draw_dirty(0, 0, LCD_W, LCD_H);
+        return true;
+    }
+    return false;
 }
 
 
@@ -1034,8 +1118,8 @@ bool user_interface::draw_menus()
             if (animating && (~animate & animask))
                 continue;
 
-            int x = (2 * m + 1) * mw / 2 + (m * sp) / 5 + 2;
-            int mcw = mw;
+            coord x = (2 * m + 1) * mw / 2 + (m * sp) / 5 + 2;
+            size mcw = mw;
             rect mrect(x - mw/2-1, my, x + mw/2, my+mh-1);
             if (animating)
                 draw_dirty(mrect);
@@ -1392,7 +1476,7 @@ bool user_interface::draw_battery()
     bat.inset(1,1);
 
     size batw = bat.width();
-    int w = (vdd - 2000) * batw / (3090 - 2000);
+    size w = (vdd - 2000) * batw / (3090 - 2000);
     if (w > batw)
         w = batw;
     else if (w < 1)
@@ -1422,7 +1506,7 @@ bool user_interface::draw_busy_cursor(unicode glyph)
 //    Draw the busy flying cursor
 // ----------------------------------------------------------------------------
 {
-    if (userScreen)
+    if (graphics)
         return false;
 
     size w  = 32;
@@ -1460,7 +1544,12 @@ bool user_interface::draw_idle()
 //   Clear busy indicator
 // ----------------------------------------------------------------------------
 {
-    userScreen = false;
+    if (graphics)
+    {
+        graphics = false;
+        wait_for_key_press();
+        redraw_lcd(true);
+    }
     draw_busy_cursor(0);
     alpha_drawn = !alpha_drawn;
     shift_drawn = !shift;
@@ -1667,11 +1756,11 @@ bool user_interface::draw_editor()
 
 
     // Draw the editor rows
-    int  hskip   = 180;
+    int  hskip = 180;
     size cursw = font->width('M');
     if (xoffset > cursx)
         xoffset = (cursx > hskip) ? cursx - hskip : 0;
-    else if (xoffset + LCD_W - cursw < cursx)
+    else if (coord(xoffset + LCD_W - cursw) < cursx)
         xoffset = cursx - LCD_W + cursw + hskip;
 
     coord x = -xoffset;
@@ -1679,9 +1768,9 @@ bool user_interface::draw_editor()
 
     if (y < top)
         y = top;
-    if (stack != y)
+    if (stack != y - 1)
     {
-        stack      = y;
+        stack      = y - 1;
         dirtyStack = true;
     }
     Screen.fill(0, stack, LCD_W, bottom, pattern::white);
@@ -1698,10 +1787,14 @@ bool user_interface::draw_editor()
         if (display >= last)
             break;
 
-        unicode c = utf8_codepoint(display);
-        display = utf8_next(display);
+        unicode c   = utf8_codepoint(display);
+        uint    pos = display - ed;
+        bool    sel = ~select && int((pos - cursor) ^ (pos - select)) < 0;
+        display     = utf8_next(display);
         if (c == '\n')
         {
+            if (sel && x >= 0 && x < LCD_W)
+                Screen.fill(x, y, LCD_W, y + lineHeight - 1, pattern::black);
             y += lineHeight;
             x  = -xoffset;
             r++;
@@ -1709,9 +1802,16 @@ bool user_interface::draw_editor()
         }
         int cw = font->width(c);
         if (x + cw >= 0 && x < LCD_W)
-            x = Screen.glyph(x, y, c, font);
+        {
+            pattern fg  = sel ? pattern::white : pattern::black;
+            pattern bg  = sel ? (~searching ? pattern::gray25 : pattern::black)
+                              : pattern::white;
+            x = Screen.glyph(x, y, c, font, fg, bg);
+        }
         else
+        {
             x += cw;
+        }
     }
     if (cursor >= len)
     {
@@ -1725,7 +1825,7 @@ bool user_interface::draw_editor()
 }
 
 
-bool user_interface::draw_cursor(int show)
+bool user_interface::draw_cursor(int show, uint ncursor)
 // ----------------------------------------------------------------------------
 //   Draw the cursor at the location
 // ----------------------------------------------------------------------------
@@ -1754,15 +1854,15 @@ bool user_interface::draw_cursor(int show)
     utf8   last       = ed + len;
 
     // Select cursor character
-    unicode cursorChar = mode == DIRECT      ? 'D'
-                       : mode == TEXT        ? (lowercase ? 'L' : 'C')
-                       : mode == PROGRAM     ? 'P'
-                       : mode == ALGEBRAIC   ? 'A'
-                       : mode == MATRIX      ? 'M'
-                       : mode == BASED ? 'B'
-                                             : 'X';
+    unicode cursorChar = mode == DIRECT    ? 'D'
+                       : mode == TEXT      ? (lowercase ? 'L' : 'C')
+                       : mode == PROGRAM   ? 'P'
+                       : mode == ALGEBRAIC ? 'A'
+                       : mode == MATRIX    ? 'M'
+                       : mode == BASED     ? 'B'
+                                           : 'X';
     size    csrh       = cursorFont->height();
-    size    csrw       = cursorFont->width(cursorChar);
+    coord   csrw       = cursorFont->width(cursorChar);
     size    ch         = edFont->height();
 
     coord   x          = cx;
@@ -1776,7 +1876,7 @@ bool user_interface::draw_cursor(int show)
     while (x <= cx + csrw + 1)
     {
         unicode cchar  = p < last ? utf8_codepoint(p) : ' ';
-        if (cchar     == '\n')
+        if (cchar == '\n')
             spaces = true;
         if (spaces)
             cchar = ' ';
@@ -1787,7 +1887,12 @@ bool user_interface::draw_cursor(int show)
         draw_dirty(x, cy, x + cw - 1, cy + ch - 1);
 
         // Write the character under the cursor
-        x = Screen.glyph(x, cy, cchar, edFont);
+        uint pos = p - ed;
+        bool sel = ~select && int((pos - ncursor) ^ (pos - select)) < 0;
+        pattern fg = sel ? pattern::white : pattern::black;
+        pattern bg  = sel ? (~searching ? pattern::gray25 : pattern::black)
+                          : pattern::white;
+        x = Screen.glyph(x, cy, cchar, edFont, fg, bg);
         if (p < last)
             p = utf8_next(p);
     }
@@ -1796,7 +1901,7 @@ bool user_interface::draw_cursor(int show)
     {
         coord csrx = cx + 1;
         coord csry = cy + (ch - csrh)/2;
-        Screen.fill(csrx, cy, csrx+1, cy + ch - 1, pattern::black);
+        Screen.invert(csrx, cy, csrx+1, cy + ch - 1);
         rect  r(csrx, csry - 1, csrx+csrw, csry + csrh);
         if (alpha)
         {
@@ -2082,17 +2187,17 @@ void user_interface::load_help(utf8 topic, size_t len)
         record(help, "Found topic %s at position %u level %u",
                topic, helpfile.position(), level);
 
-        if (history >= NUM_TOPICS)
+        if (topics_history >= NUM_TOPICS)
         {
             // Overflow, keep the last topics
             for (uint i         = 1; i < NUM_TOPICS; i++)
                 topics[i - 1]   = topics[i];
-            topics[history - 1] = help;
+            topics[topics_history - 1] = help;
         }
         else
         {
             // New topic, store it
-            topics[history++] = help;
+            topics[topics_history++] = help;
         }
     }
     else
@@ -2391,8 +2496,8 @@ bool user_interface::draw_help()
                         p[-1]                = 0;
                         if (follow && style == HIGHLIGHTED_TOPIC)
                         {
-                            if (history)
-                                topics[history-1] = shown;
+                            if (topics_history)
+                                topics[topics_history-1] = shown;
                             load_help(utf8(link));
                             Screen.clip(clip);
                             return draw_help();
@@ -2720,12 +2825,12 @@ bool user_interface::handle_help(int &key)
 
     case KEY_F6:
     case KEY_BSP:
-        if (history)
+        if (topics_history)
         {
-            --history;
-            if (history)
+            --topics_history;
+            if (topics_history)
             {
-                help = topics[history-1];
+                help = topics[topics_history-1];
                 line = 0;
                 dirtyHelp = true;
                 break;
@@ -2757,6 +2862,10 @@ bool user_interface::handle_shifts(int &key, bool talpha)
         {
             if (key == KEY_UP || key == KEY_DOWN)
             {
+                // Let menu and normal keys go through
+                if (xshift)
+                    return false;
+
                 // Delay processing of up or down until after delay
                 if (longpress)
                 {
@@ -2914,7 +3023,10 @@ bool user_interface::handle_editing(int key)
             else if (editing)
             {
                 // Stick to space role while editing, do not EVAL, repeat
-                edit(' ', PROGRAM);
+                if (mode == ALGEBRAIC)
+                    edit('=', ALGEBRAIC);
+                else
+                    edit(' ', PROGRAM);
                 repeat = true;
                 return true;
             }
@@ -2941,35 +3053,51 @@ bool user_interface::handle_editing(int key)
             if (xshift)
                 return false;
             repeat = true;
-            if (shift && cursor < editing)
+            if (~searching)
             {
-                // Shift + Backspace = Delete to right of cursor
-                utf8 ed              = rt.editor();
-                uint after           = utf8_next(ed, cursor, editing);
-                if (utf8_codepoint(ed + cursor) == '\n')
-                    edRows = 0;
-                rt.remove(cursor, after - cursor);
-                dirtyEditor = true;
-                adjustSeps = true;
-            }
-            else if (!shift && cursor > 0)
-            {
-                // Backspace = Erase on left of cursor
-                utf8 ed      = rt.editor();
-                uint before  = cursor;
-                cursor       = utf8_previous(ed, cursor);
-                if (utf8_codepoint(ed + cursor) == '\n')
-                    edRows = 0;
-                rt.remove(cursor, before - cursor);
-                dirtyEditor = true;
-                adjustSeps = true;
+                utf8 ed = rt.editor();
+                if (cursor > select)
+                    cursor = utf8_previous(ed, cursor);
+                else
+                    select = utf8_previous(ed, select);
+                if (cursor == select)
+                    cursor = select = searching;
+                else
+                    do_search(0, true);
             }
             else
             {
-                // Limits of line: beep
-                repeat = false;
-                beep(4400, 50);
+                utf8 ed              = rt.editor();
+                if (shift && cursor < editing)
+                {
+                    // Shift + Backspace = Delete to right of cursor
+                    uint after           = utf8_next(ed, cursor, editing);
+                    if (utf8_codepoint(ed + cursor) == '\n')
+                        edRows = 0;
+                    remove(cursor, after - cursor);
+                }
+                else if (!shift && cursor > 0)
+                {
+                    // Backspace = Erase on left of cursor
+                    utf8 ed      = rt.editor();
+                    uint before  = cursor;
+                    cursor       = utf8_previous(ed, cursor);
+                    if (utf8_codepoint(ed + cursor) == '\n')
+                        edRows = 0;
+                    remove(cursor, before - cursor);
+                }
+                else
+                {
+                    // Limits of line: beep
+                    repeat = false;
+                    beep(4400, 50);
+                }
+
+                dirtyEditor = true;
+                adjustSeps = true;
+                menu_refresh(object::ID_Catalog);
             }
+
             // Do not stop editing if we delete last character
             if (!rt.editing())
                 edit(' ', DIRECT);
@@ -2980,7 +3108,16 @@ bool user_interface::handle_editing(int key)
             // Finish editing and parse the result
             if (!shift && !xshift)
             {
-                end_edit();
+                if (~searching)
+                {
+                    searching = ~0U;
+                    dirtyEditor = true;
+                    edRows = 0;
+                }
+                else
+                {
+                    end_edit();
+                }
                 return true;
             }
         }
@@ -3017,9 +3154,9 @@ bool user_interface::handle_editing(int key)
             }
             else if (xshift)
             {
-                cursor = 0;
-                edRows = 0;
-                dirtyEditor = true;
+                // Command-line history
+                edit_history();
+                return true;
             }
             else if (cursor > 0)
             {
@@ -3029,11 +3166,11 @@ bool user_interface::handle_editing(int key)
                 unicode cp = utf8_codepoint(ed + pcursor);
                 if (cp != '\n')
                 {
-                    draw_cursor(-1);
+                    draw_cursor(-1, pcursor);
                     cursor = pcursor;
                     cx -= edFont->width(cp);
                     edColumn = cx;
-                    draw_cursor(1);
+                    draw_cursor(1, pcursor);
                     if (cx < 0)
                         dirtyEditor = true;
                 }
@@ -3059,9 +3196,7 @@ bool user_interface::handle_editing(int key)
             }
             else if (xshift)
             {
-                cursor = editing;
-                edRows = 0;
-                dirtyEditor = true;
+                return false;
             }
             else if (cursor < editing)
             {
@@ -3071,11 +3206,11 @@ bool user_interface::handle_editing(int key)
                 uint ncursor = utf8_next(ed, cursor, editing);
                 if (cp != '\n')
                 {
-                    draw_cursor(-1);
+                    draw_cursor(-1, ncursor);
                     cursor = ncursor;
                     cx += edFont->width(cp);
                     edColumn = cx;
-                    draw_cursor(1);
+                    draw_cursor(1, ncursor);
                     if (cx >= LCD_W - edFont->width('M'))
                         dirtyEditor = true;
                 }
@@ -3132,9 +3267,15 @@ bool user_interface::handle_editing(int key)
                 }
             }
             break;
+        case KEY_UP:
+            if (xshift)
+            {
+                edit_history();
+                return true;
+            }
+            break;
         }
     }
-
 
     return consumed;
 }
@@ -3192,7 +3333,7 @@ bool user_interface::handle_alpha(int key)
         '"',  '~', L'°', L'ε', '\n',
         '_',  '?', L'∫',   '[',  '/',
         '_',  '#',  L'∞', '|' , '*',
-        '_',  '&',   '@', '$',  '_',
+        '_',  '&',   '@', '$',  L'…',
         '_',  ';',  L'·', '{',  '!'
     };
 
@@ -3211,10 +3352,19 @@ bool user_interface::handle_alpha(int key)
         shift     ? shifted[key]  :
         lowercase ? lower[key]    :
         upper[key];
-    edit(c, TEXT);
-    if (c == '"')
-        alpha = true;
-    repeat = true;
+    if (~searching)
+    {
+        if (!do_search(c))
+            beep(2400, 100);
+    }
+    else
+    {
+        edit(c, TEXT);
+        if (c == '"')
+            alpha = true;
+        repeat = true;
+    }
+    menu_refresh(object::ID_Catalog);
     return true;
 }
 
@@ -3277,9 +3427,7 @@ bool user_interface::handle_digits(int key)
             }
             else if (c == '-')
             {
-                rt.remove(p - ed, 1);
-                if (cursor)
-                    cursor--;
+                remove(p - ed, 1);
             }
             else
             {
@@ -3334,7 +3482,7 @@ static const byte defaultUnshiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_SIGMA, menu::ID_ToolsMenu),
     OP2BYTES(KEY_INV,   function::ID_inv),
     OP2BYTES(KEY_SQRT,  function::ID_sqrt),
-    OP2BYTES(KEY_LOG,   function::ID_log10),
+    OP2BYTES(KEY_LOG,   function::ID_exp),
     OP2BYTES(KEY_LN,    function::ID_log),
     OP2BYTES(KEY_XEQ,   0),
     OP2BYTES(KEY_STO,   command::ID_Sto),
@@ -3346,7 +3494,7 @@ static const byte defaultUnshiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_ENTER, function::ID_Dup),
     OP2BYTES(KEY_SWAP,  function::ID_Swap),
     OP2BYTES(KEY_CHS,   function::ID_neg),
-    OP2BYTES(KEY_E, 0),
+    OP2BYTES(KEY_E,     function::ID_Cycle),
     OP2BYTES(KEY_BSP,   command::ID_Drop),
     OP2BYTES(KEY_UP,    0),
     OP2BYTES(KEY_7,     0),
@@ -3392,7 +3540,7 @@ static const byte defaultShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_INV,   arithmetic::ID_pow),
     OP2BYTES(KEY_SQRT,  arithmetic::ID_sq),
     OP2BYTES(KEY_LOG,   function::ID_exp10),
-    OP2BYTES(KEY_LN,    function::ID_exp),
+    OP2BYTES(KEY_LN,    function::ID_log10),
     OP2BYTES(KEY_XEQ,   menu::ID_LoopsMenu),
     OP2BYTES(KEY_STO,   menu::ID_ComplexMenu),
     OP2BYTES(KEY_RCL,   menu::ID_FractionsMenu),
@@ -3400,14 +3548,14 @@ static const byte defaultShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_SIN,   function::ID_asin),
     OP2BYTES(KEY_COS,   function::ID_acos),
     OP2BYTES(KEY_TAN,   function::ID_atan),
-    OP2BYTES(KEY_ENTER, 0),
-    OP2BYTES(KEY_SWAP,  menu::ID_LastThingsMenu),
+    OP2BYTES(KEY_ENTER, 0),     // Alpha
+    OP2BYTES(KEY_SWAP,  menu::ID_LastArg),
     OP2BYTES(KEY_CHS,   menu::ID_ModesMenu),
-    OP2BYTES(KEY_E,     menu::ID_PlotMenu),
-    OP2BYTES(KEY_BSP,   0),
+    OP2BYTES(KEY_E,     menu::ID_DisplayModesMenu),
+    OP2BYTES(KEY_BSP,   menu::ID_ClearThingsMenu),
     OP2BYTES(KEY_UP,    0),
     OP2BYTES(KEY_7,     menu::ID_SolverMenu),
-    OP2BYTES(KEY_8,     menu::ID_SymbolicMenu),
+    OP2BYTES(KEY_8,     menu::ID_IntegrationMenu),
     OP2BYTES(KEY_9,     0),     // Insert []
     OP2BYTES(KEY_DIV,   menu::ID_StatisticsMenu),
     OP2BYTES(KEY_DOWN,  0),
@@ -3419,7 +3567,7 @@ static const byte defaultShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_1,     0),
     OP2BYTES(KEY_2,     0),
     OP2BYTES(KEY_3,     menu::ID_ProgramMenu),
-    OP2BYTES(KEY_SUB,   menu::ID_IOMenu),
+    OP2BYTES(KEY_SUB,   menu::ID_PrintingMenu),
     OP2BYTES(KEY_EXIT,  command::ID_Off),
     OP2BYTES(KEY_0,     command::ID_SystemSetup),
     OP2BYTES(KEY_DOT,   0),
@@ -3447,39 +3595,39 @@ static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
 {
     OP2BYTES(KEY_SIGMA, menu::ID_MainMenu),
     OP2BYTES(KEY_INV,   command::ID_xroot),
-    OP2BYTES(KEY_SQRT,  menu::ID_RealMenu),
-    OP2BYTES(KEY_LOG,   function::ID_expm1),
-    OP2BYTES(KEY_LN,    function::ID_log1p),
-    OP2BYTES(KEY_XEQ,   menu::ID_TestsMenu),
+    OP2BYTES(KEY_SQRT,  menu::ID_PolynomialsMenu),
+    OP2BYTES(KEY_LOG,   menu::ID_ExpLogMenu),
+    OP2BYTES(KEY_LN,    menu::ID_PartsMenu),
+    OP2BYTES(KEY_XEQ,   menu::ID_EquationsMenu),
     OP2BYTES(KEY_STO,   menu::ID_MemMenu),
     OP2BYTES(KEY_RCL,   menu::ID_LibsMenu),
     OP2BYTES(KEY_RDN,   menu::ID_MathMenu),
-    OP2BYTES(KEY_SIN,   function::ID_sinh),
-    OP2BYTES(KEY_COS,   function::ID_cosh),
-    OP2BYTES(KEY_TAN,   function::ID_tanh),
-    OP2BYTES(KEY_ENTER, 0),
-    OP2BYTES(KEY_SWAP,  0),
-    OP2BYTES(KEY_CHS,   0),
-    OP2BYTES(KEY_E,     0),
+    OP2BYTES(KEY_SIN,   menu::ID_HyperbolicMenu),
+    OP2BYTES(KEY_COS,   menu::ID_CircularMenu),
+    OP2BYTES(KEY_TAN,   menu::ID_RealMenu),
+    OP2BYTES(KEY_ENTER, 0),     // Text
+    OP2BYTES(KEY_SWAP,  function::ID_Undo),
+    OP2BYTES(KEY_CHS,   menu::ID_ObjectMenu),
+    OP2BYTES(KEY_E,     menu::ID_PlotMenu),
     OP2BYTES(KEY_BSP,   function::ID_updir),
     OP2BYTES(KEY_UP,    0),
-    OP2BYTES(KEY_7,     0),
-    OP2BYTES(KEY_8,     0),
+    OP2BYTES(KEY_7,     menu::ID_SymbolicMenu),
+    OP2BYTES(KEY_8,     menu::ID_DifferentiationMenu),
     OP2BYTES(KEY_9,     menu::ID_MatrixMenu),
-    OP2BYTES(KEY_DIV,   0),
-    OP2BYTES(KEY_DOWN,  0),
-    OP2BYTES(KEY_4,     0),
+    OP2BYTES(KEY_DIV,   menu::ID_FinanceSolverMenu),
+    OP2BYTES(KEY_DOWN,  menu::ID_EditMenu),
+    OP2BYTES(KEY_4,     menu::ID_TextMenu),
     OP2BYTES(KEY_5,     menu::ID_UnitsConversionsMenu),
-    OP2BYTES(KEY_6,     0),
-    OP2BYTES(KEY_MUL,   0),
+    OP2BYTES(KEY_6,     menu::ID_TimeMenu),
+    OP2BYTES(KEY_MUL,   menu::ID_NumbersMenu),
     OP2BYTES(KEY_SHIFT, 0),
-    OP2BYTES(KEY_1,     0),
-    OP2BYTES(KEY_2,     0),
-    OP2BYTES(KEY_3,     0),
-    OP2BYTES(KEY_SUB,   0),
+    OP2BYTES(KEY_1,     menu::ID_DebugMenu),
+    OP2BYTES(KEY_2,     menu::ID_CharsMenu),
+    OP2BYTES(KEY_3,     menu::ID_TestsMenu),
+    OP2BYTES(KEY_SUB,   menu::ID_IOMenu),
     OP2BYTES(KEY_EXIT,  command::ID_SaveState),
-    OP2BYTES(KEY_0,     0),
-    OP2BYTES(KEY_DOT,   0),
+    OP2BYTES(KEY_0,     menu::ID_FilesMenu),
+    OP2BYTES(KEY_DOT,   menu::ID_GraphicsMenu),
     OP2BYTES(KEY_RUN,   0),
     OP2BYTES(KEY_ADD,   command::ID_Help),
 
@@ -3535,7 +3683,8 @@ bool user_interface::handle_functions(int key)
     if (!key)
         return false;
 
-    record(user_interface, "Handle function for key %d (plane %d) ", key, shift_plane());
+    record(user_interface,
+           "Handle function for key %d (plane %d) ", key, shift_plane());
     if (object_p obj = object_for_key(key))
     {
         evaluating = key;
@@ -3546,15 +3695,12 @@ bool user_interface::handle_functions(int key)
             if (key == KEY_ENTER || key == KEY_BSP)
                 return false;
 
-            if (key >= KEY_F1 && key <= KEY_F6 && autoComplete)
+            if (autoComplete && key >= KEY_F1 && key <= KEY_F6)
             {
                 size_t start = 0;
                 size_t size  = 0;
                 if (currentWord(start, size))
-                {
-                    rt.remove(start, size);
-                    cursor = start;
-                }
+                    remove(start, size);
             }
 
             switch (mode)
@@ -3573,6 +3719,11 @@ bool user_interface::handle_functions(int key)
                     dirtyEditor = true;
                     return obj->insert(*this) != object::ERROR;
                 }
+                else if (obj->type() == object::ID_Sto)
+                {
+                    if (!end_edit())
+                        return false;
+                }
                 break;
 
             default:
@@ -3585,11 +3736,15 @@ bool user_interface::handle_functions(int key)
 
         }
         draw_busy_cursor();
+        if (!imm && !rt.editing())
+            rt.save();
         obj->execute();
         draw_idle();
         dirtyStack = true;
         if (!imm)
             alpha = false;
+        xshift = false;
+        shift = false;
         return true;
     }
 
@@ -3636,4 +3791,333 @@ bool user_interface::currentWord(utf8 &start, size_t &size)
         }
     }
     return false;
+}
+
+
+
+// ============================================================================
+//
+//   Editor menu commands
+//
+// ============================================================================
+
+bool user_interface::editor_select()
+// ----------------------------------------------------------------------------
+//   Set selection to current cursor position
+// ----------------------------------------------------------------------------
+{
+    if (select == cursor)
+        select = ~0U;
+    else
+        select = cursor;
+    dirtyEditor = true;
+    return true;
+}
+
+
+bool user_interface::editor_word_left()
+// ----------------------------------------------------------------------------
+//   Move cursor one word to the left
+// ----------------------------------------------------------------------------
+{
+    if (rt.editing())
+    {
+        utf8 ed = rt.editor();
+
+        // Skip whitespace
+        while (cursor > 0)
+        {
+            unicode code = utf8_codepoint(ed + cursor);
+            if (!isspace(code))
+                break;
+            cursor = utf8_previous(ed, cursor);
+        }
+
+        // Skip word
+        while (cursor > 0)
+        {
+            unicode code = utf8_codepoint(ed + cursor);
+            if (isspace(code))
+                break;
+            cursor = utf8_previous(ed, cursor);
+        }
+
+        edRows = 0;
+        dirtyEditor = true;
+    }
+    return true;
+}
+
+
+bool user_interface::editor_word_right()
+// ----------------------------------------------------------------------------
+//   Move cursor one word to the right
+// ----------------------------------------------------------------------------
+{
+    if (size_t editing = rt.editing())
+    {
+        utf8 ed = rt.editor();
+
+        // Skip whitespace
+        while (cursor < editing)
+        {
+            unicode code = utf8_codepoint(ed + cursor);
+            if (!isspace(code))
+                break;
+            cursor = utf8_next(ed, cursor, editing);
+        }
+
+        // Skip word
+        while (cursor < editing)
+        {
+            unicode code = utf8_codepoint(ed + cursor);
+            if (isspace(code))
+                break;
+            cursor = utf8_next(ed, cursor, editing);
+        }
+
+        edRows = 0;
+        dirtyEditor = true;
+    }
+    return true;
+}
+
+bool user_interface::editor_begin()
+// ----------------------------------------------------------------------------
+//   Move cursor to beginning of buffer
+// ----------------------------------------------------------------------------
+{
+    cursor = 0;
+    edRows = 0;
+    dirtyEditor = true;
+    return true;
+}
+
+bool user_interface::editor_end()
+// ----------------------------------------------------------------------------
+//   Move cursor one word to the right
+// ----------------------------------------------------------------------------
+{
+    cursor = rt.editing();
+    edRows = 0;
+    dirtyEditor = true;
+    return true;
+}
+
+
+bool user_interface::editor_cut()
+// ----------------------------------------------------------------------------
+//   Cut to clipboard (most recent history)
+// ----------------------------------------------------------------------------
+{
+    editor_copy();
+    editor_clear();
+    return true;
+}
+
+
+bool user_interface::editor_copy()
+// ----------------------------------------------------------------------------
+//   Copy to clipboard
+// ----------------------------------------------------------------------------
+{
+    if (~select && select != cursor)
+    {
+        uint start = cursor;
+        uint end = select;
+        if (start > end)
+            std::swap(start, end);
+        utf8 ed = rt.editor();
+        clipboard = text::make(ed + start, end - start);
+    }
+    return true;
+}
+
+
+bool user_interface::editor_paste()
+// ----------------------------------------------------------------------------
+//   Paste from clipboard
+// ----------------------------------------------------------------------------
+{
+    if (clipboard)
+    {
+        size_t len = 0;
+        utf8 ed = clipboard->value(&len);
+        insert(cursor, ed, len);
+        edRows = 0;
+        dirtyEditor = true;
+    }
+    return true;
+}
+
+
+bool user_interface::do_search(unicode with, bool restart)
+// ----------------------------------------------------------------------------
+//   Perform the actual search
+// ----------------------------------------------------------------------------
+{
+    // Already search, find next position
+    size_t max      = rt.editing();
+    utf8   ed       = rt.editor();
+    bool   forward  = cursor >= select;
+    size_t selected = forward ? cursor - select : select - cursor;
+    size_t count    = max - selected - (with == 0);
+    size_t found    = ~0;
+    uint   ref      = forward ? select : cursor;
+    uint   start    = restart ? searching : ref;
+
+    for (size_t search = with == 0; search < count; search++)
+    {
+        size_t offset = (forward ? start+search : start+count-search) % count;
+        bool   check  = true;
+        for (size_t s = 0; check && s < selected; s++)
+            check = tolower(ed[offset + s]) == tolower(ed[ref + s]);
+        if (check && with)
+            check = tolower(ed[offset + selected]) == tolower(with);
+        if (check)
+        {
+            found = search;
+            break;
+        }
+    }
+    if (~found)
+    {
+        if (with)
+            selected++;
+        if (forward)
+        {
+            select = (start + found) % count;
+            cursor = select + selected;
+        }
+        else
+        {
+            cursor = (start + count - found) % count;
+            select = cursor + selected;
+        }
+        edRows = 0;
+        dirtyEditor = true;
+        return true;
+    }
+    return false;
+}
+
+
+bool user_interface::editor_search()
+// ----------------------------------------------------------------------------
+//   Start or repeat a search a search
+// ----------------------------------------------------------------------------
+{
+    if (~select && cursor != select)
+    {
+        // Keep searching
+        if (~searching == 0)
+            searching = cursor > select ? select : cursor;
+        if (!do_search())
+            beep(2500, 100);
+        edRows = 0;
+        dirtyEditor = true;
+    }
+    else
+    {
+        // Start search
+        searching = select = cursor;
+        alpha = true;
+        shift = xshift = false;
+    }
+    return true;
+}
+
+
+bool user_interface::editor_replace()
+// ----------------------------------------------------------------------------
+//   Perform a search replacement
+// ----------------------------------------------------------------------------
+{
+    if (~searching && ~select && cursor != select && clipboard.Safe())
+    {
+        uint start = cursor;
+        uint end = select;
+        if (start > end)
+            std::swap(start, end);
+        do_search();
+        remove(start, end - start);
+
+        size_t len = 0;
+        utf8 ed = clipboard->value(&len);
+        insert(start, ed, len);
+
+        edRows = 0;
+        dirtyEditor = true;
+    }
+    return true;
+}
+
+
+bool user_interface::editor_clear()
+// ----------------------------------------------------------------------------
+//   Paste from clipboard
+// ----------------------------------------------------------------------------
+{
+    if (~select && select != cursor)
+    {
+        uint start = cursor;
+        uint end = select;
+        if (start > end)
+            std::swap(start, end);
+        remove(start, end - start);
+        select = ~0U;
+        edRows = 0;
+        dirtyEditor = true;
+    }
+    return true;
+}
+
+
+bool user_interface::editor_selection_flip()
+// ----------------------------------------------------------------------------
+//   Flip cursor and selection point
+// ----------------------------------------------------------------------------
+{
+    if (~select)
+        std::swap(select, cursor);
+    edRows = 0;
+    dirtyEditor = true;
+    return true;
+}
+
+
+size_t user_interface::insert(size_t offset, utf8 data, size_t len)
+// ----------------------------------------------------------------------------
+//   Insert data in the editor
+// ----------------------------------------------------------------------------
+{
+    size_t d = rt.insert(offset, data, len);
+    if (~select && select >= cursor)
+        select += d;
+    cursor += d;
+    return d;
+}
+
+
+size_t user_interface::remove(size_t offset, size_t len)
+// ----------------------------------------------------------------------------
+//   Remove data from the editor
+// ----------------------------------------------------------------------------
+{
+    len = rt.remove(offset, len);
+    if (~select && select >= offset)
+    {
+        if (select >= offset + len)
+            select -= len;
+        else
+            select = offset;
+    }
+    if (cursor >= offset)
+    {
+        if (cursor >= offset + len)
+            cursor -= len;
+        else
+            cursor = offset;
+    }
+    return len;
 }

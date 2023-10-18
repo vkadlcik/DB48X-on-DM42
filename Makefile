@@ -3,7 +3,7 @@
 ######################################
 TARGET = DB48X
 PLATFORM = dmcp
-VARIANT = DM42
+VARIANT = dm42
 SDK = dmcp/dmcp
 PGM = pgm
 
@@ -57,20 +57,21 @@ all: $(TARGET).$(PGM) help/$(TARGET).md
 
 dm32:	dm32-all
 dm32-%:
-	$(MAKE) PLATFORM=dmcp SDK=dmcp5/dmcp PGM=pg5 VARIANT=DM32 $*
+	$(MAKE) PLATFORM=dmcp SDK=dmcp5/dmcp PGM=pg5 VARIANT=dm32 TARGET=DB50X $*
 
 # installation steps
+COPY=cp
 install: install-pgm install-qspi install-help
 	$(EJECT)
 	@echo "# Installed $(VERSION)"
 install-fast: install-pgm
 	$(EJECT)
 install-pgm: all
-	cp -v $(TARGET).$(PGM) $(MOUNTPOINT)
+	$(COPY) $(TARGET).$(PGM) $(MOUNTPOINT)
 install-qspi: all
-	cp -v $(QSPI) $(MOUNTPOINT)
+	$(COPY) $(QSPI) $(MOUNTPOINT)
 install-help: help/$(TARGET).md
-	cp -v help/$(TARGET).md $(MOUNTPOINT)help/
+	$(COPY) help/$(TARGET).md $(MOUNTPOINT)help/
 
 sim: sim/simulator.mak
 	cd sim; make -f $(<F)
@@ -83,10 +84,19 @@ sim:	sim/gcc111libbid.a	\
 	fonts/EditorFont.cc	\
 	fonts/StackFont.cc	\
 	fonts/HelpFont.cc	\
+	keyboard		\
 	.ALWAYS
 
 clangdb: sim/simulator.mak .ALWAYS
 	cd sim && rm -f *.o && compiledb make -f simulator.mak && mv compile_commands.json ..
+
+keyboard: sim/keyboard-db48x.png Keyboard-Layout.png Keyboard-Cutout.png
+Keyboard-Layout.png: DB48X-Keys/DB48X-Keys.001.png
+	cp $< $@
+Keyboard-Cutout.png: DB48X-Keys/DB48X-Keys.002.png
+	cp $< $@
+sim/keyboard-db48x.png: DB48X-Keys/DB48X-Keys.001.png
+	convert $< -crop 698x878+151+138 $@
 
 QMAKE_debug=debug
 QMAKE_release=release
@@ -102,8 +112,8 @@ sim/gcc111libbid.a: sim/gcc111libbid-$(shell uname)-$(shell uname -m).a
 	cp $< $@
 
 dist: all
-	mv $(BUILD)/$(TARGET)_qspi.bin  .
-	tar cvfz v$(VERSION).tgz $(TARGET).$(PGM) $(TARGET)_qspi.bin \
+	cp $(BUILD)/$(TARGET)_qspi.bin  .
+	tar cvfz $(TARGET)-v$(VERSION).tgz $(TARGET).$(PGM) $(TARGET)_qspi.bin \
 		help/*.md STATE/*.48S
 	@echo "# Distributing $(VERSION)"
 
@@ -122,7 +132,7 @@ fonts/StackFont.cc: $(TTF2FONT) $(BASE_FONT)
 fonts/HelpFont.cc: $(TTF2FONT) $(BASE_FONT)
 	$(TTF2FONT) -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
 help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md)
-	mkdir -p help && cat $^ > $@
+	mkdir -p help && cat $^ | sed -e 's/DB48X/$(TARGET)/g' > $@
 
 debug-%:
 	$(MAKE) $* OPT=debug
@@ -150,9 +160,7 @@ ASM_SOURCES = $(SDK)/startup_pgm.s
 #######################################
 
 # Includes
-C_INCLUDES += $(C_INCLUDES_$(VARIANT)) -Isrc/$(PLATFORM) -Isrc -Iinc
-C_INCLUDES_DM42 = -Isrc/dm42
-C_INCLUDES_DM32 = -Isrc/dm32
+C_INCLUDES += -Isrc/$(VARIANT) -Isrc/$(PLATFORM) -Isrc -Iinc
 
 # C sources
 C_SOURCES +=
@@ -184,6 +192,7 @@ CXX_SOURCES +=				\
 	src/decimal128.cc		\
 	$(DECIMAL_SOURCES)		\
 	src/text.cc		        \
+	src/comment.cc		        \
 	src/symbol.cc			\
 	src/algebraic.cc		\
 	src/arithmetic.cc		\
@@ -199,8 +208,12 @@ CXX_SOURCES +=				\
 	src/loops.cc			\
 	src/conditionals.cc		\
 	src/font.cc			\
+	src/tag.cc			\
 	src/graphics.cc			\
+	src/grob.cc			\
 	src/plot.cc			\
+	src/solve.cc			\
+	src/integrate.cc		\
 	fonts/HelpFont.cc		\
 	fonts/EditorFont.cc		\
 	fonts/StackFont.cc
@@ -227,15 +240,16 @@ DEFINES += \
 	DECIMAL_GLOBAL_EXCEPTION_FLAGS \
 	DECIMAL_GLOBAL_EXCEPTION_FLAGS_ACCESS_FUNCTIONS \
 	$(DEFINES_$(OPT)) \
-	$(DEFINES_$(VARIANT))
+	$(DEFINES_$(VARIANT)) \
+	HELPFILE_NAME=\"/HELP/$(TARGET).md\"
 DEFINES_debug=DEBUG
 DEFINES_release=RELEASE
 DEFINES_small=RELEASE
 DEFINES_fast=RELEASE
 DEFINES_faster=RELEASE
 DEFINES_fastes=RELEASE
-DEFINES_DM32 = DM32
-DEFINES_DM42 = DM42
+DEFINES_dm32 = DM32
+DEFINES_dm42 = DM42
 
 C_DEFS += $(DEFINES:%=-D%)
 
@@ -281,7 +295,9 @@ DBGFLAGS = $(DBGFLAGS_$(OPT))
 DBGFLAGS_debug = -g
 
 CFLAGS_debug += -O0 -DDEBUG
-CFLAGS_release += -O2
+CFLAGS_release += $(CFLAGS_release_$(VARIANT))
+CFLAGS_release_dm42 = -Os
+CFLAGS_release_dm32 = -O2
 CFLAGS_small += -Os
 CFLAGS_fast += -O2
 CFLAGS_faster += -O3
@@ -339,7 +355,7 @@ $(TARGET).$(PGM): $(BUILD)/$(TARGET).elf Makefile $(CRCFIX)
 	$(OBJCOPY) --only-section   .qspi -O binary  $<  $(QSPI)
 	$(OBJCOPY) --only-section   .qspi -O ihex    $<  $(QSPI:.bin=.hex)
 	$(TOOLS)/adjust_crc $(CRCFIX) $(QSPI)
-	$(TOOLS)/check_qspi_crc $(TARGET) $(BUILD)/$(TARGET)_qspi.bin src/qspi_crc.h || ( $(MAKE) clean && exit 1)
+	$(TOOLS)/check_qspi_crc $(TARGET) $(BUILD)/$(TARGET)_qspi.bin src/$(VARIANT)/qspi_crc.h || ( rm -rf build/$(VARIANT) && exit 1)
 	$(TOOLS)/add_pgm_chsum $(BUILD)/$(TARGET)_flash.bin $@
 	$(SIZE) $<
 	wc -c $@

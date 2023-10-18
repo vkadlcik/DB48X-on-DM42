@@ -37,8 +37,8 @@ struct IfThen : conditional_loop
 //   The 'if-then' command behaves mostly like a conditional loop
 // ----------------------------------------------------------------------------
 {
-    IfThen(object_g condition, object_g body, id type = ID_IfThen)
-        : conditional_loop(condition, body, type) { }
+    IfThen(id type, object_g condition, object_g body)
+        : conditional_loop(type, condition, body) { }
 
     OBJECT_DECL(IfThen);
     PARSE_DECL(IfThen);
@@ -53,8 +53,8 @@ struct IfThenElse : IfThen
 //   The if-then-else command adds the `else` part
 // ----------------------------------------------------------------------------
 {
-    IfThenElse(object_g cond, object_g ift, object_g iff, id t = ID_IfThenElse)
-        : IfThen(cond, ift, t)
+    IfThenElse(id type, object_g cond, object_g ift, object_g iff)
+        : IfThen(type, cond, ift)
     {
         // Copy the additional object
         // Do NOT use payload(this) here:
@@ -86,8 +86,8 @@ struct IfErrThen : IfThen
 //    iferr-then-end  statement
 // ----------------------------------------------------------------------------
 {
-    IfErrThen(object_g condition, object_g body, id type = ID_IfErrThen)
-        : IfThen(condition, body, type) { }
+    IfErrThen(id type, object_g condition, object_g body)
+        : IfThen(type, condition, body) { }
 
     OBJECT_DECL(IfErrThen);
     PARSE_DECL(IfErrThen);
@@ -102,9 +102,8 @@ struct IfErrThenElse : IfThenElse
 //   The if-then-else command adds the `else` part
 // ----------------------------------------------------------------------------
 {
-    IfErrThenElse(object_g cond, object_g ift, object_g iff,
-                  id t = ID_IfErrThenElse)
-        : IfThenElse(cond, ift, iff, t)
+    IfErrThenElse(id type, object_g cond, object_g ift, object_g iff)
+        : IfThenElse(type, cond, ift, iff)
     { }
 
     OBJECT_DECL(IfErrThenElse);

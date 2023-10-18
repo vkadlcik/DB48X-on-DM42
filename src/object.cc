@@ -34,6 +34,7 @@
 #include "array.h"
 #include "bignum.h"
 #include "catalog.h"
+#include "comment.h"
 #include "compare.h"
 #include "complex.h"
 #include "conditionals.h"
@@ -45,7 +46,9 @@
 #include "fraction.h"
 #include "functions.h"
 #include "graphics.h"
+#include "grob.h"
 #include "integer.h"
+#include "integrate.h"
 #include "list.h"
 #include "locals.h"
 #include "logical.h"
@@ -57,8 +60,10 @@
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
+#include "solve.h"
 #include "stack-cmds.h"
 #include "symbol.h"
+#include "tag.h"
 #include "text.h"
 #include "user_interface.h"
 #include "variables.h"
@@ -119,6 +124,7 @@ const object::dispatch object::handler[NUM_IDS] =
         .evaluate     = (evaluate_fn) id::do_evaluate,       \
         .execute      = (execute_fn) id::do_execute,         \
         .render       = (render_fn) id::do_render,           \
+        .graph        = (graph_fn) id::do_graph,             \
         .insert       = (insert_fn) id::do_insert,           \
         .menu         = (menu_fn) id::do_menu,               \
         .menu_marker  = (menu_marker_fn) id::do_menu_marker, \
@@ -159,29 +165,42 @@ object_p object::parse(utf8 source, size_t &size, int precedence)
     size -= skipped;
 
     parser p(source, size, precedence);
-    result r   = SKIP;
     utf8   err = nullptr;
     utf8   src = source;
+    result r   = SKIP;
 
     // Try parsing with the various handlers
-    for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
+    do
     {
-        // Parse ID_symbol last, we need to check commands first
-        uint candidate = (i + ID_symbol + 1) % NUM_IDS;
-        p.candidate = id(candidate);
-        record(parse_attempts, "Trying [%s] against %+s", src, name(id(i)));
-        r = handler[candidate].parse(p);
-        if (r != SKIP)
-            record(parse_attempts, "Result for ID %+s was %+s (%d) for [%s]",
-                   name(p.candidate), name(r), r, utf8(p.source));
-        if (r == WARN)
+        r = SKIP;
+        for (uint i = 0; r == SKIP && i < NUM_IDS; i++)
         {
-            err = rt.error();
-            src = rt.source();
-            rt.clear_error();
-            r = SKIP;
+            // Parse ID_symbol last, we need to check commands first
+            uint candidate = (i + ID_symbol + 1) % NUM_IDS;
+            p.candidate = id(candidate);
+            record(parse_attempts, "Trying [%s] against %+s", src, name(id(i)));
+            r = handler[candidate].parse(p);
+            if (r == COMMENTED)
+            {
+                p.source += p.end;
+                skipped += p.end;
+                size_t skws = utf8_skip_whitespace(p.source);
+                skipped += skws;
+                break;
+            }
+            if (r != SKIP)
+                record(parse_attempts,
+                       "Result for ID %+s was %+s (%d) for [%s]",
+                       name(p.candidate), name(r), r, utf8(p.source));
+            if (r == WARN)
+            {
+                err = rt.error();
+                src = rt.source();
+                rt.clear_error();
+                r = SKIP;
+            }
         }
-    }
+    } while (r == COMMENTED);
 
     record(parse, "<Done parsing [%s], end is at %d", utf8(p.source), p.end);
     size = p.end + skipped;
@@ -465,6 +484,39 @@ RENDER_BODY(object)
 }
 
 
+grob_p object::as_grob() const
+// ----------------------------------------------------------------------------
+//   Return object as a graphic object
+// ----------------------------------------------------------------------------
+{
+    grapher g;
+    return graph(g);
+}
+
+
+GRAPH_BODY(object)
+// ----------------------------------------------------------------------------
+//  The default for rendering is to render the text using default font
+// ----------------------------------------------------------------------------
+{
+    renderer r;
+    using pixsize  = blitter::size;
+    size_t  sz     = o->render(r);
+    gcutf8  txt    = r.text();
+    font_p  font   = Settings.font(g.font);
+    pixsize height = font->height();
+    pixsize width  = font->width(txt, sz);
+    if (width > g.maxw)
+        width = g.maxw;
+    if (height > g.maxh)
+        height = g.maxh;
+    grob_g  result = grob::make(width, height);
+    surface s      = result->pixels();
+    s.text(0, 0, txt, sz, font, g.foreground, g.background);
+    return result;
+}
+
+
 INSERT_BODY(object)
 // ----------------------------------------------------------------------------
 //   Default insertion is as a program object
@@ -721,9 +773,9 @@ bool object::is_same_as(object_p other) const
 }
 
 
-algebraic_p object::algebraic_child(uint index) const
+object_p object::child(uint index) const
 // ----------------------------------------------------------------------------
-//    For a complex, list or array, return nth element as algebraic
+//    For a complex, list or array, return nth element
 // ----------------------------------------------------------------------------
 {
     id ty = type();
@@ -737,8 +789,7 @@ algebraic_p object::algebraic_child(uint index) const
     case ID_list:
     case ID_array:
         if (object_p obj = list_p(this)->at(index))
-            if (obj->is_algebraic())
-                return algebraic_p(obj);
+            return obj;
         rt.value_error();
         break;
     default:
@@ -748,6 +799,63 @@ algebraic_p object::algebraic_child(uint index) const
     return nullptr;
 }
 
+
+algebraic_p object::algebraic_child(uint index) const
+// ----------------------------------------------------------------------------
+//    For a complex, list or array, return nth element as algebraic
+// ----------------------------------------------------------------------------
+{
+    if (object_p obj = child(index))
+    {
+        if (obj->is_algebraic())
+            return algebraic_p(obj);
+        else
+            rt.type_error();
+    }
+
+    return nullptr;
+}
+
+
+bool object::is_big() const
+// ----------------------------------------------------------------------------
+//   Return true if any component is a big num
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    switch(ty)
+    {
+    case ID_bignum:
+    case ID_neg_bignum:
+    case ID_big_fraction:
+    case ID_neg_big_fraction:
+#if CONFIG_FIXED_BASED_OBJECTS
+    case ID_hex_bignum:
+    case ID_dec_bignum:
+    case ID_oct_bignum:
+    case ID_bin_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+    case ID_based_bignum:
+        return true;
+
+    case ID_list:
+    case ID_program:
+    case ID_block:
+    case ID_array:
+    case ID_equation:
+        for (object_p o : *(list_p(this)))
+            if (o->is_big())
+                return true;
+        return false;
+
+    case ID_rectangular:
+    case ID_polar:
+        return complex_p(this)->x()->is_big() || complex_p(this)->y()->is_big();
+
+    default:
+        return false;
+    }
+}
 
 
 #if SIMULATOR

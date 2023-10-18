@@ -41,6 +41,7 @@
 #include "list.h"
 #include "runtime.h"
 #include "settings.h"
+#include "tag.h"
 #include "text.h"
 
 #include <bit>
@@ -399,6 +400,16 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
             return y;
         if (y->is_one(false))                   // X * 1 = X
             return x;
+        if (x->type() == ID_ImaginaryUnit)
+        {
+            if (y->type() == ID_ImaginaryUnit)
+                return integer::make(-1);
+            if (y->is_real())
+                return rectangular::make(integer::make(0), y);
+        }
+        if (y->type() == ID_ImaginaryUnit)
+            if (x->is_real())
+                return rectangular::make(integer::make(0), x);
         if (x->is_strictly_symbolic() && x->is_same_as(y))
             return sq::run(x);                  // X * X = X²
     }
@@ -1029,22 +1040,32 @@ algebraic_p arithmetic::evaluate(id          op,
     if (!xr.Safe() || !yr.Safe())
         return nullptr;
 
-    id xt = xr->type();
-    id yt = yr->type();
+    algebraic_g x = xr;
+    algebraic_g y = yr;
+
+    // Convert arguments to numeric if necessary
+    if (Settings.numeric)
+    {
+        (void) to_decimal(x);          // May fail silently
+        (void) to_decimal(y);
+    }
+
+    id xt = x->type();
+    id yt = y->type();
 
     // All non-numeric cases, e.g. string concatenation
     // Must come first, e.g. for optimization of X^3
-    if (algebraic_p result = ops.non_numeric(xr, yr))
+    if (algebraic_p result = ops.non_numeric(x, y))
         return result;
 
-    // Integer types
+    // Integer types%
     if (is_integer(xt) && is_integer(yt))
     {
         if (!is_bignum(xt) && !is_bignum(yt))
         {
             // Perform conversion of integer values to the same base
-            integer_p xi = integer_p(object_p(xr.Safe()));
-            integer_p yi = integer_p(object_p(yr.Safe()));
+            integer_p xi = integer_p(object_p(x.Safe()));
+            integer_p yi = integer_p(object_p(y.Safe()));
             if (xi->native() && yi->native())
             {
                 ularge xv = xi->value<ularge>();
@@ -1054,8 +1075,6 @@ algebraic_p arithmetic::evaluate(id          op,
             }
         }
 
-        algebraic_g x = xr;
-        algebraic_g y = yr;
         if (!is_bignum(xt))
             xt = bignum_promotion(x);
         if (!is_bignum(yt))
@@ -1069,11 +1088,9 @@ algebraic_p arithmetic::evaluate(id          op,
     }
 
     // Fraction types
-    if ((xr->is_fraction() || yr->is_fraction() ||
-         (op == ID_div && xr->is_fractionable() && yr->is_fractionable())))
+    if ((x->is_fraction() || y->is_fraction() ||
+         (op == ID_div && x->is_fractionable() && y->is_fractionable())))
     {
-        algebraic_g x = xr;
-        algebraic_g y = yr;
         if (fraction_g xf = fraction_promotion(x))
         {
             if (fraction_g yf = fraction_promotion(y))
@@ -1094,8 +1111,6 @@ algebraic_p arithmetic::evaluate(id          op,
     }
 
     // Real data types
-    algebraic_g x = xr;
-    algebraic_g y = yr;
     if (real_promotion(x, y))
     {
         // Here, x and y have the same type, a decimal type
@@ -1164,16 +1179,28 @@ object::result arithmetic::evaluate(id op, ops_t ops)
 //   Shared code for all forms of evaluation using the RPL stack
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
+
     // Fetch arguments from the stack
-    algebraic_g y = (algebraic_p) rt.stack(1);
+    // Possibly wrong type, i.e. it migth not be an algebraic on the stack,
+    // but since we tend to do extensive type checking later, don't overdo it
+    algebraic_g y = algebraic_p(rt.stack(1));
     if (!y)
         return ERROR;
-    algebraic_g x = (algebraic_p) rt.stack(0);
+    algebraic_g x = algebraic_p(rt.stack(0));
     if (!x)
         return ERROR;
 
+    // Strip tags
+    while (tag_p xtag = x->as<tag>())
+        x = algebraic_p(xtag->tagged_object());
+    while (tag_p ytag = y->as<tag>())
+        y = algebraic_p(ytag->tagged_object());
+
     // Evaluate the operation
     algebraic_g r = evaluate(op, y, x, ops);
+
 
     // If result is valid, drop second argument and push result on stack
     if (r)
@@ -1185,6 +1212,7 @@ object::result arithmetic::evaluate(id op, ops_t ops)
 
     return ERROR;
 }
+
 
 
 // ============================================================================

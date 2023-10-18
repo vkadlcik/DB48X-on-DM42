@@ -191,6 +191,9 @@ object::result comparison::compare(comparison_fn comparator, id op)
 //   Compare items from the stack
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return  ERROR;
+
     object_p x = rt.stack(1);
     object_p y = rt.stack(0);
     if (!x || !y)
@@ -315,6 +318,15 @@ object::result comparison::evaluate<same>()
 }
 
 
+bool smaller_magnitude(algebraic_r x, algebraic_r y)
+// ----------------------------------------------------------------------------
+//   Compare magnitude
+// ----------------------------------------------------------------------------
+{
+    algebraic_p cmp = abs::run(x) < abs::run(y);
+    return cmp && cmp->as_truth(false);
+}
+
 
 
 // ============================================================================
@@ -343,8 +355,9 @@ COMMAND_BODY(True)
 //   Evaluate as self
 // ----------------------------------------------------------------------------
 {
-    if (rt.push(command::static_object(ID_True)))
-        return OK;
+    if (rt.args(0))
+        if (rt.push(command::static_object(ID_True)))
+            return OK;
     return ERROR;
 }
 
@@ -353,8 +366,9 @@ COMMAND_BODY(False)
 //   Evaluate as self
 // ----------------------------------------------------------------------------
 {
-    if (rt.push(command::static_object(ID_False)))
-        return OK;
+    if (rt.args(0))
+        if (rt.push(command::static_object(ID_False)))
+            return OK;
     return ERROR;
 }
 

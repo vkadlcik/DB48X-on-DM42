@@ -141,7 +141,8 @@ object::result list::list_parse(id type,
                         return ERROR;
                     length = child.end;
                     record(list_parse,
-                           "Child parsed as %t length %u", object_p(obj), length);
+                           "Child parsed as %t length %u",
+                           object_p(obj), length);
                 }
             }
             else // precedence < 0)
@@ -241,8 +242,9 @@ object::result list::list_parse(id type,
                 size_t objsize = obj->size();
 
                 // For equations, copy only the payload
-                if (precedence && obj->type() == ID_equation)
-                    obj = (object_p) equation_p(object_p(obj))->value(&objsize);
+                if (precedence)
+                    if (equation_p eq = obj->as<equation>())
+                        obj = object_p(eq->value(&objsize));
 
                 byte *objcopy = rt.allocate(objsize);
                 if (!objcopy)
@@ -316,15 +318,48 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
 //   Render the list into the given buffer
 // ----------------------------------------------------------------------------
 {
+    // Check if we need an indent in the body
+    bool need_indent = false;
+    for (object_p obj : *this)
+    {
+        switch(obj->type())
+        {
+        case ID_list:
+        case ID_program:
+        case ID_array:
+        case ID_locals:
+        case ID_comment:
+        case ID_IfThen:
+        case ID_IfThenElse:
+        case ID_DoUntil:
+        case ID_WhileRepeat:
+        case ID_StartStep:
+        case ID_ForNext:
+        case ID_ForStep:
+        case ID_IfErrThen:
+        case ID_IfErrThenElse:
+            need_indent = true;
+            break;
+        default:
+            break;
+        }
+        if (need_indent)
+            break;
+    }
+
     // Write the header, e.g. "{ "
     if (open)
+    {
         r.put(open);
+        if (need_indent)
+            r.indent();
+    }
 
     // Loop on all objects inside the list
     for (object_p obj : *this)
     {
         // Add space separator (except on first object when no separator)
-        if (open)
+        if (open && !r.hadCR())
             r.put(' ');
         open = 1;
 
@@ -335,9 +370,13 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
     // Add final space and closing separator
     if (close)
     {
-        r.put(' ');
+        if (need_indent)
+            r.unindent();
+        else if (open == 1)
+            r.put(' ');
         r.put(close);
     }
+    r.wantCR();
 
     return r.size();
 }
@@ -361,6 +400,15 @@ RENDER_BODY(list)
 }
 
 
+HELP_BODY(list)
+// ----------------------------------------------------------------------------
+//   Help topic for lists
+// ----------------------------------------------------------------------------
+{
+    return utf8("Lists");
+}
+
+
 
 // ============================================================================
 //
@@ -376,11 +424,8 @@ COMMAND_BODY(ToList)
     uint32_t depth = uint32_arg();
     if (!rt.error())
     {
-        if (rt.depth() < depth + 1)
-        {
-            rt.missing_argument_error();
+        if (!rt.args(depth + 1))
             return ERROR;
-        }
 
         if (rt.pop())
         {
@@ -411,6 +456,9 @@ COMMAND_BODY(Get)
 //   Get an element in a list
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
+
     // Check we have an object at level 2
     if (object_p items = rt.stack(1))
     {

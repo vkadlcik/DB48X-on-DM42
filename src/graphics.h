@@ -49,6 +49,8 @@ struct PlotParameters
     algebraic_g xmax;
     algebraic_g ymax;
     symbol_g    independent;
+    algebraic_g imin;
+    algebraic_g imax;
     symbol_g    dependent;
     algebraic_g resolution;
     algebraic_g xorigin;
@@ -109,5 +111,11 @@ COMMAND_DECLARE(Circle);
 COMMAND_DECLARE(Rect);
 COMMAND_DECLARE(RRect);
 COMMAND_DECLARE(ClLCD);
+COMMAND_DECLARE(Clip);
+COMMAND_DECLARE(CurrentClip);
+COMMAND_DECLARE(GXor);
+COMMAND_DECLARE(GOr);
+COMMAND_DECLARE(GAnd);
+COMMAND_DECLARE(Pict);
 
 #endif // GRAPHICS_H

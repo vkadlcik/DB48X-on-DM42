@@ -40,8 +40,7 @@ struct array : list
 //   An array is a list with [ and ] as delimiters
 // ----------------------------------------------------------------------------
 {
-    array(gcbytes bytes, size_t len, id type = ID_array)
-        : list(bytes, len, type) {}
+    array(id type, gcbytes bytes, size_t len): list(type, bytes, len) {}
 
     static array_g map(algebraic_fn fn, array_r x)
     {
@@ -86,6 +85,7 @@ public:
     OBJECT_DECL(array);
     PARSE_DECL(array);
     RENDER_DECL(array);
+    HELP_DECL(array);
 };
 
 

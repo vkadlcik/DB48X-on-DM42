@@ -104,17 +104,6 @@
 #include "recorder.h"
 #include "types.h"
 
-struct algebraic;
-struct menu_info;
-struct object;
-struct parser;
-struct program;
-struct renderer;
-struct runtime;
-struct symbol;
-struct text;
-struct user_interface;
-
 RECORDER_DECLARE(object);
 RECORDER_DECLARE(parse);
 RECORDER_DECLARE(parse_attempts);
@@ -123,12 +112,25 @@ RECORDER_DECLARE(eval);
 RECORDER_DECLARE(run);
 RECORDER_DECLARE(object_errors);
 
+struct algebraic;
+struct menu_info;
+struct object;
+struct parser;
+struct program;
+struct renderer;
+struct grapher;
+struct runtime;
+struct symbol;
+struct text;
+struct grob;
+struct user_interface;
+
 typedef const algebraic *algebraic_p;
 typedef const object    *object_p;
 typedef const program   *program_p;
 typedef const symbol    *symbol_p;
 typedef const text      *text_p;
-
+typedef const grob      *grob_p;
 
 struct object
 // ----------------------------------------------------------------------------
@@ -163,14 +165,15 @@ struct object
     // ========================================================================
 
     enum result
-    // ----------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     //   Return values for parsing
-    // ----------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     {
         OK,                     // Command ran successfully
         SKIP,                   // Command not for this handler, try next
         ERROR,                  // Error processing the command
-        WARN ,                  // Possible error (if no object succeeds)
+        WARN,                   // Possible error (if no object succeeds)
+        COMMENTED               // Code is commented out
     };
 
 
@@ -179,15 +182,16 @@ struct object
     typedef utf8        (*help_fn)(object_p o);
     typedef result      (*evaluate_fn)(object_p o);
     typedef result      (*execute_fn)(object_p o);
-    typedef size_t      (*render_fn)(object_p o, renderer &p);
+    typedef size_t      (*render_fn)(object_p o, renderer &r);
+    typedef grob_p      (*graph_fn)(object_p o, grapher &g);
     typedef result      (*insert_fn)(object_p o, user_interface &i);
     typedef bool        (*menu_fn)(object_p o, menu_info &m);
     typedef unicode     (*menu_marker_fn)(object_p o);
 
     struct dispatch
-    // ----------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
     //   Operations that can be run on an object
-    // ----------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
     {
         cstring         name;            // Basic (compatibility) name
         cstring         fancy;           // Fancy name
@@ -197,6 +201,7 @@ struct object
         evaluate_fn     evaluate;        // Evaluate the object
         execute_fn      execute;         // Execute the object
         render_fn       render;          // Render the object as text
+        graph_fn        graph;           // Render the object as a grob
         insert_fn       insert;          // Insert object in editor
         menu_fn         menu;            // Build menu entries
         menu_marker_fn  menu_marker;     // Show marker
@@ -349,6 +354,16 @@ struct object
     // ------------------------------------------------------------------------
 
 
+    grob_p graph(grapher &g) const
+    // ------------------------------------------------------------------------
+    //   Render the object into an existing grapher
+    // ------------------------------------------------------------------------
+    {
+        record(render, "Graphing %+s %p into %p", name(), this, &g);
+        return ops().graph(this, g);
+    }
+
+
     text_p as_text(bool edit = true, bool eq = false) const;
     // ------------------------------------------------------------------------
     //   Return the object as text
@@ -362,6 +377,12 @@ struct object
     {
         return symbol_p(as_text(editing, true));
     }
+
+
+    grob_p as_grob() const;
+    // ------------------------------------------------------------------------
+    //   Return the object as a pixel graphic object
+    // ------------------------------------------------------------------------
 
 
     uint32_t as_uint32(uint32_t def = 0, bool err = true) const;
@@ -542,6 +563,12 @@ struct object
     {
         return is_bignum(type());
     }
+
+
+    bool is_big() const;
+    // ------------------------------------------------------------------------
+    //   Check if any component is a bignum
+    // ------------------------------------------------------------------------
 
 
     static bool is_fraction(id ty)
@@ -869,6 +896,12 @@ struct object
     // ------------------------------------------------------------------------
 
 
+    object_p child(uint index = 0) const;
+    // ------------------------------------------------------------------------
+    //   Return a child for a complex, list or array
+    // ------------------------------------------------------------------------
+
+
     algebraic_p algebraic_child(uint index = 0) const;
     // ------------------------------------------------------------------------
     //   Return an algebraic child for a complex, list or array
@@ -889,6 +922,7 @@ struct object
 #define EXEC_DECL(D)    static result   do_execute(const D *o UNUSED)
 #define SIZE_DECL(D)    static size_t   do_size(const D *o UNUSED)
 #define RENDER_DECL(D)  static size_t   do_render(const D *o UNUSED,renderer &r UNUSED)
+#define GRAPH_DECL(D)   static grob_p   do_graph(const D *o UNUSED,grapher &g UNUSED)
 #define INSERT_DECL(D)  static result   do_insert(const D *o UNUSED)
 #define MENU_DECL(D)    static bool     do_menu(const D *o UNUSED, menu_info &mi UNUSED)
 #define MARKER_DECL(D)  static unicode  do_menu_marker(const D *o UNUSED)
@@ -902,6 +936,7 @@ struct object
     EXEC_DECL(object);
     SIZE_DECL(object);
     RENDER_DECL(object);
+    GRAPH_DECL(object);
     INSERT_DECL(object);
     MENU_DECL(object);
     MARKER_DECL(object);
@@ -930,6 +965,7 @@ public:
 #define EXEC_BODY(D)    object::result D::do_execute(const D *o UNUSED)
 #define SIZE_BODY(D)    size_t         D::do_size(const D *o UNUSED)
 #define RENDER_BODY(D)  size_t         D::do_render(const D *o UNUSED, renderer &r UNUSED)
+#define GRAPH_BODY(D)   grob_p         D::do_graph(const D *o UNUSED, grapher &g UNUSED)
 #define INSERT_BODY(D)  object::result D::do_insert(const D *o UNUSED)
 #define MENU_BODY(D)    bool           D::do_menu(const D *o UNUSED, menu_info &mi UNUSED)
 #define MARKER_BODY(D)  unicode        D::do_menu_marker(const D *o UNUSED)

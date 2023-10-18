@@ -52,8 +52,8 @@ struct blitter
     // ========================================================================
 
     // Basic types
-    typedef int16_t  coord;
-    typedef uint16_t size;
+    typedef int32_t  coord;
+    typedef uint32_t size;
     typedef size_t   offset;
     typedef uint32_t pixword;
     typedef uint16_t palette_index;
@@ -160,6 +160,9 @@ struct blitter
         pattern(color a, color b);
         pattern(color a, color b, color c, color d);
 
+        // Pattern from bits
+        pattern(uint64_t bits = ~0ULL): bits(bits) {}
+
         // Some pre-defined shades of gray
         static const pattern black;
         static const pattern gray10;
@@ -168,6 +171,7 @@ struct blitter
         static const pattern gray75;
         static const pattern gray90;
         static const pattern white;
+        static const pattern invert;
     };
 
 
@@ -279,6 +283,18 @@ struct blitter
             inset(d, d);
         }
 
+        void offset(coord dx, coord dy)
+        // --------------------------------------------------------------------
+        //   Offset a rectangle by the given amounts
+        // --------------------------------------------------------------------
+        {
+            x1 += dx;
+            x2 += dx;
+            y1 += dy;
+            y2 += dy;
+        }
+
+
         bool empty() const
         // --------------------------------------------------------------------
         //   Check if a rectangle is empty
@@ -374,6 +390,8 @@ struct blitter
         void vertical_adjust(coord UNUSED &x1, coord UNUSED &x2) const
         {
         }
+        static bool horizontal_swap() { return false; }
+        static bool vertical_swap() { return false; }
 
         // Operations used by the blitting routine
         using color   = blitter::color<Mode>;
@@ -417,8 +435,6 @@ struct blitter
             return rect(width, height);
         }
 
-
-
         template <clipping Clip = FILL_SAFE>
         void fill(const rect &r, pattern colors = pattern::black)
         // --------------------------------------------------------------------
@@ -448,6 +464,37 @@ struct blitter
         // --------------------------------------------------------------------
         {
             fill<Clip>(drawable, colors);
+        }
+
+        template <clipping Clip = FILL_SAFE>
+        void invert(const rect &r, pattern colors = pattern::invert)
+        // --------------------------------------------------------------------
+        //   Invert a rectangle
+        // --------------------------------------------------------------------
+        {
+            blit<Clip>(*this, *this, r, point(), blitop_xor, colors);
+        }
+
+        template <clipping Clip = FILL_SAFE>
+        void invert(coord   x1,
+                    coord   y1,
+                    coord   x2,
+                    coord   y2,
+                    pattern colors = pattern::invert)
+        // --------------------------------------------------------------------
+        //   Invert a rectangle with a color pattern
+        // --------------------------------------------------------------------
+        {
+            invert<Clip>(rect(x1, y1, x2, y2), colors);
+        }
+
+        template <clipping Clip = FILL_SAFE>
+        void invert(pattern colors = pattern::invert)
+        // --------------------------------------------------------------------
+        //   Invert the entire area with the chosen color
+        // --------------------------------------------------------------------
+        {
+            invert<Clip>(drawable, colors);
         }
 
         template <clipping Clip = COPY>
@@ -635,7 +682,7 @@ struct blitter
             return pixels + bitoffset / BPW;
         }
 
-      protected:
+    protected:
         friend struct blitter;
         pixword *pixels;   // Word-aligned address of surface buffer
         size     width;    // Pixel width of buffer
@@ -710,7 +757,7 @@ struct blitter
     //
     // =========================================================================
 
-  public:
+public:
     static pixword blitop_set(pixword UNUSED dst,
                               pixword UNUSED src,
                               pixword        arg)
@@ -748,12 +795,32 @@ struct blitter
     }
 
 
-    static pixword blitop_invert(pixword dst, pixword src, pixword arg)
+    static pixword blitop_xor(pixword dst, pixword src, pixword arg)
     // -------------------------------------------------------------------------
-    //   Inverting colors can always be achieved with a simple xor
+    //   Perform a 'xor' graphical operation (can also be used for inverting)
     // -------------------------------------------------------------------------
     {
-        dst = src ^ arg;
+        dst ^= src ^ arg;
+        return dst;
+    }
+
+
+    static pixword blitop_and(pixword dst, pixword src, pixword arg)
+    // -------------------------------------------------------------------------
+    //   Perform the 'and' operation
+    // -------------------------------------------------------------------------
+    {
+        dst &= src ^ arg;
+        return dst;
+    }
+
+
+    static pixword blitop_or(pixword dst, pixword src, pixword arg)
+    // -------------------------------------------------------------------------
+    //   Perform a 'or' graphical operation
+    // -------------------------------------------------------------------------
+    {
+        dst |= src ^ arg;
         return dst;
     }
 
@@ -975,13 +1042,14 @@ inline blitter::pattern<Mode>::pattern(color a, color b, color c, color d)
 #define TGPAT                     \
     template <blitter::mode Mode> \
     const GPAT
-TGPAT GPAT::black  = GPAT(0, 0, 0);
-TGPAT GPAT::gray10 = GPAT(32, 32, 32);
-TGPAT GPAT::gray25 = GPAT(64, 64, 64);
+TGPAT GPAT::black  = GPAT(0,     0,    0);
+TGPAT GPAT::gray10 = GPAT(32,   32,   32);
+TGPAT GPAT::gray25 = GPAT(64,   64,   64);
 TGPAT GPAT::gray50 = GPAT(128, 128, 128);
 TGPAT GPAT::gray75 = GPAT(192, 192, 192);
 TGPAT GPAT::gray90 = GPAT(224, 224, 224);
 TGPAT GPAT::white  = GPAT(255, 255, 255);
+TGPAT GPAT::invert = GPAT();
 #undef TGPAT
 #undef GPAT
 
@@ -1030,6 +1098,9 @@ union blitter::pattern<blitter::mode::MONOCHROME>
     pattern(color a, color b);
     pattern(color a, color b, color c, color d);
 
+    // Pattern from bits
+    pattern(uint64_t bits = ~0ULL): bits(bits) {}
+
     // Some pre-defined shades of gray
     static const pattern black;
     static const pattern gray10;
@@ -1038,6 +1109,7 @@ union blitter::pattern<blitter::mode::MONOCHROME>
     static const pattern gray75;
     static const pattern gray90;
     static const pattern white;
+    static const pattern invert;
 };
 
 
@@ -1085,6 +1157,9 @@ union blitter::pattern<blitter::mode::MONOCHROME_REVERSE>
     pattern(color a, color b);
     pattern(color a, color b, color c, color d);
 
+    // Pattern from bits
+    pattern(uint64_t bits = ~0ULL): bits(bits) {}
+
     // Some pre-defined shades of gray
     static const pattern black;
     static const pattern gray10;
@@ -1093,6 +1168,7 @@ union blitter::pattern<blitter::mode::MONOCHROME_REVERSE>
     static const pattern gray75;
     static const pattern gray90;
     static const pattern white;
+    static const pattern invert;
 };
 
 
@@ -1135,6 +1211,9 @@ union blitter::pattern<blitter::mode::GRAY_4BPP>
     pattern(color a, color b);
     pattern(color a, color b, color c, color d);
 
+    // Pattern from bits
+    pattern(uint64_t bits = ~0ULL): bits(bits) {}
+
     // Some pre-defined shades of gray
     static const pattern black;
     static const pattern gray10;
@@ -1143,6 +1222,7 @@ union blitter::pattern<blitter::mode::GRAY_4BPP>
     static const pattern gray75;
     static const pattern gray90;
     static const pattern white;
+    static const pattern invert;
 };
 
 
@@ -1193,6 +1273,7 @@ union blitter::pattern<blitter::mode::RGB_16BPP>
     static const pattern gray75;
     static const pattern gray90;
     static const pattern white;
+    static const pattern invert;
 };
 
 
@@ -1250,26 +1331,27 @@ void blitter::blit(Dst           &dst,
     const uint DBPP     = Dst::BPP;
     const uint CBPP     = color<CMode>::BPP;
 
-    // Some platforms have the weird idea of flipping left and right
-    dst.horizontal_adjust(x1, x2);
-    dst.vertical_adjust(y1, y2);
-
     if (clip_src)
     {
-        if (x < src.drawable.x1)
+        coord sx1 = src.drawable.x1;
+        coord sx2 = src.drawable.x2;
+        coord sy1 = src.drawable.y1;
+        coord sy2 = src.drawable.y2;
+
+        if (x < sx1)
         {
-            x1 += src.drawable.x1 - x;
-            x = src.drawable.x1;
+            x1 += sx1 - x;
+            x = sx1;
         }
-        if (x + x2 - x1 > src.drawable.x2)
-            x2 = src.drawable.x2 - x + x1;
-        if (y < src.drawable.y1)
+        if (x + x2 - x1 > sx2)
+            x2 = sx2 - x + x1;
+        if (y < sy1)
         {
-            y1 += src.drawable.y1 - y;
-            y = src.drawable.y1;
+            y1 += sy1 - y;
+            y = sy1;
         }
-        if (y + y2 - y1 > src.drawable.y2)
-            y2 = src.drawable.y2 - y + y1;
+        if (y + y2 - y1 > sy2)
+            y2 = sy2 - y + y1;
     }
 
     if (clip_dst)
@@ -1279,15 +1361,19 @@ void blitter::blit(Dst           &dst,
         coord dx2 = dst.drawable.x2;
         coord dy1 = dst.drawable.y1;
         coord dy2 = dst.drawable.y2;
-        dst.horizontal_adjust(dx1, dx2);
-        dst.vertical_adjust(dy1, dy2);
+
         if (x1 < dx1)
         {
-            x += dx1 - x1;
+            if (dst.horizontal_swap() == src.horizontal_swap())
+                x += dx1 - x1;
             x1 = dx1;
         }
         if (x2 > dx2)
+        {
+            if (dst.horizontal_swap() != src.horizontal_swap())
+                x -= dx2 - x2;
             x2 = dx2;
+        }
         if (y1 < dy1)
         {
             y += dy1 - y1;
@@ -1296,6 +1382,10 @@ void blitter::blit(Dst           &dst,
         if (y2 > dy2)
             y2 = dy2;
     }
+
+    // Some platforms have the weird idea of flipping left and right
+    dst.horizontal_adjust(x1, x2);
+    dst.vertical_adjust(y1, y2);
 
     // Bail out if there is no effect
     if (x1 > x2 || y1 > y2)
@@ -1452,10 +1542,22 @@ inline void blitter::surface<blitter::MONOCHROME_REVERSE>::horizontal_adjust(
 //   On the DM42, we need horizontal adjustment for coordinates
 // ----------------------------------------------------------------------------
 {
-    coord ox1 = width - x2;
-    x2        = width - x1;
+    size  w   = width - 1;
+    coord ox1 = w - x2;
+    x2        = w - x1;
     x1        = ox1;
 }
+
+
+template <>
+inline bool blitter::surface<blitter::MONOCHROME_REVERSE>::horizontal_swap()
+// ----------------------------------------------------------------------------
+//   On the DM42, we need horizontal adjustment for coordinates
+// ----------------------------------------------------------------------------
+{
+    return true;
+}
+
 
 
 // ============================================================================
@@ -1575,12 +1677,14 @@ blitter::coord blitter::surface<Mode>::glyph(coord       x,
     font::glyph_info g;
     if (f->glyph(codepoint, g))
     {
+        // Fill background
+        fill<Clip>(x, y, x + g.advance - 1, y + f->height() - 1, bg);
+
         // Bitmap may be misaligned, if so, fixup
         uintptr_t bma = (uintptr_t) g.bitmap;
         g.bx += 8 * (bma & 3);
         bma &= ~3;
         surface<MONOCHROME> source((pixword *) bma, g.bw, g.bh);
-        fill<Clip>(x, y, x + g.advance - 1, y + g.h - 1, bg);
         rect  dest(x + g.x, y + g.y, x + g.x + g.w - 1, y + g.y + g.h - 1);
         point spos(g.bx, g.by);
         blit<Clip>(*this, source, dest, spos, blitop_mono_fg<Mode>, fg);
@@ -1699,6 +1803,66 @@ void blitter::surface<Mode>::line(coord   x1,
 //   Draw a line between the given coordinates
 // --------------------------------------------------------------------
 {
+    if (Clip & CLIP_ALL)
+    {
+        if (x1 < drawable.x1)
+        {
+            if (x2 <= x1)
+                return;
+            y1 = y2 + (drawable.x1 - x2) * (y1 - y2) / (x1 - x2);
+            x1 = drawable.x1;
+        }
+        if (x1 > drawable.x2)
+        {
+            if (x2 >= x1)
+                return;
+            y1 = y2 + (drawable.x2 - x2) * (y1 - y2) / (x1 - x2);
+            x1 = drawable.x2;
+        }
+        if (x2 < drawable.x1)
+        {
+            if (x1 <= x2)
+                return;
+            y2 = y1 + (drawable.x1 - x1) * (y2 - y1) / (x2 - x1);
+            x2 = drawable.x1;
+        }
+        if (x2 > drawable.x2)
+        {
+            if (x1 >= x2)
+                return;
+            y2 = y1 + (drawable.x2 - x1) * (y1 - y2) / (x1 - x2);
+            x2 = drawable.x2;
+        }
+        if (y1 < drawable.y1)
+        {
+            if (y2 <= y1)
+                return;
+            x1 = x2 + (drawable.y1 - y2) * (x1 - x2) / (y1 - y2);
+            y1 = drawable.y1;
+        }
+        if (y1 > drawable.y2)
+        {
+            if (y2 >= y1)
+                return;
+            x1 = x2 + (drawable.y2 - y2) * (x1 - x2) / (y1 - y2);
+            y1 = drawable.y2;
+        }
+        if (y2 < drawable.y1)
+        {
+            if (y1 <= y2)
+                return;
+            x2 = x1 + (drawable.y1 - y1) * (x2 - x1) / (y2 - y1);
+            y2 = drawable.y1;
+        }
+        if (y2 > drawable.y2)
+        {
+            if (y1 >= y2)
+                return;
+            x2 = x1 + (drawable.y2 - y1) * (x1 - x2) / (y1 - y2);
+            y2 = drawable.y2;
+        }
+    }
+
     size  dx = x1 > x2 ? x1 - x2 : x2 - x1;
     size  dy = y1 > y2 ? y1 - y2 : y2 - y1;
     int   sx = x2 < x1 ? -1 : 1;

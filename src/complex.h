@@ -50,7 +50,7 @@ struct complex : algebraic
 {
     typedef settings::angles angle_unit;
 
-    complex(algebraic_r x, algebraic_r y, id type): algebraic(type)
+    complex(id type, algebraic_r x, algebraic_r y): algebraic(type)
     {
         byte *p = (byte *) payload(this);
         size_t xs = x->size();
@@ -103,6 +103,7 @@ public:
     SIZE_DECL(complex);
     PARSE_DECL(complex);
     PREC_DECL(COMPLEX);
+    HELP_DECL(complex);
 
 public:
     // Complex implementation for main functions
@@ -155,8 +156,8 @@ struct rectangular : complex
 //   Rectangular representation for complex numbers
 // ----------------------------------------------------------------------------
 {
-    rectangular(algebraic_r re, algebraic_r im, id type = ID_rectangular)
-        : complex(re, im, type) {}
+    rectangular(id type, algebraic_r re, algebraic_r im)
+        : complex(type, re, im) {}
 
     algebraic_g re()  const     { return x(); }
     algebraic_g im()  const     { return y(); }
@@ -185,8 +186,8 @@ struct polar : complex
 //   Polar representation for complex numbers
 // ----------------------------------------------------------------------------
 {
-    polar(algebraic_r mod, algebraic_r pifrac, id type = ID_polar)
-        : complex(mod, pifrac, type) {}
+    polar(id type, algebraic_r mod, algebraic_r pifrac)
+        : complex(type, mod, pifrac) {}
 
     algebraic_g re()  const;
     algebraic_g im()  const;

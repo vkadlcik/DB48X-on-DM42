@@ -80,6 +80,10 @@ struct settings
           base(16),
           wordsize(64),
           maxbignum(1024),
+          maxsolve(1024),
+          maxinteg(10),
+          solveprec(24),
+          integprec(24),
           maxrewrites(100),
           fraciter(10),
           fracprec(12),
@@ -87,6 +91,7 @@ struct settings
           show_decimal(true),
           fancy_exponent(true),
           auto_simplify(true),
+          numeric(false),
           show_time(true),
           show_24h(true),
           show_seconds(true),
@@ -97,6 +102,7 @@ struct settings
           menu_single_ln(false),
           menu_flatten(false),
           menu_square(false),
+          graph_stack(false),
           date_separator('/'),
           result_sz(STACK),
           stack_sz(STACK),
@@ -184,6 +190,10 @@ public:
     uint8_t  base;              // The default base for #numbers
     size_t   wordsize;          // Wordsize for binary numbers (in bits)
     size_t   maxbignum;         // Maximum size for a bignum (in bits)
+    size_t   maxsolve;          // Maximum number of iterations for solver
+    size_t   maxinteg;          // Maximum number of iterations for integration
+    uint16_t solveprec;         // Precision of solver in digits
+    uint16_t integprec;         // Precision of integration in digits
     uint16_t maxrewrites;       // Maximum number of rewrites
     uint16_t fraciter;          // Number of iterations for ->Q
     uint16_t fracprec;          // Number of digits for ->Q
@@ -191,6 +201,7 @@ public:
     bool     show_decimal   :1; // Show decimal dot for integral real numbers
     bool     fancy_exponent :1; // Show exponent with fancy superscripts
     bool     auto_simplify  :1; // Automatically simplify symbolic results
+    bool     numeric        :1; // Convert results to numeric values
     bool     show_time      :1; // Show time in status bar
     bool     show_24h       :1; // Show 24-hours clock
     bool     show_seconds   :1; // Show seconds in status bar
@@ -201,6 +212,7 @@ public:
     bool     menu_single_ln :1; // Single-line menu
     bool     menu_flatten   :1; // Show same menu entries with shift
     bool     menu_square    :1; // Square or rounded menus
+    bool     graph_stack    :1; // Graphical rendering on stack
     char     date_separator;    // Date separator
     font_id  result_sz;         // Size for stack top
     font_id  stack_sz;          // Size for other stack levels
@@ -225,7 +237,7 @@ extern settings Settings;
         EVAL_DECL(derived)                              \
         {                                               \
             rt.command(fancy(ID_##derived));            \
-            ui.menuNeedsRefresh();                   \
+            ui.menu_refresh();                          \
             return evaluate();                          \
         }                                               \
         EXEC_DECL(derived)                              \
@@ -261,6 +273,7 @@ extern settings Settings;
 
 
 COMMAND_DECLARE(Modes);
+COMMAND_DECLARE(ResetModes);
 
 SETTINGS_COMMAND_DECLARE(Std);
 SETTINGS_COMMAND_DECLARE(Fix);
@@ -301,7 +314,6 @@ SETTINGS_COMMAND_DECLARE(StackFontSize);
 SETTINGS_COMMAND_DECLARE(EditorFontSize);
 SETTINGS_COMMAND_DECLARE(EditorMultilineFontSize);
 
-COMMAND_DECLARE(NumberSpacing);
 SETTINGS_COMMAND_DECLARE(MantissaSpacing);
 SETTINGS_COMMAND_DECLARE(FractionSpacing);
 SETTINGS_COMMAND_DECLARE(BasedSpacing);
@@ -317,6 +329,8 @@ SETTINGS_COMMAND_DECLARE(BasedUnderscore);
 
 SETTINGS_COMMAND_DECLARE(AutoSimplify);
 SETTINGS_COMMAND_DECLARE(NoAutoSimplify);
+SETTINGS_COMMAND_DECLARE(NumericResults);
+SETTINGS_COMMAND_DECLARE(SymbolicResults);
 
 SETTINGS_COMMAND_DECLARE(MaxBigNumBits);
 SETTINGS_COMMAND_DECLARE(MaxRewrites);
@@ -334,5 +348,7 @@ SETTINGS_COMMAND_DECLARE(LineWidth);
 SETTINGS_COMMAND_DECLARE(Foreground);
 SETTINGS_COMMAND_DECLARE(Background);
 
+SETTINGS_COMMAND_DECLARE(GraphicsStackDisplay);
+SETTINGS_COMMAND_DECLARE(TextStackDisplay);
 
 #endif // SETTINGS_H

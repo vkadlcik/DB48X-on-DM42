@@ -42,11 +42,11 @@
 
 RECORDER(bignum, 16, "Bignums");
 
-bignum::bignum(integer_g value, id type)
+bignum::bignum(id type, integer_g value)
 // ----------------------------------------------------------------------------
 //   Create a bignum from an integer value
 // ----------------------------------------------------------------------------
-    : text(value->payload(), bytesize(value), type)
+    : text(type, value->payload(), bytesize(value))
 {
     byte *p = (byte *) payload();
     size_t sz = leb128<size_t>(p);
@@ -111,6 +111,15 @@ PARSE_BODY(bignum)
 }
 
 
+HELP_BODY(bignum)
+// ----------------------------------------------------------------------------
+//    Help topic for big integers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Big integers");
+}
+
+
 static size_t render_num(renderer &r,
                          bignum_p  num,
                          uint      base,
@@ -147,11 +156,12 @@ static size_t render_num(renderer &r,
     // Copy the '#' or '-' sign
     if (*fmt)
         r.put(*fmt++);
+    else
+        r.flush();
 
     // Get denominator for the base
-    object::id ntype = num->type();
     size_t findex = r.size();
-    bignum_g b = rt.make<bignum>(ntype, base);
+    bignum_g b = rt.make<bignum>(object::ID_bignum, base);
     bignum_g n = (bignum *) num;
 
     // Keep dividing by the base until we get 0

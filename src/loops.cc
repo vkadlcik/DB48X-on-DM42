@@ -63,7 +63,7 @@ SIZE_BODY(loop)
 }
 
 
-loop::loop(object_g body, symbol_g name, id type)
+loop::loop(id type, object_g body, symbol_g name)
 // ----------------------------------------------------------------------------
 //   Constructor for loops
 // ----------------------------------------------------------------------------
@@ -94,11 +94,11 @@ SIZE_BODY(conditional_loop)
 }
 
 
-conditional_loop::conditional_loop(object_g first, object_g second, id type)
+conditional_loop::conditional_loop(id type, object_g first, object_g second)
 // ----------------------------------------------------------------------------
 //   Constructor for conditional loops
 // ----------------------------------------------------------------------------
-    : loop(first, nullptr, type)
+    : loop(type, first, nullptr)
 {
     size_t fsize = first->size();
     byte *p = (byte *) payload() + fsize;
@@ -178,6 +178,11 @@ object::result loop::object_parser(parser  &p,
                 && (len >= remaining ||
                     command::is_separator(utf8(src) + len)))
             {
+                if (loopvar && sep != open)
+                {
+                    rt.missing_variable_error().source(src);
+                    return ERROR;
+                }
                 src += len;
                 found = true;
                 continue;
@@ -196,6 +201,11 @@ object::result loop::object_parser(parser  &p,
                     && (len2 >= remaining ||
                         command::is_separator(utf8(src) + len2)))
                 {
+                    if (loopvar && sep != open)
+                    {
+                        rt.missing_variable_error().source(src);
+                        return ERROR;
+                    }
                     src += len;
                     found = true;
                     type = id2;
@@ -358,6 +368,7 @@ intptr_t loop::object_renderer(renderer &r,
     // Emit closing separator
     r.unindent();
     r.put(format, utf8(close));
+    r.wantCR();
 
     return r.size();
 }

@@ -43,10 +43,10 @@
 //        [...]
 //        [Local 0]
 //      Locals
-//        [undo N]
-//        [...]
-//        [undo 1, a list captured from the stack]
-//      Undos
+//        [Last stack from command-line evaluation]
+//      Undo
+//        [Arguments to last command]
+//      Args
 //        [User stack]
 //      Stack        Top of stack
 //        .
@@ -81,9 +81,12 @@
 
 
 struct object;                  // RPL object
-struct directory;
+struct directory;               // Directory (storing global variables)
+struct symbol;                  // Symbols (references to a directory)
+struct text;
 typedef const object *object_p;
 typedef const directory *directory_p;
+typedef const text *text_p;
 
 RECORDER_DECLARE(runtime);
 RECORDER_DECLARE(runtime_error);
@@ -212,7 +215,7 @@ struct runtime
     // ------------------------------------------------------------------------
 
 
-    utf8 close_editor(bool convert = false);
+    text_p close_editor(bool convert = false);
     // ------------------------------------------------------------------------
     //   Close the editor and encapsulate its content in a temporary string
     // ------------------------------------------------------------------------
@@ -260,7 +263,7 @@ struct runtime
     }
 
 
-    void remove(size_t offset, size_t len);
+    size_t remove(size_t offset, size_t len);
     // ------------------------------------------------------------------------
     //   Remove characers from the editor
     // ------------------------------------------------------------------------
@@ -531,8 +534,58 @@ struct runtime
     //   Return the stack depth
     // ------------------------------------------------------------------------
     {
-        return Undos - Stack;
+        return Args - Stack;
     }
+
+
+
+    // ========================================================================
+    //
+    //   Last Args and Undo
+    //
+    // ========================================================================
+
+    bool args(uint count);
+    // ------------------------------------------------------------------------
+    //   Indicate how many arguments we need to save in last args
+    // ------------------------------------------------------------------------
+
+    size_t args() const
+    // ------------------------------------------------------------------------
+    //   Return the number of args in the Args area
+    // ------------------------------------------------------------------------
+    {
+        return Undo - Args;
+    }
+
+    bool last();
+    // ------------------------------------------------------------------------
+    //   Push back last arguments
+    // ------------------------------------------------------------------------
+
+    bool last(uint index);
+    // ------------------------------------------------------------------------
+    //   Push back last argument
+    // ------------------------------------------------------------------------
+
+
+    bool save();
+    // ------------------------------------------------------------------------
+    //  Save the state for undo
+    // ------------------------------------------------------------------------
+
+    size_t saved() const
+    // ------------------------------------------------------------------------
+    //   Return the size of the stack save area
+    // ------------------------------------------------------------------------
+    {
+        return Locals - Undo;
+    }
+
+    bool undo();
+    // ------------------------------------------------------------------------
+    //   Undo and return earlier stack
+    // ------------------------------------------------------------------------
 
 
 
@@ -569,6 +622,7 @@ struct runtime
     {
         return Directories - Locals;
     }
+
 
 
     // ========================================================================
@@ -679,14 +733,10 @@ struct runtime
         return ErrorSource;
     }
 
-    runtime &command(utf8 cmd)
+    runtime &command(utf8 cmd);
     // ------------------------------------------------------------------------
     //   Set the faulting command
     // ------------------------------------------------------------------------
-    {
-        ErrorCommand = cmd;
-        return *this;
-    }
 
     runtime &command(cstring cmd)
     // ------------------------------------------------------------------------
@@ -747,8 +797,9 @@ protected:
     size_t    Editing;      // Text editor (utf8 encoded)
     size_t    Scratch;      // Scratch pad (may be invalid objects)
     object_p *Stack;        // Top of user stack
-    object_p *Undos;        // Start of Undos area, end of stack
-    object_p *Locals;       // Start of locals, end of undos
+    object_p *Args;     // Start of save area for last arguments
+    object_p *Undo;         // Start of undo stack
+    object_p *Locals;       // Start of locals, end of undo
     object_p *Directories;  // Start of directories, end of returns
     object_p *Returns;      // Start of return stack, end of locals
     object_p *HighMem;      // End of available memory
@@ -770,7 +821,7 @@ using gcutf8    = gcp<byte>;
 using gcmutf8   = gcm<byte>;
 
 using object_g  = gcp<object>;
-typedef const object_g &object_r;
+using object_r  = const object_g &;
 
 #define GCP(T)                                  \
     struct T;                                   \
@@ -806,8 +857,9 @@ inline void *operator new(size_t UNUSED size, Obj *where)
 }
 
 
-template <typename Obj, typename ... Args>
-const Obj *runtime::make(typename Obj::id type, const Args &... args)
+template <typename Obj, typename ... ArgsT>
+const Obj *runtime::make(typename Obj::id type, const
+                         ArgsT &... args)
 // ----------------------------------------------------------------------------
 //   Make a new temporary of the given size
 // ----------------------------------------------------------------------------
@@ -829,7 +881,7 @@ const Obj *runtime::make(typename Obj::id type, const Args &... args)
 
     // Initialize the object in place (may GC and move result)
     gcbytes ptr = (byte *) result;
-    new(result) Obj(args..., type);
+    new(result) Obj(type, args...);
     result = (Obj *) ptr.Safe();
 
 #ifdef SIMULATOR
@@ -841,8 +893,8 @@ const Obj *runtime::make(typename Obj::id type, const Args &... args)
 }
 
 
-template <typename Obj, typename ... Args>
-const Obj *runtime::make(const Args &... args)
+template <typename Obj, typename ... ArgsT>
+const Obj *runtime::make(const ArgsT &... args)
 // ----------------------------------------------------------------------------
 //   Make a new temporary of the given size
 // ----------------------------------------------------------------------------

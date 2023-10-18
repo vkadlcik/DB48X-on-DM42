@@ -53,8 +53,7 @@ struct symbol : text
 //    Represent symbol objects
 // ----------------------------------------------------------------------------
 {
-    symbol(gcutf8 source, size_t len, id type = ID_symbol):
-        text(source, len, type)
+    symbol(id type, gcutf8 source, size_t len): text(type, source, len)
     { }
 
     static symbol_g make(char c)
@@ -69,6 +68,7 @@ struct symbol : text
 
     object_p recall(bool noerror = true) const;
     bool     store(object_g obj) const;
+    bool     is_same_as(symbol_p other) const;
 
 public:
     OBJECT_DECL(symbol);

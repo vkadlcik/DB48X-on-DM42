@@ -31,6 +31,8 @@
 
 #include "arithmetic.h"
 #include "compare.h"
+#include "equation.h"
+#include "functions.h"
 #include "graphics.h"
 #include "program.h"
 #include "sysmenu.h"
@@ -38,136 +40,13 @@
 #include "variables.h"
 
 
-COMMAND_BODY(Function)
+void draw_axes(const PlotParameters &ppar)
 // ----------------------------------------------------------------------------
-//   Set function plot type
-// ----------------------------------------------------------------------------
-{
-    return OK;
-}
-
-
-COMMAND_BODY(Parametric)
-// ----------------------------------------------------------------------------
-//   Set parametric plot type
+//   Draw axes
 // ----------------------------------------------------------------------------
 {
-    return OK;
-}
-
-
-COMMAND_BODY(Polar)
-// ----------------------------------------------------------------------------
-//   Set polar plot type
-// ----------------------------------------------------------------------------
-{
-    return OK;
-}
-
-
-object::result DrawFunctionPlot(const PlotParameters &ppar)
-// ----------------------------------------------------------------------------
-//   Draw a function plot
-// ----------------------------------------------------------------------------
-{
-    algebraic_g step = ppar.resolution;
-    if (step->is_zero())
-        step = (ppar.xmax - ppar.xmin) / integer::make(ScreenWidth());
-    algebraic_g x  = ppar.xmin;
-    object_g    eq = directory::recall_all(symbol::make("eq"));
-    if (!eq)
-        return object::ERROR;
-
-    coord lx   = -1;
-    coord ly   = -1;
-    uint  then = sys_current_ms();
-    while (!program::interrupted())
-    {
-        coord rx = ppar.pixel_x(x);
-        if (!rt.push(x.Safe()))
-            return object::ERROR;
-        object::result err = eq->execute();
-        if (err != object::OK)
-            return err;
-
-        algebraic_g y = algebraic_p(rt.pop());
-        if (!y || !y->is_algebraic())
-            return object::ERROR;
-        coord ry = ppar.pixel_y(y);
-
-        if (lx >= 0)
-        {
-            Screen.line(lx,ly,rx,ry, Settings.line_width, Settings.foreground);
-            ui.draw_dirty(lx, ly, rx, ry);
-            uint now = sys_current_ms();
-            if (then - now > 50)
-            {
-                then = now;
-                refresh_dirty();
-                ui.draw_clean();
-            }
-        }
-        lx = rx;
-        ly = ry;
-        x = x + step;
-        algebraic_g cmp = x > ppar.xmax;
-        if (!cmp)
-            return object::ERROR;
-        if (cmp->as_truth(false))
-            break;
-    }
-
-    refresh_dirty();
-
-    return object::OK;
-}
-
-
-object::result DrawParametricPlot(const PlotParameters &ppar)
-// ----------------------------------------------------------------------------
-//   Draw a parametric plot
-// ----------------------------------------------------------------------------
-{
-    return object::OK;
-}
-
-
-object::result DrawPolarPlot(const PlotParameters &ppar)
-// ----------------------------------------------------------------------------
-//   Draw a polar plot
-// ----------------------------------------------------------------------------
-{
-    return object::OK;
-}
-
-
-COMMAND_BODY(Draw)
-// ----------------------------------------------------------------------------
-//   Draw plot in EQ according to PPAR
-// ----------------------------------------------------------------------------
-{
-    PlotParameters ppar;
-    switch(ppar.type)
-    {
-    default:
-    case ID_Function:   return DrawFunctionPlot(ppar);
-    case ID_Parametric: return DrawParametricPlot(ppar);
-    case ID_Polar:      return DrawPolarPlot(ppar);
-
-    }
-    rt.invalid_plot_type_error();
-    return ERROR;
-}
-
-
-COMMAND_BODY(Drax)
-// ----------------------------------------------------------------------------
-//   Draw plot axes
-// ----------------------------------------------------------------------------
-{
-    PlotParameters ppar;
-    blitter::size w = Screen.area().width();
-    blitter::size h = Screen.area().height();
+    coord w = Screen.area().width();
+    coord h = Screen.area().height();
     coord x = ppar.pixel_adjust(ppar.xorigin.Safe(), ppar.xmin, ppar.xmax, w);
     coord y = ppar.pixel_adjust(ppar.yorigin.Safe(), ppar.ymin, ppar.ymax, h);
 
@@ -197,6 +76,204 @@ COMMAND_BODY(Drax)
         Screen.fill(w - 3*(i+1), y - i, w - 3*i, y + i, pat);
         Screen.fill(x - i, 3*i, x + i, 3*(i+1), pat);
     }
+
+    ui.draw_dirty(0, 0, w, h);
+}
+
+
+object::result draw_plot(object::id            kind,
+                         const PlotParameters &ppar,
+                         object_g              eq = nullptr)
+// ----------------------------------------------------------------------------
+//  Draw an equation that takes input from the stack
+// ----------------------------------------------------------------------------
+{
+    bool           isFn   = kind == object::ID_Function;
+    algebraic_g    x      = isFn ? ppar.xmin : ppar.imin;
+    object::result result = object::ERROR;
+    coord          lx     = -1;
+    coord          ly     = -1;
+    uint           then   = sys_current_ms();
+    algebraic_g    step   = ppar.resolution;
+    if (step->is_zero())
+        step = (isFn
+                ? (ppar.xmax - ppar.xmin)
+                : (ppar.imax - ppar.imin))
+            / integer::make(ScreenWidth());
+
+    if (!eq)
+    {
+        eq = directory::recall_all(symbol::make("eq"));
+        if (!eq)
+            return object::ERROR;
+    }
+
+    save<symbol_g *> iref(equation::independent,
+                          (symbol_g *) &ppar.independent);
+    if (ui.draw_graphics())
+        draw_axes(ppar);
+
+    while (!program::interrupted())
+    {
+        coord  rx = 0, ry = 0;
+        algebraic_g y = algebraic::evaluate_function(eq, x);
+        if (y)
+        {
+            switch(kind)
+            {
+            default:
+                case object::ID_Function:
+                rx = ppar.pixel_x(x);
+                ry = ppar.pixel_y(y);
+                break;
+            case object::ID_Polar:
+            {
+                algebraic_g i = rectangular::make(integer::make(0),
+                                                  integer::make(1));
+                y = y * exp::run(i * x);
+            }
+            // Fall-through
+            case object::ID_Parametric:
+                if (y->is_real())
+                    y = rectangular::make(y, integer::make(0));
+                if (y)
+                {
+                    if (algebraic_g cx = y->algebraic_child(0))
+                        rx = ppar.pixel_x(cx);
+                    if (algebraic_g cy = y->algebraic_child(1))
+                        ry = ppar.pixel_y(cy);
+                }
+                break;
+            }
+        }
+
+        if (y)
+        {
+            if (lx < 0)
+            {
+                lx = rx;
+                ly = ry;
+            }
+            Screen.line(lx,ly,rx,ry, Settings.line_width, Settings.foreground);
+            ui.draw_dirty(lx, ly, rx, ry);
+            uint now = sys_current_ms();
+            if (now - then > 500)
+            {
+                then = now;
+                refresh_dirty();
+                ui.draw_clean();
+            }
+            lx = rx;
+            ly = ry;
+        }
+        else
+        {
+            if (!rt.error())
+                rt.invalid_function_error();
+            Screen.text(0, 0, rt.error(), ErrorFont,
+                        pattern::white, pattern::black);
+            ui.draw_dirty(0, 0, LCD_W, ErrorFont->height());
+            refresh_dirty();
+            ui.draw_clean();
+            lx = ly = -1;
+            rt.clear_error();
+        }
+        x = x + step;
+        algebraic_g cmp = x > (isFn ? ppar.xmax : ppar.imax);
+        if (!cmp)
+            goto err;
+        if (cmp->as_truth(false))
+            break;
+    }
+    result = object::OK;
+
+err:
+    refresh_dirty();
+    return result;
+}
+
+
+COMMAND_BODY(Function)
+// ----------------------------------------------------------------------------
+//   Draw plot from function on the stack taking stack arguments
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    if (object_g eq = rt.pop())
+    {
+        PlotParameters ppar;
+        return draw_plot(ID_Function, ppar, eq);
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(Parametric)
+// ----------------------------------------------------------------------------
+//   Draw plot from function on the stack taking stack arguments
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    if (object_g eq = rt.pop())
+    {
+        PlotParameters ppar;
+        return draw_plot(ID_Parametric, ppar, eq);
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(Polar)
+// ----------------------------------------------------------------------------
+//   Set polar plot type
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    if (object_g eq = rt.pop())
+    {
+        PlotParameters ppar;
+        return draw_plot(ID_Polar, ppar, eq);
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(Draw)
+// ----------------------------------------------------------------------------
+//   Draw plot in EQ according to PPAR
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(0))
+        return ERROR;
+    PlotParameters ppar;
+    switch(ppar.type)
+    {
+    default:
+    case ID_Function:
+    case ID_Parametric:
+    case ID_Polar:
+        return draw_plot(ppar.type, ppar);
+    }
+    rt.invalid_plot_type_error();
+    return ERROR;
+}
+
+
+COMMAND_BODY(Drax)
+// ----------------------------------------------------------------------------
+//   Draw plot axes
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(0))
+        return ERROR;
+    ui.draw_graphics();
+
+    PlotParameters ppar;
+    draw_axes(ppar);
+    refresh_dirty();
 
     return OK;
 }

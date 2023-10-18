@@ -39,9 +39,11 @@
 RECORDER(options, 32, "Information about command line options");
 
 bool run_tests = false;
-bool db48x_keyboard = false;
+bool db48x_keyboard = true;
+uint memory_size = 40;           // Memory size in kilobytes
 extern uint wait_time;
 extern uint delay_time;
+
 
 
 size_t recorder_render_object(intptr_t tracing,
@@ -139,6 +141,12 @@ int main(int argc, char *argv[])
                     delay_time = atoi(argv[a]+2);
                 else if (a < argc)
                     delay_time = atoi(argv[++a]);
+                break;
+            case 'm':
+                if (argv[a][2])
+                    memory_size = atoi(argv[a]+2);
+                else if (a < argc)
+                    memory_size = atoi(argv[++a]);
                 break;
             }
         }

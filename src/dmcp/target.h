@@ -43,6 +43,9 @@ enum target
     LCD_SCANLINE   = 416,
 };
 
+// We need to reverse grobs during parsing and rendering
+#define REVERSE_GROBS
+
 using surface = blitter::surface<blitter::mode::MONOCHROME_REVERSE>;
 using color   = blitter::color  <blitter::mode::MONOCHROME_REVERSE>;
 using pattern = blitter::pattern<blitter::mode::MONOCHROME_REVERSE>;

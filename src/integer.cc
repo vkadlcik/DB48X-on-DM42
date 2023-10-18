@@ -52,6 +52,15 @@ SIZE_BODY(integer)
 }
 
 
+HELP_BODY(integer)
+// ----------------------------------------------------------------------------
+//   Help topic for integers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Integers");
+}
+
+
 PARSE_BODY(integer)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an integer
@@ -123,51 +132,66 @@ PARSE_BODY(integer)
             switch (endp[-1])
             {
             case 'b':
+#ifdef CONFIG_UPPERCASE_BASE_SUFFIXES
             case 'B':
+#endif // CONFIG_UPPERCASE_BASE_SUFFIXES
                 if (max < 2)
                 {
                     base = 2;
+                    endp--;
 #if CONFIG_FIXED_BASED_OBJECTS
                     type = ID_bin_integer;
 #endif // CONFIG_FIXED_BASED_OBJECTS
 
                 }
                 else
-                    endp++;
+                {
+                    endp = nullptr;
+                }
                 break;
-            case 'O':
             case 'o':
+#ifdef CONFIG_UPPERCASE_BASE_SUFFIXES
+            case 'O':
+#endif // CONFIG_UPPERCASE_BASE_SUFFIXES
                 base = 8;
+                endp--;
 #if CONFIG_FIXED_BASED_OBJECTS
                 type = ID_oct_integer;
 #endif // CONFIG_FIXED_BASED_OBJECTS
                 break;
             case 'd':
+#ifdef CONFIG_UPPERCASE_BASE_SUFFIXES
             case 'D':
+#endif // CONFIG_UPPERCASE_BASE_SUFFIXES
                 if (max < 10)
                 {
                     base = 10;
+                    endp--;
 #if CONFIG_FIXED_BASED_OBJECTS
                     type = ID_dec_integer;
 #endif // CONFIG_FIXED_BASED_OBJECTS
                 }
                 else
-                    endp++;
+                {
+                    endp = nullptr;
+                }
                 break;
-            case 'H':
             case 'h':
+#ifdef CONFIG_UPPERCASE_BASE_SUFFIXES
+            case 'H':
+#endif // CONFIG_UPPERCASE_BASE_SUFFIXES
                 base = 16;
+                endp--;
 #if CONFIG_FIXED_BASED_OBJECTS
                 type = ID_hex_integer;
 #endif // CONFIG_FIXED_BASED_OBJECTS
                 break;
             default:
                 // Use current default base
-                endp++;
+                endp = nullptr;
                 break;
             }
-            endp--;
-            if (s >= endp)
+            if (endp && s >= endp)
             {
                 rt.based_number_error().source(s);
                 return ERROR;
@@ -388,6 +412,8 @@ static size_t render_num(renderer &r,
     // Copy the '#' or '-' sign
     if (*fmt)
         r.put(*fmt++);
+    else
+        r.flush();
 
     // Get denominator for the base
     size_t findex = r.size();
@@ -446,6 +472,15 @@ RENDER_BODY(integer)
 
 
 template <>
+HELP_BODY(neg_integer)
+// ------------------------------------------------------------------------
+//   Help topic for negative integers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Integers");
+}
+
+template <>
 RENDER_BODY(neg_integer)
 // ----------------------------------------------------------------------------
 //   Render the negative integer value into the given string buffer
@@ -491,6 +526,43 @@ RENDER_BODY(bin_integer)
 {
     return render_num(r, o, 2, "#b");
 }
+
+template <>
+HELP_BODY(hex_integer)
+// ----------------------------------------------------------------------------
+//   Help topic for based numbers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Based numbers");
+}
+
+template <>
+HELP_BODY(oct_integer)
+// ----------------------------------------------------------------------------
+//   Help topic for based numbers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Based numbers");
+}
+
+template <>
+HELP_BODY(dec_integer)
+// ----------------------------------------------------------------------------
+//   Help topic for based numbers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Based numbers");
+}
+
+template <>
+HELP_BODY(bin_integer)
+// ----------------------------------------------------------------------------
+//   Help topic for based numbers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Based numbers");
+}
+
 #endif // CONFIG_FIXED_BASED_OBJECTS
 
 
@@ -501,6 +573,16 @@ RENDER_BODY(based_integer)
 // ----------------------------------------------------------------------------
 {
     return render_num(r, o, Settings.base, "#");
+}
+
+
+template <>
+HELP_BODY(based_integer)
+// ----------------------------------------------------------------------------
+//   Help topic for based numbers
+// ----------------------------------------------------------------------------
+{
+    return utf8("Based numbers");
 }
 
 

@@ -63,7 +63,7 @@ struct integer : algebraic
 // ----------------------------------------------------------------------------
 {
     template <typename Int>
-    integer(Int value, id type = ID_integer): algebraic(type)
+    integer(id type, Int value): algebraic(type)
     {
         byte *p = (byte *) payload(this);
         leb128(p, value);
@@ -75,7 +75,7 @@ struct integer : algebraic
         return leb128size(i) + leb128size(value);
     }
 
-    integer(gcbytes ptr, size_t size, id type = ID_integer): algebraic(type)
+    integer(id type, gcbytes ptr, size_t size): algebraic(type)
     {
         byte *p = (byte *) payload(this);
         memmove(p, byte_p(ptr), size);
@@ -121,6 +121,7 @@ public:
     OBJECT_DECL(integer);
     PARSE_DECL(integer);
     SIZE_DECL(integer);
+    HELP_DECL(integer);
     RENDER_DECL(integer);
 };
 
@@ -132,13 +133,15 @@ struct special_integer : integer
 // ----------------------------------------------------------------------------
 {
     template <typename Int>
-    special_integer(Int value, id type = Type): integer(value, type) {}
+    special_integer(id type, Int value): integer(type, value) {}
 
 public:
     static const id static_id = Type;
     PARSE_DECL(special_integer)         { return SKIP; }
     RENDER_DECL(special_integer);
+    HELP_DECL(special_integer);
 };
+
 
 using neg_integer   = special_integer<object::ID_neg_integer>;
 #if CONFIG_FIXED_BASED_OBJECTS

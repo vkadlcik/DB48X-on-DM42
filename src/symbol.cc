@@ -46,11 +46,8 @@ EVAL_BODY(symbol)
 //   Evaluate a symbol by looking it up
 // ----------------------------------------------------------------------------
 {
-    size_t depth = rt.directories();
-    for (uint d = 0; d < depth; d++)
-        if (directory_p dir = rt.variables(d))
-            if (object_p found = dir->recall(o))
-                return found->execute();
+    if (object_p found = directory::recall_all(o))
+        return found->execute();
     if (object_g eq = equation::make(o))
         if (rt.push(eq))
             return OK;
@@ -92,7 +89,6 @@ PARSE_BODY(symbol)
     // Other characters must be alphabetic
     while (is_valid_in_name(s))
         s = utf8_next(s);
-
 
     size_t parsed = s - source;
     gcutf8 text   = source;
@@ -157,4 +153,18 @@ bool symbol::store(object_g value) const
     directory *dir = rt.variables(0);
     object_g name = this;
     return dir->store(name, value);
+}
+
+
+bool symbol::is_same_as(symbol_p other) const
+// ----------------------------------------------------------------------------
+//   Return true of two symbols represent the same thing
+// ----------------------------------------------------------------------------
+{
+    size_t sz, osz;
+    utf8 txt = value(&sz);
+    utf8 otxt = other->value(&osz);
+    if (sz != osz)
+        return false;
+    return strncasecmp(cstring(txt), cstring(otxt), sz) == 0;
 }

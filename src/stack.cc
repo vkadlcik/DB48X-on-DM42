@@ -30,6 +30,7 @@
 #include "stack.h"
 
 #include "blitter.h"
+#include "grob.h"
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
@@ -81,13 +82,13 @@ void stack::draw_stack()
     size   lineHeight = font->height();
     size   idxHeight  = idxfont->height();
     coord  top        = hdrfont->height() + 2;
-    coord  bottom     = ui.stack_screen_bottom() - 1;
+    coord  bottom     = ui.stack_screen_bottom();
     uint   depth      = rt.depth();
     uint   digits     = countDigits(depth);
     coord  hdrx       = idxfont->width('0') * digits + 2;
     size   avail      = LCD_W - hdrx - 5;
 
-    Screen.fill(0, top, LCD_W, bottom - 1, pattern::white);
+    Screen.fill(0, top, LCD_W, bottom, pattern::white);
     if (!depth)
         return;
 
@@ -95,7 +96,10 @@ void stack::draw_stack()
 
     Screen.fill(hdrx, top, hdrx, bottom, pattern::gray50);
     if (rt.editing())
+    {
+        bottom--;
         Screen.fill(0, bottom, LCD_W, bottom, pattern::gray50);
+    }
 
     char buf[8];
     coord y = bottom;
@@ -106,56 +110,94 @@ void stack::draw_stack()
 #endif
     for (uint level = 0; level < depth; level++)
     {
-        y -= lineHeight;
-        if (y + lineHeight  <= top)
+        if (coord(y) <= top)
             break;
 
+        grob_g   graph = nullptr;
+        object_g obj   = rt.stack(level);
+        size     w = 0;
+        if (Settings.graph_stack)
+        {
+            auto fid = !level ? Settings.result_sz : Settings.stack_sz;
+            grapher  g(avail, bottom - top, fid);
+            graph = obj->graph(g);
+            lineHeight = graph->height();
+            w = graph->width();
+
+#ifdef SIMULATOR
+            if (level == 0)
+            {
+                renderer r(nullptr, ~0U, true);
+                size_t   len = obj->render(r);
+                utf8     out = r.text();
+                output(last_key, obj->type(), out, len);
+                record(tests,
+                       "Key %d X-reg %+s size %u %s",
+                       last_key, object::name(obj->type()), len, out);
+            }
+#endif // SIMULATOR
+        }
+
+        y -= lineHeight;
         coord ytop = y < top ? top : y;
         coord yb   = y + lineHeight-1;
         Screen.clip(0, ytop, LCD_W, yb);
 
         size idxOffset = (lineHeight - idxHeight) / 2;
         snprintf(buf, sizeof(buf), "%d", level + 1);
-        size w = idxfont->width(utf8(buf));
-        Screen.text(hdrx - w, y + idxOffset, utf8(buf), idxfont);
+        size hw = idxfont->width(utf8(buf));
+        Screen.text(hdrx - hw, y + idxOffset, utf8(buf), idxfont);
 
-        object_g obj = rt.stack(level);
-        renderer r(nullptr, ~0U, true);
-        size_t   len = obj->render(r);
-        utf8     out = r.text();
-#ifdef SIMULATOR
-        if (level == 0)
+        if (graph)
         {
-            output(last_key, obj->type(), out, len);
-            record(tests,
-                   "Key %d X-reg %+s size %u %s",
-                   last_key, object::name(obj->type()), len, out);
-        }
-#endif
-
-        w = font->width(out, len);
-        if (w > avail)
-        {
-            unicode sep   = L'…';
-            coord   x     = hdrx + 5;
-            coord   split = 200;
-            coord   skip  = font->width(sep) * 3 / 2;
-            size    offs  = lineHeight / 5;
-
-            Screen.clip(x, ytop, split, yb);
-            Screen.text(x, y, out, len, font);
-            Screen.clip(split, ytop, split + skip, yb);
-            Screen.glyph(split + skip/8, y - offs, sep, font, pattern::gray50);
-            Screen.clip(split+skip, y, LCD_W, yb);
-            Screen.text(LCD_W - w, y, out, len, font);
+            surface s = graph->pixels();
+            rect r = s.area();
+            point p(0, 0);
+            r.offset(LCD_W - w, y);
+            blitter::blit<blitter::CLIP_ALL>(Screen, s, r, p,
+                                             blitter::blitop_or,
+                                             pattern::black);
         }
         else
         {
-            Screen.text(LCD_W - w, y, out, len, font);
-        }
+            // Text rendering
+            renderer r(nullptr, ~0U, true);
+            size_t   len = obj->render(r);
+            utf8     out = r.text();
+#ifdef SIMULATOR
+            if (level == 0)
+            {
+                output(last_key, obj->type(), out, len);
+                record(tests,
+                       "Key %d X-reg %+s size %u %s",
+                       last_key, object::name(obj->type()), len, out);
+            }
+#endif
+            w = font->width(out, len);
 
-        font = Settings.stack_font();
-        lineHeight = font->height();
+            if (w > avail)
+            {
+                unicode sep   = L'…';
+                coord   x     = hdrx + 5;
+                coord   split = 200;
+                coord   skip  = font->width(sep) * 3 / 2;
+                size    offs  = lineHeight / 5;
+
+                Screen.clip(x, ytop, split, yb);
+                Screen.text(x, y, out, len, font);
+                Screen.clip(split, ytop, split + skip, yb);
+                Screen.glyph(split + skip/8, y - offs, sep, font, pattern::gray50);
+                Screen.clip(split+skip, y, LCD_W, yb);
+                Screen.text(LCD_W - w, y, out, len, font);
+            }
+            else
+            {
+                Screen.text(LCD_W - w, y, out, len, font);
+            }
+
+            font = Settings.stack_font();
+            lineHeight = font->height();
+        }
     }
     Screen.clip(clip);
 }

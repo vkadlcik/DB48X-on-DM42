@@ -32,6 +32,7 @@
 #include "arithmetic.h"
 #include "bignum.h"
 #include "blitter.h"
+#include "grob.h"
 #include "integer.h"
 #include "list.h"
 #include "sysmenu.h"
@@ -62,6 +63,8 @@ PlotParameters::PlotParameters()
       xmax(integer::make(10)),
       ymax(integer::make(6)),
       independent(symbol::make("x")),
+      imin(integer::make(-10)),
+      imax(integer::make(10)),
       dependent(symbol::make("y")),
       resolution(integer::make(0)),
       xorigin(integer::make(0)),
@@ -103,6 +106,22 @@ bool PlotParameters::parse(list_g parms)
             break;
 
         case 2:                 // Independent variable
+            if (list_g ilist = obj->as<list>())
+            {
+                int ok = 0;
+                if (object_p name = ilist->at(0))
+                    if (symbol_p sym = name->as<symbol>())
+                        ok++, independent = sym;
+                if (object_p obj = ilist->at(1))
+                    if (algebraic_p val = obj->as_algebraic())
+                        ok++, imin = val;
+                if (object_p obj = ilist->at(2))
+                    if (algebraic_p val = obj->as_algebraic())
+                        ok++, imax = val;
+                valid = ok == 3;
+                break;
+            }
+
         case 6:                 // Dependent variable
             if (symbol_g sym = obj->as<symbol>())
             {
@@ -289,7 +308,7 @@ coord PlotParameters::pixel_adjust(object_r    obj,
     case object::ID_bin_integer:
 #endif // CONFIG_FIXED_BASED_OBJECTS
     case object::ID_based_integer:
-        result = based_integer_p(obj.Safe())->value<coord>();
+        result = based_integer_p(obj.Safe())->value<ularge>();
         break;
 
 #if CONFIG_FIXED_BASED_OBJECTS
@@ -299,7 +318,7 @@ coord PlotParameters::pixel_adjust(object_r    obj,
     case object::ID_bin_bignum:
 #endif // CONFIG_FIXED_BASED_OBJECTS
     case object::ID_based_bignum:
-        result = based_bignum_p(obj.Safe())->value<coord>();
+        result = based_bignum_p(obj.Safe())->value<ularge>();
         break;
 
     default:
@@ -316,7 +335,7 @@ coord PlotParameters::pair_pixel_x(object_r pos) const
 //   Given a position (can be a complex, a list or a vector), return x
 // ----------------------------------------------------------------------------
 {
-    if (object_g x = pos->algebraic_child(0))
+    if (object_g x = pos->child(0))
         return pixel_adjust(x, xmin, xmax, Screen.area().width());
     return 0;
 }
@@ -327,8 +346,8 @@ coord PlotParameters::pair_pixel_y(object_r pos) const
 //   Given a position (can be a complex, a list or a vector), return y
 // ----------------------------------------------------------------------------
 {
-    if (object_g y = pos->algebraic_child(1))
-        return pixel_adjust(y, ymin, ymax, Screen.area().height());
+    if (object_g y = pos->child(1))
+        return pixel_adjust(y, ymax, ymin, Screen.area().height());
     return 0;
 }
 
@@ -349,7 +368,7 @@ coord PlotParameters::pixel_y(algebraic_r y) const
 // ----------------------------------------------------------------------------
 {
     object_g yo = object_p(y.Safe());
-    return pixel_adjust(yo, ymin, ymax, Screen.area().height());
+    return pixel_adjust(yo, ymax, ymin, Screen.area().height());
 }
 
 
@@ -366,6 +385,9 @@ COMMAND_BODY(Disp)
 //   - A list { x y } with the same meaning as for a complex
 //   - A list { #x #y } to give pixel-precise coordinates
 {
+    if (!rt.args(2))
+        return ERROR;
+
     if (object_g pos = rt.pop())
     {
         if (object_g todisp = rt.pop())
@@ -417,17 +439,18 @@ COMMAND_BODY(Disp)
             pattern bg   = invert ? Settings.foreground : Settings.background;
             pattern fg   = invert ? Settings.background : Settings.foreground;
             utf8    last = txt + len;
+            coord   x0   = x;
 
-            ui.draw_start(false);
-            ui.draw_user_screen();
+            ui.draw_graphics();
             while (txt < last)
             {
                 unicode       cp = utf8_codepoint(txt);
                 blitter::size w  = font->width(cp);
 
+                txt = utf8_next(txt);
                 if (x + w >= LCD_W || cp == '\n')
                 {
-                    x = 0;
+                    x = x0;
                     y += font->height();
                     if (cp == '\n')
                         continue;
@@ -439,7 +462,6 @@ COMMAND_BODY(Disp)
                     Screen.fill(x, y, x+w-1, y+h-1, bg);
                 Screen.glyph(x, y, cp, font, fg);
                 ui.draw_dirty(x, y , x+w-1, y+h-1);
-                txt = utf8_next(txt);
                 x += w;
             }
 
@@ -466,6 +488,8 @@ COMMAND_BODY(Line)
 //   Draw a line between the coordinates
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
     object_g p1 = rt.stack(1);
     object_g p2 = rt.stack(0);
     if (p1 && p2)
@@ -478,6 +502,7 @@ COMMAND_BODY(Line)
         if (!rt.error())
         {
             rt.drop(2);
+            ui.draw_graphics();
             Screen.line(x1, y1, x2, y2,
                         Settings.line_width, Settings.foreground);
             ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
@@ -494,6 +519,8 @@ COMMAND_BODY(Ellipse)
 //   Draw an ellipse between the given coordinates
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
     object_g p1 = rt.stack(1);
     object_g p2 = rt.stack(0);
     if (p1 && p2)
@@ -506,6 +533,7 @@ COMMAND_BODY(Ellipse)
         if (!rt.error())
         {
             rt.drop(2);
+            ui.draw_graphics();
             Screen.ellipse(x1, y1, x2, y2,
                            Settings.line_width, Settings.foreground);
             ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
@@ -522,6 +550,8 @@ COMMAND_BODY(Circle)
 //   Draw a circle between the given coordinates
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
     object_g co = rt.stack(1);
     object_g ro = rt.stack(0);
     if (co && ro)
@@ -542,6 +572,7 @@ COMMAND_BODY(Circle)
             coord x2 = x + (rx-1)/2;
             coord y1 = y - ry/2;
             coord y2 = y + (ry-1)/2;
+            ui.draw_graphics();
             Screen.ellipse(x1, y1, x2, y2,
                            Settings.line_width, Settings.foreground);
             ui.draw_dirty(x1, y1, x2, y2);
@@ -558,6 +589,8 @@ COMMAND_BODY(Rect)
 //   Draw a rectangle between the given coordinates
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(2))
+        return ERROR;
     object_g p1 = rt.stack(1);
     object_g p2 = rt.stack(0);
     if (p1 && p2)
@@ -570,6 +603,7 @@ COMMAND_BODY(Rect)
         if (!rt.error())
         {
             rt.drop(2);
+            ui.draw_graphics();
             Screen.rectangle(x1, y1, x2, y2,
                              Settings.line_width, Settings.foreground);
             ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
@@ -586,6 +620,8 @@ COMMAND_BODY(RRect)
 //   Draw a rounded rectangle between the given coordinates
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(3))
+        return ERROR;
     object_g p1 = rt.stack(2);
     object_g p2 = rt.stack(1);
     object_g ro = rt.stack(0);
@@ -600,6 +636,7 @@ COMMAND_BODY(RRect)
         if (!rt.error())
         {
             rt.drop(3);
+            ui.draw_graphics();
             Screen.rounded_rectangle(x1, y1, x2, y2, r,
                                      Settings.line_width, Settings.foreground);
             ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
@@ -616,10 +653,118 @@ COMMAND_BODY(ClLCD)
 //   Clear the LCD screen before drawing stuff on it
 // ----------------------------------------------------------------------------
 {
-    ui.draw_start(false);
-    ui.draw_user_screen();
+    if (!rt.args(0))
+        return ERROR;
+    ui.draw_graphics();
     Screen.fill(0, 0, LCD_W, LCD_H, pattern::white);
     ui.draw_dirty(0, 0, LCD_W-1, LCD_H-1);
     refresh_dirty();
+    return OK;
+}
+
+
+COMMAND_BODY(Clip)
+// ----------------------------------------------------------------------------
+//   Set the clipping rectangle
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    if (object_p top = rt.pop())
+    {
+        if (list_p parms = top->as<list>())
+        {
+            rect clip(Screen.area());
+            uint index = 0;
+            for (object_p parm : *parms)
+            {
+                coord arg = parm->as_int32(0, true);
+                if (rt.error())
+                    return ERROR;
+                switch(index++)
+                {
+                case 0: clip.x1 = arg; break;
+                case 1: clip.y1 = arg; break;
+                case 2: clip.x2 = arg; break;
+                case 3: clip.y2 = arg; break;
+                default:        rt.value_error(); return ERROR;
+                }
+            }
+            Screen.clip(clip);
+            return OK;
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(CurrentClip)
+// ----------------------------------------------------------------------------
+//   Retuyrn the current clipping rectangle
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(0))
+        return ERROR;
+    rect clip(Screen.clip());
+    integer_g x1 = integer::make(clip.x1);
+    integer_g y1 = integer::make(clip.y1);
+    integer_g x2 = integer::make(clip.x2);
+    integer_g y2 = integer::make(clip.y2);
+    if (x1 && y1 && x2 && y2)
+    {
+        list_g obj = list::make(x1, y1, x2, y2);
+        if (obj && rt.push(obj.Safe()))
+            return OK;
+    }
+    return ERROR;
+}
+
+
+
+// ============================================================================
+//
+//   Graphic objects (grob)
+//
+// ============================================================================
+
+COMMAND_BODY(GXor)
+// ----------------------------------------------------------------------------
+//   Graphic xor
+// ----------------------------------------------------------------------------
+{
+    return grob::command(blitter::blitop_xor);
+}
+
+
+COMMAND_BODY(GOr)
+// ----------------------------------------------------------------------------
+//   Graphic or
+// ----------------------------------------------------------------------------
+{
+    return grob::command(blitter::blitop_or);
+}
+
+
+COMMAND_BODY(GAnd)
+// ----------------------------------------------------------------------------
+//   Graphic and
+// ----------------------------------------------------------------------------
+{
+    return grob::command(blitter::blitop_and);
+}
+
+
+COMMAND_BODY(Pict)
+// ----------------------------------------------------------------------------
+//   Reference to the graphic display
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(0))
+        return ERROR;
+    rt.push(static_object(ID_Pict));
     return OK;
 }

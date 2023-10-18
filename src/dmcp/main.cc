@@ -102,7 +102,7 @@ void redraw_lcd(bool force)
     if (!ui.draw_help())
     {
         ui.draw_editor();
-        ui.draw_cursor(true);
+        ui.draw_cursor(true, ui.cursorPosition());
         ui.draw_stack();
         ui.draw_command();
     }
@@ -133,7 +133,7 @@ static void redraw_periodics()
 
     record(main, "Periodics %u", now);
     ui.draw_start(false);
-    ui.draw_cursor(false);
+    ui.draw_cursor(false, ui.cursorPosition());
     ui.draw_header();
     ui.draw_battery();
     ui.draw_menus();
@@ -172,6 +172,7 @@ static void handle_key(int key, bool repeating, bool talpha)
 }
 
 
+extern uint memory_size;
 void program_init()
 // ----------------------------------------------------------------------------
 //   Initialize the program
@@ -190,7 +191,7 @@ void program_init()
     size_t size = sys_free_mem() - 10 * 1024;
 #else
     // Give 4K bytes to the runtime to stress-test the GC
-    size_t size = 4096;
+    size_t size = 1024 * memory_size;
 #endif
     byte *memory = (byte *) malloc(size);
     rt.memory(memory, size);

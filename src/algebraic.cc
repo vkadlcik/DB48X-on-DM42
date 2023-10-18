@@ -30,8 +30,11 @@
 #include "algebraic.h"
 
 #include "arithmetic.h"
+#include "array.h"
 #include "bignum.h"
 #include "complex.h"
+#include "equation.h"
+#include "functions.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
@@ -145,6 +148,8 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
 
     case ID_fraction:
     case ID_neg_fraction:
+    case ID_big_fraction:
+    case ID_neg_big_fraction:
     {
         fraction_g f = fraction_p(object_p(x));
         switch (type)
@@ -343,15 +348,113 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
     id ty = x->type();
     switch(ty)
     {
-    case ID_decimal128: x = decimal128_p(x.Safe())->to_fraction(); return true;
-    case ID_decimal64:  x = decimal64_p(x.Safe())->to_fraction();  return true;
-    case ID_decimal32:  x = decimal32_p(x.Safe())->to_fraction();  return true;
+    case ID_decimal64:
+    case ID_decimal32:
+        if (!real_promotion(x, ID_decimal128))
+            return false;
+    case ID_decimal128:
+        x = decimal128_p(x.Safe())->to_fraction();
+        return true;
     case ID_fraction:
     case ID_neg_fraction:
     case ID_big_fraction:
-    case ID_neg_big_fraction:                                      return true;
-    default: return false;
+    case ID_neg_big_fraction:
+        return true;
+
+    case ID_rectangular:
+    {
+        rectangular_p z = rectangular_p(x.Safe());
+        algebraic_g re = z->re();
+        algebraic_g im = z->im();
+        if (!decimal_to_fraction(re) || !decimal_to_fraction(im))
+            return false;
+        x = rectangular::make(re, im);
+        return true;
     }
+    case ID_polar:
+    {
+        polar_p z = polar_p(x.Safe());
+        algebraic_g mod = z->mod();
+        algebraic_g arg = z->pifrac();
+        if (!decimal_to_fraction(mod) || !decimal_to_fraction(arg))
+            return false;
+        x = polar::make(mod, arg, settings::PI_RADIANS);
+        return true;
+    }
+    default:
+        return false;
+    }
+}
+
+
+bool algebraic::to_decimal(algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   Convert a value to decimal
+// ----------------------------------------------------------------------------
+{
+    id xt = x->type();
+
+    switch(xt)
+    {
+    case ID_rectangular:
+    {
+        rectangular_p z = rectangular_p(x.Safe());
+        algebraic_g re = z->re();
+        algebraic_g im = z->im();
+        if (arithmetic::real_promotion(re) && arithmetic::real_promotion(im))
+        {
+            x = rectangular::make(re, im);
+            return true;
+        }
+        break;
+    }
+    case ID_polar:
+    {
+        polar_p z = polar_p(x.Safe());
+        algebraic_g mod = z->mod();
+        algebraic_g arg = z->pifrac();
+        if (arithmetic::real_promotion(mod) &&
+            (mod->is_fraction() || arithmetic::real_promotion(arg)))
+        {
+            x = polar::make(mod, arg, settings::PI_RADIANS);
+            return true;
+        }
+        break;
+    }
+    case ID_integer:
+    case ID_neg_integer:
+    case ID_bignum:
+    case ID_neg_bignum:
+    case ID_fraction:
+    case ID_neg_fraction:
+    case ID_big_fraction:
+    case ID_neg_big_fraction:
+    case ID_decimal32:
+    case ID_decimal64:
+    case ID_decimal128:
+        return real_promotion(x);
+    case ID_pi:
+        x = algebraic::pi();
+        return true;
+    case ID_ImaginaryUnit:
+        x = rectangular::make(integer::make(0),integer::make(1));
+        return true;
+    case ID_equation:
+    {
+        bool save = Settings.numeric;
+        Settings.numeric = true;
+        result r = x->execute();
+        Settings.numeric = save;
+        if (r == OK)
+            if (object_p obj = rt.pop())
+                if (algebraic_p alg = obj->as_algebraic())
+                    x = alg;
+        return !rt.error();
+    }
+    default:
+        rt.type_error();
+    }
+    return false;
 }
 
 
@@ -372,6 +475,49 @@ algebraic_g algebraic::pi()
         init = true;
     }
     return decimal128_p(rep);
+}
+
+
+algebraic_p algebraic::evaluate_function(object_r eq, algebraic_r x)
+// ----------------------------------------------------------------------------
+//   Evaluate the eq object as a function
+// ----------------------------------------------------------------------------
+//   Equation objects can be one of:
+//   - Something that takes value from the stack and returns it on the stack
+//     for example << 1 + >>
+//   - Something that evaluates using the indep and returns it on the stack,
+//     for example 'X + 1' (assuming X is the independent variable)
+{
+    if (!rt.push(x.Safe()))
+        return nullptr;
+    save<object_g *> ival(equation::independent_value, (object_g *) &x);
+    size_t   depth  = rt.depth();
+    result   err    = eq->execute();
+    size_t   dnow   = rt.depth();
+    object_p result = rt.pop();
+    if (dnow == depth + 1)
+    {
+        object_p indep = rt.pop();
+        if (indep != x.Safe())
+        {
+            rt.invalid_function_error();
+            err = ERROR;
+        }
+    }
+    if (!result || !result->is_algebraic())
+    {
+        rt.type_error();
+        err = ERROR;
+    }
+    if (err != OK || (dnow != depth && dnow != depth + 1))
+    {
+        if (dnow > depth)
+            rt.drop(dnow - depth);
+        if (err == OK)
+            rt.invalid_function_error();
+        return nullptr;
+    }
+    return algebraic_p(result);
 }
 
 

@@ -55,6 +55,7 @@ SOURCES +=                                      \
         ../src/decimal-32.cc                    \
         ../src/runtime.cc                       \
         ../src/text.cc                          \
+        ../src/comment.cc                       \
         ../src/symbol.cc                        \
         ../src/algebraic.cc                     \
         ../src/arithmetic.cc                    \
@@ -73,8 +74,12 @@ SOURCES +=                                      \
 	../fonts/HelpFont.cc	                \
 	../fonts/StackFont.cc			\
 	../src/font.cc				\
+	../src/tag.cc				\
 	../src/graphics.cc			\
+	../src/grob.cc                          \
 	../src/plot.cc	                        \
+	../src/solve.cc	                        \
+	../src/integrate.cc                     \
 	../src/tests.cc
 
 HEADERS +=                                      \
@@ -102,7 +107,8 @@ DEFINES += 	DECIMAL_CALL_BY_REFERENCE                       \
 		DECIMAL_GLOBAL_ROUNDING                         \
 		DECIMAL_GLOBAL_ROUNDING_ACCESS_FUNCTIONS        \
 		DECIMAL_GLOBAL_EXCEPTION_FLAGS                  \
-		DECIMAL_GLOBAL_EXCEPTION_FLAGS_ACCESS_FUNCTIONS
+		DECIMAL_GLOBAL_EXCEPTION_FLAGS_ACCESS_FUNCTIONS \
+                HELPFILE_NAME=\\\"help/DB48X.md\\\"
 
 # Additional external library HIDAPI linked statically into the code
 INCLUDEPATH += ../src/dm42 ../src/dmcp ../src ../inc

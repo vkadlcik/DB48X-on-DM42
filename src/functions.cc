@@ -37,6 +37,7 @@
 #include "fraction.h"
 #include "integer.h"
 #include "list.h"
+#include "tag.h"
 
 
 bool function::should_be_symbolic(id type)
@@ -67,7 +68,8 @@ object::result function::evaluate(id op, bid128_fn op128, complex_fn zop)
     algebraic_g x = algebraic_p(rt.top());
     if (!x)
         return ERROR;
-    x = evaluate(x, op ,op128, zop);
+
+    x = evaluate(x, op, op128, zop);
     if (x && rt.top(x))
         return OK;
     return ERROR;
@@ -252,7 +254,6 @@ algebraic_p function::evaluate(algebraic_r xr,
     if (!xr.Safe())
         return nullptr;
 
-    id xt = xr->type();
     algebraic_g x = xr;
 
     // Check if we are computing exact trigonometric values
@@ -260,14 +261,16 @@ algebraic_p function::evaluate(algebraic_r xr,
         if (exact_trig(op, x))
             return x;
 
+    // Convert arguments to numeric if necessary
+    if (Settings.numeric)
+        (void) to_decimal(x);   // May fail silently, and that's OK
+
+    id xt = x->type();
     if (should_be_symbolic(xt))
-        return symbolic(op, xr);
+        return symbolic(op, x);
 
     if (is_complex(xt))
-    {
-        complex_r z = (complex_r) xr;
-        return algebraic_p(zop(z));
-    }
+        return algebraic_p(zop(complex_g(complex_p(x.Safe()))));
 
     // Check if need to promote integer values to decimal
     if (is_integer(xt))
@@ -314,9 +317,16 @@ object::result function::evaluate(algebraic_fn op, bool mat)
 //   Perform the operation from the stack, using a C++ operation
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     if (object_p top = rt.top())
     {
         id topty = top->type();
+        while(topty == ID_tag)
+        {
+            top = tag_p(top)->tagged_object();
+            topty = top->type();
+        }
         if (topty == ID_list || (topty == ID_array && !mat))
         {
             top = list_p(top)->map(op);
@@ -541,7 +551,8 @@ FUNCTION_BODY(sq)
     if (!x.Safe())
         return nullptr;
     if (x->is_strictly_symbolic())
-        return equation::make(ID_sq, x);
+        if (!Settings.auto_simplify || x->type() != ID_ImaginaryUnit)
+            return equation::make(ID_sq, x);
     return x * x;
 }
 
@@ -564,31 +575,35 @@ FUNCTION_BODY(cubed)
     if (!x.Safe())
         return nullptr;
     if (x->is_strictly_symbolic())
-        return equation::make(ID_cubed, x);
+        if (!Settings.auto_simplify || x->type() != ID_ImaginaryUnit)
+            return equation::make(ID_cubed, x);
     return x * x * x;
 }
 
 
 COMMAND_BODY(xroot)
 // ----------------------------------------------------------------------------
-//   Cubed is implemented as two multiplications
+//   Compute the x-th root
 // ----------------------------------------------------------------------------
 {
-    if (object_p x = rt.pop())
+    if (rt.args(2))
     {
-        if (object_p y = rt.top())
+        if (object_p x = rt.pop())
         {
-            algebraic_g xa = x->as_algebraic();
-            algebraic_g ya = y->as_algebraic();
-            if (!xa.Safe() || !ya.Safe())
+            if (object_p y = rt.top())
             {
-                rt.type_error();
-            }
-            else
-            {
-                xa = pow(ya, integer::make(1) / xa);
-                if (xa.Safe() && rt.top(xa))
-                    return OK;
+                algebraic_g xa = x->as_algebraic();
+                algebraic_g ya = y->as_algebraic();
+                if (!xa.Safe() || !ya.Safe())
+                {
+                    rt.type_error();
+                }
+                else
+                {
+                    xa = pow(ya, integer::make(1) / xa);
+                    if (xa.Safe() && rt.top(xa))
+                        return OK;
+                }
             }
         }
     }
@@ -706,38 +721,8 @@ FUNCTION_BODY(ToDecimal)
     if (!x.Safe())
         return nullptr;
     algebraic_g xg = x;
-    if (rectangular_p z = x->as<rectangular>())
-    {
-        algebraic_g re = z->re();
-        algebraic_g im = z->im();
-        if (arithmetic::real_promotion(re) &&
-            arithmetic::real_promotion(im))
-            return rectangular::make(re, im);
-    }
-    else if (polar_p z = x->as<polar>())
-    {
-        algebraic_g mod = z->mod();
-        algebraic_g arg = z->pifrac();
-        if (arithmetic::real_promotion(mod) &&
-            (mod->is_fraction() || arithmetic::real_promotion(arg)))
-            return polar::make(mod, arg, settings::PI_RADIANS);
-    }
-    else if (arithmetic::real_promotion(xg))
-    {
-        return xg;
-    }
-    else if (xg->type() == ID_pi)
-    {
-        return algebraic::pi();
-    }
-    else if (xg->type() == ID_ImaginaryUnit)
-    {
-        return rectangular::make(integer::make(0),integer::make(1));
-    }
-    else
-    {
-        rt.type_error();
-    }
+    if (algebraic::to_decimal(xg))
+        return xg.Safe();
     return nullptr;
 }
 
@@ -750,31 +735,9 @@ FUNCTION_BODY(ToFraction)
     if (!x.Safe())
         return nullptr;
     algebraic_g xg = x;
-    if (rectangular_p z = x->as<rectangular>())
-    {
-        algebraic_g re = z->re();
-        algebraic_g im = z->im();
-        re = ToFraction::run(re);
-        im = ToFraction::run(im);
-        if (re.Safe() && im.Safe())
-            return rectangular::make(re, im);
-    }
-    else if (polar_p z = x->as<polar>())
-    {
-        algebraic_g mod = z->mod();
-        algebraic_g arg = z->pifrac();
-        mod = ToFraction::run(mod);
-        arg = ToFraction::run(arg);
-        if (mod.Safe() && arg.Safe())
-            return polar::make(mod, arg, settings::PI_RADIANS);
-    }
-    else if (arithmetic::decimal_to_fraction(xg))
-    {
+    if (arithmetic::decimal_to_fraction(xg))
         return xg;
-    }
-    else
-    {
+    if (!rt.error())
         rt.type_error();
-    }
     return nullptr;
 }

@@ -85,6 +85,7 @@ void tests::run(bool onlyCurrent)
         text_functions();
         rewrite_engine();
         expand_collect_simplify();
+        tagged_objects();
         regression_checks();
     }
     summary();
@@ -98,20 +99,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    global_variables();
-
-#if 0
-    step("Testing sign of modulo for bignum");
-#define ZEROS "00000000000000000000"
-    test(CLEAR, " 7" ZEROS "  3" ZEROS " MOD", ENTER).expect("1" ZEROS);
-    test(CLEAR, " 7" ZEROS " -3" ZEROS " MOD", ENTER).expect("1" ZEROS);
-    test(CLEAR, "-7" ZEROS "  3" ZEROS " MOD", ENTER).expect("2" ZEROS);
-    test(CLEAR, "-7" ZEROS " -3" ZEROS " MOD", ENTER).expect("2" ZEROS);
-    test(CLEAR, " 7" ZEROS "  3" ZEROS " REM", ENTER).expect("1" ZEROS);
-    test(CLEAR, " 7" ZEROS " -3" ZEROS " REM", ENTER).expect("1" ZEROS);
-    test(CLEAR, "-7" ZEROS "  3" ZEROS " REM", ENTER).expect("-1" ZEROS);
-    test(CLEAR, "-7" ZEROS " -3" ZEROS " REM", ENTER).expect("-1" ZEROS);
-#endif
+    tagged_objects();
 }
 
 
@@ -145,7 +133,6 @@ void tests::reset_settings(bool fast)
         .noerr();
     step("Using 64-bit word size").test("64 StoreWordSize", ENTER).noerr();
     step("Disable spacing")
-        .test("3 NumberSpacing", ENTER)         .noerr()
         .test("3 MantissaSpacing", ENTER)       .noerr()
         .test("5 FractionSpacing", ENTER)       .noerr()
         .test("4 BasedSpacing", ENTER)          .noerr();
@@ -552,9 +539,9 @@ void tests::arithmetic()
     for (uint i = 1; i <= 100; i++)
         test(i, MUL, NOKEYS, WAIT(20));
     expect( "93 326 215 443 944 152 681 699 238 856 266 700 490 715 968 264 "
-           "381 621 468 592 963 895 217 599 993 229 915 608 941 463 976 156 "
-           "518 286 253 697 920 827 223 758 251 185 210 916 864 000 000 000 "
-           "000 000 000 000 000");
+            "381 621 468 592 963 895 217 599 993 229 915 608 941 463 976 156 "
+            "518 286 253 697 920 827 223 758 251 185 210 916 864 000 000 000 "
+            "000 000 000 000 000");
     step("Manual division by all factors of 100!");
     for (uint i = 1; i <= 100; i++)
         test(i * 997 % 101, DIV, NOKEYS, WAIT(20));
@@ -1008,27 +995,31 @@ void tests::command_display_formats()
     test(CLEAR, prgm, ENTER).noerr();
     step("Lower case");
     test("lowercase", ENTER)
-        .expect("« 1 1. + - × ÷ ↑ sin cos tan asin acos atan lowercase "
-                "purgeall precision start step next start step for i next "
-                "for i step while repeat end do until end »");
+        .expect("« 1 1. + - × ÷ ↑ sin cos tan asin acos atan "
+                "lowercase purgeall precision "
+                "start  step next start  step for i  next for i  step "
+                "while  repeat  end do  until  end »");
 
     step("Upper case");
     test("UPPERCASE", ENTER)
-        .expect("« 1 1. + - × ÷ ↑ SIN COS TAN ASIN ACOS ATAN LOWERCASE "
-                "PURGEALL PRECISION START STEP next START STEP FOR i NEXT "
-                "FOR i STEP WHILE REPEAT END DO UNTIL END »");
+        .expect("« 1 1. + - × ÷ ↑ SIN COS TAN ASIN ACOS ATAN "
+                "LOWERCASE PURGEALL PRECISION "
+                "START  STEP next START  STEP FOR i  NEXT FOR i  STEP "
+                "WHILE  REPEAT  END DO  UNTIL  END »");
 
     step("Capitalized");
     test("Capitalized", ENTER)
-        .expect("« 1 1. + - × ÷ ↑ Sin Cos Tan Asin Acos Atan Lowercase "
-                "Purgeall Precision Start Step next Start Step For i Next "
-                "For i Step While Repeat End Do Until End »");
+        .expect("« 1 1. + - × ÷ ↑ Sin Cos Tan Asin Acos Atan "
+                "Lowercase Purgeall Precision "
+                "Start  Step next Start  Step For i  Next For i  Step "
+                "While  Repeat  End Do  Until  End »");
 
     step("Long form");
     test("LongForm", ENTER)
-        .expect("« 1 1. + - × ÷ ↑ sin cos tan sin⁻¹ cos⁻¹ tan⁻¹ LowerCase "
-                "PurgeAll Precision start step next start step for i next "
-                "for i step while repeat end do until end »");
+        .expect("« 1 1. + - × ÷ ↑ sin cos tan sin⁻¹ cos⁻¹ tan⁻¹ "
+                "LowerCase PurgeAll Precision "
+                "start  step next start  step for i  next for i  step "
+                "while  repeat  end do  until  end »");
 }
 
 
@@ -1041,7 +1032,6 @@ void tests::integer_display_formats()
 
     step("Reset settings to defaults");
     test(CLEAR)
-        .test("3 NumberSpacing", ENTER)         .noerr()
         .test("3 MantissaSpacing", ENTER)       .noerr()
         .test("5 FractionSpacing", ENTER)       .noerr()
         .test("4 BasedSpacing", ENTER)          .noerr()
@@ -1073,11 +1063,11 @@ void tests::integer_display_formats()
         .expect("123456789");
 
     step("Four spacing");
-    test("4 NumberSpacing", ENTER)
+    test("4 MantissaSpacing", ENTER)
         .expect("1 2345 6789");
 
     step("Five spacing");
-    test("5 NumberSpacing", ENTER)
+    test("5 MantissaSpacing", ENTER)
         .expect("1234 56789");
 
     step("Three spacing");
@@ -1443,7 +1433,7 @@ void tests::decimal_numerical_functions()
     step("Setting radians mode");
     test(CLEAR, "RAD", ENTER).noerr();
 
-#define TFNA(name, arg, result)                                           \
+#define TFNA(name, arg, result)                                         \
     step(#name).test(CLEAR, #arg " " #name, ENTER).expect(result);
 #define TFN(name, result)  TFNA(name, 0.321, result)
 
@@ -1599,19 +1589,19 @@ void tests::fraction_decimal_conversions()
 // ----------------------------------------------------------------------------
 {
     cstring cases[] =
-    {
-        // Easy exact cases (decimal)
-        "1/2",          "0.5",
-        "1/4",          "0.25",
-        "5/4",          "1.25",
-        "-5/4",         "-1.25",
+        {
+            // Easy exact cases (decimal)
+            "1/2",          "0.5",
+            "1/4",          "0.25",
+            "5/4",          "1.25",
+            "-5/4",         "-1.25",
 
-        // More tricky fractions
-        "1/3",          "3.33333 33333 33333 3333⁳⁻¹",
-        "-1/7",         "-1.42857 14285 71428 5714⁳⁻¹",
-        "22/7",         "3.14285 71428 57142 8571",
-        "37/213",       "1.73708 92018 77934 2723⁳⁻¹"
-    };
+            // More tricky fractions
+            "1/3",          "3.33333 33333 33333 3333⁳⁻¹",
+            "-1/7",         "-1.42857 14285 71428 5714⁳⁻¹",
+            "22/7",         "3.14285 71428 57142 8571",
+            "37/213",       "1.73708 92018 77934 2723⁳⁻¹"
+        };
 
     begin("Simple conversion to decimal and back");
     for (uint c = 0; c < sizeof(cases) / sizeof(*cases); c += 2)
@@ -1637,6 +1627,10 @@ void tests::fraction_decimal_conversions()
     test(CLEAR, "[1-2ⅈ 3] 4", ENTER, DIV).expect("[ 1/4-1/2ⅈ 3/4 ]");
     test("→Num", ENTER).expect("[ 0.25-0.5ⅈ 0.75 ]");
     test("→Q", ENTER).expect("[ 1/4-1/2ⅈ 3/4 ]");
+
+    step("Expressions");
+    test(CLEAR, "355 113 / pi -", ENTER) .expect("'355/113-π'");
+    test("→Num", ENTER).expect("2.66764 18906 24223 1237⁳⁻⁷");
 }
 
 
@@ -1752,6 +1746,14 @@ void tests::complex_arithmetic()
     test(CLEAR, "a+bⅈ", ENTER, "c+dⅈ", DIV)
         .expect("'(a×c+b×d)÷(c²+d²)'+'(b×c-a×d)÷(c²+d²)'ⅈ");
 
+    step("Addition in aligned polar form");
+    test(CLEAR, "1∡2", ENTER, "3∡2", ENTER, ADD)
+        .expect("4∡2°");
+    step("Subtraction in aligned polar form");
+    test("1∡2", SUB)
+        .expect("3∡2°");
+    test("5∡2", SUB)
+        .expect("2∡-178°");
     step("Addition in polar form");
     test(CLEAR, "1∡2", ENTER, "3∡4", ENTER, ADD)
         .expect("3.99208 29777 98568 4728+2.44168 91793 48768 7397⁳⁻¹ⅈ");
@@ -1772,9 +1774,15 @@ void tests::complex_arithmetic()
     test("5", SHIFT, B)
         .expect("243.∡20.°");
 
+    step("Symbolic addition aligned");
+    test(CLEAR, "a∡b", ENTER, "c∡b", ENTER, ADD)
+        .expect("'a+c'∡b");
     step("Symbolic addition");
     test(CLEAR, "a∡b", ENTER, "c∡d", ENTER, ADD)
         .expect("'a×cos b+c×cos d'+'a×sin b+c×sin d'ⅈ");
+    step("Symbolic substraction aligned");
+    test(CLEAR, "a∡b", ENTER, "c∡b", ENTER, SUB)
+        .expect("'a-c'∡b");
     step("Symbolic subtraction");
     test(CLEAR, "a∡b", ENTER, "c∡d", ENTER, SUB)
         .expect("'a×cos b-c×cos d'+'a×sin b-c×sin d'ⅈ");
@@ -2442,8 +2450,58 @@ void tests::expand_collect_simplify()
     test("collect ", ENTER)
         .expect("'2×(B↑2×A)+(2×(A↑2×B)+A↑3+B↑2×A+A↑2×B)+B↑3'");
     // .expect("'(A+B)³'");
+}
 
 
+void tests::tagged_objects()
+// ----------------------------------------------------------------------------
+//   Some very basic testing of tagged objects
+// ----------------------------------------------------------------------------
+{
+    begin("Tagged objects");
+
+    step("Parsing");
+    test(CLEAR, ":ABC:123", ENTER)
+        .type(object::ID_tag)
+        .expect("ABC :123");
+    test(CLEAR, ":Label:123/456", ENTER)
+        .type(object::ID_tag)
+        .expect("Label :41/152");
+    test(CLEAR, ":Nested::Label:123.456", ENTER)
+        .type(object::ID_tag)
+        .expect("Nested :Label :123.456");
+
+    step("Arithmetic");
+    test(CLEAR, ":First:1 :Second:2 +", ENTER)
+        .expect("3");
+    test(CLEAR, "5 :Second:2 -", ENTER)
+        .expect("3");
+    test(CLEAR, ":First:3/2 2 *", ENTER)
+        .expect("3");
+
+    step("Functions");
+    test(CLEAR, ":First:1 ABS", ENTER)
+        .expect("1");
+    test(CLEAR, ":First:0 SIN", ENTER)
+        .expect("0");
+
+    step("ToTag");
+    test(CLEAR, "125 \"Hello\" ToTag", ENTER)
+        .expect("Hello:125");
+    test(CLEAR, "125 127 ToTag", ENTER)
+        .type(object::ID_tag)
+        .expect("127:125");
+
+    step("FromTag");
+    test(CLEAR, ":Hello:123 FromTag", ENTER)
+        .type(object::ID_text)
+        .expect("\"Hello \"")
+        .test("Drop", ENTER)
+        .expect("123");
+
+    step("DeleteTag");
+    test(CLEAR, ":Hello:123 DeleteTag", ENTER)
+        .expect("123");
 }
 
 

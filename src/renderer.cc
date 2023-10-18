@@ -68,7 +68,7 @@ bool renderer::put(char c)
     {
         if (isspace(c))
         {
-            if (space)
+            if (space || cr)
                 return true;
             c = ' ';
             space = true;
@@ -77,6 +77,18 @@ bool renderer::put(char c)
         {
             space = false;
         }
+    }
+    if (c == ' ' && (cr || nl))
+    {
+        cr = false;
+        return true;
+    }
+
+    if (!isspace(c) && nl)
+    {
+        nl = false;
+        if (!put('\n'))
+            return false;
     }
 
     if (saving)
@@ -98,10 +110,20 @@ bool renderer::put(char c)
     }
     if (c == '\n')
     {
-        for (uint i = 0; i < tabs; i++)
-            if (!put('\t'))
-                return false;
+        nl = false;
+        if (!txt)
+            for (uint i = 0; i < tabs; i++)
+                if (!put('\t'))
+                    return false;
+        cr = true;
     }
+    else if (!isspace(c))
+    {
+        cr = false;
+    }
+
+    if (c == '"')
+        txt = !txt;
     return true;
 }
 

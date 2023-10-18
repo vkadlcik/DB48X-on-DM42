@@ -175,6 +175,11 @@ void settings::save(renderer &out, bool show_defaults)
     else if (show_defaults)
         out.put("AutoSimplify\n");
 
+    if (numeric)
+        out.put("NumericResults\n");
+    else if (show_defaults)
+        out.put("SymbolicResults\n");
+
     if (maxbignum != Defaults.maxbignum || show_defaults)
         out.printf("%u MaxBigNumBits\n", maxbignum);
     if (maxrewrites != Defaults.maxrewrites || show_defaults)
@@ -200,6 +205,13 @@ void settings::save(renderer &out, bool show_defaults)
     else if (show_defaults)
         out.put("RoundedMenus\n");
 
+    if (line_width != Defaults.line_width || show_defaults)
+        out.printf("%u LineWidth\n", line_width);
+    if (foreground.bits != Defaults.foreground.bits || show_defaults)
+        out.printf("#%llX foreground\n", foreground.bits);
+    if (background.bits != Defaults.background.bits || show_defaults)
+        out.printf("#%llX background\n", background.bits);
+
     // Save the current menu
     if (menu_p menu = ui.menu())
     {
@@ -214,17 +226,32 @@ COMMAND_BODY(Modes)
 //   Return a program that restores the current modes
 // ----------------------------------------------------------------------------
 {
-    renderer modes;
-    modes.put("«");
-    Settings.save(modes);
-    modes.put("»");
+    if (rt.args(0))
+    {
+        renderer modes;
+        modes.put("«");
+        Settings.save(modes);
+        modes.put("»");
 
-    size_t size = modes.size();
-    gcutf8 code = modes.text();
-    if (object_g program = object::parse(code, size))
-        if (rt.push(program))
-            return OK;
+        size_t size = modes.size();
+        gcutf8 code = modes.text();
+        if (object_g program = object::parse(code, size))
+            if (rt.push(program))
+                return OK;
+    }
     return ERROR;
+}
+
+
+COMMAND_BODY(ResetModes)
+// ----------------------------------------------------------------------------
+//   Reset the default modes
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(0))
+        return ERROR;
+    Settings = settings();
+    return OK;
 }
 
 
@@ -325,26 +352,29 @@ static uint integer_arg(uint min, uint max, bool base = false)
 //   Get an integer argument from the stack
 // ----------------------------------------------------------------------------
 {
-    if (object_p arg = rt.top())
+    if (rt.args(1))
     {
-        if (integer_p argint = arg->as<integer>())
+        if (object_p arg = rt.top())
         {
-            uint value = argint->value<uint>();
-            if (value < min || value > max)
+            if (integer_p argint = arg->as<integer>())
             {
-                if (value < min)        value = min;
-                if (value > max)        value = max;
-                if (base)
-                    rt.invalid_base_error();
-                else
-                    rt.domain_error();
+                uint value = argint->value<uint>();
+                if (value < min || value > max)
+                {
+                    if (value < min)        value = min;
+                    if (value > max)        value = max;
+                    if (base)
+                        rt.invalid_base_error();
+                    else
+                        rt.domain_error();
+                }
+                rt.pop();
+                return value;
             }
-            rt.pop();
-            return value;
-        }
-        else
-        {
-            rt.type_error();
+            else
+            {
+                rt.type_error();
+            }
         }
     }
     return min;
@@ -769,9 +799,10 @@ COMMAND_BODY(rcws)
 //  Recall the current wordsize
 // ----------------------------------------------------------------------------
 {
-    if (object_g ws = integer::make(Settings.wordsize))
-        if (rt.push(ws))
-            return OK;
+    if (rt.args(0))
+        if (object_g ws = integer::make(Settings.wordsize))
+            if (rt.push(ws))
+                return OK;
     return ERROR;
 }
 
@@ -825,22 +856,6 @@ SETTINGS_COMMAND_LABEL(id)                              \
     return id##_buffer;                                 \
 }
 
-
-COMMAND_BODY(NumberSpacing)
-// ----------------------------------------------------------------------------
-//  Set same spacing for both mantissa and fraction
-// ----------------------------------------------------------------------------
-{
-    uint fs = integer_arg(0, BID128_MAXDIGITS);
-    if (!rt.error())
-    {
-        Settings.spacing_mantissa = fs;
-        Settings.spacing_fraction = fs;
-        ui.menuNeedsRefresh();
-        return OK;
-    }
-    return object::ERROR;
-}
 
 SPACING_SIZE_SETTING(MantissaSpacing, spacing_mantissa, "Mant")
 SPACING_SIZE_SETTING(FractionSpacing, spacing_fraction, "Frac")
@@ -948,6 +963,26 @@ SETTINGS_COMMAND_NOLABEL(NoAutoSimplify, !Settings.auto_simplify)
 // ----------------------------------------------------------------------------
 {
     Settings.auto_simplify = false;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(NumericResults, Settings.numeric)
+// ----------------------------------------------------------------------------
+//   Compute only numeric results, e.g. 1/2 is turned to 0.5
+// ----------------------------------------------------------------------------
+{
+    Settings.numeric = true;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(SymbolicResults, !Settings.numeric)
+// ----------------------------------------------------------------------------
+//   Compute symbolic results, e.g. 1/2 stays as is
+// ----------------------------------------------------------------------------
+{
+    Settings.numeric = false;
     return OK;
 }
 
@@ -1063,7 +1098,7 @@ SETTINGS_COMMAND_BODY(SingleRowMenus,
 {
     Settings.menu_single_ln = true;
     Settings.menu_flatten = false;
-    ui.menuNeedsRefresh();
+    ui.menu_refresh();
     return OK;
 }
 
@@ -1076,7 +1111,7 @@ SETTINGS_COMMAND_BODY(FlatMenus,
 {
     Settings.menu_single_ln = true;
     Settings.menu_flatten = true;
-    ui.menuNeedsRefresh();
+    ui.menu_refresh();
     return OK;
 }
 
@@ -1088,7 +1123,7 @@ SETTINGS_COMMAND_BODY(ThreeRowsMenus, !Settings.menu_single_ln)
 {
     Settings.menu_single_ln = false;
     Settings.menu_flatten = false;
-    ui.menuNeedsRefresh();
+    ui.menu_refresh();
     return OK;
 }
 
@@ -1099,7 +1134,7 @@ SETTINGS_COMMAND_BODY(RoundedMenus, !Settings.menu_square)
 // ----------------------------------------------------------------------------
 {
     Settings.menu_square = false;
-    ui.menuNeedsRefresh();
+    ui.menu_refresh();
     return OK;
 }
 
@@ -1110,7 +1145,7 @@ SETTINGS_COMMAND_BODY(SquareMenus, Settings.menu_square)
 // ----------------------------------------------------------------------------
 {
     Settings.menu_square = true;
-    ui.menuNeedsRefresh();
+    ui.menu_refresh();
     return OK;
 }
 
@@ -1136,7 +1171,7 @@ SETTINGS_COMMAND_LABEL(LineWidth)
 // ----------------------------------------------------------------------------
 {
     static char buffer[16];
-    snprintf(buffer, sizeof(buffer), "LineW %u", Settings.line_width);
+    snprintf(buffer, sizeof(buffer), "LineW %u", uint(Settings.line_width));
     return buffer;
 }
 
@@ -1180,5 +1215,26 @@ SETTINGS_COMMAND_BODY(Background, false)
     if (rt.error())
         return ERROR;
     Settings.background.bits = pat;
+    return OK;
+}
+
+
+
+SETTINGS_COMMAND_BODY(GraphicsStackDisplay, Settings.graph_stack)
+// ----------------------------------------------------------------------------
+//  Select graphic rendering of the stack
+// ----------------------------------------------------------------------------
+{
+    Settings.graph_stack = true;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_BODY(TextStackDisplay, !Settings.graph_stack)
+// ----------------------------------------------------------------------------
+//  Select text-only rendering of the stack
+// ----------------------------------------------------------------------------
+{
+    Settings.graph_stack = false;
     return OK;
 }

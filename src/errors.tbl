@@ -65,5 +65,9 @@ ERROR(number_too_big,           "Number is too big")
 ERROR(too_many_rewrites,        "Too many rewrites")
 ERROR(invalid_ppar,             "Invalid PlotParameters")
 ERROR(invalid_plot_type,        "Invalid plot type")
+ERROR(invalid_function,         "Invalid function")
+ERROR(constant_value,           "Constant?")
+ERROR(bad_guess,                "Bad guess?")
+ERROR(no_solution,              "No solution?")
 
 #undef ERROR

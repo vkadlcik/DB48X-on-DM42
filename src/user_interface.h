@@ -1,5 +1,5 @@
-#ifndef INPUT_H
-#define INPUT_H
+#ifndef USER_INTERFACE_H
+#define USER_INTERFACE_H
 // ****************************************************************************
 //  user_interface.h                                             DB48X project
 // ****************************************************************************
@@ -34,6 +34,7 @@
 #include "file.h"
 #include "object.h"
 #include "runtime.h"
+#include "text.h"
 #include "types.h"
 
 #include <string>
@@ -70,7 +71,7 @@ struct user_interface
     //   Dimensioning constants
     // ------------------------------------------------------------------------
     {
-        HISTORY         = 8,    // Number of menus kept in history
+        HISTORY         = 8,    // Number of menus and commands kept in history
         NUM_PLANES      = 3,    // NONE, Shift and "extended" shift
         NUM_KEYS        = 46,   // Including SCREENSHOT, SH_UP and SH_DN
         NUM_SOFTKEYS    = 6,    // Number of softkeys
@@ -105,7 +106,8 @@ struct user_interface
     void        menu(uint index, cstring label, object_p function);
     void        menu(uint index, symbol_p label, object_p function);
     void        marker(uint index, unicode mark, bool alignLeft = false);
-    void        menuNeedsRefresh()      { dynamicMenu = true; }
+    bool        menu_refresh();
+    bool        menu_refresh(object::id menu);
     void        menuAutoComplete()      { autoComplete = true; }
     symbol_p    label(uint index);
     cstring     labelText(uint index);
@@ -117,7 +119,7 @@ struct user_interface
     uint        draw_refresh()          { return nextRefresh; }
     rect        draw_dirty()            { return dirty; }
     void        draw_clean()            { dirty = rect(); }
-    void        draw_user_screen()      { userScreen = true; }
+    bool        draw_graphics();
 
     bool        draw_header();
     bool        draw_annunciators();
@@ -130,7 +132,7 @@ struct user_interface
 
     bool        draw_menus();
     bool        draw_battery();
-    bool        draw_cursor(int show);
+    bool        draw_cursor(int show, uint ncursor);
     bool        draw_busy();
     bool        draw_idle();
     bool        draw_busy_cursor(unicode glyph = L'▶');
@@ -155,6 +157,22 @@ struct user_interface
     result      edit(utf8 s, modes m, int off = 0);
     bool        end_edit();
     void        clear_editor();
+    void        edit_history();
+    bool        editor_select();
+    bool        editor_word_left();
+    bool        editor_word_right();
+    bool        editor_begin();
+    bool        editor_end();
+    bool        editor_cut();
+    bool        editor_copy();
+    bool        editor_paste();
+    bool        editor_search();
+    bool        editor_replace();
+    bool        editor_clear();
+    bool        editor_selection_flip();
+    size_t      insert(size_t offset, utf8 data, size_t len);
+    size_t      insert(size_t offset, byte c) { return insert(offset, &c, 1); }
+    size_t      remove(size_t offset, size_t len);
     void        load_help(utf8 topic, size_t len = 0);
 
 protected:
@@ -165,6 +183,7 @@ protected:
     bool        handle_functions(int key);
     bool        handle_digits(int key);
     bool        noHelpForKey(int key);
+    bool        do_search(unicode with = 0, bool restart = false);
 
 public:
     int      evaluating;        // Key being evaluated
@@ -174,9 +193,11 @@ protected:
     uint     help;              // Offset of help being displayed in help file
     uint     line;              // Line offset in the help display
     uint     topic;             // Offset of topic being highlighted
-    uint     history;           // History depth
+    uint     topics_history;    // History depth
     uint     topics[8];         // Topics history
     uint     cursor;            // Cursor position in buffer
+    uint     select;            // Cursor position for selection marker
+    uint     searching;         // Searching start point
     coord    xoffset;           // Offset of the cursor
     modes    mode;              // Current editing mode
     int      last;              // Last key
@@ -193,6 +214,9 @@ protected:
     uint     nextRefresh;       // Time for next refresh
     rect     dirty;             // Dirty rectangles
     object_g editing;           // Object being edited if any
+    uint     cmdIndex;          // Command index
+    text_g   history[HISTORY];  // Command-line history
+    text_g   clipboard;         // Clipboard for copy/paste operations
     bool     shift        : 1;  // Normal shift active
     bool     xshift       : 1;  // Extended shift active (simulate Right)
     bool     alpha        : 1;  // Alpha mode active
@@ -214,10 +238,9 @@ protected:
     bool     dirtyCommand : 1;  // Need to redraw the command
     bool     dirtyEditor  : 1;  // Need to redraw the text editor
     bool     dirtyHelp    : 1;  // Need to redraw the help
-    bool     dynamicMenu  : 1;  // Menu is dynamic, needs update after keystroke
     bool     autoComplete : 1;  // Menu is auto-complete
     bool     adjustSeps   : 1;  // Need to adjust separators
-    bool     userScreen   : 1;  // Displaying user-defined screen
+    bool     graphics     : 1;  // Displaying user-defined graphics screen
 
 protected:
     // Key mappings

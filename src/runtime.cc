@@ -70,7 +70,8 @@ runtime::runtime(byte *mem, size_t size)
       Editing(),
       Scratch(),
       Stack(),
-      Undos(),
+      Args(),
+      Undo(),
       Locals(),
       Directories(),
       Returns(),
@@ -93,7 +94,8 @@ void runtime::memory(byte *memory, size_t size)
     Returns = HighMem;                          // No return stack
     Directories = Returns - 1;                  // Make room for one path
     Locals = Directories;                       // No locals
-    Undos = Locals;                             // No undos
+    Args = Locals;                          // No args
+    Undo = Locals;                              // No undo stack
     Stack = Locals;                             // Empty stack
 
     // Stuff at bottom of memory
@@ -526,7 +528,7 @@ size_t runtime::insert(size_t offset, utf8 data, size_t len)
 }
 
 
-void runtime::remove(size_t offset, size_t len)
+size_t runtime::remove(size_t offset, size_t len)
 // ----------------------------------------------------------------------------
 //   Remove characers from the editor
 // ----------------------------------------------------------------------------
@@ -542,10 +544,11 @@ void runtime::remove(size_t offset, size_t len)
     byte_p edr = (byte_p) editor() + offset;
     move(object_p(edr), object_p(edr + len), moving);
     Editing -= len;
+    return len;
 }
 
 
-utf8 runtime::close_editor(bool convert)
+text_p runtime::close_editor(bool convert)
 // ----------------------------------------------------------------------------
 //   Close the editor and encapsulate its content into a string
 // ----------------------------------------------------------------------------
@@ -578,16 +581,12 @@ utf8 runtime::close_editor(bool convert)
     // We are no longer editing
     Editing = 0;
 
-    // Import special characters
+    // Import special characters if necessary (importing text file)
     if (convert)
-    {
-        text_p imported = obj->import();
-        if (imported != obj)
-            str = (char *) imported->value();
-    }
+        obj = obj->import();
 
     // Return a pointer to a valid C string safely wrapped in a RPL string
-    return utf8(str);
+    return obj;
 }
 
 
@@ -799,7 +798,7 @@ object_p runtime::top()
 //   Return the top of the runtime stack
 // ----------------------------------------------------------------------------
 {
-    if (Stack >= Undos)
+    if (Stack >= Args)
     {
         missing_argument_error();
         return nullptr;
@@ -815,7 +814,7 @@ bool runtime::top(object_p obj)
 {
     ASSERT(obj && "Putting a NULL object on top of stack");
 
-    if (Stack >= Undos)
+    if (Stack >= Args)
     {
         missing_argument_error();
         return false;
@@ -830,7 +829,7 @@ object_p runtime::pop()
 //   Pop the top-level object from the stack, or return NULL
 // ----------------------------------------------------------------------------
 {
-    if (Stack >= Undos)
+    if (Stack >= Args)
     {
         missing_argument_error();
         return nullptr;
@@ -928,6 +927,135 @@ bool runtime::drop(uint count)
 
 // ============================================================================
 //
+//   Args and undo management
+//
+// ============================================================================
+
+bool runtime::args(uint count)
+// ----------------------------------------------------------------------------
+//   Add 'count' stack objects to the saved arguments
+// ----------------------------------------------------------------------------
+{
+    size_t nstk = depth();
+    if (count > nstk)
+    {
+        missing_argument_error();
+        return false;
+    }
+    size_t nargs = args();
+    if (count > nargs)
+    {
+        size_t sz = (count - nargs) * sizeof(object_p);
+        if (available(sz) < sz)
+            return false;
+    }
+
+    memmove(Stack + nargs - count, Stack, nstk * sizeof(object_p));
+    Stack = Stack + nargs - count;
+    Args = Args + nargs - count;
+    memmove(Args, Stack, count * sizeof(object_p));
+
+    return true;
+}
+
+
+bool runtime::last()
+// ----------------------------------------------------------------------------
+//   Push back the last arguments on the stack
+// ----------------------------------------------------------------------------
+{
+    size_t nargs = args();
+    size_t sz = nargs * sizeof(object_p);
+    if (available(sz) < sz)
+        return false;
+
+    Stack -= nargs;
+    memmove(Stack, Args, nargs * sizeof(object_p));
+    return true;
+}
+
+
+bool runtime::last(uint index)
+// ----------------------------------------------------------------------------
+//   Push back the last argument on the stack
+// ----------------------------------------------------------------------------
+{
+    size_t nargs = args();
+    if (index >= nargs)
+    {
+        rt.missing_argument_error();
+        return false;
+    }
+    size_t sz = sizeof(object_p);
+    if (available(sz) < sz)
+        return false;
+
+    *--Stack = Args[index];
+    return true;
+}
+
+
+bool runtime::save()
+// ----------------------------------------------------------------------------
+//   Save the stack in the undo area
+// ----------------------------------------------------------------------------
+{
+    size_t scount = depth();
+    size_t ucount = saved();
+    if (scount > ucount)
+    {
+        size_t sz = (scount - ucount) * sizeof(object_p);
+        if (available(sz) < sz)
+            return false;
+    }
+
+    object_p *ns = Stack + ucount - scount;
+    memmove(ns, Stack, (Undo - Stack) * sizeof(object_p));
+    Stack = ns;
+    Args = Args + ucount - scount;
+    Undo = Undo + ucount - scount;
+    memmove(Undo, Stack, depth() * sizeof(object_p));
+
+    return true;
+}
+
+
+bool runtime::undo()
+// ----------------------------------------------------------------------------
+//   Revert the stack to what it was before
+// ----------------------------------------------------------------------------
+{
+    size_t ucount = saved();
+    size_t scount = depth();
+    if (ucount > scount)
+    {
+        size_t sz = (ucount - scount) * sizeof(object_p);
+        if (available(sz) < sz)
+            return false;
+    }
+
+    Stack = Stack + scount - ucount;
+    memmove(Stack, Undo, ucount * sizeof(object_p));
+
+    return true;
+}
+
+
+runtime &runtime::command(utf8 cmd)
+// ----------------------------------------------------------------------------
+//   Set the command name and initialize the undo setup
+// ----------------------------------------------------------------------------
+{
+    ErrorCommand = cmd;
+    return *this;
+}
+
+
+
+
+
+// ============================================================================
+//
 //   Local variables
 //
 // ============================================================================
@@ -982,7 +1110,8 @@ bool runtime::locals(size_t count)
 
     // Move pointers down
     Stack -= count;
-    Undos -= count;
+    Args -= count;
+    Undo -= count;
     Locals -= count;
     size_t moving = Locals - Stack;
     for (size_t i = 0; i < moving; i++)
@@ -1011,7 +1140,8 @@ bool runtime::unlocals(size_t count)
     // Move pointers up
     object_p *oldp = Locals;
     Stack += count;
-    Undos += count;
+    Args += count;
+    Undo += count;
     Locals += count;
     object_p *newp = Locals;
     size_t moving = Locals - Stack;
@@ -1040,7 +1170,8 @@ bool runtime::enter(directory_p dir)
 
     // Move pointers down
     Stack--;
-    Undos--;
+    Args--;
+    Undo--;
     Locals--;
     Directories--;
 
@@ -1069,7 +1200,8 @@ bool runtime::updir(size_t count)
     // Move pointers up
     object_p *oldp = Directories;
     Stack += count;
-    Undos += count;
+    Args += count;
+    Undo += count;
     Locals += count;
     Directories += count;
 

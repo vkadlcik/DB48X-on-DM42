@@ -134,5 +134,4 @@ void Catalog::list_commands(info &mi)
             menu::items(mi, cstring(fancy(sorted)),
                         command::static_object(sorted));
     }
-    ui.menuNeedsRefresh();
 }

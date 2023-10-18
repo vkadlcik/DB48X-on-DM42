@@ -238,8 +238,16 @@ PARSE_BODY(integer)
 
             if (v >= base)
             {
+                object::result err = ERROR;
+                if (type == ID_integer || type == ID_neg_integer)
+                {
+                    if (v == 0xE) // Exponent
+                        err = WARN;
+                    else
+                        break;
+                }
                 rt.based_digit_error().source(s - 1);
-                return ERROR;
+                return err;
             }
             ularge next = result * base + v;
             record(integer,
@@ -295,8 +303,16 @@ PARSE_BODY(integer)
 
                 if (v >= base)
                 {
+                    object::result err = ERROR;
+                    if (type == ID_bignum || type == ID_neg_bignum)
+                    {
+                        if (v == 0xE) // Exponent, switch to decimal
+                            err = WARN;
+                        else
+                            break;
+                    }
                     rt.based_digit_error().source(s - 1);
-                    return ERROR;
+                    return err;
                 }
                 record(integer, "Digit %c value %u in bignum", s[-1], v);
                 bvalue  = rt.make<bignum>(type, v);

@@ -754,7 +754,7 @@ COMMAND_BODY(BinaryToReal)
         case ID_dec_bignum:
         case ID_oct_bignum:
         case ID_bin_bignum:
-            to = ID_big_integer;
+            to = ID_bignum;
             break;
 #endif // CONFIG_FIXED_BASED_OBJECTS
         case ID_based_integer:

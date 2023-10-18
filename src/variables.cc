@@ -903,7 +903,12 @@ COMMAND_BODY(VariablesMenuExecute)
 {
     int key = ui.evaluating;
     if (rt.editing())
-        return insert_cmd(key, "", " ");
+    {
+        if (ui.editing_mode() != ui.DIRECT)
+            return insert_cmd(key, "", " ");
+        if (!ui.end_edit())
+            return object::ERROR;
+    }
 
     if (key >= KEY_F1 && key <= KEY_F6)
     {
@@ -933,7 +938,12 @@ COMMAND_BODY(VariablesMenuRecall)
 {
     int key = ui.evaluating;
     if (rt.editing())
-        return insert_cmd(key, "'", "' Recall ");
+    {
+        if (ui.editing_mode() != ui.DIRECT)
+            return insert_cmd(key, "'", "' Recall ");
+        if (!ui.end_edit())
+            return object::ERROR;
+    }
 
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = ui.label(key - KEY_F1))
@@ -953,7 +963,12 @@ COMMAND_BODY(VariablesMenuStore)
 {
     int key = ui.evaluating;
     if (rt.editing())
-        return insert_cmd(key, "'", "' Store ");
+    {
+        if (ui.editing_mode() != ui.DIRECT)
+            return insert_cmd(key, "'", "' Store ");
+        if (!ui.end_edit())
+            return object::ERROR;
+    }
 
     if (key >= KEY_F1 && key <= KEY_F6)
         if (symbol_p name = ui.label(key - KEY_F1))

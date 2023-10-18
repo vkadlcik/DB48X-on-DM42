@@ -143,7 +143,7 @@ struct user_interface
     int         menu_screen_bottom()    { return menuHeight; }
     bool        showingHelp()           { return help + 1 != 0; }
     uint        cursorPosition()        { return cursor; }
-    void        cursorPosition(uint pos){ cursor = pos; dirtyEditor = true; }
+    void        cursorPosition(uint pos){ cursor = pos; dirtyEditor = true; edRows = 0; }
     void        autoCompleteMenu()      { autoComplete = true; }
     bool        currentWord(size_t &start, size_t &size);
     bool        currentWord(utf8 &start, size_t &size);

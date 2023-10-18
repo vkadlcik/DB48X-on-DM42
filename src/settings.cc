@@ -216,6 +216,9 @@ void settings::save(renderer &out, bool show_defaults)
     if (background.bits != Defaults.background.bits || show_defaults)
         out.printf("#%llX background\n", background.bits);
 
+    if (cursor_blink_rate != Defaults.cursor_blink_rate || show_defaults)
+        out.printf("%u CursorBlinkRate\n", cursor_blink_rate);
+
     // Save the current menu
     if (menu_p menu = ui.menu())
     {
@@ -1258,4 +1261,32 @@ SETTINGS_COMMAND_BODY(TextStackDisplay, !Settings.graph_stack)
 {
     Settings.graph_stack = false;
     return OK;
+}
+
+
+SETTINGS_COMMAND_LABEL(CursorBlinkRate)
+// ----------------------------------------------------------------------------
+//   Cursor blink rate label label
+// ----------------------------------------------------------------------------
+{
+    static char buffer[16];
+    snprintf(buffer, sizeof(buffer),
+             "Blink %u", uint(Settings.cursor_blink_rate));
+    return buffer;
+}
+
+
+SETTINGS_COMMAND_BODY(CursorBlinkRate, false)
+// ----------------------------------------------------------------------------
+//  Set the cursor blink rate in milliseconds
+// ----------------------------------------------------------------------------
+{
+    uint blink = integer_arg(50, 5000);
+    if (!rt.error())
+    {
+        Settings.cursor_blink_rate = blink;
+        return object::OK;
+    }
+    return object::ERROR;
+
 }

@@ -1135,7 +1135,9 @@ MENU(UserInterfaceModesMenu,
      "Flat",                                    ID_FlatMenus,
      "Round",                                   ID_RoundedMenus,
      "Square",                                  ID_SquareMenus,
-     "Modes",                                   ID_ModesMenu);
+     "Modes",                                   ID_ModesMenu,
+
+     CursorBlinkRate::menu_label,               ID_CursorBlinkRate);
 
 MENU(MathModesMenu,
 // ----------------------------------------------------------------------------

@@ -88,6 +88,7 @@ struct settings
           maxrewrites(100),
           fraciter(10),
           fracprec(12),
+          cursor_blink_rate(500),
           command_fmt(LONG_FORM),
           show_decimal(true),
           fancy_exponent(true),
@@ -199,6 +200,7 @@ public:
     uint16_t maxrewrites;       // Maximum number of rewrites
     uint16_t fraciter;          // Number of iterations for ->Q
     uint16_t fracprec;          // Number of digits for ->Q
+    uint16_t cursor_blink_rate; // Blink rate for cursor in millisecond
     commands command_fmt;       // How we prefer to display commands
     bool     show_decimal   :1; // Show decimal dot for integral real numbers
     bool     fancy_exponent :1; // Show exponent with fancy superscripts
@@ -354,5 +356,7 @@ SETTINGS_COMMAND_DECLARE(Background);
 
 SETTINGS_COMMAND_DECLARE(GraphicsStackDisplay);
 SETTINGS_COMMAND_DECLARE(TextStackDisplay);
+
+SETTINGS_COMMAND_DECLARE(CursorBlinkRate);
 
 #endif // SETTINGS_H

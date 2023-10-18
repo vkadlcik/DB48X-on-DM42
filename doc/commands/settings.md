@@ -8,7 +8,7 @@ The calculator has a number of user-configurable settings:
 * [Decimal separator](#decimal-separator-settings)
 * [Precision](#precision-settings)
 * [Base](#base-settings)
-* [Menus appearance](#menus-appearance)
+* [User interface](#user-interface)
 
 The current preferences can be retrieved and saved using the `Modes` command.
 
@@ -245,11 +245,12 @@ Define the maximum number of digits of precision converting a decimal value to a
 fraction. For example, `2 →FracDigits 3.1415926 →Frac` will give `355/113`.
 
 
-# Menus appearance
+# User interface
 
-Soft-key menus appearance can be customized. Menus can show on one or three
-rows, with 18 (shifted) or 6 (flat) functions per page, and there are two
-possible visual themes for the labels, rounded or square.
+Various user-interface aspects can be customized, including the appearance of
+Soft-key menus. Menus can show on one or three rows, with 18 (shifted) or 6
+(flat) functions per page, and there are two possible visual themes for the
+labels, rounded or square.
 
 ## ThreeRowsMenus
 
@@ -272,6 +273,10 @@ Display menus using rounded black or white tabs.
 
 Display menus using square white tabs.
 
+## CursorBlinkRate
+
+Set the cursor blink rate in millisecond, between 50ms (20 blinks per second)
+and 5000ms (blinking every 5 seconds).
 
 # States
 

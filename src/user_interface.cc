@@ -1837,10 +1837,13 @@ bool user_interface::draw_cursor(int show, uint ncursor)
 
     static uint lastT = 0;
     uint time = sys_current_ms();
-    const uint period = 500;
+    const uint period = Settings.cursor_blink_rate;
 
     if (!force && !show && time - lastT < period)
+    {
+        draw_refresh(lastT + period - time);
         return false;
+    }
     lastT = time;
     if (show)
         blink = show > 0;
@@ -1920,6 +1923,7 @@ bool user_interface::draw_cursor(int show, uint ncursor)
 
     blink = !blink;
     Screen.clip(clip);
+    draw_refresh(period);
     return true;
 }
 

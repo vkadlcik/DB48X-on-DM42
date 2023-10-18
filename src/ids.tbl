@@ -478,7 +478,7 @@ CMD(Background)
 CMD(GraphicsStackDisplay)
 CMD(TextStackDisplay)
 
-
+CMD(CursorBlinkRate)
 
 // ============================================================================
 //

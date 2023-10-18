@@ -233,7 +233,7 @@ CMD(exp2)
 CMD(erf)
 CMD(erfc)
 NAMED(tgamma, "Gamma")
-CMD(lgamma)
+NAMED(lgamma, "LogGamma")
 NAMED(fact, "!")
 ALIAS(fact, "factorial")
 

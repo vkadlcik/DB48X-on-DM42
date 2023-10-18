@@ -1021,7 +1021,7 @@ SETTINGS_COMMAND_BODY(MaxBigNumBits, false)
 //   Select maximum size for big numbers
 // ----------------------------------------------------------------------------
 {
-    uint fs = integer_arg(0, 16384);
+    uint fs = integer_arg(0, 1048*1024*8); // Max 1M per number
     if (!rt.error())
     {
         Settings.maxbignum = fs;

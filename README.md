@@ -24,7 +24,7 @@ This project was presented at [FOSDEM 2023][fosdem]
 
 [fosdem]: https://fosdem.org/2023/schedule/event/reversepolishlisp/
 
-[![Watch the video](https://img.youtube.com/vi/ea_ybeslGpA/maxresdefault.jpg)](https://youtu.be/ea_ybeslGpA)
+[![Watch the video](https://img.youtube.com/vi/ea_ybeslGpA/maxresdefault.jpg)](https://www.youtube.com/watch?v=ea_ybeslGpA&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf)
 
 
 ## Why name the project DB48X?

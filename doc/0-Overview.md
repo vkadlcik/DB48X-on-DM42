@@ -118,6 +118,8 @@ gives a variety of special characters.
 
 ### Key mapping
 
+![DB48X keyboard layout](keyboard.png)
+
 Some keys that have little use or no direct equivalent for RPL are remapped
 as follows:
 

@@ -2411,6 +2411,17 @@ bool user_interface::draw_help()
                 }
                 break;
 
+            case '!':
+                // Skip images
+                if (last == '\n')
+                {
+                    unicode c = helpfile.get();
+                    while (c != '\n' && c != unicode(EOF))
+                        c = helpfile.get();
+                }
+                skip = true;
+                break;
+
             case '*':
                 if (last == '\n' && helpfile.peek() == ' ')
                 {

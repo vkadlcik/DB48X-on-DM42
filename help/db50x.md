@@ -83,7 +83,7 @@ characters are labeled on the right of each key on the DM42's keyboard.
 
 When *Alpha* mode is active, an _ABC_ indicator shows up in the annunciator area
 at the top of the screen. For lowercase entry, the indicator changes to
-_abc_. In the rest of this document, Alpha mode will be indicated as 🔤.
+_abc_.
 
 There are three ways to enter *Alpha* mode:
 
@@ -117,6 +117,8 @@ gives a variety of special characters.
 
 
 ### Key mapping
+
+![db50x keyboard layout](keyboard.png)
 
 Some keys that have little use or no direct equivalent for RPL are remapped
 as follows:

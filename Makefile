@@ -90,13 +90,15 @@ sim:	sim/gcc111libbid.a	\
 clangdb: sim/$(TARGET).mak .ALWAYS
 	cd sim && rm -f *.o && compiledb make -f $(TARGET).mak && mv compile_commands.json ..
 
-keyboard: sim/keyboard-db48x.png Keyboard-Layout.png Keyboard-Cutout.png
+keyboard: Keyboard-Layout.png Keyboard-Cutout.png sim/keyboard-db48x.png help/keyboard.png doc/keyboard.png
 Keyboard-Layout.png: DB48X-Keys/DB48X-Keys.001.png
 	cp $< $@
 Keyboard-Cutout.png: DB48X-Keys/DB48X-Keys.002.png
 	cp $< $@
 sim/keyboard-db48x.png: DB48X-Keys/DB48X-Keys.001.png
 	convert $< -crop 698x878+151+138 $@
+%/keyboard.png: sim/keyboard-db48x.png
+	cp $< $@
 
 QMAKE_debug=debug
 QMAKE_release=release

@@ -1361,6 +1361,34 @@ bool user_interface::draw_header()
 }
 
 
+static const uint  ann_width  = 15;
+static const uint  ann_height = 12;
+
+
+static const byte ann_right[] =
+// ----------------------------------------------------------------------------
+//   Right-shift annunciator
+// ----------------------------------------------------------------------------
+{
+    0xfe, 0x3f, 0xff, 0x7f, 0x9f, 0x7f,
+    0xcf, 0x7f, 0xe7, 0x7f, 0x03, 0x78,
+    0x03, 0x70, 0xe7, 0x73, 0xcf, 0x73,
+    0x9f, 0x73, 0xff, 0x73, 0xfe, 0x33
+};
+
+
+static const byte ann_left[] =
+// ----------------------------------------------------------------------------
+//   Left-shift annunciator
+// ----------------------------------------------------------------------------
+{
+    0xfe, 0x3f, 0xff, 0x7f, 0xff, 0x7c,
+    0xff, 0x79, 0xff, 0x73, 0x0f, 0x60,
+    0x07, 0x60, 0xe7, 0x73, 0xe7, 0x79,
+    0xe7, 0x7c, 0xe7, 0x7f, 0xe6, 0x3f
+};
+
+
 bool user_interface::draw_annunciators()
 // ----------------------------------------------------------------------------
 //    Draw the annunciators for Shift, Alpha, etc
@@ -1386,32 +1414,8 @@ bool user_interface::draw_annunciators()
     if (!force && shift == shift_drawn && xshift == xshift_drawn)
         return result;
 
-    const uint  ann_width  = 15;
-    const uint  ann_height = 12;
     coord       ann_y      = (lh - ann_height) / 2;
-    const byte *source     = nullptr;
-    if (xshift)
-    {
-        static const byte ann_right[] =
-        {
-            0xfe, 0x3f, 0xff, 0x7f, 0x9f, 0x7f,
-            0xcf, 0x7f, 0xe7, 0x7f, 0x03, 0x78,
-            0x03, 0x70, 0xe7, 0x73, 0xcf, 0x73,
-            0x9f, 0x73, 0xff, 0x73, 0xfe, 0x33
-        };
-        source = ann_right;
-    }
-    else if (shift)
-    {
-        static const byte ann_left[] =
-        {
-            0xfe, 0x3f, 0xff, 0x7f, 0xff, 0x7c,
-            0xff, 0x79, 0xff, 0x73, 0x0f, 0x60,
-            0x07, 0x60, 0xe7, 0x73, 0xe7, 0x79,
-            0xe7, 0x7c, 0xe7, 0x7f, 0xe6, 0x3f
-        };
-        source = ann_left;
-    }
+    const byte *source     = xshift ? ann_right : shift ? ann_left : nullptr;
     if (source)
     {
         pixword *sw = (pixword *) source;
@@ -2535,103 +2539,106 @@ bool user_interface::draw_help()
         font              = styles[style].font;
         height            = font->height();
 
-        // Check special case of yellow shift key
-        if (yellow || blue)
+        // Compute width of word (or words in the case of titles)
+        coord width = 0;
+        for (uint i  = 0; i < widx; i++)
+            width += font->width(word[i]);
+        size kwidth = 0;
+        if (style == KEY)
         {
-            rect shkey(x, y + 2, x + height - 2, y + height - 4);
-            Screen.fill(shkey, pattern::black);
-            shkey.inset(2,2);
-            Screen.fill(shkey, blue ? pattern::gray75 : pattern::white);
-            yellow = blue = false;
-            x += shkey.width() + 2 + font->width(' ');
+            kwidth = 2*font->width(' ');
+            width += 2*kwidth;
+        }
+
+        if (style <= SUBTITLE)
+        {
+            // Center titles
+            x  = (LCD_W - width) / 2;
+            y += 3 * height / 4;
         }
         else
         {
-            // Compute width of word (or words in the case of titles)
-            coord width = 0;
-            for (uint i  = 0; i < widx; i++)
-                width += font->width(word[i]);
-            size kwidth = 0;
-            if (style == KEY)
+            // Go to new line if this does not fit
+            coord right  = x + width;
+            if (right   >= xright - 1)
             {
-                kwidth = 2*font->width(' ');
-                width += 2*kwidth;
+                x = xleft;
+                y += height;
+            }
+        }
+
+        coord yf = y + height;
+        if (yf > ytop)
+        {
+            pattern color     = styles[style].color;
+            pattern bg        = styles[style].background;
+            bool    bold      = styles[style].bold;
+            bool    italic    = styles[style].italic;
+            bool    underline = styles[style].underline;
+            bool    box       = styles[style].box;
+
+            // Draw a decoration
+            coord xl = x;
+            coord xr = x + width;
+            if (underline)
+            {
+                xl -= 2;
+                xr += 2;
+                Screen.fill(xl, yf, xr, yf, bg);
+                xl += 2;
+                xr -= 2;
+            }
+            else if (box)
+            {
+                xl += 1;
+                xr += 8;
+                Screen.fill(xl, yf, xr, yf, bg);
+                Screen.fill(xl, y, xl, yf, bg);
+                Screen.fill(xr, y, xr, yf, bg);
+                Screen.fill(xl, y, xr, y, bg);
+                xl -= 1;
+                xr -= 8;
+                kwidth += 4;
+            }
+            else if (bg.bits != pattern::white.bits)
+            {
+                Screen.fill(xl, y, xr, yf, bg);
             }
 
-            if (style <= SUBTITLE)
+            // Draw next word
+            for (int i = 0; i < 1 + 3 * italic; i++)
             {
-                // Center titles
-                x  = (LCD_W - width) / 2;
-                y += 3 * height / 4;
-            }
-            else
-            {
-                // Go to new line if this does not fit
-                coord right  = x + width;
-                if (right   >= xright - 1)
-                {
-                    x = xleft;
-                    y += height;
-                }
-            }
-
-            coord yf = y + height;
-            if (yf > ytop)
-            {
-                pattern color     = styles[style].color;
-                pattern bg        = styles[style].background;
-                bool    bold      = styles[style].bold;
-                bool    italic    = styles[style].italic;
-                bool    underline = styles[style].underline;
-                bool    box       = styles[style].box;
-
-                // Draw a decoration
-                coord xl = x;
-                coord xr = x + width;
-                if (underline)
-                {
-                    xl -= 2;
-                    xr += 2;
-                    Screen.fill(xl, yf, xr, yf, bg);
-                    xl += 2;
-                    xr -= 2;
-                }
-                else if (box)
-                {
-                    xl += 1;
-                    xr += 8;
-                    Screen.fill(xl, yf, xr, yf, bg);
-                    Screen.fill(xl, y, xl, yf, bg);
-                    Screen.fill(xr, y, xr, yf, bg);
-                    Screen.fill(xl, y, xr, y, bg);
-                    xl -= 1;
-                    xr -= 8;
-                    kwidth += 4;
-                }
-                else if (bg.bits != pattern::white.bits)
-                {
-                    Screen.fill(xl, y, xr, yf, bg);
-                }
-
-                // Draw next word
-                for (int i = 0; i < 1 + 3 * italic; i++)
-                {
-                    x = xl + kwidth;
-                    if (italic)
-                    {
-                        coord yt  = y + (3-i) * height / 4;
-                        coord yb  = y + (4-i) * height / 4;
-                        x        += i;
-                        Screen.clip(x, yt, xr + i, yb);
-                    }
-                    coord x0 = x;
-                    for (int b = 0; b <= bold; b++)
-                        x = draw_word(x0 + b, y, widx, word, font, color);
-                    x += kwidth;
-                }
+                x = xl + kwidth;
                 if (italic)
-                    Screen.clip(r);
+                {
+                    coord yt  = y + (3-i) * height / 4;
+                    coord yb  = y + (4-i) * height / 4;
+                    x        += i;
+                    rect itr(x, yt, xr + i, yb);
+                    itr &= r;
+                    Screen.clip(itr);
+                }
+                coord x0 = x;
+                for (int b = 0; b <= bold; b++)
+                    x = draw_word(x0 + b, y, widx, word, font, color);
+                x += kwidth;
             }
+            if (italic)
+                Screen.clip(r);
+        }
+
+        // Check special case of yellow shift key
+        if (yellow || blue)
+        {
+            const byte *source     = blue ? ann_right : ann_left;
+            pixword    *sw         = (pixword *) source;
+            surface     s(sw, ann_width, ann_height, 16);
+
+            rect shkey(x, y, x + ann_width + 7, y + height);
+            Screen.fill(shkey, pattern::black);
+            Screen.copy(s, x + 4, y + (height - ann_height)/2);
+            yellow = blue = false;
+            x += ann_width + 7 + font->width(' ');
         }
 
         // Select style for next round

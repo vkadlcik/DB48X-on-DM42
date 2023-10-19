@@ -82,7 +82,8 @@ Entering alphabetic characters is done using *Alpha* mode. These alphabetic
 characters are labeled on the right of each key on the DM42's keyboard.
 
 When *Alpha* mode is active, an _ABC_ indicator shows up in the annunciator area
-at the top of the screen. For lowercase entry, the indicator changes to _abc_.
+at the top of the screen. For lowercase entry, the indicator changes to
+_abc_.
 
 There are three ways to enter *Alpha* mode:
 
@@ -123,7 +124,7 @@ as follows:
 * _Σ+_ is used to call [ToolsMenu](#ToolsMenu), which select a menu based on
   context, notably the content of the stack.
 
-* _Σ-_(i.e.🟨 _Σ+_) will select [LastMenu](#LastMenu), i.e. return to the
+* _Σ-_ (i.e.🟨 _Σ+_) will select [LastMenu](#LastMenu), i.e. return to the
   previous menu.
 
 * 🟦 _Σ+_ selects [MainMenu](#MainMenu), the top-level menu giving access

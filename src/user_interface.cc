@@ -2742,6 +2742,7 @@ bool user_interface::handle_help(int &key)
                     dirtyCommand = true;
                     if (longpress)
                     {
+                        rt.command("Help");
                         load_help(htopic);
                         if (rt.error())
                         {

@@ -520,6 +520,7 @@ db48x is Free Software, see the LICENSE file for details.
 You can obtain the source code for this software at the following URL:
 https://github.com/c3d/db48x-on-DM42.
 
+
 ### Authors
 
 This software is (C) 2022-2023 Christophe de Dinechin and the db48x team.
@@ -534,10 +535,14 @@ The authors would like to acknowledge
 * [Hewlett and Packard](#hewlett-and-packard)
 * [The Maubert Team](#the-maubert-team)
 * [Museum of HP calculators](#hp-museum)
+* [HPCalc](#hpcalc)
 * [The newRPL project](#newrpl-project)
 * [The WP43 and C47 projects](#wp43-and-c47-projects)
 * [SwissMicro's DMCP](#swissmicros-dmcp)
 * [Intel Decimal Floating-Point Math Library v2.2](#intel-decimal-floating-point-math)
+
+This work was placed by Christophe de Dinechin under the patronage of
+[Carlo Acutis](http://www.miracolieucaristici.org/en/Liste/list.html)
 
 
 ### Hewlett and Packard
@@ -558,20 +563,31 @@ in comparison to bringing RPN and RPL to the world.
 Back in the late 1980s and early 1990s, a team of young students with a passion
 for HP calculators began meeting on a regular basis at or around a particular
 electronics shop in Paris called "Maubert Electronique", exchanging
-tips about how to program the HP48 in assembly language or where to get precious
-technical documentation.
+tips about how to program the HP28 or HP48 in assembly language or where to get
+precious technical documentation.
 
-A lot of their productions, notably the HP48 Metakernel, can still be found
-on [hpcalc.org](https://www.hpcalc.org/hp48/apps/mk/) to this day. A few of
-these early heroes would go on to change the
-[history of Hewlett-Packard calculators](https://www.hpcalc.org/goodbyeaco.php),
-including Cyrille de Brébisson, Jean-Yves Avenard and Gerald Squelart.
-
-Another key contributor of that era is Paul Courbis, who had
-carefully reverse-engineered and documented
+It started with Paul Courbis, who carefully reverse-engineered and documented
 [the internals of RPL calculators](https://literature.hpcalc.org/items/1584),
-allowing his readers to waste countless hours debugging PacMan and Lemmings
-clones for these wonderful little machines.
+encouraging his readers to boldly cut open these wonderful little machines
+to solder IR receivers acting as makeshift PC connection tools, or to waste
+countless hours debugging [video games](https://www.hpcalc.org/hp48/games).
+
+There were more serious efforts as well, notably the
+[HP48 Metakernel](https://www.hpcalc.org/hp48/apps/mk/), which completely
+reinvented the HP48 user interface, making it both much faster and better.  It
+is fair to see db48x as a distant descendent from such efforts. The Metakernel
+was the work of many now well-known names in the HP community, such as Cyrille
+de Brébisson, Jean-Yves Avenard, Gerald Squelart and Étienne de Foras. Many of
+these early heroes would go on to actually change the [history of
+Hewlett-Packard calculators](https://www.hpcalc.org/goodbyeaco.php) for the
+better.
+
+The original author of db48x, Christophe de Dinechin, was part of this loose
+team, focusing on [cross-development tools](https://github.com/c3d/HPDS),
+which he used at the time to write several games for the HP48, notably
+[PacMan](https://www.hpcalc.org/details/553) or
+[Lemmings](https://www.hpcalc.org/details/530) clones. If db48x exists, it's
+largely because of that community.
 
 
 ### HP Museum
@@ -580,6 +596,19 @@ The [HP Museum](https://www.hpmuseum.org) not only extensively documents the
 history of RPN and RPL calcuators, it also provides a
 [very active forum](https://www.hpmuseum.org/forum/) for calculator enthusiasts
 all over the world.
+
+
+### HPCalc
+
+Much of the work from [early enthusiasts](#the-maubert-team) can still be found
+on [hpcalc.org](https://www.hpcalc.org) to this day.
+
+Back in the 1990s, long before Internet was widely available, HP48 programs were
+busily swapped over floppy disks, or propagated from machine to machine using
+the built-in infrared ports. This may have been the first case of large-scale
+viral distribution of software. This is probably the reason why all this
+software. which originated from all over the world, can still be downloaded
+and used today.
 
 
 ### newRPL project
@@ -3877,4 +3906,3 @@ Create a backup on a remote machine
 
 ## USBRESTORE
 Restore a backup from a remote machine
-

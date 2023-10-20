@@ -1,32 +1,79 @@
 Installation process
+
 Entering numbers
 Arithmetic and basic functions
+Primary function: 1/x
+Shifted function: y^x
+2nd shifted function: xroot
+Keyboard layout memory (from DM42 to DB48X)
+Layout difference: EXP LN instead of LOG LN
 
 Infinite stack
-Decimal numbers
-Separators
-Command line entering 3 numbers
+Integer, fractions and decimal numbers
+Number Separators: whole number part and decimal part
+Scientific notation
 
-Space key on R/S
-Alpha mode with Shift-Enter
+Menus and soft keys
+The DISP menu
+FIX, SCI, ENG, SIG and extensions to number formatting
+Changing to comma separator
+Changing digit separators
+Live separators during editing
+
+Alpha mode with Shift Enter
 Alpha mode with Long Shift
-Right shift with two shifts
+Transient Alpha mode, upper and lowercase
 Shift on digits and operations while in Alpha mode
+Shifted characters
+2nd shifted characters
 
+Entering a name
 Executing a command by typing its name
 Catalog with + key
-VERSION
+Example: VERSION
+What happens if the name is not a command
+Space key on R/S
+Command line: entering three numbers
+Command Line: entering a number and a function
+
+Entering text with 2nd shift ENTER
+Object types
+Arithmetic on integers
+Arithmetic on decimal values
+Arithmetic on fractions
+Mixed operations, e.g. adding text
+Multplying text by a number
+
+Recalling a previous command line
+Exiting the command line
+Editing an object on the stack with Down key (the version string)
 Multi-line Text editor
 Up and down by shifting
 Repeat left and right
 Repeat up and down by holding key
-Begin and end with xshift
+
+Storing a value in a new variable
+The VariableMenu
+Evaluating a variable with fkey
+Recalling a variable with shift fkey
+Storing in an existing variable with 2nd shift fkey
+Rationale for the difference with HP48
+
+
+Edit menu
+Word movement
+Beginning and end of buffer
+Selection
+Cut, Copy, Paste
+Incremental search
+Search and replace
+
 
 Help
 Help on primary functions
 Going to main menu
 Release information
-Accessing topical help with xshift-+
+Accessing topical help with 2nd shift +
 
 Menus
 The top-level menu
@@ -38,13 +85,6 @@ The Tools menu (A key)
 Tools menu on empty stack - Another way to access help
 Tools menu with a real number
 Tools menu with text on the stack
-
-The Modes menu
-FIX, ENG and SCI
-SIG mode
-Fraction marks
-Separators
-Adjusting the display font size
 
 The system menu
 Entering system menu

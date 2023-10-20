@@ -188,7 +188,7 @@ public:
     unicode  space;             // Space to use for normal numbers
     unicode  space_based;       // Space to use for based numbers
     uint16_t standard_exp;      // Maximum exponent before switching to sci
-    uint16_t min_fix_digits;   // Minimum number of digits to display in FIX
+    int16_t  min_fix_digits;    // Minimum number of digits to display in FIX
     angles   angle_mode;        // Angle mode ( degrees, radians or grads)
     uint8_t  base;              // The default base for #numbers
     size_t   wordsize;          // Wordsize for binary numbers (in bits)

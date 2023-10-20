@@ -98,7 +98,7 @@ void settings::save(renderer &out, bool show_defaults)
 
     // Save minimum number of digits for switching to scientfic mode
     if (min_fix_digits != Defaults.min_fix_digits || show_defaults)
-        out.printf("%u MinimumSignificantDigits\n", min_fix_digits);
+        out.printf("%d MinimumSignificantDigits\n", min_fix_digits);
 
     // Save current angle mode
     switch(angle_mode)
@@ -374,6 +374,49 @@ static uint integer_arg(uint min, uint max, bool base = false)
                         rt.invalid_base_error();
                     else
                         rt.domain_error();
+                }
+                rt.pop();
+                return value;
+            }
+            else
+            {
+                rt.type_error();
+            }
+        }
+    }
+    return min;
+}
+
+
+static int signed_integer_arg(int min, int max)
+// ----------------------------------------------------------------------------
+//   Get an integer argument from the stack
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        if (object_p arg = rt.top())
+        {
+            if (integer_p argint = arg->as<integer>())
+            {
+                int value = (int) argint->value<uint>();
+                if (value < min || value > max)
+                {
+                    if (value < min)        value = min;
+                    if (value > max)        value = max;
+                    rt.domain_error();
+                }
+                rt.pop();
+                return value;
+            }
+            else if (const neg_integer *argint = arg->as<neg_integer>())
+            {
+                int value = -(int) argint->value<uint>();
+                if (value < min || value > max)
+                {
+                    if (value < min)        value = min;
+                    if (value > max)        value = max;
+                    rt.domain_error();
                 }
                 rt.pop();
                 return value;
@@ -688,7 +731,7 @@ SETTINGS_COMMAND_BODY(MinimumSignificantDigits, 0)
 //   Setting the minimum number of significant digits in FIX mode
 // ----------------------------------------------------------------------------
 {
-    uint digits = integer_arg(0, BID128_MAXDIGITS);
+    int digits = signed_integer_arg(-1, BID128_MAXDIGITS);
     if (!rt.error())
     {
         Settings.min_fix_digits = digits;
@@ -704,7 +747,7 @@ SETTINGS_COMMAND_LABEL(MinimumSignificantDigits)
 // ----------------------------------------------------------------------------
 {
     static char buffer[12];
-    snprintf(buffer, sizeof(buffer), "Dig %u", Settings.min_fix_digits);
+    snprintf(buffer, sizeof(buffer), "Dig %d", Settings.min_fix_digits);
     return buffer;
 }
 

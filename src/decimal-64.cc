@@ -410,11 +410,22 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
             {
                 if (mode == settings::display::FIX)
                 {
-                    int shown = digits + realexp + 1;
+                    int shown = digits + realexp + (*in >= '5');
                     int minfix = display.min_fix_digits;
-                    if (minfix > mexp + 1)
-                        minfix = mexp + 1;
-                    hasexp = shown < minfix;
+                    if (minfix < 0)
+                    {
+                        if (shown < 0)
+                        {
+                            last = in;
+                            realexp = -digits;
+                        }
+                    }
+                    else
+                    {
+                        if (minfix > mexp + 1)
+                            minfix = mexp + 1;
+                        hasexp = shown < minfix;
+                    }
                 }
                 else
                 {

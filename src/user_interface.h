@@ -157,7 +157,9 @@ struct user_interface
     result      edit(utf8 s, modes m, int off = 0);
     bool        end_edit();
     void        clear_editor();
-    void        edit_history();
+    text_p      editor_save(text_r ed, bool rewinding = false);
+    text_p      editor_save(bool rewinding = false);
+    void        editor_history();
     bool        editor_select();
     bool        editor_word_left();
     bool        editor_word_right();
@@ -214,7 +216,8 @@ protected:
     uint     nextRefresh;       // Time for next refresh
     rect     dirty;             // Dirty rectangles
     object_g editing;           // Object being edited if any
-    uint     cmdIndex;          // Command index
+    uint     cmdIndex;          // Command index for next command to save
+    uint     cmdHistoryIndex;   // Command index for next command history
     text_g   history[HISTORY];  // Command-line history
     text_g   clipboard;         // Clipboard for copy/paste operations
     bool     shift        : 1;  // Normal shift active

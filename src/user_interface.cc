@@ -275,8 +275,8 @@ bool user_interface::end_edit()
 
         draw_busy_cursor();
 
-        // Save the command-line history (without removing spaces)
-        history[cmdIndex] = text::make(ed, edlen);
+        // Save the command-line history (prior to removing spaces)
+        text_g saved = text::make(ed, edlen);
 
         // Remove all additional decorative number spacing
         while (o < edlen)
@@ -307,7 +307,7 @@ bool user_interface::end_edit()
             if (cmds)
             {
                 // We successfully parsed the line
-                cmdIndex = (cmdIndex + 1) % HISTORY;
+                editor_save(saved, false);
                 clear_editor();
                 this->editing = nullptr;
                 rt.save();
@@ -359,24 +359,62 @@ void user_interface::clear_editor()
 }
 
 
-void user_interface::edit_history()
+text_p user_interface::editor_save(bool rewinding)
+// ----------------------------------------------------------------------------
+//   Save current editor content for history
+// ----------------------------------------------------------------------------
+{
+    if (rt.editing())
+        if (text_g editor = rt.close_editor())
+            return editor_save(editor, rewinding);
+    return nullptr;
+}
+
+
+text_p user_interface::editor_save(text_r &editor, bool rewinding)
+// ----------------------------------------------------------------------------
+//   Save text as editor content for history
+// ----------------------------------------------------------------------------
+{
+    bool found = false;
+    uint base = rewinding ? cmdHistoryIndex : cmdIndex;
+    for (uint h = 1; !found && h < HISTORY; h++)
+    {
+        uint i = (base + HISTORY - h) % HISTORY;
+        if (history[i] && editor->is_same_as(history[i]))
+        {
+            std::swap(history[base], history[i]);
+            found = true;
+        }
+    }
+    if (!found)
+        history[base] = editor;
+    if (!rewinding)
+    {
+        cmdIndex = (cmdIndex + 1) % HISTORY;
+        cmdHistoryIndex = cmdIndex;
+    }
+    return editor;
+}
+
+
+void user_interface::editor_history()
 // ----------------------------------------------------------------------------
 //   Restore editor buffer from history
 // ----------------------------------------------------------------------------
 {
-    if (rt.editing())
-        history[cmdIndex] = rt.close_editor(false);
+    editor_save(true);
     for (uint h = 0; h < HISTORY; h++)
     {
-        cmdIndex = (cmdIndex + HISTORY - 1) % HISTORY;
-        if (history[cmdIndex])
+        cmdHistoryIndex = (cmdHistoryIndex + HISTORY - 1) % HISTORY;
+        if (history[cmdHistoryIndex])
         {
             size_t sz = 0;
-            gcutf8 ed = history[cmdIndex]->value(&sz);
+            gcutf8 ed = history[cmdHistoryIndex]->value(&sz);
             rt.edit(ed, sz);
             cursor = 0;
             select = ~0U;
-            xshift = shift = false;
+            alpha = xshift = shift = false;
             edRows = 0;
             dirtyEditor = true;
             break;
@@ -3157,6 +3195,7 @@ bool user_interface::handle_editing(int key)
             }
             else
             {
+                editor_save(false);
                 clear_editor();
                 if (this->editing)
                 {
@@ -3178,7 +3217,7 @@ bool user_interface::handle_editing(int key)
             else if (xshift)
             {
                 // Command-line history
-                edit_history();
+                editor_history();
                 return true;
             }
             else if (cursor > 0)
@@ -3293,7 +3332,7 @@ bool user_interface::handle_editing(int key)
         case KEY_UP:
             if (xshift)
             {
-                edit_history();
+                editor_history();
                 return true;
             }
             break;

@@ -62,7 +62,7 @@ struct algebraic : command
     static bool decimal_to_fraction(algebraic_g &x);
 
     // Convert to decimal number
-    static bool to_decimal(algebraic_g &x);
+    static bool to_decimal(algebraic_g &x, bool weak = false);
 
     // Convert to decimal if this is a big value
     static bool to_decimal_if_big(algebraic_g &x)

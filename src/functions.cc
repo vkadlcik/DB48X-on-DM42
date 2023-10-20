@@ -263,7 +263,7 @@ algebraic_p function::evaluate(algebraic_r xr,
 
     // Convert arguments to numeric if necessary
     if (Settings.numeric)
-        (void) to_decimal(x);   // May fail silently, and that's OK
+        (void) to_decimal(x, true);   // May fail silently, and that's OK
 
     id xt = x->type();
     if (should_be_symbolic(xt))
@@ -721,7 +721,7 @@ FUNCTION_BODY(ToDecimal)
     if (!x.Safe())
         return nullptr;
     algebraic_g xg = x;
-    if (algebraic::to_decimal(xg))
+    if (algebraic::to_decimal(xg, false))
         return xg.Safe();
     return nullptr;
 }

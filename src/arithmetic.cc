@@ -1046,8 +1046,8 @@ algebraic_p arithmetic::evaluate(id          op,
     // Convert arguments to numeric if necessary
     if (Settings.numeric)
     {
-        (void) to_decimal(x);          // May fail silently
-        (void) to_decimal(y);
+        (void) to_decimal(x, true);          // May fail silently
+        (void) to_decimal(y, true);
     }
 
     id xt = x->type();

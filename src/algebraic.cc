@@ -387,7 +387,7 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
 }
 
 
-bool algebraic::to_decimal(algebraic_g &x)
+bool algebraic::to_decimal(algebraic_g &x, bool weak)
 // ----------------------------------------------------------------------------
 //   Convert a value to decimal
 // ----------------------------------------------------------------------------
@@ -401,7 +401,7 @@ bool algebraic::to_decimal(algebraic_g &x)
         rectangular_p z = rectangular_p(x.Safe());
         algebraic_g re = z->re();
         algebraic_g im = z->im();
-        if (arithmetic::real_promotion(re) && arithmetic::real_promotion(im))
+        if (to_decimal(re, weak) && to_decimal(im, weak))
         {
             x = rectangular::make(re, im);
             return true;
@@ -413,8 +413,8 @@ bool algebraic::to_decimal(algebraic_g &x)
         polar_p z = polar_p(x.Safe());
         algebraic_g mod = z->mod();
         algebraic_g arg = z->pifrac();
-        if (arithmetic::real_promotion(mod) &&
-            (mod->is_fraction() || arithmetic::real_promotion(arg)))
+        if (to_decimal(mod, weak) &&
+            (mod->is_fraction() || to_decimal(arg, weak)))
         {
             x = polar::make(mod, arg, settings::PI_RADIANS);
             return true;
@@ -423,6 +423,8 @@ bool algebraic::to_decimal(algebraic_g &x)
     }
     case ID_integer:
     case ID_neg_integer:
+        if (weak)
+            return true;
     case ID_bignum:
     case ID_neg_bignum:
     case ID_fraction:
@@ -434,7 +436,7 @@ bool algebraic::to_decimal(algebraic_g &x)
     case ID_decimal128:
         return real_promotion(x);
     case ID_pi:
-        x = algebraic::pi();
+        x = pi();
         return true;
     case ID_ImaginaryUnit:
         x = rectangular::make(integer::make(0),integer::make(1));
@@ -452,7 +454,8 @@ bool algebraic::to_decimal(algebraic_g &x)
         return !rt.error();
     }
     default:
-        rt.type_error();
+        if (!weak)
+            rt.type_error();
     }
     return false;
 }

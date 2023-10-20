@@ -3349,7 +3349,7 @@ bool user_interface::handle_alpha(int key)
 // ----------------------------------------------------------------------------
 {
     // Things that we never handle in alpha mode
-    if (!key || (key >= KEY_F1 && key <= KEY_F6))
+    if (!key || (key >= KEY_F1 && key <= KEY_F6) || key == KEY_EXIT)
         return false;
 
     // Allow "alpha" mode for keys A-F in based number mode

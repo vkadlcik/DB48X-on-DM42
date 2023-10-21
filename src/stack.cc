@@ -175,7 +175,7 @@ void stack::draw_stack()
 #endif
             w = font->width(out, len);
 
-            if (w > avail)
+            if (w >= avail)
             {
                 unicode sep   = L'…';
                 coord   x     = hdrx + 5;
@@ -188,11 +188,11 @@ void stack::draw_stack()
                 Screen.clip(split, ytop, split + skip, yb);
                 Screen.glyph(split + skip/8, y - offs, sep, font, pattern::gray50);
                 Screen.clip(split+skip, y, LCD_W, yb);
-                Screen.text(LCD_W - w, y, out, len, font);
+                Screen.text(LCD_W - 2 - w, y, out, len, font);
             }
             else
             {
-                Screen.text(LCD_W - w, y, out, len, font);
+                Screen.text(LCD_W - 2 - w, y, out, len, font);
             }
 
             font = Settings.stack_font();

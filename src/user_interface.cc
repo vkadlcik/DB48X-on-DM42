@@ -138,7 +138,7 @@ user_interface::user_interface()
 }
 
 
-void user_interface::edit(unicode c, modes m)
+void user_interface::edit(unicode c, modes m, bool autoclose)
 // ----------------------------------------------------------------------------
 //   Begin editing with a given character
 // ----------------------------------------------------------------------------
@@ -170,7 +170,7 @@ void user_interface::edit(unicode c, modes m)
     case L'«':                  closing = L'»'; m = PROGRAM;   break;
     case '\n': edRows = 0;                    break; // Recompute rows
     }
-    if (closing)
+    if (closing && autoclose)
     {
         byte *ed = rt.editor();
         if (mode == PROGRAM || mode == ALGEBRAIC || mode == DIRECT)

@@ -271,9 +271,21 @@ COMMAND_BODY(SelfInsert)
     {
         uint plane = ui.shift_plane();
         uint menu_idx = key - KEY_F1 + plane * ui.NUM_SOFTKEYS;
+        uint count = 0;
         if (cstring lbl = ui.labelText(menu_idx))
+        {
+            uint cpos = ui.cursorPosition();
             for (utf8 p = utf8(lbl); *p; p = utf8_next(p))
-                ui.edit(utf8_codepoint(p), ui.PROGRAM);
+            {
+                ui.edit(utf8_codepoint(p), ui.PROGRAM, false);
+                count++;
+                if (count == 1)
+                    cpos = ui.cursorPosition();
+            }
+            if (count == 2)
+                ui.cursorPosition(cpos);
+
+        }
     }
     return OK;
 }

@@ -152,7 +152,7 @@ struct user_interface
     void        clear_help();
     void        clear_menu();
     object_p    object_for_key(int key);
-    void        edit(unicode c, modes m);
+    void        edit(unicode c, modes m, bool autoclose = true);
     result      edit(utf8 s, size_t len, modes m, int off = 0);
     result      edit(utf8 s, modes m, int off = 0);
     bool        end_edit();

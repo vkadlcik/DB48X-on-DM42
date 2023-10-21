@@ -368,19 +368,37 @@ MENU(MatrixMenu,
 // ----------------------------------------------------------------------------
 //   Matrix operations
 // ----------------------------------------------------------------------------
+     "[]",      ID_SelfInsert,
+     "Idnty",   ID_Unimplemented,
+     "Const",   ID_Unimplemented,
+     "Transp",  ID_Unimplemented,
+     "Redim",   ID_Unimplemented,
+     "Random",  ID_Unimplemented,
+
+     "Det",     ID_det,
+     "Norm",    ID_abs,
+     "Make",    ID_Unimplemented,
+     "Norms",   ID_Unimplemented,
+     "Factor",  ID_Unimplemented,
+     "Resize",  ID_Unimplemented,
+
+#if 0
+     "RowNrm",  ID_Unimplemented,
+     "ColNrm",  ID_Unimplemented,
+     "CondNum", ID_Unimplemented,
+     "SpecRad", ID_Unimplemented,
      "→Mat",    ID_Unimplemented,
      "Mat→",    ID_Unimplemented,
-     "Det",     ID_det,
-     "Transp",  ID_Unimplemented,
-     "Conjug",  ID_Unimplemented,
-     "Redim",   ID_Unimplemented,
 
+     "QR",      ID_Unimplemented);
+#endif
+
+     "Conjug",  ID_conj,
+     "Size",    ID_Unimplemented,
      "→Diag",   ID_Unimplemented,
-     "Idnty",   ID_Unimplemented,
-     "Resid",   ID_Unimplemented,
-     "Norm",    ID_abs,
-     "RowNrm",  ID_Unimplemented,
-     "ColNrm",  ID_Unimplemented);
+     "LU",      ID_Unimplemented,
+     "Schur",   ID_Unimplemented,
+     "LQ",      ID_Unimplemented);
 
 
 MENU(PolynomialsMenu,

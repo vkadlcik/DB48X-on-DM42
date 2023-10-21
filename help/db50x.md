@@ -104,7 +104,7 @@ There is no equivalent of the HP48's "single-Alpha" mode. Alpha mode is either
 _transient_ (when you hold one of the arrow keys) or _sticky_ (with 🟨 _ENTER_
 or by holding 🟨).
 
-Alpha mode is cancelled when pressing_ENTER_ or _EXIT_.
+Alpha mode is cancelled when pressing _ENTER_ or _EXIT_.
 
 Since the DM42's alphabetic keys overlap with the numeric keys (unlike the
 HP48), as well as with operations such as _×_ and _÷_, using 🟨 in Alpha mode
@@ -147,7 +147,7 @@ as follows:
   functions like [Conjugate](#Conjugate).
 
 * _RCL_ opens the [VariablesMenu](#VariablesMenu) menu listing user variables.
-  This plays the role of _VARS_ on the HP48.
+  This plays the role of _VAR_ on the HP48.
 
 * _%_ (🟨 _RCL_) opens the [FractionsMenu](#FractionsMenu), to access operations
   on fractions.

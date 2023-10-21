@@ -186,7 +186,28 @@ GRAPH_BODY(grob)
 //   Return a grob as itself in graphical stack rendering
 // ----------------------------------------------------------------------------
 {
-    return o;
+    // If not rendering for the stack, just return object as is
+    if (!g.flat)
+        return o;
+
+    using pixsize  = blitter::size;
+    pixsize width = o->width() + 4;
+    pixsize height = o->height() + 4;
+    if (width > g.maxw)
+        width = g.maxw;
+    if (height > g.maxh)
+        height = g.maxh;
+
+    grob_g  result = grob::make(width, height);
+    surface dst    = result->pixels();
+    surface src    = o->pixels();
+    rect    inside = dst.area();
+    inside.inset(2, 2);
+    dst.fill(pattern::gray50);
+    dst.fill(inside, g.background);
+    dst.copy(src, inside);
+
+    return result;
 }
 
 

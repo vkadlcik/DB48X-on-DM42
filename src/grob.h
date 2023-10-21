@@ -164,6 +164,7 @@ public:
     PARSE_DECL(grob);
     SIZE_DECL(grob);
     RENDER_DECL(grob);
+    GRAPH_DECL(grob);
 };
 
 
@@ -178,12 +179,14 @@ struct grapher
             size    h  = LCD_H,
             font_id f  = settings::EDITOR,
             pattern fg = pattern::black,
-            pattern bg = pattern::white)
+            pattern bg = pattern::white,
+            bool flat = false)
         : maxw(w),
           maxh(h),
           font(f),
           foreground(fg),
-          background(bg)
+          background(bg),
+          flat(flat)
     {}
 
     size    maxw;
@@ -191,6 +194,7 @@ struct grapher
     font_id font;
     pattern foreground;
     pattern background;
+    bool    flat;
 };
 
 #endif // GROB_H

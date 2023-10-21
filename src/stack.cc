@@ -120,10 +120,11 @@ void stack::draw_stack()
         if (Settings.graph_stack)
         {
             auto fid = !level ? Settings.result_sz : Settings.stack_sz;
-            grapher  g(avail, bottom - top, fid);
+            grapher  g(avail - 2, bottom - top, fid,
+                       pattern::black, pattern::gray90, true);
             graph = obj->graph(g);
             size gh = graph->height();
-            if (lineHeight < gh)
+            if (level == 0 && lineHeight < gh)
                 lineHeight = gh;
             w = graph->width();
 
@@ -249,8 +250,8 @@ void stack::draw_stack()
             }
 
             font = Settings.stack_font();
-            lineHeight = font->height();
         }
+        lineHeight = font->height();
     }
     Screen.clip(clip);
 }

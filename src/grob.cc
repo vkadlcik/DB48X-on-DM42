@@ -22,7 +22,7 @@
 //   DB48X is free software: you can redistribute it and/or modify
 //   it under the terms outlined in the LICENSE.txt file
 //
-//   DB48X is distributed in the hope that it will be useful,
+//   DB48X is distributed in the hope that it will be //useful,
 //   but WITHOUT ANY WARRANTY; without even the implied warranty of
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
@@ -178,6 +178,15 @@ RENDER_BODY(grob)
         bitflip(data0, w, h, true);
     }
     return r.size();
+}
+
+
+GRAPH_BODY(grob)
+// ----------------------------------------------------------------------------
+//   Return a grob as itself in graphical stack rendering
+// ----------------------------------------------------------------------------
+{
+    return o;
 }
 
 

@@ -499,20 +499,59 @@ GRAPH_BODY(object)
 //  The default for rendering is to render the text using default font
 // ----------------------------------------------------------------------------
 {
-    renderer r(nullptr, ~0U, true);
+    renderer r(nullptr, ~0U, g.flat);
     using pixsize  = blitter::size;
     size_t  sz     = o->render(r);
     gcutf8  txt    = r.text();
     font_p  font   = Settings.font(g.font);
-    pixsize height = font->height();
-    pixsize width  = font->width(txt, sz);
-    if (width > g.maxw)
-        width = g.maxw;
+    pixsize fh     = font->height();
+    pixsize width  = 0;
+    pixsize height = fh;
+    utf8    end    = txt + sz;
+    pixsize rw     = 0;
+
+    for (utf8 p = txt; p < end; p = utf8_next(p))
+    {
+        unicode c  = utf8_codepoint(p);
+        pixsize cw = font->width(c);
+        rw += cw;
+        if (rw >= g.maxw || c == '\n')
+        {
+            if (width < rw - cw)
+                width = rw - cw;
+            height += fh;
+            rw = cw;
+            if (height > g.maxh)
+                break;
+        }
+    }
+    if (width < rw)
+        width = rw;
+
     if (height > g.maxh)
         height = g.maxh;
+
     grob_g  result = grob::make(width, height);
     surface s      = result->pixels();
-    s.text(0, 0, txt, sz, font, g.foreground, g.background);
+    coord   x      = 0;
+    coord   y      = 0;
+    s.fill(g.background);
+
+    end            = txt + sz;
+    for (utf8 p = txt; p < end; p = utf8_next(p))
+    {
+        unicode c  = utf8_codepoint(p);
+        pixsize cw = font->width(c);
+        if (x + cw > width || c == '\n')
+        {
+            y += fh;
+            if (y > coord(g.maxh))
+                break;
+            x = 0;
+        }
+        x = s.glyph(x, y, c, font, g.foreground, g.background);
+    }
+
     return result;
 }
 

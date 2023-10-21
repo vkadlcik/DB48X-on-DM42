@@ -424,9 +424,12 @@ DB48X considers lists as bags of items and treat them as a whole when it makes
 sense, whereas arrays are focusing more on the values they contain, and will
 operate on these items when it makes sense. Therefore:
 
-* `{ 1 2 3 } 4 +` gives `{ 1 2 3 4 }`, `{ 1 2 3 } 2 -` gives `{ 1 3 }`, and
-  `{ 1 2 3 } 3 ×` gives `{ 1 2 3 1 2 3 1 2 3 }`. The `÷` operator does not work
-  on lists.
+* `{ 1 2 3 } 4 +` gives `{ 1 2 3 4 }`, `{ 1 2 3 } 2 -` gives `{ 1 3 }` (not yet
+  implemented), and `{ 1 2 3 } 3 ×` gives `{ 1 2 3 1 2 3 1 2 3 }`. The `÷`
+  operator is equivalent to the `ListDivide` function, and partitions a list in
+  chunks of the given size and returns the number of partitions so generated
+  (the last partition being possibly shorter), i.e. `{ 1 2 3 4 5 } 2 ÷` will
+  generate `{1 2} {3 4} {5} 3` on the stack (this is not yet implemented).
 
 * `[ 1 2 3 ] 4 +` gives `[ 5 6 7 ]`, `[ 1 2 3 ] 2 -` gives `[ -1 0 1 ]`,
   `[ 1 2 3 ] 3 ×` gives `[ 3 6 9 ]` and `[ 1 2 3 ] 5 ÷` gives

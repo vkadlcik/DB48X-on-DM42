@@ -32,8 +32,11 @@ of the project on GitHub for details and updates.
 ## Design overview
 
 The objective is to re-create an RPL-like experience, but to optimize it for the
-existing DM32 physical hardware. Ideally, db48x should be fully usable without a
-keyboard overlay. though one is [being worked on](../Keyboard-Layout.png).
+existing DM32 physical hardware.
+The DM32 keyboard layout is really different compared to the DB50X expected
+layout. For example, the DM32 does not have unshifted arrow keys, and has two
+shift keys. For that reason, when running DB50X on a DM32, it is highly
+recommended to use a [keyboard overlay](../Keyboard-Layout.png).
 
 Compared to the original HP48, the DM32 has a much larger screen, but no
 annunciators (it is a fully bitmap screen). It has a keyboard with dedicated
@@ -47,14 +50,20 @@ and down), and has no space key (_SPC_ on the HP48).
 The keyboard differences force us to revisit the user interaction with the
 calculator compared to the HP48:
 
-* The single yellow 🟨 key cycles between three states, *Shift*, *Right
-  Shift* and no shift.  This double-shift shortcut appears necessary because
-  RPL calculators like the HP48 have a rather full keyboard even with two shift
-  keys.
+
+* When running DB50X on the DM32, the blue 🟦 key cycles between three states,
+  *Shift*, *Right Shift* and no shift. The yellow 🟨 shift key is actually used
+  as a down/right cursor key, and the _XEQ_ key is used as an up/left cursor
+  key. This remapping of keys appears necessary because RPL calculators like the
+  HP48 have a rather full keyboard even with two shift keys, and absolutely need
+  at least two cursor keys.
 
 * The less-frequently used functions can be accessed after a
   double-press on 🟨, which in the rest of this documentation will be shown
-  as 🟦, and will correspond to blue functions on the keyboard overlay.
+  as 🟦, and will correspond to blue functions on the keyboard overlay. The
+  shift state is indicated in the header area of the display.
+
+![Left Shift](left-shift.png)
 
 * Since RPL uses alphabetic entry (also called *Alpha* mode) a lot more
   frequently than on the HP42, making it quickly accessible seems important, so

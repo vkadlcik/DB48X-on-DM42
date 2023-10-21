@@ -32,7 +32,8 @@ of the project on GitHub for details and updates.
 ## Design overview
 
 The objective is to re-create an RPL-like experience, but to optimize it for the
-existing DM42 physical hardware. Ideally, db48x should be fully usable without a
+existing DM42 physical hardware.
+Ideally, DB48X should be fully usable without a
 keyboard overlay. though one is [being worked on](../Keyboard-Layout.png).
 
 Compared to the original HP48, the DM42 has a much larger screen, but no
@@ -47,14 +48,18 @@ and down), and has no space key (_SPC_ on the HP48).
 The keyboard differences force us to revisit the user interaction with the
 calculator compared to the HP48:
 
-* The single yellow 🟨 key cycles between three states, *Shift*, *Right
-  Shift* and no shift.  This double-shift shortcut appears necessary because
-  RPL calculators like the HP48 have a rather full keyboard even with two shift
-  keys.
+* When running DB48X on the DM42, the single yellow 🟨 key cycles between three
+  states, *Shift*, *Right Shift* and no shift.  This double-shift shortcut
+  appears necessary because RPL calculators like the HP48 have a rather full
+  keyboard even with two shift keys.
+
 
 * The less-frequently used functions can be accessed after a
   double-press on 🟨, which in the rest of this documentation will be shown
-  as 🟦, and will correspond to blue functions on the keyboard overlay.
+  as 🟦, and will correspond to blue functions on the keyboard overlay. The
+  shift state is indicated in the header area of the display.
+
+![Left Shift](left-shift.png)
 
 * Since RPL uses alphabetic entry (also called *Alpha* mode) a lot more
   frequently than on the HP42, making it quickly accessible seems important, so

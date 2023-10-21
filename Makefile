@@ -137,8 +137,15 @@ fonts/HelpFont.cc: $(TTF2FONT) $(BASE_FONT)
 	$(TTF2FONT) -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
 help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md)
 	mkdir -p help && \
-	cat $^ | sed -e 's/DB48X/$(PRODUCT_NAME)/g' \
-	             -e 's/DM42/$(PRODUCT_MACHINE)/g' > $@
+	cat $^ | \
+	sed -e '/<!--- $(PRODUCT_MACHINE) --->/,/<!--- !$(PRODUCT_MACHINE) --->/s/$(PRODUCT_MACHINE)/KEEP_IT/g' | \
+	sed -e '/<!--- DM.* --->/,/<!--- !DM.* --->/d' | \
+	sed -e '/<!--- KEEP_IT --->/d' | \
+	sed -e '/<!--- !KEEP_IT --->/d' | \
+	sed -e 's/KEEP_IT/$(PRODUCT_MACHINE)/g' | \
+	sed -e 's/DB48X/$(PRODUCT_NAME)/g' \
+            -e 's/DM42/$(PRODUCT_MACHINE)/g' > $@
+	cp doc/*.png help/
 
 debug-%:
 	$(MAKE) $* OPT=debug

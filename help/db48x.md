@@ -491,7 +491,13 @@ The DB48X project includes an extensive built-in help, which you are presently
 reading. This help is stored as a `HELP/DB48X.md` file on the calculator. You
 can also read it from a web browser directly on the GitHub page of the project.
 
-The DB48X help viewer works roughly simiilarly to the DM42's, but with history
+The `Help` command makes it possible to access the built-in help in a contextual
+way. It is Bound to 🟦 _+_. If the first level of the stack contains a text
+corresponding to a valid help topic, this topic will be shown in the help
+viewer. Otherwise, a help topic corresponding to the type of data in the stack
+will be selected.
+
+The DB48X help viewer works roughly similarly to the DM42's, but with history
 tracking and the ability to directly access help about a given function by
 holding a key for more than half a second.
 
@@ -517,6 +523,7 @@ To navigate the help on the calculator, use the following keys:
   the help history. The _←_ key achieves the same effect.
 
 * To follow a highlighted link, click on the _ENTER_ key.
+
 
 
 ## Acknowledgements and credits
@@ -3632,15 +3639,6 @@ Display the built-in system setup
 Save the machine's state to disk, using the current state if one was previously
 loaded. This is intended to quickly save the state for example before a system
 upgrade.
-
-
-## Help
-
-Access the built-in help in a contextual way. Bound to __XShift-+__
-
-If the first level of the stack contains a text corresponding to a valid help
-topic, this topic will be shown in the help viewer. Otherwise, a help topic
-corresponding to the type of data in the stack will be selected.
 # Tagged objects
 
 Tagged objects are a way to indicate what a value represents, using a *tag*

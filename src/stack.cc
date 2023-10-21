@@ -36,6 +36,7 @@
 #include "settings.h"
 #include "target.h"
 #include "user_interface.h"
+#include "utf8.h"
 
 #include <dmcp.h>
 
@@ -176,18 +177,71 @@ void stack::draw_stack()
 
             if (w >= avail)
             {
-                unicode sep   = L'…';
-                coord   x     = hdrx + 5;
-                coord   split = 200;
-                coord   skip  = font->width(sep) * 3 / 2;
-                size    offs  = lineHeight / 5;
+                uint availRows = (y + lineHeight - 1 - top) / lineHeight;
+                bool dots = level != 0 || w >= avail * availRows;
 
-                Screen.clip(x, ytop, split, yb);
-                Screen.text(x, y, out, len, font);
-                Screen.clip(split, ytop, split + skip, yb);
-                Screen.glyph(split + skip/8, y - offs, sep, font, pattern::gray50);
-                Screen.clip(split+skip, y, LCD_W, yb);
-                Screen.text(LCD_W - 2 - w, y, out, len, font);
+                if (!dots)
+                {
+                    // Try to split into lines
+                    size_t rlen[16];
+                    uint   rows = 0;
+                    utf8   end  = out + len;
+                    utf8   rs   = out;
+                    size   rw   = 0;
+                    size   rx   = 0;
+                    for (utf8 p = out; p < end; p = utf8_next(p))
+                    {
+                        unicode c = utf8_codepoint(p);
+                        size cw = font->width(c);
+                        rw += cw;
+                        if (rw >= avail)
+                        {
+                            if (rows >= availRows)
+                            {
+                                dots = true;
+                                break;
+                            }
+                            rlen[rows++] = p - rs;
+                            rs = p;
+                            if (rx < rw - cw)
+                                rx = rw - cw;
+                            rw = cw;
+                        }
+                    }
+
+                    if (!dots)
+                    {
+                        if (end > rs)
+                            rlen[rows++] = end - rs;
+                        y -= (rows - 1) * lineHeight;
+                        ytop = y < top ? top : y;
+                        Screen.clip(0, ytop, LCD_W, yb);
+                        rs = out;
+                        for (uint r = 0; r < rows; r++)
+                        {
+                            Screen.text(LCD_W - 2 - rx,
+                                        y + r * lineHeight,
+                                        rs, rlen[r], font);
+                            rs += rlen[r];
+                        }
+                    }
+                }
+
+                if (dots)
+                {
+                    unicode sep   = L'…';
+                    coord   x     = hdrx + 5;
+                    coord   split = 200;
+                    coord   skip  = font->width(sep) * 3 / 2;
+                    size    offs  = lineHeight / 5;
+
+                    Screen.clip(x, ytop, split, yb);
+                    Screen.text(x, y, out, len, font);
+                    Screen.clip(split, ytop, split + skip, yb);
+                    Screen.glyph(split + skip/8, y - offs, sep, font, pattern::gray50);
+                    Screen.clip(split+skip, y, LCD_W, yb);
+                    Screen.text(LCD_W - 2 - w, y, out, len, font);
+                }
             }
             else
             {

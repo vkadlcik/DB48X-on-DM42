@@ -1,8 +1,8 @@
 # Overview
 
-## db48x on DM42
+## DB48X on DM42
 
-The db48x project intends to rebuild and improve the user experience of the
+The DB48X project intends to rebuild and improve the user experience of the
 legendary HP48 family of calculators, notably their *"Reverse Polish Lisp"*
  [(RPL)](#Introduction-to-RPL)
 language with its rich set of data types and built-in functions.
@@ -118,7 +118,7 @@ gives a variety of special characters.
 
 ### Key mapping
 
-![db48x keyboard layout](keyboard.png)
+![DB48X keyboard layout](keyboard.png)
 
 Some keys that have little use or no direct equivalent for RPL are remapped
 as follows:
@@ -130,7 +130,7 @@ as follows:
   previous menu.
 
 * 🟦 _Σ+_ selects [MainMenu](#MainMenu), the top-level menu giving access
-  to all other menus and features in db48x (see also the [Catalog](#catalog)
+  to all other menus and features in DB48X (see also the [Catalog](#catalog)
   feature).
 
 * _XEQ_ opens an algebraic expression, i.e. it shows `''` on the command-line
@@ -258,7 +258,7 @@ as follows:
 ## Soft menus
 
 The DM42 has 6 dedicated soft-menu keys at the top of the keyboard. Most of the
-advanced features of db48x can be accessed through these soft menus.
+advanced features of DB48X can be accessed through these soft menus.
 
 Menus are organized internally as a hierarchy, where menus can refer to other
 menus. A special menu, [MainMenu](#MainMenu), accessible via the 🟦 _Σ+_,
@@ -292,17 +292,17 @@ A good reference to understand the differences between the various existing
 implementations from HP is the
 [HP50G Advanced User's Reference Manual](https://www.hpcalc.org/details/7141).
 
-There are a number of intentional differences in design between db48x and the
+There are a number of intentional differences in design between DB48X and the
 HP48, HP49 or HP50G's implementations of RPL. There are also a number of
 unintentional differences, since the implementation is completely new.
 
 #### User interface
 
-* db48x features an extensive built-in help system, which you are presently
+* DB48X features an extensive built-in help system, which you are presently
   using. Information for that help system is stored using a regular *markdown*
-  file named `/HELP/db48x.md`, stored in the calculator's flash storage.
+  file named `/HELP/DB48X.md`, stored in the calculator's flash storage.
 
-* db48x features auto-completion for commands while typing, through
+* DB48X features auto-completion for commands while typing, through
   the  _Catalog_ key ([CatalogMenu](#CatalogMenu)).
 
 * Many RPL words exist in short and long form, and a user preference selects how
@@ -310,12 +310,12 @@ unintentional differences, since the implementation is completely new.
   calls `NEG`, can display, based on user preferences, as `NEG`, `neg`, `Neg` or
   `Negate`. In the help, it will be shown as **Negate (NEG)**.
 
-* The db48x dialect of RPL is not case sensitive, but it is case-respecting.
+* The DB48X dialect of RPL is not case sensitive, but it is case-respecting.
   For example, if your preference is to display built-in functions in long form,
   typing `inv` or `INV` will show up as `Invert` in the resulting program.
-  This means that the space of "reserved words" is larger in db48x than in other
+  This means that the space of "reserved words" is larger in DB48X than in other
   RPL implementations. Notably, on HP's implementations, `DUP` is a keyword but
-  you can use `DuP` as a valid variable name. This is not possible in db48x.
+  you can use `DuP` as a valid variable name. This is not possible in DB48X.
 
 
 #### Representation of objects
@@ -330,7 +330,7 @@ unintentional differences, since the implementation is completely new.
 * The calculator features at least 3 floating-point precisions using 32-bit,
   64-bit and 128-bit respectively, provided by the DMCP's existing Intel Binary
   Decimal Floating-Point library. The 128-bit format gives the calculator 34
-  significant digits of precision, like the DM42. db48x may support other
+  significant digits of precision, like the DM42. DB48X may support other
   formats in the future, like the arbitrary-precision floating-point found in
   newRPL.
 
@@ -341,8 +341,8 @@ unintentional differences, since the implementation is completely new.
   depending on the `Base` setting, much like based numbers on the HP48.
 
 * The storage of data in memory uses a denser format than on the HP48.
-  Therefore, objects will almost always use less space on db48x. Notably, the
-  most frequently used functions and data types consume only one byte on db48x,
+  Therefore, objects will almost always use less space on DB48X. Notably, the
+  most frequently used functions and data types consume only one byte on DB48X,
   as opposed to 5 nibbles (2.5 bytes) on the HP48.
 
 * Numerical equality can be tested with `=`,  whereas object equality is tested
@@ -352,7 +352,7 @@ unintentional differences, since the implementation is completely new.
 
 #### Alignment with the DM42
 
-* db48x borrows to the DM42 the idea of _special variables_, which are variables
+* DB48X borrows to the DM42 the idea of _special variables_, which are variables
   with a special meaning. For example, the `Precision` special variable is the
   current operating precision for floating point, in number of digits. While
   there is a `SetPrecision` command, it is also possible to use `'Precision'
@@ -365,7 +365,7 @@ unintentional differences, since the implementation is completely new.
   [Menu](#Menu) special variable holds the name of the current menu, and
   [LastMenu](#LastMenu) the name of the previous one.
 
-* The db48x also provides full-screen setup menus, taking advantage of the DM42
+* The DB48X also provides full-screen setup menus, taking advantage of the DM42
   existing system menus. It is likely that the same menu objects used for
   softkey menus will be able to control system menus, with a different function
   to start the interaction.
@@ -392,7 +392,7 @@ consistent nor logical across RPL models from HP.
   `[ 1 2 3 ] « 3 + »` will return `[ 4 5 6 ]`, and `{ 1 2 3 } « 3 * »` will
   return `{ 3 6 9 }`. That function has no direct equivalent on the HP48.
 
-db48x considers lists as bags of items and treat them as a whole when it makes
+DB48X considers lists as bags of items and treat them as a whole when it makes
 sense, whereas arrays are focusing more on the values they contain, and will
 operate on these items when it makes sense. Therefore:
 
@@ -407,7 +407,7 @@ operate on these items when it makes sense. Therefore:
 
 ### Vectors and matrices differences
 
-* On db48x, vectors like `[ 1 2 3 ]` are very similar to lists. The primary
+* On DB48X, vectors like `[ 1 2 3 ]` are very similar to lists. The primary
   difference is the behavior in the presence of arithmetic operators.
   On lists, addition is concatenation, e.g. `{ 1 2 3} { 4 5 6} +` is
   `{ 1 2 3 4 5 6 }`, whereas on vectors represents vector addition, e.g.
@@ -416,18 +416,18 @@ operate on these items when it makes sense. Therefore:
   do `[ "ABC" "DEF" ] [ "GHI" "JKL" ] +` and obtain `[ "ABCGHI" "DEFJKL" ]`.
 
 * Size enforcement on vectors only happens _during these operations_, not while
-  you enter vectors from the command line. It is legal in db48x to have a
+  you enter vectors from the command line. It is legal in DB48X to have a
   non-rectangular array like `[[1 2 3] [4 5]]`, or even an array with mixed
   objects like `[ "ABC" 3 ]`. Size or type errors on such objects may occur
   if/when arithmetic operations are performed.
 
-* In particular, a matrix is nothing but a vector of vectors. db48x also
+* In particular, a matrix is nothing but a vector of vectors. DB48X also
   supports arrays with dimensions higher than 2, like `[[[1 2 3]]]`.
 
 * As a consequence, The `GET` and `GETI` functions work differently on
   matrices. Consider a matrix like `[[ 7 8 9 ][ 4 5 6 ][ 1 2 3 ]]`. On the HP48,
   running `1 GET` on this object gives `7`, and the valid range of index values
-  is 1 through 9. On db48x, that object is considered as an array of vectors, so
+  is 1 through 9. On DB48X, that object is considered as an array of vectors, so
   `1 GET` returns `[7 8 9]`.  This is intentional. The behavior of `{ 1 1 } GET`
   is identical on both platforms, and is extended to multi-dimensional arrays,
   so that `[[[4 5 6]]] { 1 1 2 } GET` returns `5`.
@@ -437,14 +437,14 @@ operate on these items when it makes sense. Therefore:
   different results between the implementations. If you compute the inverse of
   `[[1 2 3][4 5 6][7 8 9]` on the HP48, you get a matrix with large values, and
   the HP48 finds a small, but non-zero determinant for that matrix. The HP50G
-  produces a matrix with infinities. db48x by default produces a `Divide by
+  produces a matrix with infinities. DB48X by default produces a `Divide by
   zero` error.
 
-* db48x accept matrices and vectors as input to algebraic functions, and returns
+* DB48X accept matrices and vectors as input to algebraic functions, and returns
   a matrix or vector with the function applied to all elements. For example,
   `[a b c] sin ` returns `[ 'sin a' 'sin b' 'sin c' ]`.
 
-* Similarly, db48x accept operations between a constant and a vector or matrix.
+* Similarly, DB48X accept operations between a constant and a vector or matrix.
   This applies the same binary operation to all components of the vector or
   matrix. `[ a b c ] x +` returns `[ 'a+x' 'b+x' 'c+x' ]`. Consistent with that
   logic, `inv` works on vectors, and inverts each component, so that
@@ -453,7 +453,7 @@ operate on these items when it makes sense. Therefore:
 
 ### Equations handling differences
 
-* The db48x dialect of RPL accepts equations with "empty slots". During equation
+* The DB48X dialect of RPL accepts equations with "empty slots". During equation
   evaluation, the value of these empty slots will be taken from the stack. In
   the equation, a slot is represented as `()`.
 
@@ -470,11 +470,11 @@ operate on these items when it makes sense. Therefore:
 
 ### Unicode support
 
-db48x has almost complete support for Unicode, and stores text internally using
+DB48X has almost complete support for Unicode, and stores text internally using
 the UTF-8 encoding. The built-in font has minor deviations in appearance for a
 few RPL-specific glyphs.
 
-Overall, a text file produced by db48x should appear reliably in your
+Overall, a text file produced by DB48X should appear reliably in your
 favorite text editor, which should normally be GNU Emacs. This is notably the
 case for state files with extension `.48S` which you can find in the `STATE`
 directory on the calculator.
@@ -482,11 +482,11 @@ directory on the calculator.
 
 ## Help
 
-The db48x project includes an extensive built-in help, which you are presently
-reading. This help is stored as a `HELP/db48x.md` file on the calculator. You
+The DB48X project includes an extensive built-in help, which you are presently
+reading. This help is stored as a `HELP/DB48X.md` file on the calculator. You
 can also read it from a web browser directly on the GitHub page of the project.
 
-The db48x help viewer works roughly simiilarly to the DM42's, but with history
+The DB48X help viewer works roughly simiilarly to the DM42's, but with history
 tracking and the ability to directly access help about a given function by
 holding a key for more than half a second.
 
@@ -516,14 +516,14 @@ To navigate the help on the calculator, use the following keys:
 
 ## Acknowledgements and credits
 
-db48x is Free Software, see the LICENSE file for details.
+DB48X is Free Software, see the LICENSE file for details.
 You can obtain the source code for this software at the following URL:
-https://github.com/c3d/db48x-on-DM42.
+https://github.com/c3d/DB48X-on-DM42.
 
 
 ### Authors
 
-This software is (C) 2022-2023 Christophe de Dinechin and the db48x team.
+This software is (C) 2022-2023 Christophe de Dinechin and the DB48X team.
 
 Additional contributors to the project include:
 
@@ -552,7 +552,7 @@ their engineers to design and produce the HP35, then again when their company
 introduced the first programmable hand-held calculator with the HP65, and
 finally when they introduced the RPL programming language with the HP28.
 
-Christophe de Dinechin, the primary author of db48x, was lucky enough to meet
+Christophe de Dinechin, the primary author of DB48X, was lucky enough to meet
 both Hewlett and Packard in person, and this was a truly inspiring experience.
 Launching the Silicon Valley is certainly no small achievement, but this pales
 in comparison to bringing RPN and RPL to the world.
@@ -575,18 +575,18 @@ countless hours debugging [video games](https://www.hpcalc.org/hp48/games).
 There were more serious efforts as well, notably the
 [HP48 Metakernel](https://www.hpcalc.org/hp48/apps/mk/), which completely
 reinvented the HP48 user interface, making it both much faster and better.  It
-is fair to see db48x as a distant descendent from such efforts. The Metakernel
+is fair to see DB48X as a distant descendent from such efforts. The Metakernel
 was the work of many now well-known names in the HP community, such as Cyrille
 de Brébisson, Jean-Yves Avenard, Gerald Squelart and Étienne de Foras. Many of
 these early heroes would go on to actually change the [history of
 Hewlett-Packard calculators](https://www.hpcalc.org/goodbyeaco.php) for the
 better.
 
-The original author of db48x, Christophe de Dinechin, was part of this loose
+The original author of DB48X, Christophe de Dinechin, was part of this loose
 team, focusing on [cross-development tools](https://github.com/c3d/HPDS),
 which he used at the time to write several games for the HP48, notably
 [PacMan](https://www.hpcalc.org/details/553) or
-[Lemmings](https://www.hpcalc.org/details/530) clones. If db48x exists, it's
+[Lemmings](https://www.hpcalc.org/details/530) clones. If DB48X exists, it's
 largely because of that community.
 
 
@@ -617,13 +617,13 @@ and used today.
 Claudio Lapilli to implement a native version of RPL, initially targeting
 ARM-based HP calculators such as the HP50G.
 
-db48x inherits many ideas from newRPL, including, but not limited to:
+DB48X inherits many ideas from newRPL, including, but not limited to:
 
 * Implementing RPL natively for ARM CPUs
 * Adding indicators in the cursor to indicate current status
 * Integrating a catalog of functions to the command line
 
-A first iteration of db48x started as a
+A first iteration of DB48X started as a
 [branch of newRPL](https://github.com/c3d/db48x/), although the
 current implementation had to restart from scratch due to heavy space
 constraints on the DM42.
@@ -631,7 +631,7 @@ constraints on the DM42.
 
 ### WP43 and C47 projects
 
-The db48x took several ideas and some inspiration from the
+The DB48X took several ideas and some inspiration from the
 [WP43](https://gitlab.com/rpncalculators/wp43) and
 [C47](https://47calc.com) projects.
 
@@ -642,7 +642,7 @@ C47 (initially called C43) is a variant of that firmware initiated by Jaco
 Mostert, which focuses on compatibility with the existing DM42, notably with
 respect to keyboard layout.
 
-db48x borrowed at least the following from these projects:
+DB48X borrowed at least the following from these projects:
 
 * The very idea of writing a new firmware for the DM42
 * The idea of converting standard Unicode TrueType fonts into bitmaps
@@ -659,12 +659,12 @@ db48x borrowed at least the following from these projects:
 [SwissMicros](https://www.swissmicros.com/products) offers a range of
 RPN calculators that emulate well-known models from Hewlett-Packard.
 This includes the [DM42](https://www.swissmicros.com/product/dm42),
-which is currently the primary target for the db48x firmware.
+which is currently the primary target for the DB48X firmware.
 
 Special thanks and kudos to Michael Steinmann and his team for keeping
 the shining spirit of HP RPN calculators alive.
 
-The DM42 version of the db48x software relies on
+The DM42 version of the DB48X software relies on
 [SwissMicro's DMCP SDK](https://github.com/swissmicros/SDKdemo), which
 is released under the following BSD 3-Clause License:
 
@@ -699,7 +699,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ### Intel Decimal Floating-Point Math
 
-Floating-point computations in db48x take advantage of
+Floating-point computations in DB48X take advantage of
 [Intel's decimal floating-point math library](https://www.intel.com/content/www/us/en/developer/articles/tool/intel-decimal-floating-point-math-library.html),
  which is released with the following end-user license agreement:
 
@@ -745,9 +745,9 @@ programmatic concepts from the Lisp programming language.
 The first implementation of RPL accessible by the user was on the HP28C, circa
 1987, which had an HP Saturn processor. More recent implementations (e.g., HP49,
 HP50g) run through a Saturn emulation layer on an ARM based processor. These
-ARM-based HP calculators would be good targets for a long-term port of db48x.
+ARM-based HP calculators would be good targets for a long-term port of DB48X.
 
-db48x is a fresh implementation of RPL on ARM, initially targetting the
+DB48X is a fresh implementation of RPL on ARM, initially targetting the
 SwissMicros DM42 calculator. This has [implications on the design](#design-overview)
 of this particular implementation of RPL.
 
@@ -782,7 +782,7 @@ the [Evaluate](#evaluate) function) will compute their value.
 
 ## Integers
 
-The db48x version of RPL distinguishes between integer values, like `123`, and
+The DB48X version of RPL distinguishes between integer values, like `123`, and
 [decimal values](#decimal-numbers), like `123.` Integer values are represented
 internally in a compact and efficient format, saving memory and making
 computations faster. All values between -127 and 127 can be stored in two bytes.
@@ -793,7 +793,7 @@ Integers can be [as large as memory permits](#big-integers).
 
 ## Big integers
 
-The db48x version of RPL can perform computations on arbitrarily large integers,
+The DB48X version of RPL can perform computations on arbitrarily large integers,
 limited only by available memory, enabling for example the exact computation of
 `100!` and making it possible to address problems that require exact integer
 computations, like exploring the Syracuse conjecture.
@@ -802,7 +802,7 @@ computations, like exploring the Syracuse conjecture.
 ## Decimal numbers
 
 Decimal numbers are used to represent values with a fractional part.
-db48x supports three decimal numbers, using the 32-bit, 64-bit and 128-bit
+DB48X supports three decimal numbers, using the 32-bit, 64-bit and 128-bit
 [binary decimal representation](#intel-decimal-floating-point-math).
 In memory, all decimal numbers use one additional byte: a 32-bit decimal number
 uses 5 bytes, a 128-bit binary decimal number uses 17 bytes.
@@ -814,7 +814,7 @@ exponent of 6144.
 
 The [Precision](#precision) command selects the default precision.
 
-Note that a future implementation of db48x is expected to feature
+Note that a future implementation of DB48X is expected to feature
 variable-precision decimal numbers similar to [newRPL](#newRPL-project).
 
 
@@ -867,14 +867,14 @@ square brackets, for example `[1 2 3]` for a vector and `[[1 2] [3 4]` for a 2x2
 matrix.
 
 Vector and matrices follow their own arithmetic rules. Vectors are
-one-dimensional, matrices are two-dimensional. db48x also supports tables with a
+one-dimensional, matrices are two-dimensional. DB48X also supports tables with a
 higher number of dimensions, but only offers limited operations on them.
 
-db48x implements vector addition, subtraction, multipplication and division,
+DB48X implements vector addition, subtraction, multipplication and division,
 which apply component-wise. Multiplication and division are an extension
 compared to the HP48.
 
-db48x also implements matrix addition, subtraction, multiplication and
+DB48X also implements matrix addition, subtraction, multiplication and
 division. Like on the HP48, the division of matrix `A` by matrix `B` is
 interpreted as left-multiplying `A` by the inverse of `B`.
 
@@ -888,7 +888,7 @@ keeps a history of the menus you visited previously, and you can return to an
 earlier menu with the `BackMenu` function.
 
 
-Here are the main menus in db48x, in alphabetical order.
+Here are the main menus in DB48X, in alphabetical order.
 
 ## MainMenu
 
@@ -2039,12 +2039,12 @@ Change current font for help title
 
 # Graphic commands
 
-db48x features a number of graphic commands. While displaying graphics, the
+DB48X features a number of graphic commands. While displaying graphics, the
 stack and headers will no longer be updated.
 
 ## Coordinates
 
-db48x recognizes the following types of coordinates
+DB48X recognizes the following types of coordinates
 
 * *Pixel coordinates* are specified using based numbers such as `#0`, and
   correspond to exact pixels on the screen, and . Pixels are counted starting
@@ -2073,7 +2073,7 @@ coordinate basis. For exmaple, `{ 0 0 }` will be the origin in user coordinates,
 in the center of the screen if no `PPAR` or `PlotParameters` variable is
 present.
 
-Note that unlike on the HP48, a complex value in db48x can
+Note that unlike on the HP48, a complex value in DB48X can
 contain a based number.
 
 
@@ -2871,10 +2871,10 @@ Returns a program that will restore the current settings. This program can be sa
 
 # Display settings
 
-The display mode controls how db48x displays numbers. Regardless of the display
+The display mode controls how DB48X displays numbers. Regardless of the display
 mode, numbers are always stored with full precision.
 
-db48x has five display mode (one more than the HP48)s:
+DB48X has five display mode (one more than the HP48)s:
 
 * [Standard mode](#StandardDisplay)
 * [Fixed mode](#FixedDisplay)
@@ -2905,7 +2905,7 @@ exponent that is a multiple of 3.
 ## SignificantDisplay (SIG)
 
 Display up to the given number of digits without trailing zero. This mode is
-useful because db48x can compute with large precision, and it may be useful to
+useful because DB48X can compute with large precision, and it may be useful to
 not see all digits. `StndardDisplay` is equivalent to `34 SignificantDisplay`,
 while `12 SignificantDisplay` should approximate the HP48 standard mode using
 12 significant digits.
@@ -2947,7 +2947,7 @@ Display the exponent in scientific mode in a way reminiscent of classical HP48 c
 The angle mode determines how the calculator interprets angle arguments and how
 it returns angle results.
 
-db48x has four angle modes:
+DB48X has four angle modes:
 
 * [Degrees](#Degrees): A full circle is 360 degress
 * [Radians](#Radians): A full circle is 2π radians
@@ -2975,15 +2975,15 @@ shown as a multiple of π.
 
 # Command display
 
-db48x can display commands either using a short legacy spelling, usually
+DB48X can display commands either using a short legacy spelling, usually
 identical to what is used on the HP-48 series of calculators, or use an
 alternative longer spelling. For example, the command to store a value in a
-variable is called `STO` in the HP-48, and can also be spelled `Store` in db48x.
+variable is called `STO` in the HP-48, and can also be spelled `Store` in DB48X.
 
 Commands are case insensitive, and all spellings are accepted as input
 irrespective of the display mode.
 
-db48x has four command spelling modes:
+DB48X has four command spelling modes:
 
 * [Lowercase](#LowerCase): Display `sto`
 * [Uppercase](#UpperCase): Display `STO`
@@ -3525,7 +3525,7 @@ Get first alarm due after the given time
 
 ## Version
 
-Return db48x version information as text.
+Return DB48X version information as text.
 
  ▶ `"Version information"`
 
@@ -3570,7 +3570,7 @@ See also: [FreeMemory](#FreeMemory), [Purge](#Purge)
 ## Bytes
 
 Return the size of the object and a hash of its value. On classic RPL systems,
-teh hash is a 5-nibbles CRC32. On db48x, the hash is a based integer of the
+teh hash is a 5-nibbles CRC32. On DB48X, the hash is a based integer of the
 current [wordsize](#stws) corresponding to the binary representation of the
 object.
 
@@ -3584,7 +3584,7 @@ value of the integer, and `xx` represents the integer type, as returned by the
 ## Type
 
 Return the type of the object as a numerical value. The value is not guaranteed
-to be portable across versions of db48x (and pretty much is guarantteed to _not_
+to be portable across versions of DB48X (and pretty much is guarantteed to _not_
 be portable), nor to ever match the value returned by the `TYPE` command on the
 HP48.
 

@@ -23,6 +23,8 @@ OPT=release
 # Warning: macOSX only
 MOUNTPOINT=/Volumes/$(VARIANT)/
 EJECT=hdiutil eject $(MOUNTPOINT)
+PRODUCT_NAME=$(shell echo $(TARGET) | tr "[:lower:]" "[:upper:]")
+PRODUCT_MACHINE=$(shell echo $(VARIANT) | tr "[:lower:]" "[:upper:]")
 
 
 #######################################
@@ -134,7 +136,9 @@ fonts/StackFont.cc: $(TTF2FONT) $(BASE_FONT)
 fonts/HelpFont.cc: $(TTF2FONT) $(BASE_FONT)
 	$(TTF2FONT) -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
 help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md)
-	mkdir -p help && cat $^ | sed -e 's/DB48X/$(TARGET)/g' > $@
+	mkdir -p help && \
+	cat $^ | sed -e 's/DB48X/$(PRODUCT_NAME)/g' \
+	             -e 's/DM42/$(PRODUCT_MACHINE)/g' > $@
 
 debug-%:
 	$(MAKE) $* OPT=debug

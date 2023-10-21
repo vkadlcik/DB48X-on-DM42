@@ -40,9 +40,9 @@ recommended to use a [keyboard overlay](../Keyboard-Layout.png).
 
 Compared to the original HP48, the DM32 has a much larger screen, but no
 annunciators (it is a fully bitmap screen). It has a keyboard with dedicated
-soft-menu (function) keys, but only one shift key (whereas the HP48 has two),
-lacks a dedicated alpha key, does not provides left or right arrow keys (only up
-and down), and has no space key (_SPC_ on the HP48).
+soft-menu (function) keys, but no arrow keys (whereas the HP48 has four),
+lacks a dedicated alpha key, and has no space key (_SPC_ on the HP48).
+
 
 
 ## Keyboard interaction
@@ -51,12 +51,16 @@ The keyboard differences force us to revisit the user interaction with the
 calculator compared to the HP48:
 
 
-* When running DB50X on the DM32, the blue 🟦 key cycles between three states,
-  *Shift*, *Right Shift* and no shift. The yellow 🟨 shift key is actually used
-  as a down/right cursor key, and the _XEQ_ key is used as an up/left cursor
-  key. This remapping of keys appears necessary because RPL calculators like the
-  HP48 have a rather full keyboard even with two shift keys, and absolutely need
-  at least two cursor keys.
+* When running DB50X on the DM32, the blue shift key cycles between three
+  states, *Shift* (shown in the documentation as 🟨), *Right Shift* (shown in
+  the documentation as 🟦) and no shift. The physical yellow shift key is
+  actually used as a down/right cursor key, and will be shown as _▶︎_ in the rest
+  of this document. Similarly, the _XEQ_ key is used as an up/left cursor key,
+  and will be shown as _◀︎_ in the rest of this document. This remapping of keys
+  appears necessary because RPL calculators like the HP48 are command-line
+  oriented and absolutely need at least two unshifted cursor keys. Sacrificing a
+  physical shift key while preserving two shifted function seems like the best
+  compromise.
 
 * The less-frequently used functions can be accessed after a
   double-press on 🟨, which in the rest of this documentation will be shown
@@ -69,13 +73,11 @@ calculator compared to the HP48:
   frequently than on the HP42, making it quickly accessible seems important, so
   there are [three distinct ways to activate it](#alpha-mode).
 
-* The _▲_ and _▼_ keys move the cursor *left* and *right* while editing
-  instead of *up* and *down*. These cursor movements are much more useful for a
-  text-based program editing as found in RPL.
 
-* Using 🟨 _▲_ and 🟨 _▼_ moves the cursor up and down.  When not editing, _▲_
-  and _▼_ behave like on the HP48, i.e. _▲_ enters the *interactive stack* (not
-  yet implemented) and _▼_ edits the object on the first level of the stack.
+* Using 🟨 _◀︎_ and 🟨 _▶︎_ moves the cursor up and down.  When not editing, _▶︎_
+  and _▶︎_ behave like _▲_ and _▼_ on the HP48, i.e. _◀︎_ enters the *interactive
+  stack* (not yet implemented) and _▶︎_ edits the object on the first level of
+  the stack.
 
 * Long-pressing arrow keys, the _←_ (also known as *Backspace*) or text entry
   keys in Alpha mode activates auto-repeat.
@@ -104,10 +106,10 @@ There are three ways to enter *Alpha* mode:
   between *Alpha* _ABC_ and *Normal* entry modes, and cannot be used to type
   lowercase characters.
 
-* The third method is to hold one of the arrow keys _▲_ or _▼_ *while* typing on
+* The third method is to hold one of the arrow keys _◀︎_ or _▶︎_ *while* typing on
   the keyboard. This is called *transient alpha mode* because *Alpha* mode ends
-  as soon as the arrow key is released. Using _▲_ enters uppercase characters,
-  while _▼_ uses lowercase characters.
+  as soon as the arrow key is released. Using _◀︎_ enters uppercase characters,
+  while _▶︎_ uses lowercase characters.
 
 There is no equivalent of the HP48's "single-Alpha" mode. Alpha mode is either
 _transient_ (when you hold one of the arrow keys) or _sticky_ (with 🟨 _ENTER_
@@ -129,145 +131,37 @@ gives a variety of special characters.
 
 ![DB50X keyboard layout](keyboard.png)
 
-Some keys that have little use or no direct equivalent for RPL are remapped
-as follows:
 
-* _Σ+_ is used to call [ToolsMenu](#ToolsMenu), which select a menu based on
-  context, notably the content of the stack.
+Using DB50X with the DM32 is quite difficult without a keyboard overlay.
 
-* _Σ-_ (i.e.🟨 _Σ+_) will select [LastMenu](#LastMenu), i.e. return to the
-  previous menu.
+In particular, an unfortunate difference between the DM32 and the keyboard
+layout used by DB50X is that the placement of all letters after `M` is shifted
+by one position on the keyboard, and the first row of scientific functions
+(starting with square root and ending with _Σ+_) is inconsistent. The reason is
+that the layout for DB50X is heavily based on the DM-42 model.
 
-* 🟦 _Σ+_ selects [MainMenu](#MainMenu), the top-level menu giving access
-  to all other menus and features in DB50X (see also the [Catalog](#catalog)
-  feature).
+Also, while the DM32 has two shift keys, a blue and a yellow one, it lacks
+dedicated cursor movement arrow keys, a limitation that is visible in the
+calculator's firmware menus.  While the two arrow shift keys would be welcome,
+not having arrow keys for cursor movement is just not an option. As a result,
+only the blue shift key is kept as a shift key, and the yellow shift key is
+converted to an arrow key, along with the DM32 _XEQ_ key.
 
-* _XEQ_ opens an algebraic expression, i.e. it shows `''` on the command-line
-  and switches to equation entry. It can be remembered as *Execute Equation* and
-  can be used to evaluate expressions in [algebraic mode](#algebraic-mode)
-  instead of RPN. While inside an equation, _XEQ_ enters parentheses.
 
-* _GTO_ opens the [BranchesMenu](#BranchesMenu), with RPL branches and loops,
-  e.g. `IF` `THEN` or `DO` `WHILE`, as well as conditional tests.
+In the rest of this document, the shift key is referred to as 🟨, and pressing
+it twice is referred to as 🟦, irrespective of the appearance of the physical
+shift key on your particular hardware.
 
-* _COMPLEX_ opens the [ComplexMenu](#ComplexMenu), not just build a complex
-  like on the DM32. The [ComplexMenu](#ComplexMenu) includes features to enter
-  complex numbers in rectangular or polar form, as well as complex-specific
-  functions like [Conjugate](#Conjugate).
-
-* _RCL_ opens the [VariablesMenu](#VariablesMenu) menu listing user variables.
-  This plays the role of _VAR_ on the HP48.
-
-* _%_ (🟨 _RCL_) opens the [FractionsMenu](#FractionsMenu), to access operations
-  on fractions.
-
-* _R↓_ will open the [StackMenu](#StackMenu), containing operations on the
-  stack.
-
-* _π_ (🟨 _R↓_) will open the [ConstantsMenu](#ConstantsMenu) (π being one of
-  them), with the option to get the symbolic or numerical value. The values of
-  constants come from a file named `CONSTANTS.CSV` on disk.
-
-* _X⇆Y_ executes the matching [Swap](#swap) function
-
-* _LAST x_ (🟨 _X⇆Y_) executes [LastArg](#LastArguments) command, recalling the
-  arguments of the last command. There is also a [LastX](#LastX) command for
-  compatibility with RPN, which is available from the [StackMenu](#StackMenu).
-
-* _Undo_(🟦 _X⇆Y_) restores the previous state of the stack. This is like
-  `Last Stack` on the HP48, but it is a real command that can be used in
-  programs.
-
-* _+/-_ executes the equivalent RPL `Negate` function
-
-* _Modes_ (🟨 _+/-_ ) calls the [ModesMenu](#ModesMenu), with submenus for
-  various settings, including computation precision, display modes, etc.
-
-* _Obj_ (🟦 _+/-_ ) calls the [ObjectMenu](#ObjectMenu), with various
-  object-related operations.
-
-* _Disp_ (🟨 _EEX_ ) calls the [DisplayModesMenu](#DisplayModesMenu), which
-  controls settings related to the display, such as number of digits shown or
-  separators.
-
-* _Clear_ calls a [ClearThingsMenu](#ClearThingsMenu) with options to clear
-  various items, including [ClearStack](#ClearStack) and
-  [ClearMenu](#ClearMenu).
-
-* _SST_ and _BST_ (🟨 _▲_ and _▼_) move the cursor *up* and *down* in the text
- editor. In direct mode, _BST_ selects the *Best* editor for the object, and
-  *Sst* selects single-step evaluation.
-
-* _SOLVER_ (🟨 _7_) shows the [SolverMenu](#SolverMenu), with submenus for
-  numerical and symbolic solvers.
-
-* _∫f(x)_ (🟨 _8_) shows the [SymbolicMenu](#SymbolicMenu), with symbolic and
-  numerical integration and derivation features.
-
-* _MATRIX_ (🟨 _9_) enters the `[` and `]` characters, which are vector and
-  matrix delimiters in RPL.  🟦 _9_ shows the [MatrixMenu](#MatrixMenu) with
-  operations on vectors, matrices and tensors.
-
-* _STAT_ (🟨 _÷_) shows the [StatisticsMenu](#StatisticsMenu)
-
-* _BASE_ (🟨 _4_) shows the [BasesMenu](#BasesMenu), with operations on
-  based numbers and facilities for entering hexadecimal numbers.
-
-* _CONVERT_ (🟨 _5_) shows a [UnitsMenu](#UnitsMenu) with units and and
-  conversion functions.
-
-* _FLAGS_ (🟨 _6_) shows the [FlagsMenu](#FlagsMenu) with operations on user and
-  system flags.
-
-* _PROB_ (🟨 _×_) shows the [ProbabilitiesMenu](#ProbabilitiesMenu), with
-  functions such as [Factorial](#factorial), [Combinations](#combinations) or
-  [Random](#random).
-
-* _ASSIGN_ (🟨 _1_) makes it possible to assign any function to any key. These
-  special functions are then selected by using _Custom_ (🟨 _2_), which
-  corresponds roughly to _USR_ on the HP48.
-
-* _PGM.FCN_ (🟨 _1_) shows the [ProgramMenu](#ProgramMenu), with all
-  general-purpose programming operations, categorized as sub-menus.
-
-* _PRINT_ (🟨 _-_) shows the [IOMenu](#IOMenu).
-
-* _EXIT_ corresponds to what the HP48 manual calls _Attn_, and typically
-  cancels the current activity. It can also be used to interrupt a running
-  program.
-
-* _OFF_ (🟨 _EXIT_) shuts down the calculator. The state of the calculator is
-  preserved.
-
-* _SAVE_ (🟦 _EXIT_) saves the current state of the calculator to disk. This
-  state can be transferred to another machine, and survives system reset or
-  firmware upgrades.
-
-* _SETUP_ (🟨 _0_) shows the DM32's built-in [SystemMenu](#SystemMenu), for
-  example to load the original DM32 program, activate USB disk, and to access
-  some calculator preferences.
-
-* _Show_ selects the [ShowMenu](#ShowMenu), with various ways to display objects
-  on the stack, such as [ShowBest](#ShowBest), [ShowSymbolic](#ShowSymbolic),
-  [ShowGraphical](#ShowGraphical), [ShowCompact](#ShowCompact).
-
-* The _R/S_ keys inserts a space in the editor, and maps to
- [Evaluate](#evaluate) otherwise.
-
-* _PRGM_ (🟨 _R/S_) inserts the delimiters for an RPL program, `«` and `»`,
-  while 🟦 _R/S_ inserts the list delimiters, `{` and `}`.
-
-* _CATALOG_ (🟨 _+_) shows a complete context-sensitive catalog of all
-  available functions, and enables auto-completion using the soft-menu
-  keys. Note that the `+` key activates the catalog while in *Alpha* mode.
-
-* _HELP_ (🟦 _+_) activates the context-sensitive help system.
+DB50X keyboard overlays for SwissMicros calculators are
+[already available](https://www.hpmuseum.org/forum/thread-20113.html).
 
 
 ## Soft menus
 
 The DM32 has 6 dedicated soft-menu keys at the top of the keyboard. Most of the
-advanced features of DB50X can be accessed through these soft menus.
+advanced features of DB50X can be accessed through these soft menus. Soft menu
+keys have no label on the physical calculator, but in this documentation, they
+may sometimes be referred to as _F1_ through _F6_.
 
 Menus are organized internally as a hierarchy, where menus can refer to other
 menus. A special menu, [MainMenu](#MainMenu), accessible via the 🟦 _Σ+_,
@@ -285,7 +179,7 @@ a `▶︎`, and 🟨 _F6_ turns into `◀`︎. These keys can be used to
 navigate across the available menu entries. This replaces the _NXT_ and _PREV_
 keys on HP calculators.
 
-The `Variables` menu (_RCL_ key) is special in the sense that:
+The [VariablesMenu](#VariablesMenu) (_RCL_ key) is special in the sense that:
 
 * Selecting an entry *evaluates* that menu entry, for example to run a program
 
@@ -511,7 +405,7 @@ To navigate the help on the calculator, use the following keys:
   _F6_, correspond to the functions shown in the six labels at the bottom of the
   screen.
 
-* While the help is shown, the keys _▼_ and _▲_ on the keyboard scroll
+* While the help is shown, the keys _◀︎_ and _▶︎_ on the keyboard scroll
   through the text.
 
 * The _F1_ key returns to the [Home](#overview) (overview).

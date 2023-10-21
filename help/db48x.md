@@ -43,6 +43,7 @@ lacks a dedicated alpha key, does not provides left or right arrow keys (only up
 and down), and has no space key (_SPC_ on the HP48).
 
 
+
 ## Keyboard interaction
 
 The keyboard differences force us to revisit the user interaction with the
@@ -67,11 +68,13 @@ calculator compared to the HP48:
 
 * The _▲_ and _▼_ keys move the cursor *left* and *right* while editing
   instead of *up* and *down*. These cursor movements are much more useful for a
-  text-based program editing as found in RPL.
+  text-based program editing as found in RPL. In the rest of this document,
+  they are described as _◀︎_ and _▶︎_ respectively.
 
-* Using 🟨 _▲_ and 🟨 _▼_ moves the cursor up and down.  When not editing, _▲_
-  and _▼_ behave like on the HP48, i.e. _▲_ enters the *interactive stack* (not
-  yet implemented) and _▼_ edits the object on the first level of the stack.
+* Using 🟨 _◀︎_ and 🟨 _▶︎_ moves the cursor up and down.  When not editing, _▶︎_
+  and _▶︎_ behave like _▲_ and _▼_ on the HP48, i.e. _◀︎_ enters the *interactive
+  stack* (not yet implemented) and _▶︎_ edits the object on the first level of
+  the stack.
 
 * Long-pressing arrow keys, the _←_ (also known as *Backspace*) or text entry
   keys in Alpha mode activates auto-repeat.
@@ -100,10 +103,10 @@ There are three ways to enter *Alpha* mode:
   between *Alpha* _ABC_ and *Normal* entry modes, and cannot be used to type
   lowercase characters.
 
-* The third method is to hold one of the arrow keys _▲_ or _▼_ *while* typing on
+* The third method is to hold one of the arrow keys _◀︎_ or _▶︎_ *while* typing on
   the keyboard. This is called *transient alpha mode* because *Alpha* mode ends
-  as soon as the arrow key is released. Using _▲_ enters uppercase characters,
-  while _▼_ uses lowercase characters.
+  as soon as the arrow key is released. Using _◀︎_ enters uppercase characters,
+  while _▶︎_ uses lowercase characters.
 
 There is no equivalent of the HP48's "single-Alpha" mode. Alpha mode is either
 _transient_ (when you hold one of the arrow keys) or _sticky_ (with 🟨 _ENTER_
@@ -125,8 +128,9 @@ gives a variety of special characters.
 
 ![DB48X keyboard layout](keyboard.png)
 
-Some keys that have little use or no direct equivalent for RPL are remapped
-as follows:
+If you are using DB48X on a DM42, it is almost possible to do it without a
+keyboard overlay. Some keys that have little use or no direct equivalent for RPL
+are remapped as follows:
 
 * _Σ+_ is used to call [ToolsMenu](#ToolsMenu), which select a menu based on
   context, notably the content of the stack.
@@ -135,8 +139,14 @@ as follows:
   previous menu.
 
 * 🟦 _Σ+_ selects [MainMenu](#MainMenu), the top-level menu giving access
-  to all other menus and features in DB48X (see also the [Catalog](#catalog)
+  to all other menus and features in DB48X (see also the [Catalog](#CatalogMenu)
   feature).
+
+* _LOG_ and _EXP_ keys are swapped. The HP42 has _LOG_ and _LN_ with shifted
+  _10^X_ and _E^X_. DB48X has _E^X_ and _LN_ with shifted _10^X_ and _LOG_, so
+  that the more frequently used mathematical functions are available without
+  shifting. Note that in the future, full keyboard remapping similar to the HP41
+  or HP48 will allow you to change that if you prefer.
 
 * _XEQ_ opens an algebraic expression, i.e. it shows `''` on the command-line
   and switches to equation entry. It can be remembered as *Execute Equation* and
@@ -190,7 +200,7 @@ as follows:
   various items, including [ClearStack](#ClearStack) and
   [ClearMenu](#ClearMenu).
 
-* _SST_ and _BST_ (🟨 _▲_ and _▼_) move the cursor *up* and *down* in the text
+* _SST_ and _BST_ (🟨 _◀︎_ and 🟨 _▶︎_) move the cursor *up* and *down* in the text
  editor. In direct mode, _BST_ selects the *Best* editor for the object, and
   *Sst* selects single-step evaluation.
 
@@ -253,17 +263,27 @@ as follows:
 * _PRGM_ (🟨 _R/S_) inserts the delimiters for an RPL program, `«` and `»`,
   while 🟦 _R/S_ inserts the list delimiters, `{` and `}`.
 
-* _CATALOG_ (🟨 _+_) shows a complete context-sensitive catalog of all
-  available functions, and enables auto-completion using the soft-menu
+* _CATALOG_ (🟨 _+_) shows a complete context-sensitive [catalog](#CatalogMenu)
+  of all available functions, and enables auto-completion using the soft-menu
   keys. Note that the `+` key activates the catalog while in *Alpha* mode.
 
 * _HELP_ (🟦 _+_) activates the context-sensitive help system.
 
 
+In the rest of this document, the shift key is referred to as 🟨, and pressing
+it twice is referred to as 🟦, irrespective of the appearance of the physical
+shift key on your particular hardware.
+
+DB48X keyboard overlays for SwissMicros calculators are
+[already available](https://www.hpmuseum.org/forum/thread-20113.html).
+
+
 ## Soft menus
 
 The DM42 has 6 dedicated soft-menu keys at the top of the keyboard. Most of the
-advanced features of DB48X can be accessed through these soft menus.
+advanced features of DB48X can be accessed through these soft menus. Soft menu
+keys have no label on the physical calculator, but in this documentation, they
+may sometimes be referred to as _F1_ through _F6_.
 
 Menus are organized internally as a hierarchy, where menus can refer to other
 menus. A special menu, [MainMenu](#MainMenu), accessible via the 🟦 _Σ+_,
@@ -281,7 +301,7 @@ a `▶︎`, and 🟨 _F6_ turns into `◀`︎. These keys can be used to
 navigate across the available menu entries. This replaces the _NXT_ and _PREV_
 keys on HP calculators.
 
-The `Variables` menu (_RCL_ key) is special in the sense that:
+The [VariablesMenu](#VariablesMenu) (_RCL_ key) is special in the sense that:
 
 * Selecting an entry *evaluates* that menu entry, for example to run a program
 
@@ -507,7 +527,7 @@ To navigate the help on the calculator, use the following keys:
   _F6_, correspond to the functions shown in the six labels at the bottom of the
   screen.
 
-* While the help is shown, the keys _▼_ and _▲_ on the keyboard scroll
+* While the help is shown, the keys _◀︎_ and _▶︎_ on the keyboard scroll
   through the text.
 
 * The _F1_ key returns to the [Home](#overview) (overview).

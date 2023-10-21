@@ -49,16 +49,19 @@ and down), and has no space key (_SPC_ on the HP48).
 The keyboard differences force us to revisit the user interaction with the
 calculator compared to the HP48:
 
-* When running DB48X on the DM42, the single yellow 🟨 key cycles between three
-  states, *Shift*, *Right Shift* and no shift.  This double-shift shortcut
-  appears necessary because RPL calculators like the HP48 have a rather full
-  keyboard even with two shift keys.
+* When running DB48X on the DM42, the single yellow shift key cycles between
+  three states, *Shift* (shown in the documentation as 🟨), *Right Shift* (shown
+  in the documentation as 🟦), and no shift.  This double-shift shortcut appears
+  necessary because RPL calculators like the HP48 have a rather full keyboard
+  even with two shift keys.
 
 
-* The less-frequently used functions can be accessed after a
-  double-press on 🟨, which in the rest of this documentation will be shown
-  as 🟦, and will correspond to blue functions on the keyboard overlay. The
-  shift state is indicated in the header area of the display.
+* A first press on the shift key is shown as 🟨 in the documentation, and
+  activates functions shown in yellow in the keyboard overlay. A second press is
+  shown as 🟦 in the documentation, and activates functions shown in blue in the
+  keyboard overlay. On the screen, the shift state is indicated in the header
+  area. When a [soft menu](#soft-menus) is visible on the screen, the selected
+  row of functions is highlighed.
 
 ![Left Shift](left-shift.png)
 

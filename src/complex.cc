@@ -219,7 +219,7 @@ algebraic_g complex::convert_angle(algebraic_g a,
             break;
         case Settings.RADIANS:
         {
-            algebraic_g pi = (atan::run(integer::make(1)) * integer::make(4));
+            algebraic_g pi = algebraic::pi();
             if (a->is_fraction())
             {
                 fraction_g f = fraction_p(a.Safe());
@@ -651,8 +651,6 @@ algebraic_g rectangular::arg(angle_unit unit) const
 //   Compute the argument in rectangular form
 // ----------------------------------------------------------------------------
 {
-    algebraic_g r = re();
-    algebraic_g i = im();
     algebraic_g a = pifrac();   // Compute "exact" angle
     a = convert_angle(a, settings::PI_RADIANS, unit);
     return a;

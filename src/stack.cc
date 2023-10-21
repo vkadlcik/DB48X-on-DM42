@@ -121,7 +121,9 @@ void stack::draw_stack()
             auto fid = !level ? Settings.result_sz : Settings.stack_sz;
             grapher  g(avail, bottom - top, fid);
             graph = obj->graph(g);
-            lineHeight = graph->height();
+            size gh = graph->height();
+            if (lineHeight < gh)
+                lineHeight = gh;
             w = graph->width();
 
 #ifdef SIMULATOR
@@ -152,11 +154,8 @@ void stack::draw_stack()
         {
             surface s = graph->pixels();
             rect r = s.area();
-            point p(0, 0);
-            r.offset(LCD_W - w, y);
-            blitter::blit<blitter::CLIP_ALL>(Screen, s, r, p,
-                                             blitter::blitop_or,
-                                             pattern::black);
+            r.offset(LCD_W - 2 - w, y);
+            Screen.copy(s, r);
         }
         else
         {

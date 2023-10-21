@@ -72,8 +72,9 @@ calculator compared to the HP48:
 ![Left Shift](left-shift.png)
 
 * Since RPL uses alphabetic entry (also called *Alpha* mode) a lot more
-  frequently than on the HP42, making it quickly accessible seems important, so
-  there are [three distinct ways to activate it](#alpha-mode).
+  frequently than on RPN models like the HP41 or HP42, making it quickly
+  accessible seems important, so there are
+  [three distinct ways to activate it](#alpha-mode).
 
 
 * Using 🟨 _◀︎_ and 🟨 _▶︎_ moves the cursor up and down.  When not editing, _▶︎_

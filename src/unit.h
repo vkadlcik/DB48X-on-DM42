@@ -29,7 +29,10 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
+#include "command.h"
 #include "equation.h"
+
+#include "menu.h"
 
 GCP(unit);
 
@@ -59,5 +62,32 @@ public:
     HELP_DECL(unit);
 };
 
+
+struct unit_menu : menu
+// ----------------------------------------------------------------------------
+//   A unit menu is like a standard menu, but with conversion / functions
+// ----------------------------------------------------------------------------
+{
+    unit_menu(id type) : menu(type) { }
+    static void units(info &mi, cstring utable[], size_t count);
+};
+
+
+#define ID(i)
+#define UNIT_MENU(UnitMenu)                                             \
+struct UnitMenu : unit_menu                                             \
+/* ------------------------------------------------------------ */      \
+/*   Create a units menu                                        */      \
+/* ------------------------------------------------------------ */      \
+{                                                                       \
+    UnitMenu(id type = ID_##UnitMenu) : unit_menu(type) { }             \
+    OBJECT_DECL(UnitMenu);                                              \
+    MENU_DECL(UnitMenu);                                                \
+};
+#include "ids.tbl"
+
+COMMAND_DECLARE(ApplyUnit);
+COMMAND_DECLARE(ConvertToUnit);
+COMMAND_DECLARE(ApplyInverseUnit);
 
 #endif // UNIT_H

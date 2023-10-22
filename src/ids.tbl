@@ -52,6 +52,10 @@
 #define MENU(id)                ID(id)
 #endif
 
+#ifndef UNIT_MENU
+#define UNIT_MENU(id)           ID(id)
+#endif
+
 #ifndef FLAGS
 #define FLAGS(name, ...)
 #endif
@@ -392,6 +396,8 @@ CMD(Version)
 CMD(Root)
 NAMED(Integrate, "∫")
 
+
+
 // ============================================================================
 //
 //   Settings
@@ -556,6 +562,35 @@ MENU(EditMenu)
 
 // ============================================================================
 //
+//  Unit menus
+//
+// ============================================================================
+
+CMD(ApplyUnit)
+CMD(ConvertToUnit)
+CMD(ApplyInverseUnit)
+
+UNIT_MENU(LengthUnitsMenu)
+UNIT_MENU(AreaUnitsMenu)
+UNIT_MENU(VolumeUnitsMenu)
+UNIT_MENU(TimeUnitsMenu)
+UNIT_MENU(SpeedUnitsMenu)
+UNIT_MENU(MassUnitsMenu)
+UNIT_MENU(ForceUnitsMenu)
+UNIT_MENU(EnergyUnitsMenu)
+UNIT_MENU(PowerUnitsMenu)
+UNIT_MENU(PressureUnitsMenu)
+UNIT_MENU(TemperatureUnitsMenu)
+UNIT_MENU(ElectricityUnitsMenu)
+UNIT_MENU(AngleUnitsMenu)
+UNIT_MENU(LightUnitsMenu)
+UNIT_MENU(RadiationUnitsMenu)
+UNIT_MENU(ViscosityUnitsMenu)
+
+
+
+// ============================================================================
+//
 //   Special menus and menu commands
 //
 // ============================================================================
@@ -624,6 +659,7 @@ ID(tag)
 #undef OP
 #undef CMD
 #undef MENU
+#undef UNIT_MENU
 #undef NAMED
 #undef ALIAS
 #undef FLAGS

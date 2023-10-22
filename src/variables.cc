@@ -873,29 +873,6 @@ void VariablesMenu::list_variables(info &mi)
 }
 
 
-static object::result insert_cmd(int key, cstring before, cstring after)
-// ----------------------------------------------------------------------------
-//   Insert the name associated with the key if editing
-// ----------------------------------------------------------------------------
-{
-    if (symbol_p name = ui.label(key - KEY_F1))
-    {
-        uint     cursor = ui.cursorPosition();
-        size_t   length = 0;
-        utf8     text   = name->value(&length);
-
-        cursor += rt.insert(cursor, utf8(before));
-        cursor += rt.insert(cursor, text, length);
-        cursor += rt.insert(cursor, utf8(after));
-
-        ui.cursorPosition(cursor);
-
-        return object::OK;
-    }
-    return object::ERROR;
-}
-
-
 COMMAND_BODY(VariablesMenuExecute)
 // ----------------------------------------------------------------------------
 //   Recall a variable from the VariablesMenu
@@ -905,7 +882,7 @@ COMMAND_BODY(VariablesMenuExecute)
     if (rt.editing())
     {
         if (ui.editing_mode() != ui.DIRECT)
-            return insert_cmd(key, "", " ");
+            return ui.insert_softkey(key, "", " ");
         if (!ui.end_edit())
             return object::ERROR;
     }
@@ -940,7 +917,7 @@ COMMAND_BODY(VariablesMenuRecall)
     if (rt.editing())
     {
         if (ui.editing_mode() != ui.DIRECT)
-            return insert_cmd(key, "'", "' Recall ");
+            return ui.insert_softkey(key, "'", "' Recall ");
         if (!ui.end_edit())
             return object::ERROR;
     }
@@ -965,7 +942,7 @@ COMMAND_BODY(VariablesMenuStore)
     if (rt.editing())
     {
         if (ui.editing_mode() != ui.DIRECT)
-            return insert_cmd(key, "'", "' Store ");
+            return ui.insert_softkey(key, "'", "' Store ");
         if (!ui.end_edit())
             return object::ERROR;
     }

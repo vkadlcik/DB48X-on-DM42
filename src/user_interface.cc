@@ -4161,6 +4161,38 @@ size_t user_interface::insert(size_t offset, utf8 data, size_t len)
 }
 
 
+object::result user_interface::insert_softkey(int     key,
+                                              cstring before,
+                                              cstring after)
+// ----------------------------------------------------------------------------
+//   Insert the name associated with the key if editing
+// ----------------------------------------------------------------------------
+{
+    if (cstring text = labelText(key - KEY_F1))
+    {
+        if (*text)
+        {
+            size_t length = 0;
+            uint   cursor = cursorPosition();
+            if (symbol_p name = label(key - KEY_F1))
+                text = (cstring) name->value(&length);
+            else
+                length = strlen(text);
+
+            cursor += rt.insert(cursor, utf8(before));
+            cursor += rt.insert(cursor, utf8(text), length);
+            cursor += rt.insert(cursor, utf8(after));
+
+            cursorPosition(cursor);
+
+            return object::OK;
+        }
+    }
+
+    return object::ERROR;
+}
+
+
 size_t user_interface::remove(size_t offset, size_t len)
 // ----------------------------------------------------------------------------
 //   Remove data from the editor

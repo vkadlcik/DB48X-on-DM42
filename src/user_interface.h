@@ -175,6 +175,7 @@ struct user_interface
     size_t      insert(size_t offset, utf8 data, size_t len);
     size_t      insert(size_t offset, byte c) { return insert(offset, &c, 1); }
     size_t      remove(size_t offset, size_t len);
+    result      insert_softkey(int key, cstring before, cstring after);
     void        load_help(utf8 topic, size_t len = 0);
 
 protected:

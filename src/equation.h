@@ -34,8 +34,6 @@
 #include "settings.h"
 #include "symbol.h"
 
-#include <type_traits>
-
 GCP(equation);
 
 struct equation : program
@@ -117,10 +115,12 @@ struct equation : program
     equation_p expand() const;
     equation_p collect() const;
     equation_p simplify() const;
-    equation_p as_difference_for_solve() const;
+    equation_p as_difference_for_solve() const; // Transform A=B into A-B
+    object_p   outermost_operator() const;
 
-protected:
+  protected:
     static symbol_g render(uint depth, int &precedence, bool edit);
+    static size_t   render(const equation *o, renderer &r, bool quoted);
     static symbol_g parentheses(symbol_g what);
     static symbol_g space(symbol_g what);
 

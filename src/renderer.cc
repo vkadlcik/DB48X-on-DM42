@@ -31,6 +31,7 @@
 
 #include "file.h"
 #include "runtime.h"
+#include "settings.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -44,6 +45,41 @@ renderer::~renderer()
 {
     if (!target)
         rt.free(written);
+}
+
+
+bool renderer::put(unicode code)
+// ----------------------------------------------------------------------------
+//   Render a unicode character
+// ----------------------------------------------------------------------------
+{
+    byte buffer[4];
+    size_t rendered = utf8_encode(code, buffer);
+    return put(buffer, rendered);
+}
+
+
+bool renderer::put(cstring s)
+// ----------------------------------------------------------------------------
+//   Put a null-terminated string
+// ----------------------------------------------------------------------------
+{
+    for (char c = *s++; c; c = *s++)
+        if (!put(c))
+            return false;
+    return true;
+}
+
+
+bool renderer::put(cstring s, size_t len)
+// ----------------------------------------------------------------------------
+//   Put a length-based string
+// ----------------------------------------------------------------------------
+{
+    for (size_t i = 0; i < len; i++)
+        if (!put(s[i]))
+            return false;
+    return true;
 }
 
 
@@ -134,6 +170,11 @@ bool renderer::put(settings::commands format, utf8 text)
 // ----------------------------------------------------------------------------
 {
     bool result = true;
+
+    if (edit)
+        if (utf8_codepoint(text) == settings::SPACE_UNIT)
+            return put('_');
+
     switch(format)
     {
     case settings::commands::LOWERCASE:

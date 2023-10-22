@@ -65,6 +65,7 @@
 #include "symbol.h"
 #include "tag.h"
 #include "text.h"
+#include "unit.h"
 #include "user_interface.h"
 #include "variables.h"
 

@@ -99,7 +99,8 @@ inline bool is_valid_as_name_initial(unicode cp)
              cp != L'²' &&
              cp != L'³' &&
              cp != L'ⅈ' &&
-             cp != L'∡'));
+             cp != L'∡' &&
+             cp != L' '));      // SPACE_3_PER_EM, aka unit
 }
 
 

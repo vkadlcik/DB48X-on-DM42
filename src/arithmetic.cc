@@ -1025,6 +1025,61 @@ algebraic_p arithmetic::non_numeric<struct atan2>(algebraic_r y, algebraic_r x)
 
 // ============================================================================
 //
+//   mkunit: No implementation of anything
+//
+// ============================================================================
+
+inline bool mkunit::integer_ok(object::id &UNUSED xt, object::id &UNUSED yt,
+                              ularge &UNUSED xv, ularge &UNUSED yv)
+// ----------------------------------------------------------------------------
+//   Optimized for integers on the real axis
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
+inline bool mkunit::bignum_ok(bignum_g &UNUSED x, bignum_g &UNUSED y)
+// ----------------------------------------------------------------------------
+//   Optimize for bignums on the real axis
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
+inline bool mkunit::fraction_ok(fraction_g &UNUSED x, fraction_g &UNUSED y)
+// ----------------------------------------------------------------------------
+//   Optimize for fractions on the real and complex axis and for diagonals
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
+inline bool mkunit::complex_ok(complex_g &, complex_g &)
+// ----------------------------------------------------------------------------
+//   No mkunit on complex numbers yet
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
+template <>
+algebraic_p arithmetic::non_numeric<struct mkunit>(algebraic_r UNUSED y,
+                                                   algebraic_r UNUSED x)
+// ----------------------------------------------------------------------------
+//   No optimization for mkunit
+// ----------------------------------------------------------------------------
+{
+    return nullptr;
+}
+
+
+
+// ============================================================================
+//
 //   Shared evaluation code
 //
 // ============================================================================
@@ -1320,6 +1375,7 @@ template object::result arithmetic::evaluate<struct rem>();
 template object::result arithmetic::evaluate<struct pow>();
 template object::result arithmetic::evaluate<struct hypot>();
 template object::result arithmetic::evaluate<struct atan2>();
+template object::result arithmetic::evaluate<struct mkunit>();
 template algebraic_p arithmetic::evaluate<struct hypot>(algebraic_r x, algebraic_r y);
 template algebraic_p arithmetic::evaluate<struct atan2>(algebraic_r x, algebraic_r y);
 

@@ -104,6 +104,7 @@ ID(locals)                      // Block with locals
 ID(local)
 ID(symbol)
 ID(equation)
+ID(unit)
 
 // Complex types must be parsed before numbers
 ID(rectangular)
@@ -170,6 +171,8 @@ NAMED(ImaginaryUnit, "ⅈ")
 
 OP(add, "+")
 OP(sub, "-")
+OP(mkunit, " ")                 // SPACE_3_PER_EM
+ALIAS(mkunit, "_")
 OP(mul, "×")
 OP(div, "÷")
 ALIAS(mul, "*")

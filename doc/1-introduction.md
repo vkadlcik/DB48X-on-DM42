@@ -145,3 +145,10 @@ interpreted as left-multiplying `A` by the inverse of `B`.
 
 As another extension, algebraic functions such as `sin` apply to all elements in
 a vector or matrix in turn.
+
+
+## Units
+
+Unit objects represent values with an associated unit. They are represented
+using the `_` operator, e.g. `1_km/s`, although on display this operator is
+shown as a thin space, e.g. `1 km/s`.

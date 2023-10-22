@@ -128,12 +128,13 @@ object::result list::list_parse(id type,
                     parser child(p, s, childp);
                     unicode iopen = parenthese ? '(' : 0;
                     unicode iclose = parenthese ? ')' : 0;
+                    id ctype = type == ID_unit ? ID_equation : type;
 
                     record(list_parse, "%+s starting at offset %u '%s'",
                            parenthese ? "Parenthese" : "Child",
                            utf8(s) - utf8(p.source),
                            utf8(s));
-                    auto result = list_parse(type, child, iopen, iclose);
+                    auto result = list_parse(ctype, child, iopen, iclose);
                     if (result != OK)
                         return result;
                     obj = child.out;

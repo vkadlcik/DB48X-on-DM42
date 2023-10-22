@@ -821,6 +821,7 @@ MENU(UnitsMenu,
 // ----------------------------------------------------------------------------
 //   Menu managing units and unit conversions
 // ----------------------------------------------------------------------------
+     "_",       ID_SelfInsert,
      "Length",  ID_UnitsMenu,
      "Area",    ID_UnitsMenu,
      "Volume",  ID_UnitsMenu,

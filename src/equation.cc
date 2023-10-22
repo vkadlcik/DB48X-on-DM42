@@ -206,6 +206,15 @@ symbol_g equation::render(uint depth, int &precedence, bool editing)
 
 RENDER_BODY(equation)
 // ----------------------------------------------------------------------------
+//   Render the equation
+// ----------------------------------------------------------------------------
+{
+    return render(o, r, !r.equation());
+}
+
+
+size_t equation::render(const equation *o, renderer &r, bool quoted)
+// ----------------------------------------------------------------------------
 //   Render the program into the given program buffer
 // ----------------------------------------------------------------------------
 //   1 2 3 5 * + - 2 3 * +
@@ -242,10 +251,10 @@ RENDER_BODY(equation)
 
     size_t len = 0;
     utf8 txt = result->value(&len);
-    if (!r.equation())
+    if (quoted)
         r.put('\'');
     r.put(txt, len);
-    if (!r.equation())
+    if (quoted)
         r.put('\'');
     return r.size();
 }
@@ -959,6 +968,19 @@ equation_p equation::as_difference_for_solve() const
 // ----------------------------------------------------------------------------
 //   For the solver, transform A=B into A-B
 // ----------------------------------------------------------------------------
+//   Revisit: how to transform A and B, A or B, e.g. A=B and C=D ?
 {
     return rewrite(x == y, x - y);
+}
+
+
+object_p equation::outermost_operator() const
+// ----------------------------------------------------------------------------
+//   Return the last operator in the equation
+// ----------------------------------------------------------------------------
+{
+    object_p result = nullptr;
+    for (object_p o : *this)
+        result = o;
+    return result;
 }

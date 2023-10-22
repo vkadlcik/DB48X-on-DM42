@@ -43,7 +43,7 @@ struct renderer
 {
     renderer(char *buffer = nullptr, size_t length = ~0U, bool flat = false)
         : target(buffer), length(length), written(0), saving(), tabs(0),
-          edit(buffer == nullptr),
+          edit(!flat && buffer == nullptr),
           eq(false), flat(flat), space(false), sign(false),
           cr(false), txt(false), nl(false) {}
     renderer(bool equation, bool edit = false, bool flat = false)
@@ -58,27 +58,10 @@ struct renderer
           cr(false), txt(false), nl(false) {}
     ~renderer();
 
-    bool put(char c);
-    bool put(cstring s)
-    {
-        for (char c = *s++; c; c = *s++)
-            if (!put(c))
-                return false;
-        return true;
-    }
-    bool put(cstring s, size_t len)
-    {
-        for (size_t i = 0; i < len; i++)
-            if (!put(s[i]))
-                return false;
-        return true;
-    }
-    bool put(unicode code)
-    {
-        byte buffer[4];
-        size_t rendered = utf8_encode(code, buffer);
-        return put(buffer, rendered);
-    }
+    bool   put(char c);
+    bool   put(cstring s);
+    bool   put(cstring s, size_t len);
+    bool   put(unicode code);
     bool   put(utf8 s)                  { return put(cstring(s)); }
     bool   put(utf8 s, size_t len)      { return put(cstring(s), len); }
     bool   put(settings::commands fmt, utf8 s);

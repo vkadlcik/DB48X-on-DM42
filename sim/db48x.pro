@@ -94,7 +94,7 @@ FORMS    += sim-window.ui
 RESOURCES += sim.qrc
 
 # Indicate we are on simulator
-DEFINES += SIMULATOR
+DEFINES += SIMULATOR CONFIG_FIXED_BASED_OBJECTS
 
 # Pass debug flag
 debug:DEFINES += DEBUG

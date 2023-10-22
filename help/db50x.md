@@ -3822,3 +3822,145 @@ Create a backup on a remote machine
 
 ## USBRESTORE
 Restore a backup from a remote machine
+
+#######################################
+# target
+######################################
+TARGET = db48x
+PLATFORM = dmcp
+VARIANT = dm42
+SDK = dmcp/dmcp
+PGM = pgm
+
+######################################
+# building variables
+######################################
+OPT=release
+# Alternatives (on the command line)
+# OPT=debug	-g
+# OPT=small	-Os
+# OPT=fast	-O2
+# OPT=faster	-O3
+# OPT=fastest	-O4 -Ofast
+# Experimentally, O2 performs best on DM32
+# (see https://github.com/c3d/DB50X-on-DM32/issues/66)
+
+# Warning: macOSX only
+MOUNTPOINT=/Volumes/$(VARIANT)/
+EJECT=sync; sync; sync; hdiutil eject $(MOUNTPOINT)
+PRODUCT_NAME=$(shell echo $(TARGET) | tr "[:lower:]" "[:upper:]")
+PRODUCT_MACHINE=$(shell echo $(VARIANT) | tr "[:lower:]" "[:upper:]")
+
+
+#######################################
+# pathes
+#######################################
+# Build path
+BUILD = build/$(VARIANT)/$(OPT)
+
+# Path to aux build scripts (including trailing /)
+# Leave empty for scripts in PATH
+TOOLS = tools
+
+# CRC adjustment
+CRCFIX = $(TOOLS)/forcecrc32/forcecrc32
+
+FLASH=$(BUILD)/$(TARGET)_flash.bin
+QSPI =$(BUILD)/$(TARGET)_qspi.bin
+
+VERSION=$(shell git describe --dirty=Z --abbrev=5| sed -e 's/^v//g' -e 's/-g/-/g')
+VERSION_H=src/$(PLATFORM)/version.h
+
+
+#==============================================================================
+#
+#  Primary build rules
+#
+#==============================================================================
+
+# default action: build all
+all: $(TARGET).$(PGM) help/$(TARGET).md
+	@echo "# Built $(VERSION)"
+
+dm32:	dm32-all
+dm32-%:
+	$(MAKE) PLATFORM=dmcp SDK=dmcp5/dmcp PGM=pg5 VARIANT=dm32 TARGET=db50x $*
+
+# installation steps
+COPY=cp
+install: install-pgm install-qspi install-help
+	$(EJECT)
+	@echo "# Installed $(VERSION)"
+install-fast: install-pgm
+	$(EJECT)
+install-pgm: all
+	$(COPY) $(TARGET).$(PGM) $(MOUNTPOINT)
+install-qspi: all
+	$(COPY) $(QSPI) $(MOUNTPOINT)
+install-help: help/$(TARGET).md
+	$(COPY) help/$(TARGET).md $(MOUNTPOINT)help/
+
+sim: sim/$(TARGET).mak
+	cd sim; make -f $(<F)
+sim/$(TARGET).mak: sim/$(TARGET).pro Makefile $(VERSION_H)
+	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(QMAKE_$(OPT))
+
+sim:	sim/gcc111libbid.a	\
+	recorder/config.h	\
+	help/$(TARGET).md	\
+	fonts/EditorFont.cc	\
+	fonts/StackFont.cc	\
+	fonts/HelpFont.cc	\
+	keyboard		\
+	.ALWAYS
+
+clangdb: sim/$(TARGET).mak .ALWAYS
+	cd sim && rm -f *.o && compiledb make -f $(TARGET).mak && mv compile_commands.json ..
+
+keyboard: Keyboard-Layout.png Keyboard-Cutout.png sim/keyboard-db48x.png help/keyboard.png doc/keyboard.png
+Keyboard-Layout.png: DB50X-Keys/DB50X-Keys.001.png
+	cp $< $@
+Keyboard-Cutout.png: DB50X-Keys/DB50X-Keys.002.png
+	cp $< $@
+sim/keyboard-db48x.png: DB50X-Keys/DB50X-Keys.001.png
+	convert $< -crop 698x878+151+138 $@
+%/keyboard.png: sim/keyboard-db48x.png
+	cp $< $@
+
+QMAKE_debug=debug
+QMAKE_release=release
+QMAKE_small=release
+QMAKE_fast=release
+QMAKE_faster=release
+QMAKE_fastest=release
+
+TTF2FONT=$(TOOLS)/ttf2font/ttf2font
+$(TTF2FONT): $(TTF2FONT).cpp $(TOOLS)/ttf2font/Makefile src/ids.tbl
+	cd $(TOOLS)/ttf2font; $(MAKE) TARGET=release
+sim/gcc111libbid.a: sim/gcc111libbid-$(shell uname)-$(shell uname -m).a
+	cp $< $@
+
+dist: all
+	cp $(BUILD)/$(TARGET)_qspi.bin  .
+	tar cvfz $(TARGET)-v$(VERSION).tgz $(TARGET).$(PGM) $(TARGET)_qspi.bin \
+		help/*.md STATE/*.48S
+	@echo "# Distributing $(VERSION)"
+
+$(VERSION_H): $(BUILD)/version-$(VERSION).h
+	cp $< $@
+$(BUILD)/version-$(VERSION).h: $(BUILD)/.exists Makefile
+	echo "#define DB50X_VERSION \"$(VERSION)\"" > $@
+
+
+#BASE_FONT=fonts/C43StandardFont.ttf
+BASE_FONT=fonts/FogSans-ddd.ttf
+fonts/EditorFont.cc: $(TTF2FONT) $(BASE_FONT)
+	$(TTF2FONT) -s 48 -S 80 -y -10 EditorFont $(BASE_FONT) $@
+fonts/StackFont.cc: $(TTF2FONT) $(BASE_FONT)
+	$(TTF2FONT) -s 32 -S 80 -y -8 StackFont $(BASE_FONT) $@
+fonts/HelpFont.cc: $(TTF2FONT) $(BASE_FONT)
+	$(TTF2FONT) -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
+help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md) Makefile
+	mkdir -p help && \
+	cat $^ | \
+	sed -e '/<!--- $(PRODUCT_MACHINE) --->/,/<!--- !$(PRODUCT_MACHINE) --->/s/$(PRODUCT_MACHINE)/DM32/g' | \

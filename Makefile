@@ -22,7 +22,7 @@ OPT=release
 
 # Warning: macOSX only
 MOUNTPOINT=/Volumes/$(VARIANT)/
-EJECT=hdiutil eject $(MOUNTPOINT)
+EJECT=sync; sync; sync; hdiutil eject $(MOUNTPOINT)
 PRODUCT_NAME=$(shell echo $(TARGET) | tr "[:lower:]" "[:upper:]")
 PRODUCT_MACHINE=$(shell echo $(VARIANT) | tr "[:lower:]" "[:upper:]")
 

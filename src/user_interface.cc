@@ -1987,7 +1987,7 @@ bool user_interface::draw_command()
         dirtyCommand = false;
         if (command && !rt.error())
         {
-            font_p font = HelpCodeFont;
+            font_p font = StackFont;
             size   w    = font->width(command);
             size   h    = font->height();
             coord  x    = 25;

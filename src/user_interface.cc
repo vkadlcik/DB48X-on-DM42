@@ -1172,6 +1172,13 @@ bool user_interface::draw_menus()
                 Screen.fill(mrect, alt ? pattern::gray50 : pattern::black);
                 mrect.inset(1, 1);
                 Screen.fill(mrect, pattern::white);
+                if (!alt)
+                {
+                    rect trect(x - mw/2-1, my, x + mw/2, my+1);
+                    Screen.fill(trect, pattern::black);
+                    trect.offset(0, mh-2);
+                    Screen.fill(trect, pattern::black);
+                }
             }
             else
             {
@@ -1257,7 +1264,7 @@ bool user_interface::draw_menus()
                     bool dossier = marker==L'◥';
                     if (dossier)
                     {
-                        if (alt)
+                        if (alt || Settings.menu_square)
                             Screen.glyph(mkx+3, ty-3, marker, font, color);
                         Screen.clip(clip);
                         Screen.glyph(mkx+4, ty-4, marker, font, pattern::white);

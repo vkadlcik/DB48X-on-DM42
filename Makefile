@@ -111,7 +111,7 @@ QMAKE_fastest=release
 
 TTF2FONT=$(TOOLS)/ttf2font/ttf2font
 $(TTF2FONT): $(TTF2FONT).cpp $(TOOLS)/ttf2font/Makefile src/ids.tbl
-	cd $(TOOLS)/ttf2font; $(MAKE)
+	cd $(TOOLS)/ttf2font; $(MAKE) TARGET=release
 sim/gcc111libbid.a: sim/gcc111libbid-$(shell uname)-$(shell uname -m).a
 	cp $< $@
 

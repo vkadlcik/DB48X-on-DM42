@@ -718,7 +718,7 @@ bignum_g bignum::pow(bignum_r yr, bignum_r xr)
     for (size_t xi = 0; xi < xs; xi++)
     {
         byte xv = x[xi];
-        for (uint bit = 0; xv && bit < 8; bit++)
+        for (uint bit = 0; (xv || xi+1 < xs) && bit < 8; bit++)
         {
             if (xv & 1)
                 r = r * y;

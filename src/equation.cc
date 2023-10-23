@@ -149,7 +149,7 @@ symbol_g equation::render(uint depth, int &precedence, bool editing)
                 default:
                     break;
                 }
-                if (argp >= precedence::FUNCTION)
+                if (argp >= precedence::FUNCTION && argp != precedence::FUNCTION_POWER)
                     arg = space(arg);
                 return fn + arg;
             }

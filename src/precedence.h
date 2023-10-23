@@ -45,11 +45,11 @@ enum precedence
     MULTIPLICATIVE      = 18,    // *, /
     POWER               = 20,    // ^
 
-    UNKNOWN             = 30,   // Unknown operator
-    PARENTHESES         = 40,   // Parentheses
-    FUNCTION            = 50,   // Functions, e.g. f(x)
-    FUNCTION_POWER      = 60,   // X²
-    SYMBOL              = 70,   // Names
+    FUNCTIONAL          = 30,   // Unknown operator
+    FUNCTION            = 40,   // Functions, e.g. f(x)
+    FUNCTION_POWER      = 50,   // X²
+    SYMBOL              = 60,   // Names
+    PARENTHESES         = 70,   // Parentheses
 };
 
 #endif // PRECEDENCE_H

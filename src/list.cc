@@ -63,6 +63,8 @@ object::result list::list_parse(id type,
     size_t   max        = p.length;
     object_g infix      = nullptr;
     object_g prefix     = nullptr;
+    object_g postfix    = nullptr;
+    object_g obj        = nullptr;
     bool     negate     = false;
     int      precedence = p.precedence;
     int      lowest     = precedence;
@@ -99,10 +101,9 @@ object::result list::list_parse(id type,
         }
 
         // Parse an object
-        size_t   done    = (byte *) s - (byte *) p.source;
-        size_t   length  = max > done ? max - done : 0;
-        object_g obj     = nullptr;
-        bool     postfix = false;
+        size_t done        = (byte *) s - (byte *) p.source;
+        size_t length      = max > done ? max - done : 0;
+        id     postfix_cmd = id(0);
 
         // For algebraic objects, check if we have or need parentheses
         if (precedence)
@@ -119,11 +120,11 @@ object::result list::list_parse(id type,
                 }
 
                 // Check if we see parentheses, or if we have `sin sin X`
-                bool parenthese = cp == '(';
+                bool parenthese = cp == '(' && !infix;
                 if (parenthese  || infix || prefix)
                 {
-                    int childp = parenthese ? LOWEST
-                        : infix ? infix->precedence() + 1
+                    int childp = infix ? infix->precedence() + 1
+                        : parenthese ? LOWEST
                         : SYMBOL;
                     parser child(p, s, childp);
                     unicode iopen = parenthese ? '(' : 0;
@@ -140,42 +141,43 @@ object::result list::list_parse(id type,
                     obj = child.out;
                     if (!obj)
                         return ERROR;
-                    length = child.end;
+                    s = s + child.end;
                     record(list_parse,
                            "Child parsed as %t length %u",
-                           object_p(obj), length);
+                           object_p(obj), child.end);
+                    precedence = -precedence; // Stay in postfix mode
+                    cp = utf8_codepoint(s);
+                    length = 0;
                 }
             }
-            else // precedence < 0)
+            if (precedence < 0)
             {
                 // Check special postfix notations
-                id cmd = id(0);
                 switch(cp)
                 {
                 case L'²':
-                    cmd = ID_sq;
+                    postfix_cmd = ID_sq;
                     break;
                 case L'³':
-                    cmd = ID_cubed;
+                    postfix_cmd = ID_cubed;
                     break;
                 case '!':
-                    cmd = ID_fact;
+                    postfix_cmd = ID_fact;
                     break;
                 case L'⁻':
                     if (utf8_codepoint(utf8_next(s)) == L'¹')
-                        cmd = ID_inv;
+                        postfix_cmd = ID_inv;
                     break;
                 default:
                     break;
                 }
-                if (cmd)
+                if (postfix_cmd)
                 {
                     utf8 cur = utf8(s);
-                    obj = command::static_object(cmd);
-                    length = cmd == ID_inv
+                    (obj ? postfix : obj) = command::static_object(postfix_cmd);
+                    length = postfix_cmd == ID_inv
                         ? utf8_next(utf8_next(cur)) - cur
                         : utf8_next(cur) - cur;
-                    postfix = true;
                     precedence = -precedence; // Stay in postfix mode
                 }
             }
@@ -190,7 +192,7 @@ object::result list::list_parse(id type,
         if (!obj)
             return ERROR;
 
-        if (precedence && !postfix)
+        if (precedence && !postfix_cmd)
         {
             // We are parsing an equation
             if (precedence > 0)
@@ -212,24 +214,22 @@ object::result list::list_parse(id type,
                     precedence = -SYMBOL;
                 }
             }
-            else
+            else if (int objprec = obj->precedence())
             {
                 // We just parsed an infix, e.g. +, -, etc
                 // stash it, or exit loop if it has lower precedence
-                int objprec = obj->precedence();
                 if (objprec < lowest)
                     break;
-                if (!objprec)
-                {
-                    rt.infix_expected_error();
-                    return ERROR;
-                }
-                if (objprec < SYMBOL)
+                if (objprec < FUNCTIONAL)
                 {
                     infix = obj;
                     precedence = -objprec;
                     obj = nullptr;
                 }
+            }
+            else
+            {
+                precedence = -precedence;
             }
         }
 
@@ -261,6 +261,11 @@ object::result list::list_parse(id type,
                     obj = command::static_object(ID_neg);
                     negate = false;
                 }
+                else if (postfix)
+                {
+                    obj = postfix;
+                    postfix = nullptr;
+                }
                 else
                 {
                     obj = infix;
@@ -270,7 +275,7 @@ object::result list::list_parse(id type,
         }
 
         // Jump past what we parsed
-        s = utf8(s) + length;
+        s = s + length;
 
         // For equations switch between infix and prefix
         precedence = -precedence;

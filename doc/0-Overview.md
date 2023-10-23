@@ -14,6 +14,7 @@ presumably the calculator you are currently running this software on.
 ## Table of contents
 
 * [Using the on-line help](#help)
+* [Quickstart guide](#quickstart-guide)
 * [State of the project](#state-of-the-project)
 * [Design overview](#design-overview)
 * [Keyboard interaction](#keyboard-interaction)
@@ -25,9 +26,20 @@ presumably the calculator you are currently running this software on.
 
 ## State of the project
 
-This is currently **UNSTABLE** software. Please only consider installing this if
-you are a developer and interested in contributing. Please refer to the web site
-of the project on GitHub for details and updates.
+This is currently **SEMI-STABLE** software, meaning that the implemented
+features appear to work somewhat reliably, but that some features are still
+being added with each new release. This is **NOT PRODUCTION READY** and should
+not be used for any mission-critical computation.
+
+At this point in time, you should only installing this if you are interested in
+contributing to the project, whether it is in the form of code, feedback or
+documentation changes. Please refer to the web site of the project on GitHub or
+GitLab for details and updates. The best way to
+[report an issue](https://github.com/c3d/DB48X-on-DM42/issues),
+[request an improvement](https://github.com/c3d/DB48X-on-DM42/issues/new)
+or [submit a proposed change](https://github.com/c3d/DB48X-on-DM42/pulls) is
+on the project's [GitHub page](https://github.com/c3d/DB48X-on-DM42).
+
 
 ## Design overview
 
@@ -35,7 +47,8 @@ The objective is to re-create an RPL-like experience, but to optimize it for the
 existing DM42 physical hardware.
 <!--- DM42 --->
 Ideally, DB48X should be fully usable without a
-keyboard overlay. though one is [being worked on](../Keyboard-Layout.png).
+keyboard overlay. though one is
+[being worked on](https://github.com/c3d/DB48X-on-DM42/blob/stable/Keyboard-Layout.png).
 
 Compared to the original HP48, the DM42 has a much larger screen, but no
 annunciators (it is a fully bitmap screen). It has a keyboard with dedicated
@@ -47,7 +60,8 @@ and down), and has no space key (_SPC_ on the HP48).
 The DM32 keyboard layout is really different compared to the DB48X expected
 layout. For example, the DM32 does not have unshifted arrow keys, and has two
 shift keys. For that reason, when running DB48X on a DM32, it is highly
-recommended to use a [keyboard overlay](../Keyboard-Layout.png).
+recommended to use a
+[keyboard overlay](https://github.com/c3d/DB48X-on-DM42/blob/stable/Keyboard-Layout.png).
 
 Compared to the original HP48, the DM32 has a much larger screen, but no
 annunciators (it is a fully bitmap screen). It has a keyboard with dedicated

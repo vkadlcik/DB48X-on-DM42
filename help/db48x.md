@@ -14,6 +14,7 @@ presumably the calculator you are currently running this software on.
 ## Table of contents
 
 * [Using the on-line help](#help)
+* [Quickstart guide](#quickstart-guide)
 * [State of the project](#state-of-the-project)
 * [Design overview](#design-overview)
 * [Keyboard interaction](#keyboard-interaction)
@@ -25,16 +26,28 @@ presumably the calculator you are currently running this software on.
 
 ## State of the project
 
-This is currently **UNSTABLE** software. Please only consider installing this if
-you are a developer and interested in contributing. Please refer to the web site
-of the project on GitHub for details and updates.
+This is currently **SEMI-STABLE** software, meaning that the implemented
+features appear to work somewhat reliably, but that some features are still
+being added with each new release. This is **NOT PRODUCTION READY** and should
+not be used for any mission-critical computation.
+
+At this point in time, you should only installing this if you are interested in
+contributing to the project, whether it is in the form of code, feedback or
+documentation changes. Please refer to the web site of the project on GitHub or
+GitLab for details and updates. The best way to
+[report an issue](https://github.com/c3d/DB48X-on-DM42/issues),
+[request an improvement](https://github.com/c3d/DB48X-on-DM42/issues/new)
+or [submit a proposed change](https://github.com/c3d/DB48X-on-DM42/pulls) is
+on the project's [GitHub page](https://github.com/c3d/DB48X-on-DM42).
+
 
 ## Design overview
 
 The objective is to re-create an RPL-like experience, but to optimize it for the
 existing DM42 physical hardware.
 Ideally, DB48X should be fully usable without a
-keyboard overlay. though one is [being worked on](../Keyboard-Layout.png).
+keyboard overlay. though one is
+[being worked on](https://github.com/c3d/DB48X-on-DM42/blob/stable/Keyboard-Layout.png).
 
 Compared to the original HP48, the DM42 has a much larger screen, but no
 annunciators (it is a fully bitmap screen). It has a keyboard with dedicated
@@ -157,7 +170,7 @@ described as _A_ (_⚙️_, DM-42 _Σ+_, DM-32 _√x_).
 
 However, if you are using DB48X on a DM42, it is possible to do it without a
 keyboard overlay, because great care was taken to have the DB48X keboard layout
-remain close to that of the DM42, in order to preserve "muscle memory:. New
+remain close to that of the DM42, in order to preserve muscle memory. New
 features were positioned on the keyboard at positions that are close to what is
 familiar in the original DM42 firmware.
 
@@ -254,7 +267,7 @@ Here are a few of the interesting RPL-specific key mappings:
   enables auto-completion using the soft-menu keys. Note that the `+` key alone
   (without shift) activates the catalog while in *Alpha* mode.
 
-* 🟦 _+_ (_HELP_, DM-32 _RTN)) activates the context-sensitive help system.
+* 🟦 _+_ (_HELP_, DM-32 _RTN_) activates the context-sensitive help system.
 
 
 ## Soft menus
@@ -784,18 +797,709 @@ following stack diagram:
 
 `Y` `X` ▶ `Y+X`
 
-The duplication
+The duplication operation `Duplicate` (`DUP`) can be described in synthetic form
+using the following synthetic stack diagram:
+
+`X` ▶ `X` `X`
+
 
 ## Algebraic mode
 
-Unlike earlier RPN calculators, RPL includes complete support for algebraic
-objects written using the standard precedence rules in mathematics. In RPL,
-algebraic expressions are placed between ticks. For example, `'2+3×5'` will
-evaluate as `17`: the multiplication `3×5`, giving `15`, is performed before the
-addition `2+15`, which gives `17`.
+Unlike earlier RPN calculators from Hewlett-Packard, RPL calculators from HP
+includes complete support for algebraic objects written using the standard
+precedence rules in mathematics. This gives you the best of both worlds,
+i.e. the keyboard efficiency of RPN, requiring less keystrokes for a given
+operation, as well as the mathematical readability of the algebraic
+notation. Better yet, it is possible and easy to build an algebraic expression
+from RPN keystrokes. These nice properties are also true for DB48X.
+
+In RPL, algebraic expressions are placed between ticks. For
+example, `'2+3×5'` will evaluate as `17`: the multiplication `3×5`, giving `15`,
+is performed before the addition `2+15`, which gives `17`. An algebraic
+expression can also be symbolic and contain unevaluated variables. For example,
+`2+x` is a valid algebraic operation. If, having this expression on the stack,
+you type `3` and then hit the `×` key, you will end up with `(2+x)×3`, showing
+how the algebraic expression was built from RPN keystrokes.
 
 Algebraic expressions are not evaluated automatically. The _R/S_ key (bound to
-the [Evaluate](#evaluate) function) will compute their value.
+the [Evaluate](#evaluate) function) will compute their value as needed. On the
+DB48X keyboard overlay, this key is also marked as `=` for that reason.
+
+## Rich data types
+
+Since introducing the first scientific pocket calculator, the HP-35, in 1972,
+and with it the reverse polish notation (RPN), Hewlett-Packard perfected its
+line-up for decades. This led to such powerhouses pocket computers such as as
+the HP-41C series, or tiny wonders of pocket efficiency such as the HP-15C. Many
+of these calculators, including the models we just cited, were capable of
+advanced mathematics, including dealing with complex numbers, matrix operations,
+root finding or numeric integration.
+
+Then in 1986, everything changed with the HP-28C, which introduced a new user
+interface called RPL. While the most evidently visible change was an unlimited
+stack, what instantly made it both more powerful and easier to use than all its
+RPN predecessors was the introduction of [data types](#types). Every value
+on the stack, instead of having to be a number, could be a text, a name or an
+equation. This made operations completely uniform irrespective of the data being
+operated on. The same `+` operation that adds numbers can also add complex
+numbers, vectors, matrices, or concatenate text. The exact same logic applies in
+all case. This solved a decade-long struggle to extend the capabilities of
+pocket calculators.
+
+For example, whereas the HP-41C had some support for text, with an "Alpha" mode
+and an alpha register, text operations were following their own logic, with for
+example `ARCL` and `ASTO` dealing with at most 6 characters at a time, because
+they were artificially fitted in a register designed to hold a numerical value.
+Dealing with complex numbers on the HP-41C was
+[similarly clunky](https://coertvonk.com/sw/hp41/complex-arithmetic-xmem-4426).
+Even the HP-15C, which had built-in support for complex numbers, remained a bit
+awkward to use in "complex mode" because its display could only show one half of
+a complex number, e.g. the real or imaginary part. Similarly, matrix or
+statistic operations had non-obvious interactions with numbered data registers.
+
+All this was solved with RPL, because now a complex number, a matrix or a text
+would occupy a single entry on the stack. So whereas adding two integers would
+require a sequence like `1 ENTER 2 +` like in RPN, a very similar sequence would
+add two texts: `"ABC" ENTER "DEF" +`, and the exact same logic would also add
+two vectors in `[1 2 3] ENTER [4 5 6] +`.
+
+DB48X adopts this extremely powerful idea, with a focus on making it as
+efficient as possible for interactive calculations as well as for custom
+programmed solution.
+# Quickstart guide
+
+This quickstart guide will rapidly give you an overview of the capabilities of
+DB48X, and show you how to use it efficiently.
+
+
+## Installation process
+
+**Downloading the software**
+
+**Connecting the calculator to a computer**
+
+**Setup menu system (firmware menus)**
+
+**Exposing internal storage as a USB disk**
+
+**Copying DB48X installation files**
+
+**Copying DM42 installation files**
+
+**Installing the DB48X QSPI file**
+
+**Installing the DB48X program file**
+
+
+## Switching between DM42 and DB48X
+
+**Checking that the DM42 firmware works with the DB48X QSPI file**
+
+**Running the DB48X program**
+
+**Running the DM42 program**
+
+**Saving and restoring DM42 state**
+
+**Saving and restoring DB48X state**
+
+**Shared state between the two programs**
+
+
+## Operations on whole numbers
+
+**Entering whole numbers**
+
+**Arithmetic on integers**
+
+**Changing the sign of a number with +/-**
+
+**Exact division**
+
+**Computing on large numbers: 2^40, 25!**
+
+**Separators to make large numbers more readable**
+
+**Built-in functions: example of 1/x**
+
+
+## Using the shift key
+
+**Primary function: 1/x**
+
+**First shifted function: y^x and square**
+
+**Second shifted function: Help**
+
+**The shift annunciator**
+
+
+## Invoking the on-line Help
+
+**Long-press on a function key**
+
+**Moving up and down**
+
+**Following links**
+
+**Navigating back to a previous topic**
+
+**Exiting the on-line help**
+
+**Contextual help**
+
+
+## The annunciator area
+
+**Battery level**
+
+**USB vs. battery power**
+
+**Showing or hiding the date and time**
+
+**Current state file name**
+
+**Future direction**
+
+
+## Decimal values
+
+**Entering a decimal number**
+
+**Entering a number in scientific notation with EEX**
+
+**Arithmetic on decimal values**
+
+**Arithmetic on fractions**
+
+**Using EEX to cycle between decimal and fraction**
+
+**Separators for the fractional part**
+
+**Live separators during number editing**
+
+
+## Soft keys and menus
+
+**Soft keys**
+
+**The DISP menu**
+
+**Effect of shift state on the menu**
+
+**Submenus**
+
+**Menu history (Last Menu)**
+
+
+## Displaying decimal values
+
+**Standard display mode**
+
+**FIX display mode**
+
+**Switching to scientific mode**
+
+**Digits to show for small values**
+
+**SCI display mode**
+
+**ENG display mode**
+
+**SIG display mode**
+
+**Emulating HP48 standard display**
+
+
+## Scientific functions
+
+**Square and power**
+
+**Square root and xroot**
+
+**Exponential and Log**
+
+**Exponential and log in base 10**
+
+**DM42 layout difference: EXP LN instead of LOG LN**
+
+**Trigonometric functions and their inverse**
+
+**Functions in menus: example of hyperbolic functions**
+
+
+## Using an infinite stack
+
+**Showing multiple stack levels**
+
+**Result vs. other levels**
+
+**When a result is too large**
+
+
+**An example of complicated calculation - The Mach number benchmark**
+
+**How to proceeed with that computation**
+
+**Correcting an error in the middle**
+
+**Saving results for later with Duplicate**
+
+**Dropping results and cleaning up with Drop**
+
+**LastArg to recall last arguments**
+
+**Undo to restore previous stack state**
+
+
+## The command line
+
+**Editing an object on the stack with Right key**
+
+**Moving left and right on the command line**
+
+**Repeating keys: Insert, left, right, delete**
+
+**Inserting characters in the middle**
+
+**Deleting characters left and right**
+
+**Space key on R/S**
+
+**Command line: entering three numbers at once**
+
+
+## The editor menu
+
+**Selecting the editor menu**
+
+**Moving word by word**
+
+**Moving to beginning and end**
+
+**Selecting text**
+
+**Cut, copy and paste**
+
+**Incremental search**
+
+**Search and replace**
+
+
+## Command line history
+
+**Recalling a previous command line**
+
+**Optimization of command-line space**
+
+**Exiting the command line**
+
+## Entering letters and symbols
+
+**Alpha mode with Shift Enter**
+
+**Alpha mode with Long Shift**
+
+**Transient Alpha mode, upper and lowercase**
+
+**Shift on digits and operations while in Alpha mode**
+
+**Shifted characters**
+
+**2nd shifted characters**
+
+**White cursor for Alpha mode**
+
+**C and L cursor indicators in text**
+
+
+## Entering names
+
+**Executing a command by typing its name**
+
+**Catalog with + key**
+
+**Auto-completion**
+
+**Example: VERSION**
+
+**What happens if the name is not a command**
+
+
+## Multi-line text editor
+
+**Multi-line Text editor**
+
+**Up and down by shifting**
+
+**Repeat up and down by holding key**
+
+
+## Entering text
+
+**Entering text with 2nd shift ENTER**
+
+**The C and L cursors**
+
+**Mixed operations, e.g. adding text**
+
+**Multiplying text by a number**
+
+
+## Entering an algebraic expression
+
+**The `' ()` key**
+
+**Entering an expression**
+
+**Evaluating an expression with `=`**
+
+**Cursor in algebraic mode**
+
+**Comparing the `sin` key in direct and algebraic mode**
+
+**Entering parentheses**
+
+**Automatic elimination of parentheses**
+
+**Symbolic algebraic expressions**
+
+**Performing RPN operations on algebraic expressions**
+
+**Automatic simplification of `0+x`, `1*x`, etc.**
+
+
+## The Tools menu
+
+**Tools menu on empty stack**
+
+**Tools menu for a decimal value**
+
+**Tools menu for an integer**
+
+**Tools menu for a text**
+
+**Tools menu for an expression**
+
+
+## Computations on complex numbers
+
+**The complex menu**
+
+**Entering numbers in rectangular form**
+
+**Entering numbers in polar form**
+
+**Switching between polar and rectangular with EEX**
+
+**Arithmetic on complex numbers**
+
+**Exact angles and exact computations: 2<45 * 3<90 ^ 8**
+
+**Functions on complex numbers, e.g. `sin` and `log`.**
+
+**Effect of angle mode on display in polar form**
+
+
+## Computations on vectors
+
+**Entering a vector**
+
+**The M cursor**
+
+**Adding and subtracting vectors**
+
+**Component-wise multiplication and division**
+
+**Operations between vector and a constant**
+
+**Component-wise functions: 1/x**
+
+**The tools menu on vectors**
+
+**Computing the norm of a vector**
+
+**The Matrix menu**
+
+
+## Computations on matrices
+
+**Entering a matrix**
+
+**Adding and subtracting matrices**
+
+**Multiplication and division by a constant**
+
+**Multiplying square matrices**
+
+**Multiplying a matrix and a vector**
+
+**Computing a determinant**
+
+**Computing an inverse with 1/x**
+
+
+## Advanced matrix operations
+
+**Matrix of complex numbers**
+
+**Symbolic matrix**
+
+**Inverse and determinant of 2x2 symbolic matrix**
+
+
+## Entering data in lists
+
+**Entering a list**
+
+**Adding elements to a list**
+
+**Applying a function to a list**
+
+**Repeating a list (multiply)**
+
+**Lists containing lists**
+
+
+## Computations with based numbers
+
+**Entering based numbers**
+
+**Entering hexadecimal directly with A-F**
+
+**Logical operations**
+
+**Setting the word size**
+
+**Changing to common bases (2, 8, 10, 16)**
+
+**Changing to an arbitray base**
+
+**Entering number in arbitrary base**
+
+**The tools menu on based number**
+
+**Binary operations**
+
+**Emulating a 16-bit or 256-bit CPU**
+
+**The Cycle key on based numbers**
+
+**Adding a suffix to force a base (DM32 only)**
+
+
+## Unit objects
+
+**Entering a value with a unit**
+
+**The units menus**
+
+**Applying a unit**
+
+**Converting to a unit**
+
+**Dividing by a unit**
+
+
+
+## Entering a program
+
+**Computing a VAT**
+
+**Evaluating a program with `Evaluate`**
+
+**Modifying a program with LastArg**
+
+**Modifying a program with Undo**
+
+**Modifying a program with command-line history**
+
+**The three roles of the R/S key: Space, =, EVAL**
+
+
+## Storing values in global variables
+
+**Storing a value in a new variable 'VATRate'**
+
+**Evaluating a variable**
+
+**Case insensitivity**
+
+**Naming a variable on the command line**
+
+**Using quotes to avoid evaluation**
+
+**Overwriting a variable value**
+
+**Expressions containing variables**
+
+
+## Storing and modifying programs
+
+**Creating a new `VAT` command**
+
+**Evaluating a program by name**
+
+**Evaluting a program from variables menu**
+
+**Taking input and computing output**
+
+
+## The variables menu
+
+**Showing the variables menu**
+
+**Evaluating a variable with F1**
+
+**Recalling a variable with shift F1**
+
+**Storing in an existing variable with xshift F1**
+
+**Rationale for the difference with HP48**
+
+**Using variables menu while editing a program**
+
+
+## Menus with too many entries
+
+**Adding more variables overflows**
+
+**Going from 6 to 7 entries**
+
+**No next key, using F6 and shift F6 for next and previous**
+
+
+## Saving your state to disk
+
+**The system menu**
+
+**Saving the calculator state**
+
+**Restoring another state**
+
+**Merging states**
+
+**Returning to the calculator**
+
+**Saving state quickly with xshift-EXIT**
+
+
+## Plotting a function
+
+**Plotting a wave function sin(x * a) * cos(x * b)**
+
+**Plotting a polar function**
+
+**Plotting a parameteric function**
+
+**Drawing two functions on the same screen**
+
+**Changing line width**
+
+**Changing line patterm**
+
+
+## The numerical solver
+
+**Solving an equation**
+
+**Expressions that must be zero**
+
+**Equations A=B**
+
+**Solving for different variables**
+
+
+## Numerical integration
+
+**Integrating x^2 from 0 to 1 (exact results)**
+
+**What happens with 0.0 to 1.0**
+
+**Integration 1/x from 2 to 22**
+
+**Comparing with LN(2) - LN(2)**
+
+
+## Symbolic expression manipulation
+
+**Collecting terms**
+
+**Expanding terms**
+
+**General expression rewriting facility**
+
+
+## Local variables
+
+**Why use local variables**
+
+**Inserting local variables in a program**
+
+**Inserting local variables in equations**
+
+
+## Localized number display preferences
+
+**Changing the decimal separator**
+
+**Changing the spacing for numbers**
+
+**Changing the character used for spacing**
+
+
+## User interface preferences
+
+**Square and rounded menu styles**
+
+**3-level, 1-level and flat menu styles**
+
+**Changing result font size**
+
+**Changing stack font size**
+
+**Changing editor font size**
+
+**Changing multi-line editor font size**
+
+
+
+## Comparisons and tests
+
+**Truth: True, False, 0, 1**
+
+**Equality tests**
+
+**Differences between = and ==**
+
+**Relational operators**
+
+**Logical operations (AND, OR, NOT)**
+
+
+## More sophisticated programming
+
+**Testing with IF THEN ELSE END**
+
+**Conditional expression with IFTE**
+
+**Counted loop with START NEXT**
+
+**Stepping loop with START STEP**
+
+**Named loop with FOR NEXT**
+
+**Named loop with FOR STEP**
+
+**WHILE conditional loop**
+
+**UNTIL conditional loop**
+
+
+## Enjoy the calculator!
+# Types
+
+DB48X, [like HP RPL](#rich-data-types), supports a wide variety of data types.
 
 
 ## Integers

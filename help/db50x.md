@@ -69,7 +69,13 @@ calculator compared to the HP48:
   area. When a [soft menu](#soft-menus) is visible on the screen, the selected
   row of functions is highlighed.
 
+In the rest of this document, the shift key is referred to as 🟨, and pressing
+it twice is referred to as 🟦, irrespective of the appearance of the physical
+shift key on your particular hardware.
+
 ![Left Shift](left-shift.png)
+
+Other aspects of the keyboard interaction are fine-tuned for RPL usage:
 
 * Since RPL uses alphabetic entry (also called *Alpha* mode) a lot more
   frequently than on RPN models like the HP41 or HP42, making it quickly
@@ -77,7 +83,7 @@ calculator compared to the HP48:
   [three distinct ways to activate it](#alpha-mode).
 
 
-* Using 🟨 _◀︎_ and 🟨 _▶︎_ moves the cursor up and down.  When not editing, _▶︎_
+* Using 🟨 _◀︎_ and 🟨 _▶︎_ moves the cursor up and down.  When not editing, _◀︎_
   and _▶︎_ behave like _▲_ and _▼_ on the HP48, i.e. _◀︎_ enters the *interactive
   stack* (not yet implemented) and _▶︎_ edits the object on the first level of
   the stack.
@@ -132,7 +138,24 @@ gives a variety of special characters.
 
 ### Key mapping
 
+The layout of keys on DB50X was carefully chosen to offer a good compromise
+between immediate applicability for calculations and giving access to numerous
+advanced functions through menus.
+
+DB50X keyboard overlays for DM-42 and DM-32 SwissMicros calculators are
+[already available](https://www.hpmuseum.org/forum/thread-20113.html).
+
 ![DB50X keyboard layout](keyboard.png)
+
+In the rest of this document, keys bindings will usually be described using the
+alphabetic key, to make it easier to locate on the keyboard, followed by the
+standard label on the DB50X layout. For example, the assignment for the `sin`
+function will be described as _J_ (_SIN_). The shifted functions of the same key
+will be described as 🟨 _J_ (_SIN⁻¹_) or 🟦 _J_ (_HYP_) respectively.
+
+In some cases, the label between parentheses may refer to another calculator
+model, which will be indicated as follows. For example, the _A_ key can be
+described as _A_ (_⚙️_, DM-42 _Σ+_, DM-32 _√x_).
 
 
 Using DB50X with the DM32 is quite difficult without a keyboard overlay.
@@ -150,13 +173,88 @@ not having arrow keys for cursor movement is just not an option. As a result,
 only the blue shift key is kept as a shift key, and the yellow shift key is
 converted to an arrow key, along with the DM32 _XEQ_ key.
 
+Here are a few of the interesting RPL-specific key mappings:
 
-In the rest of this document, the shift key is referred to as 🟨, and pressing
-it twice is referred to as 🟦, irrespective of the appearance of the physical
-shift key on your particular hardware.
+* _A_ (_⚙️_, DM-42 _Σ+_, DM-32 _√x_) is used to invoke a context-sensitive
+  [ToolsMenu](#ToolsMenu), which select a softkey menu based on what is on the
+  stack and other context.
 
-DB50X keyboard overlays for SwissMicros calculators are
-[already available](https://www.hpmuseum.org/forum/thread-20113.html).
+* 🟨 _A_ (_←MENU_, DM-42 _Σ-_, DM-32 _x²_) selects the [LastMenu](#LastMenu)
+  command, which displays the previously selected menu.
+
+* 🟦 _A_ (_MAIN_, DM-32 _PARTS_) selects the [MainMenu](#MainMenu), a top-level
+  menu giving indicrect access to all other menus and features in DB50X (see
+  also the [Catalog](#CatalogMenu) feature).
+
+* _F_ (_' ()_, DM-42 _XEQ_, DM-32 _Σ+_) opens an algebraic expression, i.e. it
+  shows `''` on the command-line and switches to equation entry. If already
+  inside an equation, it inserts a pair of parentheses. This can be used to
+  evaluate expressions in [algebraic mode](#algebraic-mode) instead of
+  RPN.
+
+* 🟨 _G_ (_CPLX_, DM-42 _COMPLEX_, DM-32 _CMPLX_) lets you work with complex
+  numbers. It opens the [ComplexMenu](#ComplexMenu), which can be used to enter
+  complex numbers in rectangular or polar form, and perform common operations on
+  these numbers. The same menu can be accessed without shift using _A_ (_⚙️_)
+  when there is a complex number on the stack.
+
+* _H_ (_VAR_, DM-42 and DM-32 _RCL_) opens the [VariablesMenu](#VariablesMenu)
+  showing user variables in the current directory.
+
+* _I_ (_STK_, DM-42 and DM-32 _R↓_) will open the [StackMenu](#StackMenu),
+  giving access to stack operations.
+
+* 🟨 _I_ (_CONST_, DM-42 _π_, DM-32 _HYP_) will show a
+  [ConstantsMenu](#ConstantsMenu) giving access to various constants. In a
+  future version of the firmware, you will be able to provide your own constants
+  in a `CONSTANTS.CSV` file on disk.
+
+* _M_ (_X⇆Y_) executes the RPL [Swap](#swap) function
+
+* 🟨 _M_ (_LAST_, DM-42 _LAST x_, DM-32 _MEM_) is [LastArg](#LastArguments),
+  which recalls the arguments of the last command.
+
+* 🟦 _M_ (_Undo_, DM-32 _X⇆_) restores the previous state of the stack. This is
+  like `Last Stack` on the HP48, but on DB50X, it is a real command that can be
+  used in programs.
+
+* _N_ (_+/-_) executes the equivalent RPL `Negate` function. While editing, it
+  changes the sign of the current number on the command-line.
+
+* _O_ (_EEX_, DM-42 and DM-32 _E_) is used to enter the exponent of a number in
+  scientific notation. However, when not entering or editing values, it invokes
+  the\ [Cycle](#Cycle) command, which cycles between various representations of
+  a number, for example polar and rectangular for a complex number, or fraction
+  and decimal for a decimal number.
+
+* _EXIT_ (DM-32 _ON_) corresponds to what the HP48 manual calls _Attn_, and
+  typically cancels the current activity. It can also be used to interrupt a
+  running program.
+
+* 🟨 _EXIT_ (_OFF_) shuts down the calculator. The state of the calculator is
+  preserved.
+
+* 🟦 _EXIT_ (_SAVE_) saves the current state of the calculator to disk. This
+  state can be transferred to another machine, and survives system reset or
+  firmware upgrades.
+
+* 🟨 _0_ (_SETUP_) shows the firmware's [SystemMenu](#SystemMenu), for example
+  to load the original DM-42 or DM-32 program, activate USB disk, and to access
+  some calculator preferences.
+
+* The _R/S_ keys inserts a space in the editor, an `=` sign inside equations,
+ and maps to [Evaluate](#evaluate) otherwise.
+
+* 🟨 _R/S_ (_«PROG»_, DM-42 and DM-32 _PRGM_) inserts the delimiters for an RPL
+  program, `«` and `»`, while 🟦 _R/S_ (_{LIST}_) inserts the list delimiters,
+  `{` and `}`.
+
+* 🟨 _+_ (_CAT_, DM-42 _CATALOG_, DM-32 _LBL_) shows a complete
+  context-sensitive [catalog](#CatalogMenu) of all available functions, and
+  enables auto-completion using the soft-menu keys. Note that the `+` key alone
+  (without shift) activates the catalog while in *Alpha* mode.
+
+* 🟦 _+_ (_HELP_, DM-32 _RTN)) activates the context-sensitive help system.
 
 
 ## Soft menus
@@ -166,8 +264,15 @@ advanced features of DB50X can be accessed through these soft menus. Soft menu
 keys have no label on the physical calculator, but in this documentation, they
 may sometimes be referred to as _F1_ through _F6_.
 
+All built-in soft-key menus are named, with names ending in [Menu](#Menu). For
+example, the [VariablesMenu](#VariablesMenu) is the menu listing global
+variables in the current directory. Unlike HP RPL calculators, menus cannot be
+accessed by number, but they can be accessed by name. In a future version of the
+firmware, a [Menu](#Menu) special variable will return the name of the current
+menu. The [LastMenu](#LastMenu) command selects the previous menu.
+
 Menus are organized internally as a hierarchy, where menus can refer to other
-menus. A special menu, [MainMenu](#MainMenu), accessible via the 🟦 _Σ+_,
+menus. A special menu, [MainMenu](#MainMenu), accessible via the 🟦 _A_,
 contains all other menus.
 
 Menus can contain up to 18 entries at once, 6 being directly accessible, 6
@@ -182,7 +287,9 @@ a `▶︎`, and 🟨 _F6_ turns into `◀`︎. These keys can be used to
 navigate across the available menu entries. This replaces the _NXT_ and _PREV_
 keys on HP calculators.
 
-The [VariablesMenu](#VariablesMenu) (_RCL_ key) is special in the sense that:
+The [VariablesMenu](#VariablesMenu) is used to access global varibales. It is
+invoked using the _H_ key, which is labeled _RCL_ on SwissMicros hardware. This
+menu is special in the sense that:
 
 * Selecting an entry *evaluates* that menu entry, for example to run a program
 
@@ -256,20 +363,15 @@ unintentional differences, since the implementation is completely new.
   is an integer whereas `0.0` is a floating-point.
 
 
-#### Alignment with the DM32
+#### Alignment with SwissMicros calculators
 
-* DB50X borrows to the DM32 the idea of _special variables_, which are variables
-  with a special meaning. For example, the `Precision` special variable is the
-  current operating precision for floating point, in number of digits. While
-  there is a `SetPrecision` command, it is also possible to use `'Precision'
-  STO`. This does not imply that there is an internal `Precision` variable
-  somewhere. Special variables are available for most settings.
-
-* All built-in soft-key menus are named, with names ending in [Menu](#Menu). For
-  example, the [VariablesMenu](#VariablesMenu) is the menu listing global
-  variables in the current directory. There is no menu number, but the
-  [Menu](#Menu) special variable holds the name of the current menu, and
-  [LastMenu](#LastMenu) the name of the previous one.
+* DB50X will borrow to the DM-42 the idea of _special variables_ for settings,
+  which are variables with a special meaning. For example, the `Precision`
+  special variable is the current operating precision for floating point, in
+  number of digits. While there is a `SetPrecision` command, it is also possible
+  to use `'Precision' STO`. This does not imply that there is an internal
+  `Precision` variable somewhere. Special variables will be available for most
+  settings in a later revision of the firmware.
 
 * The DB50X also provides full-screen setup menus, taking advantage of the DM32
   existing system menus. It is likely that the same menu objects used for
@@ -3823,144 +3925,3 @@ Create a backup on a remote machine
 ## USBRESTORE
 Restore a backup from a remote machine
 
-#######################################
-# target
-######################################
-TARGET = db48x
-PLATFORM = dmcp
-VARIANT = dm42
-SDK = dmcp/dmcp
-PGM = pgm
-
-######################################
-# building variables
-######################################
-OPT=release
-# Alternatives (on the command line)
-# OPT=debug	-g
-# OPT=small	-Os
-# OPT=fast	-O2
-# OPT=faster	-O3
-# OPT=fastest	-O4 -Ofast
-# Experimentally, O2 performs best on DM32
-# (see https://github.com/c3d/DB50X-on-DM32/issues/66)
-
-# Warning: macOSX only
-MOUNTPOINT=/Volumes/$(VARIANT)/
-EJECT=sync; sync; sync; hdiutil eject $(MOUNTPOINT)
-PRODUCT_NAME=$(shell echo $(TARGET) | tr "[:lower:]" "[:upper:]")
-PRODUCT_MACHINE=$(shell echo $(VARIANT) | tr "[:lower:]" "[:upper:]")
-
-
-#######################################
-# pathes
-#######################################
-# Build path
-BUILD = build/$(VARIANT)/$(OPT)
-
-# Path to aux build scripts (including trailing /)
-# Leave empty for scripts in PATH
-TOOLS = tools
-
-# CRC adjustment
-CRCFIX = $(TOOLS)/forcecrc32/forcecrc32
-
-FLASH=$(BUILD)/$(TARGET)_flash.bin
-QSPI =$(BUILD)/$(TARGET)_qspi.bin
-
-VERSION=$(shell git describe --dirty=Z --abbrev=5| sed -e 's/^v//g' -e 's/-g/-/g')
-VERSION_H=src/$(PLATFORM)/version.h
-
-
-#==============================================================================
-#
-#  Primary build rules
-#
-#==============================================================================
-
-# default action: build all
-all: $(TARGET).$(PGM) help/$(TARGET).md
-	@echo "# Built $(VERSION)"
-
-dm32:	dm32-all
-dm32-%:
-	$(MAKE) PLATFORM=dmcp SDK=dmcp5/dmcp PGM=pg5 VARIANT=dm32 TARGET=db50x $*
-
-# installation steps
-COPY=cp
-install: install-pgm install-qspi install-help
-	$(EJECT)
-	@echo "# Installed $(VERSION)"
-install-fast: install-pgm
-	$(EJECT)
-install-pgm: all
-	$(COPY) $(TARGET).$(PGM) $(MOUNTPOINT)
-install-qspi: all
-	$(COPY) $(QSPI) $(MOUNTPOINT)
-install-help: help/$(TARGET).md
-	$(COPY) help/$(TARGET).md $(MOUNTPOINT)help/
-
-sim: sim/$(TARGET).mak
-	cd sim; make -f $(<F)
-sim/$(TARGET).mak: sim/$(TARGET).pro Makefile $(VERSION_H)
-	cd sim; qmake $(<F) -o $(@F) CONFIG+=$(QMAKE_$(OPT))
-
-sim:	sim/gcc111libbid.a	\
-	recorder/config.h	\
-	help/$(TARGET).md	\
-	fonts/EditorFont.cc	\
-	fonts/StackFont.cc	\
-	fonts/HelpFont.cc	\
-	keyboard		\
-	.ALWAYS
-
-clangdb: sim/$(TARGET).mak .ALWAYS
-	cd sim && rm -f *.o && compiledb make -f $(TARGET).mak && mv compile_commands.json ..
-
-keyboard: Keyboard-Layout.png Keyboard-Cutout.png sim/keyboard-db48x.png help/keyboard.png doc/keyboard.png
-Keyboard-Layout.png: DB50X-Keys/DB50X-Keys.001.png
-	cp $< $@
-Keyboard-Cutout.png: DB50X-Keys/DB50X-Keys.002.png
-	cp $< $@
-sim/keyboard-db48x.png: DB50X-Keys/DB50X-Keys.001.png
-	convert $< -crop 698x878+151+138 $@
-%/keyboard.png: sim/keyboard-db48x.png
-	cp $< $@
-
-QMAKE_debug=debug
-QMAKE_release=release
-QMAKE_small=release
-QMAKE_fast=release
-QMAKE_faster=release
-QMAKE_fastest=release
-
-TTF2FONT=$(TOOLS)/ttf2font/ttf2font
-$(TTF2FONT): $(TTF2FONT).cpp $(TOOLS)/ttf2font/Makefile src/ids.tbl
-	cd $(TOOLS)/ttf2font; $(MAKE) TARGET=release
-sim/gcc111libbid.a: sim/gcc111libbid-$(shell uname)-$(shell uname -m).a
-	cp $< $@
-
-dist: all
-	cp $(BUILD)/$(TARGET)_qspi.bin  .
-	tar cvfz $(TARGET)-v$(VERSION).tgz $(TARGET).$(PGM) $(TARGET)_qspi.bin \
-		help/*.md STATE/*.48S
-	@echo "# Distributing $(VERSION)"
-
-$(VERSION_H): $(BUILD)/version-$(VERSION).h
-	cp $< $@
-$(BUILD)/version-$(VERSION).h: $(BUILD)/.exists Makefile
-	echo "#define DB50X_VERSION \"$(VERSION)\"" > $@
-
-
-#BASE_FONT=fonts/C43StandardFont.ttf
-BASE_FONT=fonts/FogSans-ddd.ttf
-fonts/EditorFont.cc: $(TTF2FONT) $(BASE_FONT)
-	$(TTF2FONT) -s 48 -S 80 -y -10 EditorFont $(BASE_FONT) $@
-fonts/StackFont.cc: $(TTF2FONT) $(BASE_FONT)
-	$(TTF2FONT) -s 32 -S 80 -y -8 StackFont $(BASE_FONT) $@
-fonts/HelpFont.cc: $(TTF2FONT) $(BASE_FONT)
-	$(TTF2FONT) -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
-help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md) Makefile
-	mkdir -p help && \
-	cat $^ | \
-	sed -e '/<!--- $(PRODUCT_MACHINE) --->/,/<!--- !$(PRODUCT_MACHINE) --->/s/$(PRODUCT_MACHINE)/DM32/g' | \

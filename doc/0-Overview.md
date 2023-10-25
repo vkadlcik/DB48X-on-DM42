@@ -209,7 +209,7 @@ A few keys that have little use in RPL are reassigned to features that you
 should be able to quickly remember. For example, the DM-42 _RCL_ key is used for
 the DB48X _VAR_ key, which invokes the [VariablesMenu](#VariablesMenu).
 
-Note that the _LOG_ and _EXP_ keys are swapped relative to the DM-42. The HP42
+Note that the _LOG_ and _e^x_ keys are swapped relative to the DM-42. The HP42
 has _LOG_ and _LN_ with shifted _10^x_ and _e^x_. DB48X has _e^x_ and _LN_
 with shifted _10^X_ and _LOG_, so that the more frequently used mathematical
 functions are available without shifting. Note that in the future, full
@@ -559,7 +559,7 @@ reading. This help is stored as a `HELP/DB48X.md` file on the calculator. You
 can also read it from a web browser directly on the GitHub page of the project.
 
 The `Help` command makes it possible to access the built-in help in a contextual
-way. It is Bound to 🟦 _+_. If the first level of the stack contains a text
+way. It is bound to 🟦 _+_. If the first level of the stack contains a text
 corresponding to a valid help topic, this topic will be shown in the help
 viewer. Otherwise, a help topic corresponding to the type of data in the stack
 will be selected.

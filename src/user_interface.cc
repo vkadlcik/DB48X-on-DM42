@@ -53,6 +53,7 @@
 #include <dmcp.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <wctype.h>
 
 // The primary user interface of the calculator
 user_interface ui;
@@ -254,12 +255,14 @@ bool user_interface::end_edit()
 // ----------------------------------------------------------------------------
 {
     alpha       = false;
+    lowercase   = false;
     shift       = false;
     xshift      = false;
     dirtyEditor = true;
     dirtyStack  = true;
     edRows      = 0;
     last        = 0;
+    select      = ~0;
 
     clear_help();
     rt.clear_error();
@@ -1906,7 +1909,8 @@ bool user_interface::draw_cursor(int show, uint ncursor)
     utf8   last       = ed + len;
 
     // Select cursor character
-    unicode cursorChar = mode == DIRECT    ? 'D'
+    unicode cursorChar = ~searching        ? 'S'
+                       : mode == DIRECT    ? 'D'
                        : mode == TEXT      ? (lowercase ? 'L' : 'C')
                        : mode == PROGRAM   ? 'P'
                        : mode == ALGEBRAIC ? 'A'
@@ -2998,6 +3002,7 @@ bool user_interface::handle_shifts(int &key, bool talpha)
         if (longpress)
         {
             alpha = !alpha;
+            lowercase = false;
             xshift = 0;
             shift = 0;
         }
@@ -3506,7 +3511,7 @@ bool user_interface::handle_digits(int key)
             dirtyEditor = true;
             return true;
         }
-        else if (key == KEY_E)
+        else if (key == KEY_E && !~searching)
         {
             byte   buf[4];
             size_t sz = utf8_encode(Settings.exponent_mark, buf);
@@ -3519,6 +3524,27 @@ bool user_interface::handle_digits(int key)
     if (key > KEY_CHS && key < KEY_F1)
     {
         char c  = numbers[key-1];
+        if (~searching)
+        {
+            bool found = false;
+            switch (key)
+            {
+            case KEY_ADD:       found = do_search('+'); break;
+            case KEY_SUB:       found = do_search('-'); break;
+            case KEY_MUL:       found = do_search('*')||do_search(L'×'); break;
+            case KEY_DIV:       found = do_search('/')||do_search(L'÷'); break;
+            case KEY_DOT:       found = do_search('.')||do_search(L','); break;
+            case KEY_E:         found = do_search('E')||do_search(L'⁳'); break;
+            default:
+                if (c == '_')
+                    return false;
+                found = do_search(c);
+                break;
+            }
+            if (!found)
+                beep(2400, 100);
+            return true;
+        }
         if (c == '_')
             return false;
         if (c == '.')
@@ -4026,41 +4052,93 @@ bool user_interface::do_search(unicode with, bool restart)
 // ----------------------------------------------------------------------------
 {
     // Already search, find next position
-    size_t max      = rt.editing();
-    utf8   ed       = rt.editor();
+    size_t max = rt.editing();
+    utf8   ed  = rt.editor();
+    if (!max || !ed)
+        return false;
+    if (!~select)
+        select = cursor;
+
     bool   forward  = cursor >= select;
     size_t selected = forward ? cursor - select : select - cursor;
-    size_t count    = max - selected - (with == 0);
-    size_t found    = ~0;
-    uint   ref      = forward ? select : cursor;
-    uint   start    = restart ? searching : ref;
-
-    for (size_t search = with == 0; search < count; search++)
+    if (selected > max)
     {
-        size_t offset = (forward ? start+search : start+count-search) % count;
-        bool   check  = true;
-        for (size_t s = 0; check && s < selected; s++)
-            check = tolower(ed[offset + s]) == tolower(ed[ref + s]);
+        selected = 0;
+        select = cursor;
+    }
+    size_t found  = ~0;
+    uint   ref    = forward ? select : cursor;
+    uint   start  = restart ? searching : ref;
+    uint   search = start;
+
+    // Skip current location (search next) or not (incremental search)
+    bool   skip   = with == 0;
+
+    // Loop until we either find a new spot or we wrap around
+    for (uint count = 0; !~found && count < max; count++)
+    {
+        if (skip)
+        {
+            // Move search forward or backward respecting unicode boundaries
+            if (forward)
+            {
+                search = utf8_next(ed, search, max);
+                if (search == max)
+                    search = 0;
+            }
+            else
+            {
+                search = utf8_previous(ed, search);
+                if (search == 0)
+                    search = utf8_previous(ed, max);
+            }
+        }
+        else
+        {
+            skip = true;
+        }
+
+        // Check if there is a match at the current location
+        bool check  = true;
+        uint last = search + selected;
+
+        // Never match if past end of buffer
+        if (last + (with != 0) > max)
+            continue;
+
+        // Otherwise, loop inside buffer
+        for (uint s = search; check && s < last; s = utf8_next(ed, s, max))
+        {
+            unicode sc = utf8_codepoint(ed + s);
+            unicode rc = utf8_codepoint(ed + ref + s - search);
+            check = towlower(sc) == towlower(rc);
+        }
+
         if (check && with)
-            check = tolower(ed[offset + selected]) == tolower(with);
+        {
+            unicode sc = utf8_codepoint(ed + last);
+            check = towlower(sc) == towlower(with);
+        }
         if (check)
         {
             found = search;
             break;
         }
     }
+
     if (~found)
     {
         if (with)
-            selected++;
+            selected += utf8_size(with);
+
         if (forward)
         {
-            select = (start + found) % count;
+            select = found;
             cursor = select + selected;
         }
         else
         {
-            cursor = (start + count - found) % count;
+            cursor = found;
             select = cursor + selected;
         }
         edRows = 0;
@@ -4091,6 +4169,7 @@ bool user_interface::editor_search()
         // Start search
         searching = select = cursor;
         alpha = true;
+        lowercase = false;
         shift = xshift = false;
     }
     return true;

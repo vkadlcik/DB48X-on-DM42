@@ -875,15 +875,15 @@ MENU(EditMenu,
      "Select",  ID_EditorSelect,
      "←Word",   ID_EditorWordLeft,
      "Word→",   ID_EditorWordRight,
+     "Search",  ID_EditorSearch,
      "Cut",     ID_EditorCut,
-     "Copy",    ID_EditorCopy,
      "Paste",   ID_EditorPaste,
 
      "Csr⇄Sel", ID_EditorFlip,
      "|←",      ID_EditorBegin,
      "→|",      ID_EditorEnd,
-     "Search",  ID_EditorSearch,
      "Replace", ID_EditorReplace,
+     "Copy",    ID_EditorCopy,
      "Clear",   ID_EditorClear);
 
 MENU(IntegrationMenu,

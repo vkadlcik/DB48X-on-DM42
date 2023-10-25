@@ -511,7 +511,7 @@ reading. This help is stored as a `HELP/DB50X.md` file on the calculator. You
 can also read it from a web browser directly on the GitHub page of the project.
 
 The `Help` command makes it possible to access the built-in help in a contextual
-way. It is Bound to 🟦 _+_. If the first level of the stack contains a text
+way. It is bound to 🟦 _+_. If the first level of the stack contains a text
 corresponding to a valid help topic, this topic will be shown in the help
 viewer. Otherwise, a help topic corresponding to the type of data in the stack
 will be selected.
@@ -1679,8 +1679,7 @@ It invokes a context-dependent menu adapted to the top level of the stack.
 
 ## LastMenu
 
-The `LastMenu` function, which is the shifted function for the _ A _ key,
-returns back in the history of past visited menus.
+The `LastMenu` function (🟨 _A_), returns back in the history of past visited menus. The history contains up to 8 entries.
 # Operations with Angles
 
 ## TAGDEG

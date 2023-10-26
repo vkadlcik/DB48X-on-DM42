@@ -781,7 +781,7 @@ MENU_BODY(VariablesMenu)
 // ----------------------------------------------------------------------------
 {
     uint  nitems = count_variables();
-    items_init(mi, nitems, 1);
+    items_init(mi, nitems, 3, 1);
     list_variables(mi);
     return OK;
 }

@@ -106,7 +106,7 @@ void unit_menu::units(info &mi, cstring utable[], size_t count)
 //   Build a units menu
 // ----------------------------------------------------------------------------
 {
-    items_init(mi, count * 3, 3);
+    items_init(mi, count, 3, 1);
 
     uint skip = mi.skip;
     mi.plane  = 0;

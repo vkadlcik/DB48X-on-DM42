@@ -509,6 +509,7 @@ bool user_interface::key(int key, bool repeating, bool talpha)
     {
         shift = false;
         xshift = false;
+        menu_refresh(menu::ID_Catalog);
     }
 
     if (!skey)
@@ -3038,6 +3039,7 @@ bool user_interface::handle_shifts(int &key, bool talpha)
             repeat = true;
         }
         consumed = true;
+        menu_refresh(menu::ID_Catalog);
 #undef SHM
 #undef SHD
     }

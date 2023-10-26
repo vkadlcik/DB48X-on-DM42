@@ -41,9 +41,8 @@ enum precedence
     LOGICAL             = 10,    // and, or, xor
     RELATIONAL          = 12,    // <, >, =, etc
     ADDITIVE            = 14,    // +, -
-    MKUNIT              = 16,    // _ (unit marker)
-    MULTIPLICATIVE      = 18,    // *, /
-    POWER               = 20,    // ^
+    MULTIPLICATIVE      = 16,    // *, /
+    POWER               = 28,    // ^
 
     FUNCTIONAL          = 30,   // Unknown operator
     FUNCTION            = 40,   // Functions, e.g. f(x)

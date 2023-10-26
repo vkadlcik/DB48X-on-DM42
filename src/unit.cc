@@ -40,10 +40,9 @@ PARSE_BODY(unit)
 //    Try to parse this as an unit
 // ----------------------------------------------------------------------------
 {
-    // If already parsing an equation, let upper parser deal with quotes
-    if (p.precedence)
-        return SKIP;
-
+    // Actual work is done in the complex parser
+    return SKIP;
+#if 0
     utf8   s      = p.source;
     size_t len    = p.length;
     utf8   e      = s + len;
@@ -67,12 +66,11 @@ PARSE_BODY(unit)
     object::result result = SKIP;
     if (unit)
     {
-        p.precedence = MKUNIT;
         result = list_parse(ID_unit, p, 0, 0);
-        p.precedence = 0;
     }
 
     return result;
+#endif
 }
 
 
@@ -81,7 +79,12 @@ RENDER_BODY(unit)
 //   Do not emit quotes around unit objects
 // ----------------------------------------------------------------------------
 {
-    return render(o, r, false);
+    algebraic_g value = o->value();
+    algebraic_g uexpr = o->uexpr();
+    value->render(r);
+    r.put(r.editing() ? unicode('_') : unicode(settings::SPACE_UNIT));
+    uexpr->render(r);
+    return r.size();
 }
 
 

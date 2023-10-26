@@ -175,8 +175,6 @@ NAMED(ImaginaryUnit, "ⅈ")
 
 OP(add, "+")
 OP(sub, "-")
-OP(mkunit, " ")                 // SPACE_3_PER_EM
-ALIAS(mkunit, "_")
 OP(mul, "×")
 OP(div, "÷")
 ALIAS(mul, "*")

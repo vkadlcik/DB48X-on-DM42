@@ -36,6 +36,7 @@
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
+#include "unit.h"
 
 
 // ============================================================================
@@ -132,7 +133,7 @@ complex_g complex::conjugate() const
 }
 
 
-complex_p complex::make(id type, algebraic_r x, algebraic_r y, angle_unit unit)
+complex_p complex::make(id type, algebraic_r x, algebraic_r y, angle_unit aunit)
 // ----------------------------------------------------------------------------
 //   Build a complex of the right type
 // ----------------------------------------------------------------------------
@@ -140,7 +141,9 @@ complex_p complex::make(id type, algebraic_r x, algebraic_r y, angle_unit unit)
     if (!x.Safe() || !y.Safe())
         return nullptr;
     if (type == ID_polar)
-        return polar::make(x, y, unit);
+        return polar::make(x, y, aunit);
+    else if (type == ID_unit)
+        return unit::make(x, y);
     return rectangular::make(x, y);
 }
 
@@ -395,6 +398,7 @@ PARSE_BODY(complex)
 //   f. 1+3ⅈ            ⅈ as a postfix
 //   g. 1-3ⅈ
 //   h. 1∡30            ∡ as a separator
+//   u. 1_km            _ as a separator for unit objects
 //
 //   Cases a-g generate a rectangular form, case i generates a polar form
 //   Cases c-h can be surrounded by parentheses as well
@@ -483,6 +487,22 @@ PARSE_BODY(complex)
                 return WARN;
             }
             type = ID_polar;
+
+            // Case of ∡ as a separator (case h)
+            ybeg = last + utf8_size(cp);
+            xlen = last - first;
+        }
+
+        // Check if we found the _ sign for units
+        else if (cp == '_' || cp == settings::SPACE_UNIT)
+        {
+            // Can't have two complex signs, or have that with a sign
+            if (type != ID_object || sign)
+            {
+                rt.syntax_error().source(last);
+                return WARN;
+            }
+            type = ID_unit;
 
             // Case of ∡ as a separator (case h)
             ybeg = last + utf8_size(cp);

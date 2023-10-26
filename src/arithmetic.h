@@ -124,12 +124,6 @@ protected:
 };
 
 
-// For units, 2_pi should be interpreted as value 2*pi
-#define bid128_mkunit   bid128_mul
-#define bid64_mkunit    bid64_mul
-#define bid32_mkunit    bid32_mul
-
-
 #define ARITHMETIC_DECLARE(derived, Precedence)                         \
 /* ----------------------------------------------------------------- */ \
 /*  Macro to define an arithmetic command                            */ \
@@ -167,7 +161,6 @@ struct derived : arithmetic                                             \
 
 ARITHMETIC_DECLARE(add,         ADDITIVE);
 ARITHMETIC_DECLARE(sub,         ADDITIVE);
-ARITHMETIC_DECLARE(mkunit,      MKUNIT);
 ARITHMETIC_DECLARE(mul,         MULTIPLICATIVE);
 ARITHMETIC_DECLARE(div,         MULTIPLICATIVE);
 ARITHMETIC_DECLARE(mod,         MULTIPLICATIVE);

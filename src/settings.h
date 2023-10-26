@@ -55,7 +55,7 @@ struct settings
         SPACE_MEDIUM_MATH       = L' ',
 
         SPACE_DEFAULT           = SPACE_MEDIUM_MATH,
-        SPACE_UNIT              = SPACE_3_PER_EM,
+        SPACE_UNIT              = SPACE_6_PER_EM,
 
         MARK                    = L'●', // L'■'
         COMPLEX_I               = L'𝒊',

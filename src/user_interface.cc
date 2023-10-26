@@ -2013,7 +2013,7 @@ void user_interface::draw_user_command(utf8 cmd, size_t len)
 //   Draw the current command
 // ----------------------------------------------------------------------------
 {
-    font_p font = HelpCodeFont;
+    font_p font = StackFont;
     size   w    = command ? font->width(command) : 0;
     size   h    = font->height();
     coord  x    = 25;

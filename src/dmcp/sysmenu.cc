@@ -188,6 +188,7 @@ const uint8_t state_menu_items[] =
     MI_48STATE_LOAD,            // Load a 48 program from disk
     MI_48STATE_SAVE,            // Save a 48 program to disk
     MI_48STATE_CLEAN,           // Start with a fresh clean state
+    MI_48STATE_MERGE,           // Merge a 48S state from disk
     MI_MSC,                     // Activate USB disk
     MI_DISK_INFO,               // Show disk information
 

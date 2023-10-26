@@ -195,18 +195,20 @@ bool directory::store(object_g name, object_g value)
         size_t  vs        = value->size();
         size_t  requested = vs + ns;
         byte_p  p         = payload();
-        size_t  old       = leb128<size_t>(p);
+        size_t  dirsize   = leb128<size_t>(p);
         gcbytes body      = p;
         if (rt.available(requested) < requested)
             return false;               // Out of memory
 
-        // Move memory above end of directory
-        object_p end = object_p(body.Safe() + old);
-        rt.move_globals(end + requested, end);
+        // Move memory from directory up
+        object_p start = object_p(body.Safe());
+        if (Settings.store_at_end)
+            start += dirsize;
+        rt.move_globals(start + requested, start);
 
         // Copy name and value at end of directory
-        memmove((byte *) end, (byte *) name, ns);
-        memmove((byte *) end + ns, (byte *) value, vs);
+        memmove((byte *) start, (byte *) name, ns);
+        memmove((byte *) start + ns, (byte *) value, vs);
 
         // Compute new size of the directory
         delta = requested;

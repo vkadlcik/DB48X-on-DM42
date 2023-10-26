@@ -411,6 +411,8 @@ static int state_load_callback(cstring path, cstring name, void *merge)
             gcutf8 editor = edstr->value();
             char ds = Settings.decimal_mark;
             Settings.decimal_mark = '.';
+            bool store_at_end = Settings.store_at_end;
+            Settings.store_at_end = true;
             program_g cmds = program::parse(editor, edlen);
             Settings.decimal_mark = ds;
             if (cmds)
@@ -418,6 +420,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
                 // We successfully parsed the line
                 rt.clear();
                 object::result exec = cmds->execute();
+                Settings.store_at_end = store_at_end;
                 if (exec != object::OK)
                 {
                     lcd_print(t24, "Error loading file");
@@ -437,6 +440,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
                 utf8 pos = rt.source();
                 utf8 ed = editor;
 
+                Settings.store_at_end = store_at_end;
                 lcd_print(t24, "Error at byte %u", pos - ed);
                 lcd_puts(t24, rt.error() ? (cstring) rt.error() : "");
                 lcd_refresh();

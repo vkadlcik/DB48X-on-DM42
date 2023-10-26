@@ -106,6 +106,7 @@ struct settings
           menu_flatten(false),
           menu_square(false),
           graph_stack(false),
+          store_at_end(false),
           date_separator('/'),
           result_sz(STACK),
           stack_sz(STACK),
@@ -218,6 +219,7 @@ public:
     bool     menu_flatten   :1; // Show same menu entries with shift
     bool     menu_square    :1; // Square or rounded menus
     bool     graph_stack    :1; // Graphical rendering on stack
+    bool     store_at_end   :1; // 'STO' stores at end of directory
     char     date_separator;    // Date separator
     font_id  result_sz;         // Size for stack top
     font_id  stack_sz;          // Size for other stack levels

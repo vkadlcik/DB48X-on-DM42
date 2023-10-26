@@ -871,6 +871,8 @@ programmed solution.
 This quickstart guide will rapidly give you an overview of the capabilities of
 DB50X, and show you how to use it efficiently.
 
+[![Installation process](https://img.youtube.com/vi/rVWy4N0lBOI/maxresdefault.jpg)](https://www.youtube.com/watch?v=rVWy4N0lBOI&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf)
+
 
 ## Installation process
 
@@ -907,6 +909,9 @@ DB50X, and show you how to use it efficiently.
 
 
 ## Operations on whole numbers
+
+[![Demo of v0.4.8](https://img.youtube.com/vi/tT5az2CIcnk/maxresdefault.jpg)](https://www.youtube.com/watch?v=tT5az2CIcnk&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf)
+
 
 **Entering whole numbers**
 

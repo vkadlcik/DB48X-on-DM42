@@ -2467,8 +2467,8 @@ bool user_interface::draw_help()
                     unicode c = helpfile.get();
                     while (c != '\n' && c != unicode(EOF))
                         c = helpfile.get();
+                    skip = true;
                 }
-                skip = true;
                 break;
 
             case '*':
@@ -2527,15 +2527,26 @@ bool user_interface::draw_help()
             case '[':
                 if (style != CODE)
                 {
-                    lastTopic      = helpfile.position();
-                    if (topic < shown)
-                        topic      = lastTopic;
-                    if (lastTopic == topic)
-                        restyle    = HIGHLIGHTED_TOPIC;
+                    if (helpfile.peek() != '!')
+                    {
+                        lastTopic      = helpfile.position();
+                        if (topic < shown)
+                            topic      = lastTopic;
+                        if (lastTopic == topic)
+                            restyle    = HIGHLIGHTED_TOPIC;
+                        else
+                            restyle    = TOPIC;
+                        skip           = true;
+                        emit           = true;
+                    }
                     else
-                        restyle    = TOPIC;
-                    skip           = true;
-                    emit           = true;
+                    {
+                        // Link to a picture, skip it
+                        unicode c = helpfile.get();
+                        while (c != '\n' && c != unicode(EOF))
+                            c = helpfile.get();
+                        skip = true;
+                    }
                 }
                 break;
             case ']':

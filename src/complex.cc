@@ -607,7 +607,8 @@ PARSE_BODY(complex)
 
     // Parse the second object
     size_t ysz = ylen;
-    algebraic_g y = algebraic_p(object::parse(ysrc, ylen));
+    algebraic_g y   = type == ID_unit ? unit::parse_uexpr(ysrc, ylen)
+                                      : algebraic_p(object::parse(ysrc, ylen));
     if (!y)
         return ERROR;
     if (ylen != ysz)

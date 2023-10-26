@@ -56,6 +56,8 @@ struct unit : complex
     bool convert(algebraic_g &x) const;
     bool convert(unit_g &x) const;
 
+    static algebraic_p parse_uexpr(gcutf8 source, size_t len);
+
 public:
     OBJECT_DECL(unit);
     PARSE_DECL(unit);

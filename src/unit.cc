@@ -47,6 +47,20 @@ PARSE_BODY(unit)
 }
 
 
+algebraic_p unit::parse_uexpr(gcutf8 source, size_t len)
+// ----------------------------------------------------------------------------
+//  Parse a uexpr as an expression without quotes
+// ----------------------------------------------------------------------------
+{
+    parser p(source, len, MULTIPLICATIVE);
+    object::result result = list::list_parse(ID_equation, p, 0, 0);
+    if (result == object::OK)
+        if (algebraic_p alg = p.out->as_algebraic())
+            return alg;
+    return nullptr;
+}
+
+
 RENDER_BODY(unit)
 // ----------------------------------------------------------------------------
 //   Do not emit quotes around unit objects

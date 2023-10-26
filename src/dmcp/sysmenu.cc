@@ -364,6 +364,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
 
         // Clear the state
         rt.reset();
+        Settings = settings();
 
         set_reset_state_file(path);
 

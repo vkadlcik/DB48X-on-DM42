@@ -53,6 +53,9 @@ struct unit : complex
     algebraic_p value() const   { return x(); }
     algebraic_p uexpr() const   { return y(); }
 
+    bool convert(algebraic_g &x) const;
+    bool convert(unit_g &x) const;
+
 public:
     OBJECT_DECL(unit);
     PARSE_DECL(unit);

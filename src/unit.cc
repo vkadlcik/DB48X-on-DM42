@@ -30,6 +30,8 @@
 #include "unit.h"
 
 #include "algebraic.h"
+#include "equation.h"
+#include "integer.h"
 #include "parser.h"
 #include "renderer.h"
 #include "settings.h"
@@ -42,35 +44,6 @@ PARSE_BODY(unit)
 {
     // Actual work is done in the complex parser
     return SKIP;
-#if 0
-    utf8   s      = p.source;
-    size_t len    = p.length;
-    utf8   e      = s + len;
-    bool   unit   = false;
-    bool   signok = true;
-
-    for (utf8 p = s; p < e; p = utf8_next(p))
-    {
-        unicode c = utf8_codepoint(p);
-        unit = c == '_' || c == settings::SPACE_UNIT;
-        if (unit)
-            break;
-        bool sign = c == '+' || c == '-';
-        if (!signok && sign)
-            break;
-        signok = c == 'E' || c == 'e' || c == L'⁳';
-        if (!signok && !sign && (c < '0' || c > '9') && c != '.' && c != ',')
-            break;
-    }
-
-    object::result result = SKIP;
-    if (unit)
-    {
-        result = list_parse(ID_unit, p, 0, 0);
-    }
-
-    return result;
-#endif
 }
 
 
@@ -83,7 +56,10 @@ RENDER_BODY(unit)
     algebraic_g uexpr = o->uexpr();
     value->render(r);
     r.put(r.editing() ? unicode('_') : unicode(settings::SPACE_UNIT));
-    uexpr->render(r);
+    if (equation_p ueq = uexpr->as<equation>())
+        ueq->render(r, false);
+    else
+        uexpr->render(r);
     return r.size();
 }
 
@@ -94,6 +70,51 @@ HELP_BODY(unit)
 // ----------------------------------------------------------------------------
 {
     return utf8("Units");
+}
+
+
+
+// ============================================================================
+//
+//   Unit conversion
+//
+// ============================================================================
+
+bool unit::convert(algebraic_g &x) const
+// ----------------------------------------------------------------------------
+//   Convert the object to the given unit
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return false;
+
+    // If we already have a unit object, perform a conversion
+    if (unit_p u = x->as<unit>())
+        return convert((unit_g &) x);
+
+    // Otherwise, convert to a unity unit
+    algebraic_g one = algebraic_p(integer::make(1));
+    unit_g u = unit::make(x, one);
+    return convert(x);
+}
+
+
+bool unit::convert(unit_g &x) const
+// ----------------------------------------------------------------------------
+//   Convert a unit object to the current unit
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return false;
+    algebraic_g u = uexpr();
+    algebraic_g o = x->uexpr();
+
+    // Common case where we have the exact same unit
+    if (u.Safe() && o.Safe() && u->is_same_as(o.Safe()))
+        return true;
+
+    // For now, the rest is not implemented
+    return false;
 }
 
 
@@ -134,7 +155,7 @@ void unit_menu::units(info &mi, cstring utable[], size_t count)
     for (uint k = 0; k < ui.NUM_SOFTKEYS - (mi.pages > 1); k++)
     {
         ui.marker(k + 1 * ui.NUM_SOFTKEYS, L'→', true);
-        ui.marker(k + 2 * ui.NUM_SOFTKEYS, L'÷', true);
+        ui.marker(k + 2 * ui.NUM_SOFTKEYS, '/', true);
     }
 
 }

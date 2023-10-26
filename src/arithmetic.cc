@@ -43,6 +43,7 @@
 #include "settings.h"
 #include "tag.h"
 #include "text.h"
+#include "unit.h"
 
 #include <bit>
 #include <bitset>
@@ -136,6 +137,40 @@ fraction_p arithmetic::fraction_promotion(algebraic_g &x)
 }
 
 
+bool arithmetic::unit_promotion(algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   Return true if the arithmetic object is a unit type
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return false;
+
+    // At least one must be a unit (we can promote the other one)
+    if (unit_p xu = x->as<unit>())
+        return true;
+    return false;
+}
+
+
+bool arithmetic::unit_promotion(algebraic_g &x, algebraic_g &y)
+// ----------------------------------------------------------------------------
+//   Return true if both types have the same unit and can be converted
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe() || !y.Safe())
+        return false;
+
+    // At least one must be a unit (we can promote the other one)
+    unit_p xu = x->as<unit>();
+    unit_p yu = y->as<unit>();
+    if (!xu && !yu)
+        return false;
+    if (xu)
+        return xu->convert(y);
+    return yu->convert(x);
+}
+
+
 template<>
 algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
@@ -153,6 +188,30 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
             return y;
         if (y->is_zero(false))                  // X + 0 = X
             return x;
+    }
+
+    // Check addition of unit objects
+    if (unit_p xu = x->as<unit>())
+    {
+        if (unit_p yu = y->as<unit>())
+        {
+            unit_g yc = yu;
+            if (xu->convert(yc))
+            {
+                algebraic_g xv = xu->value();
+                algebraic_g yv = yc->value();
+                algebraic_g xe = xu->uexpr();
+                xv = xv + yv;
+                return unit::make(xv, xe);
+            }
+        }
+        rt.inconsistent_units_error();
+        return nullptr;
+    }
+    else if (unit_p yu = y->as<unit>())
+    {
+        rt.inconsistent_units_error();
+        return nullptr;
     }
 
     // list + ...
@@ -293,6 +352,30 @@ algebraic_p arithmetic::non_numeric<sub>(algebraic_r x, algebraic_r y)
             return neg::run(y);                 // 0 - X = -X
     }
 
+    // Check subtraction of unit objects
+    if (unit_p xu = x->as<unit>())
+    {
+        if (unit_p yu = y->as<unit>())
+        {
+            unit_g yc = yu;
+            if (xu->convert(yc))
+            {
+                algebraic_g xv = xu->value();
+                algebraic_g yv = yc->value();
+                algebraic_g xe = xu->uexpr();
+                xv = xv - yv;
+                return unit::make(xv, xe);
+            }
+        }
+        rt.inconsistent_units_error();
+        return nullptr;
+    }
+    else if (unit_p yu = y->as<unit>())
+    {
+        rt.inconsistent_units_error();
+        return nullptr;
+    }
+
     // vector + vector or matrix + matrix
     if (array_g xa = x->as<array>())
     {
@@ -414,6 +497,34 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
             return sq::run(x);                  // X * X = X²
     }
 
+    // Check multiplication of unit objects
+    if (unit_p xu = x->as<unit>())
+    {
+        algebraic_g xv = xu->value();
+        algebraic_g xe = xu->uexpr();
+        if (unit_p yu = y->as<unit>())
+        {
+            algebraic_g yv = yu->value();
+            algebraic_g ye = yu->uexpr();
+            xv = xv * yv;
+            xe = xe * ye;
+            return unit::make(xv, xe);
+        }
+        else
+        {
+            xv = xv * y;
+            return unit::make(xv, xe);
+        }
+    }
+    else if (unit_p yu = y->as<unit>())
+    {
+        algebraic_g yv = yu->value();
+        algebraic_g ye = yu->uexpr();
+        yv = x * yv;
+        return unit::make(yv, ye);
+    }
+
+    // Text multiplication
     if (text_g xs = x->as<text>())
         if (integer_g yi = y->as<integer>())
             return xs * yi->value<uint>();
@@ -529,6 +640,35 @@ algebraic_p arithmetic::non_numeric<struct div>(algebraic_r x, algebraic_r y)
             return inv::run(y);                 // 1 / X = X⁻¹
         if (x->is_same_as(y))
             return integer::make(1);            // X / X = 1
+    }
+
+
+    // Check division of unit objects
+    if (unit_p xu = x->as<unit>())
+    {
+        algebraic_g xv = xu->value();
+        algebraic_g xe = xu->uexpr();
+        if (unit_p yu = y->as<unit>())
+        {
+            algebraic_g yv = yu->value();
+            algebraic_g ye = yu->uexpr();
+            xv = xv / yv;
+            xe = xe / ye;
+            return unit::make(xv, xe);
+        }
+        else
+        {
+            xv = xv / y;
+            return unit::make(xv, xe);
+        }
+    }
+    else if (unit_p yu = y->as<unit>())
+    {
+        algebraic_g yv = yu->value();
+        algebraic_g ye = yu->uexpr();
+        yv = x / yv;
+        ye = inv::run(ye);
+        return unit::make(yv, ye);
     }
 
     // vector + vector or matrix + matrix
@@ -775,15 +915,27 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
     if (!x.Safe() || !y.Safe())
         return nullptr;
 
+    // Deal with the case of units
+    if (unit_p xu = x->as<unit>())
+    {
+        algebraic_g xv = xu->value();
+        algebraic_g xe = xu->uexpr();
+        return unit::make(pow(xv, y), pow(xe, y));
+    }
+
     // Deal with X^N where N is a positive  or negative integer
     id   yt   = y->type();
     bool negy = yt == ID_neg_integer;
     bool posy = yt == ID_integer;
     if (negy || posy)
     {
-        // Do not expand X^3 or integers when y>=0
-        if (x->is_strictly_symbolic() || (x->is_integer() && !negy))
+        // Defer computations for integer values to integer_ok
+        if (x->is_integer() && !negy)
             return nullptr;
+
+        // Do not expand X^3 or integers when y>=0
+        if (x->is_strictly_symbolic())
+            return equation::make(ID_pow, x, y);
 
         // Deal with X^N where N is a positive integer
         ularge yv = integer_p(y.Safe())->value<ularge>();
@@ -1320,6 +1472,7 @@ template object::result arithmetic::evaluate<struct rem>();
 template object::result arithmetic::evaluate<struct pow>();
 template object::result arithmetic::evaluate<struct hypot>();
 template object::result arithmetic::evaluate<struct atan2>();
+
 template algebraic_p arithmetic::evaluate<struct hypot>(algebraic_r x, algebraic_r y);
 template algebraic_p arithmetic::evaluate<struct atan2>(algebraic_r x, algebraic_r y);
 

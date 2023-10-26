@@ -117,6 +117,10 @@ struct equation : program
     equation_p simplify() const;
     equation_p as_difference_for_solve() const; // Transform A=B into A-B
     object_p   outermost_operator() const;
+    size_t     render(renderer &r, bool quoted = false) const
+    {
+        return render(this, r, quoted);
+    }
 
   protected:
     static symbol_g render(uint depth, int &precedence, bool edit);

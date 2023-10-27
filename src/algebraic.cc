@@ -550,6 +550,28 @@ algebraic_p algebraic::evaluate_function(object_r eq, algebraic_r x)
 }
 
 
+algebraic_p algebraic::evaluate() const
+// ----------------------------------------------------------------------------
+//   Evaluate an algebraic value as an algebraic
+// ----------------------------------------------------------------------------
+{
+    stack_depth_restore sdr;
+    if (object::execute() != OK)
+        return nullptr;
+    if (rt.depth() != sdr.depth + 1)
+    {
+        rt.invalid_algebraic_error();
+        return nullptr;
+    }
+
+    if (object_p obj = rt.pop())
+        if (obj->is_algebraic())
+            return algebraic_p(obj);
+    rt.type_error();
+    return nullptr;
+}
+
+
 EVAL_BODY(ImaginaryUnit)
 // ----------------------------------------------------------------------------
 //   Push a unit complex number on the stack

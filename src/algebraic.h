@@ -81,6 +81,9 @@ struct algebraic : command
         return evaluate_function(eq, x);
     }
 
+    // Evaluate an algebraic as an algebraic
+    algebraic_p evaluate() const;
+
     // Function pointers used by generic evaluation code
     typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x);
     typedef void (*bid64_fn) (BID_UINT64  *res, BID_UINT64  *x);

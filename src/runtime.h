@@ -936,6 +936,21 @@ private:
 };
 
 
+struct stack_depth_restore
+// ----------------------------------------------------------------------------
+//   Restore the stack depth on exit
+// ----------------------------------------------------------------------------
+{
+    stack_depth_restore(): depth(rt.depth()) {}
+    ~stack_depth_restore()
+    {
+        size_t now = rt.depth();
+        if (now > depth)
+            rt.drop(now - depth);
+    }
+    size_t depth;
+};
+
 // User interface signal that a GC is in progress
 extern void draw_gc();
 

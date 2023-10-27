@@ -526,6 +526,7 @@ algebraic_p algebraic::evaluate_function(object_r eq, algebraic_r x)
     if (dnow == depth + 1)
     {
         object_p indep = rt.pop();
+        dnow--;
         if (indep != x.Safe())
         {
             rt.invalid_function_error();

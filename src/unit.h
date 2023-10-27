@@ -94,6 +94,7 @@ struct UnitMenu : unit_menu                                             \
 };
 #include "ids.tbl"
 
+COMMAND_DECLARE(Convert);
 COMMAND_DECLARE(ApplyUnit);
 COMMAND_DECLARE(ConvertToUnit);
 COMMAND_DECLARE(ApplyInverseUnit);

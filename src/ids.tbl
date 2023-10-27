@@ -564,6 +564,7 @@ MENU(EditMenu)
 //
 // ============================================================================
 
+CMD(Convert)
 CMD(ApplyUnit)
 CMD(ConvertToUnit)
 CMD(ApplyInverseUnit)

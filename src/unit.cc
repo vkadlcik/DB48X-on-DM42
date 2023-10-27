@@ -350,7 +350,7 @@ bool unit::convert(unit_g &x) const
 
         algebraic_g v = x->value();
         v = v * o;
-        x = unit::make(v, u);
+        x = unit::make(v, uexpr());
         return true;
     }
 
@@ -399,6 +399,30 @@ void unit_menu::units(info &mi, cstring utable[], size_t count)
         ui.marker(k + 2 * ui.NUM_SOFTKEYS, '/', true);
     }
 
+}
+
+
+COMMAND_BODY(Convert)
+// ----------------------------------------------------------------------------
+//   Convert level 2 into unit of level 1
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(2))
+        return ERROR;
+
+    unit_p y = rt.stack(1)->as<unit>();
+    unit_p x = rt.stack(0)->as<unit>();
+    if (!y || !x)
+    {
+        rt.type_error();
+        return ERROR;
+    }
+    algebraic_g r = y;
+    if (!x->convert(r))
+        return ERROR;
+    if (!r || !rt.drop() || !rt.top(r))
+        return ERROR;
+    return OK;
 }
 
 

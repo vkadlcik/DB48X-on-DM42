@@ -395,8 +395,9 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
         break;
     }
     default:
-        return false;
+        break;
     }
+    return false;
 }
 
 

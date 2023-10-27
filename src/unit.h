@@ -43,12 +43,7 @@ struct unit : complex
     unit(id type, algebraic_r value, algebraic_r uexpr):
         complex(type, value, uexpr) {}
 
-    static unit_p make(algebraic_r v, algebraic_r u, id ty = ID_unit)
-    {
-        if (!v.Safe() || !u.Safe())
-            return nullptr;
-        return rt.make<unit>(ty, v, u);
-    }
+    static unit_p make(algebraic_g v, algebraic_g u, id ty = ID_unit);
 
     algebraic_p value() const   { return x(); }
     algebraic_p uexpr() const   { return y(); }
@@ -95,6 +90,7 @@ struct UnitMenu : unit_menu                                             \
 #include "ids.tbl"
 
 COMMAND_DECLARE(Convert);
+COMMAND_DECLARE(UBase);
 COMMAND_DECLARE(ApplyUnit);
 COMMAND_DECLARE(ConvertToUnit);
 COMMAND_DECLARE(ApplyInverseUnit);

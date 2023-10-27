@@ -721,7 +721,7 @@ struct object
     //   Check if something is a number (real or complex)
     // ------------------------------------------------------------------------
    {
-        return is_real(ty) || is_complex(ty);
+       return is_real(ty) || is_complex(ty) || is_unit(ty);
     }
 
 

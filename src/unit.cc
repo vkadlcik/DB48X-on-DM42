@@ -32,6 +32,7 @@
 #include "algebraic.h"
 #include "arithmetic.h"
 #include "equation.h"
+#include "functions.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
@@ -60,6 +61,29 @@ algebraic_p unit::parse_uexpr(gcutf8 source, size_t len)
             return alg;
     return nullptr;
 }
+
+
+unit_p unit::make(algebraic_g v, algebraic_g u, id ty)
+// ----------------------------------------------------------------------------
+//   Build a unit object from its components
+// ----------------------------------------------------------------------------
+{
+    if (!v.Safe() || !u.Safe())
+        return nullptr;
+
+    while (unit_p vu = v->as<unit>())
+    {
+        u = u * vu->uexpr();
+        v = vu->value();
+        while (unit_p uu = u->as<unit>())
+        {
+            v = v * uu->value();
+            u = uu->uexpr();
+        }
+    }
+    return rt.make<unit>(ty, v, u);
+}
+
 
 
 RENDER_BODY(unit)
@@ -222,9 +246,9 @@ unit_p unit::lookup(symbol_p name)
             cstring utxt = basic_units[u];
             if (memcmp(utxt, txt, rlen) == 0 && utxt[rlen] == 0)
             {
-                cstring  uexpr = basic_units[u + 1];
-                size_t   len   = strlen(uexpr);
-                if (object_p obj   = object::parse(utf8(uexpr), len))
+                cstring udef = basic_units[u + 1];
+                size_t  len  = strlen(udef);
+                if (object_p obj = object::parse(utf8(udef), len))
                 {
                     if (unit_g u = obj->as<unit>())
                     {
@@ -232,6 +256,7 @@ unit_p unit::lookup(symbol_p name)
                         int e = si_prefixes[si].exponent;
                         if (e)
                         {
+                            // Convert si exponent into value, e.g cm-> 1/100
                             algebraic_g scale = integer::make(10);
                             algebraic_g exp   = integer::make(e);
                             scale = pow(scale, exp);
@@ -253,7 +278,7 @@ unit_p unit::lookup(symbol_p name)
                         }
 
                         // Check if we need to evaluate, e.g. 1_min -> seconds
-                        uexpr = uexpr->evaluate();
+                        uexpr = u->evaluate();
                         if (!uexpr || uexpr->type() != ID_unit)
                         {
                             rt.inconsistent_units_error();
@@ -350,7 +375,8 @@ bool unit::convert(unit_g &x) const
 
         algebraic_g v = x->value();
         v = v * o;
-        x = unit::make(v, uexpr());
+        u = uexpr();
+        x = unit::make(v, u);
         return true;
     }
 
@@ -426,6 +452,42 @@ COMMAND_BODY(Convert)
 }
 
 
+COMMAND_BODY(UBase)
+// ----------------------------------------------------------------------------
+//   Convert level 1 to the base SI units
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+
+    unit_p x = rt.stack(0)->as<unit>();
+    if (!x)
+    {
+        rt.type_error();
+        return ERROR;
+    }
+    algebraic_g r = x;
+    save<bool> ueval(unit::mode, true);
+    r = r->evaluate();
+    if (!r || !rt.top(r))
+        return ERROR;
+    return OK;
+}
+
+
+static symbol_p key_label(uint key)
+// ----------------------------------------------------------------------------
+//   Return a unit name as a label
+// ----------------------------------------------------------------------------
+{
+    if (key >= KEY_F1 && key <= KEY_F6)
+        if (cstring label = ui.labelText(key - KEY_F1))
+            if (symbol_p name = symbol::make(label))
+                return name;
+    return nullptr;
+}
+
+
 COMMAND_BODY(ApplyUnit)
 // ----------------------------------------------------------------------------
 //   Apply a unit from a unit menu
@@ -433,23 +495,19 @@ COMMAND_BODY(ApplyUnit)
 {
     int key = ui.evaluating;
     if (rt.editing())
-        return ui.insert_softkey(key, "_", " ");
-
-    if (key >= KEY_F1 && key <= KEY_F6)
     {
-        if (symbol_p name = ui.label(key - KEY_F1))
-        {
-            if (object_p value = rt.top())
-            {
-                if (algebraic_g alg = value->as_algebraic())
-                {
-                    unit_g uobj = unit::make(alg, name);
+        if (ui.editing_mode() != ui.DIRECT)
+            return ui.insert_softkey(key, "_", " ");
+        if (!ui.end_edit())
+            return object::ERROR;
+    }
+
+    if (symbol_p name = key_label(key))
+        if (object_p value = rt.top())
+            if (algebraic_g alg = value->as_algebraic())
+                if (unit_g uobj = unit::make(alg, name))
                     if (rt.top(uobj.Safe()))
                         return OK;
-                }
-            }
-        }
-    }
 
     return ERROR;
 }
@@ -462,23 +520,19 @@ COMMAND_BODY(ApplyInverseUnit)
 {
     int key = ui.evaluating;
     if (rt.editing())
-        return ui.insert_softkey(key, "_(", ")⁻¹ ");
-
-    if (key >= KEY_F1 && key <= KEY_F6)
     {
-        if (symbol_p name = ui.label(key - KEY_F1))
-        {
-            if (object_p value = rt.top())
-            {
-                if (algebraic_g alg = value->as_algebraic())
-                {
-                    unit_g uobj = unit::make(alg, name);
+        if (ui.editing_mode() != ui.DIRECT)
+            return ui.insert_softkey(key, "_(", ")⁻¹ ");
+        if (!ui.end_edit())
+            return object::ERROR;
+    }
+
+    if (symbol_p name = key_label(key))
+        if (object_p value = rt.top())
+            if (algebraic_g alg = value->as_algebraic())
+                if (unit_g uobj = unit::make(alg, inv::run(name)))
                     if (rt.top(uobj.Safe()))
                         return OK;
-                }
-            }
-        }
-    }
 
     return ERROR;
 }
@@ -491,9 +545,22 @@ COMMAND_BODY(ConvertToUnit)
 {
     int key = ui.evaluating;
     if (rt.editing())
-        return ui.insert_softkey(key, " 1_", " Convert ");
+    {
+        if (ui.editing_mode() != ui.DIRECT)
+            return ui.insert_softkey(key, " 1_", " Convert ");
+        if (!ui.end_edit())
+            return object::ERROR;
+    }
 
-    rt.unimplemented_error();
+    if (symbol_p name = key_label(key))
+        if (object_p value = rt.top())
+            if (algebraic_g alg = value->as_algebraic())
+                if (algebraic_g one = integer::make(1))
+                    if (unit_g uobj = unit::make(one, name))
+                        if (uobj->convert(alg))
+                            if (rt.top(alg.Safe()))
+                                return OK;
+
     return ERROR;
 }
 

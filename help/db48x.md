@@ -4568,8 +4568,11 @@ Delete a user-defined unit
 Numeric part of a unit object
 
 
-## UBASE
-Expand all unit factors to their base unit
+## BaseUnits (UBASE)
+
+Expand all unit factors to their base units in the standard (metric) system.
+
+`3_km`  ▶ `3000_m`
 
 
 ## Convert

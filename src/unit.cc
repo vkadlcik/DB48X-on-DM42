@@ -171,8 +171,8 @@ static const cstring basic_units[] =
     // Duration
     "s",        "1_s",
     "min",      "60_s",
-    "h",        "60_min",
-    "d",        "24_h",
+    "h",        "3600_s",
+    "d",        "86400_s",
     "yr",       "36524219/100000_d",    // Mean tropical year
     "Hz",       "1_s⁻¹",
 };

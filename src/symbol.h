@@ -74,7 +74,6 @@ public:
     OBJECT_DECL(symbol);
     PARSE_DECL(symbol);
     EVAL_DECL(symbol);
-    EXEC_DECL(symbol);
     RENDER_DECL(symbol);
     PREC_DECL(SYMBOL);
 };

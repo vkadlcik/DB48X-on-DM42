@@ -30,8 +30,8 @@
 
 #include "command.h"
 #include "complex.h"
-
 #include "menu.h"
+#include "symbol.h"
 
 GCP(unit);
 
@@ -58,8 +58,13 @@ struct unit : complex
 
     static algebraic_p parse_uexpr(gcutf8 source, size_t len);
 
+    static unit_p lookup(symbol_p name);
+
+    static bool mode;           // Set to true to evaluate units
+
 public:
     OBJECT_DECL(unit);
+    EVAL_DECL(unit);
     PARSE_DECL(unit);
     RENDER_DECL(unit);
     HELP_DECL(unit);

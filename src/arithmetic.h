@@ -68,9 +68,6 @@ struct arithmetic : algebraic
 
     static fraction_p fraction_promotion(algebraic_g &x);
 
-    static bool unit_promotion(algebraic_g &x);
-    static bool unit_promotion(algebraic_g &x, algebraic_g &y);
-
     // We do not insert parentheses for algebraic values
     INSERT_DECL(arithmetic);
 

@@ -70,5 +70,6 @@ ERROR(constant_value,           "Constant?")
 ERROR(bad_guess,                "Bad guess?")
 ERROR(no_solution,              "No solution?")
 ERROR(inconsistent_units,       "Inconsistent units")
+ERROR(invalid_algebraic,        "Invalid algebraic")
 
 #undef ERROR

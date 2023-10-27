@@ -137,40 +137,6 @@ fraction_p arithmetic::fraction_promotion(algebraic_g &x)
 }
 
 
-bool arithmetic::unit_promotion(algebraic_g &x)
-// ----------------------------------------------------------------------------
-//   Return true if the arithmetic object is a unit type
-// ----------------------------------------------------------------------------
-{
-    if (!x.Safe())
-        return false;
-
-    // At least one must be a unit (we can promote the other one)
-    if (unit_p xu = x->as<unit>())
-        return true;
-    return false;
-}
-
-
-bool arithmetic::unit_promotion(algebraic_g &x, algebraic_g &y)
-// ----------------------------------------------------------------------------
-//   Return true if both types have the same unit and can be converted
-// ----------------------------------------------------------------------------
-{
-    if (!x.Safe() || !y.Safe())
-        return false;
-
-    // At least one must be a unit (we can promote the other one)
-    unit_p xu = x->as<unit>();
-    unit_p yu = y->as<unit>();
-    if (!xu && !yu)
-        return false;
-    if (xu)
-        return xu->convert(y);
-    return yu->convert(x);
-}
-
-
 template<>
 algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
@@ -195,20 +161,20 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
     {
         if (unit_p yu = y->as<unit>())
         {
-            unit_g yc = yu;
-            if (xu->convert(yc))
+            unit_g xc = xu;
+            if (yu->convert(xc))
             {
-                algebraic_g xv = xu->value();
-                algebraic_g yv = yc->value();
-                algebraic_g xe = xu->uexpr();
+                algebraic_g xv = xc->value();
+                algebraic_g yv = yu->value();
+                algebraic_g ye = yu->uexpr();
                 xv = xv + yv;
-                return unit::make(xv, xe);
+                return unit::make(xv, ye);
             }
         }
         rt.inconsistent_units_error();
         return nullptr;
     }
-    else if (unit_p yu = y->as<unit>())
+    else if (y->type() == ID_unit)
     {
         rt.inconsistent_units_error();
         return nullptr;
@@ -357,20 +323,20 @@ algebraic_p arithmetic::non_numeric<sub>(algebraic_r x, algebraic_r y)
     {
         if (unit_p yu = y->as<unit>())
         {
-            unit_g yc = yu;
-            if (xu->convert(yc))
+            unit_g xc = xu;
+            if (yu->convert(xc))
             {
-                algebraic_g xv = xu->value();
-                algebraic_g yv = yc->value();
-                algebraic_g xe = xu->uexpr();
+                algebraic_g xv = xc->value();
+                algebraic_g yv = yu->value();
+                algebraic_g ye = yu->uexpr();
                 xv = xv - yv;
-                return unit::make(xv, xe);
+                return unit::make(xv, ye);
             }
         }
         rt.inconsistent_units_error();
         return nullptr;
     }
-    else if (unit_p yu = y->as<unit>())
+    else if (y->type() == ID_unit)
     {
         rt.inconsistent_units_error();
         return nullptr;

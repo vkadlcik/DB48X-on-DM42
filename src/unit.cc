@@ -30,6 +30,7 @@
 #include "unit.h"
 
 #include "algebraic.h"
+#include "arithmetic.h"
 #include "equation.h"
 #include "integer.h"
 #include "parser.h"
@@ -78,12 +79,194 @@ RENDER_BODY(unit)
 }
 
 
+EVAL_BODY(unit)
+// ----------------------------------------------------------------------------
+//   Evaluate the value, and if in unit mode, evaluate the uexpr as well
+// ----------------------------------------------------------------------------
+{
+    algebraic_g value = o->value();
+    algebraic_g uexpr = o->uexpr();
+    value = value->evaluate();
+    if (!value)
+        return ERROR;
+    if (unit::mode)
+    {
+        uexpr = uexpr->evaluate();
+        if (!uexpr)
+            return ERROR;
+
+        while (unit_g u = uexpr->as<unit>())
+        {
+            algebraic_g scale = u->value();
+            uexpr = u->uexpr();
+            value = scale * value;
+        }
+    }
+    value = unit::make(value, uexpr);
+    return rt.push(value.Safe()) ? OK : ERROR;
+}
+
+
 HELP_BODY(unit)
 // ----------------------------------------------------------------------------
 //   Help topic for units
 // ----------------------------------------------------------------------------
 {
     return utf8("Units");
+}
+
+
+
+// ============================================================================
+//
+//   Unit lookup
+//
+// ============================================================================
+
+// This variable is true while evaluating a uexpr
+bool unit::mode = false;
+
+
+static const cstring basic_units[] =
+// ----------------------------------------------------------------------------
+//   List of basic units
+// ----------------------------------------------------------------------------
+//   The value of these units is taken from Wikipedia.
+//   In many cases, e.g. parsec or au, it does not match the HP48 value
+{
+    // Length
+    "m",        "1_m",
+    "yd",       "9144/10000_m",
+    "ft",       "3048/10000_m",
+    "in",       "254/10000_m",
+    "pc",       "30856775814913673_m",  // Parsec
+    "ls",       "299792458_m",          // Light-second
+    "lyr",      "31557600_ls",          // Light year
+    "au",       "149597870700_m",       // Astronomical unit
+
+    // Duration
+    "s",        "1_s",
+    "min",      "60_s",
+    "h",        "60_min",
+    "d",        "24_h",
+    "yr",       "36524219/100000_d",    // Mean tropical year
+    "Hz",       "1_s⁻¹",
+};
+
+
+struct si_prefix
+// ----------------------------------------------------------------------------
+//   Representation of a SI prefix
+// ----------------------------------------------------------------------------
+{
+    cstring     prefix;
+    int         exponent;
+};
+
+
+static const si_prefix si_prefixes[] =
+// ----------------------------------------------------------------------------
+//  List of standard SI prefixes
+// ----------------------------------------------------------------------------
+{
+    { "",       0 },                    // No prefix
+    { "da",     1 },                    // deca (the only one with 2 letters)
+    { "d",     -1 },                    // deci
+    { "c",     -2 },                    // centi
+    { "h",      2 },                    // hecto
+    { "m",     -3 },                    // milli
+    { "k",      3 },                    // kilo
+    { "μ",     -6 },                    // micro
+    { "M",      6 },                    // mega
+    { "n",     -9 },                    // nano
+    { "G",      9 },                    // giga
+    { "p",    -12 },                    // pico
+    { "T",     12 },                    // tera
+    { "f",    -15 },                    // femto
+    { "P",     15 },                    // peta
+    { "a",    -18 },                    // atto
+    { "E",     18 },                    // exa
+    { "z",    -21 },                    // zepto
+    { "Z",     21 },                    // zetta
+    { "y",    -24 },                    // yocto
+    { "Y",     24 },                    // yotta
+    { "r",    -27 },                    // ronna
+    { "R",     27 },                    // ronto
+    { "q",    -30 },                    // quetta
+    { "Q",     30 },                    // quecto
+};
+
+
+
+unit_p unit::lookup(symbol_p name)
+// ----------------------------------------------------------------------------
+//   Lookup a built-in unit
+// ----------------------------------------------------------------------------
+{
+    size_t len  = 0;
+    utf8   ntxt = name->value(&len);
+    size_t maxs = sizeof(si_prefixes) / sizeof(si_prefixes[0]);
+    for (size_t si = 0; si < maxs; si++)
+    {
+        cstring prefix = si_prefixes[si].prefix;
+        size_t  plen   = strlen(prefix);
+        if (memcmp(prefix, ntxt, plen) != 0)
+            continue;
+
+        size_t rlen = len - plen;
+        utf8 txt = ntxt + plen;
+
+        size_t maxu  = sizeof(basic_units) / sizeof(basic_units[9]);
+        for (size_t u = 0; u < maxu; u += 2)
+        {
+            cstring utxt = basic_units[u];
+            if (memcmp(utxt, txt, rlen) == 0 && utxt[rlen] == 0)
+            {
+                cstring  uexpr = basic_units[u + 1];
+                size_t   len   = strlen(uexpr);
+                if (object_p obj   = object::parse(utf8(uexpr), len))
+                {
+                    if (unit_g u = obj->as<unit>())
+                    {
+                        // Apply multipliers
+                        int e = si_prefixes[si].exponent;
+                        if (e)
+                        {
+                            algebraic_g scale = integer::make(10);
+                            algebraic_g exp   = integer::make(e);
+                            scale = pow(scale, exp);
+                            exp = u.Safe();
+                            scale = scale * exp;
+                            if (scale)
+                                if (unit_p us = scale->as<unit>())
+                                    u = us;
+                        }
+
+                        // Check if we have a terminal unit
+                        algebraic_g uexpr = u->uexpr();
+                        if (symbol_g sym = uexpr->as_quoted<symbol>())
+                        {
+                            size_t slen = 0;
+                            utf8   stxt = sym->value(&slen);
+                            if (slen == rlen && memcmp(stxt, utxt, slen) == 0)
+                                return u;
+                        }
+
+                        // Check if we need to evaluate, e.g. 1_min -> seconds
+                        uexpr = uexpr->evaluate();
+                        if (!uexpr || uexpr->type() != ID_unit)
+                        {
+                            rt.inconsistent_units_error();
+                            return nullptr;
+                        }
+                        u = unit_p(uexpr.Safe());
+                        return u;
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
 }
 
 
@@ -103,7 +286,7 @@ bool unit::convert(algebraic_g &x) const
         return false;
 
     // If we already have a unit object, perform a conversion
-    if (unit_p u = x->as<unit>())
+    if (x->type() == ID_unit)
         return convert((unit_g &) x);
 
     // Otherwise, convert to a unity unit
@@ -123,9 +306,53 @@ bool unit::convert(unit_g &x) const
     algebraic_g u = uexpr();
     algebraic_g o = x->uexpr();
 
+    // Check error case
+    if (!u || !o)
+        return false;
+
     // Common case where we have the exact same unit
-    if (u.Safe() && o.Safe() && u->is_same_as(o.Safe()))
+    if (u->is_same_as(o.Safe()))
         return true;
+
+    if (!unit::mode)
+    {
+        save<bool> save(unit::mode, true);
+
+        // Evaluate the unit expression for this one
+        u = u->evaluate();
+        if (!u)
+            return false;
+
+        // Evaluate the unit expression for x
+        o = o->evaluate();
+        if (!o)
+            return false;
+
+        // Compute conversion factor
+        bool as = Settings.auto_simplify;
+        Settings.auto_simplify = true;
+        o = o / u;
+        Settings.auto_simplify = as;
+
+        // Check if this is a unit and if so, make sure the unit is 1
+        while (unit_p cf = o->as<unit>())
+        {
+            algebraic_g cfu = cf->uexpr();
+            if (!cfu->is_real())
+            {
+                rt.inconsistent_units_error();
+                return false;
+            }
+            o = cf->value();
+            if (!cfu->is_one(false))
+                o = o * cfu;
+        }
+
+        algebraic_g v = x->value();
+        v = v * o;
+        x = unit::make(v, u);
+        return true;
+    }
 
     // For now, the rest is not implemented
     return false;

@@ -35,6 +35,7 @@
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
+#include "unit.h"
 #include "utf8.h"
 #include "variables.h"
 
@@ -46,25 +47,12 @@ EVAL_BODY(symbol)
 //   Evaluate a symbol by looking it up
 // ----------------------------------------------------------------------------
 {
+    if (unit::mode)
+        if (unit_p u = unit::lookup(o))
+            if (rt.push(u))
+                return OK;
     if (object_p found = directory::recall_all(o))
         return found->execute();
-    if (object_g eq = equation::make(o))
-        if (rt.push(eq))
-            return OK;
-    return ERROR;
-}
-
-
-EXEC_BODY(symbol)
-// ----------------------------------------------------------------------------
-//   Evaluate a symbol by looking it up and executing result
-// ----------------------------------------------------------------------------
-{
-    size_t depth = rt.directories();
-    for (uint d = 0; d < depth; d++)
-        if (directory_p dir = rt.variables(d))
-            if (object_p found = dir->recall(o))
-                return found->execute();
     if (object_g eq = equation::make(o))
         if (rt.push(eq))
             return OK;

@@ -908,10 +908,20 @@ struct object
     // ------------------------------------------------------------------------
 
 
-    bool is_same_as(object_p other) const;
+
+    int compare_to(object_p other) const;
+    // ------------------------------------------------------------------------
+    //   Compare two objects and return a signed comparison
+    // ------------------------------------------------------------------------
+
+
+    bool is_same_as(object_p other) const
     // ------------------------------------------------------------------------
     //   Compare two objects
     // ------------------------------------------------------------------------
+    {
+        return compare_to(other) == 0;
+    }
 
 
     object_p child(uint index = 0) const;

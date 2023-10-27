@@ -797,19 +797,23 @@ bool object::is_negative(bool error) const
 }
 
 
-bool object::is_same_as(object_p other) const
+int object::compare_to(object_p other) const
 // ----------------------------------------------------------------------------
 //   Bitwise comparison of two objects
 // ----------------------------------------------------------------------------
 {
     if (other == this)
-        return true;
-    if (type() != other->type())
-        return false;
+        return 0;
+    id ty = type();
+    id oty = other->type();
+    if (ty != oty)
+        return ty < oty ? -1 : 1;
     size_t sz = size();
-    if (sz != other->size())
-        return false;
-    return memcmp(this, other, sz) == 0;
+    size_t osz = other->size();
+    size_t ssz = sz < osz ? sz : osz;
+    if (int diff = memcmp(this, other, ssz))
+        return diff;
+    return sz < osz ? -1 : sz > osz ? 1 : 0;
 }
 
 

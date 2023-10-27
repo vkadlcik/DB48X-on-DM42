@@ -554,7 +554,7 @@ static size_t check_match(size_t eq, size_t eqsz,
                 // Check if we expect an integer value
                 if (must_be_integer(name))
                 {
-                    // At this point, if we have an integer, it's was
+                    // At this point, if we have an integer, it was
                     // wrapped in an equation by grab_arguments.
                     size_t depth = rt.depth();
                     if (ftop->execute() != object::OK)
@@ -567,7 +567,7 @@ static size_t check_match(size_t eq, size_t eqsz,
                     ftop = rt.pop();
 
                     // We must have an integer
-                    if (ftop->type() != object::ID_integer)
+                    if (fty != object::ID_integer)
                         return 0;
 
                     // We always special-case zero as a terminating condition
@@ -583,6 +583,21 @@ static size_t check_match(size_t eq, size_t eqsz,
                         symbol_p existing = symbol_p(rt.local(l+1));
                         if (!existing || existing->is_same_as(symbol_p(ftop)))
                             return 0;
+                        symbol_p ename = symbol_p(rt.local(l));
+                        if (must_be_unique(ename))
+                        {
+                            // Check if order of names and values match
+                            symbol_p ftn = ftop->as_quoted<symbol>();
+                            if (!ftn)
+                                return 0;
+                            symbol_p en = existing->as_quoted<symbol>();
+                            if (!en)
+                                return 0;
+                            int cmpnames = name->compare_to(ename);
+                            int cmpvals = ftn->compare_to(en);
+                            if (cmpnames * cmpvals < 0)
+                                return 0;
+                        }
                     }
                 }
 
@@ -599,7 +614,7 @@ static size_t check_match(size_t eq, size_t eqsz,
         }
         else
         {
-            // If not a symobl, we need an exact match
+            // If not a symbol, we need an exact match
             object_p top = rt.stack(eq);
             if (!top || !top->is_same_as(ftop))
                 return 0;
@@ -866,6 +881,9 @@ static eq_symbol<'z'> z;
 static eq_symbol<'n'> n;
 static eq_symbol<'m'> m;
 static eq_symbol<'p'> p;
+static eq_symbol<'u'> u;
+static eq_symbol<'v'> v;
+static eq_symbol<'w'> w;
 static eq_integer<0>  zero;
 static eq_neg_integer<-1> mone;
 static eq_integer<1> one;
@@ -888,14 +906,20 @@ equation_p equation::expand() const
         x^one,       x,
         x^n,         x * (x^(n-one)),
         x * n,       n * x,
+        v * u,       u * v,
+        x * v * u,   x * u * v,
         one * x,     x,
         zero * x,    zero,
         n + x,       x + n,
         x + zero,    x,
         x - x,       zero,
+        x + y - y,   x,
+        x - y + y,   x,
         x * (y * z), (x * y) * z,
         x + (y + z), (x + y) + z,
-        x + (y - z), (x + y) - z
+        x + (y - z), (x + y) - z,
+        v + u,       u + v,
+        x + v + u,   x + u + v
         );
 }
 

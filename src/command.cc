@@ -43,6 +43,7 @@
 #include "settings.h"
 #include "symbol.h"
 #include "sysmenu.h"
+#include "unit.h"
 #include "user_interface.h"
 #include "utf8.h"
 #include "version.h"
@@ -630,88 +631,63 @@ COMMAND_BODY(Cycle)
         return ERROR;
     if (object_p top = rt.top())
     {
-        id cmd  = ID_object;
-        id type = ID_object;
+        id     cmd   = ID_object;
+        id     type  = ID_object;
+        unit_p uobj  = top->as<unit>();
+        if (uobj)
+            top = uobj->value();
 
-        switch(top->type())
+        id     ttype = top->type();
+        switch(ttype)
         {
-        case ID_integer:
-        case ID_neg_integer:
-        case ID_neg_bignum:
-        case ID_bignum:
-            cmd = ID_RealToBinary;
-            break;
         case ID_decimal128:
         case ID_decimal64:
-        case ID_decimal32:
-            cmd = ID_ToFraction;
-            break;
+        case ID_decimal32:              cmd = ID_ToFraction;    break;
+        case ID_integer:
+        case ID_bignum:
+        case ID_neg_integer:
+        case ID_neg_bignum:
         case ID_fraction:
         case ID_neg_fraction:
         case ID_big_fraction:
-        case ID_neg_big_fraction:
-            cmd = ID_ToDecimal;
-            break;
-        case ID_polar:
-            cmd = ID_ToRectangular;
-            break;
-        case ID_rectangular:
-            cmd = ID_ToPolar;
-            break;
+        case ID_neg_big_fraction:       cmd = ID_ToDecimal;     break;
+        case ID_polar:                  cmd = ID_ToRectangular; break;
+        case ID_rectangular:            cmd = ID_ToPolar;       break;
 #if CONFIG_FIXED_BASED_OBJECTS
-        case ID_hex_integer:
-        case ID_dec_integer:
-        case ID_oct_integer:
-        case ID_bin_integer:
-        case ID_hex_bignum:
-        case ID_dec_bignum:
-        case ID_oct_bignum:
-        case ID_bin_bignum:
-            cmd = ID_BinaryToReal;
-#endif // CONFIG_FIXED_BASED_OBJECTS
+        case ID_based_integer:          type = ID_hex_integer;  break;
+        case ID_hex_integer:            type = ID_dec_integer;  break;
+        case ID_dec_integer:            type = ID_oct_integer;  break;
+        case ID_oct_integer:            type = ID_bin_integer;  break;
+        case ID_bin_integer:            type = ID_based_integer;break;
+
+        case ID_based_bignum:           type = ID_hex_bignum;   break;
+        case ID_hex_bignum:             type = ID_dec_bignum;   break;
+        case ID_dec_bignum:             type = ID_oct_bignum;   break;
+        case ID_oct_bignum:             type = ID_bin_bignum;   break;
+        case ID_bin_bignum:             type = ID_based_bignum; break;
+#else // ! CONFIG_FIXED_BASED_OBJECTS
         case ID_based_integer:
         case ID_based_bignum:
             switch(Settings.base)
             {
-            case 2:
-                Settings.base = 8;
-                return OK;
-            case 8:
-                Settings.base = 10;
-                return OK;
-            case 10:
-                Settings.base = 16;
-                cmd = ID_BinaryToReal;
-                break;
-            case 16:
-                Settings.base = 2;
-                return OK;
             default:
-                Settings.base = 16;
-                break;
+            case 2:                     Settings.base = 16;     return OK;
+            case 8:                     Settings.base = 2;      return OK;
+            case 10:                    Settings.base = 8;      return OK;
+            case 16:                    Settings.base = 10;     return OK;
             }
             break;
+#endif // CONFIG_FIXED_BASED_OBJECTS
         case ID_equation:
             Settings.graph_stack = !Settings.graph_stack;
             break;
-        case ID_list:
-            type = ID_array;
-            break;
-        case ID_array:
-            type = ID_program;
-            break;
-        case ID_program:
-            type = ID_list;
-            break;
-        case ID_symbol:
-            type = ID_text;
-            break;
-        case ID_text:
-            type = ID_symbol;
-            break;
-        case ID_tag:
-            cmd = ID_dtag;
-            break;
+        case ID_list:                   type = ID_array;        break;
+        case ID_array:                  type = ID_program;      break;
+        case ID_program:                type = ID_list;         break;
+        case ID_symbol:                 type = ID_text;         break;
+        case ID_text:                   type = ID_symbol;       break;
+        case ID_tag:                    cmd = ID_dtag;          break;
+
         default:
             rt.type_error();
             return ERROR;
@@ -725,6 +701,11 @@ COMMAND_BODY(Cycle)
             {
                 byte *p = (byte *) clone;
                 leb128(p, type);
+                if (uobj)
+                {
+                    algebraic_g val = algebraic_p(clone);
+                    clone = unit::make(val, uobj->uexpr());
+                }
                 if (rt.top(clone))
                     return OK;
             }

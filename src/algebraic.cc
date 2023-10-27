@@ -40,6 +40,7 @@
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
+#include "unit.h"
 #include "user_interface.h"
 
 #include <ctype.h>
@@ -381,6 +382,18 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
         x = polar::make(mod, arg, settings::PI_RADIANS);
         return true;
     }
+    case ID_unit:
+    {
+        unit_p ux = unit_p(x.Safe());
+        algebraic_g v = ux->value();
+        algebraic_g u = ux->uexpr();
+        if (decimal_to_fraction(v))
+        {
+            x = unit::make(v, u);
+            return true;
+        }
+        break;
+    }
     default:
         return false;
     }
@@ -417,6 +430,18 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
             (mod->is_fraction() || to_decimal(arg, weak)))
         {
             x = polar::make(mod, arg, settings::PI_RADIANS);
+            return true;
+        }
+        break;
+    }
+    case ID_unit:
+    {
+        unit_p ux = unit_p(x.Safe());
+        algebraic_g v = ux->value();
+        algebraic_g u = ux->uexpr();
+        if (to_decimal(v, weak))
+        {
+            x = unit::make(v, u);
             return true;
         }
         break;

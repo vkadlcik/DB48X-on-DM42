@@ -294,55 +294,67 @@ unit_p unit::lookup(symbol_p name)
         if (memcmp(prefix, ntxt, plen) != 0)
             continue;
 
-        size_t rlen = len - plen;
-        utf8 txt = ntxt + plen;
-
-        size_t maxu  = sizeof(basic_units) / sizeof(basic_units[9]);
-        for (size_t u = 0; u < maxu; u += 2)
+        int    e       = si_prefixes[si].exponent;
+        size_t maxu    = sizeof(basic_units) / sizeof(basic_units[9]);
+        size_t maxkibi = 1 + (e > 0 && e % 3 == 0 &&
+                              ntxt[plen] == 'i' && len > plen+1);
+        for (uint kibi = 0; kibi < maxkibi; kibi++)
         {
-            cstring utxt = basic_units[u];
-            if (memcmp(utxt, txt, rlen) == 0 && utxt[rlen] == 0)
+            size_t rlen = len - plen - kibi;
+            utf8 txt = ntxt + plen + kibi;
+
+            for (size_t u = 0; u < maxu; u += 2)
             {
-                cstring udef = basic_units[u + 1];
-                size_t  len  = strlen(udef);
-                if (object_p obj = object::parse(utf8(udef), len))
+                cstring utxt = basic_units[u];
+                if (memcmp(utxt, txt, rlen) == 0 && utxt[rlen] == 0)
                 {
-                    if (unit_g u = obj->as<unit>())
+                    cstring udef = basic_units[u + 1];
+                    size_t  len  = strlen(udef);
+                    if (object_p obj = object::parse(utf8(udef), len))
                     {
-                        // Apply multipliers
-                        int e = si_prefixes[si].exponent;
-                        if (e)
+                        if (unit_g u = obj->as<unit>())
                         {
-                            // Convert si exponent into value, e.g cm-> 1/100
-                            algebraic_g scale = integer::make(10);
-                            algebraic_g exp   = integer::make(e);
-                            scale = pow(scale, exp);
-                            exp = u.Safe();
-                            scale = scale * exp;
-                            if (scale)
-                                if (unit_p us = scale->as<unit>())
-                                    u = us;
-                        }
+                            // Apply multipliers
+                            if (e)
+                            {
+                                // Convert SI exp into value, e.g cm-> 1/100
+                                // If kibi mode, use powers of 2
+                                algebraic_g exp   = integer::make(e);
+                                algebraic_g scale = integer::make(10);
+                                if (kibi)
+                                {
+                                    scale = integer::make(3);
+                                    exp = exp / scale;
+                                    scale = integer::make(1024);
+                                }
+                                scale = pow(scale, exp);
+                                exp = u.Safe();
+                                scale = scale * exp;
+                                if (scale)
+                                    if (unit_p us = scale->as<unit>())
+                                        u = us;
+                            }
 
-                        // Check if we have a terminal unit
-                        algebraic_g uexpr = u->uexpr();
-                        if (symbol_g sym = uexpr->as_quoted<symbol>())
-                        {
-                            size_t slen = 0;
-                            utf8   stxt = sym->value(&slen);
-                            if (slen == rlen && memcmp(stxt, utxt, slen) == 0)
-                                return u;
-                        }
+                            // Check if we have a terminal unit
+                            algebraic_g uexpr = u->uexpr();
+                            if (symbol_g sym = uexpr->as_quoted<symbol>())
+                            {
+                                size_t slen = 0;
+                                utf8   stxt = sym->value(&slen);
+                                if (slen == rlen && memcmp(stxt, utxt, slen) == 0)
+                                    return u;
+                            }
 
-                        // Check if we need to evaluate, e.g. 1_min -> seconds
-                        uexpr = u->evaluate();
-                        if (!uexpr || uexpr->type() != ID_unit)
-                        {
-                            rt.inconsistent_units_error();
-                            return nullptr;
+                            // Check if we need to evaluate, e.g. 1_min -> seconds
+                            uexpr = u->evaluate();
+                            if (!uexpr || uexpr->type() != ID_unit)
+                            {
+                                rt.inconsistent_units_error();
+                                return nullptr;
+                            }
+                            u = unit_p(uexpr.Safe());
+                            return u;
                         }
-                        u = unit_p(uexpr.Safe());
-                        return u;
                     }
                 }
             }

@@ -847,7 +847,7 @@ MENU(UnitsMenu,
      "Light",   ID_LightUnitsMenu,
      "Rad",     ID_RadiationUnitsMenu,
      "Visc",    ID_ViscosityUnitsMenu,
-     "Convert", ID_UnitsConversionsMenu);
+     "Comp",    ID_ComputerUnitsMenu);
 
 
 MENU(StackMenu,

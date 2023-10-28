@@ -81,6 +81,7 @@ object::result list::list_parse(id type,
         if (cp != open)
             return SKIP;
         s = utf8_next(s);
+        cp = 0;                 // Do not accept "'" as an empty equation
     }
 
     scribble scr;
@@ -309,6 +310,16 @@ object::result list::list_parse(id type,
     gcbytes scratch = scr.scratch();
     size_t  alloc   = scr.growth();
     size_t  parsed  = utf8(s) - utf8(p.source);
+
+    // Check for the case of an empty equation
+    if (alloc == 0 && type == ID_equation)
+    {
+        record(list_error, "Empty equation");
+        rt.syntax_error().source(p.source);
+        return ERROR;
+    }
+
+    // Create the object
     p.end           = parsed;
     p.out           = rt.make<list>(type, scratch, alloc);
 

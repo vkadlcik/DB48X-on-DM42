@@ -408,7 +408,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         {
             if (realexp < 0)
             {
-                if (mode == settings::display::FIX)
+                if (mode <= settings::display::FIX)
                 {
                     int shown = digits + realexp + (*in >= '5');
                     int minfix = display.min_fix_digits;

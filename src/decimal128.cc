@@ -618,7 +618,8 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
 
             if (sep-- == 0 && decimals > 1)
             {
-                out += utf8_encode(space, (byte *) out);
+                if (decpos)
+                    out += utf8_encode(space, (byte *) out);
                 sep = (decpos > 0 ? mant_spc : frac_spc) - 1;
             }
 

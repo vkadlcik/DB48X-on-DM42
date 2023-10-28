@@ -1597,6 +1597,27 @@ a vector or matrix in turn.
 Unit objects represent values with an associated unit. They are represented
 using the `_` operator, e.g. `1_km/s`, although on display this operator is
 shown as a thin space, e.g. `1 km/s`.
+
+Units as implemented in DB48X are modernized compared to what the HP48
+implements, and differ from the HP RPL implementation in the following ways:
+
+* Add [recent SI prefixes](https://www.nist.gov/pml/owm/metric-si-prefixes),
+  Z (zetta), Y (yotta), R (ronna) and Q (quetta) for large scale,
+  z (zepto), y (yocto), r (ronto) and q (quecto) for small scale.
+
+* Take into account the impact on unit conversions of the
+  [revised 2023 definition of the foot](https://www.nist.gov/pml/us-surveyfoot/revised-unit-conversion-factors).
+
+* Use exact (fraction-based) conversions wherever possible. This notably matters
+  for the conversions of pre-2023 US Survey units, where the ratio is
+  `1_ft = 1200/3937_m`, which is not well represented using decimal values.
+
+* Add computer-related units, like the `byte`, the `bit`, the `baud`, as well
+  as a menu supporting these units.
+
+* In order to support the computer-related units better, also recognize the
+  [power-of-two variants](https://en.wikipedia.org/wiki/Kilobyte),
+  e.g. `1_kiB` is `1024_B`. Also recogize the `K` prefix in addition to `k`.
 # Menus
 
 Menus display at the bottom of the screen, and can be activated using the keys

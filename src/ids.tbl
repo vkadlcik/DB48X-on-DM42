@@ -586,6 +586,7 @@ UNIT_MENU(AngleUnitsMenu)
 UNIT_MENU(LightUnitsMenu)
 UNIT_MENU(RadiationUnitsMenu)
 UNIT_MENU(ViscosityUnitsMenu)
+UNIT_MENU(ComputerUnitsMenu)
 
 
 

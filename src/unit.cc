@@ -158,23 +158,79 @@ static const cstring basic_units[] =
 //   The value of these units is taken from Wikipedia.
 //   In many cases, e.g. parsec or au, it does not match the HP48 value
 {
-    // Length
-    "m",        "1_m",
-    "yd",       "9144/10000_m",
-    "ft",       "3048/10000_m",
-    "in",       "254/10000_m",
+    // Length and area
+    "m",        "1_m",                  // meter, based for SI lengths
+    "yd",       "9144/10000_m",         // yard
+    "ft",       "3048/10000_m",         // foot
+    "in",       "254/10000_m",          // inch
     "pc",       "30856775814913673_m",  // Parsec
     "ls",       "299792458_m",          // Light-second
     "lyr",      "31557600_ls",          // Light year
     "au",       "149597870700_m",       // Astronomical unit
+    "nmi",      "1852_m",               // Nautical mile
+    "miUS",     "",                     // US mile
+    "Å",        "100_pm",               // Angstroem is 100pm, 1E-10m
+    "μ",        "1_μm",                 // A micron can be written as μ
+    "fermi",    "1_fm",                 // fermi is another name for femtometer
+    "mil",      "254/10000000_m",       // A thousands of a inch (min is taken)
+    "a",        "100_m²",               // Acre
+    "b",        "100_fermi²",           // Barn, 1E-28 m^2
+
+    // US Survey funny set of units
+    // See https://www.northamptonma.gov/740/US-Survey-Foot-vs-Meter and
+    // https://www.nist.gov/pml/us-surveyfoot/revised-unit-conversion-factors
+    // for details about this insanity.
+    // The bottom line is that on January 1, 2023, all US units changed
+    // to align to the "metric foot". So all units below have two variants,
+    // a US (U.S. Survey, pre 2023) and non US variant. Yadi Yada.
+    // The HP48 had a single ftUS unit, which was imprecise, because it did
+    // not have fractions to represent it precisely. This unit is the only
+    // one kept here. Otherwise, you can use the US unit, e.g. using
+    // 1_cable*US will give you the U.S. Survey version of the cable.
+    "ftUS",     "1200/3937_m",          // US survey foot
+    "US",       "1_ftUS/ft",            // Conversion factor
+    "cable",    "720_ft",               // Cable's length (US navy)
+    "ch",       "66_ft",                // Chain
+    "chain",    "1_ch",                 // Chain
+    "fath",     "6_ft",                 // Fathom
+    "fathom",   "1_fath",               // Fathom
+    "fur",      "660_ft",               // Furlong
+    "furlong",  "1_fur",                // Furlong
+    "league",   "3_mi",                 // League
+    "li",       "1/100_ch",             // Link
+    "link",     "1_li",                 // Link
+    "mi",       "5280_ft",              // Mile
+    "miUS",     "1_mi*US",              // Mile (US Survey)
+    "rd",       "1/4_ch",               // Rod, pole, perch
+    "rod",      "1_rd",                 // Alternate spelling
+    "pole",     "1_rd",                 // Pole
+    "perch",    "1_rd",                 // Perch
+
+    "ac",       "10_ch²",               // Acre
+    "acre",     "10_ac",                // Acre
+    "acUS",     "10_ch²*US²",           // Acre (pre-2023)
+    "acreUS",   "1_acUS",               // Acre (pre-2023)
+
+    "acable",   "18532/100_m",          // Cable's length (Imperial/Admiralty)
+    "icable",   "1852/10_m",            // Cable's length ("International")
 
     // Duration
     "s",        "1_s",
     "min",      "60_s",
+    "minute",   "1_min",
     "h",        "3600_s",
+    "hour",     "1_h",
     "d",        "86400_s",
+    "day",      "1_d",
     "yr",       "36524219/100000_d",    // Mean tropical year
+    "year",     "1_y",                  // Mean tropical year
     "Hz",       "1_s⁻¹",
+
+    // Computing
+    "bit",      "1_bit",                // Bit
+    "byte",     "8_bit",                // Byte
+    "B",        "1_byte",                // Byte
+    "baud",     "1_bit/s",              // Baud
 };
 
 
@@ -200,6 +256,7 @@ static const si_prefix si_prefixes[] =
     { "h",      2 },                    // hecto
     { "m",     -3 },                    // milli
     { "k",      3 },                    // kilo
+    { "K",      3 },                    // kilo (computer-science)
     { "μ",     -6 },                    // micro
     { "M",      6 },                    // mega
     { "n",     -9 },                    // nano
@@ -589,11 +646,12 @@ UNITS(LengthUnitsMenu,
 // ----------------------------------------------------------------------------
 //   LengthUnitsMenu
 // ----------------------------------------------------------------------------
-      "m", "cm", "mm", "km", "μm",
-      "yd", "ft", "in", "mi", "miUS",
-      "Mpc", "pc", "lyr", "au", "fath",
-      "ftUS", "chain", "rd", "mil",
-      "Å", "fermi"
+      "m",      "cm",   "mm",   "km",   "μm",           // Metric
+      "yd",     "ft",   "in",   "mi",   "mil",          // US customary
+      "Mpc",    "pc",   "lyr",  "au",   "ls",           // Astronomy
+      "ch",     "rd",   "cable","fath", "league",       // US Survey (post-2023)
+      "furlong","fathom","ftUS","miUS", "US",           // US.Survey, pre-2023
+      "Å",    "fermi",  "μ",    "acable","icable"       // Misc
     );
 
 
@@ -601,8 +659,9 @@ UNITS(AreaUnitsMenu,
 // ----------------------------------------------------------------------------
 //   AreaUnitsMenu
 // ----------------------------------------------------------------------------
-      "m^2", "cm^2", "b", "yd^2", "ft^2", "in^2",
-      "km^2", "ha", "a", "mi^2", "miUS^2", "acre"
+      "m^2",    "cm^2", "km^2", "ha",   "a",            // Metric
+      "yd^2",   "ft^2", "in^2", "mi^2", "acre",         // US
+      "b",      "miUS^2",                               // Misc
     );
 
 
@@ -725,4 +784,13 @@ UNITS(ViscosityUnitsMenu,
 //   ViscosityUnitsMenu
 // ----------------------------------------------------------------------------
       "P", "St"
+    );
+
+
+
+UNITS(ComputerUnitsMenu,
+// ----------------------------------------------------------------------------
+//   Units for computer use
+// ----------------------------------------------------------------------------
+      "B", "byte", "baud", "bit",
     );

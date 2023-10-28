@@ -4,7 +4,7 @@
 //
 //   File Description:
 //
-//
+//     Standard mathematical functions
 //
 //
 //
@@ -38,6 +38,7 @@
 #include "integer.h"
 #include "list.h"
 #include "tag.h"
+#include "unit.h"
 
 
 bool function::should_be_symbolic(id type)
@@ -536,6 +537,13 @@ FUNCTION_BODY(neg)
 {
     if (!x.Safe())
         return nullptr;
+    if (unit_p uobj = x->as<unit>())
+    {
+        algebraic_g v = uobj->value();
+        algebraic_g u = uobj->uexpr();
+        v = neg::run(v);
+        return unit::make(v, u);
+    }
     if (x->is_strictly_symbolic())
         return symbolic(ID_neg, x);
     algebraic_g zero = rt.make<integer>(ID_integer, 0);

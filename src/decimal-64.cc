@@ -506,9 +506,12 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
             bool more = in < last || !sigmode || decpos > 0;
             if (sep-- == 0 && more && decimals > 1)
             {
-                out += utf8_encode(space, (byte *) out);
-                if (decpos > 0)
-                    lastnz = out;
+                if (decpos)
+                {
+                    out += utf8_encode(space, (byte *) out);
+                    if (decpos > 0)
+                        lastnz = out;
+                }
                 sep = (decpos > 0 ? mant_spc : frac_spc) - 1;
             }
 

@@ -487,7 +487,10 @@ MENU(BasesMenu,
 
      "2Comp",   ID_Unimplemented,
      "1Comp",   ID_Unimplemented,
-     "Unsgnd",  ID_Unimplemented);
+     "Unsgnd",  ID_Unimplemented,
+     "R→B",     ID_RealToBinary,
+     "B→R",     ID_BinaryToReal
+    );
 
 
 MENU(ProbabilitiesMenu,

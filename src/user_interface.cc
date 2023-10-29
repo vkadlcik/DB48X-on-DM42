@@ -1511,6 +1511,11 @@ bool user_interface::draw_battery()
         return false;
     }
 
+    // Experimentally, battery voltage below 2.6V cause calculator flakiness
+    const int vmax = 2930;
+    const int vmin = 2500;
+    const int vlow = 2600;
+
     coord x = Settings.show_voltage ? 311 : 370;
     rect bat(x + 3, ann_y+2, x + 25, ann_y + ann_height);
     Screen.fill(x-3, 0, LCD_W, hfh + 1, pattern::black);
@@ -1518,8 +1523,10 @@ bool user_interface::draw_battery()
     {
         char buffer[64];
         snprintf(buffer, sizeof(buffer), "%d.%03dV", vdd / 1000, vdd % 1000);
-        Screen.text(340, 1, utf8(buffer), HeaderFont,
-                    low ? pattern::gray50 : pattern::white);
+        pattern vpat = low         ? pattern::gray25
+                     : vdd <= vlow ? pattern::gray50
+                                   : pattern::white;
+        Screen.text(340, 1, utf8(buffer), HeaderFont, vpat);
     }
     Screen.fill(x, ann_y + 4, x+4, ann_y + ann_height - 2, pattern::white);
 
@@ -1529,7 +1536,7 @@ bool user_interface::draw_battery()
     bat.inset(1,1);
 
     size batw = bat.width();
-    size w = (vdd - 2000) * batw / (3090 - 2000);
+    size w = (vdd - vmin) * batw / (vmax - vmin);
     if (w > batw)
         w = batw;
     else if (w < 1)

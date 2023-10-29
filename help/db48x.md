@@ -4601,8 +4601,15 @@ Factor the unit in level 1 from the unit expression of the level 2 unit object.
 `1_W` `1_N` ▶ `1_N*m/s`
 
 
-## TOUNIT
-Apply a unit to an object
+## →Unit (ToUnit)
+
+Creates a unit object from a real number and the unit part of a unit object.
+`→Unit` adds units to a number, combining the number and the unit part of a
+unit object. The numerical part of the unit object is ignored.
+
+`→Unit` is the reverse of `Unit→` or of `Obj→` applied to a unit object.
+
+`3000` `2_km` ▶ `3000_km`
 
 
 ## ULIST

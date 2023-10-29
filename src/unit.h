@@ -93,6 +93,7 @@ struct UnitMenu : unit_menu                                             \
 COMMAND_DECLARE(Convert);
 COMMAND_DECLARE(UBase);
 FUNCTION(UVal);
+COMMAND_DECLARE(ToUnit);
 COMMAND_DECLARE(ApplyUnit);
 COMMAND_DECLARE(ConvertToUnit);
 COMMAND_DECLARE(ApplyInverseUnit);

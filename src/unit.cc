@@ -560,6 +560,29 @@ FUNCTION_BODY(UVal)
 }
 
 
+COMMAND_BODY(ToUnit)
+// ----------------------------------------------------------------------------
+//   Combine a value and a unit object to build a new unit object
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(2))
+        return ERROR;
+
+    object_p y = rt.stack(1);
+    unit_p x = rt.stack(0)->as<unit>();
+    if (!x || !y || !y->is_algebraic())
+    {
+        rt.type_error();
+        return ERROR;
+    }
+    algebraic_g u = algebraic_p(y);
+    unit_g result = unit::make(u, x->uexpr());
+    if (result && rt.pop() && rt.top(result))
+        return OK;
+    return ERROR;
+}
+
+
 static symbol_p key_label(uint key)
 // ----------------------------------------------------------------------------
 //   Return a unit name as a label

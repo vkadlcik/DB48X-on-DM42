@@ -116,6 +116,7 @@ RENDER_BODY(unit)
     algebraic_g uexpr = o->uexpr();
     value->render(r);
     r.put(r.editing() ? unicode('_') : unicode(settings::SPACE_UNIT));
+    save<bool> m(mode, true);
     if (equation_p ueq = uexpr->as<equation>())
         ueq->render(r, false);
     else

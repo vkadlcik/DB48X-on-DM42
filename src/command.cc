@@ -129,8 +129,23 @@ RENDER_BODY(command)
         // Ensure that we display + as `+` irrespective of mode
         utf8 fname = fancy(ty);
         if (!is_valid_as_name_initial(utf8_codepoint(fname)))
+        {
             if (utf8_length(fname) == 1)
+            {
                 format = settings::commands::LONG_FORM;
+                while (unit::mode)
+                {
+                    if (ty == ID_div)
+                        r.put('/');
+                    else if (ty == ID_mul)
+                        r.put(unicode(L'·'));
+                    else
+                        break;
+                    return r.size();
+                }
+            }
+        }
+
 
         utf8 text = utf8(format == settings::commands::LONG_FORM
                          ? fname : name(ty));

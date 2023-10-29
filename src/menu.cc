@@ -785,7 +785,7 @@ MENU(UnitsConversionsMenu,
 // ----------------------------------------------------------------------------
      "Convert", ID_Convert,
      "Base",    ID_UBase,       // Base unit
-     "Value",   ID_Unimplemented,
+     "Value",   ID_UVal,
      "Factor",  ID_Unimplemented,
      "→Unit",   ID_Unimplemented,
 

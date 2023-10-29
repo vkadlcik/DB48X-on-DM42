@@ -544,6 +544,22 @@ COMMAND_BODY(UBase)
 }
 
 
+FUNCTION_BODY(UVal)
+// ----------------------------------------------------------------------------
+//   Extract value from unit object in level 1
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+    if (x->is_strictly_symbolic())
+        return symbolic(ID_UVal, x);
+    if (unit_p u = x->as<unit>())
+        return u->value();
+    rt.type_error();
+    return nullptr;
+}
+
+
 static symbol_p key_label(uint key)
 // ----------------------------------------------------------------------------
 //   Return a unit name as a label

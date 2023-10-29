@@ -566,6 +566,7 @@ MENU(EditMenu)
 
 CMD(Convert)
 NAMED(UBase, "BaseUnits")
+NAMED(UVal,  "UnitValue")
 CMD(ApplyUnit)
 CMD(ConvertToUnit)
 CMD(ApplyInverseUnit)

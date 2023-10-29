@@ -30,6 +30,7 @@
 
 #include "command.h"
 #include "complex.h"
+#include "functions.h"
 #include "menu.h"
 #include "symbol.h"
 
@@ -91,6 +92,7 @@ struct UnitMenu : unit_menu                                             \
 
 COMMAND_DECLARE(Convert);
 COMMAND_DECLARE(UBase);
+FUNCTION(UVal);
 COMMAND_DECLARE(ApplyUnit);
 COMMAND_DECLARE(ConvertToUnit);
 COMMAND_DECLARE(ApplyInverseUnit);

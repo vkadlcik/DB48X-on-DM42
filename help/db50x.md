@@ -4573,13 +4573,15 @@ Create a user-defined unit
 Delete a user-defined unit
 
 
-## UVAL
-Numeric part of a unit object
+## UnitValue (UVAL)
 
+Return the numeric part of a unit object.
+
+`3_km`  ▶ `3`
 
 ## BaseUnits (UBASE)
 
-Expand all unit factors to their base units in the standard (metric) system.
+Expand all unit factors to their base units.
 
 `3_km`  ▶ `3000_m`
 
@@ -4592,8 +4594,11 @@ Convert value from one unit to another. This convert the values in the second le
 
 
 
-## UFACT
-Expose a group of units within a unit object (factor)
+## FactorUnit (UFACT)
+
+Factor the unit in level 1 from the unit expression of the level 2 unit object.
+
+`1_W` `1_N` ▶ `1_N*m/s`
 
 
 ## TOUNIT

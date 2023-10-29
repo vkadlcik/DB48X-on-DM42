@@ -73,14 +73,16 @@ unit_p unit::make(algebraic_g v, algebraic_g u, id ty)
 
     while (unit_p vu = v->as<unit>())
     {
-        u = u * vu->uexpr();
+        u = vu->uexpr() * u;
         v = vu->value();
         while (unit_p uu = u->as<unit>())
         {
-            v = v * uu->value();
+            v = uu->value() * v;
             u = uu->uexpr();
         }
     }
+    if (equation_p eq = u->as<equation>())
+        u = eq->simplify_units();
     return rt.make<unit>(ty, v, u);
 }
 
@@ -94,6 +96,10 @@ algebraic_p unit::simple(algebraic_g v, algebraic_g u, id ty)
     if (uobj)
     {
         algebraic_g uexpr = uobj->uexpr();
+        if (equation_p eq = uexpr->as<equation>())
+            if (object_p q = eq->quoted())
+                if (q->is_real())
+                    uexpr = algebraic_p(q);
         if (uexpr->is_real())
         {
             algebraic_g uval = uobj->value();

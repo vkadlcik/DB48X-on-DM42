@@ -268,7 +268,7 @@ object_p equation::quoted(id ty) const
     byte  *p = (byte *) payload();
     size_t size = leb128<size_t>(p);
     object_p first = (object_p) p;
-    if (first->type() == ty && first->size() == size)
+    if ((ty == ID_object || first->type() == ty) && first->size() == size)
         return first;
     return nullptr;
 }
@@ -567,6 +567,7 @@ static size_t check_match(size_t eq, size_t eqsz,
                     ftop = rt.pop();
 
                     // We must have an integer
+                    fty = ftop->type();
                     if (fty != object::ID_integer)
                         return 0;
 
@@ -918,6 +919,7 @@ equation_p equation::expand() const
         x * (y * z), (x * y) * z,
         x + (y + z), (x + y) + z,
         x + (y - z), (x + y) - z,
+        x - y + z,   (x + z) - y,
         v + u,       u + v,
         x + v + u,   x + u + v
         );
@@ -984,6 +986,32 @@ equation_p equation::simplify() const
         x ^ three,   cubed(x),
         x ^ mone,    inv(x),
         (x^n)*(x^m), x ^ (n+m)
+        );
+}
+
+
+equation_p equation::simplify_units() const
+// ----------------------------------------------------------------------------
+//   Rewrites that simplify units
+// ----------------------------------------------------------------------------
+{
+    return rewrite_all(
+        x * inv(y),     x / y,
+        inv(x) * y,     y / x,
+        sq(x),          x^two,
+        x * x,          x^two,
+        (x^n) * x,      x^(n + one),
+        (x^n) / x,      x^(n - one),
+        x^one,          x,
+        x^zero,         one,
+        x * (y * z),    x * y * z,
+        x * (y / z),    x * y / z,
+        x / y * z,      x * z / y,
+        x / y / z,      x / (y * z),
+        x / (y / z),    x * z / y,
+        x / x,          one,
+        x * y / y,      x,
+        x * y / x,      y
         );
 }
 

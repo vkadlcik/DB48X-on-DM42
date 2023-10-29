@@ -58,19 +58,17 @@ struct equation : program
     equation(id type, id op, algebraic_r x, algebraic_r y);
     static size_t required_memory(id i, id op, algebraic_r x, algebraic_r y);
 
-    object_p quoted(id type) const;
+    object_p quoted(id type = ID_object) const;
     static size_t size_in_equation(object_p obj);
 
-    static equation_p make(algebraic_r x,
-                           id type = ID_equation)
+    static equation_p make(algebraic_r x, id type = ID_equation)
     {
         if (!x.Safe())
             return nullptr;
         return rt.make<equation>(type, x);
     }
 
-    static equation_p make(id op, algebraic_r x,
-                           id type = ID_equation)
+    static equation_p make(id op, algebraic_r x, id type = ID_equation)
     {
         if (!x.Safe())
             return nullptr;
@@ -121,6 +119,7 @@ struct equation : program
     {
         return render(this, r, quoted);
     }
+    equation_p simplify_units() const;
 
   protected:
     static symbol_g render(uint depth, int &precedence, bool edit);

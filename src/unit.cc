@@ -512,7 +512,7 @@ void unit_menu::units(info &mi, cstring utable[], size_t count)
     for (uint k = 0; k < ui.NUM_SOFTKEYS - (mi.pages > 1); k++)
     {
         ui.marker(k + 1 * ui.NUM_SOFTKEYS, L'→', true);
-        ui.marker(k + 2 * ui.NUM_SOFTKEYS, '/', true);
+        ui.marker(k + 2 * ui.NUM_SOFTKEYS, '/', false);
     }
 
 }

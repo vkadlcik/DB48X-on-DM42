@@ -1237,7 +1237,9 @@ bool user_interface::draw_menus()
                         {
                             bool alignLeft = menu_marker_align[plane][m];
                             marker         = mark;
-                            mkw            = font->width(marker);
+                            mkw            = (marker == '/'
+                                              ? 0
+                                              : font->width(marker));
                             mkx            = alignLeft ? x - mw / 2 + 2
                                                        : x + mw / 2 - mkw - 2;
                             mcw -= mkw;
@@ -1251,6 +1253,8 @@ bool user_interface::draw_menus()
 
                 Screen.clip(trect);
                 size tw = font->width(label, len);
+                if (marker == '/')
+                    tw += font->width(utf8("⁻¹"));
                 if (tw + 2 >= mcw)
                 {
                     animate |= animask;
@@ -1261,7 +1265,7 @@ bool user_interface::draw_menus()
                     x = (trect.x1 + trect.x2 - tw) / 2;
                 }
                 coord ty = mrect.y1 - (Settings.menu_square ? 2 : 3);
-                Screen.text(x, ty, label, len, font, color);
+                x = Screen.text(x, ty, label, len, font, color);
                 if (marker)
                 {
                     Screen.clip(mrect);
@@ -1272,6 +1276,11 @@ bool user_interface::draw_menus()
                             Screen.glyph(mkx+3, ty-3, marker, font, color);
                         Screen.clip(clip);
                         Screen.glyph(mkx+4, ty-4, marker, font, pattern::white);
+                    }
+                    else if (marker == '/')
+                    {
+                        Screen.text(x, ty,
+                                    utf8("⁻¹"), sizeof("⁻¹")-1, font, color);
                     }
                     else
                     {

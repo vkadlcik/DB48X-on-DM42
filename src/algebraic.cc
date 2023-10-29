@@ -389,7 +389,7 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
         algebraic_g u = ux->uexpr();
         if (decimal_to_fraction(v))
         {
-            x = unit::make(v, u);
+            x = unit::simple(v, u);
             return true;
         }
         break;
@@ -442,7 +442,7 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
         algebraic_g u = ux->uexpr();
         if (to_decimal(v, weak))
         {
-            x = unit::make(v, u);
+            x = unit::simple(v, u);
             return true;
         }
         break;

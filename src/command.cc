@@ -704,7 +704,7 @@ COMMAND_BODY(Cycle)
                 if (uobj)
                 {
                     algebraic_g val = algebraic_p(clone);
-                    clone = unit::make(val, uobj->uexpr());
+                    clone = unit::simple(val, uobj->uexpr());
                 }
                 if (rt.top(clone))
                     return OK;

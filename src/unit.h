@@ -45,6 +45,7 @@ struct unit : complex
         complex(type, value, uexpr) {}
 
     static unit_p make(algebraic_g v, algebraic_g u, id ty = ID_unit);
+    static algebraic_p simple(algebraic_g v, algebraic_g u, id ty = ID_unit);
 
     algebraic_p value() const   { return x(); }
     algebraic_p uexpr() const   { return y(); }

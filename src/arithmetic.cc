@@ -168,7 +168,7 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
                 algebraic_g yv = yu->value();
                 algebraic_g ye = yu->uexpr();
                 xv = xv + yv;
-                return unit::make(xv, ye);
+                return unit::simple(xv, ye);
             }
         }
         rt.inconsistent_units_error();
@@ -330,7 +330,7 @@ algebraic_p arithmetic::non_numeric<sub>(algebraic_r x, algebraic_r y)
                 algebraic_g yv = yu->value();
                 algebraic_g ye = yu->uexpr();
                 xv = xv - yv;
-                return unit::make(xv, ye);
+                return unit::simple(xv, ye);
             }
         }
         rt.inconsistent_units_error();
@@ -474,12 +474,12 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
             algebraic_g ye = yu->uexpr();
             xv = xv * yv;
             xe = xe * ye;
-            return unit::make(xv, xe);
+            return unit::simple(xv, xe);
         }
         else
         {
             xv = xv * y;
-            return unit::make(xv, xe);
+            return unit::simple(xv, xe);
         }
     }
     else if (unit_p yu = y->as<unit>())
@@ -487,7 +487,7 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
         algebraic_g yv = yu->value();
         algebraic_g ye = yu->uexpr();
         yv = x * yv;
-        return unit::make(yv, ye);
+        return unit::simple(yv, ye);
     }
 
     // Text multiplication
@@ -620,12 +620,12 @@ algebraic_p arithmetic::non_numeric<struct div>(algebraic_r x, algebraic_r y)
             algebraic_g ye = yu->uexpr();
             xv = xv / yv;
             xe = xe / ye;
-            return unit::make(xv, xe);
+            return unit::simple(xv, xe);
         }
         else
         {
             xv = xv / y;
-            return unit::make(xv, xe);
+            return unit::simple(xv, xe);
         }
     }
     else if (unit_p yu = y->as<unit>())
@@ -634,7 +634,7 @@ algebraic_p arithmetic::non_numeric<struct div>(algebraic_r x, algebraic_r y)
         algebraic_g ye = yu->uexpr();
         yv = x / yv;
         ye = inv::run(ye);
-        return unit::make(yv, ye);
+        return unit::simple(yv, ye);
     }
 
     // vector + vector or matrix + matrix
@@ -886,7 +886,7 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
     {
         algebraic_g xv = xu->value();
         algebraic_g xe = xu->uexpr();
-        return unit::make(pow(xv, y), pow(xe, y));
+        return unit::simple(pow(xv, y), pow(xe, y));
     }
 
     // Deal with X^N where N is a positive  or negative integer

@@ -85,6 +85,27 @@ unit_p unit::make(algebraic_g v, algebraic_g u, id ty)
 }
 
 
+algebraic_p unit::simple(algebraic_g v, algebraic_g u, id ty)
+// ----------------------------------------------------------------------------
+//   Build a unit object from its components, simplify if it ends up numeric
+// ----------------------------------------------------------------------------
+{
+    unit_p uobj = make(v, u, ty);
+    if (uobj)
+    {
+        algebraic_g uexpr = uobj->uexpr();
+        if (uexpr->is_real())
+        {
+            algebraic_g uval = uobj->value();
+            if (!uexpr->is_one())
+                uval = uval * uexpr;
+            return uval;
+        }
+    }
+    return uobj;
+}
+
+
 
 RENDER_BODY(unit)
 // ----------------------------------------------------------------------------
@@ -126,7 +147,7 @@ EVAL_BODY(unit)
             value = scale * value;
         }
     }
-    value = unit::make(value, uexpr);
+    value = unit::simple(value, uexpr);
     return rt.push(value.Safe()) ? OK : ERROR;
 }
 
@@ -445,7 +466,7 @@ bool unit::convert(unit_g &x) const
         algebraic_g v = x->value();
         v = v * o;
         u = uexpr();
-        x = unit::make(v, u);
+        x = unit_p(unit::simple(v, u));         // Wrong cast, but OK above
         return true;
     }
 
@@ -576,7 +597,7 @@ COMMAND_BODY(ToUnit)
         return ERROR;
     }
     algebraic_g u = algebraic_p(y);
-    unit_g result = unit::make(u, x->uexpr());
+    algebraic_g result = unit::simple(u, x->uexpr());
     if (result && rt.pop() && rt.top(result))
         return OK;
     return ERROR;
@@ -613,7 +634,7 @@ COMMAND_BODY(ApplyUnit)
     if (symbol_p name = key_label(key))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
-                if (unit_g uobj = unit::make(alg, name))
+                if (algebraic_g uobj = unit::simple(alg, name))
                     if (rt.top(uobj.Safe()))
                         return OK;
 
@@ -638,7 +659,7 @@ COMMAND_BODY(ApplyInverseUnit)
     if (symbol_p name = key_label(key))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
-                if (unit_g uobj = unit::make(alg, inv::run(name)))
+                if (algebraic_g uobj = unit::simple(alg, inv::run(name)))
                     if (rt.top(uobj.Safe()))
                         return OK;
 

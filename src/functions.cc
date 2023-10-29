@@ -542,7 +542,7 @@ FUNCTION_BODY(neg)
         algebraic_g v = uobj->value();
         algebraic_g u = uobj->uexpr();
         v = neg::run(v);
-        return unit::make(v, u);
+        return unit::simple(v, u);
     }
     if (x->is_strictly_symbolic())
         return symbolic(ID_neg, x);

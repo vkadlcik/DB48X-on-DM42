@@ -264,9 +264,18 @@ extern "C" void program_main()
         {
             if (!ST(STAT_SUSPENDED))
             {
+                bool lowbat = read_power_voltage() < BATTERY_VOFF;
+
                 // Going to off mode
                 lcd_set_buf_cleared(0); // Mark no buffer change region
                 draw_power_off_image(0);
+                if (lowbat)
+                {
+                    rt.command("Low Battery");
+                    rt.error("Connect to USB / change battery");
+                    ui.draw_error();
+                    refresh_dirty();
+                }
 
                 sys_critical_start();
                 SET_ST(STAT_SUSPENDED);

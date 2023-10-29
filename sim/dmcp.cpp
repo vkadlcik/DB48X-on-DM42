@@ -94,7 +94,7 @@ void LCD_power_on()
 
 uint32_t read_power_voltage()
 {
-    return 2000 + sys_current_ms() % 1500;
+    return BATTERY_VOFF + 25 + sys_current_ms() % (BATTERY_VMAX - BATTERY_VMIN);
 }
 
 int get_lowbat_state()

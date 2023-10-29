@@ -188,4 +188,17 @@ extern surface Screen;
 #define KB_Y                 30         //! Y
 #define KB_Z                 31         //! Z
 
+
+
+// ============================================================================
+//
+//    Battery configuration
+//
+// ============================================================================
+
+#define BATTERY_VMIN    2500    // Min battery on display
+#define BATTERY_VMAX    2930    // Max battery on display
+#define BATTERY_VLOW    2600    // Battery level where graying out
+#define BATTERY_VOFF    2500    // Battery level where going off
+
 #endif // TARGET_DM42_H

@@ -1521,9 +1521,9 @@ bool user_interface::draw_battery()
     }
 
     // Experimentally, battery voltage below 2.6V cause calculator flakiness
-    const int vmax = 2930;
-    const int vmin = 2500;
-    const int vlow = 2600;
+    const int vmax = BATTERY_VMAX;
+    const int vmin = BATTERY_VMIN;
+    const int vlow = BATTERY_VLOW;
 
     coord x = Settings.show_voltage ? 311 : 370;
     rect bat(x + 3, ann_y+2, x + 25, ann_y + ann_height);
@@ -1566,6 +1566,11 @@ bool user_interface::draw_battery()
 
     draw_dirty(x, 0, LCD_W, hfh);
     draw_refresh(2000);
+
+    // Power off if battery power is really low
+    if (vdd < BATTERY_VOFF)
+        power_off();
+
     return true;
 }
 

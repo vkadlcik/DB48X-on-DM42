@@ -252,13 +252,150 @@ static const cstring basic_units[] =
     "day",      "1_d",
     "yr",       "36524219/100000_d",    // Mean tropical year
     "year",     "1_y",                  // Mean tropical year
-    "Hz",       "1_s⁻¹",
+    "Hz",       "1_s⁻¹",                // Hertz
+    "rpm",      "60_Hz",                // Rotations per minute
+
+    // Speed
+    "kph",      "1_km/h",               // US common spelling for km/h
+    "mph",      "1_mi/h",               // Miles per hour
+    "knot",     "1_nmi/h",              // 1 knot is 1 nautical mile per hour
+    "c",        "299792458_m/s",        // Speed of light
+    "ga",       "980665/100000_m/s^2",  // Standard freefall acceleration
+    "G",        "1_ga",                 // Alternate spelling (1_G)
+
+    // Mass
+    "g",        "1_g",                  // Gram
+    "t",        "1000_kg",              // Metric ton
+    "ct",       "200_mg",               // Carat
+    "carat",    "1_ct",                 // Carat
+    "lb",       "45359237/100000_g",    // Avoirdupois pound
+    "dr",       "1/256_lb",             // Drachm
+    "dram",     "1_dr",                 // Alternate spelling
+    "drachm",   "1_dr",                 // Alternate spelling
+    "oz",       "1/16_lb",              // Ounce
+    "stone",    "14_lb",                // Stone
+    "qrUK",     "28_lb",                // Quarter (UK)
+    "qrUS",     "25_lb",                // Quarter (US)
+    "cwtUK",    "112_lb",               // Long hundredweight (UK)
+    "cwtUS",    "100_lb",               // Short hundredweight (US)
+    "tonUK",    "20_cwtUK",             // Long ton
+    "tonUS",    "20_cwtUS",             // Short ton
+    "ton",      "1_tonUS",              // Short ton
+    "grain",    "1/7000_lb",            // Grain (sometimes "gr")
+    "gr",       "1_grain",              // Grain
+    "slug",     "1_lbf*s^2/ft",         // Slug
+    "blob",     "12_slug",              // Blob (seriously????)
+    "dwt",      "24_grain",             // Pennyweight (Troy weight system)
+    "ozt",      "20_dwt",               // Troy ounce
+    "lbt",      "12_ozt",               // Troy pound
+    "u",        "1.6605402E-27_kg",     // Unified atomic mass
+    "mol",      "1_mol",                // Mole (quantity of matter)
+    "mole",     "1_mol",                // Mole (quantity of matter)
+    "Avogadro", "6.02214076E23",        // Avogadro constant (# units in 1_mol)
+
+    // Force
+    "N",        "1_kg*m/s^2",           // Newton
+    "dyn",      "1/100000_N",           // Dyne
+    "gf",       "980665/100000000_N",   // Gram-force
+    "kip",      "1000_lbf",             // Kilopound-force
+    "lbf",      "44482216152605/10000000000000_N",    // Pound-force
+    "pdl",      "138254954376/1000000000000_N",       // Poundal
+
+    // Energy
+    "J",        "1_kg*m^2/s^2",         // Joule
+    "erg",      "1/10000000_J",         // erg
+    "calth",    "4184/1000_J",          // Thermochemical Calorie
+    "cal4",     "4204/1000_J",          // 4°C calorie
+    "cal15",    "41855/10000_J",        // 15°C calorie
+    "cal20",    "4182/1000_J",          // 20°C calorie
+    "calmean",  "4190/1000_J",          // 4°C calorie
+    "cal",      "41868/10000_J",        // International calorie (1929, 1956)
+    "Btu",      "1055.05585262_J",      // British thermal unit
+    "therm",    "105506000_J",          // EEC therm
+    "eV",       "1.60217733E-19_J",     // electron-Volt
+
+    // Power
+    "W",        "1_J/s",                // Watt
+    "hp",       "745.699871582_W",      // Horsepower
+
+    // Pressure
+    "Pa",       "1_N/m^2",              // Pascal
+    "atm",      "101325_Pa",            // Atmosphere
+    "bar",      "100000_Pa",            // bar
+    "psi",      "6894.75729317_Pa",     // Pound per square inch
+    "ksi",      "1000_psi",             // Kilopound per square inch
+    "torr",     "1/760_atm",            // Torr = 1/760 standard atm
+    "mmHg",     "1_torr",               // millimeter of mercury
+    "inHg",     "1_in/mm*mmHg",         // inch of mercury
+    "inH2O",    "249.0889_Pa",          // Inch of H2O
+
+    // Temperature
+    "K",        "1_K",                  // Kelvin
+    "°C",       "1_K",                  // Celsius
+    "°R",       "9/5_K",                // Rankin
+    "°F",       "9/5_K",                // Fahrenheit
+
+    // Electricity
+    "A",        "1_A",                  // Ampere
+    "V",        "1_kg*m^2/(A*s^3)",     // Volt
+    "C",        "1_A*s",                // Coulomb
+    "Ω",        "1_V/A",                // Ohm
+    "ohm",      "1_Ω",                  // Ohm
+    "F",        "1_C/V",                // Farad
+    "Fdy",      "96487_A*s",            // Faraday
+    "H",        "1_ohm*s",              // Henry
+    "mho",      "1_S",                  // Ohm spelled backwards
+    "S",        "1_A/V",                // Siemens
+    "T",        "1_V*s/m^2",            // Tesla
+    "Wb",       "1_V*s",                // Weber
+
+    // Angles
+    "turn",     "1_turn",               // Full turns
+    "°",        "1/360_turn",           // Degree
+    "grad",     "1/400_turn",           // Grad
+    "r",        "0.1591549430918953357688837633725144_turn", // Radian
+    "arcmin",   "1/60_°",               // Arc minute
+    "arcs",     "1/60_arcmin",          // Arc second
+    "sr",       "1_sr",                 // Steradian
+    "ℼr",       "1/2_turn",             // Pi radians
+    "pir",      "1/2_turn",             // Pi radians
+
+    // Light
+    "cd",       "1_cd",                 // Candela
+    "lm",       "1_cd*sr",              // Lumen
+    "lx"        "1_lm/m^2",             // Lux
+    "fc",       "1_lm/ft^2",            // Footcandle
+    "flam",     "1_cd/ft^2*r/pir",      // Foot-Lambert
+    "ph",       "10000_lx",             // Phot
+    "sb",       "10000_cd/m^2",         // Stilb
+    "lam",      "1_cd/cm^2*r/pir",      // Lambert
+    "nit",      "1_cd/m^2",             // Nit
+    "nt",       "1_cd/m^2",             // Nit
+
+    // Radiation
+    "Gy",       "1_m^2/s^2",            // Gray
+    "rad",      "1/100_m^2/s^2",        // rad
+    "rem",      "1_rad",                // rem
+    "Sv",       "1_Gy",                 // Sievert
+    "Bq",       "1_Hz",                 // Becquerel
+    "Ci",       "37_GBq",               // Curie
+    "R",        "258_µC/kg"             // Roentgen
+
+    // Viscosity
+    "P",        "1/10_Pa*s",            // Poise
+    "St",       "1_cm^2/s",             // Stokes
 
     // Computing
     "bit",      "1_bit",                // Bit
     "byte",     "8_bit",                // Byte
-    "B",        "1_byte",                // Byte
-    "baud",     "1_bit/s",              // Baud
+    "B",        "1_byte",               // Byte
+    "bps",      "1_bit/s",              // bit per second
+    "baud",     "1_bps/SR",             // baud
+    "Bd",       "1_baud",               // baud (standard unit)
+    "mips",     "1_mips",               // Million instructions per second
+    "flops",    "1_flops",              // Floating point operation per second
+    "SR",       "1",                    // Symbol rate (default is 1)
+    "dB",       "1_dB",                 // decibel
 };
 
 
@@ -761,11 +898,11 @@ UNITS(LengthUnitsMenu,
 //   LengthUnitsMenu
 // ----------------------------------------------------------------------------
       "m",      "cm",   "mm",   "km",   "μm",           // Metric
-      "yd",     "ft",   "in",   "mi",   "mil",          // US customary
+      "yd",     "ft",   "in",   "mi",   "nmi",          // US customary
       "Mpc",    "pc",   "lyr",  "au",   "ls",           // Astronomy
       "ch",     "rd",   "cable","fath", "league",       // US Survey (post-2023)
       "furlong","fathom","ftUS","miUS", "US",           // US.Survey, pre-2023
-      "Å",    "fermi",  "μ",    "acable","icable"       // Misc
+      "Å",    "fermi",  "mil",  "acable","icable"       // Misc
     );
 
 
@@ -794,7 +931,7 @@ UNITS(TimeUnitsMenu,
 // ----------------------------------------------------------------------------
 //   TimeUnitsMenu
 // ----------------------------------------------------------------------------
-      "yr", "d", "h", "min", "s", "Hz"
+      "s", "min", "h", "d", "yr", "Hz"
     );
 
 
@@ -802,7 +939,7 @@ UNITS(SpeedUnitsMenu,
 // ----------------------------------------------------------------------------
 //   SpeedUnitsMenu
 // ----------------------------------------------------------------------------
-      "m/s", "cm/s", "ft/s", "kph", "mph", "knot",
+      "m/s", "km/h", "ft/s", "mph", "knot",
       "c", "ga"
     );
 
@@ -811,9 +948,10 @@ UNITS(MassUnitsMenu,
 // ----------------------------------------------------------------------------
 //   MassUnitsMenu
 // ----------------------------------------------------------------------------
-     "kg", "g", "lb", "oz", "slug",
-      "lbt", "ton", "tonUK", "t", "ozt",
-      "ct", "grain", "u", "mol"
+      "kg",     "g",    "t",    "ct",   "mol",
+      "lb",     "oz",   "dr",   "stone","grain",
+      "qrUS",   "cwtUS","tonUS","slug", "blob",
+      "lbt",    "ozt",  "dwt",  "tonUK","u"
     );
 
 
@@ -829,8 +967,8 @@ UNITS(EnergyUnitsMenu,
 // ----------------------------------------------------------------------------
 //   EnergyUnitsMenu
 // ----------------------------------------------------------------------------
-      "J", "erg", "Kcal", "cal", "Btu", "ft×lb",
-      "therm", "MeV", "eV"
+      "J",      "erg",  "Kcal", "cal",  "Btu",
+      "ft×lb",  "therm","MeV",  "eV"
     );
 
 
@@ -861,7 +999,7 @@ UNITS(TemperatureUnitsMenu,
 
 UNITS(ElectricityUnitsMenu,
 // ----------------------------------------------------------------------------
-//   ElectricityUnitsMenu
+//   Electricity
 // ----------------------------------------------------------------------------
       "V", "A", "C", "Ω", "F", "W",
       "Fdy", "H", "mho", "S", "T", "Wb"
@@ -870,17 +1008,19 @@ UNITS(ElectricityUnitsMenu,
 
 UNITS(AngleUnitsMenu,
 // ----------------------------------------------------------------------------
-//   AnglesUnitsMenu
+//   Angles
 // ----------------------------------------------------------------------------
-      "°", "r", "grad", "archi", "arcs", "sr", "ℼ×r"
+      "°",      "r",    "grad",         "arcmin",       "arcs",
+      "turn",   "sr",   "ℼr"
     );
 
 
 UNITS(LightUnitsMenu,
 // ----------------------------------------------------------------------------
-//   LightUnitsMenu
+//   Light and radiations
 // ----------------------------------------------------------------------------
-      "fc", "flam", "lx", "ph", "sb", "lm", "cd", "lam"
+      "cd", "lm", "lx", "fc", "flam",
+      "ph", "sb", "lam", "nit"
     );
 
 
@@ -888,7 +1028,8 @@ UNITS(RadiationUnitsMenu,
 // ----------------------------------------------------------------------------
 //   RadiationsUnitsMenu
 // ----------------------------------------------------------------------------
-      "Gy", "rad", "rem", "Sv", "Bq", "Ci", "R"
+      "Gy", "rad", "rem", "Sv", "Bq",
+      "Ci", "R"
 
     );
 
@@ -906,5 +1047,6 @@ UNITS(ComputerUnitsMenu,
 // ----------------------------------------------------------------------------
 //   Units for computer use
 // ----------------------------------------------------------------------------
-      "B", "byte", "baud", "bit",
+      "B",      "byte", "bit",  "flops", "mips",
+      "baud",   "bps"   "SR",   "dB",
     );

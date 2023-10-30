@@ -29,10 +29,13 @@
 
 #include "equation.h"
 
+#include "arithmetic.h"
+#include "functions.h"
+#include "integer.h"
 #include "parser.h"
 #include "precedence.h"
 #include "renderer.h"
-
+#include "unit.h"
 
 RECORDER(equation, 16, "Processing of equations and algebraic objects");
 RECORDER(equation_error, 16, "Errors with equations");
@@ -990,29 +993,212 @@ equation_p equation::simplify() const
 }
 
 
-equation_p equation::simplify_units() const
+algebraic_p equation::factor_out(algebraic_g expr,
+                                 algebraic_g factor,
+                                 algebraic_g &scale,
+                                 algebraic_g &exponent)
 // ----------------------------------------------------------------------------
-//   Rewrites that simplify units
+//   Factor out the given factor from the equation
 // ----------------------------------------------------------------------------
+//   Given expr=A*X*(X*B)^3/(X*C)^6,
+//   returns X^(-2) * (A*B^3/C^6), with factor=(A*B^3/C^6) and exponent=-2
 {
-    return rewrite_all(
-        x * inv(y),     x / y,
-        inv(x) * y,     y / x,
-        sq(x),          x^two,
-        x * x,          x^two,
-        (x^n) * x,      x^(n + one),
-        (x^n) / x,      x^(n - one),
-        x^one,          x,
-        x^zero,         one,
-        x * (y * z),    x * y * z,
-        x * (y / z),    x * y / z,
-        x / y * z,      x * z / y,
-        x / y / z,      x / (y * z),
-        x / (y / z),    x * z / y,
-        x / x,          one,
-        x * y / y,      x,
-        x * y / x,      y
-        );
+    // Quick bail out in case of error down the line
+    if (!expr || !factor)
+        return nullptr;
+
+    // Default is 1 * X ^ 0 * (rest-of-expr)
+    scale = integer::make(1);
+    exponent = integer::make(0);
+
+    equation_g eq = expr->as<equation>();
+    if (eq)
+    {
+        // Case where we have a single name or a constant, e.g. m or 1
+        if (object_p inner = eq->quoted())
+        {
+            if (inner->is_algebraic())
+            {
+                expr = algebraic_p(inner);
+                eq = nullptr;
+            }
+        }
+    }
+
+    // Check for anything that is not an equation
+    if (!eq)
+    {
+        // We have a single element in the equation
+        if (expr->is_same_as(factor))
+        {
+            // Factoring X as 1 * (1 * X ^ 1)
+            exponent = scale;
+            return factor;
+        }
+
+        // Factoring Y as Y * X ^ 0)
+        scale = expr;
+        return expr;
+    }
+
+
+    // Loop on all items in the equation, factoring out as we go
+    algebraic_g x, y, xs, xe, ys, ye;
+    algebraic_g one = integer::make(1);
+    for (object_p obj : *eq)
+    {
+        id ty = obj->type();
+
+        switch (ty)
+        {
+        case ID_mul:
+            x = algebraic_p(rt.pop());
+            y = algebraic_p(rt.pop());
+            y = factor_out(y, factor, ys, ye);
+            x = factor_out(x, factor, xs, xe);
+            scale = ys * xs;
+            exponent = ye + xe;
+            x = y * x;
+            if (!x.Safe() || !rt.push(x.Safe()))
+                return nullptr;
+            break;
+
+        case ID_div:
+            x = algebraic_p(rt.pop());
+            y = algebraic_p(rt.pop());
+            y = factor_out(y, factor, ys, ye);
+            x = factor_out(x, factor, xs, xe);
+            scale = ys / xs;
+            exponent = ye - xe;
+            x = y / x;
+            if (!x.Safe() || !rt.push(x.Safe()))
+                return nullptr;
+            break;
+
+        case ID_pow:
+            x = algebraic_p(rt.pop());
+            y = algebraic_p(rt.pop());
+            y = factor_out(y, factor, ys, ye);
+            ye = ye * x;
+            scale = pow(ys, x);
+            exponent = ye;
+            x = pow(y, x);
+            if (!x.Safe() || !rt.push(x.Safe()))
+                return nullptr;
+            break;
+
+        case ID_inv:
+            x = algebraic_p(rt.pop());
+            x = factor_out(x, factor, xs, xe);
+            scale = inv::run(xs);
+            exponent = -xe;
+            x = inv::run(x);
+            if (!x.Safe() || !rt.push(x.Safe()))
+                return nullptr;
+            break;
+
+        case ID_sq:
+            x = algebraic_p(rt.pop());
+            x = factor_out(x, factor, xs, xe);
+            scale = xs * xs;
+            exponent = xe + xe;
+            x = x * x;
+            if (!x.Safe() || !rt.push(x.Safe()))
+                return nullptr;
+            break;
+
+        case ID_cubed:
+            x = algebraic_p(rt.pop());
+            x = factor_out(x, factor, xs, xe);
+            scale = xs * xs * xs;
+            exponent = xe + xe + xe;
+            x = x * x * x;
+            if (!x.Safe() || !rt.push(x.Safe()))
+                return nullptr;
+            break;
+
+        default:
+            if (obj->evaluate() != OK)
+                return nullptr;
+        }
+    }
+
+    x = algebraic_p(rt.pop());
+    return x;
+}
+
+
+algebraic_p equation::simplify_products() const
+// ----------------------------------------------------------------------------
+//   Simplify products, used notably to simplify units
+// ----------------------------------------------------------------------------
+//   Units are products and ratios of powers.
+//   We rewrite that so that all terms are written at most once with the
+//   corresponing (positive or negative) power
+{
+    // Case where we have a single name or a constant, e.g. 1_m or 1_1.
+    if (object_p inner = quoted())
+        if (inner->is_algebraic())
+            return algebraic_p(inner);
+
+    // Save auto-simplify and set it
+    bool auto_simplify = Settings.auto_simplify;
+    Settings.auto_simplify = true;
+    save<bool> save(unit::mode, false);
+
+    // Need a GC pointer since stack operations may move us
+    equation_g  eq         = this;
+    algebraic_g num        = integer::make(1);
+    algebraic_g den        = integer::make(1);
+
+    // Loop factoring out variables, until there is no variable left
+    bool done = false;
+    while (!done)
+    {
+        done = true;
+        for (object_p obj : *eq)
+        {
+            if (symbol_p sym = obj->as<symbol>())
+            {
+                algebraic_g scale, exponent;
+                algebraic_g rest = factor_out(eq.Safe(), sym, scale, exponent);
+                if (!rest || !scale || !exponent)
+                {
+                    Settings.auto_simplify = auto_simplify;
+                    return nullptr;
+                }
+                if (exponent->is_negative(false))
+                    den = den * pow(sym, -exponent);
+                else
+                    num = num * pow(sym, exponent);
+                rest = scale;
+                if (equation_p req = rest->as<equation>())
+                {
+                    eq = req;
+                    done = false;
+                }
+                else
+                {
+                    if (rest->is_real())
+                        num = rest * num;
+                    else
+                        num = num * rest;
+                    eq = nullptr;
+                }
+                break;
+            }
+        }
+
+        if (done && eq)
+        {
+            algebraic_g rest = eq.Safe();
+            num = num * rest;
+        }
+    }
+
+    num = num / den;
+    Settings.auto_simplify = auto_simplify;
+    return num;
 }
 
 

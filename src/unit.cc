@@ -82,7 +82,7 @@ unit_p unit::make(algebraic_g v, algebraic_g u, id ty)
         }
     }
     if (equation_p eq = u->as<equation>())
-        u = eq->simplify_units();
+        u = eq->simplify_products();
     return rt.make<unit>(ty, v, u);
 }
 
@@ -414,7 +414,10 @@ bool unit::convert(algebraic_g &x) const
     // Otherwise, convert to a unity unit
     algebraic_g one = algebraic_p(integer::make(1));
     unit_g u = unit::make(x, one);
-    return convert(x);
+    if (!convert(u))
+        return false;
+    x = u.Safe();
+    return true;
 }
 
 

@@ -119,7 +119,11 @@ struct equation : program
     {
         return render(this, r, quoted);
     }
-    equation_p simplify_units() const;
+    algebraic_p simplify_products() const;
+    static algebraic_p factor_out(algebraic_g expr,
+                                  algebraic_g factor,
+                                  algebraic_g &scale,
+                                  algebraic_g &exponent);
 
   protected:
     static symbol_g render(uint depth, int &precedence, bool edit);

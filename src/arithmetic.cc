@@ -886,6 +886,7 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
     {
         algebraic_g xv = xu->value();
         algebraic_g xe = xu->uexpr();
+        save<bool> save(unit::mode, false);
         return unit::simple(pow(xv, y), pow(xe, y));
     }
 
@@ -898,6 +899,22 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
         // Defer computations for integer values to integer_ok
         if (x->is_integer() && !negy)
             return nullptr;
+
+        // Auto-simplify x^0 = 1 and x^1 = x
+        if (Settings.auto_simplify)
+        {
+            if (y->is_zero(false))
+            {
+                if (x->is_zero(false))
+                {
+                    rt.undefined_operation_error();
+                    return nullptr;
+                }
+                return integer::make(1);
+            }
+            if (y->is_one())
+                return x;
+        }
 
         // Do not expand X^3 or integers when y>=0
         if (x->is_strictly_symbolic())

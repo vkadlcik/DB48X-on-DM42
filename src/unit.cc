@@ -575,6 +575,38 @@ COMMAND_BODY(UBase)
 }
 
 
+COMMAND_BODY(UFact)
+// ----------------------------------------------------------------------------
+//   Factor level 1 unit out of level 2 unit
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(2))
+        return ERROR;
+
+    unit_p x = rt.stack(0)->as<unit>();
+    unit_p y = rt.stack(1)->as<unit>();
+    if (!x || !y)
+    {
+        rt.type_error();
+        return ERROR;
+    }
+
+    algebraic_g xa = x;
+    algebraic_g ya = y;
+    save<bool> ueval(unit::mode, true);
+    algebraic_g r = xa * (ya / xa);
+    if (r->is_same_as(ya))
+    {
+        algebraic_g d = xa->evaluate();
+        ya = ya->evaluate();
+        r = xa * (ya / d);
+    }
+    if (!r || !rt.drop() || !rt.top(r))
+        return ERROR;
+    return OK;
+}
+
+
 FUNCTION_BODY(UVal)
 // ----------------------------------------------------------------------------
 //   Extract value from unit object in level 1

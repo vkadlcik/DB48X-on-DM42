@@ -623,6 +623,7 @@ COMMAND_BODY(ToolsMenu)
             case ID_list:               menu = ID_ListMenu; break;
             case ID_array:              menu = ID_MatrixMenu; break;
             case ID_tag:                menu = ID_ObjectMenu; break;
+            case ID_unit:               menu = ID_UnitsConversionsMenu; break;
             default:                    break;
             }
         }

@@ -4283,7 +4283,8 @@ size_t user_interface::insert(size_t offset, utf8 data, size_t len)
 
 object::result user_interface::insert_softkey(int     key,
                                               cstring before,
-                                              cstring after)
+                                              cstring after,
+                                              char    term)
 // ----------------------------------------------------------------------------
 //   Insert the name associated with the key if editing
 // ----------------------------------------------------------------------------
@@ -4295,9 +4296,18 @@ object::result user_interface::insert_softkey(int     key,
             size_t length = 0;
             uint   cursor = cursorPosition();
             if (symbol_p name = label(key - KEY_F1))
+            {
                 text = (cstring) name->value(&length);
+            }
+            else if (term)
+            {
+                cstring found = strchr(text, term);
+                length = found ? found - text : strlen(text);
+            }
             else
+            {
                 length = strlen(text);
+            }
 
             cursor += rt.insert(cursor, utf8(before));
             cursor += rt.insert(cursor, utf8(text), length);

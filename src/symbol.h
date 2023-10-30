@@ -88,7 +88,7 @@ inline bool is_valid_as_name_initial(unicode cp)
 {
     return (cp >= 'A' && cp <= 'Z')
         || (cp >= 'a' && cp <= 'z')
-        || (cp >= 0x100 &&
+        || (cp >= 0x80 &&
             (cp != L'÷' &&      // Exclude symbols you can't have in a name
              cp != L'×' &&
              cp != L'↑' &&

@@ -94,6 +94,7 @@ struct UnitMenu : unit_menu                                             \
 COMMAND_DECLARE(Convert);
 COMMAND_DECLARE(UBase);
 COMMAND_DECLARE(UFact);
+COMMAND_DECLARE(ConvertToUnitPrefix);
 FUNCTION(UVal);
 COMMAND_DECLARE(ToUnit);
 COMMAND_DECLARE(ApplyUnit);

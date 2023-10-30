@@ -573,6 +573,8 @@ CMD(ApplyUnit)
 CMD(ConvertToUnit)
 CMD(ApplyInverseUnit)
 
+CMD(ConvertToUnitPrefix)
+
 UNIT_MENU(LengthUnitsMenu)
 UNIT_MENU(AreaUnitsMenu)
 UNIT_MENU(VolumeUnitsMenu)

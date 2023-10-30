@@ -37,6 +37,7 @@
 #include "parser.h"
 #include "renderer.h"
 #include "settings.h"
+#include "user_interface.h"
 
 
 PARSE_BODY(unit)
@@ -422,7 +423,8 @@ static const si_prefix si_prefixes[] =
     { "m",     -3 },                    // milli
     { "k",      3 },                    // kilo
     { "K",      3 },                    // kilo (computer-science)
-    { "μ",     -6 },                    // micro
+    { "µ",     -6 },                    // micro (0xB5)
+    { "μ",     -6 },                    // micro (0x3BC)
     { "M",      6 },                    // mega
     { "n",     -9 },                    // nano
     { "G",      9 },                    // giga
@@ -870,6 +872,118 @@ COMMAND_BODY(ConvertToUnit)
                                 return OK;
 
     return ERROR;
+}
+
+
+static symbol_p unit_name(object_p obj)
+// ----------------------------------------------------------------------------
+//    If the object is a simple unit like `1_m`, return `m`
+// ----------------------------------------------------------------------------
+{
+    if (obj)
+    {
+        if (unit_p uobj = obj->as<unit>())
+        {
+            algebraic_p uexpr = uobj->uexpr();
+            symbol_p name = uexpr->as<symbol>();
+            if (!name)
+                if (equation_p eq = uexpr->as<equation>())
+                    if (symbol_p inner = eq->as_quoted<symbol>())
+                        name = inner;
+            return name;
+        }
+    }
+    return nullptr;
+}
+
+
+COMMAND_BODY(ConvertToUnitPrefix)
+// ----------------------------------------------------------------------------
+//   Convert to a given unit prefix
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    if (rt.editing())
+    {
+        if (ui.editing_mode() != ui.DIRECT)
+            return ui.insert_softkey(key, "_", "", ' ');
+        if (!ui.end_edit())
+            return object::ERROR;
+    }
+    if (key < KEY_F1 || key > KEY_F6)
+        return object::OK;
+
+    // Read the prefix (e.g. "c") from the softkey label,
+    uint index = key - KEY_F1 + ui.NUM_SOFTKEYS * ui.shift_plane();
+    cstring prefix = ui.labelText(index);
+    if (!prefix)
+    {
+        rt.undefined_operation_error();
+        return ERROR;
+    }
+
+    // Read the stack value
+    object_p value = rt.top();
+    if (!value)
+        return ERROR;
+
+    // This must be a unit type with a simple name
+    unit_g   un  = value->as<unit>();
+    symbol_p sym = unit_name(un);
+    if (!sym)
+    {
+        rt.type_error();
+        return ERROR;
+    }
+
+    // Lookup the name to get the underlying unit, e.g. 1_km -> 1000_m
+    unit_p   base = unit::lookup(sym);
+    symbol_g bsym = unit_name(base);
+    if (!bsym)
+    {
+        rt.inconsistent_units_error();
+        return ERROR;
+    }
+
+    // Build a unit with the prefix and the base
+    gcutf8 ptxt = utf8(prefix);
+    size_t plen = strlen(prefix);
+    if (cstring space = strchr(prefix, ' '))
+    {
+        size_t offset = space - prefix;
+        if (plen > offset)
+            plen = offset;
+    }
+
+    // Render 1_cm if the prefix is c
+    renderer r;
+    r.put("1_");
+    r.put(ptxt, plen);
+    ptxt = bsym->value(&plen);
+    r.put(ptxt, plen);
+
+    plen = r.size();
+    object_p scaled = object::parse(r.text(), plen);
+    if (!scaled)
+        return ERROR;
+    unit_p target = scaled->as<unit>();
+    if (!target)
+    {
+        rt.inconsistent_units_error();
+        return ERROR;
+    }
+
+    // Perform the conversion to the desired unit
+    algebraic_g x = un.Safe();
+    if (!target->convert(x))
+    {
+        rt.inconsistent_units_error();
+        return ERROR;
+    }
+
+    if (!rt.top(x))
+        return ERROR;
+    return OK;
 }
 
 

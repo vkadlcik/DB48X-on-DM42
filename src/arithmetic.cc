@@ -1219,7 +1219,12 @@ algebraic_p arithmetic::evaluate(id          op,
         bignum_g xg = bignum_p(x.Safe());
         bignum_g yg = bignum_p(y.Safe());
         if (ops.bignum_ok(xg, yg))
-            return bignum_p(xg);
+        {
+            x = xg.Safe();
+            if (Settings.numeric)
+                (void) to_decimal(x, true);
+            return x;
+        }
     }
 
     // Fraction types
@@ -1239,6 +1244,8 @@ algebraic_p arithmetic::evaluate(id          op,
                         if (d->is(1))
                             return algebraic_p(bignum_p(xf->numerator()));
                     }
+                    if (Settings.numeric)
+                        (void) to_decimal(x, true);
                     return x;
                 }
             }

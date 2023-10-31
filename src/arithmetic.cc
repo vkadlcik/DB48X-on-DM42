@@ -1266,6 +1266,7 @@ algebraic_p arithmetic::evaluate(id          op,
             bid32 res;
             ops.op32(&res.value, &xv.value, &yv.value);
             x = rt.make<decimal32>(ID_decimal32, res);
+            break;
         }
         case ID_decimal64:
         {
@@ -1274,6 +1275,7 @@ algebraic_p arithmetic::evaluate(id          op,
             bid64 res;
             ops.op64(&res.value, &xv.value, &yv.value);
             x = rt.make<decimal64>(ID_decimal64, res);
+            break;
         }
         case ID_decimal128:
         {
@@ -1282,6 +1284,7 @@ algebraic_p arithmetic::evaluate(id          op,
             bid128 res;
             ops.op128(&res.value, &xv.value, &yv.value);
             x = rt.make<decimal128>(ID_decimal128, res);
+            break;
         }
         default:
             break;

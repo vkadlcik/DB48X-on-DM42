@@ -812,6 +812,9 @@ COMMAND_BODY(ApplyUnit)
             return object::ERROR;
     }
 
+    if (!rt.args(1))
+        return ERROR;
+
     if (symbol_p name = key_label(key))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
@@ -837,6 +840,9 @@ COMMAND_BODY(ApplyInverseUnit)
             return object::ERROR;
     }
 
+    if (!rt.args(1))
+        return ERROR;
+
     if (symbol_p name = key_label(key))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
@@ -861,6 +867,9 @@ COMMAND_BODY(ConvertToUnit)
         if (!ui.end_edit())
             return object::ERROR;
     }
+
+    if (!rt.args(1))
+        return ERROR;
 
     if (symbol_p name = key_label(key))
         if (object_p value = rt.top())
@@ -912,6 +921,9 @@ COMMAND_BODY(ConvertToUnitPrefix)
     }
     if (key < KEY_F1 || key > KEY_F6)
         return object::OK;
+
+    if (!rt.args(1))
+        return ERROR;
 
     // Read the prefix (e.g. "c") from the softkey label,
     uint index = key - KEY_F1 + ui.NUM_SOFTKEYS * ui.shift_plane();

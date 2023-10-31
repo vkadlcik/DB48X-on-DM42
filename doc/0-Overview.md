@@ -370,7 +370,7 @@ There are a number of intentional differences in design between DB48X and the
 HP48, HP49 or HP50G's implementations of RPL. There are also a number of
 unintentional differences, since the implementation is completely new.
 
-#### User interface
+### User interface
 
 * DB48X features an extensive built-in help system, which you are presently
   using. Information for that help system is stored using a regular *markdown*
@@ -391,8 +391,19 @@ unintentional differences, since the implementation is completely new.
   RPL implementations. Notably, on HP's implementations, `DUP` is a keyword but
   you can use `DuP` as a valid variable name. This is not possible in DB48X.
 
+* The saving of the stack arguments for the `LastArg` command is controled
+  independently by two distinct settings, `SaveLastArg` and
+  `SaveLastArgInPrograms`. The first one controls if `LastArg` is saved for
+  interactive operations, and is enabled by default. The second one controls if
+  `LastArg` is saved before executing commands while running a program or
+  evaluating an expression, and is disabled by default. This impacts commands
+  that evaluate programs, such as `ROOT`. On the HP48, `LastArg` after running
+  `ROOT` interactively gives arguments used by some operation within `ROOT`,
+  whereas on DB48X with the default settings, it returns the arguments to
+  `ROOT`.
 
-#### Representation of objects
+
+### Representation of objects
 
 * Internally, the calculator deals with various representations for
   numbers. Notably, it keeps integer values and fractions in exact form for
@@ -406,7 +417,8 @@ unintentional differences, since the implementation is completely new.
   Decimal Floating-Point library. The 128-bit format gives the calculator 34
   significant digits of precision, like the DM42. DB48X may support other
   formats in the future, like the arbitrary-precision floating-point found in
-  newRPL.
+  newRPL. The `Precision` command (in the `DisplayModesMenu`) can be used to
+  select the precision for arithmetic operations.
 
 * Based numbers with an explicit base, like `#123h` keep their base, which makes
   it possible to show on stack binary and decimal numbers side by side. Mixed
@@ -424,7 +436,7 @@ unintentional differences, since the implementation is completely new.
   is an integer whereas `0.0` is a floating-point.
 
 
-#### Alignment with SwissMicros calculators
+### Alignment with SwissMicros calculators
 
 * DB48X will borrow to the DM-42 the idea of _special variables_ for settings,
   which are variables with a special meaning. For example, the `Precision`

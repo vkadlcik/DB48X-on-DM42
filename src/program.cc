@@ -28,6 +28,7 @@
 
 #include "program.h"
 #include "parser.h"
+#include "settings.h"
 
 RECORDER(program, 16, "Program evaluation");
 
@@ -52,18 +53,9 @@ EXEC_BODY(program)
 //   Execution of a program evaluates all items in turn
 // ----------------------------------------------------------------------------
 {
-    result r = OK;
-
-    for (object_g obj : *o)
-    {
-        record(program, "Evaluating %+s at %p, size %u\n",
-               obj->fancy(), (object_p) obj, obj->size());
-        if (interrupted() || r != OK)
-            break;
-        r = obj->evaluate();
-    }
-
-    return r;
+    return Settings.prog_save_last
+        ? o->execute_program<true>()
+        : o->execute_program<false>();
 }
 
 

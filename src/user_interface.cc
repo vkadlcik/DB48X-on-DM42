@@ -313,8 +313,12 @@ bool user_interface::end_edit()
                 editor_save(saved, false);
                 clear_editor();
                 this->editing = nullptr;
-                rt.save();
-                cmds->execute();
+                if (Settings.save_stack)
+                    rt.save();
+                if (Settings.save_last)
+                    cmds->execute_program<true>();
+                else
+                    cmds->execute_program<false>();
             }
             else
             {

@@ -107,6 +107,9 @@ struct settings
           menu_square(false),
           graph_stack(false),
           store_at_end(false),
+          save_stack(true),
+          save_last(true),
+          prog_save_last(false),
           date_separator('/'),
           result_sz(STACK),
           stack_sz(STACK),
@@ -220,6 +223,9 @@ public:
     bool     menu_square    :1; // Square or rounded menus
     bool     graph_stack    :1; // Graphical rendering on stack
     bool     store_at_end   :1; // 'STO' stores at end of directory
+    bool     save_stack     :1; // Save last stack
+    bool     save_last      :1; // Save last args
+    bool     prog_save_last :1; // Save last args while running programs
     char     date_separator;    // Date separator
     font_id  result_sz;         // Size for stack top
     font_id  stack_sz;          // Size for other stack levels

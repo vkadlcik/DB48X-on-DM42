@@ -186,6 +186,15 @@ struct runtime
     //    Clone all levels on the stack
     // -------------------------------------------------------------------------
 
+    void need_save()
+    // ------------------------------------------------------------------------
+    //   Indicate that we need to save arguments
+    // ------------------------------------------------------------------------
+    {
+        SaveArgs = true;
+    }
+
+
 
     // ========================================================================
     //
@@ -803,6 +812,7 @@ protected:
     object_p *Directories;  // Start of directories, end of returns
     object_p *Returns;      // Start of return stack, end of locals
     object_p *HighMem;      // End of available memory
+    bool      SaveArgs;     // Save arguents (LastArgs)
 
     // Pointers that are GC-adjusted
     static gcptr *GCSafe;

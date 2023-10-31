@@ -75,7 +75,8 @@ runtime::runtime(byte *mem, size_t size)
       Locals(),
       Directories(),
       Returns(),
-      HighMem()
+      HighMem(),
+      SaveArgs(false)
 {
     if (mem)
         memory(mem, size);
@@ -942,19 +943,22 @@ bool runtime::args(uint count)
         missing_argument_error();
         return false;
     }
-    size_t nargs = args();
-    if (count > nargs)
+    if (SaveArgs)
     {
-        size_t sz = (count - nargs) * sizeof(object_p);
-        if (available(sz) < sz)
-            return false;
+        size_t nargs = args();
+        if (count > nargs)
+        {
+            size_t sz = (count - nargs) * sizeof(object_p);
+            if (available(sz) < sz)
+                return false;
+        }
+
+        memmove(Stack + nargs - count, Stack, nstk * sizeof(object_p));
+        Stack = Stack + nargs - count;
+        Args = Args + nargs - count;
+        memmove(Args, Stack, count * sizeof(object_p));
+        SaveArgs = false;
     }
-
-    memmove(Stack + nargs - count, Stack, nstk * sizeof(object_p));
-    Stack = Stack + nargs - count;
-    Args = Args + nargs - count;
-    memmove(Args, Stack, count * sizeof(object_p));
-
     return true;
 }
 

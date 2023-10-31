@@ -30,9 +30,12 @@
 // ****************************************************************************
 
 #include "list.h"
+#  include "recorder.h"
+
 
 GCP(program);
 GCP(block);
+RECORDER_DECLARE(program);
 
 struct program : list
 // ----------------------------------------------------------------------------
@@ -40,6 +43,27 @@ struct program : list
 // ----------------------------------------------------------------------------
 {
     program(id type, gcbytes bytes, size_t len): list(type, bytes, len) {}
+
+    template<bool saving_last_args>
+    result execute_program() const
+    // ------------------------------------------------------------------------
+    //   Execute a program, either saving last args or not
+    // ------------------------------------------------------------------------
+    {
+        result r = OK;
+        for (object_g obj : *this)
+        {
+            record(program, "Evaluating %+s at %p, size %u\n",
+                   obj->fancy(), (object_p) obj, obj->size());
+            if (interrupted() || r != OK)
+                break;
+            if  (saving_last_args)
+                rt.need_save();
+            r = obj->evaluate();
+        }
+
+        return r;
+    }
 
     static bool      interrupted(); // Program interrupted e.g. by EXIT key
     static program_p parse(utf8 source, size_t size);
@@ -67,5 +91,6 @@ public:
     RENDER_DECL(block);
     EVAL_DECL(block);
 };
+
 
 #endif // PROGRAM_H

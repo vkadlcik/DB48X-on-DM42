@@ -31,7 +31,7 @@
 #include "main.h"
 
 #include "blitter.h"
-#include "equation.h"
+#include "expression.h"
 #include "font.h"
 #include "num.h"
 #include "program.h"

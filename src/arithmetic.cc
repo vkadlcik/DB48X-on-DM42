@@ -34,7 +34,7 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
-#include "equation.h"
+#include "expression.h"
 #include "fraction.h"
 #include "functions.h"
 #include "integer.h"
@@ -918,7 +918,7 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
 
         // Do not expand X^3 or integers when y>=0
         if (x->is_strictly_symbolic())
-            return equation::make(ID_pow, x, y);
+            return expression::make(ID_pow, x, y);
 
         // Deal with X^N where N is a positive integer
         ularge yv = integer_p(y.Safe())->value<ularge>();
@@ -1305,7 +1305,7 @@ algebraic_p arithmetic::evaluate(id          op,
 
     if (x->is_symbolic() && y->is_symbolic())
     {
-        x = equation::make(op, x, y);
+        x = expression::make(op, x, y);
         return x;
     }
 

@@ -1,14 +1,14 @@
-#ifndef EQUATION_H
-#define EQUATION_H
+#ifndef EXPRESSION_H
+#define EXPRESSION_H
 // ****************************************************************************
-//  equation.h                                                    DB48X project
+//  expression.h                                                    DB48X project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Implementation of algebraic equations
+//     Implementation of algebraic expressions
 //
-//     Equations are simply programs that are rendered and parsed specially
+//     Expressions are simply programs that are rendered and parsed specially
 //
 //
 //
@@ -34,86 +34,86 @@
 #include "settings.h"
 #include "symbol.h"
 
-GCP(equation);
+GCP(expression);
 
-struct equation : program
+struct expression : program
 // ----------------------------------------------------------------------------
-//   An equation is a program with ' and ' as delimiters
+//   An expression is a program with ' and ' as delimiters
 // ----------------------------------------------------------------------------
 //   We also need special parsing and rendering of algebraic objects
 {
-    equation(id type, gcbytes bytes, size_t len): program(type, bytes, len) {}
+    expression(id type, gcbytes bytes, size_t len): program(type, bytes, len) {}
     static size_t required_memory(id i, gcbytes UNUSED bytes, size_t len)
     {
         return program::required_memory(i, bytes, len);
     }
 
-    // Building an equation from an object
-    equation(id type, algebraic_r arg);
+    // Building an expression from an object
+    expression(id type, algebraic_r arg);
     static size_t required_memory(id i, algebraic_r arg);
 
-    // Building equations from one or two arguments
-    equation(id type, id op, algebraic_r arg);
+    // Building expressions from one or two arguments
+    expression(id type, id op, algebraic_r arg);
     static size_t required_memory(id i, id op, algebraic_r arg);
-    equation(id type, id op, algebraic_r x, algebraic_r y);
+    expression(id type, id op, algebraic_r x, algebraic_r y);
     static size_t required_memory(id i, id op, algebraic_r x, algebraic_r y);
 
     object_p quoted(id type = ID_object) const;
-    static size_t size_in_equation(object_p obj);
+    static size_t size_in_expression(object_p obj);
 
-    static equation_p make(algebraic_r x, id type = ID_equation)
+    static expression_p make(algebraic_r x, id type = ID_expression)
     {
         if (!x.Safe())
             return nullptr;
-        return rt.make<equation>(type, x);
+        return rt.make<expression>(type, x);
     }
 
-    static equation_p make(id op, algebraic_r x, id type = ID_equation)
+    static expression_p make(id op, algebraic_r x, id type = ID_expression)
     {
         if (!x.Safe())
             return nullptr;
-        return rt.make<equation>(type, op, x);
+        return rt.make<expression>(type, op, x);
     }
 
-    static equation_p make(id op, algebraic_r x, algebraic_r y,
-                           id type = ID_equation)
+    static expression_p make(id op, algebraic_r x, algebraic_r y,
+                           id type = ID_expression)
     {
         if (!x.Safe() || !y.Safe())
             return nullptr;
-        return rt.make<equation>(type, op, x, y);
+        return rt.make<expression>(type, op, x, y);
     }
 
-    equation_p rewrite(equation_r from, equation_r to) const;
-    equation_p rewrite(equation_p from, equation_p to) const
+    expression_p rewrite(expression_r from, expression_r to) const;
+    expression_p rewrite(expression_p from, expression_p to) const
     {
-        return rewrite(equation_g(from), equation_g(to));
+        return rewrite(expression_g(from), expression_g(to));
     }
-    equation_p rewrite(size_t size, const byte_p rewrites[]) const;
-    equation_p rewrite_all(size_t size, const byte_p rewrites[]) const;
+    expression_p rewrite(size_t size, const byte_p rewrites[]) const;
+    expression_p rewrite_all(size_t size, const byte_p rewrites[]) const;
 
-    static equation_p rewrite(equation_r eq, equation_r from, equation_r to)
+    static expression_p rewrite(expression_r eq, expression_r from, expression_r to)
     {
         return eq->rewrite(from, to);
     }
 
     template <typename ...args>
-    equation_p rewrite(args... rest) const
+    expression_p rewrite(args... rest) const
     {
         static constexpr byte_p rewrites[] = { rest.as_bytes()... };
         return rewrite(sizeof...(rest), rewrites);
     }
 
     template <typename ...args>
-    equation_p rewrite_all(args... rest) const
+    expression_p rewrite_all(args... rest) const
     {
         static constexpr byte_p rewrites[] = { rest.as_bytes()... };
         return rewrite_all(sizeof...(rest), rewrites);
     }
 
-    equation_p expand() const;
-    equation_p collect() const;
-    equation_p simplify() const;
-    equation_p as_difference_for_solve() const; // Transform A=B into A-B
+    expression_p expand() const;
+    expression_p collect() const;
+    expression_p simplify() const;
+    expression_p as_difference_for_solve() const; // Transform A=B into A-B
     object_p   outermost_operator() const;
     size_t     render(renderer &r, bool quoted = false) const
     {
@@ -127,15 +127,15 @@ struct equation : program
 
   protected:
     static symbol_g render(uint depth, int &precedence, bool edit);
-    static size_t   render(const equation *o, renderer &r, bool quoted);
+    static size_t   render(const expression *o, renderer &r, bool quoted);
     static symbol_g parentheses(symbol_g what);
     static symbol_g space(symbol_g what);
 
 public:
-    OBJECT_DECL(equation);
-    PARSE_DECL(equation);
-    RENDER_DECL(equation);
-    HELP_DECL(equation);
+    OBJECT_DECL(expression);
+    PARSE_DECL(expression);
+    RENDER_DECL(expression);
+    HELP_DECL(expression);
 
 public:
     // Dependent and independent variables
@@ -149,20 +149,20 @@ public:
 
 // ============================================================================
 //
-//    C++ equation building (to create rules in C++ code)
+//    C++ expression building (to create rules in C++ code)
 //
 // ============================================================================
 
 template <byte ...args>
 struct eq
 // ----------------------------------------------------------------------------
-//   A static equation builder for C++ code
+//   A static expression builder for C++ code
 // ----------------------------------------------------------------------------
 {
     eq() {}
     static constexpr byte object_data[sizeof...(args) + 2] =
     {
-        object::ID_equation,
+        object::ID_expression,
         byte(sizeof...(args)),  // Must be less than 128...
         args...
     };
@@ -170,9 +170,9 @@ struct eq
     {
         return object_data;
     }
-    constexpr equation_p as_equation() const
+    constexpr expression_p as_expression() const
     {
-        return equation_p(object_data);
+        return expression_p(object_data);
     }
 
     // Negation operation
@@ -361,4 +361,4 @@ struct eq_neg_integer : eq<object::ID_neg_integer, byte(-c)> {};
 
 COMMAND_DECLARE(Rewrite);
 
-#endif // EQUATION_H
+#endif // EXPRESSION_H

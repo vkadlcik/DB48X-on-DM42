@@ -27,7 +27,7 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include "equation.h"
+#include "expression.h"
 
 #include "arithmetic.h"
 #include "functions.h"
@@ -41,10 +41,10 @@ RECORDER(equation, 16, "Processing of equations and algebraic objects");
 RECORDER(equation_error, 16, "Errors with equations");
 
 
-symbol_g *equation::independent = nullptr;
-object_g *equation::independent_value = nullptr;
-symbol_g *equation::dependent = nullptr;
-object_g *equation::dependent_value = nullptr;
+symbol_g *expression::independent = nullptr;
+object_g *expression::independent_value = nullptr;
+symbol_g *expression::dependent = nullptr;
+object_g *expression::dependent_value = nullptr;
 
 
 
@@ -54,7 +54,7 @@ object_g *equation::dependent_value = nullptr;
 //
 // ============================================================================
 
-PARSE_BODY(equation)
+PARSE_BODY(expression)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an equation
 // ----------------------------------------------------------------------------
@@ -64,14 +64,14 @@ PARSE_BODY(equation)
         return SKIP;
 
     p.precedence = 1;
-    auto result = list_parse(ID_equation, p, '\'', '\'');
+    auto result = list_parse(ID_expression, p, '\'', '\'');
     p.precedence = 0;
 
     return result;
 }
 
 
-HELP_BODY(equation)
+HELP_BODY(expression)
 // ----------------------------------------------------------------------------
 //   Help topic for equations
 // ----------------------------------------------------------------------------
@@ -80,7 +80,7 @@ HELP_BODY(equation)
 }
 
 
-symbol_g equation::parentheses(symbol_g arg)
+symbol_g expression::parentheses(symbol_g arg)
 // ----------------------------------------------------------------------------
 //   Render, putting parentheses around an argument
 // ----------------------------------------------------------------------------
@@ -91,7 +91,7 @@ symbol_g equation::parentheses(symbol_g arg)
 }
 
 
-symbol_g equation::space(symbol_g arg)
+symbol_g expression::space(symbol_g arg)
 // ----------------------------------------------------------------------------
 //   Render, putting parentheses around an argument
 // ----------------------------------------------------------------------------
@@ -100,7 +100,7 @@ symbol_g equation::space(symbol_g arg)
 }
 
 
-symbol_g equation::render(uint depth, int &precedence, bool editing)
+symbol_g expression::render(uint depth, int &precedence, bool editing)
 // ----------------------------------------------------------------------------
 //   Render an object as a symbol at a given precedence
 // ----------------------------------------------------------------------------
@@ -207,7 +207,7 @@ symbol_g equation::render(uint depth, int &precedence, bool editing)
 }
 
 
-RENDER_BODY(equation)
+RENDER_BODY(expression)
 // ----------------------------------------------------------------------------
 //   Render the equation
 // ----------------------------------------------------------------------------
@@ -216,7 +216,7 @@ RENDER_BODY(equation)
 }
 
 
-size_t equation::render(const equation *o, renderer &r, bool quoted)
+size_t expression::render(const expression *o, renderer &r, bool quoted)
 // ----------------------------------------------------------------------------
 //   Render the program into the given program buffer
 // ----------------------------------------------------------------------------
@@ -263,7 +263,7 @@ size_t equation::render(const equation *o, renderer &r, bool quoted)
 }
 
 
-object_p equation::quoted(id ty) const
+object_p expression::quoted(id ty) const
 // ----------------------------------------------------------------------------
 //   If an equation contains a single symbol, return that
 // ----------------------------------------------------------------------------
@@ -277,19 +277,19 @@ object_p equation::quoted(id ty) const
 }
 
 
-size_t equation::size_in_equation(object_p obj)
+size_t expression::size_in_expression(object_p obj)
 // ----------------------------------------------------------------------------
 //   Size of an object in an equation
 // ----------------------------------------------------------------------------
 //   Inside an equation object, equations are reduced to their payload
 {
-    if (obj->type() == ID_equation)
-        return equation_p(obj)->length();
+    if (obj->type() == ID_expression)
+        return expression_p(obj)->length();
     return obj->size();
 }
 
 
-equation::equation(id type, algebraic_r arg)
+expression::expression(id type, algebraic_r arg)
 // ----------------------------------------------------------------------------
 //   Build an equation object from an object
 // ----------------------------------------------------------------------------
@@ -298,7 +298,7 @@ equation::equation(id type, algebraic_r arg)
     byte *p = (byte *) payload();
 
     // Compute the size of the program
-    size_t size =  size_in_equation(arg);
+    size_t size =  size_in_expression(arg);
 
     // Write the size of the program
     p = leb128(p, size);
@@ -306,7 +306,7 @@ equation::equation(id type, algebraic_r arg)
     // Write the arguments
     size_t objsize = 0;
     byte_p objptr = nullptr;
-    if (equation_p eq = arg->as<equation>())
+    if (expression_p eq = arg->as<expression>())
     {
         objptr = eq->value(&objsize);
     }
@@ -320,19 +320,19 @@ equation::equation(id type, algebraic_r arg)
 }
 
 
-size_t equation::required_memory(id type, algebraic_r arg)
+size_t expression::required_memory(id type, algebraic_r arg)
 // ----------------------------------------------------------------------------
 //   Size of an equation object from an object
 // ----------------------------------------------------------------------------
 {
-    size_t size = size_in_equation(arg);
+    size_t size = size_in_expression(arg);
     size += leb128size(size);
     size += leb128size(type);
     return size;
 }
 
 
-equation::equation(id type, id op, algebraic_r arg)
+expression::expression(id type, id op, algebraic_r arg)
 // ----------------------------------------------------------------------------
 //   Build an equation from one argument
 // ----------------------------------------------------------------------------
@@ -341,7 +341,7 @@ equation::equation(id type, id op, algebraic_r arg)
     byte *p = (byte *) payload();
 
     // Compute the size of the program
-    size_t size =  leb128size(op) + size_in_equation(arg);
+    size_t size =  leb128size(op) + size_in_expression(arg);
 
     // Write the size of the program
     p = leb128(p, size);
@@ -349,7 +349,7 @@ equation::equation(id type, id op, algebraic_r arg)
     // Write the arguments
     size_t objsize = 0;
     byte_p objptr = nullptr;
-    if (equation_p eq = arg->as<equation>())
+    if (expression_p eq = arg->as<expression>())
     {
         objptr = eq->value(&objsize);
     }
@@ -366,19 +366,19 @@ equation::equation(id type, id op, algebraic_r arg)
 }
 
 
-size_t equation::required_memory(id type, id op, algebraic_r arg)
+size_t expression::required_memory(id type, id op, algebraic_r arg)
 // ----------------------------------------------------------------------------
 //   Size of an equation object with one argument
 // ----------------------------------------------------------------------------
 {
-    size_t size = leb128size(op) + size_in_equation(arg);
+    size_t size = leb128size(op) + size_in_expression(arg);
     size += leb128size(size);
     size += leb128size(type);
     return size;
 }
 
 
-equation::equation(id type, id op, algebraic_r x, algebraic_r y)
+expression::expression(id type, id op, algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Build an equation from two arguments
 // ----------------------------------------------------------------------------
@@ -387,7 +387,7 @@ equation::equation(id type, id op, algebraic_r x, algebraic_r y)
     byte *p = (byte *) payload();
 
     // Compute the size of the program
-    size_t size =  leb128size(op) + size_in_equation(x) + size_in_equation(y);
+    size_t size =  leb128size(op) + size_in_expression(x) + size_in_expression(y);
 
     // Write the size of the program
     p = leb128(p, size);
@@ -395,7 +395,7 @@ equation::equation(id type, id op, algebraic_r x, algebraic_r y)
     // Write the first argument
     size_t objsize = 0;
     byte_p objptr = nullptr;
-    if (equation_p eq = x->as<equation>())
+    if (expression_p eq = x->as<expression>())
     {
         objptr = eq->value(&objsize);
     }
@@ -408,7 +408,7 @@ equation::equation(id type, id op, algebraic_r x, algebraic_r y)
     p += objsize;
 
     // Write the second argument
-    if (equation_p eq = y->as<equation>())
+    if (expression_p eq = y->as<expression>())
     {
         objptr = eq->value(&objsize);
     }
@@ -425,12 +425,12 @@ equation::equation(id type, id op, algebraic_r x, algebraic_r y)
 }
 
 
-size_t equation::required_memory(id type, id op, algebraic_r x, algebraic_r y)
+size_t expression::required_memory(id type, id op, algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   Size of an equation object with one argument
 // ----------------------------------------------------------------------------
 {
-    size_t size = leb128size(op) + size_in_equation(x) + size_in_equation(y);
+    size_t size = leb128size(op) + size_in_expression(x) + size_in_expression(y);
     size += leb128size(size);
     size += leb128size(type);
     return size;
@@ -460,7 +460,7 @@ size_t equation::required_memory(id type, id op, algebraic_r x, algebraic_r y)
 //   match:     sin x    - cos x                    x sin     x cos -
 //
 
-static equation_p grab_arguments(size_t &eq, size_t &eqsz)
+static expression_p grab_arguments(size_t &eq, size_t &eqsz)
 // ----------------------------------------------------------------------------
 //   Fetch an argument using the arity to know how many things to use
 // ----------------------------------------------------------------------------
@@ -490,8 +490,8 @@ static equation_p grab_arguments(size_t &eq, size_t &eqsz)
     }
     eq += sz;
     eqsz -= sz;
-    list_p list = list::make(object::ID_equation, scr.scratch(), scr.growth());
-    return equation_p(list);
+    list_p list = list::make(object::ID_expression, scr.scratch(), scr.growth());
+    return expression_p(list);
 }
 
 
@@ -639,7 +639,7 @@ static size_t check_match(size_t eq, size_t eqsz,
 }
 
 
-equation_p equation::rewrite(equation_r from, equation_r to) const
+expression_p expression::rewrite(expression_r from, expression_r to) const
 // ----------------------------------------------------------------------------
 //   If we match pattern in `from`, then rewrite using pattern in `to`
 // ----------------------------------------------------------------------------
@@ -652,7 +652,7 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
     size_t     depth    = rt.depth();
 
     // Need a GC pointer since stack operations may move us
-    equation_g eq       = this;
+    expression_g eq       = this;
 
     // Information about part we replace
     bool       replaced = false;
@@ -710,7 +710,7 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
             eqst = eqlen - matchsz - eqst;
 
             // Copy from the original
-            for (equation::iterator it = eq->begin(); it != eq->end(); ++it)
+            for (expression::iterator it = eq->begin(); it != eq->end(); ++it)
             {
                 ASSERT(*it);
                 if (where < eqst || where >= eqst + matchsz)
@@ -749,7 +749,7 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
 
                         // Only copy the payload of equations
                         size_t tobjsize = tobj->size();
-                        if (equation_p teq = tobj->as<equation>())
+                        if (expression_p teq = tobj->as<expression>())
                             tobj = object_p(teq->value(&tobjsize));
                         if (!rt.append(tobjsize, byte_p(tobj)))
                             return nullptr;
@@ -761,7 +761,7 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
             }
 
             // Restart anew with replaced equation
-            eq = equation_p(list::make(ID_equation,
+            eq = expression_p(list::make(ID_expression,
                                        scr.scratch(), scr.growth()));
 
             // If we had an integer matfched and replaced, execute equation
@@ -778,9 +778,9 @@ equation_p equation::rewrite(equation_r from, equation_r to) const
                 algebraic_g eqa = computed->as_algebraic();
                 if (!eqa.Safe())
                     goto err;
-                eq = eqa->as<equation>();
+                eq = eqa->as<expression>();
                 if (!eq)
-                    eq = equation::make(eqa);
+                    eq = expression::make(eqa);
             }
 
             // Drop the local names, we will recreate them on next match
@@ -803,26 +803,26 @@ err:
 }
 
 
-equation_p equation::rewrite(size_t size, const byte_p rewrites[]) const
+expression_p expression::rewrite(size_t size, const byte_p rewrites[]) const
 // ----------------------------------------------------------------------------
 //   Apply a series of rewrites
 // ----------------------------------------------------------------------------
 {
-    equation_g eq = this;
+    expression_g eq = this;
     for (size_t i = 0; eq && i < size; i += 2)
-        eq = eq->rewrite(equation_p(rewrites[i]), equation_p(rewrites[i+1]));
+        eq = eq->rewrite(expression_p(rewrites[i]), expression_p(rewrites[i+1]));
     return eq;
 }
 
 
-equation_p equation::rewrite_all(size_t size, const byte_p rewrites[]) const
+expression_p expression::rewrite_all(size_t size, const byte_p rewrites[]) const
 // ----------------------------------------------------------------------------
 //   Loop on the rewrites until the result stabilizes
 // ----------------------------------------------------------------------------
 {
     uint count = 0;
-    equation_g last = nullptr;
-    equation_g eq = this;
+    expression_g last = nullptr;
+    expression_g eq = this;
     while (count++ < Settings.maxrewrites && eq && eq.Safe() != last.Safe())
     {
         // Check if we produced the same value
@@ -850,9 +850,9 @@ COMMAND_BODY(Rewrite)
     object_p z = rt.stack(2);
     if (!x || !y || !z)
         return ERROR;
-    equation_g eq = z->as<equation>();
-    equation_g from = y->as<equation>();
-    equation_g to = x->as<equation>();
+    expression_g eq = z->as<expression>();
+    expression_g from = y->as<expression>();
+    expression_g to = x->as<expression>();
     if (!from || !to || !eq)
     {
         rt.type_error();
@@ -894,7 +894,7 @@ static eq_integer<1> one;
 static eq_integer<2> two;
 static eq_integer<3> three;
 
-equation_p equation::expand() const
+expression_p expression::expand() const
 // ----------------------------------------------------------------------------
 //   Run various rewrites to expand equation
 // ----------------------------------------------------------------------------
@@ -929,7 +929,7 @@ equation_p equation::expand() const
 }
 
 
-equation_p equation::collect() const
+expression_p expression::collect() const
 // ----------------------------------------------------------------------------
 //    Run various rewrites to collect terms / factor equation
 // ----------------------------------------------------------------------------
@@ -964,7 +964,7 @@ equation_p equation::collect() const
 }
 
 
-equation_p equation::simplify() const
+expression_p expression::simplify() const
 // ----------------------------------------------------------------------------
 //   Run various rewrites to simplify equation
 // ----------------------------------------------------------------------------
@@ -993,7 +993,7 @@ equation_p equation::simplify() const
 }
 
 
-algebraic_p equation::factor_out(algebraic_g expr,
+algebraic_p expression::factor_out(algebraic_g expr,
                                  algebraic_g factor,
                                  algebraic_g &scale,
                                  algebraic_g &exponent)
@@ -1011,7 +1011,7 @@ algebraic_p equation::factor_out(algebraic_g expr,
     scale = integer::make(1);
     exponent = integer::make(0);
 
-    equation_g eq = expr->as<equation>();
+    expression_g eq = expr->as<expression>();
     if (eq)
     {
         // Case where we have a single name or a constant, e.g. m or 1
@@ -1128,7 +1128,7 @@ algebraic_p equation::factor_out(algebraic_g expr,
 }
 
 
-algebraic_p equation::simplify_products() const
+algebraic_p expression::simplify_products() const
 // ----------------------------------------------------------------------------
 //   Simplify products, used notably to simplify units
 // ----------------------------------------------------------------------------
@@ -1147,7 +1147,7 @@ algebraic_p equation::simplify_products() const
     save<bool> save(unit::mode, false);
 
     // Need a GC pointer since stack operations may move us
-    equation_g  eq         = this;
+    expression_g  eq         = this;
     algebraic_g num        = integer::make(1);
     algebraic_g den        = integer::make(1);
 
@@ -1172,7 +1172,7 @@ algebraic_p equation::simplify_products() const
                 else
                     num = num * pow(sym, exponent);
                 rest = scale;
-                if (equation_p req = rest->as<equation>())
+                if (expression_p req = rest->as<expression>())
                 {
                     eq = req;
                     done = false;
@@ -1202,7 +1202,7 @@ algebraic_p equation::simplify_products() const
 }
 
 
-equation_p equation::as_difference_for_solve() const
+expression_p expression::as_difference_for_solve() const
 // ----------------------------------------------------------------------------
 //   For the solver, transform A=B into A-B
 // ----------------------------------------------------------------------------
@@ -1212,7 +1212,7 @@ equation_p equation::as_difference_for_solve() const
 }
 
 
-object_p equation::outermost_operator() const
+object_p expression::outermost_operator() const
 // ----------------------------------------------------------------------------
 //   Return the last operator in the equation
 // ----------------------------------------------------------------------------

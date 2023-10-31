@@ -308,7 +308,7 @@ void tests::data_types()
 
     step("Symbols");
     cstring symbol = "ABC123Z";
-    test(CLEAR, symbol, ENTER).type(object::ID_equation).expect("'ABC123Z'");
+    test(CLEAR, symbol, ENTER).type(object::ID_expression).expect("'ABC123Z'");
 
     step("Text");
     cstring string = "\"Hello World\"";
@@ -327,30 +327,30 @@ void tests::data_types()
     step("Equation");
     cstring eqn = "'X+1'";
     test(CLEAR, XEQ, "X", ENTER, KEY1, ADD)
-        .type(object::ID_equation)
+        .type(object::ID_expression)
         .expect(eqn);
     cstring eqn2 = "'sin(X+1)'";
     test(SIN)
-        .type(object::ID_equation)
+        .type(object::ID_expression)
         .expect(eqn2);
     test(DOWN)
         .editor(eqn2);
     test(ENTER, 1, ADD).
-        type(object::ID_equation).expect("'sin(X+1)+1'");
+        type(object::ID_expression).expect("'sin(X+1)+1'");
 
     step("Equation parsing and simplification");
     test(CLEAR, "'(((A))+(B))-(C+D)'", ENTER)
-        .type(object::ID_equation)
+        .type(object::ID_expression)
         .expect("'A+B-(C+D)'");
     step("Equation fancy rendering");
     test(CLEAR, XEQ, "X", ENTER, INV,
          XEQ, "Y", ENTER, SHIFT, SQRT, XEQ, "Z", ENTER,
          "CUBED", ENTER, ADD, ADD, WAIT(100))
-        .type(object::ID_equation)
+        .type(object::ID_expression)
         .expect("'X⁻¹+(Y²+Z³)'");
     step("Equation fancy parsing from editor");
     test(DOWN, "   ", SHIFT, SHIFT, DOWN, " 1 +", ENTER)
-        .type(object::ID_equation).expect("'X⁻¹+(Y²+Z³)+1'");
+        .type(object::ID_expression).expect("'X⁻¹+(Y²+Z³)+1'");
 
     step("Fractions");
     test(CLEAR, "1/3", ENTER).type(object::ID_fraction).expect("1/3");
@@ -400,7 +400,7 @@ void tests::data_types()
         .expect(object::ID_integer);
     test(CLEAR, "'ABC*3' type", ENTER)
         .type(object::ID_integer)
-        .expect(object::ID_equation);
+        .expect(object::ID_expression);
 
     step("TypeName command");
     test(CLEAR, "12 typename", ENTER)
@@ -727,7 +727,7 @@ void tests::for_loops()
     pgm  = "« 'X' 1 5 FOR i i SQ + NEXT »";
     pgmo = "« 'X' 1 5 for i i x² + next »";
     test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
-    test(RUNSTOP).noerr().type(object::ID_equation).expect("'X+1+4+9+16+25'");
+    test(RUNSTOP).noerr().type(object::ID_expression).expect("'X+1+4+9+16+25'");
 
     step("Stepping by 2");
     pgm  = "« 0 1 10 FOR i i SQ + 2 STEP »";
@@ -741,7 +741,7 @@ void tests::for_loops()
     test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
     test(RUNSTOP)
         .noerr()
-        .type(object::ID_equation)
+        .type(object::ID_expression)
         .expect("'X+1+4+16+64+256+1 024+4 096'");
 
     step("Negative stepping");
@@ -756,7 +756,7 @@ void tests::for_loops()
     test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
     test(RUNSTOP)
         .noerr()
-        .type(object::ID_equation)
+        .type(object::ID_expression)
         .expect("'X+100+81+64+49+36+25+16+9+4+1'");
 
     step("Fractional");
@@ -765,7 +765,7 @@ void tests::for_loops()
     test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
     test(RUNSTOP)
         .noerr()
-        .type(object::ID_equation)
+        .type(object::ID_expression)
         .expect("'X+0.01+0.04+0.09+0.16+0.25+0.36+0.49+0.64+0.81'");
 
     step("Fractional down");
@@ -774,14 +774,14 @@ void tests::for_loops()
     test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
     test(RUNSTOP)
         .noerr()
-        .type(object::ID_equation)
+        .type(object::ID_expression)
         .expect("'X+0.81+0.64+0.49+0.36+0.25+0.16+0.09+0.04+0.01'");
 
     step("Execute at least once");
     pgm  = "« 'X' 10 1 FOR i i SQ + NEXT »";
     pgmo = "« 'X' 10 1 for i i x² + next »";
     test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
-    test(RUNSTOP).noerr().type(object::ID_equation).expect("'X+100'");
+    test(RUNSTOP).noerr().type(object::ID_expression).expect("'X+100'");
 }
 
 

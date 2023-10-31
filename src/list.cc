@@ -31,7 +31,7 @@
 
 #include "algebraic.h"
 #include "array.h"
-#include "equation.h"
+#include "expression.h"
 #include "parser.h"
 #include "precedence.h"
 #include "program.h"
@@ -130,7 +130,7 @@ object::result list::list_parse(id type,
                     parser child(p, s, childp);
                     unicode iopen = parenthese ? '(' : 0;
                     unicode iclose = parenthese ? ')' : 0;
-                    id ctype = type == ID_unit ? ID_equation : type;
+                    id ctype = type == ID_unit ? ID_expression : type;
 
                     record(list_parse, "%+s starting at offset %u '%s'",
                            parenthese ? "Parenthese" : "Child",
@@ -245,7 +245,7 @@ object::result list::list_parse(id type,
 
                 // For equations, copy only the payload
                 if (precedence)
-                    if (equation_p eq = obj->as<equation>())
+                    if (expression_p eq = obj->as<expression>())
                         obj = object_p(eq->value(&objsize));
 
                 byte *objcopy = rt.allocate(objsize);
@@ -312,7 +312,7 @@ object::result list::list_parse(id type,
     size_t  parsed  = utf8(s) - utf8(p.source);
 
     // Check for the case of an empty equation
-    if (alloc == 0 && type == ID_equation)
+    if (alloc == 0 && type == ID_expression)
     {
         record(list_error, "Empty equation");
         rt.syntax_error().source(p.source);

@@ -32,7 +32,7 @@
 #include "algebraic.h"
 #include "arithmetic.h"
 #include "compare.h"
-#include "equation.h"
+#include "expression.h"
 #include "functions.h"
 #include "integer.h"
 #include "recorder.h"
@@ -66,15 +66,15 @@ COMMAND_BODY(Root)
     // a proram or equation on level 2
     symbol_g name = variable->as_quoted<symbol>();
     id eqty = eq->type();
-    if (eqty != ID_program && eqty != ID_equation)
+    if (eqty != ID_program && eqty != ID_expression)
         name = nullptr;
     if (!name)
     {
         rt.type_error();
         return ERROR;
     }
-    if (eqty == ID_equation)
-        eq = equation_p(eq.Safe())->as_difference_for_solve();
+    if (eqty == ID_expression)
+        eq = expression_p(eq.Safe())->as_difference_for_solve();
 
     // Drop input parameters
     rt.drop(3);
@@ -121,7 +121,7 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
     record(solve, "Initial range %t-%t", lx.Safe(), hx.Safe());
 
     // Set independent variable
-    save<symbol_g *> iref(equation::independent, &name);
+    save<symbol_g *> iref(expression::independent, &name);
     int              prec = -Settings.solveprec;
     algebraic_g      eps = rt.make<decimal128>(object::ID_decimal128,
                                                prec, true);

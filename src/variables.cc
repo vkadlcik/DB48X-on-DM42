@@ -30,7 +30,7 @@
 #include "variables.h"
 
 #include "command.h"
-#include "equation.h"
+#include "expression.h"
 #include "integer.h"
 #include "list.h"
 #include "locals.h"
@@ -313,10 +313,10 @@ object_p directory::recall_all(symbol_p name)
 // ----------------------------------------------------------------------------
 {
     // Check independent / dependent values for plotting
-    if (equation::independent && name->is_same_as(*equation::independent))
-        return *equation::independent_value;
-    if (equation::dependent && name->is_same_as(*equation::dependent))
-        return *equation::dependent_value;
+    if (expression::independent && name->is_same_as(*expression::independent))
+        return *expression::independent_value;
+    if (expression::dependent && name->is_same_as(*expression::dependent))
+        return *expression::dependent_value;
 
     directory *dir = nullptr;
     for (uint depth = 0; (dir = rt.variables(depth)); depth++)

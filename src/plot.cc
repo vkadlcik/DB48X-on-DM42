@@ -31,7 +31,7 @@
 
 #include "arithmetic.h"
 #include "compare.h"
-#include "equation.h"
+#include "expression.h"
 #include "functions.h"
 #include "graphics.h"
 #include "program.h"
@@ -108,7 +108,7 @@ object::result draw_plot(object::id            kind,
             return object::ERROR;
     }
 
-    save<symbol_g *> iref(equation::independent,
+    save<symbol_g *> iref(expression::independent,
                           (symbol_g *) &ppar.independent);
     if (ui.draw_graphics())
         draw_axes(ppar);

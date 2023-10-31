@@ -32,7 +32,7 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
-#include "equation.h"
+#include "expression.h"
 #include "integer.h"
 #include "locals.h"
 
@@ -234,7 +234,7 @@ algebraic_g comparison::compare(comparison_fn comparator,
     }
 
     // Otherwise, need to build an equation with the comparison
-    equation_p eq = equation::make(op, x, y);
+    expression_p eq = expression::make(op, x, y);
     return eq;
 }
 

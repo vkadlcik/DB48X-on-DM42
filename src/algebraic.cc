@@ -33,7 +33,7 @@
 #include "array.h"
 #include "bignum.h"
 #include "complex.h"
-#include "equation.h"
+#include "expression.h"
 #include "functions.h"
 #include "integer.h"
 #include "parser.h"
@@ -467,7 +467,7 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
     case ID_ImaginaryUnit:
         x = rectangular::make(integer::make(0),integer::make(1));
         return true;
-    case ID_equation:
+    case ID_expression:
     {
         bool save = Settings.numeric;
         Settings.numeric = true;
@@ -519,7 +519,7 @@ algebraic_p algebraic::evaluate_function(object_r eq, algebraic_r x)
 {
     if (!rt.push(x.Safe()))
         return nullptr;
-    save<object_g *> ival(equation::independent_value, (object_g *) &x);
+    save<object_g *> ival(expression::independent_value, (object_g *) &x);
     size_t   depth  = rt.depth();
     result   err    = eq->execute();
     size_t   dnow   = rt.depth();

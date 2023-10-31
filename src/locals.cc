@@ -29,7 +29,7 @@
 
 #include "locals.h"
 
-#include "equation.h"
+#include "expression.h"
 #include "parser.h"
 #include "program.h"
 #include "renderer.h"
@@ -156,7 +156,7 @@ PARSE_BODY(locals)
     switch(cp)
     {
     case L'«':  result = program ::do_parse(p); break;
-    case  '\'': result = equation::do_parse(p); break;
+    case  '\'': result = expression::do_parse(p); break;
     case '{':   result = list    ::do_parse(p); break;
     default:                                    break;
     }

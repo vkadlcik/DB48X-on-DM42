@@ -31,7 +31,7 @@
 
 #include "algebraic.h"
 #include "arithmetic.h"
-#include "equation.h"
+#include "expression.h"
 #include "functions.h"
 #include "integer.h"
 #include "parser.h"
@@ -56,7 +56,7 @@ algebraic_p unit::parse_uexpr(gcutf8 source, size_t len)
 // ----------------------------------------------------------------------------
 {
     parser p(source, len, MULTIPLICATIVE);
-    object::result result = list::list_parse(ID_equation, p, 0, 0);
+    object::result result = list::list_parse(ID_expression, p, 0, 0);
     if (result == object::OK)
         if (algebraic_p alg = p.out->as_algebraic())
             return alg;
@@ -82,7 +82,7 @@ unit_p unit::make(algebraic_g v, algebraic_g u, id ty)
             u = uu->uexpr();
         }
     }
-    if (equation_p eq = u->as<equation>())
+    if (expression_p eq = u->as<expression>())
         u = eq->simplify_products();
     return rt.make<unit>(ty, v, u);
 }
@@ -97,7 +97,7 @@ algebraic_p unit::simple(algebraic_g v, algebraic_g u, id ty)
     if (uobj)
     {
         algebraic_g uexpr = uobj->uexpr();
-        if (equation_p eq = uexpr->as<equation>())
+        if (expression_p eq = uexpr->as<expression>())
             if (object_p q = eq->quoted())
                 if (q->is_real())
                     uexpr = algebraic_p(q);
@@ -124,7 +124,7 @@ RENDER_BODY(unit)
     value->render(r);
     r.put(r.editing() ? unicode('_') : unicode(settings::SPACE_UNIT));
     save<bool> m(mode, true);
-    if (equation_p ueq = uexpr->as<equation>())
+    if (expression_p ueq = uexpr->as<expression>())
         ueq->render(r, false);
     else
         uexpr->render(r);
@@ -887,7 +887,7 @@ static symbol_p unit_name(object_p obj)
             algebraic_p uexpr = uobj->uexpr();
             symbol_p name = uexpr->as<symbol>();
             if (!name)
-                if (equation_p eq = uexpr->as<equation>())
+                if (expression_p eq = uexpr->as<expression>())
                     if (symbol_p inner = eq->as_quoted<symbol>())
                         name = inner;
             return name;

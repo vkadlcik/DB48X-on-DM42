@@ -32,7 +32,7 @@
 #include "algebraic.h"
 #include "arithmetic.h"
 #include "compare.h"
-#include "equation.h"
+#include "expression.h"
 #include "functions.h"
 #include "integer.h"
 #include "recorder.h"
@@ -67,7 +67,7 @@ COMMAND_BODY(Integrate)
     // a proram or equation on level 2
     symbol_g name = variable->as_quoted<symbol>();
     id eqty = eq->type();
-    if (eqty != ID_program && eqty != ID_equation)
+    if (eqty != ID_program && eqty != ID_expression)
         name = nullptr;
     if (!name || !low->is_algebraic() || !high->is_algebraic())
     {
@@ -111,7 +111,7 @@ algebraic_p integrate(object_g     eq,
     record(integrate, "Initial range %t-%t", lx.Safe(), hx.Safe());
 
     // Set independent variable
-    save<symbol_g *> iref(equation::independent, &name);
+    save<symbol_g *> iref(expression::independent, &name);
     int              prec = -Settings.integprec;
     algebraic_g      eps = rt.make<decimal128>(object::ID_decimal128,
                                                prec, true);

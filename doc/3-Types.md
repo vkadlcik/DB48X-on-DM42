@@ -68,11 +68,14 @@ functions such as [conj](#conj) or [arg](#arg). These functions are available in
 the [Complex Menu](#complex-menu).
 
 
-## Equations
+## Expressions
 
 Algebraic expressions and equations are represented between quotes, for example
 `X+1` or `A+B=C`. Many functions such as circular functions, exponential, logs
 or hyperbolic functions can apply to algebraic expressions.
+
+An expression that contains an equal sign, e.g. `sin X + 1 = cos X`, is called
+an *equation*. It can be given as an argument to the solver.
 
 
 ## Lists

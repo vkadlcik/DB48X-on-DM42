@@ -33,7 +33,7 @@
 #include "array.h"
 #include "bignum.h"
 #include "decimal128.h"
-#include "equation.h"
+#include "expression.h"
 #include "fraction.h"
 #include "integer.h"
 #include "list.h"
@@ -57,7 +57,7 @@ algebraic_p function::symbolic(id op, algebraic_r x)
 {
     if (!x.Safe())
         return nullptr;
-    return equation::make(op, x);
+    return expression::make(op, x);
 }
 
 
@@ -560,7 +560,7 @@ FUNCTION_BODY(sq)
         return nullptr;
     if (x->is_strictly_symbolic())
         if (!Settings.auto_simplify || x->type() != ID_ImaginaryUnit)
-            return equation::make(ID_sq, x);
+            return expression::make(ID_sq, x);
     return x * x;
 }
 
@@ -584,7 +584,7 @@ FUNCTION_BODY(cubed)
         return nullptr;
     if (x->is_strictly_symbolic())
         if (!Settings.auto_simplify || x->type() != ID_ImaginaryUnit)
-            return equation::make(ID_cubed, x);
+            return expression::make(ID_cubed, x);
     return x * x * x;
 }
 
@@ -638,7 +638,7 @@ FUNCTION_BODY(fact)
         return nullptr;
 
     if (x->is_strictly_symbolic())
-        return equation::make(ID_fact, x);
+        return expression::make(ID_fact, x);
 
     if (integer_p ival = x->as<integer>())
     {
@@ -680,7 +680,7 @@ FUNCTION_BODY(Expand)
 {
     if (!x.Safe())
         return nullptr;
-    if (equation_p eq = x->as<equation>())
+    if (expression_p eq = x->as<expression>())
         return algebraic_p(eq->expand());
     if (x->is_algebraic())
         return x;
@@ -696,7 +696,7 @@ FUNCTION_BODY(Collect)
 {
     if (!x.Safe())
         return nullptr;
-    if (equation_p eq = x->as<equation>())
+    if (expression_p eq = x->as<expression>())
         return algebraic_p(eq->collect());
     if (x->is_algebraic())
         return x;
@@ -712,7 +712,7 @@ FUNCTION_BODY(Simplify)
 {
     if (!x.Safe())
         return nullptr;
-    if (equation_p eq = x->as<equation>())
+    if (expression_p eq = x->as<expression>())
         return algebraic_p(eq->simplify());
     if (x->is_algebraic())
         return x;

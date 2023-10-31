@@ -41,7 +41,7 @@
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
-#include "equation.h"
+#include "expression.h"
 #include "font.h"
 #include "fraction.h"
 #include "functions.h"
@@ -592,7 +592,7 @@ object_p object::as_quoted(id ty) const
 {
     if (type() == ty)
         return this;
-    if (equation_p eq = as<equation>())
+    if (expression_p eq = as<expression>())
         return eq->quoted(ty);
     return nullptr;
 }
@@ -886,7 +886,7 @@ bool object::is_big() const
     case ID_program:
     case ID_block:
     case ID_array:
-    case ID_equation:
+    case ID_expression:
         for (object_p o : *(list_p(this)))
             if (o->is_big())
                 return true;

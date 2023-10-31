@@ -31,7 +31,7 @@
 
 #include "algebraic.h"
 #include "command.h"
-#include "equation.h"
+#include "expression.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -53,7 +53,7 @@ EVAL_BODY(symbol)
                 return OK;
     if (object_p found = directory::recall_all(o))
         return found->execute();
-    if (object_g eq = equation::make(o))
+    if (object_g eq = expression::make(o))
         if (rt.push(eq))
             return OK;
     return ERROR;

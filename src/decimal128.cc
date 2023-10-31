@@ -197,7 +197,7 @@ PARSE_BODY(decimal128)
     // Check how many digits were given
     uint mantissa = s - digits - hadDecimalDot;
     record(decimal128, "Had %u digits, max %u", mantissa, BID128_MAXDIGITS);
-    if (mantissa > BID128_MAXDIGITS)
+    if (mantissa > BID128_MAXDIGITS + 1)
     {
         rt.mantissa_error().source(digits + mantissa);
         return WARN;                    // Try again with higher-precision

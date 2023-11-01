@@ -70,7 +70,7 @@ PARSE_BODY(integer)
     int        base        = 10;
     id         type        = ID_integer;
     const byte NODIGIT     = (byte) -1;
-    bool       is_fraction = false;
+    size_t     is_fraction = 0;
     object_g   number      = nullptr;
     object_g   numerator   = nullptr;
 
@@ -208,6 +208,7 @@ PARSE_BODY(integer)
         // Loop on digits
         ularge result = 0;
         bool   big    = false;
+        size_t digits = 0;
         byte   v;
         if (is_fraction && value[*s] == NODIGIT)
         {
@@ -256,6 +257,7 @@ PARSE_BODY(integer)
                    v,
                    result,
                    next);
+            digits++;
 
             // If the value does not fit in an integer, defer to bignum / real
             big = next / base != result;
@@ -263,6 +265,20 @@ PARSE_BODY(integer)
                 break;
 
             result = next;
+        }
+
+        // Exit quickly if we had no digits
+        if (!digits)
+        {
+            if (is_fraction)
+            {
+                // Something like `2/s`, we parsed 2 successfully
+                s = p.source + is_fraction;
+                number = numerator;
+                break;
+            }
+            // Parsed no digit: try something else
+            return WARN;
         }
 
         // Check if we need bignum
@@ -367,7 +383,7 @@ PARSE_BODY(integer)
         }
         else if (*s == '/')
         {
-            is_fraction = true;
+            is_fraction = s - p.source.Safe();
             numerator   = number;
             number      = nullptr;
             type        = ID_integer;

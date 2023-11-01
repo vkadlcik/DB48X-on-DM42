@@ -381,7 +381,7 @@ PARSE_BODY(integer)
                 number      = (object_p) fraction::make(n, d);
             }
         }
-        else if (*s == '/')
+        else if (*s == '/' && p.precedence <= MULTIPLICATIVE && is_real(type))
         {
             is_fraction = s - p.source.Safe();
             numerator   = number;

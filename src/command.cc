@@ -288,7 +288,7 @@ COMMAND_BODY(SelfInsert)
         uint plane = ui.shift_plane();
         uint menu_idx = key - KEY_F1 + plane * ui.NUM_SOFTKEYS;
         uint count = 0;
-        if (cstring lbl = ui.labelText(menu_idx))
+        if (cstring lbl = ui.label_text(menu_idx))
         {
             uint cpos = ui.cursorPosition();
             for (utf8 p = utf8(lbl); *p; p = utf8_next(p))
@@ -318,7 +318,7 @@ EXEC_BODY(Unimplemented)
     {
         uint plane = ui.shift_plane();
         uint menu_idx = key - KEY_F1 + plane * ui.NUM_SOFTKEYS;
-        if (cstring lbl = ui.labelText(menu_idx))
+        if (cstring lbl = ui.label_text(menu_idx))
             rt.command(lbl);
     }
     rt.unimplemented_error();

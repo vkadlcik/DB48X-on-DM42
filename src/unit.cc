@@ -792,7 +792,7 @@ static algebraic_p key_unit(uint key)
 {
     if (key >= KEY_F1 && key <= KEY_F6)
     {
-        if (cstring label = ui.labelText(key - KEY_F1))
+        if (cstring label = ui.label_text(key - KEY_F1))
         {
             char buffer[16];
             save<bool> umode(unit::mode, true);
@@ -943,7 +943,7 @@ COMMAND_BODY(ConvertToUnitPrefix)
 
     // Read the prefix (e.g. "c") from the softkey label,
     uint index = key - KEY_F1 + ui.NUM_SOFTKEYS * ui.shift_plane();
-    cstring prefix = ui.labelText(index);
+    cstring prefix = ui.label_text(index);
     if (!prefix)
     {
         rt.undefined_operation_error();

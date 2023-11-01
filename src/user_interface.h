@@ -110,7 +110,7 @@ struct user_interface
     bool        menu_refresh(object::id menu);
     void        menuAutoComplete()      { autoComplete = true; }
     symbol_p    label(uint index);
-    cstring     labelText(uint index);
+    cstring     label_text(uint index);
 
     void        draw_start(bool force, uint refresh = ~0U);
     void        draw_refresh(uint delay);

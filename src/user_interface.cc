@@ -959,14 +959,14 @@ symbol_p user_interface::label(uint menu_id)
 //   Return the label for a given menu ID
 // ----------------------------------------------------------------------------
 {
-    cstring lbl = labelText(menu_id);
+    cstring lbl = label_text(menu_id);
     if (*lbl == object::ID_symbol)
         return (symbol_p) lbl;
     return nullptr;
 }
 
 
-cstring user_interface::labelText(uint menu_id)
+cstring user_interface::label_text(uint menu_id)
 // ----------------------------------------------------------------------------
 //   Return the label for a given menu ID
 // ----------------------------------------------------------------------------
@@ -4293,7 +4293,7 @@ object::result user_interface::insert_softkey(int     key,
 //   Insert the name associated with the key if editing
 // ----------------------------------------------------------------------------
 {
-    if (cstring text = labelText(key - KEY_F1))
+    if (cstring text = label_text(key - KEY_F1))
     {
         if (*text)
         {

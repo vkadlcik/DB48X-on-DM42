@@ -785,15 +785,27 @@ COMMAND_BODY(ToUnit)
 }
 
 
-static symbol_p key_label(uint key)
+static algebraic_p key_unit(uint key)
 // ----------------------------------------------------------------------------
-//   Return a unit name as a label
+//   Return a softkey label as a unit value
 // ----------------------------------------------------------------------------
 {
     if (key >= KEY_F1 && key <= KEY_F6)
+    {
         if (cstring label = ui.labelText(key - KEY_F1))
-            if (symbol_p name = symbol::make(label))
-                return name;
+        {
+            char buffer[16];
+            save<bool> umode(unit::mode, true);
+            size_t     len = strlen(label);
+            buffer[0] = '1';
+            buffer[1] = '_';
+            memcpy(buffer+2, label, len);
+            len += 2;
+            if (object_p uobj = object::parse(utf8(buffer), len))
+                if (unit_p u = uobj->as<unit>())
+                    return u->uexpr();
+        }
+    }
     return nullptr;
 }
 
@@ -815,13 +827,15 @@ COMMAND_BODY(ApplyUnit)
     if (!rt.args(1))
         return ERROR;
 
-    if (symbol_p name = key_label(key))
+    if (algebraic_p uname = key_unit(key))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
-                if (algebraic_g uobj = unit::simple(alg, name))
+                if (algebraic_g uobj = unit::simple(alg, uname))
                     if (rt.top(uobj.Safe()))
                         return OK;
 
+    if (!rt.error())
+        rt.type_error();
     return ERROR;
 }
 
@@ -843,13 +857,15 @@ COMMAND_BODY(ApplyInverseUnit)
     if (!rt.args(1))
         return ERROR;
 
-    if (symbol_p name = key_label(key))
+    if (algebraic_p uname = key_unit(key))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
-                if (algebraic_g uobj = unit::simple(alg, inv::run(name)))
+                if (algebraic_g uobj = unit::simple(alg, inv::run(uname)))
                     if (rt.top(uobj.Safe()))
                         return OK;
 
+    if (!rt.error())
+        rt.type_error();
     return ERROR;
 }
 
@@ -871,11 +887,11 @@ COMMAND_BODY(ConvertToUnit)
     if (!rt.args(1))
         return ERROR;
 
-    if (symbol_p name = key_label(key))
+    if (algebraic_p uname = key_unit(key))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
                 if (algebraic_g one = integer::make(1))
-                    if (unit_g uobj = unit::make(one, name))
+                    if (unit_g uobj = unit::make(one, uname))
                         if (uobj->convert(alg))
                             if (rt.top(alg.Safe()))
                                 return OK;

@@ -65,20 +65,20 @@ PARSE_BODY(symbol)
 //    Try to parse this as a symbol
 // ----------------------------------------------------------------------------
 {
-    utf8 source = p.source;
-    utf8 s      = source;
+    utf8    source = p.source;
+    size_t  max    = p.length;
+    size_t  parsed = 0;
 
     // First character must be alphabetic
-    unicode cp = utf8_codepoint(s);
+    unicode cp = utf8_codepoint(source);
     if (!is_valid_as_name_initial(cp))
         return SKIP;
-    s = utf8_next(s);
+    parsed = utf8_next(source, parsed, max);
 
     // Other characters must be alphabetic
-    while (is_valid_in_name(s))
-        s = utf8_next(s);
+    while (parsed < max && is_valid_in_name(source + parsed))
+        parsed = utf8_next(source, parsed, max);
 
-    size_t parsed = s - source;
     gcutf8 text   = source;
     p.end         = parsed;
     p.out         = rt.make<symbol>(ID_symbol, text, parsed);

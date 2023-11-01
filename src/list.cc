@@ -107,7 +107,7 @@ object::result list::list_parse(id type,
         id     postfix_cmd = id(0);
 
         // For algebraic objects, check if we have or need parentheses
-        if (precedence)
+        if (precedence && length)
         {
             if (precedence > 0)
             {

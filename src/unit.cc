@@ -113,7 +113,6 @@ algebraic_p unit::simple(algebraic_g v, algebraic_g u, id ty)
 }
 
 
-
 RENDER_BODY(unit)
 // ----------------------------------------------------------------------------
 //   Do not emit quotes around unit objects
@@ -452,10 +451,11 @@ unit_p unit::lookup(symbol_p name)
 // ----------------------------------------------------------------------------
 {
     size_t len  = 0;
-    utf8   ntxt = name->value(&len);
+    gcutf8 gtxt = name->value(&len);
     size_t maxs = sizeof(si_prefixes) / sizeof(si_prefixes[0]);
     for (size_t si = 0; si < maxs; si++)
     {
+        utf8    ntxt   = gtxt;
         cstring prefix = si_prefixes[si].prefix;
         size_t  plen   = strlen(prefix);
         if (memcmp(prefix, ntxt, plen) != 0)
@@ -468,7 +468,7 @@ unit_p unit::lookup(symbol_p name)
         for (uint kibi = 0; kibi < maxkibi; kibi++)
         {
             size_t rlen = len - plen - kibi;
-            utf8 txt = ntxt + plen + kibi;
+            utf8   txt  = ntxt + plen + kibi;
 
             for (size_t u = 0; u < maxu; u += 2)
             {
@@ -508,11 +508,12 @@ unit_p unit::lookup(symbol_p name)
                             {
                                 size_t slen = 0;
                                 utf8   stxt = sym->value(&slen);
-                                if (slen == rlen && memcmp(stxt, utxt, slen) == 0)
+                                if (slen == rlen &&
+                                    memcmp(stxt, utxt, slen) == 0)
                                     return u;
                             }
 
-                            // Check if we need to evaluate, e.g. 1_min -> seconds
+                            // Check if we must evaluate, e.g. 1_min -> seconds
                             uexpr = u->evaluate();
                             if (!uexpr || uexpr->type() != ID_unit)
                             {
@@ -827,7 +828,7 @@ COMMAND_BODY(ApplyUnit)
     if (!rt.args(1))
         return ERROR;
 
-    if (algebraic_p uname = key_unit(key))
+    if (algebraic_g uname = key_unit(key))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
                 if (algebraic_g uobj = unit::simple(alg, uname))
@@ -857,7 +858,7 @@ COMMAND_BODY(ApplyInverseUnit)
     if (!rt.args(1))
         return ERROR;
 
-    if (algebraic_p uname = key_unit(key))
+    if (algebraic_g uname = key_unit(key))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
                 if (algebraic_g uobj = unit::simple(alg, inv::run(uname)))
@@ -887,7 +888,7 @@ COMMAND_BODY(ConvertToUnit)
     if (!rt.args(1))
         return ERROR;
 
-    if (algebraic_p uname = key_unit(key))
+    if (algebraic_g uname = key_unit(key))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
                 if (algebraic_g one = integer::make(1))

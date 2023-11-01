@@ -22,7 +22,7 @@ presumably the calculator you are currently running this software on.
 * [Differences with other RPLs](#differences-with-other-RPLs)
 * [Built-in help](#help)
 * [Acknowledgements and credits](#acknowledgements-and-credits)
-
+* [Release notes](#release-notes)
 
 ## State of the project
 

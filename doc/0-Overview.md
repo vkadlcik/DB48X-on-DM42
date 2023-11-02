@@ -284,7 +284,7 @@ Here are a few of the interesting RPL-specific key mappings:
 
 * _O_ (_EEX_, DM-42 and DM-32 _E_) is used to enter the exponent of a number in
   scientific notation. However, when not entering or editing values, it invokes
-  the\ [Cycle](#Cycle) command, which cycles between various representations of
+  the [Cycle](#Cycle) command, which cycles between various representations of
   a number, for example polar and rectangular for a complex number, or fraction
   and decimal for a decimal number.
 

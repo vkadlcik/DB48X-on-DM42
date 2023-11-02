@@ -31,6 +31,7 @@
 
 #include "algebraic.h"
 #include "arithmetic.h"
+#include "compare.h"
 #include "expression.h"
 #include "functions.h"
 #include "integer.h"
@@ -445,15 +446,15 @@ static const si_prefix si_prefixes[] =
 
 
 
-unit_p unit::lookup(symbol_p name)
+unit_p unit::lookup(symbol_p name, int *prefix_info)
 // ----------------------------------------------------------------------------
 //   Lookup a built-in unit
 // ----------------------------------------------------------------------------
 {
     size_t len  = 0;
     gcutf8 gtxt = name->value(&len);
-    size_t maxs = sizeof(si_prefixes) / sizeof(si_prefixes[0]);
-    for (size_t si = 0; si < maxs; si++)
+    uint   maxs = sizeof(si_prefixes) / sizeof(si_prefixes[0]);
+    for (uint si = 0; si < maxs; si++)
     {
         utf8    ntxt   = gtxt;
         cstring prefix = si_prefixes[si].prefix;
@@ -481,6 +482,10 @@ unit_p unit::lookup(symbol_p name)
                     {
                         if (unit_g u = obj->as<unit>())
                         {
+                            // Record prefix info if we need it
+                            if (prefix_info)
+                                *prefix_info = kibi ? -si : si;
+
                             // Apply multipliers
                             if (e)
                             {
@@ -622,6 +627,114 @@ bool unit::convert(unit_g &x) const
 
     // For now, the rest is not implemented
     return false;
+}
+
+
+unit_p unit::cycle() const
+// ----------------------------------------------------------------------------
+//   Cycle the unit SI prefix across the closest appropriate ones
+// ----------------------------------------------------------------------------
+{
+    unit_g      u       = this; // GC may move this
+    algebraic_g value   = u->value();
+    algebraic_g uexpr   = u->uexpr();
+    int         max     = sizeof(si_prefixes) / sizeof(si_prefixes[0]);
+    bool        decimal = value->is_decimal();
+    bool        frac    = value->is_real() && !decimal;
+
+    // Check if we can cycle through the prefixes
+    if (symbol_g sym = uexpr->as_quoted<symbol>())
+    {
+        int index = 0;
+        if (lookup(sym, &index))
+        {
+            bool kibi = index < 0;
+            if (kibi)
+                index = -index;
+            int         exp       = si_prefixes[index].exponent;
+            cstring     opfx      = si_prefixes[index].prefix;
+            size_t      olen      = strlen(opfx);
+            int         candidate = -1;
+
+            if (decimal)
+            {
+                // Try to see if we can go up in exponents
+                int bexp = -1000;
+                for (int i = 0; i < max; i++)
+                {
+                    int nexp = si_prefixes[i].exponent;
+                    if (nexp < exp && nexp > bexp)
+                    {
+                        candidate = i;
+                        bexp = nexp;
+                    }
+                }
+            }
+            else if (frac)
+            {
+                // Fraction: go down until we hit exponent mode
+                int bexp = 1000;
+                for (int i = 0; i < max; i++)
+                {
+                    int nexp = si_prefixes[i].exponent;
+                    if (nexp > exp && nexp < bexp)
+                    {
+                        candidate = i;
+                        bexp = nexp;
+                    }
+                }
+            }
+
+            if (candidate >= 0)
+            {
+                cstring  nprefix = si_prefixes[candidate].prefix;
+                size_t   oulen   = 0;
+                utf8     outxt   = sym->value(&oulen);
+                scribble scr;
+                renderer r;
+                r.put(nprefix);
+                r.put(outxt + olen, oulen - olen);
+                algebraic_g nuexpr = parse_uexpr(r.text(), r.size());
+                unit_g nunit = unit::make(integer::make(1), nuexpr);
+                if (nunit->convert(u))
+                {
+                    algebraic_g mag   = integer::make(Settings.standard_exp);
+                    algebraic_g range = integer::make(10);
+                    algebraic_g nvalue = u->value();
+                    range = pow(range, mag);
+                    mag = abs::run(nvalue);
+
+                    if (decimal)
+                    {
+                        algebraic_g test = mag >= range;
+                        if (!test->as_truth(false))
+                            if (arithmetic::to_decimal(nvalue))
+                                return unit::make(nvalue, nuexpr);
+                    }
+                    else if (frac)
+                    {
+                        range = inv::run(range);
+                        algebraic_g test = mag <= range;
+                        if (!test->as_truth(false))
+                            return unit::make(nvalue, nuexpr);
+                    }
+                }
+            }
+        }
+    }
+
+    // Check if we have a fraction or an integer, if so convert to decimal
+    if (frac)
+    {
+        if (arithmetic::to_decimal(value, true))
+            u = unit::make(value, uexpr);
+    }
+    else if (decimal)
+    {
+        if (arithmetic::decimal_to_fraction(value))
+            u = unit::make(value, uexpr);
+    }
+    return u;
 }
 
 

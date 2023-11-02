@@ -55,7 +55,9 @@ struct unit : complex
 
     static algebraic_p parse_uexpr(gcutf8 source, size_t len);
 
-    static unit_p lookup(symbol_p name);
+    static unit_p lookup(symbol_p name, int *prefix_index = nullptr);
+
+    unit_p cycle() const;
 
     static bool mode;           // Set to true to evaluate units
 

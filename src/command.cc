@@ -649,10 +649,6 @@ COMMAND_BODY(Cycle)
     {
         id     cmd   = ID_object;
         id     type  = ID_object;
-        unit_p uobj  = top->as<unit>();
-        if (uobj)
-            top = uobj->value();
-
         id     ttype = top->type();
         switch(ttype)
         {
@@ -702,7 +698,16 @@ COMMAND_BODY(Cycle)
         case ID_program:                type = ID_list;         break;
         case ID_symbol:                 type = ID_text;         break;
         case ID_text:                   type = ID_symbol;       break;
-        case ID_tag:                    cmd = ID_dtag;          break;
+        case ID_tag:                    cmd  = ID_dtag;         break;
+        case ID_unit:
+        {
+            // Cycle prefix
+            unit_p uobj = unit_p(top);
+            uobj = uobj->cycle();
+            if (uobj && rt.top(uobj))
+                return OK;
+            return ERROR;
+        }
 
         default:
             rt.type_error();
@@ -717,11 +722,6 @@ COMMAND_BODY(Cycle)
             {
                 byte *p = (byte *) clone;
                 leb128(p, type);
-                if (uobj)
-                {
-                    algebraic_g val = algebraic_p(clone);
-                    clone = unit::simple(val, uobj->uexpr());
-                }
                 if (rt.top(clone))
                     return OK;
             }

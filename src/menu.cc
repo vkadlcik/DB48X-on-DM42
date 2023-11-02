@@ -759,12 +759,12 @@ MENU(ObjectMenu,
 // ----------------------------------------------------------------------------
 //  Operations on objects
 // ----------------------------------------------------------------------------
-     "→Obj",    ID_Unimplemented,
-     "Obj→",    ID_Unimplemented,
      "Bytes",   ID_Bytes,
      "Type",    ID_Type,
+     "TypeName",ID_TypeName,
+     "→Obj",    ID_Unimplemented,
+     "Obj→",    ID_Unimplemented,
      "Clone",   ID_Unimplemented,
-     "Size",    ID_Unimplemented,
 
      "→Text",   ID_ToText,
      "→List",   ID_Unimplemented,

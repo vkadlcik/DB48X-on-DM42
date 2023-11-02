@@ -153,29 +153,6 @@ struct dmcp_font : font
 typedef const dmcp_font *dmcp_font_p;
 
 
-inline bool font::glyph(unicode codepoint, glyph_info &g) const
-// ----------------------------------------------------------------------------
-//   Dynamic dispatch to the available font classes
-// ----------------------------------------------------------------------------
-{
-    if (codepoint == '\t')
-    {
-        bool result = glyph(' ', g);
-        g.advance *= 4;
-        return result;
-    }
-
-    switch(type())
-    {
-    case ID_sparse_font: return ((sparse_font *)this)->glyph(codepoint, g);
-    case ID_dense_font:  return ((dense_font *)this)->glyph(codepoint, g);
-    case ID_dmcp_font:   return ((dmcp_font *)this)->glyph(codepoint, g);
-    default:
-        record(fonts_error, "Unexpectd font type %d", type());
-    }
-    return false;
-}
-
 inline font::fuint font::height() const
 // ----------------------------------------------------------------------------
 //   Dynamic dispatch to the available font classes

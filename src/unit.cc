@@ -1038,24 +1038,27 @@ MENU_BODY(UnitMenu)                                                     \
 
 UNITS(LengthUnitsMenu,
 // ----------------------------------------------------------------------------
-//   LengthUnitsMenu
+//   Length units menu
 // ----------------------------------------------------------------------------
-      "m",      "cm",   "mm",   "km",   "μm",           // Metric
-      "yd",     "ft",   "in",   "mi",   "nmi",          // US customary
+      "m",      "yd",   "ft",   "ftUS", "US",           // Human scale
+      "cm",     "mm",   "in",   "mil",  "μm",           // Small stuff
+      "km",     "mi",   "nmi",  "miUS", "fur",          // Short travel distance
+      "ch",     "rd",   "cable","fath", "league",       // US Survey
       "Mpc",    "pc",   "lyr",  "au",   "ls",           // Astronomy
-      "ch",     "rd",   "cable","fath", "league",       // US Survey (post-2023)
-      "furlong","fathom","ftUS","miUS", "US",           // US.Survey, pre-2023
-      "Å",    "fermi",  "mil",  "acable","icable"       // Misc
+      "mi",     "miUS", "ft",   "ftUS", "US",           // US.Survey, pre-2023
+      "cable",  "link", "icable","acable", "nmi",       // Nautical
+      "Å",      "fermi", "μm",   "nm",   "pm"           // Microscopic
     );
 
 
 UNITS(AreaUnitsMenu,
 // ----------------------------------------------------------------------------
-//   AreaUnitsMenu
+//   Area units menu
 // ----------------------------------------------------------------------------
+      "m^2",    "yd^2", "ft^2", "in^2", "cm^2",         // Human scale
+      "km^2",   "mi^2", "ha",   "a",    "acre",         // Surveying
       "m^2",    "cm^2", "km^2", "ha",   "a",            // Metric
-      "yd^2",   "ft^2", "in^2", "mi^2", "acre",         // US
-      "b",      "miUS^2",                               // Misc
+      "b",      "miUS^2","ftUS^2"                       // Misc
     );
 
 

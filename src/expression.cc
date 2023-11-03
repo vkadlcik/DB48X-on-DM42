@@ -1147,9 +1147,9 @@ algebraic_p expression::simplify_products() const
     save<bool> save(unit::mode, false);
 
     // Need a GC pointer since stack operations may move us
-    expression_g  eq         = this;
-    algebraic_g num        = integer::make(1);
-    algebraic_g den        = integer::make(1);
+    expression_g eq   = this;
+    algebraic_g  num  = integer::make(1);
+    algebraic_g  den  = integer::make(1);
 
     // Loop factoring out variables, until there is no variable left
     bool done = false;
@@ -1158,19 +1158,20 @@ algebraic_p expression::simplify_products() const
         done = true;
         for (object_p obj : *eq)
         {
-            if (symbol_p sym = obj->as<symbol>())
+            if (symbol_g sym = obj->as<symbol>())
             {
                 algebraic_g scale, exponent;
-                algebraic_g rest = factor_out(eq.Safe(), sym, scale, exponent);
+                algebraic_g rest = factor_out(eq.Safe(), sym.Safe(),
+                                              scale, exponent);
                 if (!rest || !scale || !exponent)
                 {
                     Settings.auto_simplify = auto_simplify;
                     return nullptr;
                 }
                 if (exponent->is_negative(false))
-                    den = den * pow(sym, -exponent);
+                    den = den * pow(sym.Safe(), -exponent);
                 else
-                    num = num * pow(sym, exponent);
+                    num = num * pow(sym.Safe(), exponent);
                 rest = scale;
                 if (expression_p req = rest->as<expression>())
                 {

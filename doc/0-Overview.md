@@ -40,6 +40,9 @@ GitLab for details and updates. The best way to
 or [submit a proposed change](https://github.com/c3d/DB48X-on-DM42/pulls) is
 on the project's [GitHub page](https://github.com/c3d/DB48X-on-DM42).
 
+The [implementation status](#implementation-status) section categorizes all the
+RPL commands in the HP50G and in DB48X into "implemented", "not implemented" and
+"DB48X only" lists.
 
 ## Design overview
 

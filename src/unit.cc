@@ -73,11 +73,11 @@ unit_p unit::make(algebraic_g v, algebraic_g u, id ty)
     if (!v.Safe() || !u.Safe())
         return nullptr;
 
-    while (unit_p vu = v->as<unit>())
+    while (unit_g vu = v->as<unit>())
     {
         u = vu->uexpr() * u;
         v = vu->value();
-        while (unit_p uu = u->as<unit>())
+        while (unit_g uu = u->as<unit>())
         {
             v = uu->value() * v;
             u = uu->uexpr();
@@ -94,7 +94,7 @@ algebraic_p unit::simple(algebraic_g v, algebraic_g u, id ty)
 //   Build a unit object from its components, simplify if it ends up numeric
 // ----------------------------------------------------------------------------
 {
-    unit_p uobj = make(v, u, ty);
+    unit_g uobj = make(v, u, ty);
     if (uobj)
     {
         algebraic_g uexpr = uobj->uexpr();
@@ -451,9 +451,9 @@ unit_p unit::lookup(symbol_p name, int *prefix_info)
 //   Lookup a built-in unit
 // ----------------------------------------------------------------------------
 {
-    size_t len  = 0;
-    gcutf8 gtxt = name->value(&len);
-    uint   maxs = sizeof(si_prefixes) / sizeof(si_prefixes[0]);
+    size_t len   = 0;
+    gcutf8 gtxt  = name->value(&len);
+    uint   maxs  = sizeof(si_prefixes) / sizeof(si_prefixes[0]);
     for (uint si = 0; si < maxs; si++)
     {
         utf8    ntxt   = gtxt;
@@ -573,8 +573,9 @@ bool unit::convert(unit_g &x) const
 {
     if (!x.Safe())
         return false;
-    algebraic_g u = uexpr();
-    algebraic_g o = x->uexpr();
+    algebraic_g u   = uexpr();
+    algebraic_g o   = x->uexpr();
+    algebraic_g svu = u;
 
     // Check error case
     if (!u || !o)
@@ -620,8 +621,7 @@ bool unit::convert(unit_g &x) const
 
         algebraic_g v = x->value();
         v = v * o;
-        u = uexpr();
-        x = unit_p(unit::simple(v, u));         // Wrong cast, but OK above
+        x = unit_p(unit::simple(v, svu)); // Wrong cast, but OK above
         return true;
     }
 

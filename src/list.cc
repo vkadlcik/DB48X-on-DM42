@@ -208,7 +208,7 @@ object::result list::list_parse(id type,
                 }
 
                 // TODO: A symbol could be a function, need to deal with that
-                if (is_algebraic_function(type))
+                if (is_algebraic_fn(type))
                 {
                     prefix = obj;
                     obj = nullptr;

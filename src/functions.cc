@@ -46,7 +46,7 @@ bool function::should_be_symbolic(id type)
 //   Check if we should treat the type symbolically
 // ----------------------------------------------------------------------------
 {
-    return is_strictly_symbolic(type);
+    return is_symbolic(type);
 }
 
 
@@ -510,7 +510,7 @@ FUNCTION_BODY(inv)
 {
     if (!x.Safe())
         return nullptr;
-    if (x->is_strictly_symbolic())
+    if (x->is_symbolic())
         return symbolic(ID_inv, x);
     else if (x->type() == ID_array)
         return array_p(x.Safe())->invert();
@@ -544,7 +544,7 @@ FUNCTION_BODY(neg)
         v = neg::run(v);
         return unit::simple(v, u);
     }
-    if (x->is_strictly_symbolic())
+    if (x->is_symbolic())
         return symbolic(ID_neg, x);
     algebraic_g zero = rt.make<integer>(ID_integer, 0);
     return zero - x;
@@ -558,7 +558,7 @@ FUNCTION_BODY(sq)
 {
     if (!x.Safe())
         return nullptr;
-    if (x->is_strictly_symbolic())
+    if (x->is_symbolic())
         if (!Settings.auto_simplify || x->type() != ID_ImaginaryUnit)
             return expression::make(ID_sq, x);
     return x * x;
@@ -582,7 +582,7 @@ FUNCTION_BODY(cubed)
 {
     if (!x.Safe())
         return nullptr;
-    if (x->is_strictly_symbolic())
+    if (x->is_symbolic())
         if (!Settings.auto_simplify || x->type() != ID_ImaginaryUnit)
             return expression::make(ID_cubed, x);
     return x * x * x;
@@ -637,7 +637,7 @@ FUNCTION_BODY(fact)
     if (!x.Safe())
         return nullptr;
 
-    if (x->is_strictly_symbolic())
+    if (x->is_symbolic())
         return expression::make(ID_fact, x);
 
     if (integer_p ival = x->as<integer>())

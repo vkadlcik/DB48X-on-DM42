@@ -82,32 +82,6 @@ RECORDER(object_errors,  16, "Runtime errors on objects");
 RECORDER(assert_error,   16, "Assertion failures");
 
 
-template <typename first, typename last, typename ...rest>
-struct handler_flag
-{
-    static constexpr bool set(object::id id)
-    {
-        return (id >= first::static_id && id <= last::static_id)
-            || handler_flag<rest...>::set(id);
-    }
-};
-
-template <typename first, typename last>
-struct handler_flag<first, last>
-{
-    static constexpr bool set(object::id id)
-    {
-        return id >= first::static_id && id <= last::static_id;
-    }
-};
-
-
-#define ID(id)
-#define FLAGS(name, ...)                                        \
-static constexpr auto name = handler_flag<__VA_ARGS__>();
-#include "ids.tbl"
-
-
 const object::dispatch object::handler[NUM_IDS] =
 // ----------------------------------------------------------------------------
 //   Table of handlers for each object type
@@ -131,18 +105,6 @@ const object::dispatch object::handler[NUM_IDS] =
         .menu_marker  = (menu_marker_fn) id::do_menu_marker, \
         .arity        = id::ARITY,                           \
         .precedence   = id::PRECEDENCE,                      \
-        .is_type      = ::is_type.set(ID_##id),              \
-        .is_integer   = ::is_integer.set(ID_##id),           \
-        .is_based     = ::is_based.set(ID_##id),             \
-        .is_bignum    = ::is_bignum.set(ID_##id),            \
-        .is_fraction  = ::is_fraction.set(ID_##id),          \
-        .is_real      = ::is_real.set(ID_##id),              \
-        .is_decimal   = ::is_decimal.set(ID_##id),           \
-        .is_complex   = ::is_complex.set(ID_##id),           \
-        .is_command   = ::is_command.set(ID_##id),           \
-        .is_symbolic  = ::is_symbolic.set(ID_##id),          \
-        .is_algebraic = ::is_algebraic.set(ID_##id),         \
-        .is_immediate = ::is_immediate.set(ID_##id),         \
     },
 #include "ids.tbl"
 };

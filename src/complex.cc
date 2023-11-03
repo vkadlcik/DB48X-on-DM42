@@ -843,7 +843,7 @@ RENDER_BODY(polar)
     m->render(r);
     r.put(unicode(ANGLE_MARK));
     a->render(r);
-    if (!a->is_strictly_symbolic())
+    if (!a->is_symbolic())
     {
         switch(Settings.angle_mode)
         {
@@ -877,8 +877,8 @@ COMMAND_BODY(RealToComplex)
     object_g im = rt.stack(0);
     if (!re || !im)
         return ERROR;
-    if (!(re->is_real() || re->is_strictly_symbolic()) ||
-        !(im->is_real() || im->is_strictly_symbolic()))
+    if (!(re->is_real() || re->is_symbolic()) ||
+        !(im->is_real() || im->is_symbolic()))
     {
         rt.type_error();
         return ERROR;
@@ -998,7 +998,7 @@ COMPLEX_BODY(sqrt)
     algebraic_g im = sqrt::run((znorm - a) / two);
     if (b->is_negative(false))
         im = neg::run(im);
-    else if (b->is_strictly_symbolic())
+    else if (b->is_symbolic())
         im = sign::run(im) * im;
     return rectangular::make(re, im);
 }

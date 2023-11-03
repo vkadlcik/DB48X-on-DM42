@@ -207,18 +207,6 @@ struct object
         menu_marker_fn  menu_marker;     // Show marker
         uint            arity;           // Number of input arguments
         uint            precedence;      // Precedence in equations
-        bool            is_type      :1; // Is a data type
-        bool            is_integer   :1; // Is an integer type
-        bool            is_based     :1; // Is a based integer type
-        bool            is_bignum    :1; // Is a bignum type
-        bool            is_fraction  :1; // Is a fraction type
-        bool            is_real      :1; // Is a real type (excludes based ints)
-        bool            is_decimal   :1; // Is a decimal type
-        bool            is_complex   :1; // Is a complex (but not real) type
-        bool            is_command   :1; // Is an RPL command
-        bool            is_symbolic  :1; // Is a symbol or an equation
-        bool            is_algebraic :1; // Algebraic functions (in equations)
-        bool            is_immediate :1; // Commands that execute immediately
     };
 
 
@@ -493,76 +481,73 @@ struct object
     //
     // ========================================================================
 
-    static bool is_type(id ty)
-    // -------------------------------------------------------------------------
-    //   Check if a type is for an RPL data type
-    // -------------------------------------------------------------------------
+    struct id_map
+    // ------------------------------------------------------------------------
+    //   Used to isolate the type range checking names
+    // ------------------------------------------------------------------------
     {
-        return handler[ty].is_type;
+        enum ids
+        // --------------------------------------------------------------------
+        //  Createa a local name matching the class name
+        // --------------------------------------------------------------------
+        {
+#define ID(i)   i,
+#include "ids.tbl"
+        NUM_IDS
+        };
+
+
+        template <ids first, ids last>
+        static INLINE bool in_range(id ty)
+        // --------------------------------------------------------------------
+        //   Check if a  given type is in the given range
+        // --------------------------------------------------------------------
+        {
+            return ids(ty) >= first && ids(ty) <= last;
+        }
+
+        template <ids first, ids last, ids more, ids ...rest>
+        static INLINE bool in_range(id ty)
+        // --------------------------------------------------------------------
+        //   Check if a  given type is in the given ranges
+        // --------------------------------------------------------------------
+        {
+            return (ids(ty) >= first && ids(ty) <= last)
+                || in_range<more, rest...>(ty);
+        }
+
+#define ID(x)
+#define FLAGS(name, ...)                                                \
+        static INLINE bool name(id ty)                                  \
+        /* ------------------------------------------------------- */   \
+        /*   Range-based type checking (faster than memory reads)  */   \
+        /* ------------------------------------------------------- */   \
+        {                                                               \
+            return in_range<__VA_ARGS__>(ty);                           \
+        }
+#include "ids.tbl"
+
+    };
+
+#define ID(x)
+#define FLAGS(name, ...)                                                \
+    static INLINE bool name(id ty)                                      \
+    /* ------------------------------------------------------- */       \
+    /*   Range-based type checking (faster than memory reads)  */       \
+    /* ------------------------------------------------------- */       \
+    {                                                                   \
+        return id_map::name(ty);                                        \
+    }                                                                   \
+                                                                        \
+                                                                        \
+    INLINE bool name() const                                            \
+    /* ------------------------------------------------------- */       \
+    /*   Range-based type checking (faster than memory reads)  */       \
+    /* ------------------------------------------------------- */       \
+    {                                                                   \
+        return id_map::name(type());                                    \
     }
-
-
-    bool is_type() const
-    // -------------------------------------------------------------------------
-    //   Check if an object is an integer
-    // -------------------------------------------------------------------------
-    {
-        return is_type(type());
-    }
-
-
-    static bool is_integer(id ty)
-    // -------------------------------------------------------------------------
-    //   Check if a type is an integer
-    // -------------------------------------------------------------------------
-    {
-        return handler[ty].is_integer;
-    }
-
-
-    bool is_integer() const
-    // -------------------------------------------------------------------------
-    //   Check if an object is an integer
-    // -------------------------------------------------------------------------
-    {
-        return is_integer(type());
-    }
-
-
-    static bool is_based(id ty)
-    // -------------------------------------------------------------------------
-    //   Check if a type is a based integer
-    // -------------------------------------------------------------------------
-    {
-        return handler[ty].is_based;
-    }
-
-
-    bool is_based() const
-    // -------------------------------------------------------------------------
-    //   Check if an object is a based integer
-    // -------------------------------------------------------------------------
-    {
-        return is_based(type());
-    }
-
-
-    static bool is_bignum(id ty)
-    // -------------------------------------------------------------------------
-    //   Check if a type is a big integer
-    // -------------------------------------------------------------------------
-    {
-        return handler[ty].is_bignum;
-    }
-
-
-    bool is_bignum() const
-    // -------------------------------------------------------------------------
-    //   Check if an object is a big integer
-    // -------------------------------------------------------------------------
-    {
-        return is_bignum(type());
-    }
+#include "ids.tbl"
 
 
     bool is_big() const;
@@ -571,31 +556,12 @@ struct object
     // ------------------------------------------------------------------------
 
 
-    static bool is_fraction(id ty)
-    // -------------------------------------------------------------------------
-    //   Check if a type is a fraction
-    // -------------------------------------------------------------------------
-    {
-        return handler[ty].is_fraction;
-    }
-
-
-    bool is_fraction() const
-    // -------------------------------------------------------------------------
-    //   Check if an object is an integer
-    // -------------------------------------------------------------------------
-    {
-        return is_fraction(type());
-    }
-
-
     static bool is_fractionable(id ty)
     // -------------------------------------------------------------------------
     //   Check if a type is a fraction or a non-based integer
     // -------------------------------------------------------------------------
     {
-        return handler[ty].is_fraction ||
-            (handler[ty].is_integer && handler[ty].is_real);
+        return is_fraction(ty) || (is_integer(ty) && is_real(ty));
     }
 
 
@@ -605,114 +571,6 @@ struct object
     // -------------------------------------------------------------------------
     {
         return is_fractionable(type());
-    }
-
-
-    static bool is_decimal(id ty)
-    // -------------------------------------------------------------------------
-    //   Check if a type is a decimal
-    // -------------------------------------------------------------------------
-    {
-        return handler[ty].is_decimal;
-    }
-
-
-    bool is_decimal() const
-    // -------------------------------------------------------------------------
-    //   Check if an object is a decimal
-    // -------------------------------------------------------------------------
-    {
-        return is_decimal(type());
-    }
-
-
-    static  bool is_real(id ty)
-    // -------------------------------------------------------------------------
-    //   Check if a type is a real number
-    // -------------------------------------------------------------------------
-    {
-        return handler[ty].is_real;
-    }
-
-
-    bool is_real() const
-    // -------------------------------------------------------------------------
-    //   Check if an object is a real number
-    // -------------------------------------------------------------------------
-    {
-        return is_real(type());
-    }
-
-
-    static  bool is_complex(id ty)
-    // -------------------------------------------------------------------------
-    //   Check if a type is a complex number
-    // -------------------------------------------------------------------------
-    {
-        return handler[ty].is_complex;
-    }
-
-
-    bool is_complex() const
-    // -------------------------------------------------------------------------
-    //   Check if an object is a complex number
-    // -------------------------------------------------------------------------
-    {
-        return is_complex(type());
-    }
-
-
-    static bool is_unit(id ty)
-    // -------------------------------------------------------------------------
-    //   Check if a type is a unit object
-    // -------------------------------------------------------------------------
-    {
-        return ty == ID_unit;
-    }
-
-
-    bool is_unit() const
-    // -------------------------------------------------------------------------
-    //   Check if an object is a unit object
-    // -------------------------------------------------------------------------
-    {
-        return is_unit(type());
-    }
-
-
-    static bool is_command(id ty)
-    // ------------------------------------------------------------------------
-    //    Check if a type denotes a command
-    // ------------------------------------------------------------------------
-    {
-        return handler[ty].is_command;
-    }
-
-
-    bool is_command() const
-    // ------------------------------------------------------------------------
-    //   Check if an object is a command
-    // ------------------------------------------------------------------------
-    {
-        return is_command(type());
-    }
-
-
-    static bool is_immediate(id ty)
-    // ------------------------------------------------------------------------
-    //    Check if a type denotes an immediate command (e.g. menus)
-    // ------------------------------------------------------------------------
-    {
-        return handler[ty].is_immediate;
-    }
-
-
-    bool is_immediate() const
-    // ------------------------------------------------------------------------
-    //   Check if an object is an immediate command (e.g. menus)
-    // ------------------------------------------------------------------------
-    {
-        return is_immediate(type());
     }
 
 
@@ -734,57 +592,21 @@ struct object
     }
 
 
-    static bool is_symbolic(id ty)
+    static bool is_symbolic_arg(id ty)
     // ------------------------------------------------------------------------
     //    Check if a type denotes a symbolic argument (symbol, equation, number)
     // ------------------------------------------------------------------------
     {
-        return handler[ty].is_symbolic || is_algebraic_number(ty);
+        return is_symbolic(ty) || is_algebraic_number(ty);
     }
 
 
-    bool is_symbolic() const
+    bool is_symbolic_arg() const
     // ------------------------------------------------------------------------
     //   Check if an object is a symbolic argument
     // ------------------------------------------------------------------------
     {
-        return is_symbolic(type());
-    }
-
-
-    static bool is_strictly_symbolic(id ty)
-    // ------------------------------------------------------------------------
-    //    Check if a type denotes a symbol or equation
-    // ------------------------------------------------------------------------
-    {
-        return handler[ty].is_symbolic;
-    }
-
-
-    bool is_strictly_symbolic() const
-    // ------------------------------------------------------------------------
-    //   Check if an object is a symbol or equation
-    // ------------------------------------------------------------------------
-    {
-        return is_strictly_symbolic(type());
-    }
-
-
-    static bool is_algebraic_function(id ty)
-    // ------------------------------------------------------------------------
-    //    Check if a type denotes an algebraic function
-    // ------------------------------------------------------------------------
-    {
-        return handler[ty].is_algebraic;
-    }
-
-
-    bool is_algebraic_function() const
-    // ------------------------------------------------------------------------
-    //   Check if an object is an algebraic function
-    // ------------------------------------------------------------------------
-    {
-        return is_algebraic_function(type());
+        return is_symbolic_arg(type());
     }
 
 
@@ -793,7 +615,7 @@ struct object
     //    Check if a type denotes an algebraic value or function
     // ------------------------------------------------------------------------
     {
-        return is_algebraic_function(ty) || is_symbolic(ty);
+        return is_algebraic_fn(ty) || is_symbolic_arg(ty);
     }
 
 
@@ -814,24 +636,6 @@ struct object
         if (is_algebraic())
             return algebraic_p(this);
         return nullptr;
-    }
-
-
-    static bool is_plot(id ty)
-    // ------------------------------------------------------------------------
-    //   Check if a type name denotes a plot type
-    // ------------------------------------------------------------------------
-    {
-        return ty >= ID_Function && ty <= ID_Parametric;
-    }
-
-
-    bool is_plot() const
-    // ------------------------------------------------------------------------
-    //   Check if an object is a plot type
-    // ------------------------------------------------------------------------
-    {
-        return is_plot(type());
     }
 
 

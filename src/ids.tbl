@@ -82,8 +82,10 @@ FLAGS(is_real,          bignum,         decimal128)
 FLAGS(is_complex,       rectangular,    polar)
 FLAGS(is_command,       Drop,           Unimplemented)
 FLAGS(is_symbolic,      local,          expression,     pi, ImaginaryUnit)
-FLAGS(is_algebraic,     add,            ToFraction)
+FLAGS(is_algebraic_fn,  add,            ToFraction)
 FLAGS(is_immediate,     MainMenu,       SelfInsert)
+FLAGS(is_unit,          unit,           unit)
+FLAGS(is_plot,          Function,       Parametric)
 
 
 

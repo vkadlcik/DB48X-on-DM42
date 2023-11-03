@@ -867,7 +867,7 @@ FUNCTION_BODY(UVal)
 {
     if (!x.Safe())
         return nullptr;
-    if (x->is_strictly_symbolic())
+    if (x->is_symbolic())
         return symbolic(ID_UVal, x);
     if (unit_p u = x->as<unit>())
         return u->value();

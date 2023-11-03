@@ -314,7 +314,7 @@ algebraic_p arithmetic::non_numeric<sub>(algebraic_r x, algebraic_r y)
             return x;
         if (x->is_same_as(y))                   // X - X = 0
             return integer::make(0);
-        if (x->is_zero(false) && y->is_strictly_symbolic())
+        if (x->is_zero(false) && y->is_symbolic())
             return neg::run(y);                 // 0 - X = -X
     }
 
@@ -459,7 +459,7 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
         if (y->type() == ID_ImaginaryUnit)
             if (x->is_real())
                 return rectangular::make(integer::make(0), x);
-        if (x->is_strictly_symbolic() && x->is_same_as(y))
+        if (x->is_symbolic() && x->is_same_as(y))
             return sq::run(x);                  // X * X = X²
     }
 
@@ -602,7 +602,7 @@ algebraic_p arithmetic::non_numeric<struct div>(algebraic_r x, algebraic_r y)
         }
         if (y->is_one(false))                   // X / 1 = X
             return x;
-        if (x->is_one(false) && y->is_strictly_symbolic())
+        if (x->is_one(false) && y->is_symbolic())
             return inv::run(y);                 // 1 / X = X⁻¹
         if (x->is_same_as(y))
             return integer::make(1);            // X / X = 1
@@ -917,7 +917,7 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
         }
 
         // Do not expand X^3 or integers when y>=0
-        if (x->is_strictly_symbolic())
+        if (x->is_symbolic())
             return expression::make(ID_pow, x, y);
 
         // Deal with X^N where N is a positive integer
@@ -1306,7 +1306,7 @@ algebraic_p arithmetic::evaluate(id          op,
     if (!x.Safe() || !y.Safe())
         return nullptr;
 
-    if (x->is_symbolic() && y->is_symbolic())
+    if (x->is_symbolic_arg() && y->is_symbolic_arg())
     {
         x = expression::make(op, x, y);
         return x;

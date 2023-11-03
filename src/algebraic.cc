@@ -289,14 +289,13 @@ bool algebraic::complex_promotion(algebraic_g &x, object::id type)
         x = polar_p(z->as_polar());
         return x.Safe();
     }
-    else if (is_strictly_symbolic(xt))
+    else if (is_symbolic(xt))
     {
         // Assume a symbolic value is complex for now
         // TODO: Implement `REALASSUME`
         return false;
     }
-    else if (is_integer(xt) || is_real(xt) || is_symbolic(xt) ||
-             is_algebraic(xt))
+    else if (is_symbolic_arg(xt) || is_algebraic(xt))
     {
         algebraic_g zero = algebraic_p(integer::make(0));
         if (type == ID_polar)

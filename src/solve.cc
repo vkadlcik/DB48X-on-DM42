@@ -256,7 +256,7 @@ algebraic_p solve(object_g eq, symbol_g name, object_g guess)
             }
 
             // Check if there are unresolved symbols
-            if (x->is_strictly_symbolic())
+            if (x->is_symbolic())
             {
                 rt.invalid_function_error();
                 return x;

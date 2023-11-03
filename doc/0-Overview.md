@@ -23,6 +23,7 @@ presumably the calculator you are currently running this software on.
 * [Built-in help](#help)
 * [Acknowledgements and credits](#acknowledgements-and-credits)
 * [Release notes](#release-notes)
+* [Performance](#performance-measurements)
 
 ## State of the project
 

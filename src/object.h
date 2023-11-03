@@ -63,7 +63,7 @@
 //    - RENDER: Render an object as text
 //    - HELP:   Return the name of the help topic associated to the object
 //
-//    Note: PARSE is the only opcode that does not take an object as user_interface
+//    Note: PARSE is the only opcode that does not take an object as input
 //
 //    The handler is not exactly equivalent to the user command.
 //    It may present an internal interface that is more convenient for C code.

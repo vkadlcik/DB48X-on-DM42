@@ -58,8 +58,9 @@ struct bid128  { BID_UINT128 value; };
 struct bid64   { BID_UINT64  value; };
 struct bid32   { BID_UINT32  value; };
 
-#define COMPILE_TIME_ASSERT(x)          extern int CompileTimeAssert(int[!!(x)-1])
+#define COMPILE_TIME_ASSERT(x)   extern int CompileTimeAssert(int[!!(x)-1])
 
+#define INLINE  __attribute__((always_inline))
 
 template <typename value_type>
 struct save

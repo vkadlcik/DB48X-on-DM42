@@ -468,17 +468,18 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
         x = rectangular::make(integer::make(0),integer::make(1));
         return true;
     case ID_expression:
-    {
-        bool save = Settings.numeric;
-        Settings.numeric = true;
-        result r = x->execute();
-        Settings.numeric = save;
-        if (r == OK)
-            if (object_p obj = rt.pop())
-                if (algebraic_p alg = obj->as_algebraic())
-                    x = alg;
-        return !rt.error();
-    }
+        if (!unit::mode)
+        {
+            bool save = Settings.numeric;
+            Settings.numeric = true;
+            result r = x->execute();
+            Settings.numeric = save;
+            if (r == OK)
+                if (object_p obj = rt.pop())
+                    if (algebraic_p alg = obj->as_algebraic())
+                        x = alg;
+            return !rt.error();
+        }
     default:
         if (!weak)
             rt.type_error();

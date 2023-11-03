@@ -32,6 +32,12 @@
 #include "types.h"
 #include <cstdint>
 
+
+#ifdef DM42
+#  pragma GCC push_options
+#  pragma GCC optimize("-O3")
+#endif // DM42
+
 template <typename Int = uint, typename Data>
 inline Int leb128(Data *&p)
 // ----------------------------------------------------------------------------
@@ -55,17 +61,15 @@ inline Int leb128(Data *&p)
 }
 
 
-template<>
-inline uint16_t leb128<uint16_t, byte>(byte *&bp)
+inline INLINE uint16_t leb128_u16(byte *bp)
 // ----------------------------------------------------------------------------
 //   Return the leb128 value at pointer
 // ----------------------------------------------------------------------------
 {
-    if (bp[0] < 0x80)
-        return *bp++;
-    uint16_t b1 = *bp++ & 0x7F;
-    uint16_t b2 = *bp++ << 7;
-    return b1 | b2;
+    uint16_t b1 = *bp;
+    if (b1 < 0x80)
+        return b1;
+    return (b1 & 0x7F) | (uint16_t(bp[1]) << 7);
 }
 
 
@@ -126,5 +130,9 @@ inline Data *leb128skip(Data *ptr)
     while ((*p++) & 0x80);
     return (Data *) p;
 }
+
+#ifdef DM42
+#  pragma GCC pop_options
+#endif // DM42
 
 #endif // LEB128_H

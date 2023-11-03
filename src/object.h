@@ -225,13 +225,18 @@ struct object
     }
 
 
+#ifdef DM42
+#  pragma GCC push_options
+#  pragma GCC optimize("-O3")
+#endif // DM42
+
     id type() const
     // ------------------------------------------------------------------------
     //   Return the type of the object
     // ------------------------------------------------------------------------
     {
         byte *ptr = (byte *) this;
-        id ty = (id) leb128<uint16_t>(ptr);
+        id ty = (id) leb128_u16(ptr);
         if (ty > NUM_IDS)
         {
             object_error(ty, this);
@@ -330,6 +335,20 @@ struct object
     }
 
 
+    grob_p graph(grapher &g) const
+    // ------------------------------------------------------------------------
+    //   Render the object into an existing grapher
+    // ------------------------------------------------------------------------
+    {
+        record(render, "Graphing %+s %p into %p", name(), this, &g);
+        return ops().graph(this, g);
+    }
+
+#ifdef DM42
+#  pragma GCC pop_options
+#endif
+
+
     size_t render(char *output, size_t length) const;
     // ------------------------------------------------------------------------
     //   Render the object into a static buffer
@@ -340,16 +359,6 @@ struct object
     // ------------------------------------------------------------------------
     //   Render the object into the scratchpad, then move into the editor
     // ------------------------------------------------------------------------
-
-
-    grob_p graph(grapher &g) const
-    // ------------------------------------------------------------------------
-    //   Render the object into an existing grapher
-    // ------------------------------------------------------------------------
-    {
-        record(render, "Graphing %+s %p into %p", name(), this, &g);
-        return ops().graph(this, g);
-    }
 
 
     text_p as_text(bool edit = true, bool eq = false) const;
@@ -480,6 +489,11 @@ struct object
     //    Attributes of objects
     //
     // ========================================================================
+
+#ifdef DM42
+#  pragma GCC push_options
+#  pragma GCC optimize("-O3")
+#endif
 
     struct id_map
     // ------------------------------------------------------------------------
@@ -678,6 +692,10 @@ struct object
             return (const Obj *) this;
         return nullptr;
     }
+
+#ifdef DM42
+#  pragma GCC pop_options
+#endif
 
 
     object_p as_quoted(id ty = ID_symbol) const;

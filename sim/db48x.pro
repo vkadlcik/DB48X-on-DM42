@@ -122,3 +122,5 @@ freebsd: LIBS += -lthr -liconv
 macx:    LIBS += -framework CoreFoundation -framework IOKit
 macx:    QMAKE_CFLAGS += -fsanitize=address
 macx:    LIBS += -fsanitize=address
+clang:   QMAKE_CFLAGS   += -Wno-unknown-pragmas
+clang:   QMAKE_CXXFLAGS += -Wno-unknown-pragmas

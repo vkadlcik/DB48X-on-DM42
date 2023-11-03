@@ -44,6 +44,12 @@ struct program : list
 {
     program(id type, gcbytes bytes, size_t len): list(type, bytes, len) {}
 
+
+#ifdef DM42
+#  pragma GCC push_options
+#  pragma GCC optimize("-O3")
+#endif // DM42
+
     template<bool saving_last_args>
     result execute_program() const
     // ------------------------------------------------------------------------
@@ -64,6 +70,10 @@ struct program : list
 
         return r;
     }
+
+#ifdef DM42
+#  pragma GCC pop_options
+#endif // DM42
 
     static bool      interrupted(); // Program interrupted e.g. by EXIT key
     static program_p parse(utf8 source, size_t size);

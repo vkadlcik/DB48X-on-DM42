@@ -423,9 +423,6 @@ bool program::interrupted()
 //   Return true if the current program must be interrupted
 // ----------------------------------------------------------------------------
 {
-    if (int h = ui.draw_busy())
-        lcd_refresh_lines(0, h);
-
     while (!key_empty())
     {
         if (key_tail() == KEY_EXIT)
@@ -444,14 +441,4 @@ bool program::interrupted()
 #endif
     }
     return false;
-}
-
-
-void draw_gc()
-// ----------------------------------------------------------------------------
-//   Indicate that a garbage collection is in progress
-// ----------------------------------------------------------------------------
-{
-    if (ui.draw_gc())
-        refresh_dirty();
 }

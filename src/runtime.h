@@ -961,7 +961,4 @@ struct stack_depth_restore
     size_t depth;
 };
 
-// User interface signal that a GC is in progress
-extern void draw_gc();
-
 #endif // RUNTIME_H

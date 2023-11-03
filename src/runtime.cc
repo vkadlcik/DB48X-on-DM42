@@ -303,7 +303,7 @@ size_t runtime::gc()
     object_p free     = first;
     object_p next;
 
-    draw_gc();
+    ui.draw_busy(L'●');
 
     record(gc, "Garbage collection, available %u, range %p-%p",
            available(), first, last);
@@ -324,7 +324,6 @@ size_t runtime::gc()
 
     object_p *firstobjptr = Stack;
     object_p *lastobjptr = HighMem;
-    size_t count = 0;
 
     for (object_p obj = first; obj < last; obj = next)
     {
@@ -373,8 +372,6 @@ size_t runtime::gc()
             record(gc_details, "Recycling %p size %u total %u",
                    obj, next - obj, recycled);
         }
-        if (count++ % 0x400 == 0)
-            draw_gc();
     }
 
     // Move the command line and scratch buffer
@@ -405,6 +402,8 @@ size_t runtime::gc()
 
     record(gc, "Garbage collection done, purged %u, available %u",
            recycled, available());
+
+    ui.draw_busy();
     return recycled;
 }
 

@@ -12,6 +12,7 @@ all times in milliseconds, best of 5 runs, on USB power, with presumably no GC.
 
 | Version | Time    | PGM Size  | QSPI Size | Note                    |
 |---------|---------|-----------|-----------|-------------------------|
+| 0.4.9+  | 1215    |           |           | Remove busy animation   |
 | 0.4.9   | 1447    | 646028    | 1531868   | No LastArgs in progs    |
 | 0.4.8   | 1401    | 633932    | 1531868   |                         |
 | 0.4.7   | 1397    | 628188    | 1531868   |                         |

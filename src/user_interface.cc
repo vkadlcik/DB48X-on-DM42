@@ -276,7 +276,7 @@ bool user_interface::end_edit()
         unicode nspc = Settings.space;
         unicode hspc = Settings.space_based;
 
-        draw_busy_cursor();
+        draw_busy();
 
         // Save the command-line history (prior to removing spaces)
         text_g saved = text::make(ed, edlen);
@@ -1579,7 +1579,7 @@ bool user_interface::draw_battery()
 }
 
 
-bool user_interface::draw_busy_cursor(unicode glyph)
+bool user_interface::draw_busy(unicode glyph)
 // ----------------------------------------------------------------------------
 //    Draw the busy flying cursor
 // ----------------------------------------------------------------------------
@@ -1608,15 +1608,6 @@ bool user_interface::draw_busy_cursor(unicode glyph)
 }
 
 
-bool user_interface::draw_gc()
-// ----------------------------------------------------------------------------
-//   Indicate a garbage collection is in progress
-// ----------------------------------------------------------------------------
-{
-    return draw_busy_cursor(L'●');
-}
-
-
 bool user_interface::draw_idle()
 // ----------------------------------------------------------------------------
 //   Clear busy indicator
@@ -1628,7 +1619,7 @@ bool user_interface::draw_idle()
         wait_for_key_press();
         redraw_lcd(true);
     }
-    draw_busy_cursor(0);
+    draw_busy(0);
     alpha_drawn = !alpha_drawn;
     shift_drawn = !shift;
     xshift_drawn = !xshift;
@@ -2113,7 +2104,7 @@ bool user_interface::draw_stack()
 {
     if (!force && !dirtyStack)
         return false;
-    draw_busy_cursor();
+    draw_busy();
     Stack.draw_stack();
     draw_dirty(0, HeaderFont->height() + 2, stack, LCD_H);
     draw_idle();
@@ -3868,7 +3859,7 @@ bool user_interface::handle_functions(int key)
             }
 
         }
-        draw_busy_cursor();
+        draw_busy();
         if (!imm && !rt.editing())
             rt.save();
         obj->execute();

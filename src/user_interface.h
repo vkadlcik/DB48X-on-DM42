@@ -133,10 +133,8 @@ struct user_interface
     bool        draw_menus();
     bool        draw_battery();
     bool        draw_cursor(int show, uint ncursor);
-    bool        draw_busy();
+    bool        draw_busy(unicode glyph = L'▶');
     bool        draw_idle();
-    bool        draw_busy_cursor(unicode glyph = L'▶');
-    bool        draw_gc();
 
     modes       editing_mode()          { return mode; }
     int         stack_screen_bottom()   { return stack; }
@@ -263,15 +261,5 @@ protected:
 enum { TIMER0, TIMER1, TIMER2, TIMER3 };
 
 extern user_interface ui;
-
-inline bool user_interface::draw_busy()
-// ----------------------------------------------------------------------------
-//    Draw the annunciators for Shift, Alpha, etc
-// ----------------------------------------------------------------------------
-{
-    if (busy++ % 0x200 == 0)
-        return draw_busy_cursor();
-    return false;
-}
 
 #endif // INPUT_H

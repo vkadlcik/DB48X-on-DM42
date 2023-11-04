@@ -3861,7 +3861,12 @@ bool user_interface::handle_functions(int key)
         }
         draw_busy();
         if (!imm && !rt.editing())
-            rt.save();
+        {
+            if (Settings.save_stack)
+                rt.save();
+            if (Settings.save_last)
+                rt.need_save();
+        }
         obj->execute();
         draw_idle();
         dirtyStack = true;

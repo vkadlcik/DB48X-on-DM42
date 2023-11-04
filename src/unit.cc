@@ -199,22 +199,22 @@ static const cstring basic_units[] =
 //   In many cases, e.g. parsec or au, it does not match the HP48 value
 {
     // Length and area
-    "m",        "1_m",                  // meter, based for SI lengths
-    "yd",       "9144/10000_m",         // yard
-    "ft",       "3048/10000_m",         // foot
-    "in",       "254/10000_m",          // inch
-    "pc",       "30856775814913673_m",  // Parsec
-    "ls",       "299792458_m",          // Light-second
-    "lyr",      "31557600_ls",          // Light year
-    "au",       "149597870700_m",       // Astronomical unit
-    "nmi",      "1852_m",               // Nautical mile
-    "miUS",     "",                     // US mile
-    "Å",        "100_pm",               // Angstroem is 100pm, 1E-10m
-    "μ",        "1_μm",                 // A micron can be written as μ
-    "fermi",    "1_fm",                 // fermi is another name for femtometer
-    "mil",      "254/10000000_m",       // A thousands of a inch (min is taken)
-    "a",        "100_m²",               // Acre
-    "b",        "100_fermi²",           // Barn, 1E-28 m^2
+    "Length",     "m",        "1_m",                  // meter, based for SI lengths
+    "Length",     "yd",       "9144/10000_m",         // yard
+    "Length",     "ft",       "3048/10000_m",         // foot
+    "Length",     "in",       "254/10000_m",          // inch
+    "Length",     "pc",       "30856775814913673_m",  // Parsec
+    "Length",     "ls",       "299792458_m",          // Light-second
+    "Length",     "lyr",      "31557600_ls",          // Light year
+    "Length",     "au",       "149597870700_m",       // Astronomical unit
+    "Length",     "nmi",      "1852_m",               // Nautical mile
+    "Length",     "miUS",     "",                     // US mile
+    "Length",     "Å",        "100_pm",               // Angstroem is 100pm, 1E-10m
+    "Length",     "μ",        "1_μm",                 // A micron can be written as μ
+    "Length",     "fermi",    "1_fm",                 // fermi is another name for femtometer
+    "Length",     "mil",      "254/10000000_m",       // A thousands of a inch (min is taken)
+    "Length",     "a",        "100_m²",               // Acre
+    "Length",     "b",        "100_fermi²",           // Barn, 1E-28 m^2
 
     // US Survey funny set of units
     // See https://www.northamptonma.gov/740/US-Survey-Foot-vs-Meter and
@@ -227,187 +227,187 @@ static const cstring basic_units[] =
     // not have fractions to represent it precisely. This unit is the only
     // one kept here. Otherwise, you can use the US unit, e.g. using
     // 1_cable*US will give you the U.S. Survey version of the cable.
-    "ftUS",     "1200/3937_m",          // US survey foot
-    "US",       "1_ftUS/ft",            // Conversion factor
-    "cable",    "720_ft",               // Cable's length (US navy)
-    "ch",       "66_ft",                // Chain
-    "chain",    "1_ch",                 // Chain
-    "fath",     "6_ft",                 // Fathom
-    "fathom",   "1_fath",               // Fathom
-    "fur",      "660_ft",               // Furlong
-    "furlong",  "1_fur",                // Furlong
-    "league",   "3_mi",                 // League
-    "li",       "1/100_ch",             // Link
-    "link",     "1_li",                 // Link
-    "mi",       "5280_ft",              // Mile
-    "miUS",     "1_mi*US",              // Mile (US Survey)
-    "rd",       "1/4_ch",               // Rod, pole, perch
-    "rod",      "1_rd",                 // Alternate spelling
-    "pole",     "1_rd",                 // Pole
-    "perch",    "1_rd",                 // Perch
+    "Length",     "ftUS",     "1200/3937_m",          // US survey foot
+    "Length",     "US",       "1_ftUS/ft",            // Conversion factor
+    "Length",     "cable",    "720_ft",               // Cable's length (US navy)
+    "Length",     "ch",       "66_ft",                // Chain
+    "Length",     "chain",    "1_ch",                 // Chain
+    "Length",     "fath",     "6_ft",                 // Fathom
+    "Length",     "fathom",   "1_fath",               // Fathom
+    "Length",     "fur",      "660_ft",               // Furlong
+    "Length",     "furlong",  "1_fur",                // Furlong
+    "Length",     "league",   "3_mi",                 // League
+    "Length",     "li",       "1/100_ch",             // Link
+    "Length",     "link",     "1_li",                 // Link
+    "Length",     "mi",       "5280_ft",              // Mile
+    "Length",     "miUS",     "1_mi*US",              // Mile (US Survey)
+    "Length",     "rd",       "1/4_ch",               // Rod, pole, perch
+    "Length",     "rod",      "1_rd",                 // Alternate spelling
+    "Length",     "pole",     "1_rd",                 // Pole
+    "Length",     "perch",    "1_rd",                 // Perch
 
-    "ac",       "10_ch²",               // Acre
-    "acre",     "10_ac",                // Acre
-    "acUS",     "10_ch²*US²",           // Acre (pre-2023)
-    "acreUS",   "1_acUS",               // Acre (pre-2023)
+    "Length",     "ac",       "10_ch²",               // Acre
+    "Length",     "acre",     "10_ac",                // Acre
+    "Length",     "acUS",     "10_ch²*US²",           // Acre (pre-2023)
+    "Length",     "acreUS",   "1_acUS",               // Acre (pre-2023)
 
-    "acable",   "18532/100_m",          // Cable's length (Imperial/Admiralty)
-    "icable",   "1852/10_m",            // Cable's length ("International")
+    "Length",     "acable",   "18532/100_m",          // Cable's length (Imperial/Admiralty)
+    "Length",     "icable",   "1852/10_m",            // Cable's length ("International")
 
     // Duration
-    "s",        "1_s",
-    "min",      "60_s",
-    "minute",   "1_min",
-    "h",        "3600_s",
-    "hour",     "1_h",
-    "d",        "86400_s",
-    "day",      "1_d",
-    "yr",       "36524219/100000_d",    // Mean tropical year
-    "year",     "1_y",                  // Mean tropical year
-    "Hz",       "1_s⁻¹",                // Hertz
-    "rpm",      "60_Hz",                // Rotations per minute
+    "Time",       "s",        "1_s",
+    "Time",       "min",      "60_s",
+    "Time",       "minute",   "1_min",
+    "Time",       "h",        "3600_s",
+    "Time",       "hour",     "1_h",
+    "Time",       "d",        "86400_s",
+    "Time",       "day",      "1_d",
+    "Time",       "yr",       "36524219/100000_d",    // Mean tropical year
+    "Time",       "year",     "1_y",                  // Mean tropical year
+    "Time",       "Hz",       "1_s⁻¹",                // Hertz
+    "Time",       "rpm",      "60_Hz",                // Rotations per minute
 
     // Speed
-    "kph",      "1_km/h",               // US common spelling for km/h
-    "mph",      "1_mi/h",               // Miles per hour
-    "knot",     "1_nmi/h",              // 1 knot is 1 nautical mile per hour
-    "c",        "299792458_m/s",        // Speed of light
-    "ga",       "980665/100000_m/s^2",  // Standard freefall acceleration
-    "G",        "1_ga",                 // Alternate spelling (1_G)
+    "Speed",      "akph",      "1_km/h",               // US common spelling for km/h
+    "Speed",      "mph",      "1_mi/h",               // Miles per hour
+    "Speed",      "knot",     "1_nmi/h",              // 1 knot is 1 nautical mile per hour
+    "Speed",      "c",        "299792458_m/s",        // Speed of light
+    "Speed",      "ga",       "980665/100000_m/s^2",  // Standard freefall acceleration
+    "Speed",      "G",        "1_ga",                 // Alternate spelling (1_G)
 
     // Mass
-    "g",        "1_g",                  // Gram
-    "t",        "1000_kg",              // Metric ton
-    "ct",       "200_mg",               // Carat
-    "carat",    "1_ct",                 // Carat
-    "lb",       "45359237/100000_g",    // Avoirdupois pound
-    "dr",       "1/256_lb",             // Drachm
-    "dram",     "1_dr",                 // Alternate spelling
-    "drachm",   "1_dr",                 // Alternate spelling
-    "oz",       "1/16_lb",              // Ounce
-    "stone",    "14_lb",                // Stone
-    "qrUK",     "28_lb",                // Quarter (UK)
-    "qrUS",     "25_lb",                // Quarter (US)
-    "cwtUK",    "112_lb",               // Long hundredweight (UK)
-    "cwtUS",    "100_lb",               // Short hundredweight (US)
-    "tonUK",    "20_cwtUK",             // Long ton
-    "tonUS",    "20_cwtUS",             // Short ton
-    "ton",      "1_tonUS",              // Short ton
-    "grain",    "1/7000_lb",            // Grain (sometimes "gr")
-    "gr",       "1_grain",              // Grain
-    "slug",     "1_lbf*s^2/ft",         // Slug
-    "blob",     "12_slug",              // Blob (seriously????)
-    "dwt",      "24_grain",             // Pennyweight (Troy weight system)
-    "ozt",      "20_dwt",               // Troy ounce
-    "lbt",      "12_ozt",               // Troy pound
-    "u",        "1.6605402E-27_kg",     // Unified atomic mass
-    "mol",      "1_mol",                // Mole (quantity of matter)
-    "mole",     "1_mol",                // Mole (quantity of matter)
-    "Avogadro", "6.02214076E23",        // Avogadro constant (# units in 1_mol)
+    "Mass",       "g",        "1_g",                  // Gram
+    "Mass",       "t",        "1000_kg",              // Metric ton
+    "Mass",       "ct",       "200_mg",               // Carat
+    "Mass",       "carat",    "1_ct",                 // Carat
+    "Mass",       "lb",       "45359237/100000_g",    // Avoirdupois pound
+    "Mass",       "dr",       "1/256_lb",             // Drachm
+    "Mass",       "dram",     "1_dr",                 // Alternate spelling
+    "Mass",       "drachm",   "1_dr",                 // Alternate spelling
+    "Mass",       "oz",       "1/16_lb",              // Ounce
+    "Mass",       "stone",    "14_lb",                // Stone
+    "Mass",       "qrUK",     "28_lb",                // Quarter (UK)
+    "Mass",       "qrUS",     "25_lb",                // Quarter (US)
+    "Mass",       "cwtUK",    "112_lb",               // Long hundredweight (UK)
+    "Mass",       "cwtUS",    "100_lb",               // Short hundredweight (US)
+    "Mass",       "tonUK",    "20_cwtUK",             // Long ton
+    "Mass",       "tonUS",    "20_cwtUS",             // Short ton
+    "Mass",       "ton",      "1_tonUS",              // Short ton
+    "Mass",       "grain",    "1/7000_lb",            // Grain (sometimes "gr")
+    "Mass",       "gr",       "1_grain",              // Grain
+    "Mass",       "slug",     "1_lbf*s^2/ft",         // Slug
+    "Mass",       "blob",     "12_slug",              // Blob (seriously????)
+    "Mass",       "dwt",      "24_grain",             // Pennyweight (Troy weight system)
+    "Mass",       "ozt",      "20_dwt",               // Troy ounce
+    "Mass",       "lbt",      "12_ozt",               // Troy pound
+    "Mass",       "u",        "1.6605402E-27_kg",     // Unified atomic mass
+    "Mass",       "mol",      "1_mol",                // Mole (quantity of matter)
+    "Mass",       "mole",     "1_mol",                // Mole (quantity of matter)
+    "Mass",       "Avogadro", "6.02214076E23",        // Avogadro constant (# units in 1_mol)
 
     // Force
-    "N",        "1_kg*m/s^2",           // Newton
-    "dyn",      "1/100000_N",           // Dyne
-    "gf",       "980665/100000000_N",   // Gram-force
-    "kip",      "1000_lbf",             // Kilopound-force
-    "lbf",      "44482216152605/10000000000000_N",    // Pound-force
-    "pdl",      "138254954376/1000000000000_N",       // Poundal
+    "Force",      "N",        "1_kg*m/s^2",           // Newton
+    "Force",      "dyn",      "1/100000_N",           // Dyne
+    "Force",      "gf",       "980665/100000000_N",   // Gram-force
+    "Force",      "kip",      "1000_lbf",             // Kilopound-force
+    "Force",      "lbf",      "44482216152605/10000000000000_N",    // Pound-force
+    "Force",      "pdl",      "138254954376/1000000000000_N",       // Poundal
 
     // Energy
-    "J",        "1_kg*m^2/s^2",         // Joule
-    "erg",      "1/10000000_J",         // erg
-    "calth",    "4184/1000_J",          // Thermochemical Calorie
-    "cal4",     "4204/1000_J",          // 4°C calorie
-    "cal15",    "41855/10000_J",        // 15°C calorie
-    "cal20",    "4182/1000_J",          // 20°C calorie
-    "calmean",  "4190/1000_J",          // 4°C calorie
-    "cal",      "41868/10000_J",        // International calorie (1929, 1956)
-    "Btu",      "1055.05585262_J",      // British thermal unit
-    "therm",    "105506000_J",          // EEC therm
-    "eV",       "1.60217733E-19_J",     // electron-Volt
+    "Energy",    "J",        "1_kg*m^2/s^2",         // Joule
+    "Energy",    "erg",      "1/10000000_J",         // erg
+    "Energy",    "calth",    "4184/1000_J",          // Thermochemical Calorie
+    "Energy",    "cal4",     "4204/1000_J",          // 4°C calorie
+    "Energy",    "cal15",    "41855/10000_J",        // 15°C calorie
+    "Energy",    "cal20",    "4182/1000_J",          // 20°C calorie
+    "Energy",    "calmean",  "4190/1000_J",          // 4°C calorie
+    "Energy",    "cal",      "41868/10000_J",        // International calorie (1929, 1956)
+    "Energy",    "Btu",      "1055.05585262_J",      // British thermal unit
+    "Energy",    "therm",    "105506000_J",          // EEC therm
+    "Energy",    "eV",       "1.60217733E-19_J",     // electron-Volt
 
     // Power
-    "W",        "1_J/s",                // Watt
-    "hp",       "745.699871582_W",      // Horsepower
+    "Power",      "W",        "1_J/s",                // Watt
+    "Power",      "hp",       "745.699871582_W",      // Horsepower
 
     // Pressure
-    "Pa",       "1_N/m^2",              // Pascal
-    "atm",      "101325_Pa",            // Atmosphere
-    "bar",      "100000_Pa",            // bar
-    "psi",      "6894.75729317_Pa",     // Pound per square inch
-    "ksi",      "1000_psi",             // Kilopound per square inch
-    "torr",     "1/760_atm",            // Torr = 1/760 standard atm
-    "mmHg",     "1_torr",               // millimeter of mercury
-    "inHg",     "1_in/mm*mmHg",         // inch of mercury
-    "inH2O",    "249.0889_Pa",          // Inch of H2O
+    "Press",      "Pa",       "1_N/m^2",              // Pascal
+    "Press",      "atm",      "101325_Pa",            // Atmosphere
+    "Press",      "bar",      "100000_Pa",            // bar
+    "Press",      "psi",      "6894.75729317_Pa",     // Pound per square inch
+    "Press",      "ksi",      "1000_psi",             // Kilopound per square inch
+    "Press",      "torr",     "1/760_atm",            // Torr = 1/760 standard atm
+    "Press",      "mmHg",     "1_torr",               // millimeter of mercury
+    "Press",      "inHg",     "1_in/mm*mmHg",         // inch of mercury
+    "Press",      "inH2O",    "249.0889_Pa",          // Inch of H2O
 
     // Temperature
-    "K",        "1_K",                  // Kelvin
-    "°C",       "1_K",                  // Celsius
-    "°R",       "9/5_K",                // Rankin
-    "°F",       "9/5_K",                // Fahrenheit
+    "Temp",       "K",        "1_K",                  // Kelvin
+    "Temp",       "°C",       "1_K",                  // Celsius
+    "Temp",       "°R",       "9/5_K",                // Rankin
+    "Temp",       "°F",       "9/5_K",                // Fahrenheit
 
     // Electricity
-    "A",        "1_A",                  // Ampere
-    "V",        "1_kg*m^2/(A*s^3)",     // Volt
-    "C",        "1_A*s",                // Coulomb
-    "Ω",        "1_V/A",                // Ohm
-    "ohm",      "1_Ω",                  // Ohm
-    "F",        "1_C/V",                // Farad
-    "Fdy",      "96487_A*s",            // Faraday
-    "H",        "1_ohm*s",              // Henry
-    "mho",      "1_S",                  // Ohm spelled backwards
-    "S",        "1_A/V",                // Siemens
-    "T",        "1_V*s/m^2",            // Tesla
-    "Wb",       "1_V*s",                // Weber
+    "Elec",       "A",        "1_A",                  // Ampere
+    "Elec",       "V",        "1_kg*m^2/(A*s^3)",     // Volt
+    "Elec",       "C",        "1_A*s",                // Coulomb
+    "Elec",       "Ω",        "1_V/A",                // Ohm
+    "Elec",       "ohm",      "1_Ω",                  // Ohm
+    "Elec",       "F",        "1_C/V",                // Farad
+    "Elec",       "Fdy",      "96487_A*s",            // Faraday
+    "Elec",       "H",        "1_ohm*s",              // Henry
+    "Elec",       "mho",      "1_S",                  // Ohm spelled backwards
+    "Elec",       "S",        "1_A/V",                // Siemens
+    "Elec",       "T",        "1_V*s/m^2",            // Tesla
+    "Elec",       "Wb",       "1_V*s",                // Weber
 
     // Angles
-    "turn",     "1_turn",               // Full turns
-    "°",        "1/360_turn",           // Degree
-    "grad",     "1/400_turn",           // Grad
-    "r",        "0.1591549430918953357688837633725144_turn", // Radian
-    "arcmin",   "1/60_°",               // Arc minute
-    "arcs",     "1/60_arcmin",          // Arc second
-    "sr",       "1_sr",                 // Steradian
-    "ℼr",       "1/2_turn",             // Pi radians
-    "pir",      "1/2_turn",             // Pi radians
+    "Angle",      "turn",     "1_turn",               // Full turns
+    "Angle",      "°",        "1/360_turn",           // Degree
+    "Angle",      "grad",     "1/400_turn",           // Grad
+    "Angle",      "r",        "0.1591549430918953357688837633725144_turn", // Radian
+    "Angle",      "arcmin",   "1/60_°",               // Arc minute
+    "Angle",      "arcs",     "1/60_arcmin",          // Arc second
+    "Angle",      "sr",       "1_sr",                 // Steradian
+    "Angle",      "ℼr",       "1/2_turn",             // Pi radians
+    "Angle",      "pir",      "1/2_turn",             // Pi radians
 
     // Light
-    "cd",       "1_cd",                 // Candela
-    "lm",       "1_cd*sr",              // Lumen
-    "lx"        "1_lm/m^2",             // Lux
-    "fc",       "1_lm/ft^2",            // Footcandle
-    "flam",     "1_cd/ft^2*r/pir",      // Foot-Lambert
-    "ph",       "10000_lx",             // Phot
-    "sb",       "10000_cd/m^2",         // Stilb
-    "lam",      "1_cd/cm^2*r/pir",      // Lambert
-    "nit",      "1_cd/m^2",             // Nit
-    "nt",       "1_cd/m^2",             // Nit
+    "Light",      "cd",       "1_cd",                 // Candela
+    "Light",      "lm",       "1_cd*sr",              // Lumen
+    "Light",      "lx"        "1_lm/m^2",             // Lux
+    "Light",      "fc",       "1_lm/ft^2",            // Footcandle
+    "Light",      "flam",     "1_cd/ft^2*r/pir",      // Foot-Lambert
+    "Light",      "ph",       "10000_lx",             // Phot
+    "Light",      "sb",       "10000_cd/m^2",         // Stilb
+    "Light",      "lam",      "1_cd/cm^2*r/pir",      // Lambert
+    "Light",      "nit",      "1_cd/m^2",             // Nit
+    "Light",      "nt",       "1_cd/m^2",             // Nit
 
     // Radiation
-    "Gy",       "1_m^2/s^2",            // Gray
-    "rad",      "1/100_m^2/s^2",        // rad
-    "rem",      "1_rad",                // rem
-    "Sv",       "1_Gy",                 // Sievert
-    "Bq",       "1_Hz",                 // Becquerel
-    "Ci",       "37_GBq",               // Curie
-    "R",        "258_µC/kg"             // Roentgen
+    "Rad",        "Gy",       "1_m^2/s^2",            // Gray
+    "Rad",        "rad",      "1/100_m^2/s^2",        // rad
+    "Rad",        "rem",      "1_rad",                // rem
+    "Rad",        "Sv",       "1_Gy",                 // Sievert
+    "Rad",        "Bq",       "1_Hz",                 // Becquerel
+    "Rad",        "Ci",       "37_GBq",               // Curie
+    "Rad",        "R",        "258_µC/kg"             // Roentgen
 
     // Viscosity
-    "P",        "1/10_Pa*s",            // Poise
-    "St",       "1_cm^2/s",             // Stokes
+    "Visc",       "P",        "1/10_Pa*s",            // Poise
+    "Visc",       "St",       "1_cm^2/s",             // Stokes
 
     // Computing
-    "bit",      "1_bit",                // Bit
-    "byte",     "8_bit",                // Byte
-    "B",        "1_byte",               // Byte
-    "bps",      "1_bit/s",              // bit per second
-    "baud",     "1_bps/SR",             // baud
-    "Bd",       "1_baud",               // baud (standard unit)
-    "mips",     "1_mips",               // Million instructions per second
-    "flops",    "1_flops",              // Floating point operation per second
-    "SR",       "1",                    // Symbol rate (default is 1)
-    "dB",       "1_dB",                 // decibel
+    "Comp",       "bit",      "1_bit",                // Bit
+    "Comp",       "byte",     "8_bit",                // Byte
+    "Comp",       "B",        "1_byte",               // Byte
+    "Comp",       "bps",      "1_bit/s",              // bit per second
+    "Comp",       "baud",     "1_bps/SR",             // baud
+    "Comp",       "Bd",       "1_baud",               // baud (standard unit)
+    "Comp",       "mips",     "1_mips",               // Million instructions per second
+    "Comp",       "flops",    "1_flops",              // Floating point operation per second
+    "Comp",       "SR",       "1",                    // Symbol rate (default is 1)
+    "Comp",       "dB",       "1_dB",                 // decibel
 };
 
 
@@ -475,7 +475,7 @@ unit_p unit::lookup(symbol_p name, int *prefix_info)
             continue;
 
         int    e       = si_prefixes[si].exponent;
-        size_t maxu    = sizeof(basic_units) / sizeof(basic_units[9]);
+        size_t maxu    = sizeof(basic_units) / sizeof(basic_units[0]);
         size_t maxkibi = 1 + (e > 0 && e % 3 == 0 &&
                               ntxt[plen] == 'i' && len > plen+1);
         for (uint kibi = 0; kibi < maxkibi; kibi++)
@@ -506,7 +506,7 @@ unit_p unit::lookup(symbol_p name, int *prefix_info)
             }
 
             // Check built-in units
-            for (size_t u = 0; !udef && u < maxu; u += 2)
+            for (size_t u = 1; !udef && u < maxu; u += 3)
             {
                 utxt = basic_units[u];
                 if (memcmp(utxt, txt, rlen) == 0 && utxt[rlen] == 0)

@@ -1162,7 +1162,9 @@ MENU(UserInterfaceModesMenu,
      "Square",                                  ID_SquareMenus,
      "Modes",                                   ID_ModesMenu,
 
-     CursorBlinkRate::menu_label,               ID_CursorBlinkRate);
+     CursorBlinkRate::menu_label,               ID_CursorBlinkRate,
+     "Show Units",                              ID_ShowBuiltinUnits,
+     "Hide Units",                              ID_HideBuiltinUnits);
 
 MENU(MathModesMenu,
 // ----------------------------------------------------------------------------

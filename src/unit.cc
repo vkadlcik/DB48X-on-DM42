@@ -926,6 +926,10 @@ void unit_menu::units(info &mi, cstring name, cstring utable[], size_t count)
         if (strcasecmp(file_units[3 * i], name) == 0)
             matching++;
 
+    // Disable built-in units if we loaded a file
+    if (file_entries && !Settings.builtin_units)
+        count = 0;
+
     items_init(mi, count + matching, 3, 1);
 
     // Insert the built-in units after the ones from the file

@@ -280,6 +280,16 @@ Display menus using square white tabs.
 Set the cursor blink rate in millisecond, between 50ms (20 blinks per second)
 and 5000ms (blinking every 5 seconds).
 
+## ShowBuiltinUnits
+
+Show built-in units in the `UnitsMenu` even when a units file was loaded.
+
+## HideBuiltinUnits
+
+Hide built-in units in the `UnitsMenu` when a units file was loaded.
+The built-in units will still show up if the units file fails to load.
+
+
 # States
 
 The calculator can save and restore state in files with extension `.48S`.

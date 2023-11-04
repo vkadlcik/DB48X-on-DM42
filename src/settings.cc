@@ -219,6 +219,11 @@ void settings::save(renderer &out, bool show_defaults)
     if (cursor_blink_rate != Defaults.cursor_blink_rate || show_defaults)
         out.printf("%u CursorBlinkRate\n", cursor_blink_rate);
 
+    if (builtin_units != Defaults.builtin_units || show_defaults)
+        out.printf("HideBuiltinUnits\n");
+    else
+        out.printf("ShowBuiltinUnits\n");
+
     // Save the current menu
     if (menu_p menu = ui.menu())
     {
@@ -1332,4 +1337,24 @@ SETTINGS_COMMAND_BODY(CursorBlinkRate, false)
     }
     return object::ERROR;
 
+}
+
+
+SETTINGS_COMMAND_BODY(ShowBuiltinUnits, Settings.builtin_units)
+// ----------------------------------------------------------------------------
+//  Show built-in units if a units file is loaded
+// ----------------------------------------------------------------------------
+{
+    Settings.builtin_units = true;
+    return object::OK;
+}
+
+
+SETTINGS_COMMAND_BODY(HideBuiltinUnits, !Settings.builtin_units)
+// ----------------------------------------------------------------------------
+//  Hide built-in units if a units file is loaded
+// ----------------------------------------------------------------------------
+{
+    Settings.builtin_units = false;
+    return object::OK;
 }

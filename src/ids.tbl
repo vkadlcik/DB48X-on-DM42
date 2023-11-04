@@ -490,6 +490,11 @@ CMD(TextStackDisplay)
 
 CMD(CursorBlinkRate)
 
+CMD(ShowBuiltinUnits)
+CMD(HideBuiltinUnits)
+
+
+
 // ============================================================================
 //
 //   Menus

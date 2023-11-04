@@ -2590,8 +2590,8 @@ Hewlett-Packard RPL implementation.
 * [ComplexMenu](#complexmenu)
 * [ComputerUnitsMenu](#computerunitsmenu)
 * [ConstantsMenu](#constantsmenu)
-* [ConvertToUnit](#converttounit)
 * [ConvertToUnitPrefix](#converttounitprefix)
+* [ConvertToUnit](#converttounit)
 * [CursorBlinkRate](#cursorblinkrate): Select cursor blink rate in milliseconds
 * [DebugMenu](#debugmenu)
 * [DecimalComma](#decimalcomma): Select comma as decimal separator
@@ -2600,8 +2600,8 @@ Hewlett-Packard RPL implementation.
 * [DifferentiationMenu](#differentiationmenu)
 * [DisplayModesMenu](#displaymodesmenu)
 * [EQUIV](#equiv): Logical equivalence
-* [ERF](#erf): Error function
 * [ERFC](#erfc): Complementary error function
+* [ERF](#erf): Error function
 * [EXCLUDES](#excludes): Logical exclusion
 * [EditMenu](#editmenu)
 * [EditorBegin](#editorbegin)
@@ -2636,6 +2636,7 @@ Hewlett-Packard RPL implementation.
 * [GraphicsMenu](#graphicsmenu)
 * [GraphicsStackDisplay](#graphicsstackdisplay): Select graphic display of the stack
 * [HYPOT](#hypot): Hypothenuse
+* [HideBuiltinUnits](#hidebuiltinunits)
 * [HyperbolicMenu](#hyperbolicmenu)
 * [IMPLIES](#implies): Logical implication
 * [IOMenu](#iomenu)
@@ -2699,6 +2700,7 @@ Hewlett-Packard RPL implementation.
 * [SaveState](#savestate): Save system state to current state file
 * [SelfInsert](#selfinsert)
 * [SeparatorModesMenu](#separatormodesmenu)
+* [ShowBuiltinUnits](#showbuiltinunits)
 * [SignalProcessingMenu](#signalprocessingmenu)
 * [SingleRowMenus](#singlerowmenus): Display menus on single row
 * [SolverMenu](#solvermenu)
@@ -2731,10 +2733,10 @@ Hewlett-Packard RPL implementation.
 * [UnitsMenu](#unitsmenu)
 * [UpperCase](#uppercase): Show commands in uppercase
 * [UserInterfaceModesMenu](#userinterfacemodesmenu)
-* [VariablesMenu](#variablesmenu)
 * [VariablesMenuExecute](#variablesmenuexecute)
 * [VariablesMenuRecall](#variablesmenurecall)
 * [VariablesMenuStore](#variablesmenustore)
+* [VariablesMenu](#variablesmenu)
 * [VectorMenu](#vectormenu)
 * [ViscosityUnitsMenu](#viscosityunitsmenu)
 * [VolumeUnitsMenu](#volumeunitsmenu)
@@ -5068,6 +5070,16 @@ Display menus using square white tabs.
 
 Set the cursor blink rate in millisecond, between 50ms (20 blinks per second)
 and 5000ms (blinking every 5 seconds).
+
+## ShowBuiltinUnits
+
+Show built-in units in the `UnitsMenu` even when a units file was loaded.
+
+## HideBuiltinUnits
+
+Hide built-in units in the `UnitsMenu` when a units file was loaded.
+The built-in units will still show up if the units file fails to load.
+
 
 # States
 

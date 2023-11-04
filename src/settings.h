@@ -110,6 +110,7 @@ struct settings
           save_stack(true),
           save_last(true),
           prog_save_last(false),
+          builtin_units(false),
           date_separator('/'),
           result_sz(STACK),
           stack_sz(STACK),
@@ -226,6 +227,7 @@ public:
     bool     save_stack     :1; // Save last stack
     bool     save_last      :1; // Save last args
     bool     prog_save_last :1; // Save last args while running programs
+    bool     builtin_units  :1; // Show built-in units after loaded ones
     char     date_separator;    // Date separator
     font_id  result_sz;         // Size for stack top
     font_id  stack_sz;          // Size for other stack levels
@@ -367,5 +369,8 @@ SETTINGS_COMMAND_DECLARE(GraphicsStackDisplay);
 SETTINGS_COMMAND_DECLARE(TextStackDisplay);
 
 SETTINGS_COMMAND_DECLARE(CursorBlinkRate);
+
+SETTINGS_COMMAND_DECLARE(ShowBuiltinUnits);
+SETTINGS_COMMAND_DECLARE(HideBuiltinUnits);
 
 #endif // SETTINGS_H

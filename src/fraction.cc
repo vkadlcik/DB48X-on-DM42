@@ -133,8 +133,8 @@ bignum_g fraction::denominator() const
         return big_fraction_p(this)->denominator();
 
     byte_p p = payload();
-    size_t nv = leb128<ularge>(p);
-    size_t dv = leb128<ularge>(p) + 0 * nv;
+    ularge nv = leb128<ularge>(p);
+    ularge dv = leb128<ularge>(p) + 0 * nv;
     return rt.make<bignum>(ID_bignum, dv);
 }
 
@@ -157,8 +157,8 @@ integer_g fraction::denominator(int) const
 // ----------------------------------------------------------------------------
 {
     byte_p p = payload();
-    size_t nv = leb128<ularge>(p);
-    size_t dv = leb128<ularge>(p) + 0 * nv;
+    ularge nv = leb128<ularge>(p);
+    ularge dv = leb128<ularge>(p) + 0 * nv;
     return rt.make<integer>(ID_integer, dv);
 }
 

@@ -4345,3 +4345,42 @@ size_t user_interface::remove(size_t offset, size_t len)
     }
     return len;
 }
+
+
+// ============================================================================
+//
+//   Debugging tool (printing on screen)
+//
+// ============================================================================
+
+#include "font.h"
+#include <cstdarg>
+
+void debug_printf(int row, cstring format, ...)
+// ----------------------------------------------------------------------------
+//   Debug printf on the given row
+// ----------------------------------------------------------------------------
+{
+    char buffer[256];
+    va_list va;
+    va_start(va, format);
+    vsnprintf(buffer, sizeof(buffer), format, va);
+    va_end(va);
+    size  h = HelpFont->height();
+    coord y = row * h;
+    Screen.text(0, y, utf8(buffer), HelpFont, pattern::white, pattern::black);
+    ui.draw_dirty(0, y, LCD_W, y + h - 1);
+}
+
+
+void debug_wait(int delay)
+// ----------------------------------------------------------------------------
+//   Wait for the given delay, or until key is pressed
+// ----------------------------------------------------------------------------
+{
+    refresh_dirty();
+    if (delay > 0)
+        sys_delay(delay);
+    else if (delay < 0)
+        wait_for_key_press();
+}

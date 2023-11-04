@@ -803,7 +803,7 @@ struct object
 protected:
     static const dispatch   handler[NUM_IDS];
 
-#if SIMULATOR
+#if DEBUG
 public:
     cstring debug() const;
 #endif

@@ -864,7 +864,7 @@ bool object::is_big() const
 }
 
 
-#if SIMULATOR
+#if DEBUG
 cstring object::debug() const
 // ----------------------------------------------------------------------------
 //   Render an object from the debugger

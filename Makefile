@@ -309,7 +309,7 @@ CFLAGS += -Wno-misleading-indentation
 DBGFLAGS = $(DBGFLAGS_$(OPT))
 DBGFLAGS_debug = -g
 
-CFLAGS_debug += -O0 -DDEBUG
+CFLAGS_debug += -Os -DDEBUG
 CFLAGS_release += $(CFLAGS_release_$(VARIANT))
 CFLAGS_release_dm42 = -Os
 CFLAGS_release_dm32 = -O2

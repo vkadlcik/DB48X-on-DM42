@@ -185,7 +185,7 @@ void program_init()
     // Setup default fonts
     font_defaults();
 
-#ifndef DEBUG
+#ifndef SIMULATOR
     // Give as much as memory as possible to the runtime
     // Experimentally, this is the amount of memory we need to leave free
     size_t size = sys_free_mem() - 10 * 1024;

@@ -33,12 +33,23 @@
 #include "arithmetic.h"
 #include "compare.h"
 #include "expression.h"
+#include "file.h"
 #include "functions.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
 #include "settings.h"
 #include "user_interface.h"
+
+
+RECORDER(units,         16, "Unit objects");
+RECORDER(units_error,   16, "Error on unit objects");
+
+
+// Units loaded from CONFIG/UNITS.CSV file
+static cstring *file_units       = nullptr;
+static size_t   file_units_count = 0;
+static bool     file_loaded      = false;
 
 
 PARSE_BODY(unit)
@@ -451,6 +462,7 @@ unit_p unit::lookup(symbol_p name, int *prefix_info)
 //   Lookup a built-in unit
 // ----------------------------------------------------------------------------
 {
+    size_t maxf  = load_file() ? file_units_count : 0;
     size_t len   = 0;
     gcutf8 gtxt  = name->value(&len);
     uint   maxs  = sizeof(si_prefixes) / sizeof(si_prefixes[0]);
@@ -468,66 +480,94 @@ unit_p unit::lookup(symbol_p name, int *prefix_info)
                               ntxt[plen] == 'i' && len > plen+1);
         for (uint kibi = 0; kibi < maxkibi; kibi++)
         {
-            size_t rlen = len - plen - kibi;
-            utf8   txt  = ntxt + plen + kibi;
+            size_t  rlen = len - plen - kibi;
+            utf8    txt  = ntxt + plen + kibi;
+            cstring utxt = nullptr;
+            cstring udef = nullptr;
+            size_t  ulen = 0;
 
-            for (size_t u = 0; u < maxu; u += 2)
+            // Check in-file units
+            for (size_t u = 0; !udef && u < maxf; u += 3)
             {
-                cstring utxt = basic_units[u];
+                if (strcasecmp(file_units[u], "cycle"))
+                {
+                    // If definition is empty, it's a menu-only entry
+                    cstring def = file_units[u+2];
+                    if (def && *def)
+                    {
+                        utxt = file_units[u+1];
+                        if (memcmp(utxt, txt, rlen) == 0 && utxt[rlen] == 0)
+                        {
+                            udef = def;
+                            ulen  = strlen(udef);
+                        }
+                    }
+                }
+            }
+
+            // Check built-in units
+            for (size_t u = 0; !udef && u < maxu; u += 2)
+            {
+                utxt = basic_units[u];
                 if (memcmp(utxt, txt, rlen) == 0 && utxt[rlen] == 0)
                 {
-                    cstring udef = basic_units[u + 1];
-                    size_t  len  = strlen(udef);
-                    if (object_p obj = object::parse(utf8(udef), len))
+                    udef = basic_units[u + 1];
+                    ulen  = strlen(udef);
+                }
+            }
+
+            // If we found a definition, use that
+            if (udef)
+            {
+                if (object_p obj = object::parse(utf8(udef), ulen))
+                {
+                    if (unit_g u = obj->as<unit>())
                     {
-                        if (unit_g u = obj->as<unit>())
+                        // Record prefix info if we need it
+                        if (prefix_info)
+                            *prefix_info = kibi ? -si : si;
+
+                        // Apply multipliers
+                        if (e)
                         {
-                            // Record prefix info if we need it
-                            if (prefix_info)
-                                *prefix_info = kibi ? -si : si;
-
-                            // Apply multipliers
-                            if (e)
+                            // Convert SI exp into value, e.g cm-> 1/100
+                            // If kibi mode, use powers of 2
+                            algebraic_g exp   = integer::make(e);
+                            algebraic_g scale = integer::make(10);
+                            if (kibi)
                             {
-                                // Convert SI exp into value, e.g cm-> 1/100
-                                // If kibi mode, use powers of 2
-                                algebraic_g exp   = integer::make(e);
-                                algebraic_g scale = integer::make(10);
-                                if (kibi)
-                                {
-                                    scale = integer::make(3);
-                                    exp = exp / scale;
-                                    scale = integer::make(1024);
-                                }
-                                scale = pow(scale, exp);
-                                exp = u.Safe();
-                                scale = scale * exp;
-                                if (scale)
-                                    if (unit_p us = scale->as<unit>())
-                                        u = us;
+                                scale = integer::make(3);
+                                exp = exp / scale;
+                                scale = integer::make(1024);
                             }
-
-                            // Check if we have a terminal unit
-                            algebraic_g uexpr = u->uexpr();
-                            if (symbol_g sym = uexpr->as_quoted<symbol>())
-                            {
-                                size_t slen = 0;
-                                utf8   stxt = sym->value(&slen);
-                                if (slen == rlen &&
-                                    memcmp(stxt, utxt, slen) == 0)
-                                    return u;
-                            }
-
-                            // Check if we must evaluate, e.g. 1_min -> seconds
-                            uexpr = u->evaluate();
-                            if (!uexpr || uexpr->type() != ID_unit)
-                            {
-                                rt.inconsistent_units_error();
-                                return nullptr;
-                            }
-                            u = unit_p(uexpr.Safe());
-                            return u;
+                            scale = pow(scale, exp);
+                            exp = u.Safe();
+                            scale = scale * exp;
+                            if (scale)
+                                if (unit_p us = scale->as<unit>())
+                                    u = us;
                         }
+
+                        // Check if we have a terminal unit
+                        algebraic_g uexpr = u->uexpr();
+                        if (symbol_g sym = uexpr->as_quoted<symbol>())
+                        {
+                            size_t slen = 0;
+                            utf8   stxt = sym->value(&slen);
+                            if (slen == rlen &&
+                                memcmp(stxt, utxt, slen) == 0)
+                                return u;
+                        }
+
+                        // Check if we must evaluate, e.g. 1_min -> seconds
+                        uexpr = u->evaluate();
+                        if (!uexpr || uexpr->type() != ID_unit)
+                        {
+                            rt.inconsistent_units_error();
+                            return nullptr;
+                        }
+                        u = unit_p(uexpr.Safe());
+                        return u;
                     }
                 }
             }
@@ -738,6 +778,135 @@ unit_p unit::cycle() const
 }
 
 
+bool unit::load_file()
+// ----------------------------------------------------------------------------
+//   Load the units file
+// ----------------------------------------------------------------------------
+//   In order to avoid memory fragmentation, and since we load the file once,
+//   we do two passes on the file:
+//   - the first one where we compute memory requirements,
+//   - the second one where we load data into allocated memory
+//   This also ensures we deal gracefully with out-of-memory cases
+{
+    if (!file_loaded)
+    {
+        file_loaded = true;
+
+        // Try to open the units file
+        file units_file("CONFIG/UNITS.CSV", false);
+        if (units_file.valid())
+        {
+            size_t   strings   = 0;
+            size_t   chars     = 0;
+            char    *text      = nullptr;
+            cstring  value     = nullptr;
+            cstring *values    = nullptr;
+            bool     malformed = false;
+
+            for (int pass = 0; pass < 2; pass++)
+            {
+                uint     column = 0;
+                bool     quoted = false;
+
+                if (pass)
+                {
+                    size_t memsize = strings * sizeof(cstring) + chars;
+                    file_units = (cstring *) malloc(memsize);
+                    file_units_count = strings / 3;
+                    values = file_units;
+                    text = (char *) (file_units + strings);
+                    value = text;
+                }
+
+                // Restart from beginning of file
+                units_file.seek(0);
+                while(units_file.valid())
+                {
+                    unicode c = units_file.get();
+                    if (!c)
+                        break;
+
+                    if (c == '"')
+                    {
+                        quoted = !quoted;
+                        if (!quoted)
+                        {
+                            // Defensive coding: ignore anything after column 3
+                            if (column < 3)
+                            {
+                                if (pass)
+                                {
+                                    *text++ = 0;
+                                    *values++ = value;
+                                    value = text;
+                                }
+                                else
+                                {
+                                    // New entry - Account for trailing 0
+                                    chars++;
+                                    strings++;
+                                }
+                            }
+                            column++;
+                        }
+                    }
+                    else if (c == '\n')
+                    {
+                        malformed = (column > 0 && column < 3) || quoted;
+                        if (malformed)
+                        {
+                            if (!pass)
+                                record(units_error,
+                                       "Malformed row after %u strings, "
+                                       "%u columns, %+s",
+                                       strings, column,
+                                   quoted ? "quoted" : "unquoted");
+                            if (quoted)
+                            {
+                                quoted = false;
+                                if (pass)
+                                    text = (char *) value;
+                                column++;
+                            }
+
+                            // Ignore this line, it's malformed
+                            if (pass)
+                            {
+                                values -= column;
+                                for (size_t c = 0; c < 3; c++)
+                                    values[c] = "";
+                            }
+                            else
+                            {
+                                strings -= column;
+                            }
+
+                        }
+                        column = 0;
+                    }
+                    else if (quoted)
+                    {
+                        if (pass)
+                            text += utf8_encode(c, (byte *) text);
+                        else
+                            chars += utf8_size(c);
+                    }
+                }
+
+                // If last row was malformed, reading it might overflow
+                // into the texts> Avoid that by overallocating 3 entries
+                if (malformed)
+                    strings += 3;
+
+            }
+            units_file.close();
+        }
+    }
+
+    return file_units_count > 0;
+}
+
+
 
 // ============================================================================
 //
@@ -745,16 +914,26 @@ unit_p unit::cycle() const
 //
 // ============================================================================
 
-void unit_menu::units(info &mi, cstring utable[], size_t count)
+void unit_menu::units(info &mi, cstring name, cstring utable[], size_t count)
 // ----------------------------------------------------------------------------
 //   Build a units menu
 // ----------------------------------------------------------------------------
 {
-    items_init(mi, count, 3, 1);
+    // Use the units loaded from the units file
+    size_t file_entries = unit::load_file() ? file_units_count : 0;
+    size_t matching     = 0;
+    for (size_t i = 0; i < file_entries; i++)
+        if (strcasecmp(file_units[3 * i], name) == 0)
+            matching++;
 
+    items_init(mi, count + matching, 3, 1);
+
+    // Insert the built-in units after the ones from the file
     uint skip = mi.skip;
     mi.plane  = 0;
     mi.planes = 1;
+    for (uint i = 0; i < matching; i++)
+        items(mi, file_units[3 * i + 1], ID_ApplyUnit);
     for (uint i = 0; i < count; i++)
         items(mi, utable[i], ID_ApplyUnit);
 
@@ -762,6 +941,8 @@ void unit_menu::units(info &mi, cstring utable[], size_t count)
     mi.planes = 2;
     mi.skip   = skip;
     mi.index  = mi.plane * ui.NUM_SOFTKEYS;
+    for (uint i = 0; i < matching; i++)
+        items(mi, file_units[3 * i + 1], ID_ConvertToUnit);
     for (uint i = 0; i < count; i++)
         items(mi, utable[i], ID_ConvertToUnit);
 
@@ -769,6 +950,8 @@ void unit_menu::units(info &mi, cstring utable[], size_t count)
     mi.planes = 3;
     mi.index  = mi.plane * ui.NUM_SOFTKEYS;
     mi.skip   = skip;
+    for (uint i = 0; i < matching; i++)
+        items(mi, file_units[3 * i + 1], ID_ApplyInverseUnit);
     for (uint i = 0; i < count; i++)
         items(mi, utable[i], ID_ApplyInverseUnit);
 
@@ -777,9 +960,28 @@ void unit_menu::units(info &mi, cstring utable[], size_t count)
         ui.marker(k + 1 * ui.NUM_SOFTKEYS, L'→', true);
         ui.marker(k + 2 * ui.NUM_SOFTKEYS, '/', false);
     }
-
 }
 
+
+#define UNITS(Name, ...)                                                \
+    MENU_BODY(Name##UnitsMenu)                                          \
+/* ---------------------------------------------------------------- */  \
+/*   Create a system menu                                           */  \
+/* ---------------------------------------------------------------- */  \
+{                                                                       \
+    cstring units_table[] = { __VA_ARGS__ };                            \
+    size_t count = sizeof(units_table) / sizeof(units_table[0]);        \
+    units(mi, #Name, units_table, count);                               \
+    return true;                                                        \
+}
+
+
+
+// ============================================================================
+//
+//   Unit-related commands
+//
+// ============================================================================
 
 COMMAND_BODY(Convert)
 // ----------------------------------------------------------------------------
@@ -1132,24 +1334,11 @@ COMMAND_BODY(ConvertToUnitPrefix)
 
 // ============================================================================
 //
-//   Units menu
+//   Units menus
 //
 // ============================================================================
 
-#define UNITS(UnitMenu, ...)                                            \
-MENU_BODY(UnitMenu)                                                     \
-/* ---------------------------------------------------------------- */  \
-/*   Create a system menu                                           */  \
-/* ---------------------------------------------------------------- */  \
-{                                                                       \
-    cstring units_table[] = { __VA_ARGS__ };                            \
-    size_t count = sizeof(units_table) / sizeof(units_table[0]);        \
-    units(mi, units_table, count);                                      \
-    return true;                                                        \
-}
-
-
-UNITS(LengthUnitsMenu,
+UNITS(Length,
 // ----------------------------------------------------------------------------
 //   Length units menu
 // ----------------------------------------------------------------------------
@@ -1164,7 +1353,7 @@ UNITS(LengthUnitsMenu,
     );
 
 
-UNITS(AreaUnitsMenu,
+UNITS(Area,
 // ----------------------------------------------------------------------------
 //   Area units menu
 // ----------------------------------------------------------------------------
@@ -1175,9 +1364,9 @@ UNITS(AreaUnitsMenu,
     );
 
 
-UNITS(VolumeUnitsMenu,
+UNITS(Volume,
 // ----------------------------------------------------------------------------
-//   VolumeUnitsMenu
+//   Volume
 // ----------------------------------------------------------------------------
       "m^3", "st", "cm^3", "yd^3", "ft^3", "in^3",
       "l", "galUK", "galC", "gal", "qt", "pt",
@@ -1186,26 +1375,26 @@ UNITS(VolumeUnitsMenu,
     );
 
 
-UNITS(TimeUnitsMenu,
+UNITS(Time,
 // ----------------------------------------------------------------------------
-//   TimeUnitsMenu
+//   Time
 // ----------------------------------------------------------------------------
       "s", "min", "h", "d", "yr", "Hz"
     );
 
 
-UNITS(SpeedUnitsMenu,
+UNITS(Speed,
 // ----------------------------------------------------------------------------
-//   SpeedUnitsMenu
+//   Speed
 // ----------------------------------------------------------------------------
       "m/s", "km/h", "ft/s", "mph", "knot",
       "c", "ga"
     );
 
 
-UNITS(MassUnitsMenu,
+UNITS(Mass,
 // ----------------------------------------------------------------------------
-//   MassUnitsMenu
+//   Mass
 // ----------------------------------------------------------------------------
       "kg",     "g",    "t",    "ct",   "mol",
       "lb",     "oz",   "dr",   "stone","grain",
@@ -1214,49 +1403,49 @@ UNITS(MassUnitsMenu,
     );
 
 
-UNITS(ForceUnitsMenu,
+UNITS(Force,
 // ----------------------------------------------------------------------------
-//   ForceUnitsMenu
+//   Force
 // ----------------------------------------------------------------------------
       "N", "dyn", "gf", "kip", "lbf", "pdl",
     );
 
 
-UNITS(EnergyUnitsMenu,
+UNITS(Energy,
 // ----------------------------------------------------------------------------
-//   EnergyUnitsMenu
+//   Energy
 // ----------------------------------------------------------------------------
       "J",      "erg",  "Kcal", "cal",  "Btu",
       "ft×lb",  "therm","MeV",  "eV"
     );
 
 
-UNITS(PowerUnitsMenu,
+UNITS(Power,
 // ----------------------------------------------------------------------------
-//   PowerUnitsMenu
+//   Power
 // ----------------------------------------------------------------------------
       "W", "kW", "MW", "GW", "hp"
     );
 
 
-UNITS(PressureUnitsMenu,
+UNITS(Pressure,
 // ----------------------------------------------------------------------------
-//   PressureUnitsMenu
+//   Pressure
 // ----------------------------------------------------------------------------
       "Pa", "atm", "bar", "psi", "torr", "mmHg",
       "inHg", "inH2O"
     );
 
 
-UNITS(TemperatureUnitsMenu,
+UNITS(Temperature,
 // ----------------------------------------------------------------------------
-//   TemperatureUnitsMenu
+//   Temperature
 // ----------------------------------------------------------------------------
       "°C", "°F", "K", "°R"
     );
 
 
-UNITS(ElectricityUnitsMenu,
+UNITS(Electricity,
 // ----------------------------------------------------------------------------
 //   Electricity
 // ----------------------------------------------------------------------------
@@ -1265,7 +1454,7 @@ UNITS(ElectricityUnitsMenu,
     );
 
 
-UNITS(AngleUnitsMenu,
+UNITS(Angle,
 // ----------------------------------------------------------------------------
 //   Angles
 // ----------------------------------------------------------------------------
@@ -1274,7 +1463,7 @@ UNITS(AngleUnitsMenu,
     );
 
 
-UNITS(LightUnitsMenu,
+UNITS(Light,
 // ----------------------------------------------------------------------------
 //   Light and radiations
 // ----------------------------------------------------------------------------
@@ -1283,9 +1472,9 @@ UNITS(LightUnitsMenu,
     );
 
 
-UNITS(RadiationUnitsMenu,
+UNITS(Radiation,
 // ----------------------------------------------------------------------------
-//   RadiationsUnitsMenu
+//   Radiations
 // ----------------------------------------------------------------------------
       "Gy", "rad", "rem", "Sv", "Bq",
       "Ci", "R"
@@ -1293,16 +1482,16 @@ UNITS(RadiationUnitsMenu,
     );
 
 
-UNITS(ViscosityUnitsMenu,
+UNITS(Viscosity,
 // ----------------------------------------------------------------------------
-//   ViscosityUnitsMenu
+//   Viscosity
 // ----------------------------------------------------------------------------
       "P", "St"
     );
 
 
 
-UNITS(ComputerUnitsMenu,
+UNITS(Computer,
 // ----------------------------------------------------------------------------
 //   Units for computer use
 // ----------------------------------------------------------------------------

@@ -239,7 +239,7 @@ static int state_save_callback(cstring fpath,
     set_reset_state_file(fpath);
 
     // Open save file name
-    file prog(fpath);
+    file prog(fpath, true);
     if (!prog.valid())
     {
         disp_disk_info("State save failed");

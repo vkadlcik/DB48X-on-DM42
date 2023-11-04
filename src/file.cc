@@ -80,13 +80,16 @@ file::file()
 {}
 
 
-file::file(cstring path)
+file::file(cstring path, bool writing)
 // ----------------------------------------------------------------------------
 //   Construct a file object for writing
 // ----------------------------------------------------------------------------
     : data()
 {
-    open_for_writing(path);
+    if (writing)
+        open_for_writing(path);
+    else
+        open(path);
 }
 
 

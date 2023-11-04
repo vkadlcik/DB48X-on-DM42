@@ -1637,6 +1637,54 @@ implements, and differ from the HP RPL implementation in the following ways:
 * In order to support the computer-related units better, also recognize the
   [power-of-two variants](https://en.wikipedia.org/wiki/Kilobyte),
   e.g. `1_kiB` is `1024_B`. Also recogize the `K` prefix in addition to `k`.
+
+### Units file
+
+The built-in units can be overriden by your own set of units, which is defined
+in a CSV file called `CONFIG/UNITS.CSV` in the calculator.
+
+* The first column indicates the menu the units should go in.
+
+* The second column indicates the unit name.
+
+* The third column indicates the units definition, and can be left empty if
+  the definition can be deduced from the name of the unit, which is useful to
+  make a unit appear in menus.
+
+* Additional fields are ignored, but could be used to hold additional
+  information if you manage the units file using a standard spreadsheet, or for
+  sommends about the units.
+
+For example, if you frequently switch between inches and millimeters and between
+hours and nanoseconds, as well as between Euros and US dollars, you can define a
+unit file that looks like this:
+
+`"Length", "mm", "", "Definition is empty: it's a SI m prefix for m unit"`
+`"Length", "in", "254/10000_m", "Prefer fractions for exact results"`
+`"Money",  "USD", "1_USD", "Use USD as the reference"`
+`"Money", "EUR", "1.07_USD", "Conversion factor of the day"`
+
+The commands `ShowBuiltinUnits` and `HideBuiltinUnits` indicate if the built-in
+uits should be shown after the units loaded from the file. The default is that
+when a units file is present, the built-in units are hidden. This only affects
+the menus. Built-in units can always be used in expressions if they are typed
+manually. However, units loaded from file will be looked up first, so that a
+built-in unit can be overriden by the units file, which can be useful if a
+definition changes like the US Survey foot changed on January 1st, 2023.
+
+If you build a units file, it is recommended that you do not exceed 17 unit
+submenus so that all unit categories fit on a single screen.
+
+
+### Cycle command customization
+
+The menu name `"Cycle"` is reserved to define sequences of units that the
+`Cycle` command will recognize as special. For example:
+
+`"Cycle", "in", "mm", "Cycle converts inches to mm"`
+`"Cycle", "mm", "in", "Cycle converts mm to inches"`
+`"Cycle", "EUR", "USD"`
+`"Cycle", "USD", "EUR"`
 # Release notes
 
 Release 0.4.9 - Full support for units (All Saints Edition)

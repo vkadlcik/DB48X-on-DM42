@@ -55,6 +55,7 @@ struct unit : complex
 
     static algebraic_p parse_uexpr(gcutf8 source, size_t len);
 
+    static bool   load_file();
     static unit_p lookup(symbol_p name, int *prefix_index = nullptr);
 
     unit_p cycle() const;
@@ -76,7 +77,7 @@ struct unit_menu : menu
 // ----------------------------------------------------------------------------
 {
     unit_menu(id type) : menu(type) { }
-    static void units(info &mi, cstring utable[], size_t count);
+    static void units(info &mi, cstring name, cstring utable[], size_t count);
 };
 
 

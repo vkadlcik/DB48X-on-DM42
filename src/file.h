@@ -41,7 +41,7 @@ struct file
 // ----------------------------------------------------------------------------
 {
     file();
-    file(cstring path);
+    file(cstring path, bool writing);
     ~file();
 
     void    open(cstring path);

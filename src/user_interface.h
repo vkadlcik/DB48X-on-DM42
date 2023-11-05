@@ -75,7 +75,6 @@ struct user_interface
         NUM_PLANES      = 3,    // NONE, Shift and "extended" shift
         NUM_KEYS        = 46,   // Including SCREENSHOT, SH_UP and SH_DN
         NUM_SOFTKEYS    = 6,    // Number of softkeys
-        NUM_LABEL_CHARS = 12,   // Number of characters per menu label
         NUM_MENUS = NUM_PLANES * NUM_SOFTKEYS,
     };
 

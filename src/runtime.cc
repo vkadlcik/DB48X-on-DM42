@@ -357,6 +357,12 @@ size_t runtime::gc()
                 ||  (ErrorSource   >= start && ErrorSource   < end)
                 ||  (ErrorCommand  >= start && ErrorCommand  < end)
                 ||  (ui.command    >= start && ui.command    < end);
+            if (!found)
+            {
+                utf8 *label = (utf8 *) &ui.menu_label[0][0];
+                for (uint l = 0; l < ui.NUM_MENUS; l++)
+                    found = label[l] >= start && label[l] < end;
+            }
         }
 
         if (found)
@@ -468,6 +474,12 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
         ErrorCommand += delta;
     if (ui.command >= start && ui.command < end)
         ui.command += delta;
+
+    // Adjust menu labels
+    utf8 *label = (utf8 *) &ui.menu_label[0][0];
+    for (uint l = 0; l < ui.NUM_MENUS; l++)
+        if (label[l] >= start && label[l] < end)
+            label[l] += delta;
 }
 
 

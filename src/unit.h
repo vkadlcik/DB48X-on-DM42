@@ -30,6 +30,7 @@
 
 #include "command.h"
 #include "complex.h"
+#include "file.h"
 #include "functions.h"
 #include "menu.h"
 #include "symbol.h"
@@ -77,21 +78,32 @@ struct unit_menu : menu
 // ----------------------------------------------------------------------------
 {
     unit_menu(id type) : menu(type) { }
-    static void units(info &mi, cstring name, cstring utable[], size_t count);
+    static utf8 name(id type, size_t &len);
+
+public:
+    MENU_DECL(unit_menu);
+#if 0
+    PARSE_DECL(unit_menu);
+    RENDER_DECL(unit_menu);
+#endif
+};
+
+
+struct unit_file : file
+// ----------------------------------------------------------------------------
+//   Manage a unit file
+// ----------------------------------------------------------------------------
+{
+    unit_file(cstring name = "config/units.csv"): file(name, false) {}
+    ~unit_file() {}
+
+    symbol_g    lookup(utf8 what, size_t len, bool menu = false);
+    symbol_g    next(bool menu = false);
 };
 
 
 #define ID(i)
-#define UNIT_MENU(UnitMenu)                                             \
-struct UnitMenu : unit_menu                                             \
-/* ------------------------------------------------------------ */      \
-/*   Create a units menu                                        */      \
-/* ------------------------------------------------------------ */      \
-{                                                                       \
-    UnitMenu(id type = ID_##UnitMenu) : unit_menu(type) { }             \
-    OBJECT_DECL(UnitMenu);                                              \
-    MENU_DECL(UnitMenu);                                                \
-};
+#define UNIT_MENU(UnitMenu)     struct UnitMenu : unit_menu {};
 #include "ids.tbl"
 
 COMMAND_DECLARE(Convert);

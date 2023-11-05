@@ -925,12 +925,16 @@ struct scribble
     }
     ~scribble()
     {
-        if (size_t added = growth())
-            rt.free(added);
+        clear();
     }
     void commit()
     {
         allocated = rt.allocated();
+    }
+    void clear()
+    {
+        if (size_t added = growth())
+            rt.free(added);
     }
     size_t growth()
     {

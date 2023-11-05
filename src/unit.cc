@@ -46,12 +46,6 @@ RECORDER(units,         16, "Unit objects");
 RECORDER(units_error,   16, "Error on unit objects");
 
 
-// Units loaded from CONFIG/UNITS.CSV file
-static cstring *file_units       = nullptr;
-static size_t   file_units_count = 0;
-static bool     file_loaded      = false;
-
-
 PARSE_BODY(unit)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an unit
@@ -199,22 +193,23 @@ static const cstring basic_units[] =
 //   In many cases, e.g. parsec or au, it does not match the HP48 value
 {
     // Length and area
-    "Length",     "m",        "1_m",                  // meter, based for SI lengths
-    "Length",     "yd",       "9144/10000_m",         // yard
-    "Length",     "ft",       "3048/10000_m",         // foot
-    "Length",     "in",       "254/10000_m",          // inch
-    "Length",     "pc",       "30856775814913673_m",  // Parsec
-    "Length",     "ls",       "299792458_m",          // Light-second
-    "Length",     "lyr",      "31557600_ls",          // Light year
-    "Length",     "au",       "149597870700_m",       // Astronomical unit
-    "Length",     "nmi",      "1852_m",               // Nautical mile
-    "Length",     "miUS",     "",                     // US mile
-    "Length",     "Å",        "100_pm",               // Angstroem is 100pm, 1E-10m
-    "Length",     "μ",        "1_μm",                 // A micron can be written as μ
-    "Length",     "fermi",    "1_fm",                 // fermi is another name for femtometer
-    "Length",     "mil",      "254/10000000_m",       // A thousands of a inch (min is taken)
-    "Length",     "a",        "100_m²",               // Acre
-    "Length",     "b",        "100_fermi²",           // Barn, 1E-28 m^2
+    "Length",   nullptr,
+    "m",        "1_m",                  // meter, based for SI lengths
+    "yd",       "9144/10000_m",         // yard
+    "ft",       "3048/10000_m",         // foot
+    "in",       "254/10000_m",          // inch
+    "pc",       "30856775814913673_m",  // Parsec
+    "ls",       "299792458_m",          // Light-second
+    "lyr",      "31557600_ls",          // Light year
+    "au",       "149597870700_m",       // Astronomical unit
+    "nmi",      "1852_m",               // Nautical mile
+    "miUS",     "",                     // US mile
+    "Å",        "100_pm",               // Angstroem is 100pm, 1E-10m
+    "μ",        "1_μm",                 // A micron can be written as μ
+    "fermi",    "1_fm",                 // fermi is another name for femtometer
+    "mil",      "254/10000000_m",       // A thousands of a inch (min is taken)
+    "a",        "100_m²",               // Acre
+    "b",        "100_fermi²",           // Barn, 1E-28 m^2
 
     // US Survey funny set of units
     // See https://www.northamptonma.gov/740/US-Survey-Foot-vs-Meter and
@@ -227,187 +222,202 @@ static const cstring basic_units[] =
     // not have fractions to represent it precisely. This unit is the only
     // one kept here. Otherwise, you can use the US unit, e.g. using
     // 1_cable*US will give you the U.S. Survey version of the cable.
-    "Length",     "ftUS",     "1200/3937_m",          // US survey foot
-    "Length",     "US",       "1_ftUS/ft",            // Conversion factor
-    "Length",     "cable",    "720_ft",               // Cable's length (US navy)
-    "Length",     "ch",       "66_ft",                // Chain
-    "Length",     "chain",    "1_ch",                 // Chain
-    "Length",     "fath",     "6_ft",                 // Fathom
-    "Length",     "fathom",   "1_fath",               // Fathom
-    "Length",     "fur",      "660_ft",               // Furlong
-    "Length",     "furlong",  "1_fur",                // Furlong
-    "Length",     "league",   "3_mi",                 // League
-    "Length",     "li",       "1/100_ch",             // Link
-    "Length",     "link",     "1_li",                 // Link
-    "Length",     "mi",       "5280_ft",              // Mile
-    "Length",     "miUS",     "1_mi*US",              // Mile (US Survey)
-    "Length",     "rd",       "1/4_ch",               // Rod, pole, perch
-    "Length",     "rod",      "1_rd",                 // Alternate spelling
-    "Length",     "pole",     "1_rd",                 // Pole
-    "Length",     "perch",    "1_rd",                 // Perch
+    "ftUS",     "1200/3937_m",          // US survey foot
+    "US",       "1_ftUS/ft",            // Conversion factor
+    "cable",    "720_ft",               // Cable's length (US navy)
+    "ch",       "66_ft",                // Chain
+    "chain",    "1_ch",                 // Chain
+    "fath",     "6_ft",                 // Fathom
+    "fathom",   "1_fath",               // Fathom
+    "fur",      "660_ft",               // Furlong
+    "furlong",  "1_fur",                // Furlong
+    "league",   "3_mi",                 // League
+    "li",       "1/100_ch",             // Link
+    "link",     "1_li",                 // Link
+    "mi",       "5280_ft",              // Mile
+    "miUS",     "1_mi*US",              // Mile (US Survey)
+    "rd",       "1/4_ch",               // Rod, pole, perch
+    "rod",      "1_rd",                 // Alternate spelling
+    "pole",     "1_rd",                 // Pole
+    "perch",    "1_rd",                 // Perch
 
-    "Length",     "ac",       "10_ch²",               // Acre
-    "Length",     "acre",     "10_ac",                // Acre
-    "Length",     "acUS",     "10_ch²*US²",           // Acre (pre-2023)
-    "Length",     "acreUS",   "1_acUS",               // Acre (pre-2023)
+    "acable",   "18532/100_m",          // Cable's length (Imperial/Admiralty)
+    "icable",   "1852/10_m",            // Cable's length ("International")
 
-    "Length",     "acable",   "18532/100_m",          // Cable's length (Imperial/Admiralty)
-    "Length",     "icable",   "1852/10_m",            // Cable's length ("International")
+    "Area",     nullptr,
+    "ac",       "10_ch²",               // Acre
+    "acre",     "10_ac",                // Acre
+    "acUS",     "10_ch²*US²",           // Acre (pre-2023)
+    "acreUS",   "1_acUS",               // Acre (pre-2023)
 
     // Duration
-    "Time",       "s",        "1_s",
-    "Time",       "min",      "60_s",
-    "Time",       "minute",   "1_min",
-    "Time",       "h",        "3600_s",
-    "Time",       "hour",     "1_h",
-    "Time",       "d",        "86400_s",
-    "Time",       "day",      "1_d",
-    "Time",       "yr",       "36524219/100000_d",    // Mean tropical year
-    "Time",       "year",     "1_y",                  // Mean tropical year
-    "Time",       "Hz",       "1_s⁻¹",                // Hertz
-    "Time",       "rpm",      "60_Hz",                // Rotations per minute
+    "Time",     nullptr,
+    "s",        "1_s",
+    "min",      "60_s",
+    "minute",   "1_min",
+    "h",        "3600_s",
+    "hour",     "1_h",
+    "d",        "86400_s",
+    "day",      "1_d",
+    "yr",       "36524219/100000_d",    // Mean tropical year
+    "year",     "1_y",                  // Mean tropical year
+    "Hz",       "1_s⁻¹",                // Hertz
+    "rpm",      "60_Hz",                // Rotations per minute
 
     // Speed
-    "Speed",      "akph",      "1_km/h",               // US common spelling for km/h
-    "Speed",      "mph",      "1_mi/h",               // Miles per hour
-    "Speed",      "knot",     "1_nmi/h",              // 1 knot is 1 nautical mile per hour
-    "Speed",      "c",        "299792458_m/s",        // Speed of light
-    "Speed",      "ga",       "980665/100000_m/s^2",  // Standard freefall acceleration
-    "Speed",      "G",        "1_ga",                 // Alternate spelling (1_G)
+    "Speed",     nullptr,
+    "akph",      "1_km/h",               // US common spelling for km/h
+    "mph",      "1_mi/h",               // Miles per hour
+    "knot",     "1_nmi/h",              // 1 knot is 1 nautical mile per hour
+    "c",        "299792458_m/s",        // Speed of light
+    "ga",       "980665/100000_m/s^2",  // Standard freefall acceleration
+    "G",        "1_ga",                 // Alternate spelling (1_G)
 
     // Mass
-    "Mass",       "g",        "1_g",                  // Gram
-    "Mass",       "t",        "1000_kg",              // Metric ton
-    "Mass",       "ct",       "200_mg",               // Carat
-    "Mass",       "carat",    "1_ct",                 // Carat
-    "Mass",       "lb",       "45359237/100000_g",    // Avoirdupois pound
-    "Mass",       "dr",       "1/256_lb",             // Drachm
-    "Mass",       "dram",     "1_dr",                 // Alternate spelling
-    "Mass",       "drachm",   "1_dr",                 // Alternate spelling
-    "Mass",       "oz",       "1/16_lb",              // Ounce
-    "Mass",       "stone",    "14_lb",                // Stone
-    "Mass",       "qrUK",     "28_lb",                // Quarter (UK)
-    "Mass",       "qrUS",     "25_lb",                // Quarter (US)
-    "Mass",       "cwtUK",    "112_lb",               // Long hundredweight (UK)
-    "Mass",       "cwtUS",    "100_lb",               // Short hundredweight (US)
-    "Mass",       "tonUK",    "20_cwtUK",             // Long ton
-    "Mass",       "tonUS",    "20_cwtUS",             // Short ton
-    "Mass",       "ton",      "1_tonUS",              // Short ton
-    "Mass",       "grain",    "1/7000_lb",            // Grain (sometimes "gr")
-    "Mass",       "gr",       "1_grain",              // Grain
-    "Mass",       "slug",     "1_lbf*s^2/ft",         // Slug
-    "Mass",       "blob",     "12_slug",              // Blob (seriously????)
-    "Mass",       "dwt",      "24_grain",             // Pennyweight (Troy weight system)
-    "Mass",       "ozt",      "20_dwt",               // Troy ounce
-    "Mass",       "lbt",      "12_ozt",               // Troy pound
-    "Mass",       "u",        "1.6605402E-27_kg",     // Unified atomic mass
-    "Mass",       "mol",      "1_mol",                // Mole (quantity of matter)
-    "Mass",       "mole",     "1_mol",                // Mole (quantity of matter)
-    "Mass",       "Avogadro", "6.02214076E23",        // Avogadro constant (# units in 1_mol)
+    "Mass",     nullptr,
+    "g",        "1_g",                  // Gram
+    "t",        "1000_kg",              // Metric ton
+    "ct",       "200_mg",               // Carat
+    "carat",    "1_ct",                 // Carat
+    "lb",       "45359237/100000_g",    // Avoirdupois pound
+    "dr",       "1/256_lb",             // Drachm
+    "dram",     "1_dr",                 // Alternate spelling
+    "drachm",   "1_dr",                 // Alternate spelling
+    "oz",       "1/16_lb",              // Ounce
+    "stone",    "14_lb",                // Stone
+    "qrUK",     "28_lb",                // Quarter (UK)
+    "qrUS",     "25_lb",                // Quarter (US)
+    "cwtUK",    "112_lb",               // Long hundredweight (UK)
+    "cwtUS",    "100_lb",               // Short hundredweight (US)
+    "tonUK",    "20_cwtUK",             // Long ton
+    "tonUS",    "20_cwtUS",             // Short ton
+    "ton",      "1_tonUS",              // Short ton
+    "grain",    "1/7000_lb",            // Grain (sometimes "gr")
+    "gr",       "1_grain",              // Grain
+    "slug",     "1_lbf*s^2/ft",         // Slug
+    "blob",     "12_slug",              // Blob (seriously????)
+    "dwt",      "24_grain",             // Pennyweight (Troy weight system)
+    "ozt",      "20_dwt",               // Troy ounce
+    "lbt",      "12_ozt",               // Troy pound
+    "u",        "1.6605402E-27_kg",     // Unified atomic mass
+    "mol",      "1_mol",                // Mole (quantity of matter)
+    "mole",     "1_mol",                // Mole (quantity of matter)
+    "Avogadro", "6.02214076E23",        // Avogadro constant (# units in 1_mol)
 
     // Force
-    "Force",      "N",        "1_kg*m/s^2",           // Newton
-    "Force",      "dyn",      "1/100000_N",           // Dyne
-    "Force",      "gf",       "980665/100000000_N",   // Gram-force
-    "Force",      "kip",      "1000_lbf",             // Kilopound-force
-    "Force",      "lbf",      "44482216152605/10000000000000_N",    // Pound-force
-    "Force",      "pdl",      "138254954376/1000000000000_N",       // Poundal
+    "Force",    nullptr,
+    "N",        "1_kg*m/s^2",           // Newton
+    "dyn",      "1/100000_N",           // Dyne
+    "gf",       "980665/100000000_N",   // Gram-force
+    "kip",      "1000_lbf",             // Kilopound-force
+    "lbf",      "44482216152605/10000000000000_N",    // Pound-force
+    "pdl",      "138254954376/1000000000000_N",       // Poundal
 
     // Energy
-    "Energy",    "J",        "1_kg*m^2/s^2",         // Joule
-    "Energy",    "erg",      "1/10000000_J",         // erg
-    "Energy",    "calth",    "4184/1000_J",          // Thermochemical Calorie
-    "Energy",    "cal4",     "4204/1000_J",          // 4°C calorie
-    "Energy",    "cal15",    "41855/10000_J",        // 15°C calorie
-    "Energy",    "cal20",    "4182/1000_J",          // 20°C calorie
-    "Energy",    "calmean",  "4190/1000_J",          // 4°C calorie
-    "Energy",    "cal",      "41868/10000_J",        // International calorie (1929, 1956)
-    "Energy",    "Btu",      "1055.05585262_J",      // British thermal unit
-    "Energy",    "therm",    "105506000_J",          // EEC therm
-    "Energy",    "eV",       "1.60217733E-19_J",     // electron-Volt
+    "Energy",   nullptr,
+    "J",        "1_kg*m^2/s^2",         // Joule
+    "erg",      "1/10000000_J",         // erg
+    "calth",    "4184/1000_J",          // Thermochemical Calorie
+    "cal4",     "4204/1000_J",          // 4°C calorie
+    "cal15",    "41855/10000_J",        // 15°C calorie
+    "cal20",    "4182/1000_J",          // 20°C calorie
+    "calmean",  "4190/1000_J",          // 4°C calorie
+    "cal",      "41868/10000_J",        // International calorie (1929, 1956)
+    "Btu",      "1055.05585262_J",      // British thermal unit
+    "therm",    "105506000_J",          // EEC therm
+    "eV",       "1.60217733E-19_J",     // electron-Volt
 
     // Power
-    "Power",      "W",        "1_J/s",                // Watt
-    "Power",      "hp",       "745.699871582_W",      // Horsepower
+    "Power",    nullptr,
+    "W",        "1_J/s",                // Watt
+    "hp",       "745.699871582_W",      // Horsepower
 
     // Pressure
-    "Press",      "Pa",       "1_N/m^2",              // Pascal
-    "Press",      "atm",      "101325_Pa",            // Atmosphere
-    "Press",      "bar",      "100000_Pa",            // bar
-    "Press",      "psi",      "6894.75729317_Pa",     // Pound per square inch
-    "Press",      "ksi",      "1000_psi",             // Kilopound per square inch
-    "Press",      "torr",     "1/760_atm",            // Torr = 1/760 standard atm
-    "Press",      "mmHg",     "1_torr",               // millimeter of mercury
-    "Press",      "inHg",     "1_in/mm*mmHg",         // inch of mercury
-    "Press",      "inH2O",    "249.0889_Pa",          // Inch of H2O
+    "Press",    nullptr,
+    "Pa",       "1_N/m^2",              // Pascal
+    "atm",      "101325_Pa",            // Atmosphere
+    "bar",      "100000_Pa",            // bar
+    "psi",      "6894.75729317_Pa",     // Pound per square inch
+    "ksi",      "1000_psi",             // Kilopound per square inch
+    "torr",     "1/760_atm",            // Torr = 1/760 standard atm
+    "mmHg",     "1_torr",               // millimeter of mercury
+    "inHg",     "1_in/mm*mmHg",         // inch of mercury
+    "inH2O",    "249.0889_Pa",          // Inch of H2O
 
     // Temperature
-    "Temp",       "K",        "1_K",                  // Kelvin
-    "Temp",       "°C",       "1_K",                  // Celsius
-    "Temp",       "°R",       "9/5_K",                // Rankin
-    "Temp",       "°F",       "9/5_K",                // Fahrenheit
+    "Temp",     nullptr,
+    "K",        "1_K",                  // Kelvin
+    "°C",       "1_K",                  // Celsius
+    "°R",       "9/5_K",                // Rankin
+    "°F",       "9/5_K",                // Fahrenheit
 
     // Electricity
-    "Elec",       "A",        "1_A",                  // Ampere
-    "Elec",       "V",        "1_kg*m^2/(A*s^3)",     // Volt
-    "Elec",       "C",        "1_A*s",                // Coulomb
-    "Elec",       "Ω",        "1_V/A",                // Ohm
-    "Elec",       "ohm",      "1_Ω",                  // Ohm
-    "Elec",       "F",        "1_C/V",                // Farad
-    "Elec",       "Fdy",      "96487_A*s",            // Faraday
-    "Elec",       "H",        "1_ohm*s",              // Henry
-    "Elec",       "mho",      "1_S",                  // Ohm spelled backwards
-    "Elec",       "S",        "1_A/V",                // Siemens
-    "Elec",       "T",        "1_V*s/m^2",            // Tesla
-    "Elec",       "Wb",       "1_V*s",                // Weber
+    "Elec",     nullptr,
+    "A",        "1_A",                  // Ampere
+    "V",        "1_kg*m^2/(A*s^3)",     // Volt
+    "C",        "1_A*s",                // Coulomb
+    "Ω",        "1_V/A",                // Ohm
+    "ohm",      "1_Ω",                  // Ohm
+    "F",        "1_C/V",                // Farad
+    "Fdy",      "96487_A*s",            // Faraday
+    "H",        "1_ohm*s",              // Henry
+    "mho",      "1_S",                  // Ohm spelled backwards
+    "S",        "1_A/V",                // Siemens
+    "T",        "1_V*s/m^2",            // Tesla
+    "Wb",       "1_V*s",                // Weber
 
     // Angles
-    "Angle",      "turn",     "1_turn",               // Full turns
-    "Angle",      "°",        "1/360_turn",           // Degree
-    "Angle",      "grad",     "1/400_turn",           // Grad
-    "Angle",      "r",        "0.1591549430918953357688837633725144_turn", // Radian
-    "Angle",      "arcmin",   "1/60_°",               // Arc minute
-    "Angle",      "arcs",     "1/60_arcmin",          // Arc second
-    "Angle",      "sr",       "1_sr",                 // Steradian
-    "Angle",      "ℼr",       "1/2_turn",             // Pi radians
-    "Angle",      "pir",      "1/2_turn",             // Pi radians
+    "Angle",    nullptr,
+    "turn",     "1_turn",               // Full turns
+    "°",        "1/360_turn",           // Degree
+    "grad",     "1/400_turn",           // Grad
+    "r",        "0.1591549430918953357688837633725144_turn", // Radian
+    "arcmin",   "1/60_°",               // Arc minute
+    "arcs",     "1/60_arcmin",          // Arc second
+    "sr",       "1_sr",                 // Steradian
+    "ℼr",       "1/2_turn",             // Pi radians
+    "pir",      "1/2_turn",             // Pi radians
 
     // Light
-    "Light",      "cd",       "1_cd",                 // Candela
-    "Light",      "lm",       "1_cd*sr",              // Lumen
-    "Light",      "lx"        "1_lm/m^2",             // Lux
-    "Light",      "fc",       "1_lm/ft^2",            // Footcandle
-    "Light",      "flam",     "1_cd/ft^2*r/pir",      // Foot-Lambert
-    "Light",      "ph",       "10000_lx",             // Phot
-    "Light",      "sb",       "10000_cd/m^2",         // Stilb
-    "Light",      "lam",      "1_cd/cm^2*r/pir",      // Lambert
-    "Light",      "nit",      "1_cd/m^2",             // Nit
-    "Light",      "nt",       "1_cd/m^2",             // Nit
+    "Light",    nullptr,
+    "cd",       "1_cd",                 // Candela
+    "lm",       "1_cd*sr",              // Lumen
+    "lx",       "1_lm/m^2",             // Lux
+    "fc",       "1_lm/ft^2",            // Footcandle
+    "flam",     "1_cd/ft^2*r/pir",      // Foot-Lambert
+    "ph",       "10000_lx",             // Phot
+    "sb",       "10000_cd/m^2",         // Stilb
+    "lam",      "1_cd/cm^2*r/pir",      // Lambert
+    "nit",      "1_cd/m^2",             // Nit
+    "nt",       "1_cd/m^2",             // Nit
 
     // Radiation
-    "Rad",        "Gy",       "1_m^2/s^2",            // Gray
-    "Rad",        "rad",      "1/100_m^2/s^2",        // rad
-    "Rad",        "rem",      "1_rad",                // rem
-    "Rad",        "Sv",       "1_Gy",                 // Sievert
-    "Rad",        "Bq",       "1_Hz",                 // Becquerel
-    "Rad",        "Ci",       "37_GBq",               // Curie
-    "Rad",        "R",        "258_µC/kg"             // Roentgen
+    "Rad",      nullptr,
+    "Gy",       "1_m^2/s^2",            // Gray
+    "rad",      "1/100_m^2/s^2",        // rad
+    "rem",      "1_rad",                // rem
+    "Sv",       "1_Gy",                 // Sievert
+    "Bq",       "1_Hz",                 // Becquerel
+    "Ci",       "37_GBq",               // Curie
+    "R",        "258_µC/kg",            // Roentgen
 
     // Viscosity
-    "Visc",       "P",        "1/10_Pa*s",            // Poise
-    "Visc",       "St",       "1_cm^2/s",             // Stokes
+    "Visc",     nullptr,
+    "P",        "1/10_Pa*s",            // Poise
+    "St",       "1_cm^2/s",             // Stokes
 
     // Computing
-    "Comp",       "bit",      "1_bit",                // Bit
-    "Comp",       "byte",     "8_bit",                // Byte
-    "Comp",       "B",        "1_byte",               // Byte
-    "Comp",       "bps",      "1_bit/s",              // bit per second
-    "Comp",       "baud",     "1_bps/SR",             // baud
-    "Comp",       "Bd",       "1_baud",               // baud (standard unit)
-    "Comp",       "mips",     "1_mips",               // Million instructions per second
-    "Comp",       "flops",    "1_flops",              // Floating point operation per second
-    "Comp",       "SR",       "1",                    // Symbol rate (default is 1)
-    "Comp",       "dB",       "1_dB",                 // decibel
+    "Comp",     nullptr,
+    "bit",      "1_bit",                // Bit
+    "byte",     "8_bit",                // Byte
+    "B",        "1_byte",               // Byte
+    "bps",      "1_bit/s",              // bit per second
+    "baud",     "1_bps/SR",             // baud
+    "Bd",       "1_baud",               // baud (standard unit)
+    "mips",     "1_mips",               // Million instructions per second
+    "flops",    "1_flops",              // Floating point operation per second
+    "SR",       "1",                    // Symbol rate (default is 1)
+    "dB",       "1_dB"                  // decibel
 };
 
 
@@ -462,10 +472,11 @@ unit_p unit::lookup(symbol_p name, int *prefix_info)
 //   Lookup a built-in unit
 // ----------------------------------------------------------------------------
 {
-    size_t maxf  = load_file() ? file_units_count : 0;
-    size_t len   = 0;
-    gcutf8 gtxt  = name->value(&len);
-    uint   maxs  = sizeof(si_prefixes) / sizeof(si_prefixes[0]);
+    size_t    len  = 0;
+    gcutf8    gtxt = name->value(&len);
+    uint      maxs = sizeof(si_prefixes) / sizeof(si_prefixes[0]);
+    unit_file ufile;
+
     for (uint si = 0; si < maxs; si++)
     {
         utf8    ntxt   = gtxt;
@@ -487,32 +498,24 @@ unit_p unit::lookup(symbol_p name, int *prefix_info)
             size_t  ulen = 0;
 
             // Check in-file units
-            for (size_t u = 0; !udef && u < maxf; u += 3)
+            if (ufile.valid())
             {
-                if (strcasecmp(file_units[u], "cycle"))
+                if (symbol_p def = ufile.lookup(txt, rlen))
                 {
-                    // If definition is empty, it's a menu-only entry
-                    cstring def = file_units[u+2];
-                    if (def && *def)
-                    {
-                        utxt = file_units[u+1];
-                        if (memcmp(utxt, txt, rlen) == 0 && utxt[rlen] == 0)
-                        {
-                            udef = def;
-                            ulen  = strlen(udef);
-                        }
-                    }
+                    udef = cstring(def->value(&ulen));
+                    utxt = cstring(txt);
                 }
             }
 
             // Check built-in units
-            for (size_t u = 1; !udef && u < maxu; u += 3)
+            for (size_t u = 0; !udef && u < maxu; u += 2)
             {
                 utxt = basic_units[u];
                 if (memcmp(utxt, txt, rlen) == 0 && utxt[rlen] == 0)
                 {
                     udef = basic_units[u + 1];
-                    ulen  = strlen(udef);
+                    if (udef)
+                        ulen  = strlen(udef);
                 }
             }
 
@@ -778,132 +781,133 @@ unit_p unit::cycle() const
 }
 
 
-bool unit::load_file()
+symbol_g unit_file::lookup(utf8 what, size_t len, bool menu)
 // ----------------------------------------------------------------------------
-//   Load the units file
+//   Find the next row that begins with "what", return definition for it
 // ----------------------------------------------------------------------------
-//   In order to avoid memory fragmentation, and since we load the file once,
-//   we do two passes on the file:
-//   - the first one where we compute memory requirements,
-//   - the second one where we load data into allocated memory
-//   This also ensures we deal gracefully with out-of-memory cases
+//   The definition is set to nullptr if there is no second column
 {
-    if (!file_loaded)
+    uint     column   = 0;
+    bool     quoted   = false;
+    bool     found    = false;
+    size_t   matching = 0;
+    symbol_g def      = nullptr;
+    scribble scr;
+
+    def = nullptr;
+    seek(0);
+    while (valid())
     {
-        file_loaded = true;
+        char c = getchar();
+        if (!c)
+            break;
 
-        // Try to open the units file
-        file units_file("CONFIG/UNITS.CSV", false);
-        if (units_file.valid())
+        if (c == '"')
         {
-            size_t   strings   = 0;
-            size_t   chars     = 0;
-            char    *text      = nullptr;
-            cstring  value     = nullptr;
-            cstring *values    = nullptr;
-            bool     malformed = false;
-
-            for (int pass = 0; pass < 2; pass++)
+            quoted = !quoted;
+            if (quoted)
             {
-                uint     column = 0;
-                bool     quoted = false;
-
-                if (pass)
+                if (!column)
                 {
-                    size_t memsize = strings * sizeof(cstring) + chars;
-                    file_units = (cstring *) malloc(memsize);
-                    file_units_count = strings / 3;
-                    values = file_units;
-                    text = (char *) (file_units + strings);
-                    value = text;
+                    found = true;
+                    matching = 0;
                 }
-
-                // Restart from beginning of file
-                units_file.seek(0);
-                while(units_file.valid())
-                {
-                    unicode c = units_file.get();
-                    if (!c)
-                        break;
-
-                    if (c == '"')
-                    {
-                        quoted = !quoted;
-                        if (!quoted)
-                        {
-                            // Defensive coding: ignore anything after column 3
-                            if (column < 3)
-                            {
-                                if (pass)
-                                {
-                                    *text++ = 0;
-                                    *values++ = value;
-                                    value = text;
-                                }
-                                else
-                                {
-                                    // New entry - Account for trailing 0
-                                    chars++;
-                                    strings++;
-                                }
-                            }
-                            column++;
-                        }
-                    }
-                    else if (c == '\n')
-                    {
-                        malformed = (column > 0 && column < 3) || quoted;
-                        if (malformed)
-                        {
-                            if (!pass)
-                                record(units_error,
-                                       "Malformed row after %u strings, "
-                                       "%u columns, %+s",
-                                       strings, column,
-                                   quoted ? "quoted" : "unquoted");
-                            if (quoted)
-                            {
-                                quoted = false;
-                                if (pass)
-                                    text = (char *) value;
-                                column++;
-                            }
-
-                            // Ignore this line, it's malformed
-                            if (pass)
-                            {
-                                values -= column;
-                                for (size_t c = 0; c < 3; c++)
-                                    values[c] = "";
-                            }
-                            else
-                            {
-                                strings -= column;
-                            }
-
-                        }
-                        column = 0;
-                    }
-                    else if (quoted)
-                    {
-                        if (pass)
-                            text += utf8_encode(c, (byte *) text);
-                        else
-                            chars += utf8_size(c);
-                    }
-                }
-
-                // If last row was malformed, reading it might overflow
-                // into the texts> Avoid that by overallocating 3 entries
-                if (malformed)
-                    strings += 3;
-
             }
-            units_file.close();
+            else
+            {
+                if (found)
+                {
+                    if (column == 0)
+                    {
+                        found = found && matching == len;
+                        if (menu && found)
+                            def = symbol::make(what, matching);
+                    }
+                    else if (column == 1 && !menu)
+                    {
+                        def = symbol::make(scr.scratch(), scr.growth());
+                        scr.clear();
+                    }
+                }
+                column++;
+            }
+        }
+        else if (c == '\n')
+        {
+            // We had a full record, exit if we found our entry
+            if (found)
+                break;
+            column = 0;
+        }
+        else if (quoted)
+        {
+            if (column == 0)
+            {
+                found = found &&
+                    matching < len &&
+                    tolower(c) == tolower(what[matching++]);
+            }
+            else if (column == 1 && found)
+            {
+                byte *buf = rt.allocate(1);
+                *buf = byte(c);
+            }
         }
     }
+    return def;
+}
 
-    return file_units_count > 0;
+
+symbol_g unit_file::next(bool menu)
+// ----------------------------------------------------------------------------
+//   Find the next file entry if there is one
+// ----------------------------------------------------------------------------
+//   A menu is an entry where the definition is not present or emtpy
+{
+    uint     column   = 0;
+    bool     quoted   = false;
+    symbol_g sym      = nullptr;
+    scribble scr;
+
+    sym = nullptr;
+    while (valid())
+    {
+        char c = getchar();
+        if (!c)
+            break;
+
+        if (c == '"')
+        {
+            quoted = !quoted;
+            if (!quoted)
+                column++;
+        }
+        else if (c == '\n')
+        {
+            // We had a full record, exit if we found our entry
+            if (column)
+            {
+                if (menu == (column == 1))
+                {
+                    sym = symbol::make(scr.scratch(), scr.growth());
+                    break;
+                }
+                if (column == 1 && !menu)
+                    break;
+            }
+            scr.clear();
+            column = 0;
+        }
+        else if (quoted)
+        {
+            if (column == 0)
+            {
+                byte *buf = rt.allocate(1);
+                *buf = byte(c);
+            }
+        }
+    }
+    return sym;
 }
 
 
@@ -914,69 +918,229 @@ bool unit::load_file()
 //
 // ============================================================================
 
-void unit_menu::units(info &mi, cstring name, cstring utable[], size_t count)
+#if 0
+RENDER_BODY(unit_menu)
+// ----------------------------------------------------------------------------
+//   Render a unit menu name
+// ----------------------------------------------------------------------------
+{
+    id     type = o->type();
+    size_t len  = 0;
+    utf8   txt  = name(type, len);
+    r.put(txt, len);
+    r.put("UnitsMenu");
+    return r.size();
+}
+
+
+PARSE_BODY(unit_menu)
+// ----------------------------------------------------------------------------
+//   Parse a unit menu name
+// ----------------------------------------------------------------------------
+{
+    id      type   = p.candidate;
+    cstring source = cstring(utf8(p.source));
+    size_t  len    = 0;
+    size_t  ulen   = sizeof("UnitsMenu") - 1;
+    utf8    txt    = name(type, len);
+    size_t  maxlen = p.length;
+
+    if (len + ulen <= maxlen)
+    {
+        if (strncasecmp(source, cstring(txt), len) == 0 &&
+            strncasecmp(source + len, "UnitsMenu", ulen) == 0)
+        {
+            p.end = len + ulen;
+            p.out = rt.make<command>(type);
+            return OK;
+        }
+    }
+
+    return SKIP;
+}
+#endif // 0
+
+
+utf8 unit_menu::name(id type, size_t &len)
+// ----------------------------------------------------------------------------
+//   Return the name associated with the type
+// ----------------------------------------------------------------------------
+{
+    uint count = type - ID_UnitMenu00;
+    unit_file ufile;
+
+    // List all preceding entries
+    if (ufile.valid())
+        while (symbol_p mname = ufile.next(true))
+            if (!count--)
+                return mname->value(&len);
+
+    if (Settings.builtin_units)
+    {
+        size_t maxu = sizeof(basic_units) / sizeof(basic_units[0]);
+        for (size_t u = 0; u < maxu; u += 2)
+        {
+            if (!basic_units[u+1] || !*basic_units[u+1])
+            {
+                if (!count--)
+                {
+                    len = strlen(basic_units[u]);
+                    return utf8(basic_units[u]);
+                }
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+
+MENU_BODY(unit_menu)
 // ----------------------------------------------------------------------------
 //   Build a units menu
 // ----------------------------------------------------------------------------
 {
     // Use the units loaded from the units file
-    size_t file_entries = unit::load_file() ? file_units_count : 0;
-    size_t matching     = 0;
-    for (size_t i = 0; i < file_entries; i++)
-        if (strcasecmp(file_units[3 * i], name) == 0)
-            matching++;
+    unit_file ufile;
+    size_t    matching = 0;
+    size_t    maxu     = sizeof(basic_units) / sizeof(basic_units[0]);
+    uint      position = 0;
+    uint      count    = 0;
+    size_t    first    = 0;
+    size_t    last     = maxu;
+    id        type     = o->type();
+    id        menu     = ID_UnitMenu00;
 
-    // Disable built-in units if we loaded a file
-    if (file_entries && !Settings.builtin_units)
-        count = 0;
+    if (ufile.valid())
+    {
+        while (ufile.next(true))
+        {
+            if (menu == type)
+            {
+                position = ufile.position();
+                while (ufile.next(false))
+                    matching++;
+                break;
+            }
+            menu = id(menu + 1);
+        }
+    }
+
+     // Disable built-in units if we loaded a file
+    if (!matching || Settings.builtin_units)
+    {
+        bool found = false;
+        for (size_t u = 0; u < maxu; u += 2)
+        {
+            if (!basic_units[u+1] || !*basic_units[u+1])
+            {
+                if (found)
+                {
+                    last = u - 2;
+                    break;
+                }
+                if (menu == type)
+                {
+                    found = true;
+                    first = u + 2;
+                }
+                menu = id(menu + 1);
+            }
+        }
+        count = (last - first) / 2;
+    }
 
     items_init(mi, count + matching, 3, 1);
 
     // Insert the built-in units after the ones from the file
     uint skip = mi.skip;
-    mi.plane  = 0;
-    mi.planes = 1;
-    for (uint i = 0; i < matching; i++)
-        items(mi, file_units[3 * i + 1], ID_ApplyUnit);
-    for (uint i = 0; i < count; i++)
-        items(mi, utable[i], ID_ApplyUnit);
+    for (uint plane = 0; plane < 3; plane++)
+    {
+        static const id ids[3] =
+        {
+            ID_ApplyUnit, ID_ConvertToUnit, ID_ApplyInverseUnit
+        };
+        mi.plane  = plane;
+        mi.planes = plane + 1;
+        mi.index  = plane * ui.NUM_SOFTKEYS;
+        mi.skip   = skip;
+        id type = ids[plane];
 
-    mi.plane  = 1;
-    mi.planes = 2;
-    mi.skip   = skip;
-    mi.index  = mi.plane * ui.NUM_SOFTKEYS;
-    for (uint i = 0; i < matching; i++)
-        items(mi, file_units[3 * i + 1], ID_ConvertToUnit);
-    for (uint i = 0; i < count; i++)
-        items(mi, utable[i], ID_ConvertToUnit);
-
-    mi.plane  = 2;
-    mi.planes = 3;
-    mi.index  = mi.plane * ui.NUM_SOFTKEYS;
-    mi.skip   = skip;
-    for (uint i = 0; i < matching; i++)
-        items(mi, file_units[3 * i + 1], ID_ApplyInverseUnit);
-    for (uint i = 0; i < count; i++)
-        items(mi, utable[i], ID_ApplyInverseUnit);
+        if (matching)
+        {
+            ufile.seek(position);
+            while (symbol_g mentry = ufile.next(false))
+                items(mi, mentry, type);
+        }
+        for (uint i = 0; i < count; i++)
+            items(mi, basic_units[first + 2*i], type);
+    }
 
     for (uint k = 0; k < ui.NUM_SOFTKEYS - (mi.pages > 1); k++)
     {
         ui.marker(k + 1 * ui.NUM_SOFTKEYS, L'→', true);
         ui.marker(k + 2 * ui.NUM_SOFTKEYS, '/', false);
     }
+
+    return true;
 }
 
 
-#define UNITS(Name, ...)                                                \
-    MENU_BODY(Name##UnitsMenu)                                          \
-/* ---------------------------------------------------------------- */  \
-/*   Create a system menu                                           */  \
-/* ---------------------------------------------------------------- */  \
-{                                                                       \
-    cstring units_table[] = { __VA_ARGS__ };                            \
-    size_t count = sizeof(units_table) / sizeof(units_table[0]);        \
-    units(mi, #Name, units_table, count);                               \
-    return true;                                                        \
+MENU_BODY(UnitsMenu)
+// ----------------------------------------------------------------------------
+//   The units menu is dynamically populated
+// ----------------------------------------------------------------------------
+{
+    uint      infile   = 0;
+    uint      count    = 0;
+    uint      maxmenus = ID_UnitMenu99 - ID_UnitMenu00;
+    size_t    maxu     = sizeof(basic_units) / sizeof(basic_units[0]);
+    unit_file ufile;
+
+    // List all menu entries in the file (up to 100)
+    if (ufile.valid())
+        while (ufile.next(true))
+            if (infile++ >= maxmenus)
+                break;
+
+    // Count built-in unit menu titles
+    if (!infile || Settings.builtin_units)
+    {
+        for (size_t u = 0; u < maxu; u += 2)
+            if (!basic_units[u+1] || !*basic_units[u+1])
+                count++;
+        if (infile + count > maxmenus)
+            count = maxmenus - infile;
+    }
+
+    items_init(mi, 1 + infile + count);
+    items(mi, "_", ID_SelfInsert);
+
+    infile = 0;
+    if (ufile.valid())
+    {
+        ufile.seek(0);
+        while (symbol_p mname = ufile.next(true))
+        {
+            if (infile >= maxmenus)
+                break;
+            items(mi, mname, id(ID_UnitMenu00 + infile++));
+        }
+    }
+    if (!infile || Settings.builtin_units)
+    {
+        for (size_t u = 0; u < maxu; u += 2)
+        {
+            if (!basic_units[u+1] || !*basic_units[u+1])
+            {
+                if (infile >= maxmenus)
+                    break;
+                items(mi, basic_units[u], id(ID_UnitMenu00 + infile++));
+            }
+        }
+    }
+
+    return true;
 }
 
 
@@ -1105,25 +1269,37 @@ COMMAND_BODY(ToUnit)
 }
 
 
-static algebraic_p key_unit(uint key)
+static algebraic_p key_unit(uint key, bool uexpr)
 // ----------------------------------------------------------------------------
 //   Return a softkey label as a unit value
 // ----------------------------------------------------------------------------
 {
     if (key >= KEY_F1 && key <= KEY_F6)
     {
-        if (cstring label = ui.label_text(key - KEY_F1))
+        size_t   len = 0;
+        utf8     txt = nullptr;
+        symbol_p sym = ui.label(key - KEY_F1);
+        if (sym)
+        {
+            txt = sym->value(&len);
+        }
+        else if (cstring label = ui.label_text(key - KEY_F1))
+        {
+            txt = utf8(label);
+            len = strlen(label);
+        }
+
+        if (txt)
         {
             char buffer[16];
             save<bool> umode(unit::mode, true);
-            size_t     len = strlen(label);
             buffer[0] = '1';
             buffer[1] = '_';
-            memcpy(buffer+2, label, len);
+            memcpy(buffer+2, txt, len);
             len += 2;
             if (object_p uobj = object::parse(utf8(buffer), len))
                 if (unit_p u = uobj->as<unit>())
-                    return u->uexpr();
+                    return uexpr ? u->uexpr() : u;
         }
     }
     return nullptr;
@@ -1147,7 +1323,7 @@ COMMAND_BODY(ApplyUnit)
     if (!rt.args(1))
         return ERROR;
 
-    if (algebraic_g uname = key_unit(key))
+    if (algebraic_g uname = key_unit(key, true))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
                 if (algebraic_g uobj = unit::simple(alg, uname))
@@ -1177,7 +1353,7 @@ COMMAND_BODY(ApplyInverseUnit)
     if (!rt.args(1))
         return ERROR;
 
-    if (algebraic_g uname = key_unit(key))
+    if (algebraic_g uname = key_unit(key, true))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
                 if (algebraic_g uobj = unit::simple(alg, inv::run(uname)))
@@ -1207,14 +1383,13 @@ COMMAND_BODY(ConvertToUnit)
     if (!rt.args(1))
         return ERROR;
 
-    if (algebraic_g uname = key_unit(key))
+    if (algebraic_g uname = key_unit(key, false))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
-                if (algebraic_g one = integer::make(1))
-                    if (unit_g uobj = unit::make(one, uname))
-                        if (uobj->convert(alg))
-                            if (rt.top(alg.Safe()))
-                                return OK;
+                if (unit_g uobj = uname->as<unit>())
+                    if (uobj->convert(alg))
+                        if (rt.top(alg.Safe()))
+                            return OK;
 
     return ERROR;
 }
@@ -1333,172 +1508,3 @@ COMMAND_BODY(ConvertToUnitPrefix)
         return ERROR;
     return OK;
 }
-
-
-
-// ============================================================================
-//
-//   Units menus
-//
-// ============================================================================
-
-UNITS(Length,
-// ----------------------------------------------------------------------------
-//   Length units menu
-// ----------------------------------------------------------------------------
-      "m",      "yd",   "ft",   "ftUS", "US",           // Human scale
-      "cm",     "mm",   "in",   "mil",  "μm",           // Small stuff
-      "km",     "mi",   "nmi",  "miUS", "fur",          // Short travel distance
-      "ch",     "rd",   "cable","fath", "league",       // US Survey
-      "Mpc",    "pc",   "lyr",  "au",   "ls",           // Astronomy
-      "mi",     "miUS", "ft",   "ftUS", "US",           // US.Survey, pre-2023
-      "cable",  "link", "icable","acable", "nmi",       // Nautical
-      "Å",      "fermi", "μm",   "nm",   "pm"           // Microscopic
-    );
-
-
-UNITS(Area,
-// ----------------------------------------------------------------------------
-//   Area units menu
-// ----------------------------------------------------------------------------
-      "m^2",    "yd^2", "ft^2", "in^2", "cm^2",         // Human scale
-      "km^2",   "mi^2", "ha",   "a",    "acre",         // Surveying
-      "m^2",    "cm^2", "km^2", "ha",   "a",            // Metric
-      "b",      "miUS^2","ftUS^2"                       // Misc
-    );
-
-
-UNITS(Volume,
-// ----------------------------------------------------------------------------
-//   Volume
-// ----------------------------------------------------------------------------
-      "m^3", "st", "cm^3", "yd^3", "ft^3", "in^3",
-      "l", "galUK", "galC", "gal", "qt", "pt",
-      "ml", "cu", "ozfl", "ozUK", "tbsp", "tsp",
-      "bbl", "bu", "pk", "fbm"
-    );
-
-
-UNITS(Time,
-// ----------------------------------------------------------------------------
-//   Time
-// ----------------------------------------------------------------------------
-      "s", "min", "h", "d", "yr", "Hz"
-    );
-
-
-UNITS(Speed,
-// ----------------------------------------------------------------------------
-//   Speed
-// ----------------------------------------------------------------------------
-      "m/s", "km/h", "ft/s", "mph", "knot",
-      "c", "ga"
-    );
-
-
-UNITS(Mass,
-// ----------------------------------------------------------------------------
-//   Mass
-// ----------------------------------------------------------------------------
-      "kg",     "g",    "t",    "ct",   "mol",
-      "lb",     "oz",   "dr",   "stone","grain",
-      "qrUS",   "cwtUS","tonUS","slug", "blob",
-      "lbt",    "ozt",  "dwt",  "tonUK","u"
-    );
-
-
-UNITS(Force,
-// ----------------------------------------------------------------------------
-//   Force
-// ----------------------------------------------------------------------------
-      "N", "dyn", "gf", "kip", "lbf", "pdl",
-    );
-
-
-UNITS(Energy,
-// ----------------------------------------------------------------------------
-//   Energy
-// ----------------------------------------------------------------------------
-      "J",      "erg",  "Kcal", "cal",  "Btu",
-      "ft×lb",  "therm","MeV",  "eV"
-    );
-
-
-UNITS(Power,
-// ----------------------------------------------------------------------------
-//   Power
-// ----------------------------------------------------------------------------
-      "W", "kW", "MW", "GW", "hp"
-    );
-
-
-UNITS(Pressure,
-// ----------------------------------------------------------------------------
-//   Pressure
-// ----------------------------------------------------------------------------
-      "Pa", "atm", "bar", "psi", "torr", "mmHg",
-      "inHg", "inH2O"
-    );
-
-
-UNITS(Temperature,
-// ----------------------------------------------------------------------------
-//   Temperature
-// ----------------------------------------------------------------------------
-      "°C", "°F", "K", "°R"
-    );
-
-
-UNITS(Electricity,
-// ----------------------------------------------------------------------------
-//   Electricity
-// ----------------------------------------------------------------------------
-      "V", "A", "C", "Ω", "F", "W",
-      "Fdy", "H", "mho", "S", "T", "Wb"
-    );
-
-
-UNITS(Angle,
-// ----------------------------------------------------------------------------
-//   Angles
-// ----------------------------------------------------------------------------
-      "°",      "r",    "grad",         "arcmin",       "arcs",
-      "turn",   "sr",   "ℼr"
-    );
-
-
-UNITS(Light,
-// ----------------------------------------------------------------------------
-//   Light and radiations
-// ----------------------------------------------------------------------------
-      "cd", "lm", "lx", "fc", "flam",
-      "ph", "sb", "lam", "nit"
-    );
-
-
-UNITS(Radiation,
-// ----------------------------------------------------------------------------
-//   Radiations
-// ----------------------------------------------------------------------------
-      "Gy", "rad", "rem", "Sv", "Bq",
-      "Ci", "R"
-
-    );
-
-
-UNITS(Viscosity,
-// ----------------------------------------------------------------------------
-//   Viscosity
-// ----------------------------------------------------------------------------
-      "P", "St"
-    );
-
-
-
-UNITS(Computer,
-// ----------------------------------------------------------------------------
-//   Units for computer use
-// ----------------------------------------------------------------------------
-      "B",      "byte", "bit",  "flops", "mips",
-      "baud",   "bps"   "SR",   "dB",
-    );

@@ -66,6 +66,11 @@ struct symbol : text
         return rt.make<symbol>(ID_symbol, utf8(s), strlen(s));
     }
 
+    static symbol_g make(gcutf8 s, size_t len)
+    {
+        return rt.make<symbol>(ID_symbol, s, len);
+    }
+
     object_p recall(bool noerror = true) const;
     bool     store(object_g obj) const;
     bool     is_same_as(symbol_p other) const;

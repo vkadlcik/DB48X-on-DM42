@@ -178,16 +178,16 @@ void menu::items(info &mi, cstring label, object_p action)
 // ============================================================================
 
 #define MENU(SysMenu, ...)                                              \
-    MENU_BODY(SysMenu)                                                  \
-    /* ------------------------------------------------------------ */  \
-    /*   Create a system menu                                       */  \
-    /* ------------------------------------------------------------ */  \
-    {                                                                   \
-        uint  nitems = count(__VA_ARGS__);                              \
-        items_init(mi, nitems);                                         \
-        items(mi, ##__VA_ARGS__);                                       \
-        return true;                                                    \
-    }
+MENU_BODY(SysMenu)                                                      \
+/* ------------------------------------------------------------ */      \
+/*   Create a system menu                                       */      \
+/* ------------------------------------------------------------ */      \
+{                                                                       \
+    uint  nitems = count(__VA_ARGS__);                                  \
+    items_init(mi, nitems);                                             \
+    items(mi, ##__VA_ARGS__);                                           \
+    return true;                                                        \
+}
 
 
 
@@ -825,32 +825,6 @@ MENU(UnitsConversionsMenu,
      "Ri",      ID_ConvertToUnitPrefix,
      "Qi",      ID_ConvertToUnitPrefix
 );
-
-
-MENU(UnitsMenu,
-// ----------------------------------------------------------------------------
-//   Menu managing units and unit conversions
-// ----------------------------------------------------------------------------
-     "_",       ID_SelfInsert,
-     "Length",  ID_LengthUnitsMenu,
-     "Area",    ID_AreaUnitsMenu,
-     "Volume",  ID_VolumeUnitsMenu,
-     "Time",    ID_TimeUnitsMenu,
-     "Speed",   ID_SpeedUnitsMenu,
-
-     "Mass",    ID_MassUnitsMenu,
-     "Force",   ID_ForceUnitsMenu,
-     "Energy",  ID_EnergyUnitsMenu,
-     "Power",   ID_PowerUnitsMenu,
-     "Press",   ID_PressureUnitsMenu,
-     "Temp",    ID_TemperatureUnitsMenu,
-
-     "Elec",    ID_ElectricityUnitsMenu,
-     "Angle",   ID_AngleUnitsMenu,
-     "Light",   ID_LightUnitsMenu,
-     "Rad",     ID_RadiationUnitsMenu,
-     "Visc",    ID_ViscosityUnitsMenu,
-     "Comp",    ID_ComputerUnitsMenu);
 
 
 MENU(StackMenu,

@@ -583,23 +583,28 @@ CMD(ApplyInverseUnit)
 
 CMD(ConvertToUnitPrefix)
 
-UNIT_MENU(LengthUnitsMenu)
-UNIT_MENU(AreaUnitsMenu)
-UNIT_MENU(VolumeUnitsMenu)
-UNIT_MENU(TimeUnitsMenu)
-UNIT_MENU(SpeedUnitsMenu)
-UNIT_MENU(MassUnitsMenu)
-UNIT_MENU(ForceUnitsMenu)
-UNIT_MENU(EnergyUnitsMenu)
-UNIT_MENU(PowerUnitsMenu)
-UNIT_MENU(PressureUnitsMenu)
-UNIT_MENU(TemperatureUnitsMenu)
-UNIT_MENU(ElectricityUnitsMenu)
-UNIT_MENU(AngleUnitsMenu)
-UNIT_MENU(LightUnitsMenu)
-UNIT_MENU(RadiationUnitsMenu)
-UNIT_MENU(ViscosityUnitsMenu)
-UNIT_MENU(ComputerUnitsMenu)
+#define UNIT_MENUS(Base)                        \
+    UNIT_MENU(Base##0)                          \
+    UNIT_MENU(Base##1)                          \
+    UNIT_MENU(Base##2)                          \
+    UNIT_MENU(Base##3)                          \
+    UNIT_MENU(Base##4)                          \
+    UNIT_MENU(Base##5)                          \
+    UNIT_MENU(Base##6)                          \
+    UNIT_MENU(Base##7)                          \
+    UNIT_MENU(Base##8)                          \
+    UNIT_MENU(Base##9)
+
+UNIT_MENUS(UnitMenu0)
+UNIT_MENUS(UnitMenu1)
+UNIT_MENUS(UnitMenu2)
+UNIT_MENUS(UnitMenu3)
+UNIT_MENUS(UnitMenu4)
+UNIT_MENUS(UnitMenu5)
+UNIT_MENUS(UnitMenu6)
+UNIT_MENUS(UnitMenu7)
+UNIT_MENUS(UnitMenu8)
+UNIT_MENUS(UnitMenu9)
 
 
 

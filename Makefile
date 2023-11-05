@@ -63,7 +63,7 @@ dm32-%:
 
 # installation steps
 COPY=cp
-install: install-pgm install-qspi install-help
+install: install-pgm install-qspi install-help install-demo install-config
 	$(EJECT)
 	@echo "# Installed $(VERSION)"
 install-fast: install-pgm
@@ -73,7 +73,14 @@ install-pgm: all
 install-qspi: all
 	$(COPY) $(QSPI) $(MOUNTPOINT)
 install-help: help/$(TARGET).md
+	mkdir -p $(MOUNTPOINT)help/
 	$(COPY) help/$(TARGET).md $(MOUNTPOINT)help/
+install-demo:
+	mkdir -p $(MOUNTPOINT)state/
+	$(COPY) state/*.48S $(MOUNTPOINT)state/
+install-config:
+	mkdir -p $(MOUNTPOINT)config/
+	$(COPY) config/*.csv $(MOUNTPOINT)config/
 
 sim: sim/$(TARGET).mak
 	cd sim; make -f $(<F)

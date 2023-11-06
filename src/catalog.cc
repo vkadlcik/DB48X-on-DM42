@@ -42,7 +42,7 @@ MENU_BODY(Catalog)
 {
     uint  nitems = count_commands();
     items_init(mi, nitems, 1);
-    ui.autoCompleteMenu();
+    ui.menu_auto_complete();
     list_commands(mi);
     return OK;
 }
@@ -100,7 +100,7 @@ uint Catalog::count_commands()
 
     utf8   start  = 0;
     size_t size   = 0;
-    bool   filter = ui.currentWord(start, size);
+    bool   filter = ui.current_word(start, size);
     uint   count  = 0;
 
     for (uint i = 0; i < NUM_COMMANDS; i++)
@@ -123,7 +123,7 @@ void Catalog::list_commands(info &mi)
 {
     utf8   start  = nullptr;
     size_t size   = 0;
-    bool   filter = ui.currentWord(start, size);
+    bool   filter = ui.current_word(start, size);
 
     for (uint i = 0; i < NUM_COMMANDS; i++)
     {

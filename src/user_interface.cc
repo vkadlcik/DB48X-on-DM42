@@ -235,7 +235,7 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
 
     dirtyEditor = true;
     adjustSeps = true;
-    updateMode();
+    update_mode();
     return added == len ? object::OK : object::ERROR;
 }
 
@@ -507,7 +507,7 @@ bool user_interface::key(int key, bool repeating, bool talpha)
         key == 0;
 
     if (rt.editing())
-        updateMode();
+        update_mode();
 
     if (!skey && last != KEY_SHIFT)
     {
@@ -544,7 +544,7 @@ object_p user_interface::assigned(int key, uint plane)
 }
 
 
-void user_interface::updateMode()
+void user_interface::update_mode()
 // ----------------------------------------------------------------------------
 //   Scan the command line to check what the state is at the cursor
 // ----------------------------------------------------------------------------
@@ -978,13 +978,13 @@ cstring user_interface::label_text(uint menu_id)
 }
 
 
-uint user_interface::menuPlanes()
+uint user_interface::menu_planes()
 // ----------------------------------------------------------------------------
 //   Count menu planes
 // ----------------------------------------------------------------------------
 {
     int planes = 3;
-    if (showingHelp())
+    if (showing_help())
     {
         planes = 1;
     }
@@ -1096,7 +1096,7 @@ bool user_interface::draw_menus()
     int    mw    = (LCD_W - 10) / 6;
     int    sp    = (LCD_W - 5) - 6 * mw;
     rect   clip  = Screen.clip();
-    bool   help  = showingHelp();
+    bool   help  = showing_help();
 
     if (period > time - last)
         period = time - last;
@@ -1104,7 +1104,7 @@ bool user_interface::draw_menus()
     static unsigned menuShift = 0;
     menuShift++;
 
-    int planes = menuPlanes();
+    int planes = menu_planes();
     int visiblePlanes = Settings.menu_single_ln ? 1 : planes;
     uint newMenuHeight = 1 + visiblePlanes * mh;
     if (newMenuHeight != menuHeight)
@@ -1901,7 +1901,7 @@ bool user_interface::draw_cursor(int show, uint ncursor)
 //   This function returns the cursor vertical position for screen refresh
 {
     // Do not draw if not editing or if help is being displayed
-    if (!rt.editing() || showingHelp())
+    if (!rt.editing() || showing_help())
         return false;
 
     static uint lastT = 0;
@@ -2341,7 +2341,7 @@ bool user_interface::draw_help()
         return false;
     dirtyHelp = false;
 
-    if (!showingHelp())
+    if (!showing_help())
         return false;
 
     using p                                    = pattern;
@@ -2793,7 +2793,7 @@ bool user_interface::handle_help(int &key)
 //   Handle help keys when showing help
 // ----------------------------------------------------------------------------
 {
-    if (!showingHelp())
+    if (!showing_help())
     {
         // Exit if we are editing or entering digits
         bool editing  = rt.editing();
@@ -3785,7 +3785,7 @@ object_p user_interface::object_for_key(int key)
 // ----------------------------------------------------------------------------
 {
     uint plane = shift_plane();
-    if (key >= KEY_F1 && key <= KEY_F6 && plane >= menuPlanes())
+    if (key >= KEY_F1 && key <= KEY_F6 && plane >= menu_planes())
         plane = 0;
 
     object_p obj = function[plane][key - 1];
@@ -3823,7 +3823,7 @@ bool user_interface::handle_functions(int key)
             {
                 size_t start = 0;
                 size_t size  = 0;
-                if (currentWord(start, size))
+                if (current_word(start, size))
                     remove(start, size);
             }
 
@@ -3881,20 +3881,20 @@ bool user_interface::handle_functions(int key)
 }
 
 
-bool user_interface::currentWord(size_t &start, size_t &size)
+bool user_interface::current_word(size_t &start, size_t &size)
 // ----------------------------------------------------------------------------
 //   REturn position of word under the cursor if there is one
 // ----------------------------------------------------------------------------
 {
     utf8 sed = nullptr;
-    bool result = currentWord(sed, size);
+    bool result = current_word(sed, size);
     if (result)
         start = sed - rt.editor();
     return result;
 }
 
 
-bool user_interface::currentWord(utf8 &start, size_t &size)
+bool user_interface::current_word(utf8 &start, size_t &size)
 // ----------------------------------------------------------------------------
 //   Find the word under the cursor in the editor, if there is one
 // ----------------------------------------------------------------------------
@@ -4294,7 +4294,7 @@ object::result user_interface::insert_softkey(int     key,
         if (*text)
         {
             size_t length = 0;
-            uint   cursor = cursorPosition();
+            uint   cursor = cursor_position();
             if (symbol_p name = label(key - KEY_F1))
             {
                 text = (cstring) name->value(&length);
@@ -4313,7 +4313,7 @@ object::result user_interface::insert_softkey(int     key,
             cursor += rt.insert(cursor, utf8(text), length);
             cursor += rt.insert(cursor, utf8(after));
 
-            cursorPosition(cursor);
+            cursor_position(cursor);
 
             return object::OK;
         }

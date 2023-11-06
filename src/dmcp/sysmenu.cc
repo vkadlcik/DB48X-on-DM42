@@ -448,9 +448,9 @@ static int state_load_callback(cstring path, cstring name, void *merge)
                 wait_for_key_press();
 
                 if (pos >= editor && pos <= ed + edlen)
-                    ui.cursorPosition(pos - ed);
+                    ui.cursor_position(pos - ed);
                 if (!rt.edit(ed, edlen))
-                    ui.cursorPosition(0);
+                    ui.cursor_position(0);
 
                 return 1;
             }

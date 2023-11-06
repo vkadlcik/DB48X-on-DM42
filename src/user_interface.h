@@ -91,7 +91,7 @@ struct user_interface
     void        assign(int key, uint plane, object_p code);
     object_p    assigned(int key, uint plane);
 
-    void        updateMode();
+    void        update_mode();
 
     void        menu(menu_p menu, uint page = 0);
     menu_p      menu();
@@ -100,14 +100,14 @@ struct user_interface
     void        page(uint p);
     uint        pages();
     void        pages(uint p);
-    uint        menuPlanes();
+    uint        menu_planes();
     void        menus(uint count, cstring labels[], object_p function[]);
     void        menu(uint index, cstring label, object_p function);
     void        menu(uint index, symbol_p label, object_p function);
     void        marker(uint index, unicode mark, bool alignLeft = false);
     bool        menu_refresh();
     bool        menu_refresh(object::id menu);
-    void        menuAutoComplete()      { autoComplete = true; }
+    void        menu_auto_complete()    { autoComplete = true; }
     symbol_p    label(uint index);
     cstring     label_text(uint index);
 
@@ -138,12 +138,11 @@ struct user_interface
     modes       editing_mode()          { return mode; }
     int         stack_screen_bottom()   { return stack; }
     int         menu_screen_bottom()    { return menuHeight; }
-    bool        showingHelp()           { return help + 1 != 0; }
-    uint        cursorPosition()        { return cursor; }
-    void        cursorPosition(uint pos){ cursor = pos; dirtyEditor = true; edRows = 0; }
-    void        autoCompleteMenu()      { autoComplete = true; }
-    bool        currentWord(size_t &start, size_t &size);
-    bool        currentWord(utf8 &start, size_t &size);
+    bool        showing_help()          { return help + 1 != 0; }
+    uint        cursor_position()       { return cursor; }
+    void        cursor_position(uint p) { cursor = p; dirtyEditor = true; edRows = 0; }
+    bool        current_word(size_t &start, size_t &size);
+    bool        current_word(utf8 &start, size_t &size);
 
     uint        shift_plane()   { return xshift ? 2 : shift ? 1 : 0; }
     void        clear_help();

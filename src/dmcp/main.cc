@@ -102,7 +102,7 @@ void redraw_lcd(bool force)
     if (!ui.draw_help())
     {
         ui.draw_editor();
-        ui.draw_cursor(true, ui.cursorPosition());
+        ui.draw_cursor(true, ui.cursor_position());
         ui.draw_stack();
         ui.draw_command();
     }
@@ -133,7 +133,7 @@ static void redraw_periodics()
 
     record(main, "Periodics %u", now);
     ui.draw_start(false);
-    ui.draw_cursor(false, ui.cursorPosition());
+    ui.draw_cursor(false, ui.cursor_position());
     ui.draw_header();
     ui.draw_battery();
     ui.draw_menus();

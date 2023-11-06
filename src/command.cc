@@ -290,16 +290,16 @@ COMMAND_BODY(SelfInsert)
         uint count = 0;
         if (cstring lbl = ui.label_text(menu_idx))
         {
-            uint cpos = ui.cursorPosition();
+            uint cpos = ui.cursor_position();
             for (utf8 p = utf8(lbl); *p; p = utf8_next(p))
             {
                 ui.edit(utf8_codepoint(p), ui.PROGRAM, false);
                 count++;
                 if (count == 1)
-                    cpos = ui.cursorPosition();
+                    cpos = ui.cursor_position();
             }
             if (count == 2)
-                ui.cursorPosition(cpos);
+                ui.cursor_position(cpos);
 
         }
     }

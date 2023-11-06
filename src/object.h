@@ -53,17 +53,15 @@
 //    either as commands (performing an action when evaluated) or as data types
 //    (putting themselves on the runtime stack when evaluated).
 //
-//    All handlers must respond to a fixed number of "opcodes", which are
-//    reserved identifiers in ids.tbl. These opcodes also correspond do
-//    user-accessible commands that apply to objects. They include:
-//
-//    - EVAL:   Evaluates the object
-//    - SIZE:   Compute the size of the object
-//    - PARSE:  Try to parse an object of the type (see note)
-//    - RENDER: Render an object as text
-//    - HELP:   Return the name of the help topic associated to the object
-//
-//    Note: PARSE is the only opcode that does not take an object as input
+//    Handlers are function pointers in a table that (except for `parse()`)
+//    take an object as input and process it. The most important function is
+//    `evaluate()`, which will evaluate an object like the `Evaluate` command.
+//    An important variant is `execute()`, which executes programs. That
+//    function does not call itself recursively. If it needs to call another
+//    it calls the runtime's `call()` function, so that we manage the RPL call
+//    using RPL garbage-collected memory. This is important to allow for a deep
+//    evaluation of RPL objects. Without that approach, recursive evaluation
+//    on the C++ call stack would limit us to about 40 levels of RPL calls.
 //
 //    The handler is not exactly equivalent to the user command.
 //    It may present an internal interface that is more convenient for C code.

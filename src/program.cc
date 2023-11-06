@@ -32,6 +32,8 @@
 
 RECORDER(program, 16, "Program evaluation");
 
+bool program::save_args = false;
+
 
 // ============================================================================
 //
@@ -53,9 +55,7 @@ EXEC_BODY(program)
 //   Execution of a program evaluates all items in turn
 // ----------------------------------------------------------------------------
 {
-    return Settings.prog_save_last
-        ? o->execute_program<true>()
-        : o->execute_program<false>();
+    return o->run(Settings.prog_save_last);
 }
 
 
@@ -94,6 +94,44 @@ program_p program::parse(utf8 source, size_t size)
         return nullptr;
     program_p prog = obj->as<program>();
     return prog;
+}
+
+
+object::result program::run(bool save_last_args) const
+// ----------------------------------------------------------------------------
+//   Execute a program
+// ----------------------------------------------------------------------------
+//   The 'save_last_args' indicates if we save `LastArgs` at this level
+{
+    result   result  = OK;
+    bool     outer   = rt.call_depth() == 0;
+    object_p first   = object_p(value());
+    object_p end     = skip();
+
+    save_args = save_last_args;
+
+    record(program, "Run %p (%p-%p) %+s",
+           this, first, end, outer ? "outer" : "inner");
+    if (!rt.run_push(first, end))
+        result = ERROR;
+    if (outer)
+    {
+        while (object_p obj = rt.run_next())
+        {
+            record(program, "Evaluating %+s at %p, size %u, end=%p\n",
+                   obj->fancy(), obj, obj->size(), end);
+            if (result == OK && interrupted())
+                result = ERROR;
+            if (result == OK)
+            {
+                if  (save_args)
+                    rt.need_save();
+                result = obj->evaluate();
+            }
+        }
+    }
+
+    return result;
 }
 
 

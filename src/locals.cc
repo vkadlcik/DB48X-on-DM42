@@ -228,6 +228,11 @@ EVAL_BODY(locals)
     size_t names   = leb128<size_t>(p.Safe());
     if (!rt.locals(names))
         return ERROR;
+    if (!rt.run_push(nullptr, object_p(names)))
+    {
+        rt.unlocals(names);
+        return ERROR;
+    }
 
     // Skip names to get to program
     for (uint n = 0; n < names; n++)
@@ -238,9 +243,6 @@ EVAL_BODY(locals)
 
     // Execute result
     result res = p->execute();
-
-    // Remove locals
-    rt.unlocals(names);
 
     // Return result from execution
     return res;

@@ -315,10 +315,7 @@ bool user_interface::end_edit()
                 this->editing = nullptr;
                 if (Settings.save_stack)
                     rt.save();
-                if (Settings.save_last)
-                    cmds->execute_program<true>();
-                else
-                    cmds->execute_program<false>();
+                cmds->run(Settings.save_last);
             }
             else
             {

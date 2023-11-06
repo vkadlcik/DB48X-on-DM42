@@ -50,26 +50,7 @@ struct program : list
 #  pragma GCC optimize("-O3")
 #endif // DM42
 
-    template<bool saving_last_args>
-    result execute_program() const
-    // ------------------------------------------------------------------------
-    //   Execute a program, either saving last args or not
-    // ------------------------------------------------------------------------
-    {
-        result r = OK;
-        for (object_g obj : *this)
-        {
-            record(program, "Evaluating %+s at %p, size %u\n",
-                   obj->fancy(), (object_p) obj, obj->size());
-            if (interrupted() || r != OK)
-                break;
-            if  (saving_last_args)
-                rt.need_save();
-            r = obj->evaluate();
-        }
-
-        return r;
-    }
+    result run(bool save_last_args) const;
 
 #ifdef DM42
 #  pragma GCC pop_options
@@ -77,8 +58,9 @@ struct program : list
 
     static bool      interrupted(); // Program interrupted e.g. by EXIT key
     static program_p parse(utf8 source, size_t size);
+    static bool      save_args;
 
-public:
+  public:
     OBJECT_DECL(program);
     PARSE_DECL(program);
     RENDER_DECL(program);

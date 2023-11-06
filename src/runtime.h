@@ -476,15 +476,25 @@ struct runtime
     //
     // ========================================================================
 
-    void call(gcp<const object> callee);
+    enum { CALLS_BLOCK = 16 };
+
+    bool run_push(object_p next, object_p end);
     // ------------------------------------------------------------------------
-    //   Push the current object on the RPL stack
+    //   Push an object to call on the RPL stack
     // ------------------------------------------------------------------------
 
-    void ret();
+    object_p run_next();
     // ------------------------------------------------------------------------
-    //   Return from an RPL call
+    //   Pull the next object to execute from the RPL evaluation stack
     // ------------------------------------------------------------------------
+
+    size_t call_depth() const
+    // ------------------------------------------------------------------------
+    //   Return calldepth
+    // ------------------------------------------------------------------------
+    {
+        return HighMem - Returns;
+    }
 
 
 
@@ -800,7 +810,6 @@ protected:
     utf8      ErrorSave;    // Last error message (for ERRM)
     utf8      ErrorSource;  // Source of the error if known
     utf8      ErrorCommand; // Source of the error if known
-    object_p  Code;         // Currently executing code
     object_p  LowMem;       // Bottom of available memory
     object_p  Globals;      // End of global objects
     object_p  Temporaries;  // Temporaries (must be valid objects)

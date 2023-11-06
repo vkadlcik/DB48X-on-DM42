@@ -63,7 +63,6 @@ runtime::runtime(byte *mem, size_t size)
       ErrorSave(nullptr),
       ErrorSource(nullptr),
       ErrorCommand(nullptr),
-      Code(nullptr),
       LowMem(),
       Globals(),
       Temporaries(),
@@ -459,7 +458,7 @@ void runtime::move(object_p to, object_p from,
 
     // Adjust the stack pointers
     object_p *firstobjptr = Stack;
-    object_p *lastobjptr = Returns;
+    object_p *lastobjptr = HighMem;
     for (object_p *s = firstobjptr; s < lastobjptr; s++)
     {
         if (*s >= from && *s < last)
@@ -1244,40 +1243,72 @@ bool runtime::updir(size_t count)
 //
 // ============================================================================
 
-void runtime::call(object_g callee)
-// ------------------------------------------------------------------------
-//   Push the current object on the RPL stack
-// ------------------------------------------------------------------------
+bool runtime::run_push(object_p next, object_p end)
+// ----------------------------------------------------------------------------
+//   Push an object to call on the RPL stack
+// ----------------------------------------------------------------------------
 {
-    if (available(sizeof(callee)) < sizeof(callee))
+    if (next < end)
     {
-        recursion_error();
-        return;
+        if ((HighMem - Returns) % CALLS_BLOCK == 0)
+        {
+            size_t   block = sizeof(object_p) * CALLS_BLOCK;
+            object_g nextg = next;
+            object_g endg  = end;
+            if (available(block) < block)
+            {
+                recursion_error();
+                return false;
+            }
+            Stack -= CALLS_BLOCK;
+            Args -= CALLS_BLOCK;
+            Undo -= CALLS_BLOCK;
+            Locals -= CALLS_BLOCK;
+            Directories -= CALLS_BLOCK;
+            for (object_p *s = Stack + CALLS_BLOCK; s < Returns; s++)
+                s[-CALLS_BLOCK] = s[0];
+            next = nextg;
+            end = endg;
+        }
+        *(--Returns) = end-1;
+        *(--Returns) = next;
     }
-    Stack--;
-    Locals--;
-    for (object_p *s = Locals; s < Stack; s++)
-        s[0] = s[1];
-    *(--Returns) = Code;
-    Code = callee;
+    return true;
 }
 
 
-void runtime::ret()
+object_p runtime::run_next()
 // ----------------------------------------------------------------------------
-//   Return from an RPL call
+//   Pull the next object to execute from the RPL evaluation stack
 // ----------------------------------------------------------------------------
 {
-    if ((byte *) Returns >= (byte *) HighMem)
+    while (Returns < HighMem)
     {
-        return_without_caller_error();
-        return;
+        object_p next = Returns[0];
+        object_p end  = Returns[1] + 1;
+        if (next < end)
+        {
+            if (next)
+            {
+                Returns[0] = next->skip();
+                return next;
+            }
+            unlocals(size_t(end));
+        }
+
+        Returns += 2;
+        if ((HighMem - Returns) % CALLS_BLOCK == 0)
+        {
+            Stack += CALLS_BLOCK;
+            Args += CALLS_BLOCK;
+            Undo += CALLS_BLOCK;
+            Locals += CALLS_BLOCK;
+            Directories += CALLS_BLOCK;
+            for (object_p *s = Returns-1; s >= Stack; s--)
+                s[0] = s[-CALLS_BLOCK];
+        }
     }
-    Code = *Returns++;
-    Stack++;
-    Locals++;
-    for (object_p *s = Stack; s > Stack; s--)
-        s[0] = s[-1];
+    return nullptr;
 }
 
 

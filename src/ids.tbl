@@ -673,7 +673,6 @@ ID(dmcp_font)
 
 ID(tag)
 
-
 #undef ID
 #undef OP
 #undef CMD

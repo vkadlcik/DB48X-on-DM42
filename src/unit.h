@@ -56,10 +56,10 @@ struct unit : complex
 
     static algebraic_p parse_uexpr(gcutf8 source, size_t len);
 
-    static bool   load_file();
     static unit_p lookup(symbol_p name, int *prefix_index = nullptr);
 
     unit_p cycle() const;
+    unit_p custom_cycle(symbol_r sym) const;
 
     static bool mode;           // Set to true to evaluate units
 
@@ -97,7 +97,7 @@ struct unit_file : file
     unit_file(cstring name = "config/units.csv"): file(name, false) {}
     ~unit_file() {}
 
-    symbol_g    lookup(utf8 what, size_t len, bool menu = false);
+    symbol_g    lookup(utf8 what, size_t len, bool menu=false, bool seek0=true);
     symbol_g    next(bool menu = false);
 };
 

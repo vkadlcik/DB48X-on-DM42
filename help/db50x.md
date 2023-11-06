@@ -1641,28 +1641,43 @@ implements, and differ from the HP RPL implementation in the following ways:
 ### Units file
 
 The built-in units can be overriden by your own set of units, which is defined
-in a CSV file called `CONFIG/UNITS.CSV` in the calculator.
+in a CSV file called `config/units.csv` in the calculator. CSV stands for "Comma
+separated values, and is a common interchange format for spreadsheet data.
 
-* The first column indicates the menu the units should go in.
+Here is an example of file that would let you have a units menu called `Money`
+to convert between various monetary units:
 
-* The second column indicates the unit name.
+`"Money"`
+`"USD", "1_USD"`
+`"EUR", "1.07_USD"`
+`"GBP", "1.24_USD"`
+`"CAD", "0.73_USD"`
+`"AUD", "0.65_USD"`
+`"CHF", "1.11_USD"`
 
-* The third column indicates the units definition, and can be left empty if
-  the definition can be deduced from the name of the unit, which is useful to
-  make a unit appear in menus.
+* All values must be placed between quotes. Separators between text values are
+  mostly ignored.
 
-* Additional fields are ignored, but could be used to hold additional
-  information if you manage the units file using a standard spreadsheet, or for
-  sommends about the units.
+* Rows in a file containing a single value denote unit menus, unless the value
+  begins with an `=` sign.
 
-For example, if you frequently switch between inches and millimeters and between
-hours and nanoseconds, as well as between Euros and US dollars, you can define a
-unit file that looks like this:
+* Rows in a file containing two ore more values denote unit menu entries, which
+  will be added to the previous menu.
 
-`"Length", "mm", "", "Definition is empty: it's a SI m prefix for m unit"`
-`"Length", "in", "254/10000_m", "Prefer fractions for exact results"`
-`"Money",  "USD", "1_USD", "Use USD as the reference"`
-`"Money", "EUR", "1.07_USD", "Conversion factor of the day"`
+* The first column in these rows give the name of the unit as shown in the menu.
+
+* The second column in these rows gives the definition of the unit.
+
+* The definition should be reduced to `=` if the first column contains what
+  would be a valid unit expression. For example, to place `km/h` in a menu, use
+  `"km/h", "="` since `km` can be deduced from existing unit `m` using the
+  standard "kilo" unit prefix, and `h` is an existing unit.
+
+A unit where the value is `1` of the same unit is a base unit. This is the case
+for `USD` in the example above, which is considered the base units for monetary
+exchanges. Units that refer to the same base unit can be converted with one
+another. For example, you can convert between `GBP` and `AUD` because they both
+have the same `USD` base unit.
 
 The commands `ShowBuiltinUnits` and `HideBuiltinUnits` indicate if the built-in
 uits should be shown after the units loaded from the file. The default is that
@@ -1678,13 +1693,24 @@ submenus so that all unit categories fit on a single screen.
 
 ### Cycle command customization
 
-The menu name `"Cycle"` is reserved to define sequences of units that the
-`Cycle` command will recognize as special. For example:
+The menu name `"=Cycle"` is reserved to define sequences of units that the
+`Cycle` command (bound to the _EEX_ key) will recognize as special. For example,
+you can ensure that `mm` and `in` convert to one another as follows:
 
-`"Cycle", "in", "mm", "Cycle converts inches to mm"`
-`"Cycle", "mm", "in", "Cycle converts mm to inches"`
-`"Cycle", "EUR", "USD"`
-`"Cycle", "USD", "EUR"`
+`"=Cycle"`
+`"in", "mm"`
+`"mm", "in"`
+`"USD", "EUR"`
+`"EUR", "CHF"`
+`"CHF", "USD"`
+
+If you do provide a `Cycle` customization for a unit, other normal behaviours of
+the `Cycle` command for units are disabled, notably conversion between various
+relevant scales and conversion between fractions and decimal. To force a
+particular conversion to happen in decimal, you can override the definition of
+the corresponding unit in the units file, for example:
+
+`"in",   "25.4_mm"`
 # Release notes
 
 Release 0.4.9 - Full support for units (All Saints Edition)

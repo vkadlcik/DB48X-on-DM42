@@ -689,10 +689,19 @@ unit_p unit::lookup(symbol_p name, int *prefix_info)
             // Check in-file units
             if (ufile.valid())
             {
-                if (symbol_p def = ufile.lookup(txt, rlen))
+                bool first = true;
+                while (symbol_p def = ufile.lookup(txt, rlen, false, first))
                 {
-                    udef = cstring(def->value(&ulen));
-                    utxt = cstring(txt);
+                    first = false;
+                    utf8 fdef = def->value(&ulen);
+
+                    // If definition begins with '=', only show unit in menus
+                    if (*fdef != '=')
+                    {
+                        udef = cstring(fdef);
+                        utxt = cstring(txt);
+                        break;
+                    }
                 }
             }
 
@@ -711,10 +720,6 @@ unit_p unit::lookup(symbol_p name, int *prefix_info)
             // If we found a definition, use that unless it begins with '='
             if (udef)
             {
-                // If definition begins with '=', only show unit in menus
-                if (*udef == '=')
-                    continue;
-
                 if (object_p obj = object::parse(utf8(udef), ulen))
                 {
                     if (unit_g u = obj->as<unit>())
@@ -881,6 +886,10 @@ unit_p unit::cycle() const
     // Check if we can cycle through the prefixes
     if (symbol_g sym = uexpr->as_quoted<symbol>())
     {
+        // Check if we can find it in a "=Cycle" section in unit file
+        if (unit_g converted = custom_cycle(sym))
+            return converted;
+
         int index = 0;
         if (lookup(sym, &index))
         {
@@ -974,7 +983,33 @@ unit_p unit::cycle() const
 }
 
 
-symbol_g unit_file::lookup(utf8 what, size_t len, bool menu)
+unit_p unit::custom_cycle(symbol_r sym) const
+// ----------------------------------------------------------------------------
+//   If there is an "=Cycle" section in units file, use that
+// ----------------------------------------------------------------------------
+{
+    unit_file ufile;
+    if (ufile.valid())
+    {
+        unit_g from = this;
+        if (ufile.lookup(utf8("=Cycle"), sizeof("=Cycle")-1, true))
+        {
+            size_t sz = 0;
+            utf8   txt = sym->value(&sz);
+            if (symbol_g found = ufile.lookup(txt, sz, false, false))
+            {
+                ufile.close();          // Can't have 2 files open on DM42
+                unit_g to = unit::make(integer::make(1), found.Safe());
+                if (to->convert(from))
+                    return from;
+            }
+        }
+    }
+    return nullptr;
+}
+
+
+symbol_g unit_file::lookup(utf8 what, size_t len, bool menu, bool seek0)
 // ----------------------------------------------------------------------------
 //   Find the next row that begins with "what", return definition for it
 // ----------------------------------------------------------------------------
@@ -988,7 +1023,8 @@ symbol_g unit_file::lookup(utf8 what, size_t len, bool menu)
     scribble scr;
 
     def = nullptr;
-    seek(0);
+    if (seek0)
+        seek(0);
     while (valid())
     {
         char c = getchar();
@@ -1165,8 +1201,9 @@ utf8 unit_menu::name(id type, size_t &len)
     // List all preceding entries
     if (ufile.valid())
         while (symbol_p mname = ufile.next(true))
-            if (!count--)
-                return mname->value(&len);
+            if (*mname->value() != '=')
+                if (!count--)
+                    return mname->value(&len);
 
     if (Settings.builtin_units)
     {
@@ -1206,8 +1243,10 @@ MENU_BODY(unit_menu)
 
     if (ufile.valid())
     {
-        while (ufile.next(true))
+        while (symbol_p mname = ufile.next(true))
         {
+            if (*mname->value() == '=')
+                continue;
             if (menu == type)
             {
                 position = ufile.position();
@@ -1292,9 +1331,10 @@ MENU_BODY(UnitsMenu)
 
     // List all menu entries in the file (up to 100)
     if (ufile.valid())
-        while (ufile.next(true))
-            if (infile++ >= maxmenus)
-                break;
+        while (symbol_p mname = ufile.next(true))
+            if (*mname->value() != '=')
+                if (infile++ >= maxmenus)
+                    break;
 
     // Count built-in unit menu titles
     if (!infile || Settings.builtin_units)
@@ -1315,6 +1355,8 @@ MENU_BODY(UnitsMenu)
         ufile.seek(0);
         while (symbol_p mname = ufile.next(true))
         {
+            if (*mname->value() == '=')
+                continue;
             if (infile >= maxmenus)
                 break;
             items(mi, mname, id(ID_UnitMenu00 + infile++));

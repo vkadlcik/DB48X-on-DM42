@@ -344,3 +344,12 @@
 "flops",	"1_flops"
 "SR",	"1"
 "dB",	"1_dB"
+
+
+"=Cycle"
+"in",           "mm"
+"mm",           "cm"
+"cm",           "in"
+"USD",          "EUR"
+"EUR",          "CHF"
+"CHF",          "USD"

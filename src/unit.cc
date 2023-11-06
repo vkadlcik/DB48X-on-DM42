@@ -190,229 +190,417 @@ static const cstring basic_units[] =
 //   List of basic units
 // ----------------------------------------------------------------------------
 //   The value of these units is taken from Wikipedia.
-//   In many cases, e.g. parsec or au, it does not match the HP48 value
+//   In many cases, e.g. parsec or au, it does not match the HP48
+//
+//   Units ending with 'US' are the US Survey funny set of units
+//   See https://www.northamptonma.gov/740/US-Survey-Foot-vs-Meter and
+//   https://www.nist.gov/pml/us-surveyfoot/revised-unit-conversion-factors
+//   for details about this insanity.
+//   The bottom line is that on January 1, 2023, all US units changed
+//   to align to the "metric foot". So all units below have two variants,
+//   a US (U.S. Survey, pre 2023) and non US variant. Yadi Yada.
+//   The HP48 had a single ftUS unit, which was imprecise, because it did
+//   not have fractions to represent it precisely. This unit is the only
+//   one kept here. Otherwise, you can use the US unit, e.g. using
+//   1_cable*US will give you the U.S. Survey version of the cable.
+//
+//   clang-format off
 {
-    // Length and area
+    // ------------------------------------------------------------------------
+    // LENGTH MENU
+    // ------------------------------------------------------------------------
     "Length",   nullptr,
+
+    // Human scale
     "m",        "1_m",                  // meter, based for SI lengths
     "yd",       "9144/10000_m",         // yard
     "ft",       "3048/10000_m",         // foot
-    "in",       "254/10000_m",          // inch
-    "pc",       "30856775814913673_m",  // Parsec
-    "ls",       "299792458_m",          // Light-second
-    "lyr",      "31557600_ls",          // Light year
-    "au",       "149597870700_m",       // Astronomical unit
-    "nmi",      "1852_m",               // Nautical mile
-    "miUS",     "",                     // US mile
-    "Å",        "100_pm",               // Angstroem is 100pm, 1E-10m
-    "μ",        "1_μm",                 // A micron can be written as μ
-    "fermi",    "1_fm",                 // fermi is another name for femtometer
-    "mil",      "254/10000000_m",       // A thousands of a inch (min is taken)
-    "a",        "100_m²",               // Acre
-    "b",        "100_fermi²",           // Barn, 1E-28 m^2
-
-    // US Survey funny set of units
-    // See https://www.northamptonma.gov/740/US-Survey-Foot-vs-Meter and
-    // https://www.nist.gov/pml/us-surveyfoot/revised-unit-conversion-factors
-    // for details about this insanity.
-    // The bottom line is that on January 1, 2023, all US units changed
-    // to align to the "metric foot". So all units below have two variants,
-    // a US (U.S. Survey, pre 2023) and non US variant. Yadi Yada.
-    // The HP48 had a single ftUS unit, which was imprecise, because it did
-    // not have fractions to represent it precisely. This unit is the only
-    // one kept here. Otherwise, you can use the US unit, e.g. using
-    // 1_cable*US will give you the U.S. Survey version of the cable.
     "ftUS",     "1200/3937_m",          // US survey foot
     "US",       "1_ftUS/ft",            // Conversion factor
-    "cable",    "720_ft",               // Cable's length (US navy)
-    "ch",       "66_ft",                // Chain
-    "chain",    "1_ch",                 // Chain
-    "fath",     "6_ft",                 // Fathom
-    "fathom",   "1_fath",               // Fathom
-    "fur",      "660_ft",               // Furlong
-    "furlong",  "1_fur",                // Furlong
-    "league",   "3_mi",                 // League
-    "li",       "1/100_ch",             // Link
-    "link",     "1_li",                 // Link
+
+    // Small stuff
+    "cm",       "=",                    // Centimeter
+    "mm",       "=",                    // Millimeter
+    "in",       "254/10000_m",          // inch
+    "mil",      "254/10000000_m",       // A thousands of a inch (min is taken)
+    "μ",        "1_μm",                 // A micron can be written as μ
+
+    // Short travel distance
+    "km",       "=",                    // Kilometer
     "mi",       "5280_ft",              // Mile
+    "nmi",      "1852_m",               // Nautical mile
     "miUS",     "1_mi*US",              // Mile (US Survey)
+    "fur",      "660_ft",               // Furlong
+
+    // US Survey
+    "ch",       "66_ft",                // Chain
     "rd",       "1/4_ch",               // Rod, pole, perch
+    "cable",    "720_ft",               // Cable's length (US navy)
+    "fath",     "6_ft",                 // Fathom
+    "league",   "3_mi",                 // League
+
+    // Astronomy
+    "Mpc",      "=",                    // Megaparsec
+    "pc",       "30856775814913673_m",  // Parsec
+    "au",       "149597870700_m",       // Astronomical unit
+    "lyr",      "31557600_ls",          // Light year
+    "ls",       "299792458_m",          // Light-second
+
+    // US Survey, convert between pre-2023 and post-2023
+    "mi",       "=",                    // New mile
+    "miUS",     "=",                    // Old mile
+    "ft",       "=",                    // New foot
+    "ftUS",     "=",                    // Old foot
+    "US",       "=",                    // Conversion factor
+
+    // Nautical
+    "nmi",      "=",                    // Nautical mile
+    "cable",    "=",                    // Cable length
+    "li",       "1/100_ch",             // Link
+    "acable",   "18532/100_m",          // Cable's length (Imperial/Admiralty)
+    "icable",   "1852/10_m",            // Cable's length ("International")
+
+    // Microscopic
+    "Å",        "100_pm",               // Angstroem is 100pm, 1E-10m
+    "fermi",    "1_fm",                 // fermi is another name for femtometer
+    "μm",       "=",                    // Micron
+    "nm",       "=",                    // Nanometer
+
+    // Long-name aliases
+    "chain",    "1_ch",                 // Chain
+    "fathom",   "1_fath",               // Fathom
+    "furlong",  "1_fur",                // Furlong
+    "link",     "1_li",                 // Link
     "rod",      "1_rd",                 // Alternate spelling
     "pole",     "1_rd",                 // Pole
     "perch",    "1_rd",                 // Perch
 
-    "acable",   "18532/100_m",          // Cable's length (Imperial/Admiralty)
-    "icable",   "1852/10_m",            // Cable's length ("International")
 
+    // ------------------------------------------------------------------------
+    // AREA MENU
+    // ------------------------------------------------------------------------
     "Area",     nullptr,
-    "ac",       "10_ch²",               // Acre
-    "acre",     "10_ac",                // Acre
-    "acUS",     "10_ch²*US²",           // Acre (pre-2023)
-    "acreUS",   "1_acUS",               // Acre (pre-2023)
 
-    // Duration
+    // Human scale
+    "m²",       "=",                    // Square meter
+    "yd²",      "=",                    // Square yard
+    "ft²",      "=",                    // Square foot
+    "in²",      "=",                    // Square inch
+    "cm²",      "=",                    // Square centimeter
+
+    // Surveying
+    "km²",      "=",                    // Square kilometer
+    "mi²",      "=",                    // Square mile
+    "ha",       "=",                    // Hectare
+    "a",        "100_m²",               // Are
+    "acre",     "1_ac",                 // Acre
+
+    // US-Survey conversion
+    "ac",       "10_ch²",               // Acre
+    "acUS",     "10_ch²*US²",           // Acre (pre-2023)
+    "mi²",      "=",                    // Square mile
+    "miUS²",    "=",                    // Square mile (pre-2023)
+    "US²",      "=",                    // Conversion factor
+
+    // Microscopic stuff and aliases
+    "b",        "100_fermi²",           // Barn, 1E-28 m^2
+    "barn",     "1_b",                  // Barn, 1E-28 m^2
+    "mm²",      "=",                    // Square millimeter
+    "μm²",      "=",                    // Square micron
+    "nm²",      "=",                    // Square nanometer
+
+    // ------------------------------------------------------------------------
+    // VOLUME MENU
+    // ------------------------------------------------------------------------
+    "Volume",   nullptr,
+
+    // Usual
+    "m³",       "=",                    // Cubic meter
+    "l",        "1_dm³",                // Liter
+    "gal",      "231_in³",              // Gallon
+    "cm³",      "=",                    // Cubic centimeter
+    "mm³",      "=",                    // Cubic millimeter
+
+    // Imperial units
+    "gal",      "=",                    // Gallon
+    "qt",       "1/4_gal",              // Quart
+    "pt",       "1/8_gal",              // Pint
+    "cup",      "1/16_gal",             // Cup
+    "floz",     "1/32_qt",              // Fluid ounce
+
+    // Human scale
+    "m³",       "=",                    // Cubic meter
+    "yd³",      "=",                    // Cubic yard
+    "ft³",      "=",                    // Cubic foot
+    "in³",      "=",                    // Cubic inch
+    "cm³",      "=",                    // Cubic centimeter
+
+    // More imperial units
+    "gill",     "1/32_gal",             // Gill
+    "drqt",     "67200625/1000000_in³",	// US dry quart
+    "drgal",    "4_drqt",               // US dry gallon
+    "bu",       "32_drqt",              // US dry bushel
+    "pk",       "8_drqt",               // US dry peck
+
+    // Other gallons, just because
+    "galC",     "4546090_mm³",           // Canadian gallon
+    "galUK",    "4546092_mm³",           // UK gallon
+    "ptUK",     "1/2_galUK",             // UK pint
+    "ozUK",     "1/40_galUK",            // UK fluid ounce
+    "fbm",      "1_ft²*in",              // Board foot
+
+    // Other funny volume units
+    "tbsp",     "4_oz",                 // Tablespoon
+    "tsp",      "1/3_tbsp",             // Teasppon
+    "st",       "1_m³",                 // Stere (wood volume)
+    "bbl",      "7056_in³",             // Barrel
+    "crbl",     "5826_in³",             // Cranberry barrel
+
+    // ------------------------------------------------------------------------
+    // TIME MENU
+    // ------------------------------------------------------------------------
     "Time",     nullptr,
-    "s",        "1_s",
-    "min",      "60_s",
-    "minute",   "1_min",
-    "h",        "3600_s",
-    "hour",     "1_h",
-    "d",        "86400_s",
-    "day",      "1_d",
+
+    // Basic time units
+    "s",        "1_s",                  // Second
+    "min",      "60_s",                 // Minute
+    "h",        "3600_s",               // Hour
+    "d",        "86400_s",              // Day
     "yr",       "36524219/100000_d",    // Mean tropical year
-    "year",     "1_y",                  // Mean tropical year
+
+    // Frequencies
     "Hz",       "1_s⁻¹",                // Hertz
+    "kHz",      "=",                    // Kilohertz
+    "MHz",      "=",                    // Megahertz
+    "GHz",      "=",                    // Gigahertz
     "rpm",      "60_Hz",                // Rotations per minute
 
-    // Speed
+    // Alias names for common time units
+    "year",     "1_y",                  // Year
+    "day",      "1_d",                  // Day
+    "hour",     "1_h",                  // Hour
+    "minute",   "1_min",                // Minute
+    "second",   "1_s",                  // Second
+
+    // ------------------------------------------------------------------------
+    // SPEED MENU
+    // ------------------------------------------------------------------------
     "Speed",     nullptr,
-    "akph",      "1_km/h",               // US common spelling for km/h
+
+    // Standard speed
+    "m/s",      "=",                    // Meter per second
+    "km/h",     "=",                    // Kilometer per hour
+    "ft/s",     "=",                    // Feet per second
     "mph",      "1_mi/h",               // Miles per hour
     "knot",     "1_nmi/h",              // 1 knot is 1 nautical mile per hour
+
+    // Physics
     "c",        "299792458_m/s",        // Speed of light
     "ga",       "980665/100000_m/s^2",  // Standard freefall acceleration
     "G",        "1_ga",                 // Alternate spelling (1_G)
+    "kph",      "1_km/h",               // US common spelling for km/h
 
-    // Mass
+    // ------------------------------------------------------------------------
+    // MASS MENU
+    // ------------------------------------------------------------------------
     "Mass",     nullptr,
+
+    // Metric units
+    "kg",       "=",                    // Kilogram
     "g",        "1_g",                  // Gram
     "t",        "1000_kg",              // Metric ton
     "ct",       "200_mg",               // Carat
-    "carat",    "1_ct",                 // Carat
+    "mol",      "1_mol",                // Mole (quantity of matter)
+
+    // Imperial units
     "lb",       "45359237/100000_g",    // Avoirdupois pound
-    "dr",       "1/256_lb",             // Drachm
-    "dram",     "1_dr",                 // Alternate spelling
-    "drachm",   "1_dr",                 // Alternate spelling
     "oz",       "1/16_lb",              // Ounce
+    "dr",       "1/256_lb",             // Drachm
     "stone",    "14_lb",                // Stone
+    "grain",    "1/7000_lb",            // Grain (sometimes "gr")
+
+    // UK/US conversions
     "qrUK",     "28_lb",                // Quarter (UK)
     "qrUS",     "25_lb",                // Quarter (US)
     "cwtUK",    "112_lb",               // Long hundredweight (UK)
     "cwtUS",    "100_lb",               // Short hundredweight (US)
+    "gr",       "1_grain",              // Grain
+
     "tonUK",    "20_cwtUK",             // Long ton
     "tonUS",    "20_cwtUS",             // Short ton
     "ton",      "1_tonUS",              // Short ton
-    "grain",    "1/7000_lb",            // Grain (sometimes "gr")
-    "gr",       "1_grain",              // Grain
-    "slug",     "1_lbf*s^2/ft",         // Slug
+    "slug",     "1_lbf*s^2/ft",         // Slug (what?)
     "blob",     "12_slug",              // Blob (seriously????)
+
+    // Troy weight system
     "dwt",      "24_grain",             // Pennyweight (Troy weight system)
     "ozt",      "20_dwt",               // Troy ounce
     "lbt",      "12_ozt",               // Troy pound
-    "u",        "1.6605402E-27_kg",     // Unified atomic mass
-    "mol",      "1_mol",                // Mole (quantity of matter)
+    "dram",     "1_dr",                 // Alternate spelling
+    "drachm",   "1_dr",                 // Alternate spelling
+
+    // Alternate spellings
     "mole",     "1_mol",                // Mole (quantity of matter)
+    "carat",    "1_ct",                 // Carat
+    "u",        "1.6605402E-27_kg",     // Unified atomic mass
     "Avogadro", "6.02214076E23",        // Avogadro constant (# units in 1_mol)
 
-    // Force
+    // ------------------------------------------------------------------------
+    // FORCE MENU
+    // ------------------------------------------------------------------------
     "Force",    nullptr,
+
     "N",        "1_kg*m/s^2",           // Newton
     "dyn",      "1/100000_N",           // Dyne
-    "gf",       "980665/100000000_N",   // Gram-force
     "kip",      "1000_lbf",             // Kilopound-force
     "lbf",      "44482216152605/10000000000000_N",    // Pound-force
+    "gf",       "980665/100000000_N",   // Gram-force
+
     "pdl",      "138254954376/1000000000000_N",       // Poundal
 
-    // Energy
+    // ------------------------------------------------------------------------
+    // ENERGY MENU
+    // ------------------------------------------------------------------------
     "Energy",   nullptr,
+
     "J",        "1_kg*m^2/s^2",         // Joule
     "erg",      "1/10000000_J",         // erg
+    "Kcal",     "=",                    // Large calorige
+    "cal",      "41868/10000_J",        // International calorie (1929, 1956)
+    "Btu",      "1055.05585262_J",      // British thermal unit
+
     "calth",    "4184/1000_J",          // Thermochemical Calorie
     "cal4",     "4204/1000_J",          // 4°C calorie
     "cal15",    "41855/10000_J",        // 15°C calorie
     "cal20",    "4182/1000_J",          // 20°C calorie
     "calmean",  "4190/1000_J",          // 4°C calorie
-    "cal",      "41868/10000_J",        // International calorie (1929, 1956)
-    "Btu",      "1055.05585262_J",      // British thermal unit
+
     "therm",    "105506000_J",          // EEC therm
     "eV",       "1.60217733E-19_J",     // electron-Volt
 
-    // Power
+    // ------------------------------------------------------------------------
+    // POWER MENU
+    // ------------------------------------------------------------------------
     "Power",    nullptr,
+
     "W",        "1_J/s",                // Watt
+    "kW",       "=",                    // Kilowatt
+    "MW",       "=",                    // Megawatt
+    "GW",       "=",                    // Gigawatt
     "hp",       "745.699871582_W",      // Horsepower
 
-    // Pressure
+    // ------------------------------------------------------------------------
+    // PRESSURE MENU
+    // ------------------------------------------------------------------------
     "Press",    nullptr,
+
     "Pa",       "1_N/m^2",              // Pascal
     "atm",      "101325_Pa",            // Atmosphere
     "bar",      "100000_Pa",            // bar
     "psi",      "6894.75729317_Pa",     // Pound per square inch
-    "ksi",      "1000_psi",             // Kilopound per square inch
     "torr",     "1/760_atm",            // Torr = 1/760 standard atm
+
+    "ksi",      "1000_psi",             // Kilopound per square inch
     "mmHg",     "1_torr",               // millimeter of mercury
     "inHg",     "1_in/mm*mmHg",         // inch of mercury
     "inH2O",    "249.0889_Pa",          // Inch of H2O
 
-    // Temperature
+    // ------------------------------------------------------------------------
+    // TEMPERATURE MENU
+    // ------------------------------------------------------------------------
     "Temp",     nullptr,
+
     "K",        "1_K",                  // Kelvin
     "°C",       "1_K",                  // Celsius
     "°R",       "9/5_K",                // Rankin
     "°F",       "9/5_K",                // Fahrenheit
 
-    // Electricity
+    // ------------------------------------------------------------------------
+    // ELECTRICITY MENU
+    // ------------------------------------------------------------------------
     "Elec",     nullptr,
+
     "A",        "1_A",                  // Ampere
     "V",        "1_kg*m^2/(A*s^3)",     // Volt
     "C",        "1_A*s",                // Coulomb
     "Ω",        "1_V/A",                // Ohm
-    "ohm",      "1_Ω",                  // Ohm
     "F",        "1_C/V",                // Farad
+
     "Fdy",      "96487_A*s",            // Faraday
     "H",        "1_ohm*s",              // Henry
-    "mho",      "1_S",                  // Ohm spelled backwards
     "S",        "1_A/V",                // Siemens
     "T",        "1_V*s/m^2",            // Tesla
     "Wb",       "1_V*s",                // Weber
 
-    // Angles
+    "mho",      "1_S",                  // Ohm spelled backwards
+    "ohm",      "1_Ω",                  // Ohm
+
+    // ------------------------------------------------------------------------
+    // ANGLES MENU
+    // ------------------------------------------------------------------------
     "Angle",    nullptr,
+
     "turn",     "1_turn",               // Full turns
     "°",        "1/360_turn",           // Degree
     "grad",     "1/400_turn",           // Grad
     "r",        "0.1591549430918953357688837633725144_turn", // Radian
+    "ℼr",       "1/2_turn",             // Pi radians
+
     "arcmin",   "1/60_°",               // Arc minute
     "arcs",     "1/60_arcmin",          // Arc second
     "sr",       "1_sr",                 // Steradian
-    "ℼr",       "1/2_turn",             // Pi radians
     "pir",      "1/2_turn",             // Pi radians
 
-    // Light
+    // ------------------------------------------------------------------------
+    // LIGHT MENU
+    // ------------------------------------------------------------------------
     "Light",    nullptr,
+
     "cd",       "1_cd",                 // Candela
     "lm",       "1_cd*sr",              // Lumen
     "lx",       "1_lm/m^2",             // Lux
     "fc",       "1_lm/ft^2",            // Footcandle
     "flam",     "1_cd/ft^2*r/pir",      // Foot-Lambert
+
     "ph",       "10000_lx",             // Phot
     "sb",       "10000_cd/m^2",         // Stilb
     "lam",      "1_cd/cm^2*r/pir",      // Lambert
     "nit",      "1_cd/m^2",             // Nit
     "nt",       "1_cd/m^2",             // Nit
 
-    // Radiation
+    // ------------------------------------------------------------------------
+    // RADIATION MENU
+    // ------------------------------------------------------------------------
     "Rad",      nullptr,
+
     "Gy",       "1_m^2/s^2",            // Gray
     "rad",      "1/100_m^2/s^2",        // rad
     "rem",      "1_rad",                // rem
     "Sv",       "1_Gy",                 // Sievert
     "Bq",       "1_Hz",                 // Becquerel
+
     "Ci",       "37_GBq",               // Curie
     "R",        "258_µC/kg",            // Roentgen
 
-    // Viscosity
+    // ------------------------------------------------------------------------
+    // VISCOSITY MENU
+    // ------------------------------------------------------------------------
     "Visc",     nullptr,
+
     "P",        "1/10_Pa*s",            // Poise
     "St",       "1_cm^2/s",             // Stokes
 
+    // ------------------------------------------------------------------------
     // Computing
+    // ------------------------------------------------------------------------
     "Comp",     nullptr,
+
     "bit",      "1_bit",                // Bit
     "byte",     "8_bit",                // Byte
     "B",        "1_byte",               // Byte
     "bps",      "1_bit/s",              // bit per second
     "baud",     "1_bps/SR",             // baud
+
     "Bd",       "1_baud",               // baud (standard unit)
     "mips",     "1_mips",               // Million instructions per second
     "flops",    "1_flops",              // Floating point operation per second
@@ -464,6 +652,7 @@ static const si_prefix si_prefixes[] =
     { "q",    -30 },                    // quetta
     { "Q",     30 },                    // quecto
 };
+//   clang-format on
 
 
 
@@ -519,9 +708,13 @@ unit_p unit::lookup(symbol_p name, int *prefix_info)
                 }
             }
 
-            // If we found a definition, use that
+            // If we found a definition, use that unless it begins with '='
             if (udef)
             {
+                // If definition begins with '=', only show unit in menus
+                if (*udef == '=')
+                    continue;
+
                 if (object_p obj = object::parse(utf8(udef), ulen))
                 {
                     if (unit_g u = obj->as<unit>())

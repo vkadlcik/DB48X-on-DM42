@@ -246,7 +246,7 @@ object::result list::list_parse(id type,
                 // For equations, copy only the payload
                 if (precedence)
                     if (expression_p eq = obj->as<expression>())
-                        obj = object_p(eq->value(&objsize));
+                        obj = eq->objects(&objsize);
 
                 byte *objcopy = rt.allocate(objsize);
                 if (!objcopy)

@@ -38,6 +38,7 @@
 #include "fraction.h"
 #include "integer.h"
 #include "parser.h"
+#include "program.h"
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
@@ -260,9 +261,10 @@ COMMAND_BODY(Eval)
 {
     if (rt.args(1))
         if (object_p x = rt.pop())
-            return x->execute();
+            return program::run(x);
     return ERROR;
 }
+
 
 COMMAND_BODY(ToText)
 // ----------------------------------------------------------------------------
@@ -276,6 +278,7 @@ COMMAND_BODY(ToText)
                     return OK;
     return ERROR;
 }
+
 
 COMMAND_BODY(SelfInsert)
 // ----------------------------------------------------------------------------
@@ -307,7 +310,7 @@ COMMAND_BODY(SelfInsert)
 }
 
 
-EXEC_BODY(Unimplemented)
+EVAL_BODY(Unimplemented)
 // ----------------------------------------------------------------------------
 //   Display an unimplemented error
 // ----------------------------------------------------------------------------
@@ -634,7 +637,7 @@ COMMAND_BODY(ToolsMenu)
     }
 
     object_p obj = command::static_object(menu);
-    return obj->execute();
+    return obj->evaluate();
 }
 
 

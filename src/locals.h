@@ -133,7 +133,6 @@ public:
     OBJECT_DECL(local);
     PARSE_DECL(local);
     EVAL_DECL(local);
-    EXEC_DECL(local);
     SIZE_DECL(local);
     RENDER_DECL(local);
 };

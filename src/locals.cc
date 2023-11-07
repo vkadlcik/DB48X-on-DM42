@@ -222,7 +222,7 @@ EVAL_BODY(locals)
 {
     object_g p   = object_p(o->payload());
     size_t   len = leb128<size_t>(p.Safe());
-    (void) len;
+    object_p end = p + len;
 
     // Copy local values from stack
     size_t names   = leb128<size_t>(p.Safe());
@@ -241,11 +241,16 @@ EVAL_BODY(locals)
         p += nlen;
     }
 
-    // Execute result
-    result res = p->execute();
-
-    // Return result from execution
-    return res;
+    // Defer execution of body to the caller
+    program_p prog = p->as_program();
+    if (!prog)
+    {
+        rt.malformed_local_program_error();
+        return ERROR;
+    }
+    if (!rt.run_push(prog->objects(), end))
+        return ERROR;
+    return OK;
 }
 
 
@@ -358,21 +363,10 @@ RENDER_BODY(local)
 
 EVAL_BODY(local)
 // ----------------------------------------------------------------------------
-//   Evaluate a local by fetching it from locals area and putting it on stack
+//   Evaluate a local by fetching it from locals area and evaluating it
 // ----------------------------------------------------------------------------
 {
-    if (object_g obj = o->recall())
-        return obj->execute();
-    return ERROR;
-}
-
-
-EXEC_BODY(local)
-// ----------------------------------------------------------------------------
-//   Execute a local by fetching it from locals and executing it
-// ----------------------------------------------------------------------------
-{
-    if (object_g obj = o->recall())
-        return obj->execute();
+    if (object_p obj = o->recall())
+        return program::run_program(obj);
     return ERROR;
 }

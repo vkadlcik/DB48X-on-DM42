@@ -256,10 +256,6 @@ extern settings Settings;
             ui.menu_refresh();                          \
             return r;                                   \
         }                                               \
-        EXEC_DECL(derived)                              \
-        {                                               \
-            return do_evaluate(o);                      \
-        }                                               \
         MARKER_DECL(derived);                           \
                                                         \
         static result  evaluate();                      \

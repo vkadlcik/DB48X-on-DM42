@@ -32,8 +32,8 @@
 
 RECORDER(program, 16, "Program evaluation");
 
-bool program::save_args = false;
 
+bool program::running = false;
 
 // ============================================================================
 //
@@ -46,16 +46,9 @@ EVAL_BODY(program)
 //   Normal evaluation from a program places it on stack
 // ----------------------------------------------------------------------------
 {
-    return rt.push(o) ? OK : ERROR;
-}
-
-
-EXEC_BODY(program)
-// ----------------------------------------------------------------------------
-//   Execution of a program evaluates all items in turn
-// ----------------------------------------------------------------------------
-{
-    return o->run(Settings.prog_save_last);
+    if (running)
+        return rt.push(o) ? OK : ERROR;
+    return o->run_program();
 }
 
 
@@ -97,34 +90,48 @@ program_p program::parse(utf8 source, size_t size)
 }
 
 
-object::result program::run(bool save_last_args) const
+#ifdef DM42
+#  pragma GCC push_options
+#  pragma GCC optimize("-O3")
+#endif // DM42
+
+object::result program::run(bool synchronous) const
 // ----------------------------------------------------------------------------
 //   Execute a program
 // ----------------------------------------------------------------------------
 //   The 'save_last_args' indicates if we save `LastArgs` at this level
 {
-    result   result  = OK;
-    bool     outer   = rt.call_depth() == 0;
-    object_p first   = object_p(value());
-    object_p end     = skip();
-
-    save_args = save_last_args;
+    result   result    = OK;
+    size_t   depth     = rt.call_depth();
+    bool     outer     = depth == 0 && !running;
+    object_p first     = objects();
+    object_p end       = skip();
+    bool     last_args = outer ? Settings.save_last : Settings.prog_save_last;
 
     record(program, "Run %p (%p-%p) %+s",
            this, first, end, outer ? "outer" : "inner");
     if (!rt.run_push(first, end))
         result = ERROR;
-    if (outer)
+    if (outer || synchronous)
     {
-        while (object_p obj = rt.run_next())
+        save<bool> save_running(running, true);
+        while (object_p obj = rt.run_next(depth))
         {
+#if 0
+            printf("%zu: [%u] %s | ", depth, rt.depth(),
+                   rt.depth() ? rt.stack(0)->debug() : "<nullptr>");
+            printf("%s\n", obj->debug());
+#endif
             record(program, "Evaluating %+s at %p, size %u, end=%p\n",
                    obj->fancy(), obj, obj->size(), end);
-            if (result == OK && interrupted())
+            if (interrupted())
+            {
+                rt.interrupted_error().command(obj->fancy());
                 result = ERROR;
+            }
             if (result == OK)
             {
-                if  (save_args)
+                if (last_args)
                     rt.need_save();
                 result = obj->evaluate();
             }
@@ -134,6 +141,21 @@ object::result program::run(bool save_last_args) const
     return result;
 }
 
+#ifdef DM42
+#  pragma GCC pop_options
+#endif // DM42
+
+
+object::result program::run(object_p obj, bool sync)
+// ----------------------------------------------------------------------------
+//    Run a program as top-level
+// ----------------------------------------------------------------------------
+{
+    if (program_p prog = obj->as_program())
+        return prog->run(sync);
+    return obj->evaluate();
+}
+
 
 
 // ============================================================================
@@ -141,15 +163,6 @@ object::result program::run(bool save_last_args) const
 //    Block
 //
 // ============================================================================
-
-EVAL_BODY(block)
-// ----------------------------------------------------------------------------
-//   Normal evaluation of a block executes it
-// ----------------------------------------------------------------------------
-{
-    return do_execute(o);
-}
-
 
 PARSE_BODY(block)
 // ----------------------------------------------------------------------------
@@ -166,4 +179,13 @@ RENDER_BODY(block)
 // ----------------------------------------------------------------------------
 {
     return o->list_render(r, 0, 0);
+}
+
+
+EVAL_BODY(block)
+// ----------------------------------------------------------------------------
+//   Normal evaluation from a program places it on stack
+// ----------------------------------------------------------------------------
+{
+    return o->run_program();
 }

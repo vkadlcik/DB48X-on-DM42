@@ -2780,7 +2780,8 @@ all times in milliseconds, best of 5 runs, on USB power, with presumably no GC.
 
 | Version | Time    | PGM Size  | QSPI Size | Note                    |
 |---------|---------|-----------|-----------|-------------------------|
-| 0.4.9+  | 1070    | 650116    |           | Focused optimizations   |
+| 0.4.10+ | 1205    | 651108    |           | RPL stack runloop       |
+| 0.4.10  | 1070    | 650116    |           | Focused optimizations   |
 | 0.4.9+  | 1175    |           |           | Range-based type checks |
 | 0.4.9+  | 1215    |           |           | Remove busy animation   |
 | 0.4.9   | 1447    | 646028    | 1531868   | No LastArgs in progs    |
@@ -2814,7 +2815,8 @@ is not there.
 
 | Version | Time    | PGM Size  | QSPI Size | Note                    |
 |---------|---------|-----------|-----------|-------------------------|
-| 0.4.9+  | 1803    | 731052    |           | Focused optimizations   |
+| 0.4.10+ | 1804    | 761252    |           | RPL stack runloop       |
+| 0.4.10  | 1803    | 731052    |           | Focused optimizations   |
 | 0.4.9   | 2156    | 772732    | 1534316   | No LastArg in progs     |
 | 0.4.8   | 2201    | 749892    | 1534316   |                         |
 | 0.4.7   | 2209    | 742868    | 1534316   |                         |
@@ -2829,6 +2831,19 @@ is not there.
 | 0.3     |         |           |           |                         |
 | 0.2.4   |         |           |           |                         |
 | 0.2.3   |         |           |           |                         |
+
+
+## Collatz conjecture check
+
+This test checks the tail recursion optimization in the RPL interpreter.
+The code can be found in the `CBench` program in the `Demo.48S` state.
+The HP48 cannot run the benchmark because it does not have integer arithmetic.
+
+Timing on 0.4.10 are:
+
+* HP50G: 397.438s
+* DM32: 28.507s (14x faster)
+* DM42: 15.769s (25x faster)
 # Menus
 
 Menus display at the bottom of the screen, and can be activated using the keys

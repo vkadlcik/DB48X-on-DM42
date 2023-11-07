@@ -95,7 +95,6 @@ struct conditional_loop : loop
 // ----------------------------------------------------------------------------
 {
     conditional_loop(id type, object_g condition, object_g body);
-    static result condition(bool &value);
 
     static size_t required_memory(id i, object_g condition, object_g body)
     {
@@ -211,6 +210,32 @@ public:
     EVAL_DECL(ForStep);
     RENDER_DECL(ForStep);
     INSERT_DECL(ForStep);
+};
+
+
+struct conditional : object
+// ----------------------------------------------------------------------------
+//   A non-parseable object used to select conditionals
+// ----------------------------------------------------------------------------
+{
+    conditional(id type) : object(type) {}
+public:
+    OBJECT_DECL(conditional);
+    PARSE_DECL(conditional);
+    RENDER_DECL(conditional);
+    EVAL_DECL(conditional);
+};
+
+
+struct while_conditional : conditional
+// ----------------------------------------------------------------------------
+//   A non-parseable object used to select branches in while loops
+// ----------------------------------------------------------------------------
+{
+    while_conditional(id type): conditional(type) {}
+    OBJECT_DECL(while_conditional);
+    RENDER_DECL(while_conditional);
+    EVAL_DECL(while_conditional);
 };
 
 #endif // LOOPS_H

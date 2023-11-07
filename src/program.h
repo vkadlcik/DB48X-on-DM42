@@ -30,8 +30,7 @@
 // ****************************************************************************
 
 #include "list.h"
-#  include "recorder.h"
-
+#include "recorder.h"
 
 GCP(program);
 GCP(block);
@@ -45,27 +44,21 @@ struct program : list
     program(id type, gcbytes bytes, size_t len): list(type, bytes, len) {}
 
 
-#ifdef DM42
-#  pragma GCC push_options
-#  pragma GCC optimize("-O3")
-#endif // DM42
-
-    result run(bool save_last_args) const;
-
-#ifdef DM42
-#  pragma GCC pop_options
-#endif // DM42
+    result run(bool synchronous = true) const;
+    INLINE result run_program() const               { return run(false); }
+    static result run(object_p obj, bool sync = true);
+    INLINE static result run_program(object_p obj)  { return run(obj, false); }
 
     static bool      interrupted(); // Program interrupted e.g. by EXIT key
     static program_p parse(utf8 source, size_t size);
-    static bool      save_args;
+
+    static bool running;
 
   public:
     OBJECT_DECL(program);
     PARSE_DECL(program);
     RENDER_DECL(program);
     EVAL_DECL(program);
-    EXEC_DECL(program);
 };
 typedef const program *program_p;
 

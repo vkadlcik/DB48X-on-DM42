@@ -3441,7 +3441,7 @@ bool user_interface::handle_alpha(int key)
     if (key == KEY_ADD && !shift && !xshift)
     {
         object_p cat = command::static_object(menu::ID_Catalog);
-        cat->execute();
+        cat->evaluate();
         return true;
     }
 
@@ -3864,7 +3864,7 @@ bool user_interface::handle_functions(int key)
             if (Settings.save_last)
                 rt.need_save();
         }
-        obj->execute();
+        obj->evaluate();
         draw_idle();
         dirtyStack = true;
         if (!imm)

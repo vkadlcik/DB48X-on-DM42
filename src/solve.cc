@@ -52,20 +52,20 @@ COMMAND_BODY(Root)
     if (!rt.args(3))
         return ERROR;
 
-    object_g eq = rt.stack(2);
+    object_g eqobj    = rt.stack(2);
     object_g variable = rt.stack(1);
-    object_g guess = rt.stack(0);
-    if (!eq || !variable || !guess)
+    object_g guess    = rt.stack(0);
+    if (!eqobj || !variable || !guess)
         return ERROR;
 
     record(solve,
            "Solving %t for variable %t with guess %t",
-           eq.Safe(), variable.Safe(), guess.Safe());
+           eqobj.Safe(), variable.Safe(), guess.Safe());
 
     // Check that we have a variable name on stack level 1 and
     // a proram or equation on level 2
     symbol_g name = variable->as_quoted<symbol>();
-    id eqty = eq->type();
+    id eqty = eqobj->type();
     if (eqty != ID_program && eqty != ID_expression)
         name = nullptr;
     if (!name)
@@ -74,12 +74,19 @@ COMMAND_BODY(Root)
         return ERROR;
     }
     if (eqty == ID_expression)
-        eq = expression_p(eq.Safe())->as_difference_for_solve();
+        eqobj = expression_p(eqobj.Safe())->as_difference_for_solve();
 
     // Drop input parameters
     rt.drop(3);
 
+    if (!eqobj->is_program())
+    {
+        rt.invalid_equation_error();
+        return ERROR;
+    }
+
     // Actual solving
+    program_g eq = program_p(eqobj.Safe());
     if (algebraic_g x = solve(eq, name, guess))
     {
         size_t nlen = 0;
@@ -94,7 +101,7 @@ COMMAND_BODY(Root)
 
 
 
-algebraic_p solve(object_g eq, symbol_g name, object_g guess)
+algebraic_p solve(program_g eq, symbol_g name, object_g guess)
 // ----------------------------------------------------------------------------
 //   The core of the solver
 // ----------------------------------------------------------------------------

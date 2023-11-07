@@ -35,6 +35,8 @@
 //        [... intermediate return addresses ...]
 //        [Pointer to return address 0]
 //      Returns
+//        [... Returns reserve]
+//      CallStack
 //        [Pointer to outermost directory in path]
 //        [ ... intermediate directory pointers ...]
 //        [Pointer to innermost directory in path]
@@ -476,17 +478,111 @@ struct runtime
     //
     // ========================================================================
 
-    enum { CALLS_BLOCK = 16 };
+#ifdef DM42
+#  pragma GCC push_options
+#  pragma GCC optimize("-O3")
+#endif // DM42
 
-    bool run_push(object_p next, object_p end);
+    enum { CALLS_BLOCK = 32 };
+
+    bool run_push(object_p next, object_p end)
     // ------------------------------------------------------------------------
     //   Push an object to call on the RPL stack
     // ------------------------------------------------------------------------
+    {
+        if (next < end || !next)    // Can be nullptr for conditionals
+        {
+#if 0
+            static size_t max_depth = 0;
+            size_t depth = HighMem - Returns;
+            if (max_depth < depth)
+            {
+                max_depth = depth;
+                printf("Max call stack depth %zu\n", max_depth);
+            }
+#endif
+            if ((HighMem - Returns) % CALLS_BLOCK == 0)
+                if (!call_stack_grow(next, end))
+                    return false;
+            *(--Returns) = end;
+            *(--Returns) = next;
+        }
+        return true;
+    }
 
-    object_p run_next();
+    inline object_p run_next(size_t depth)
     // ------------------------------------------------------------------------
     //   Pull the next object to execute from the RPL evaluation stack
     // ------------------------------------------------------------------------
+    //   Getting proper inlining here is important for performance, but
+    //   that requires the definition of object::skip()
+#ifdef OBJECT_H
+    {
+        object_p *high = HighMem - depth;
+        while (Returns < high)
+        {
+            object_p next = Returns[0];
+            object_p end  = Returns[1];
+            if (next < end)
+            {
+                if (next)
+                {
+                    object_p nnext = next->skip();
+                    Returns[0] = nnext;
+                    if (nnext >= end)
+                    {
+                        Returns += 2;
+                        if ((HighMem - Returns) % CALLS_BLOCK == 0)
+                            call_stack_drop();
+                    }
+                    return next;
+                }
+                unlocals(size_t(end));
+            }
+
+            Returns += 2;
+            if ((HighMem - Returns) % CALLS_BLOCK == 0)
+                call_stack_drop();
+        }
+        return nullptr;
+    }
+#else // !OBJECT_H
+    // Don't have the definition of object::skip() - Simply mark as inline
+    ;
+#endif // OBJECT_H
+
+#ifdef DM42
+#  pragma GCC pop_options
+#endif // DM42
+
+
+    bool run_conditionals(object_p truecase, object_p falsecase);
+    // ------------------------------------------------------------------------
+    //   Push true and false paths on the evaluation stack
+    // ------------------------------------------------------------------------
+
+    bool run_select(bool condition);
+    // ------------------------------------------------------------------------
+    //   Select true or false case from run_conditionals
+    // ------------------------------------------------------------------------
+
+    bool run_select_while(bool condition);
+    // ------------------------------------------------------------------------
+    //   Select true or false case from run_conditionals
+    // ------------------------------------------------------------------------
+
+    static object_p run_skip(object_p);
+    // ------------------------------------------------------------------------
+    //   Skip object
+    // ------------------------------------------------------------------------
+
+
+    bool call_stack_grow(object_p &next, object_p &end);
+    void call_stack_drop();
+    // ------------------------------------------------------------------------
+    //  Manage the call stack in blocks
+    // ------------------------------------------------------------------------
+
 
     size_t call_depth() const
     // ------------------------------------------------------------------------
@@ -656,7 +752,7 @@ struct runtime
     //   Current directory for global variables
     // ------------------------------------------------------------------------
     {
-        if (depth >= (uint) ((object_p *) Returns - Directories))
+        if (depth >= (uint) ((object_p *) CallStack - Directories))
             return nullptr;
         return (directory *) Directories[depth];
     }
@@ -666,7 +762,7 @@ struct runtime
     //   Return the home directory
     // ------------------------------------------------------------------------
     {
-        directory **home = (directory **) (Returns - 1);
+        directory **home = (directory **) (CallStack - 1);
         return *home;
     }
 
@@ -675,7 +771,7 @@ struct runtime
     //   Return number of directories
     // ------------------------------------------------------------------------
     {
-        size_t depth = (object_p *) Returns - Directories;
+        size_t depth = (object_p *) CallStack - Directories;
         return depth;
     }
 
@@ -816,10 +912,11 @@ protected:
     size_t    Editing;      // Text editor (utf8 encoded)
     size_t    Scratch;      // Scratch pad (may be invalid objects)
     object_p *Stack;        // Top of user stack
-    object_p *Args;     // Start of save area for last arguments
+    object_p *Args;         // Start of save area for last arguments
     object_p *Undo;         // Start of undo stack
-    object_p *Locals;       // Start of locals, end of undo
-    object_p *Directories;  // Start of directories, end of returns
+    object_p *Locals;       // Start of locals
+    object_p *Directories;  // Start of directories
+    object_p *CallStack;    // Start of call stack (rounded 16 entries)
     object_p *Returns;      // Start of return stack, end of locals
     object_p *HighMem;      // End of available memory
     bool      SaveArgs;     // Save arguents (LastArgs)

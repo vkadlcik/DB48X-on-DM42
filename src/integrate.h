@@ -33,7 +33,7 @@
 #include "command.h"
 #include "symbol.h"
 
-algebraic_p integrate(object_g    eq,
+algebraic_p integrate(program_g    eq,
                       symbol_g    name,
                       algebraic_g low,
                       algebraic_g high);

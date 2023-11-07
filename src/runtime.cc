@@ -73,6 +73,7 @@ runtime::runtime(byte *mem, size_t size)
       Undo(),
       Locals(),
       Directories(),
+      CallStack(),
       Returns(),
       HighMem(),
       SaveArgs(false)
@@ -92,9 +93,10 @@ void runtime::memory(byte *memory, size_t size)
 
     // Stuff at top of memory
     Returns = HighMem;                          // No return stack
-    Directories = Returns - 1;                  // Make room for one path
+    CallStack = Returns;                        // Reserve space for call stack
+    Directories = CallStack - 1;                // Make room for one path
     Locals = Directories;                       // No locals
-    Args = Locals;                          // No args
+    Args = Locals;                              // No args
     Undo = Locals;                              // No undo stack
     Stack = Locals;                             // Empty stack
 
@@ -128,6 +130,11 @@ void runtime::reset()
 //    Temporaries
 //
 // ============================================================================
+
+#ifdef DM42
+#  pragma GCC push_options
+#  pragma GCC optimize("-O3")
+#endif // DM42
 
 size_t runtime::available()
 // ----------------------------------------------------------------------------
@@ -245,7 +252,7 @@ void runtime::dump_object_list(cstring  message)
 // ----------------------------------------------------------------------------
 {
     dump_object_list(message,
-                     rt.Globals, rt.Temporaries, rt.Stack, rt.Returns);
+                     rt.Globals, rt.Temporaries, rt.Stack, rt.Args);
 }
 
 
@@ -307,18 +314,18 @@ size_t runtime::gc()
     record(gc, "Garbage collection, available %u, range %p-%p",
            available(), first, last);
 #ifdef SIMULATOR
-    if (!integrity_test(first, last, Stack, Returns))
+    if (!integrity_test(first, last, Stack, CallStack))
     {
         record(gc_errors, "Integrity test failed pre-collection");
         RECORDER_TRACE(gc) = 1;
         dump_object_list("Pre-collection failure",
-                         first, last, Stack, Returns);
-        integrity_test(first, last, Stack, Returns);
+                         first, last, Stack, CallStack);
+        integrity_test(first, last, Stack, CallStack);
         recorder_dump();
     }
     if (RECORDER_TRACE(gc) > 1)
         dump_object_list("Pre-collection",
-                         first, last, Stack, Returns);
+                         first, last, Stack, CallStack);
 #endif // SIMULATOR
 
     object_p *firstobjptr = Stack;
@@ -391,18 +398,18 @@ size_t runtime::gc()
 
 
 #ifdef SIMULATOR
-    if (!integrity_test(Globals, Temporaries, Stack, Returns))
+    if (!integrity_test(Globals, Temporaries, Stack, CallStack))
     {
         record(gc_errors, "Integrity test failed post-collection");
         RECORDER_TRACE(gc) = 2;
         dump_object_list("Post-collection failure",
-                         first, last, Stack, Returns);
+                         first, last, Stack, CallStack);
         recorder_dump();
     }
     if (RECORDER_TRACE(gc) > 1)
         dump_object_list("Post-collection",
                          (object_p) Globals, Temporaries,
-                         Stack, Returns);
+                         Stack, CallStack);
 #endif // SIMULATOR
 
     record(gc, "Garbage collection done, purged %u, available %u",
@@ -509,6 +516,11 @@ void runtime::move_globals(object_p to, object_p from)
         Globals += delta;
     Temporaries += delta;
 }
+
+#ifdef DM42
+#  pragma GCC pop_options
+#endif // DM42
+
 
 
 
@@ -703,7 +715,7 @@ object_p runtime::clone_global(object_p global)
 {
     object_p cloned = nullptr;
     object_p *begin = Stack;
-    object_p *end = Returns;
+    object_p *end = CallStack;
     for (object_p *s = begin; s < end; s++)
     {
         if (*s == global)
@@ -1033,6 +1045,8 @@ bool runtime::save()
     }
 
     object_p *ns = Stack + ucount - scount;
+    ASSERT(ns + (Undo - Stack) < HighMem);
+    ASSERT(Stack + depth() < HighMem);
     memmove(ns, Stack, (Undo - Stack) * sizeof(object_p));
     Stack = ns;
     Args = Args + ucount - scount;
@@ -1153,23 +1167,26 @@ bool runtime::unlocals(size_t count)
 //    Free the given number of locals
 // ----------------------------------------------------------------------------
 {
-    // Sanity check on what we remove
-    if (count > size_t(Directories - Locals))
+    if (count)
     {
-        invalid_local_error();
-        return false;
-    }
+        // Sanity check on what we remove
+        if (count > size_t(Directories - Locals))
+        {
+            invalid_local_error();
+            return false;
+        }
 
-    // Move pointers up
-    object_p *oldp = Locals;
-    Stack += count;
-    Args += count;
-    Undo += count;
-    Locals += count;
-    object_p *newp = Locals;
-    size_t moving = Locals - Stack;
-    for (size_t i = 0; i < moving; i++)
-        *(--newp) = *(--oldp);
+        // Move pointers up
+        object_p *oldp = Locals;
+        Stack += count;
+        Args += count;
+        Undo += count;
+        Locals += count;
+        object_p *newp = Locals;
+        size_t moving = Locals - Stack;
+        for (size_t i = 0; i < moving; i++)
+            *(--newp) = *(--oldp);
+    }
 
     return true;
 }
@@ -1187,7 +1204,7 @@ bool runtime::enter(directory_p dir)
 //   Enter a given directory
 // ----------------------------------------------------------------------------
 {
-    size_t sz = sizeof(dir);
+    size_t sz = sizeof(directory_p);
     if (available(sz) < sz)
         return false;
 
@@ -1214,7 +1231,7 @@ bool runtime::updir(size_t count)
 //   Move one directory up
 // ----------------------------------------------------------------------------
 {
-    size_t depth = (object_p *) Returns - Directories;
+    size_t depth = CallStack - Directories;
     if (count >= depth - 1)
         count = depth - 1;
     if (!count)
@@ -1243,74 +1260,131 @@ bool runtime::updir(size_t count)
 //
 // ============================================================================
 
-bool runtime::run_push(object_p next, object_p end)
+#ifdef DM42
+#  pragma GCC push_options
+#  pragma GCC optimize("-O3")
+#endif // DM42
+
+bool runtime::run_conditionals(object_p truecase, object_p falsecase)
 // ----------------------------------------------------------------------------
-//   Push an object to call on the RPL stack
+//   Push the two conditionals
 // ----------------------------------------------------------------------------
 {
-    if (next < end)
+    object_g f = falsecase;
+    bool     result = truecase ? run_push(truecase, truecase->skip())
+                               : run_push(nullptr, nullptr);
+    if (result)
     {
-        if ((HighMem - Returns) % CALLS_BLOCK == 0)
-        {
-            size_t   block = sizeof(object_p) * CALLS_BLOCK;
-            object_g nextg = next;
-            object_g endg  = end;
-            if (available(block) < block)
-            {
-                recursion_error();
-                return false;
-            }
-            Stack -= CALLS_BLOCK;
-            Args -= CALLS_BLOCK;
-            Undo -= CALLS_BLOCK;
-            Locals -= CALLS_BLOCK;
-            Directories -= CALLS_BLOCK;
-            for (object_p *s = Stack + CALLS_BLOCK; s < Returns; s++)
-                s[-CALLS_BLOCK] = s[0];
-            next = nextg;
-            end = endg;
-        }
-        *(--Returns) = end-1;
-        *(--Returns) = next;
+        falsecase = f;
+        result    = falsecase ? run_push(falsecase, falsecase->skip())
+                              : run_push(nullptr, nullptr);
     }
+    return result;
+}
+
+
+bool runtime::run_select(bool condition)
+// ----------------------------------------------------------------------------
+//   Select which condition path to pick
+// ----------------------------------------------------------------------------
+//   In this case, we have pushed the true condition and the false condition.
+//   We only leave one depending on whether the condition is true or not
+{
+    if (Returns + 4 > HighMem)
+    {
+        record(runtime_error,
+               "select (%+s) Returns=%p HighMem=%p",
+               condition ? "true" : "false",
+               Returns, HighMem);
+        return false;
+    }
+
+
+    if (!condition)
+    {
+        Returns[3] = Returns[1];
+        Returns[2] = Returns[0];
+    }
+
+    Returns += 2;
+    if ((HighMem - Returns) % CALLS_BLOCK == 0)
+        call_stack_drop();
+
     return true;
 }
 
 
-object_p runtime::run_next()
+bool runtime::run_select_while(bool condition)
 // ----------------------------------------------------------------------------
-//   Pull the next object to execute from the RPL evaluation stack
+//   Select which condition ofa while path to pick
 // ----------------------------------------------------------------------------
+//   In that case, we have pushed the loop and its body
+//   If the condition is true, we leave loop and body
+//   If the condition is false, we drop both
 {
-    while (Returns < HighMem)
+    if (Returns + 4 > HighMem)
     {
-        object_p next = Returns[0];
-        object_p end  = Returns[1] + 1;
-        if (next < end)
-        {
-            if (next)
-            {
-                Returns[0] = next->skip();
-                return next;
-            }
-            unlocals(size_t(end));
-        }
-
-        Returns += 2;
-        if ((HighMem - Returns) % CALLS_BLOCK == 0)
-        {
-            Stack += CALLS_BLOCK;
-            Args += CALLS_BLOCK;
-            Undo += CALLS_BLOCK;
-            Locals += CALLS_BLOCK;
-            Directories += CALLS_BLOCK;
-            for (object_p *s = Returns-1; s >= Stack; s--)
-                s[0] = s[-CALLS_BLOCK];
-        }
+        record(runtime_error,
+               "select_while (%+s) Returns=%p HighMem=%p",
+               condition ? "true" : "false",
+               Returns, HighMem);
+        return false;
     }
-    return nullptr;
+
+    size_t sz = condition ? 0 : 4;
+    Returns += sz;
+    if (sz && size_t(HighMem - Returns) % CALLS_BLOCK <= sz)
+        call_stack_drop();
+
+    return true;
 }
 
+
+bool runtime::call_stack_grow(object_p &next, object_p &end)
+// ----------------------------------------------------------------------------
+//   Grow the call stack by a block
+// ----------------------------------------------------------------------------
+{
+    size_t   block = sizeof(object_p) * CALLS_BLOCK;
+    object_g nextg = next;
+    object_g endg  = end;
+    if (available(block) < block)
+    {
+        recursion_error();
+        return false;
+    }
+    for (object_p *s = Stack; s < CallStack; s++)
+        s[-CALLS_BLOCK] = s[0];
+    Stack -= CALLS_BLOCK;
+    Args -= CALLS_BLOCK;
+    Undo -= CALLS_BLOCK;
+    Locals -= CALLS_BLOCK;
+    Directories -= CALLS_BLOCK;
+    CallStack -= CALLS_BLOCK;
+    next = nextg;
+    end = endg;
+    return true;
+}
+
+
+void runtime::call_stack_drop()
+// ----------------------------------------------------------------------------
+//   Drop the outermost block
+// ----------------------------------------------------------------------------
+{
+    Stack += CALLS_BLOCK;
+    Args += CALLS_BLOCK;
+    Undo += CALLS_BLOCK;
+    Locals += CALLS_BLOCK;
+    Directories += CALLS_BLOCK;
+    CallStack += CALLS_BLOCK;
+    for (object_p *s = CallStack-1; s >= Stack; s--)
+        s[0] = s[-CALLS_BLOCK];
+}
+
+#ifdef DM42
+#  pragma GCC pop_options
+#endif // DM42
 
 
 // ============================================================================

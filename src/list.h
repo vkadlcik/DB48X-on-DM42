@@ -126,6 +126,11 @@ struct list : text
         copy(p, args...);
     }
 
+    object_p objects(size_t *size = nullptr) const
+    {
+        return object_p(value(size));
+    }
+
     // Iterator, built in a way that is robust to garbage collection in loops
     struct iterator
     {
@@ -134,7 +139,7 @@ struct list : text
         typedef size_t difference_type;
 
         explicit iterator(list_p list, bool atend = false)
-            : first(object_p(list->value())),
+            : first(list->objects()),
               size(list->length()),
               index(atend ? size : 0) {}
         explicit iterator(list_p list, size_t skip)

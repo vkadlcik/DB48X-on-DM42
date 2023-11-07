@@ -97,7 +97,6 @@ const object::dispatch object::handler[NUM_IDS] =
         .parse        = (parse_fn) id::do_parse,             \
         .help         = (help_fn) id::do_help,               \
         .evaluate     = (evaluate_fn) id::do_evaluate,       \
-        .execute      = (execute_fn) id::do_execute,         \
         .render       = (render_fn) id::do_render,           \
         .graph        = (graph_fn) id::do_graph,             \
         .insert       = (insert_fn) id::do_insert,           \
@@ -177,6 +176,26 @@ object_p object::parse(utf8 source, size_t &size, int precedence)
     }
 
     return r == OK ? p.out : nullptr;
+}
+
+
+bool object::defer() const
+// ----------------------------------------------------------------------------
+//   Defer evaluation of the given object after next one
+// ----------------------------------------------------------------------------
+{
+    return rt.run_push(this, skip());
+}
+
+
+bool object::defer(id type)
+// ----------------------------------------------------------------------------
+//   Defer evaluation of a given opcode
+// ----------------------------------------------------------------------------
+{
+    if (object_p obj = command::static_object(type))
+        return rt.run_push(obj, obj->skip());
+    return false;
 }
 
 
@@ -416,15 +435,6 @@ EVAL_BODY(object)
 // ----------------------------------------------------------------------------
 {
     return rt.push(o) ? OK : ERROR;
-}
-
-
-EXEC_BODY(object)
-// ----------------------------------------------------------------------------
-//   The default execution is to evaluate
-// ----------------------------------------------------------------------------
-{
-    return o->evaluate();
 }
 
 

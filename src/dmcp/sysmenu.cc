@@ -419,7 +419,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
             {
                 // We successfully parsed the line
                 rt.clear();
-                object::result exec = cmds->execute();
+                object::result exec = cmds->run();
                 Settings.store_at_end = store_at_end;
                 if (exec != object::OK)
                 {

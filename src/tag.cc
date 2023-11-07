@@ -116,13 +116,13 @@ RENDER_BODY(tag)
 }
 
 
-EXEC_BODY(tag)
+EVAL_BODY(tag)
 // ----------------------------------------------------------------------------
 //   Execution of a tagged object executes the associated object
 // ----------------------------------------------------------------------------
 {
     object_p obj = o->tagged_object();
-    return obj->execute();
+    return obj->evaluate();
 }
 
 

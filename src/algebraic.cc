@@ -469,9 +469,10 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
     case ID_expression:
         if (!unit::mode)
         {
+            expression_p eq = expression_p(x.Safe());
             bool save = Settings.numeric;
             Settings.numeric = true;
-            result r = x->execute();
+            result r = eq->run();
             Settings.numeric = save;
             if (r == OK)
                 if (object_p obj = rt.pop())
@@ -507,7 +508,7 @@ algebraic_g algebraic::pi()
 }
 
 
-algebraic_p algebraic::evaluate_function(object_r eq, algebraic_r x)
+algebraic_p algebraic::evaluate_function(program_r eq, algebraic_r x)
 // ----------------------------------------------------------------------------
 //   Evaluate the eq object as a function
 // ----------------------------------------------------------------------------
@@ -521,7 +522,7 @@ algebraic_p algebraic::evaluate_function(object_r eq, algebraic_r x)
         return nullptr;
     save<object_g *> ival(expression::independent_value, (object_g *) &x);
     size_t   depth  = rt.depth();
-    result   err    = eq->execute();
+    result   err    = eq->run();
     size_t   dnow   = rt.depth();
     object_p result = rt.pop();
     if (dnow == depth + 1)
@@ -557,8 +558,14 @@ algebraic_p algebraic::evaluate() const
 // ----------------------------------------------------------------------------
 {
     stack_depth_restore sdr;
-    if (object::execute() != OK)
+    if (program_p prog = as_program())
+    {
+        if (!prog->run())
+            return nullptr;
+    }
+    else if (object::evaluate() != OK)
         return nullptr;
+
     if (rt.depth() != sdr.depth + 1)
     {
         rt.invalid_algebraic_error();

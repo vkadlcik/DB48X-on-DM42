@@ -71,23 +71,12 @@ EVAL_BODY(IfThen)
 {
     byte    *p    = (byte *) o->payload();
     object_g cond = object_p(p);
-    object_g body = cond->skip();
-    result   r    = OK;
-
-    // Evaluate the condition
-    r = cond->evaluate();
-    if (r != OK)
-        return r;
-
-    // Check if we should evaluate the body
-    bool test = false;
-    r = o->condition(test);
-    if (r != OK || !test)
-        return r;
-
-    // Evaluate the body if needed
-    r = body->evaluate();
-    return r;
+    object_p body = cond->skip();
+    if (rt.run_conditionals(body, nullptr)      &&
+        defer(ID_conditional)                   &&
+        cond->defer())
+        return OK;
+    return ERROR;
 }
 
 
@@ -177,25 +166,12 @@ EVAL_BODY(IfThenElse)
     object_g cond = object_p(p);
     object_g ift  = cond->skip();
     object_g iff  = ift->skip();
-    result   r    = OK;
 
-    // Evaluate the condition
-    r = cond->evaluate();
-    if (r != OK)
-        return r;
-
-    // Check if we should evaluate the body
-    bool test = false;
-    r = o->condition(test);
-    if (r != OK)
-        return r;
-
-    // Evaluate the body if needed
-    if (test)
-        r = ift->evaluate();
-    else
-        r = iff->evaluate();
-    return r;
+    if (rt.run_conditionals(ift, iff)   &&
+        defer(ID_conditional)           &&
+        cond->defer())
+        return OK;
+    return ERROR;
 }
 
 
@@ -248,11 +224,11 @@ EVAL_BODY(IfErrThen)
     result   r    = OK;
 
     // Evaluate the condition
-    r = cond->evaluate();
+    r = program::run(cond.Safe());
     if (r != OK || rt.error())
     {
         rt.clear_error();
-        r = body->evaluate();
+        r = program::run(body.Safe());
     }
 
     return r;
@@ -296,15 +272,15 @@ EVAL_BODY(IfErrThenElse)
     result   r    = OK;
 
     // Evaluate the condition
-    r = cond->evaluate();
+    r = program::run(cond.Safe());
     if (r != OK || rt.error())
     {
         rt.clear_error();
-        r = ift->evaluate();
+        r = program::run(ift.Safe());
     }
     else
     {
-        r = iff->evaluate();
+        r = program::run(iff.Safe());
     }
     return r;
 }
@@ -335,12 +311,11 @@ COMMAND_BODY(IFT)
     {
         if (object_p toexec = rt.pop())
         {
-            if (object_p condition = rt.pop())
+            if (object_g condition = rt.pop())
             {
-                int truth = condition->as_truth(true);
-                if (truth == true)
-                    return toexec->execute();
-                else if (truth == false)
+                if (rt.run_conditionals(toexec, nullptr)        &&
+                    defer(ID_conditional)                       &&
+                    condition->defer())
                     return OK;
             }
         }
@@ -351,7 +326,7 @@ COMMAND_BODY(IFT)
 
 COMMAND_BODY(IFTE)
 // ----------------------------------------------------------------------------
-//   Evaluate the 'IFT' command
+//   Evaluate the 'IFTE' command
 // ----------------------------------------------------------------------------
 {
     if (rt.args(3))
@@ -360,13 +335,12 @@ COMMAND_BODY(IFTE)
         {
             if (object_p ift = rt.pop())
             {
-                if (object_p condition = rt.pop())
+                if (object_g condition = rt.pop())
                 {
-                    int truth = condition->as_truth(true);
-                    if (truth == true)
-                        return ift->execute();
-                    else if (truth == false)
-                        return iff->execute();
+                    if (rt.run_conditionals(ift, iff)       &&
+                        defer(ID_conditional)               &&
+                        condition->defer())
+                        return OK;
                 }
             }
         }

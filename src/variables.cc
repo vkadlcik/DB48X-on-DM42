@@ -138,7 +138,7 @@ RENDER_BODY(directory)
 }
 
 
-EXEC_BODY(directory)
+EVAL_BODY(directory)
 // ----------------------------------------------------------------------------
 //   Enter directory when executing a directory
 // ----------------------------------------------------------------------------
@@ -900,7 +900,7 @@ COMMAND_BODY(VariablesMenuExecute)
                     size_t sz = 0;
                     utf8 help = name->value(&sz);
                     ui.draw_user_command(help, sz);
-                    return value->execute();
+                    return value->evaluate();
                 }
             }
         }

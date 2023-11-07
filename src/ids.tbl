@@ -81,11 +81,12 @@ FLAGS(is_decimal,       decimal32,      decimal128)
 FLAGS(is_real,          bignum,         decimal128)
 FLAGS(is_complex,       rectangular,    polar)
 FLAGS(is_command,       Drop,           Unimplemented)
-FLAGS(is_symbolic,      local,          expression,     pi, ImaginaryUnit)
+FLAGS(is_symbolic,      expression,     symbol,        pi, ImaginaryUnit)
 FLAGS(is_algebraic_fn,  add,            ToFraction)
 FLAGS(is_immediate,     MainMenu,       SelfInsert)
 FLAGS(is_unit,          unit,           unit)
 FLAGS(is_plot,          Function,       Parametric)
+FLAGS(is_program,       program,        expression)
 
 
 
@@ -103,13 +104,13 @@ ID(text)
 ID(list)
 ID(program)
 ID(block)                       // Blocks, e.g. inside loops
-ID(array)
-ID(menu)
 ID(locals)                      // Block with locals
-
+ID(expression)
 ID(local)
 ID(symbol)
-ID(expression)
+ID(array)
+ID(menu)
+
 ID(unit)
 
 // Complex types must be parsed before numbers
@@ -672,6 +673,9 @@ ID(sparse_font)
 ID(dmcp_font)
 
 ID(tag)
+
+ID(conditional)
+ID(while_conditional)
 
 #undef ID
 #undef OP

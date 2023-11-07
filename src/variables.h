@@ -140,7 +140,7 @@ public:
     OBJECT_DECL(directory);
     PARSE_DECL(directory);
     RENDER_DECL(directory);
-    EXEC_DECL(directory);
+    EVAL_DECL(directory);
 
 private:
     static void adjust_sizes(directory_r dir, int delta);

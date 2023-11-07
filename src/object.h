@@ -179,7 +179,6 @@ struct object
     typedef result      (*parse_fn)(parser &p);
     typedef utf8        (*help_fn)(object_p o);
     typedef result      (*evaluate_fn)(object_p o);
-    typedef result      (*execute_fn)(object_p o);
     typedef size_t      (*render_fn)(object_p o, renderer &r);
     typedef grob_p      (*graph_fn)(object_p o, grapher &g);
     typedef result      (*insert_fn)(object_p o, user_interface &i);
@@ -197,7 +196,6 @@ struct object
         parse_fn        parse;           // Parse an object
         help_fn         help;            // Return help topic
         evaluate_fn     evaluate;        // Evaluate the object
-        execute_fn      execute;         // Execute the object
         render_fn       render;          // Render the object as text
         graph_fn        graph;           // Render the object as a grob
         insert_fn       insert;          // Insert object in editor
@@ -313,14 +311,11 @@ struct object
     }
 
 
-    result execute() const
+    bool defer() const;
+    static bool defer(id type);
     // ------------------------------------------------------------------------
-    //   Execute the object, i.e. run programs and equations
+    //   Deferred evaluation of an object
     // ------------------------------------------------------------------------
-    {
-        record(eval, "Executing %+s %p", name(), this);
-        return ops().execute(this);
-    }
 
 
     size_t render(renderer &r) const
@@ -372,6 +367,16 @@ struct object
     {
         return symbol_p(as_text(editing, true));
     }
+
+
+    program_p as_program() const
+    // ------------------------------------------------------------------------
+    //   Return the value as a program
+    // ------------------------------------------------------------------------
+    {
+        return is_program() ? program_p(this) : nullptr;
+    }
+
 
 
     grob_p as_grob() const;
@@ -767,7 +772,6 @@ struct object
 #define PARSE_DECL(D)   static result   do_parse(parser &p UNUSED)
 #define HELP_DECL(D)    static utf8     do_help(const D *o UNUSED)
 #define EVAL_DECL(D)    static result   do_evaluate(const D *o UNUSED)
-#define EXEC_DECL(D)    static result   do_execute(const D *o UNUSED)
 #define SIZE_DECL(D)    static size_t   do_size(const D *o UNUSED)
 #define RENDER_DECL(D)  static size_t   do_render(const D *o UNUSED,renderer &r UNUSED)
 #define GRAPH_DECL(D)   static grob_p   do_graph(const D *o UNUSED,grapher &g UNUSED)
@@ -781,7 +785,6 @@ struct object
     PARSE_DECL(object);
     HELP_DECL(object);
     EVAL_DECL(object);
-    EXEC_DECL(object);
     SIZE_DECL(object);
     RENDER_DECL(object);
     GRAPH_DECL(object);
@@ -810,7 +813,6 @@ public:
 #define PARSE_BODY(D)   object::result D::do_parse(parser &p UNUSED)
 #define HELP_BODY(D)    utf8           D::do_help(const D *o UNUSED)
 #define EVAL_BODY(D)    object::result D::do_evaluate(const D *o UNUSED)
-#define EXEC_BODY(D)    object::result D::do_execute(const D *o UNUSED)
 #define SIZE_BODY(D)    size_t         D::do_size(const D *o UNUSED)
 #define RENDER_BODY(D)  size_t         D::do_render(const D *o UNUSED, renderer &r UNUSED)
 #define GRAPH_BODY(D)   grob_p         D::do_graph(const D *o UNUSED, grapher &g UNUSED)

@@ -83,7 +83,7 @@ void draw_axes(const PlotParameters &ppar)
 
 object::result draw_plot(object::id            kind,
                          const PlotParameters &ppar,
-                         object_g              eq = nullptr)
+                         object_g              eqobj = nullptr)
 // ----------------------------------------------------------------------------
 //  Draw an equation that takes input from the stack
 // ----------------------------------------------------------------------------
@@ -101,12 +101,19 @@ object::result draw_plot(object::id            kind,
                 : (ppar.imax - ppar.imin))
             / integer::make(ScreenWidth());
 
-    if (!eq)
+    if (!eqobj)
+        eqobj = directory::recall_all(symbol::make("eq"));
+    if (!eqobj)
     {
-        eq = directory::recall_all(symbol::make("eq"));
-        if (!eq)
-            return object::ERROR;
+        rt.no_equation_error();
+        return object::ERROR;
     }
+    if (!eqobj->is_program())
+    {
+        rt.invalid_equation_error();
+        return object::ERROR;
+    }
+    program_g eq = program_p(eqobj.Safe());
 
     save<symbol_g *> iref(expression::independent,
                           (symbol_g *) &ppar.independent);

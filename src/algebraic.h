@@ -40,6 +40,7 @@
 #include "command.h"
 
 GCP(algebraic);
+GCP(program);
 
 struct algebraic : command
 // ----------------------------------------------------------------------------
@@ -74,8 +75,8 @@ struct algebraic : command
     static algebraic_g pi();
 
     // Evaluate an object as a function
-    static algebraic_p evaluate_function(object_r eq, algebraic_r x);
-    algebraic_p evaluate_function(object_r eq)
+    static algebraic_p evaluate_function(program_r eq, algebraic_r x);
+    algebraic_p evaluate_function(program_r eq)
     {
         algebraic_g x = this;
         return evaluate_function(eq, x);

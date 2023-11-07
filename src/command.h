@@ -93,10 +93,6 @@ struct derived : base                                   \
         rt.command(fancy(ID_##derived));                \
         return evaluate();                              \
     }                                                   \
-    EXEC_DECL(derived)                                  \
-    {                                                   \
-        return do_evaluate(o);                          \
-    }                                                   \
     special                                             \
     static result evaluate();                           \
 }
@@ -127,7 +123,7 @@ struct Unimplemented : command
     Unimplemented(id i = ID_Unimplemented) : command(i) { }
 
     OBJECT_DECL(Unimplemented);
-    EXEC_DECL(Unimplemented);
+    EVAL_DECL(Unimplemented);
     MARKER_DECL(Unimplemented);
 };
 

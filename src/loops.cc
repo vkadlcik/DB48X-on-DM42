@@ -107,25 +107,6 @@ conditional_loop::conditional_loop(id type, object_g first, object_g second)
 }
 
 
-
-object::result conditional_loop::condition(bool &value)
-// ----------------------------------------------------------------------------
-//   Check if the stack is a true condition
-// ----------------------------------------------------------------------------
-{
-    if (object_p cond = rt.pop())
-    {
-        int truth = cond->as_truth(true);
-        if (truth >= 0)
-        {
-            value = (bool) truth;
-            return OK;
-        }
-    }
-    return ERROR;
-}
-
-
 object::result loop::object_parser(parser  &p,
                                    cstring  open,
                                    cstring  middle,
@@ -416,26 +397,27 @@ EVAL_BODY(DoUntil)
 //   Evaluate a do..until..end loop
 // ----------------------------------------------------------------------------
 //   In this loop, the body comes first
+//   We evaluate it by pushing the following on the call stack:
+//   - The loop object (which may be used for repetition)
+//   - A 'conditional' object
+//   - The condition (which will be evaluated after the body)
+//   - The body (which will evaluate next)
+//
+// the condition, then the body for evaluation,
+//   which causes the body to be ev
 {
     byte    *p    = (byte *) o->payload();
     object_g body = object_p(p);
     object_g cond = body->skip();
-    result   r    = OK;
 
-    while (!interrupted() && r == OK)
-    {
-        r = body->evaluate();
-        if (r != OK)
-            break;
-        r = cond->evaluate();
-        if (r != OK)
-            break;
-        bool test = false;
-        r = o->condition(test);
-        if (r != OK || test)
-            break;
-    }
-    return r;
+    // We loop until the condition becomes true
+    if (rt.run_conditionals(nullptr, o) &&
+        defer(ID_conditional)           &&
+        cond->defer()                   &&
+        body->defer())
+        return OK;
+
+    return ERROR;
 }
 
 
@@ -484,20 +466,14 @@ EVAL_BODY(WhileRepeat)
     byte    *p    = (byte *) o->payload();
     object_g cond = object_p(p);
     object_g body = cond->skip();
-    result   r    = OK;
 
-    while (!interrupted() && r == OK)
-    {
-        r = cond->evaluate();
-        if (r != OK)
-            break;
-        bool test = false;
-        r = condition(test);
-        if (r != OK || !test)
-            break;
-        r = body->evaluate();
-    }
-    return r;
+    // We loop while the condition is true
+    if (rt.run_conditionals(o, body)            &&
+        defer(ID_while_conditional)             &&
+        cond->defer())
+        return OK;
+
+    return ERROR;
 }
 
 
@@ -576,7 +552,7 @@ object::result loop::counted(object_g body, bool stepping, bool named)
                 rt.local(0, integer_p(ival));
             }
 
-            r = body->evaluate();
+            r = program::run(body.Safe());
             if (r != OK)
                 break;
 
@@ -670,7 +646,7 @@ object::result loop::counted(object_g body, bool stepping, bool named)
                 if (named)
                     rt.local(0, cnt);
 
-                r = body->evaluate();
+                r = program::run(body.Safe());
                 if (r != OK)
                     break;
 
@@ -895,4 +871,82 @@ EVAL_BODY(ForStep)
 // ----------------------------------------------------------------------------
 {
     return counted(o, true);
+}
+
+
+
+// ============================================================================
+//
+//   Conditional - Runtime selector for loops
+//
+// ============================================================================
+//   In order to avoid C++ stack usage, we evaluate conditional loops by
+//   pushing on the run stack the true and false loops, and selecting which
+//   branch to evaluate by evaluating `conditional`. If the stack is true,
+//   then it picks the first one pushed. Otherwise, it picks the second one.
+//   One of the two paths can be empty to terminate evaluation.
+//   It can also be the original loop to repeat
+
+PARSE_BODY(conditional)
+// ----------------------------------------------------------------------------
+//   A conditional can never be parsed
+// ----------------------------------------------------------------------------
+{
+    return SKIP;
+}
+
+
+RENDER_BODY(conditional)
+// ----------------------------------------------------------------------------
+//   Display for debugging purpose
+// ----------------------------------------------------------------------------
+{
+    r.put("<internal conditional>");
+    return r.size();
+}
+
+
+EVAL_BODY(conditional)
+// ----------------------------------------------------------------------------
+//  Picks which branch to choose at runtime
+// ----------------------------------------------------------------------------
+{
+    if (object_p cond = rt.pop())
+    {
+        int truth = cond->as_truth(true);
+        if (truth >= 0)
+        {
+            rt.run_select(truth);
+            return OK;
+        }
+    }
+    return ERROR;
+}
+
+
+RENDER_BODY(while_conditional)
+// ----------------------------------------------------------------------------
+//   Display for debugging purpose
+// ----------------------------------------------------------------------------
+{
+    r.put("<internal while conditional>");
+    return r.size();
+}
+
+
+EVAL_BODY(while_conditional)
+// ----------------------------------------------------------------------------
+//  Picks which branch of a while loop to choose at runtime
+// ----------------------------------------------------------------------------
+{
+    if (object_p cond = rt.pop())
+    {
+        int truth = cond->as_truth(true);
+        if (truth >= 0)
+        {
+            rt.run_select_while(truth);
+            return OK;
+        }
+    }
+    return ERROR;
 }

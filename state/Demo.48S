@@ -1,22 +1,73 @@
 @@ ---------------------------------------------------------------------------
 @@
+@@	 RPL recursion test - Demonstrate we don't consume memory in that case
+@@
+@@ ---------------------------------------------------------------------------
+@@  In such a case, the HP48 or HP50 will slowly consume memory
+«
+	1 + DUP 1 DISP MEM 2 DISP Recurse
+»
+'Recurse' STO
+
+
+@@ ---------------------------------------------------------------------------
+@@
+@@	 Collatz conjecture check - Check tail recursion in a test
+@@
+@@ ---------------------------------------------------------------------------
+@@   Interesting values to start with:
+@@   - Long stopping time: 1161, 2223, 2463, 2919, 3711, 6171
+@@   - High trajectory value: 138367, 159487, 270271, 665215, 704511
+@@   See https://en.wikipedia.org/wiki/Collatz_conjecture for more info
+«
+	DUP "   " + 1 DISP MEM 2 DISP
+
+	IF DUP 1 ≠ THEN
+		IF DUP 2 MOD THEN
+			3 * 1 +
+		ELSE
+			2 /
+		END
+		Collatz
+	END
+»
+'Collatz' STO
+
+
+@@ ---------------------------------------------------------------------------
+@@
+@@	 Collatz conjecture benchmark
+@@
+@@ ---------------------------------------------------------------------------
+@@   This is a case where the DM42 and DM32 will do much better than HP's
+@@   because of the tail recursion optimizations shown above.
+«
+    Ticks
+    989345275647 Collatz
+    Ticks Rot -
+»
+'CBench' STO
+
+
+@@ ---------------------------------------------------------------------------
+@@
 @@	 Graphic test
 @@
 @@ ---------------------------------------------------------------------------
 «
-  @ A little character, from p 2-39 of HP50G advanced reference
-  @ This tests the compatibility for GROB format
-  GROB 9 15 E300140015001C001400E3008000C110AA00940090004100220014102800
+	@ A little character, from p 2-39 of HP50G advanced reference
+	@ This tests the compatibility for GROB format
+	GROB 9 15 E300140015001C001400E3008000C110AA00940090004100220014102800
 	→ Walk
-  «
-      CLLCD
-      { #0 #40 } PICT OVER Walk GXOR
-      1 99999 FOR i
-        #0 i 420 MOD + #40 2 →List
-        PICT OVER Walk GXOR
-        PICT ROT Walk GXOR
-        0.01 WAIT
-      NEXT
+	«
+		CLLCD
+		{ #0 #40 } PICT OVER Walk GXOR
+		1 99999 FOR i
+			#0 i 420 MOD + #40 2 →List
+			PICT OVER Walk GXOR
+			PICT ROT Walk GXOR
+			0.01 WAIT
+		NEXT
 		»
  »
 'WalkMan' STO

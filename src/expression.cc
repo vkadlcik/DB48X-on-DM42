@@ -560,7 +560,7 @@ static size_t check_match(size_t eq, size_t eqsz,
                     // At this point, if we have an integer, it was
                     // wrapped in an equation by grab_arguments.
                     size_t depth = rt.depth();
-                    if (ftop->execute() != object::OK)
+                    if (ftop->evaluate() != object::OK)
                         return 0;
                     if (rt.depth() != depth + 1)
                     {
@@ -750,7 +750,7 @@ expression_p expression::rewrite(expression_r from, expression_r to) const
                         // Only copy the payload of equations
                         size_t tobjsize = tobj->size();
                         if (expression_p teq = tobj->as<expression>())
-                            tobj = object_p(teq->value(&tobjsize));
+                            tobj = teq->objects(&tobjsize);
                         if (!rt.append(tobjsize, byte_p(tobj)))
                             return nullptr;
                     }
@@ -768,7 +768,7 @@ expression_p expression::rewrite(expression_r from, expression_r to) const
             if (compute)
             {
                 // Need to evaluate e.g. 3-1 to get 2
-                if (eq->execute() != object::OK)
+                if (eq->run() != object::OK)
                     goto err;
                 if (rt.depth() != depth+1)
                     goto err;

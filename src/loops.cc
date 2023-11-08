@@ -40,6 +40,7 @@
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
+#include "types.h"
 #include "user_interface.h"
 #include "utf8.h"
 
@@ -50,6 +51,8 @@
 RECORDER(loop, 16, "Loops");
 RECORDER(loop_error, 16, "Errors processing loops");
 
+// The payload(o) optimization won't work otherwise
+COMPILE_TIME_ASSERT((object::ID_DoUntil < 128) == (object::ID_ForStep < 128));
 
 
 SIZE_BODY(loop)
@@ -406,7 +409,7 @@ EVAL_BODY(DoUntil)
 // the condition, then the body for evaluation,
 //   which causes the body to be ev
 {
-    byte    *p    = (byte *) o->payload();
+    byte    *p    = (byte *) payload(o);
     object_g body = object_p(p);
     object_g cond = body->skip();
 
@@ -463,7 +466,7 @@ EVAL_BODY(WhileRepeat)
 // ----------------------------------------------------------------------------
 //   In this loop, the condition comes first
 {
-    byte    *p    = (byte *) o->payload();
+    byte    *p    = (byte *) payload(o);
     object_g cond = object_p(p);
     object_g body = cond->skip();
 
@@ -679,7 +682,7 @@ EVAL_BODY(StartNext)
 //   Evaluate a for..next loop
 // ----------------------------------------------------------------------------
 {
-    byte    *p    = (byte *) o->payload();
+    byte    *p    = (byte *) payload(o);
     object_p body = object_p(p);
     return counted(body, false);
 }
@@ -724,7 +727,7 @@ EVAL_BODY(StartStep)
 //   Evaluate a for..step loop
 // ----------------------------------------------------------------------------
 {
-    byte    *p    = (byte *) o->payload();
+    byte    *p    = (byte *) payload(o);
     object_p body = object_p(p);
     return counted(body, true);
 }
@@ -773,7 +776,7 @@ RENDER_BODY(ForNext)
 //   Renderer for for-next loop
 // ----------------------------------------------------------------------------
 {
-    locals_stack locals(o->payload());
+    locals_stack locals(payload(o));
     return o->object_renderer(r, "for", nullptr, "next", true);
 }
 
@@ -792,7 +795,7 @@ object::result ForNext::counted(object_p o, bool stepping)
 //   Evaluate a `for` counted loop
 // ----------------------------------------------------------------------------
 {
-    byte *p = (byte *) o->payload();
+    byte *p = (byte *) payload(o);
 
     // For debugging or conversion to text, ensure we track names
     locals_stack stack(p);
@@ -851,7 +854,7 @@ RENDER_BODY(ForStep)
 //   Renderer for for-step loop
 // ----------------------------------------------------------------------------
 {
-    locals_stack locals(o->payload());
+    locals_stack locals(payload(o));
     return o->object_renderer(r, "for", nullptr, "step", true);
 }
 

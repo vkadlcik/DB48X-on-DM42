@@ -82,7 +82,7 @@ FLAGS(is_real,          bignum,         decimal128)
 FLAGS(is_complex,       rectangular,    polar)
 FLAGS(is_command,       Drop,           Unimplemented)
 FLAGS(is_symbolic,      expression,     symbol,        pi, ImaginaryUnit)
-FLAGS(is_algebraic_fn,  add,            ToFraction)
+FLAGS(is_algebraic_fn,  add,            ToFraction,    asinh, det)
 FLAGS(is_immediate,     MainMenu,       SelfInsert)
 FLAGS(is_unit,          unit,           unit)
 FLAGS(is_plot,          Function,       Parametric)
@@ -221,45 +221,12 @@ CMD(sin)
 CMD(cos)
 CMD(tan)                        // WARNING: order used in function.cc
 
-NAMED(asinh, "sinh⁻¹")
-NAMED(acosh, "cosh⁻¹")
-NAMED(atanh, "tanh⁻¹")
-CMD(sinh)
-CMD(cosh)
-CMD(tanh)
-
-CMD(log1p)
-ALIAS(log1p, "lnp1")            // HP48 compatibility
-CMD(expm1)
-ALIAS(expm1, "expm")            // HP48 compatibility
 CMD(log)
-CMD(log10)
-CMD(log2)
 CMD(exp)
+CMD(log10)
 CMD(exp10)
 ALIAS(exp10, "alog")
-CMD(exp2)
-CMD(erf)
-CMD(erfc)
-NAMED(tgamma, "Gamma")
-NAMED(lgamma, "LogGamma")
-NAMED(fact, "!")
-ALIAS(fact, "factorial")
 
-NAMED(cbrt, "∛")
-OP(pow, "↑")
-ALIAS(pow, "^")
-OP(hypot, "⊿")
-OP(atan2, "∠")
-CMD(xroot)
-
-CMD(sign)
-
-CMD(re)
-CMD(im)
-CMD(arg)
-CMD(conj)
-NAMED(det, "Determinant")
 
 NAMED(ToDecimal, "→Num")
 ALIAS(ToDecimal, "→Decimal")
@@ -293,20 +260,11 @@ CMD(Depth)
 NAMED(ToList, "→List")
 CMD(Get)
 
-/// Equations
-CMD(Rewrite)
-CMD(Expand)
-CMD(Collect)
-CMD(Simplify)
-
-// Complex numbers
-NAMED(RealToComplex, "ℝ→ℂ")
-ALIAS(RealToComplex, "R→C")
-NAMED(ComplexToReal, "ℂ→ℝ")
-ALIAS(ComplexToReal, "C→R")
-NAMED(ToRectangular, "→Rectangular")
-ALIAS(ToRectangular, "→Rect")
-NAMED(ToPolar, "→Polar")
+// Tests
+NAMED(IFT, "IfThen")
+NAMED(IFTE, "IfThenElse")
+CMD(IfErrThen)
+CMD(IfErrThenElse)
 
 // Memory management
 CMD(Purge)
@@ -324,15 +282,59 @@ NAMED(crdir, "CreateDirectory")
 NAMED(updir, "UpDirectory")
 NAMED(pgdir, "PurgeDirectory")
 
-// Rare tests
-NAMED(IFT, "IfThen")
-NAMED(IFTE, "IfThenElse")
-CMD(IfErrThen)
-CMD(IfErrThenElse)
-NAMED(errm, "ErrorMessage")
-NAMED(errn, "ErrorNumber")
-NAMED(err0, "ClearError")
-NAMED(doerr, "DoError")
+// Graphics
+NAMED(Disp, "DrawText")
+NAMED(ClLCD, "ClearLCD")
+
+
+// ****************************************************************************
+//
+//   Two byte opcodes below
+//
+// ****************************************************************************
+
+
+// ============================================================================
+//
+//   Rarely used algebraics (two-byte opcodes)
+//
+// ============================================================================
+
+NAMED(asinh, "sinh⁻¹")
+NAMED(acosh, "cosh⁻¹")
+NAMED(atanh, "tanh⁻¹")
+CMD(sinh)
+CMD(cosh)
+CMD(tanh)
+
+CMD(log1p)
+ALIAS(log1p, "lnp1")            // HP48 compatibility
+CMD(expm1)
+ALIAS(expm1, "expm")            // HP48 compatibility
+CMD(log2)
+CMD(exp2)
+CMD(erf)
+CMD(erfc)
+NAMED(tgamma, "Gamma")
+NAMED(lgamma, "LogGamma")
+NAMED(fact, "!")
+ALIAS(fact, "factorial")
+
+NAMED(cbrt, "∛")
+OP(pow, "↑")
+ALIAS(pow, "^")
+OP(hypot, "⊿")
+OP(atan2, "∠")
+CMD(xroot)
+
+CMD(sign)
+
+CMD(re)
+CMD(im)
+CMD(arg)
+CMD(conj)
+NAMED(det, "Determinant")
+
 
 
 // ============================================================================
@@ -341,14 +343,12 @@ NAMED(doerr, "DoError")
 //
 // ============================================================================
 
-NAMED(Disp, "DrawText")
 NAMED(DispXY, "DrawStyledText")
 NAMED(Line, "DrawLine")
 NAMED(Ellipse, "DrawEllipse")
 NAMED(Circle, "DrawCircle")
 NAMED(Rect, "DrawRectangle")
 NAMED(RRect, "DrawRoundedRectangle")
-NAMED(ClLCD, "ClearLCD")
 NAMED(Draw, "DrawPlot")
 NAMED(Drax, "DrawAxes")
 
@@ -363,6 +363,35 @@ NAMED(GXor, "GraphicXor")
 NAMED(GOr,  "GraphicOr")
 NAMED(GAnd, "GraphicAnd")
 NAMED(Pict, "GraphicPicture")
+
+
+
+// ============================================================================
+//
+//   Rarely used commands
+//
+// ============================================================================
+
+/// Equations
+CMD(Rewrite)
+CMD(Expand)
+CMD(Collect)
+CMD(Simplify)
+
+// Complex numbers
+NAMED(RealToComplex, "ℝ→ℂ")
+ALIAS(RealToComplex, "R→C")
+NAMED(ComplexToReal, "ℂ→ℝ")
+ALIAS(ComplexToReal, "C→R")
+NAMED(ToRectangular, "→Rectangular")
+ALIAS(ToRectangular, "→Rect")
+NAMED(ToPolar, "→Polar")
+
+// Rare tests
+NAMED(errm, "ErrorMessage")
+NAMED(errn, "ErrorNumber")
+NAMED(err0, "ClearError")
+NAMED(doerr, "DoError")
 
 
 

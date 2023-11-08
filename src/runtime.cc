@@ -384,7 +384,7 @@ size_t runtime::gc()
     if (Editing + Scratch)
     {
         object_p edit = Temporaries;
-        move(edit - recycled, edit, Editing + Scratch, true);
+        move(edit - recycled, edit, Editing + Scratch, 1, true);
     }
 
     // Adjust Temporaries
@@ -414,10 +414,19 @@ size_t runtime::gc()
 }
 
 
-void runtime::move(object_p to, object_p from, size_t size, bool scratch)
+void runtime::move(object_p to, object_p from,
+                   size_t size, size_t overscan, bool scratch)
 // ----------------------------------------------------------------------------
 //   Move objects in memory to a new location, adjusting pointers
 // ----------------------------------------------------------------------------
+//   This is called from various places that need to move memory.
+//   - During garbage collection, when we move an object to its new location.
+//     In that case, we don't want to move a pointer that is outside of object.
+//   - When writing a global variable and moving everything above it.
+//     In that case, we need to move everything up to the end of temporaries.
+//   - When building temporary objects in the scratchpad
+//     In that case, the object is not yet referenced by the stack, but we
+//     may have gcp that are just above temporaries, so overscan is 1
 //   The scratch flag indicates that we move the scratch area. In that case,
 //   we don't need to adjust stack or function pointers, only gc-safe pointers.
 //   Furthermore, scratch pointers may (temporarily) be above the scratch area.
@@ -431,7 +440,7 @@ void runtime::move(object_p to, object_p from, size_t size, bool scratch)
     memmove((byte *) to, (byte *) from, size);
 
     // Adjust the protected pointers
-    object_p last = scratch ? (object_p) Stack : from + size;
+    object_p last = from + size + overscan;
     record(gc_details, "Move %p to %p size %u, %+s",
            from, to, size, scratch ? "scratch" : "no scratch");
     for (gcptr *p = GCSafe; p; p = p->next)
@@ -489,17 +498,17 @@ void runtime::move_globals(object_p to, object_p from)
 // ----------------------------------------------------------------------------
 //    In that case, we need to move everything up to the scratchpad
 {
+    // We overscan by 1 to deal with gcp that point to end of objects
     object_p last = (object_p) scratchpad() + allocated();
     object_p first = to < from ? to : from;
     size_t moving = last - first;
-    move(to, from, moving);
+    move(to, from, moving, 1);
 
     // Adjust Globals and Temporaries (for Temporaries, must be <=, not <)
     int delta = to - from;
     if (Globals >= first && Globals < last)             // Storing global var
         Globals += delta;
-    if (Temporaries >= first && Temporaries <= last)    // Probably always
-        Temporaries += delta;
+    Temporaries += delta;
 }
 
 
@@ -682,7 +691,7 @@ object_p runtime::clone(object_p source)
         return nullptr;
     object_p result = Temporaries;
     Temporaries = object_p((byte *) Temporaries + size);
-    move(Temporaries, result, Editing + Scratch, true);
+    move(Temporaries, result, Editing + Scratch, 1, true);
     memmove((void *) result, source, size);
     return result;
 }

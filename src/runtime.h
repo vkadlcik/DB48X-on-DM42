@@ -291,7 +291,8 @@ struct runtime
     // ------------------------------------------------------------------------
 
 
-    void move(object_p to, object_p from, size_t sz, bool scratch=false);
+    void move(object_p to, object_p from,
+              size_t sz, size_t overscan = 0, bool scratch=false);
     // ------------------------------------------------------------------------
     //    Like memmove, but update pointers to objects
     // ------------------------------------------------------------------------
@@ -887,7 +888,7 @@ const Obj *runtime::make(typename Obj::id type, const
     Temporaries = (object *) ((byte *) Temporaries + size);
 
     // Move the editor up (available() checked we have room)
-    move(Temporaries, (object_p) result, Editing + Scratch, true);
+    move(Temporaries, (object_p) result, Editing + Scratch, 1, true);
 
     // Initialize the object in place (may GC and move result)
     gcbytes ptr = (byte *) result;

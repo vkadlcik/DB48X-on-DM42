@@ -192,8 +192,8 @@ NAMED(cubed, "x³")
 
 NAMED(sqrt, "√")
 
-NAMED(abs, "norm")
-ALIAS(abs, "modulus")
+CMD(abs)
+ALIAS(abs, "norm")
 
 OP(And,         "and")
 OP(Or,          "or")

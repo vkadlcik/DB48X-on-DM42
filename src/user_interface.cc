@@ -35,6 +35,7 @@
 #include "functions.h"
 #include "list.h"
 #include "menu.h"
+#include "precedence.h"
 #include "program.h"
 #include "runtime.h"
 #include "settings.h"
@@ -140,6 +141,16 @@ user_interface::user_interface()
 }
 
 
+static inline bool is_algebraic(user_interface::modes mode)
+// ----------------------------------------------------------------------------
+//   Return true for algebraic and parentheses mode
+// ----------------------------------------------------------------------------
+{
+    return (mode == user_interface::ALGEBRAIC ||
+            mode == user_interface::PARENTHESES);
+}
+
+
 void user_interface::edit(unicode c, modes m, bool autoclose)
 // ----------------------------------------------------------------------------
 //   Begin editing with a given character
@@ -163,19 +174,19 @@ void user_interface::edit(unicode c, modes m, bool autoclose)
     unicode closing = 0;
     switch(c)
     {
-    case '(':                   closing = ')';  m = ALGEBRAIC; break;
-    case '[':                   closing = ']';  m = MATRIX;    break;
-    case '{':                   closing = '}';  m = PROGRAM;   break;
-    case ':':  if (m != TEXT)   closing = ':';  m = DIRECT;    break;
-    case '"':                   closing = '"';  m = TEXT;      break;
-    case '\'':                  closing = '\''; m = ALGEBRAIC; break;
-    case L'«':                  closing = L'»'; m = PROGRAM;   break;
+    case '(':                   closing = ')';  m = PARENTHESES;        break;
+    case '[':                   closing = ']';  m = MATRIX;             break;
+    case '{':                   closing = '}';  m = PROGRAM;            break;
+    case ':':  if (m != TEXT)   closing = ':';  m = DIRECT;             break;
+    case '"':                   closing = '"';  m = TEXT;               break;
+    case '\'':                  closing = '\''; m = ALGEBRAIC;          break;
+    case L'«':                  closing = L'»'; m = PROGRAM;            break;
     case '\n': edRows = 0;                    break; // Recompute rows
     }
     if (closing && autoclose)
     {
         byte *ed = rt.editor();
-        if (mode == PROGRAM || mode == ALGEBRAIC || mode == DIRECT)
+        if (mode == PROGRAM || mode == DIRECT || is_algebraic(mode))
             if (savec > 0 && ed[savec] != ' ')
                 cursor += rt.insert(savec, ' ');
         len = utf8_encode(closing, utf8buf);
@@ -196,7 +207,7 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
 
     bool editing = rt.editing();
     byte *ed = rt.editor();
-    bool skip = m == POSTFIX && mode == ALGEBRAIC;
+    bool skip = m == POSTFIX && is_algebraic(mode);
 
     // Skip the x in postfix operators (x⁻¹, x², x³ or x!)
     if (skip)
@@ -211,19 +222,19 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
         select = ~0U;
         dirtyStack = true;
     }
-    else if ((mode != ALGEBRAIC || m != ALGEBRAIC) &&
+    else if ((!is_algebraic(mode) || !is_algebraic(m)) &&
              cursor > 0 && ed[cursor-1] != ' ')
     {
-        if (!skip && (mode != ALGEBRAIC || (m != INFIX && m != CONSTANT)))
+        if (!skip && (!is_algebraic(mode) || (m != INFIX && m != CONSTANT)))
             cursor += rt.insert(cursor, ' ');
     }
 
     size_t added = rt.insert(cursor, text, len);
     cursor += added;
 
-    if ((m == POSTFIX || m == INFIX || m == CONSTANT) && mode == ALGEBRAIC)
+    if ((m == POSTFIX || m == INFIX || m == CONSTANT) && is_algebraic(mode))
         /* nothing */;
-    else if (mode != ALGEBRAIC || m != ALGEBRAIC)
+    else if (!is_algebraic(mode) || !is_algebraic(m))
         cursor += rt.insert(cursor, ' ');
     else if (m != INFIX)
         cursor += rt.insert(cursor, utf8("()"), 2) - 1;
@@ -561,6 +572,7 @@ void user_interface::update_mode()
     uint    inum  = 0;
     uint    fnum  = 0;
     uint    hnum  = 0;
+    uint    parn  = 0;
     unicode nspc  = Settings.space;
     unicode hspc  = Settings.space_based;
     unicode dmrk  = Settings.decimal_mark;
@@ -638,6 +650,8 @@ void user_interface::update_mode()
             case '}':       lists--;                        break;
             case '[':       vecs++;                         break;
             case ']':       vecs--;                         break;
+            case '(':       parn++;                         break;
+            case ')':       parn--;                         break;
             case L'«':      progs++;                        break;
             case L'»':      progs--;                        break;
             case '#':       based++;
@@ -659,10 +673,12 @@ void user_interface::update_mode()
         mode = TEXT;
     else if (based)
         mode = BASED;
-    else if (algs)
-        mode = ALGEBRAIC;
+    else if (parn)
+        mode = PARENTHESES;
     else if (vecs)
         mode = MATRIX;
+    else if (algs)
+        mode = ALGEBRAIC;
     else if (lists || progs)
         mode = PROGRAM;
     else
@@ -1935,14 +1951,15 @@ bool user_interface::draw_cursor(int show, uint ncursor)
     utf8   last       = ed + len;
 
     // Select cursor character
-    unicode cursorChar = ~searching        ? 'S'
-                       : mode == DIRECT    ? 'D'
-                       : mode == TEXT      ? (lowercase ? 'L' : 'C')
-                       : mode == PROGRAM   ? 'P'
-                       : mode == ALGEBRAIC ? 'A'
-                       : mode == MATRIX    ? 'M'
-                       : mode == BASED     ? 'B'
-                                           : 'X';
+    unicode cursorChar = ~searching          ? 'S'
+                       : mode == DIRECT      ? 'D'
+                       : mode == TEXT        ? (lowercase ? 'L' : 'C')
+                       : mode == PROGRAM     ? 'P'
+                       : mode == ALGEBRAIC   ? 'A'
+                       : mode == PARENTHESES ? 'P'
+                       : mode == MATRIX      ? 'M'
+                       : mode == BASED       ? 'B'
+                                             : 'X';
     size    csrh       = cursorFont->height();
     coord   csrw       = cursorFont->width(cursorChar);
     size    ch         = edFont->height();
@@ -3128,7 +3145,7 @@ bool user_interface::handle_editing(int key)
             // XEQ is used to enter algebraic / equation objects
             if ((!editing  || mode != BASED) && !shift && !xshift)
             {
-                bool is_eqn = editing && mode == ALGEBRAIC;
+                bool is_eqn = editing && is_algebraic(mode);
                 edit(is_eqn ? '(' : '\'', ALGEBRAIC);
                 last = 0;
                 return true;
@@ -3151,7 +3168,9 @@ bool user_interface::handle_editing(int key)
             else if (editing)
             {
                 // Stick to space role while editing, do not EVAL, repeat
-                if (mode == ALGEBRAIC)
+                if (mode == PARENTHESES)
+                    edit(';', PARENTHESES);
+                else if (mode == ALGEBRAIC)
                     edit('=', ALGEBRAIC);
                 else
                     edit(' ', PROGRAM);
@@ -3865,6 +3884,7 @@ bool user_interface::handle_functions(int key)
                 break;
 
             case ALGEBRAIC:
+            case PARENTHESES:
                 if (obj->is_algebraic())
                 {
                     dirtyEditor = true;

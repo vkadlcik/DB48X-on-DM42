@@ -59,6 +59,7 @@ struct user_interface
         TEXT,                   // Alphanumeric entry, e.g. in strings
         PROGRAM,                // Keys like 'sin' show as 'sin' in the editor
         ALGEBRAIC,              // Keys like 'sin' show as 'sin()' in eqs
+        PARENTHESES,            // Space inserts a semi-colon in eqs
         POSTFIX,                // Keys like '!' or 'x²' are postfix in eqs
         INFIX,                  // Keys like '+' are treated as infix in eqs
         CONSTANT,               // Entities like ⅈ or π have no parentheses

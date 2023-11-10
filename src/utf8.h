@@ -257,7 +257,7 @@ inline void utf8_reverse(byte *start, byte *end, bool multibyte = true)
 
     if (multibyte)
     {
-        for (byte *p = start; p < end; p++)
+        for (byte *p = end - 1; p >= start; p--)
         {
             if (is_utf8_first(*p))
             {

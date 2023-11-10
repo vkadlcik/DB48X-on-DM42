@@ -89,6 +89,22 @@ Display the exponent in scientific mode using a fancy rendering that is visually
 
 Display the exponent in scientific mode in a way reminiscent of classical HP48 calculators, for example `1.23E-4`.
 
+## MixedFractions
+
+Display fractions as mixed fractions when necessary, e.g. `3/2` will show up as `1 1/2`.
+
+## ImproperFractions
+
+Display fractions as improper fractions, e.g. `3/2` will show up as `3/2` and not `1 1/2`.
+
+## SmallFractions
+
+Show fractions using smaller characters, for example `¹²/₄₃`
+
+## BigFractions
+
+Show fractions using regular characters, for example `12/43`
+
 # Angle settings
 
 The angle mode determines how the calculator interprets angle arguments and how

@@ -93,6 +93,8 @@ struct settings
           command_fmt(LONG_FORM),
           show_decimal(true),
           fancy_exponent(true),
+          mixed_fractions(false),
+          small_fractions(true),
           auto_simplify(true),
           numeric(false),
           show_time(true),
@@ -210,6 +212,8 @@ public:
     commands command_fmt;       // How we prefer to display commands
     bool     show_decimal   :1; // Show decimal dot for integral real numbers
     bool     fancy_exponent :1; // Show exponent with fancy superscripts
+    bool     mixed_fractions:1; // Show 3/2 as 1 1/2
+    bool     small_fractions:1; // Show fractions with small digits
     bool     auto_simplify  :1; // Automatically simplify symbolic results
     bool     numeric        :1; // Convert results to numeric values
     bool     show_time      :1; // Show time in status bar
@@ -312,6 +316,10 @@ SETTINGS_COMMAND_DECLARE(StandardExponent);
 SETTINGS_COMMAND_DECLARE(MinimumSignificantDigits);
 SETTINGS_COMMAND_DECLARE(FancyExponent);
 SETTINGS_COMMAND_DECLARE(ClassicExponent);
+SETTINGS_COMMAND_DECLARE(MixedFractions);
+SETTINGS_COMMAND_DECLARE(ImproperFractions);
+SETTINGS_COMMAND_DECLARE(SmallFractions);
+SETTINGS_COMMAND_DECLARE(BigFractions);
 
 SETTINGS_COMMAND_DECLARE(Base);
 SETTINGS_COMMAND_DECLARE(Bin);

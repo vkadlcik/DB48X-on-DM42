@@ -86,13 +86,25 @@ void settings::save(renderer &out, bool show_defaults)
     else if (show_defaults)
         out.put("DecimalDot\n");
 
+    // Save mixed fraction state
+    if (mixed_fractions)
+        out.put("MixedFractions\n");
+    else if (show_defaults)
+        out.put("ImproperFractions\n");
+
+    // Small fraction state
+    if (!small_fractions)
+        out.put("BigFractions\n");
+    else if (show_defaults)
+        out.put("SmallFractions\n");
+
     // Save preferred exponent display mode
     if (exponent_mark != L'⁳' || !fancy_exponent)
         out.put("ClassicExponent\n");
     else if (show_defaults)
         out.put("FancyExponent\n");
 
-    // Save preferred expenent for switching to scientfic mode
+    // Save preferred exponent for switching to scientfic mode
     if (standard_exp != Defaults.standard_exp || show_defaults)
         out.printf("%u StandardExponent\n", standard_exp);
 
@@ -775,6 +787,46 @@ SETTINGS_COMMAND_NOLABEL(ClassicExponent, !Settings.fancy_exponent)
 {
     Settings.fancy_exponent = false;
     Settings.exponent_mark = 'E';
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(MixedFractions, Settings.mixed_fractions)
+// ----------------------------------------------------------------------------
+//   Select mixed fractions mode
+// ----------------------------------------------------------------------------
+{
+    Settings.mixed_fractions = true;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(ImproperFractions, !Settings.mixed_fractions)
+// ----------------------------------------------------------------------------
+//   Select improper fractions mode
+// ----------------------------------------------------------------------------
+{
+    Settings.mixed_fractions = false;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(BigFractions, !Settings.small_fractions)
+// ----------------------------------------------------------------------------
+//   Select mixed fractions mode
+// ----------------------------------------------------------------------------
+{
+    Settings.small_fractions = false;
+    return OK;
+}
+
+
+SETTINGS_COMMAND_NOLABEL(SmallFractions, Settings.small_fractions)
+// ----------------------------------------------------------------------------
+//   Select improper fractions mode
+// ----------------------------------------------------------------------------
+{
+    Settings.small_fractions = true;
     return OK;
 }
 

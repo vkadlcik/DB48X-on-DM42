@@ -428,6 +428,24 @@ static size_t render_num(renderer &r,
         return result;
     }
 
+    // Upper / lower rendering
+    bool upper = *fmt == '^';
+    bool lower = *fmt == 'v';
+    if (upper || lower)
+        fmt++;
+    if (!Settings.small_fractions || r.editing())
+        upper = lower = false;
+    static uint16_t fancy_upper_digits[10] =
+    {
+        L'⁰', L'¹', L'²', L'³', L'⁴',
+        L'⁵', L'⁶', L'⁷', L'⁸', L'⁹'
+    };
+    static uint16_t fancy_lower_digits[10] =
+    {
+        L'₀', L'₁', L'₂', L'₃', L'₄',
+        L'₅', L'₆', L'₇', L'₈', L'₉'
+    };
+
     // Check which kind of spacing to use
     bool based = *fmt == '#';
     bool fancy_base = based && r.stack();
@@ -457,7 +475,10 @@ static size_t render_num(renderer &r,
     {
         ularge digit = n % base;
         n /= base;
-        char c = (digit < 10) ? digit + '0' : digit + ('A' - 10);
+        unicode c = upper        ? fancy_upper_digits[digit]
+                  : lower        ? fancy_lower_digits[digit]
+                  : (digit < 10) ? digit + '0'
+                                 : digit + ('A' - 10);
         r.put(c);
 
         if (n && ++sep == spacing)
@@ -469,20 +490,15 @@ static size_t render_num(renderer &r,
 
     // Revert the digits
     byte *dest  = (byte *) r.text();
-    bool multibyte = spacing && space > 0xFF;
+    bool multibyte = upper || lower || (spacing && space > 0xFF);
     utf8_reverse(dest + findex, dest + r.size(), multibyte);
 
     // Add suffix
     if (fancy_base)
     {
-        static uint16_t fancy_base_digits[10] =
-        {
-                L'₀', L'₁', L'₂', L'₃', L'₄',
-                L'₅', L'₆', L'₇', L'₈', L'₉'
-        };
         if (base / 10)
-            r.put(unicode(fancy_base_digits[base/10]));
-        r.put(unicode(fancy_base_digits[base%10]));
+            r.put(unicode(fancy_lower_digits[base/10]));
+        r.put(unicode(fancy_lower_digits[base%10]));
     }
     else if (*fmt)
     {
@@ -618,17 +634,39 @@ HELP_BODY(based_integer)
 }
 
 
+static size_t fraction_render(fraction_p o, renderer &r, bool negative)
+// ----------------------------------------------------------------------------
+//   Common code for positive and negative fractions
+// ----------------------------------------------------------------------------
+{
+    integer_g n = o->numerator(1);
+    integer_g d = o->denominator(1);
+    if (r.stack() && Settings.mixed_fractions)
+    {
+        ularge nv = n->value<ularge>();
+        ularge dv = d->value<ularge>();
+        if (nv >= dv)
+        {
+            integer_g i = integer::make(nv / dv);
+            render_num(r, i, 10, "");
+            r.put(unicode(settings::SPACE_MEDIUM_MATH));
+            n = integer::make(nv % dv);
+        }
+    }
+    render_num(r, n, 10, negative ? "^-/" : "^");
+    if (!negative)
+        r.put('/');
+    render_num(r, d, 10, "v");
+    return r.size();
+}
+
+
 RENDER_BODY(fraction)
 // ----------------------------------------------------------------------------
 //   Render the fraction as 'num/den'
 // ----------------------------------------------------------------------------
 {
-    integer_g n = o->numerator(1);
-    integer_g d = o->denominator(1);
-    render_num(r, n, 10, "");
-    r.put('/');
-    render_num(r, d, 10, "");
-    return r.size();
+    return fraction_render(o, r, false);
 }
 
 
@@ -637,9 +675,5 @@ RENDER_BODY(neg_fraction)
 //   Render the fraction as '-num/den'
 // ----------------------------------------------------------------------------
 {
-    integer_g n = o->numerator(1);
-    integer_g d = o->denominator(1);
-    render_num(r, n, 10, "-/");
-    render_num(r, d, 10, "");
-    return r.size();
+    return fraction_render(o, r, true);
 }

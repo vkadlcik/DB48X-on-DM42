@@ -1068,6 +1068,10 @@ MENU(ModesMenu,
      "Seps",    ID_SeparatorModesMenu,
      "UI",      ID_UserInterfaceModesMenu,
 
+     "1 1/2",   ID_MixedFractions,
+     "3/2",     ID_ImproperFractions,
+     "1/3",     ID_BigFractions,
+     "¹/₃",     ID_SmallFractions,
      "Modes",   ID_Modes,
      "Reset",   ID_ResetModes);
 
@@ -1100,24 +1104,24 @@ MENU(SeparatorModesMenu,
 // ----------------------------------------------------------------------------
 //   Separators
 // ----------------------------------------------------------------------------
-     "1 000",   ID_NumberSpaces,
+     "1 000",           ID_NumberSpaces,
      Settings.decimal_mark == '.' ? "1,000." : "1.000,",  ID_NumberDotOrComma,
-     "1'000",   ID_NumberTicks,
-     "1_000",   ID_NumberUnderscore,
-     "2.3",     ID_DecimalDot,
-     "2,3",     ID_DecimalComma,
+     "1'000",           ID_NumberTicks,
+     "1_000",           ID_NumberUnderscore,
+     "2.3",             ID_DecimalDot,
+     "2,3",             ID_DecimalComma,
 
-     "#1 000",  ID_BasedSpaces,
+     "#1 000",          ID_BasedSpaces,
      Settings.decimal_mark == '.' ? "#1,000" : "#1.000",  ID_BasedDotOrComma,
-     "#1'000",  ID_BasedTicks,
-     "#1_000",  ID_BasedUnderscore,
-     "Disp",    ID_DisplayModesMenu,
-     "Modes",   ID_ModesMenu,
+     "#1'000",          ID_BasedTicks,
+     "#1_000",          ID_BasedUnderscore,
+     "Disp",            ID_DisplayModesMenu,
+     "Modes",           ID_ModesMenu,
 
-     "1.2x10³²", ID_FancyExponent,
-     "1.2E32", ID_ClassicExponent,
-     "1.0→1.", ID_TrailingDecimal,
-     "1.0→1",  ID_NoTrailingDecimal);
+     "1.2x10³²",        ID_FancyExponent,
+     "1.2E32",          ID_ClassicExponent,
+     "1.0→1.",          ID_TrailingDecimal,
+     "1.0→1",           ID_NoTrailingDecimal);
 
 MENU(UserInterfaceModesMenu,
 // ----------------------------------------------------------------------------

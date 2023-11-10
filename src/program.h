@@ -48,11 +48,13 @@ struct program : list
     INLINE result run_program() const               { return run(false); }
     static result run(object_p obj, bool sync = true);
     INLINE static result run_program(object_p obj)  { return run(obj, false); }
+    static result run_loop(size_t depth);
 
     static bool      interrupted(); // Program interrupted e.g. by EXIT key
     static program_p parse(utf8 source, size_t size);
 
-    static bool running;
+    static bool running, halted;
+    static uint stepping;
 
   public:
     OBJECT_DECL(program);
@@ -77,5 +79,14 @@ public:
     EVAL_DECL(block);
 };
 
+
+COMMAND_DECLARE(Halt);
+COMMAND_DECLARE(Debug);
+COMMAND_DECLARE(SingleStep);
+COMMAND_DECLARE(StepOver);
+COMMAND_DECLARE(StepOut);
+COMMAND_DECLARE(MultipleSteps);
+COMMAND_DECLARE(Continue);
+COMMAND_DECLARE(Kill);
 
 #endif // PROGRAM_H

@@ -356,7 +356,7 @@ RENDER_BODY(local)
     }
 
     // We have not found the name, render bogus name
-    r.printf("InvalidLocalName%u", index);
+    r.printf("LocalVariable%u", index);
     return r.size();
 }
 

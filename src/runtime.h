@@ -555,6 +555,16 @@ struct runtime
 #  pragma GCC pop_options
 #endif // DM42
 
+    object_p run_stepping()
+    // ------------------------------------------------------------------------
+    //   Return the next instruction for single-stepping
+    // ------------------------------------------------------------------------
+    {
+        if (Returns < HighMem)
+            return Returns[0];
+        return nullptr;
+    }
+
 
     bool run_conditionals(object_p truecase, object_p falsecase);
     // ------------------------------------------------------------------------

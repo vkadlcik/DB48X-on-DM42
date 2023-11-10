@@ -128,6 +128,7 @@ struct user_interface
     bool        draw_help();
     bool        draw_command();
     void        draw_user_command(utf8 cmd, size_t sz);
+    bool        draw_stepping_object();
 
     bool        draw_menus();
     bool        draw_battery();

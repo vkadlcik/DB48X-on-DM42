@@ -622,7 +622,8 @@ COMMAND_BODY(ToolsMenu)
 #endif // CONFIG_FIXED_BASED_OBJECTS
             case ID_based_integer:
             case ID_based_bignum:       menu = ID_BasesMenu; break;
-            case ID_expression:           menu = ID_SymbolicMenu; break;
+            case ID_expression:         menu = ID_SymbolicMenu; break;
+            case ID_program:            menu = ID_DebugMenu; break;
             case ID_list:               menu = ID_ListMenu; break;
             case ID_array:              menu = ID_MatrixMenu; break;
             case ID_tag:                menu = ID_ObjectMenu; break;

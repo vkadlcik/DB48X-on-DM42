@@ -647,16 +647,11 @@ UNIT_MENUS(UnitMenu9)
 CMD(VariablesMenu)
 CMD(ToolsMenu)
 CMD(Catalog)
-CMD(LastMenu)                   // Last immediate command
+CMD(LastMenu)
 
 NAMED(Off, "PowerOff")
 CMD(SaveState)
 CMD(SystemSetup)
-CMD(Help)
-CMD(Undo)
-
-NAMED(LastArg, "LastArguments")
-CMD(LastX)
 
 CMD(EditorSelect)
 CMD(EditorWordLeft)
@@ -671,9 +666,6 @@ CMD(EditorReplace)
 CMD(EditorClear)
 CMD(EditorFlip)
 
-CMD(Unimplemented)
-
-
 // ============================================================================
 //
 //   Commands that we don't want to see appear in the catalog
@@ -687,7 +679,36 @@ CMD(MenuFirstPage)
 CMD(VariablesMenuExecute)
 CMD(VariablesMenuRecall)
 CMD(VariablesMenuStore)
-CMD(SelfInsert)
+
+CMD(Undo)                       // Do not save stack before Undo
+
+CMD(SelfInsert)                 // Last immediate command
+
+
+// ============================================================================
+//
+//   Non-immediate Commmands
+//
+// ============================================================================
+
+CMD(Help)
+
+// Debugging
+CMD(Halt)
+CMD(Debug)
+ALIAS(Debug, "dbug")
+CMD(SingleStep)
+ALIAS(SingleStep, "sst")
+CMD(StepOver)
+CMD(StepOut)
+CMD(MultipleSteps)
+CMD(Continue)
+ALIAS(Continue, "cont")
+CMD(Kill)
+
+NAMED(LastArg, "LastArguments")
+CMD(LastX)
+CMD(Unimplemented)
 
 
 // ============================================================================

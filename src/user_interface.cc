@@ -315,6 +315,7 @@ bool user_interface::end_edit()
                 this->editing = nullptr;
                 if (Settings.save_stack)
                     rt.save();
+                save<bool> no_halt(program::halted, false);
                 cmds->run(Settings.save_last);
             }
             else
@@ -2051,6 +2052,23 @@ void user_interface::draw_user_command(utf8 cmd, size_t len)
 
     // Update screen
     refresh_dirty();
+}
+
+
+bool user_interface::draw_stepping_object()
+// ----------------------------------------------------------------------------
+//   Draw the next command to evaluate while stepping
+// ----------------------------------------------------------------------------
+{
+    if (object_p obj = rt.run_stepping())
+    {
+        char buffer[40];
+        size_t length = obj->render(buffer, sizeof(buffer));
+        draw_user_command(utf8(buffer), length);
+        ui.draw_busy(L'♦');
+        return true;
+    }
+    return false;
 }
 
 
@@ -3811,7 +3829,8 @@ bool user_interface::handle_functions(int key)
         evaluating = key;
         object::id ty = obj->type();
         bool imm = object::is_immediate(ty);
-        if (rt.editing() && !imm)
+        bool editing = rt.editing();
+        if (editing && !imm)
         {
             if (key == KEY_ENTER || key == KEY_BSP)
                 return false;
@@ -3850,8 +3869,10 @@ bool user_interface::handle_functions(int key)
             default:
                 // If we have the editor open, need to close it
                 if (ty != object::ID_SelfInsert)
+                {
                     if (!end_edit())
                         return false;
+                }
                 break;
             }
 

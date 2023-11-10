@@ -1815,11 +1815,13 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [B→R](#binarytoreal)
 * [CLLCD](#cllcd)
 * [CONJ](#conj)
+* [CONT](#continue)
 * [CONVERT](#convert)
 * [COS](#cos)
 * [COSH](#cosh)
 * [CRDIR](#crdir)
 * [C→R](#complextoreal)
+* [DBUG](#debug)
 * [DEC](#dec)
 * [DEG](#deg)
 * [DEPTH](#depth)
@@ -1856,6 +1858,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [GOR](#gor)
 * [GROB](#grob)
 * [GXOR](#gxor)
+* [HALT](#halt)
 * [HELP](#help) (Different meaning)
 * [HEX](#hex)
 * [HOME](#home)
@@ -1866,6 +1869,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [IFTE](#ifte)
 * [IM](#im)
 * [INV](#inv)
+* [KILL](#kill)
 * [LASTARG](#lastarg)
 * [LINE](#line)
 * [→LIST](#tolist)
@@ -1908,6 +1912,8 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [SIN](#sin)
 * [SINH](#sinh)
 * [SQ](#sq)
+* [SST](#stepover)
+* [SST↓](#singlestep)
 * [STEP](#step)
 * [STO](#sto)
 * [STORE](#store) (Different meaning: long form of STO)
@@ -2035,7 +2041,6 @@ commands.
 * CONLIB
 * CONST
 * CONSTANTS
-* CONT
 * CORR
 * COV
 * CR
@@ -2049,7 +2054,6 @@ commands.
 * DATE
 * →DATE
 * DATE+
-* DBUG
 * DDAYS
 * DECR
 * DEDICACE
@@ -2152,7 +2156,6 @@ commands.
 * *H
 * HADAMARD
 * HALFTAN
-* HALT
 * HEAD
 * HEADER→
 * →HEADER
@@ -2200,7 +2203,6 @@ commands.
 * →KEYTIME
 * KEYTIME→
 * KGET
-* KILL
 * LABEL
 * LAGRANGE
 * LANGUAGE→
@@ -2450,8 +2452,6 @@ commands.
 * SRB
 * SRECV
 * SREPL
-* SST
-* SST↓
 * START
 * STD
 * STEQ
@@ -3459,6 +3459,80 @@ Removes the last element from the composite
 
 ## JCONST
 
+# Debugging
+
+DB48X offers a variety of capabilities to help debugging RPL programs. These are
+made available through the [DebugMenu](#debugmenu), which is the menu that
+[ToolsMenu](#toolsmenu) selects when a program is on the stack.
+
+
+## DebugMenu
+
+The debug menu contains operations necessary to debug RPL programs:
+
+* [Debug](#debug)
+* [Step](#singlestep)
+* [Over](#stepover)
+* [Steps](#multiplesteps)
+* [Continue](#continue)
+* [Halt](#halt)
+* [Kill](#kill)
+* [Step↑](#stepout)
+
+
+## Debug (DBUG)
+
+The `Debug` command takes a program or expression as an argument, and starts
+debugging execution of it. When a program is halted for debugging, the header
+area shows a _♦_ symbol, and the next instruction to be executed is shown above
+the stack. When a program is single-stepping, the header area shows a _›_
+symbol.
+
+While a program is being debugged, you can use the command line normally and
+even execute programs from it. However, only a single debugging session can
+exist. If the program being executed halts, e.g. through the `HALT` command or
+by being interrupted using the _EXIT_ key, then this is seen as part of the same
+debugging session.
+
+
+## SingleStep (SST)
+
+The `SingleStep` command steps through a single instruction in the RPL program.
+
+
+## StepOver
+
+The `StepOver` command steps over the next instruction. If the next instruction
+is a variable name containing a program, execution halts after executing the
+program. If the next instruction being shown is a sequence of instructions, for
+example the test or the sequence of instructions in tests or loops, then the
+entire sequence is evaluated at once.
+
+## StepOut
+
+The `StepOut` command steps out of the current code block.
+
+## MultipleSteps
+
+The `MultipleSteps` instruction evaluates an arbitrary number of steps in the
+program being debugged. The number of steps to execute is passed as an argument
+in the first level of the stack. For example, `40 MultipleSteps` will execute
+the next 40 RPL instructions.
+
+## Continue (CONT)
+
+The `Continue` command resumes execution of the current RPL program at the
+current instruction.
+
+## Halt
+
+The `Halt` instruction interrupts the execution of a program, making it possible
+to insert breakpoints at specific locations in a program.
+
+## Kill
+
+The `Kill` instruction stops the execution of the program currently being
+debugged.
 # Variables
 
 Variables are named storage for RPL values.

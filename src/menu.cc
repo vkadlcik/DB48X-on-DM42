@@ -651,14 +651,15 @@ MENU(DebugMenu,
 // ----------------------------------------------------------------------------
 //   Debugging menu
 // ----------------------------------------------------------------------------
-     "Over",            ID_Unimplemented,
-     "Into",            ID_Unimplemented,
-     "Break",           ID_Unimplemented,
-     "Trace",           ID_Unimplemented,
-     "Resume",          ID_Unimplemented,
-     "Inspect",         ID_Unimplemented,
-
-     "Prog",            ID_ProgramMenu);
+     "Debug",           ID_Debug,
+     "Step",            ID_SingleStep,
+     "Over",            ID_StepOver,
+     "Steps",           ID_MultipleSteps,
+     "Continue",        ID_Continue,
+     "Prog",            ID_ProgramMenu,
+     "Halt",            ID_Halt,
+     "Kill",            ID_Kill,
+     "Step↑",           ID_StepOut);
 
 MENU(TestsMenu,
 // ----------------------------------------------------------------------------

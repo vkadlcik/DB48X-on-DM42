@@ -78,7 +78,7 @@ void refresh_dirty()
         coord height = LCD_H - 1;
         top = max(coord(0), min(height, top));
         bottom = max(coord(0), min(height, bottom));
-        lcd_refresh_lines(top, bottom - top);
+        lcd_refresh_lines(top, bottom - top + 1);
     }
     ui.draw_clean();
 }
@@ -104,7 +104,9 @@ void redraw_lcd(bool force)
         ui.draw_editor();
         ui.draw_cursor(true, ui.cursor_position());
         ui.draw_stack();
-        ui.draw_command();
+        if (!ui.draw_stepping_object())
+            ui.draw_command();
+
     }
     ui.draw_error();
 
@@ -440,5 +442,5 @@ bool program::interrupted()
         key_pop();
 #endif
     }
-    return false;
+    return halted;
 }

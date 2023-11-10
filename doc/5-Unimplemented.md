@@ -30,11 +30,13 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [B→R](#binarytoreal)
 * [CLLCD](#cllcd)
 * [CONJ](#conj)
+* [CONT](#continue)
 * [CONVERT](#convert)
 * [COS](#cos)
 * [COSH](#cosh)
 * [CRDIR](#crdir)
 * [C→R](#complextoreal)
+* [DBUG](#debug)
 * [DEC](#dec)
 * [DEG](#deg)
 * [DEPTH](#depth)
@@ -71,6 +73,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [GOR](#gor)
 * [GROB](#grob)
 * [GXOR](#gxor)
+* [HALT](#halt)
 * [HELP](#help) (Different meaning)
 * [HEX](#hex)
 * [HOME](#home)
@@ -81,6 +84,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [IFTE](#ifte)
 * [IM](#im)
 * [INV](#inv)
+* [KILL](#kill)
 * [LASTARG](#lastarg)
 * [LINE](#line)
 * [→LIST](#tolist)
@@ -123,6 +127,8 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [SIN](#sin)
 * [SINH](#sinh)
 * [SQ](#sq)
+* [SST](#stepover)
+* [SST↓](#singlestep)
 * [STEP](#step)
 * [STO](#sto)
 * [STORE](#store) (Different meaning: long form of STO)
@@ -250,7 +256,6 @@ commands.
 * CONLIB
 * CONST
 * CONSTANTS
-* CONT
 * CORR
 * COV
 * CR
@@ -264,7 +269,6 @@ commands.
 * DATE
 * →DATE
 * DATE+
-* DBUG
 * DDAYS
 * DECR
 * DEDICACE
@@ -367,7 +371,6 @@ commands.
 * *H
 * HADAMARD
 * HALFTAN
-* HALT
 * HEAD
 * HEADER→
 * →HEADER
@@ -415,7 +418,6 @@ commands.
 * →KEYTIME
 * KEYTIME→
 * KGET
-* KILL
 * LABEL
 * LAGRANGE
 * LANGUAGE→
@@ -665,8 +667,6 @@ commands.
 * SRB
 * SRECV
 * SREPL
-* SST
-* SST↓
 * START
 * STD
 * STEQ

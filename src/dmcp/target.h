@@ -199,6 +199,6 @@ extern surface Screen;
 #define BATTERY_VMIN    2500    // Min battery on display
 #define BATTERY_VMAX    2930    // Max battery on display
 #define BATTERY_VLOW    2600    // Battery level where graying out
-#define BATTERY_VOFF    2500    // Battery level where going off
+#define BATTERY_VOFF    2550    // Battery level where going off
 
 #endif // TARGET_DM42_H

@@ -209,6 +209,7 @@ protected:
     int      edRow;             // Current editor row
     int      edColumn;          // Current editor column (in pixels)
     id       menuStack[HISTORY];// Current and past menus
+    uint     pageStack[HISTORY];// Current and past menus pages
     uint     menuPage;          // Current menu page
     uint     menuPages;         // Number of menu pages
     uint     menuHeight;        // Height of the menu

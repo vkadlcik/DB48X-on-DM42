@@ -91,6 +91,7 @@ user_interface::user_interface()
       edRow(0),
       edColumn(0),
       menuStack(),
+      pageStack(),
       menuPage(),
       menuPages(),
       menuHeight(),
@@ -765,22 +766,26 @@ void user_interface::menu(menu_p menu, uint page)
 
     if (mid != *menuStack)
     {
+        pageStack[0] = menuPage;
         memmove(menuStack + 1, menuStack, sizeof(menuStack) - sizeof(*menuStack));
-        menuPage = page;
+        memmove(pageStack + 1, pageStack, sizeof(pageStack) - sizeof(*pageStack));
         if (menu)
         {
             menuStack[0] = mid;
+            pageStack[0] = page;
             menu->update(page);
         }
         else
         {
             menuStack[0] = menu::ID_object;
         }
+        menuPage = page;
         dirtyMenu = true;
     }
 
     for (uint i = 0; i < HISTORY; i++)
-        record(menus, "  History %u %+s", i, menu::name(menuStack[i]));
+        record(menus, "  History %u %+s.%u",
+               i, menu::name(menuStack[i]), pageStack[i]);
 }
 
 
@@ -799,16 +804,20 @@ void user_interface::menu_pop()
 // ----------------------------------------------------------------------------
 {
     id current = menuStack[0];
+    uint cpage = pageStack[0];
 
     record(menus, "Popping menu %+s", menu::name(current));
 
     memmove(menuStack, menuStack + 1, sizeof(menuStack) - sizeof(*menuStack));
+    memmove(pageStack, pageStack + 1, sizeof(pageStack) - sizeof(*pageStack));
     menuStack[HISTORY-1] = menu::ID_object;
+    pageStack[HISTORY-1] = 0;
     for (uint i = 1; i < HISTORY; i++)
     {
         if (menuStack[i] == menu::ID_object)
         {
             menuStack[i] = current;
+            pageStack[i] = cpage;
             break;
         }
     }
@@ -816,6 +825,7 @@ void user_interface::menu_pop()
     if (menu::id mty = menuStack[0])
     {
         menu_p m = menu_p(menu::static_object(mty));
+        menuPage = pageStack[0];
         m->update(menuPage);
     }
     else
@@ -825,7 +835,8 @@ void user_interface::menu_pop()
     dirtyMenu = true;
 
     for (uint i = 0; i < HISTORY; i++)
-        record(menus, "  History %u %+s", i, menu::name(menuStack[i]));
+        record(menus, "  History %u %+s.%u",
+               i, menu::name(menuStack[i]), pageStack[i]);
 }
 
 

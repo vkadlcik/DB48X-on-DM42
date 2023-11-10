@@ -518,162 +518,49 @@ INSERT_BODY(StartNext)
 }
 
 
-object::result loop::counted(object_g body, bool stepping, bool named)
+static object::result counted_loop(object::id type, object_p o)
 // ----------------------------------------------------------------------------
-//   Evaluate a counted loop
+//   Place the correct loop on the run stack
 // ----------------------------------------------------------------------------
 {
-    object::result r      = object::OK;
-    object_p       finish = rt.stack(0);
-    object_p       start  = rt.stack(1);
+    byte    *p    = (byte *) object::payload(o);
 
-    // If stack is empty, exit
-    if (!start || !finish)
-        return ERROR;
-    rt.drop(2);
+    if (!rt.args(2))
+        return object::ERROR;
 
-    // Negative integer or real value needed
-    algebraic_p astep   = nullptr;
-    bool        skip    = false;
+    // Fetch loop initial and last steps
+    object_g last = rt.pop();
+    object_g first = rt.pop();
 
-    // Check that we have integers
-    integer_p ifinish = finish->as<integer>();
-    integer_p istart = start->as<integer>();
-    if (istart && ifinish)
+    // Check if we need a local variable
+    if (type >= object::ID_for_next_conditional)
     {
-        // We have an integer-only loop, go the fast route
-        ularge incr = 1;
-        ularge cnt  = istart->value<ularge>();
-        ularge last = ifinish->value<ularge>();
+        // For debugging or conversion to text, ensure we track names
+        locals_stack stack(p);
 
-        while (!interrupted() && r == OK)
-        {
-            // For named loops, store that in the local variable 0
-            if (named)
-            {
-                integer_g ival = integer::make(cnt);
-                rt.local(0, integer_p(ival));
-            }
+        // Skip name
+        if (p[0] != 1)
+            record(loop_error, "Evaluating for-next loop with %u locals", p[0]);
+        p += 1;
+        size_t namesz = leb128<size_t>(p);
+        p += namesz;
 
-            r = program::run(body.Safe());
-            if (r != OK)
-                break;
+        // Get start value as local
+        if (!rt.push(first))
+            return object::ERROR;
+        rt.locals(1);
 
-            // Check if we have a 'step' variant
-            if (stepping)
-            {
-                object_p step = rt.pop();
-                if (!step)
-                    return ERROR;
-
-                // Check if the type forces us to exit the integer loop
-                id ty = step->type();
-                if (ty == ID_integer)
-                {
-                    // Normal case
-                    integer_p istep = integer_p(step);
-                    incr            = istep->value<ularge>();
-                }
-                else if (is_real(ty))
-                {
-                    // Switch to slower "algebraic" loop
-                    algebraic_g stp = algebraic_p(step);
-                    algebraic_g sta = integer::make(cnt);
-                    algebraic_g fin = integer::make(last);
-
-                    // Skip first execution since we did it here
-                    skip = true;
-
-                    // No GC beyond this point
-                    astep = stp;
-                    start = sta;
-                    finish = fin;
-                    break;
-                }
-                else
-                {
-                    rt.type_error();
-                    return ERROR;
-                }
-            }
-            cnt += incr;
-            if (cnt > last)
-                break;
-
-        }
-
-        if (!astep)
-            return r;
-    }
-    else if (start->is_real() && finish->is_real())
-    {
-        // Need to be a bit careful with GC here
-        object_g    sta = start;
-        object_g    fin = finish;
-        algebraic_g stp = integer::make(1);
-        if (!stp)
-            return ERROR;
-
-        // No GC beyond this point
-        astep = stp;
-        start = sta;
-        finish = fin;
-    }
-    else
-    {
-        // Bad input, need to error out
-        rt.type_error();
-        return ERROR;
+        // Pop local after execution
+        if (!rt.run_push(nullptr, object_p(1)))
+            return object::ERROR;
     }
 
-    // Case where we need a slower loop
-    if (astep)
-    {
-        // Now we need GC-safe pointers
-        algebraic_g cnt       = algebraic_p(start);
-        algebraic_g last      = algebraic_p(finish);
-        algebraic_g zero      = integer::make(0);
-        algebraic_g step      = astep;
-        if (!zero)
-            return ERROR;
+    object_p body = object_p(p);
+    if (body->defer() && rt.run_push(first, last) &&
+        object::defer(type) && body->defer())
+        return object::OK;
 
-        while (!interrupted() && r == OK)
-        {
-            if (skip)
-            {
-                skip = false;
-            }
-            else
-            {
-                // For named loops, store that in the local variable 0
-                if (named)
-                    rt.local(0, cnt);
-
-                r = program::run(body.Safe());
-                if (r != OK)
-                    break;
-
-                // Check if we have a 'step' variant
-                if (stepping)
-                {
-                    step = algebraic_g(algebraic_p(rt.pop()));
-                    if (!step)
-                        return ERROR;
-                }
-            }
-
-            // Increment and check end of loop
-            cnt = cnt + step;
-            bool countdown = stepping && (step < zero)->as_truth() == 1;
-            algebraic_g test = countdown ? cnt < last : cnt > last;
-            if (test->as_truth())
-                break;
-
-         }
-    }
-
-
-    return r;
+    return object::ERROR;
 }
 
 
@@ -682,9 +569,7 @@ EVAL_BODY(StartNext)
 //   Evaluate a for..next loop
 // ----------------------------------------------------------------------------
 {
-    byte    *p    = (byte *) payload(o);
-    object_p body = object_p(p);
-    return counted(body, false);
+    return counted_loop(ID_start_next_conditional, o);
 }
 
 
@@ -727,9 +612,7 @@ EVAL_BODY(StartStep)
 //   Evaluate a for..step loop
 // ----------------------------------------------------------------------------
 {
-    byte    *p    = (byte *) payload(o);
-    object_p body = object_p(p);
-    return counted(body, true);
+    return counted_loop(ID_start_step_conditional, o);
 }
 
 
@@ -790,46 +673,12 @@ INSERT_BODY(ForNext)
 }
 
 
-object::result ForNext::counted(object_p o, bool stepping)
-// ----------------------------------------------------------------------------
-//   Evaluate a `for` counted loop
-// ----------------------------------------------------------------------------
-{
-    byte *p = (byte *) payload(o);
-
-    // For debugging or conversion to text, ensure we track names
-    locals_stack stack(p);
-
-    // Skip name
-    if (p[0] != 1)
-        record(loop_error, "Evaluating for-next loop with %u locals", p[0]);
-    p += 1;
-    size_t namesz = leb128<size_t>(p);
-    p += namesz;
-
-    // Get start value as local
-    object_p start = rt.stack(1);
-    if (!start)
-        return ERROR;
-    if (!rt.push(start))
-        return ERROR;
-
-    // Evaluate loop itself with one local created during loop
-    object_p body = object_p(p);
-    rt.locals(1);
-    result r = loop::counted(body, stepping, true);
-    rt.unlocals(1);
-    return r;
-
-}
-
-
 EVAL_BODY(ForNext)
 // ----------------------------------------------------------------------------
 //   Evaluate a for..next loop
 // ----------------------------------------------------------------------------
 {
-    return counted(o, false);
+    return counted_loop(ID_for_next_conditional, o);
 }
 
 
@@ -873,7 +722,7 @@ EVAL_BODY(ForStep)
 //   Evaluate a for..step loop
 // ----------------------------------------------------------------------------
 {
-    return counted(o, true);
+    return counted_loop(ID_for_step_conditional, o);
 }
 
 
@@ -904,7 +753,7 @@ RENDER_BODY(conditional)
 //   Display for debugging purpose
 // ----------------------------------------------------------------------------
 {
-    r.put("<internal conditional>");
+    r.put("<conditional>");
     return r.size();
 }
 
@@ -932,7 +781,7 @@ RENDER_BODY(while_conditional)
 //   Display for debugging purpose
 // ----------------------------------------------------------------------------
 {
-    r.put("<internal while conditional>");
+    r.put("<while-repeat>");
     return r.size();
 }
 
@@ -951,5 +800,89 @@ EVAL_BODY(while_conditional)
             return OK;
         }
     }
+    return ERROR;
+}
+
+
+RENDER_BODY(start_next_conditional)
+// ----------------------------------------------------------------------------
+//   Display for debugging purpose
+// ----------------------------------------------------------------------------
+{
+    r.put("<start-next>");
+    return r.size();
+}
+
+
+EVAL_BODY(start_next_conditional)
+// ----------------------------------------------------------------------------
+//  Picks which branch of a start next to choose at runtime
+// ----------------------------------------------------------------------------
+{
+    if (rt.run_select_start_step(false, false))
+        return OK;
+    return ERROR;
+}
+
+
+RENDER_BODY(start_step_conditional)
+// ----------------------------------------------------------------------------
+//   Display for debugging purpose
+// ----------------------------------------------------------------------------
+{
+    r.put("<start-step>");
+    return r.size();
+}
+
+
+EVAL_BODY(start_step_conditional)
+// ----------------------------------------------------------------------------
+//  Picks which branch of a start step to choose at runtime
+// ----------------------------------------------------------------------------
+{
+    if (rt.run_select_start_step(false, true))
+        return OK;
+    return ERROR;
+}
+
+
+RENDER_BODY(for_next_conditional)
+// ----------------------------------------------------------------------------
+//   Display for debugging purpose
+// ----------------------------------------------------------------------------
+{
+    r.put("<for-next>");
+    return r.size();
+}
+
+
+EVAL_BODY(for_next_conditional)
+// ----------------------------------------------------------------------------
+//  Picks which branch of a start next to choose at runtime
+// ----------------------------------------------------------------------------
+{
+    if (rt.run_select_start_step(true, false))
+        return OK;
+    return ERROR;
+}
+
+
+RENDER_BODY(for_step_conditional)
+// ----------------------------------------------------------------------------
+//   Display for debugging purpose
+// ----------------------------------------------------------------------------
+{
+    r.put("<for-step>");
+    return r.size();
+}
+
+
+EVAL_BODY(for_step_conditional)
+// ----------------------------------------------------------------------------
+//  Picks which branch of a start next to choose at runtime
+// ----------------------------------------------------------------------------
+{
+    if (rt.run_select_start_step(true, true))
+        return OK;
     return ERROR;
 }

@@ -571,9 +571,9 @@ struct runtime
     //   Select true or false case from run_conditionals
     // ------------------------------------------------------------------------
 
-    static object_p run_skip(object_p);
+    bool run_select_start_step(bool for_loop, bool has_step);
     // ------------------------------------------------------------------------
-    //   Skip object
+    //   Select the next branch in for-next, for-step, start-next or start-step
     // ------------------------------------------------------------------------
 
 

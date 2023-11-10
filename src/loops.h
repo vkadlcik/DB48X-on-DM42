@@ -82,7 +82,6 @@ protected:
     intptr_t object_renderer(renderer &r,
                              cstring open, cstring middle, cstring close,
                              bool loopvar = false) const;
-    static result counted(object_g body, bool stepping, bool named = false);
 
 public:
     SIZE_DECL(loop);
@@ -100,10 +99,6 @@ struct conditional_loop : loop
     {
         return leb128size(i) + condition->size() + body->size();
     }
-
-protected:
-    // Shared code for parsing and rendering, taking delimiters as input
-    static result counted(object_g body, bool stepping);
 
 public:
     SIZE_DECL(conditional_loop);
@@ -236,6 +231,54 @@ struct while_conditional : conditional
     OBJECT_DECL(while_conditional);
     RENDER_DECL(while_conditional);
     EVAL_DECL(while_conditional);
+};
+
+
+struct start_next_conditional : conditional
+// ----------------------------------------------------------------------------
+//   A non-parseable object used to select branches in a start-next
+// ----------------------------------------------------------------------------
+{
+    start_next_conditional(id type): conditional(type) {}
+    OBJECT_DECL(start_next_conditional);
+    RENDER_DECL(start_next_conditional);
+    EVAL_DECL(start_next_conditional);
+};
+
+
+struct start_step_conditional : conditional
+// ----------------------------------------------------------------------------
+//   A non-parseable object used to select branches in a start-step
+// ----------------------------------------------------------------------------
+{
+    start_step_conditional(id type): conditional(type) {}
+    OBJECT_DECL(start_step_conditional);
+    RENDER_DECL(start_step_conditional);
+    EVAL_DECL(start_step_conditional);
+};
+
+
+struct for_next_conditional : conditional
+// ----------------------------------------------------------------------------
+//   A non-parseable object used to select branches in a for-next
+// ----------------------------------------------------------------------------
+{
+    for_next_conditional(id type): conditional(type) {}
+    OBJECT_DECL(for_next_conditional);
+    RENDER_DECL(for_next_conditional);
+    EVAL_DECL(for_next_conditional);
+};
+
+
+struct for_step_conditional : conditional
+// ----------------------------------------------------------------------------
+//   A non-parseable object used to select branches in a for-step
+// ----------------------------------------------------------------------------
+{
+    for_step_conditional(id type): conditional(type) {}
+    OBJECT_DECL(for_step_conditional);
+    RENDER_DECL(for_step_conditional);
+    EVAL_DECL(for_step_conditional);
 };
 
 #endif // LOOPS_H

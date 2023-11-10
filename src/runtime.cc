@@ -29,8 +29,11 @@
 
 #include "runtime.h"
 
-#include "user_interface.h"
+#include "arithmetic.h"
+#include "compare.h"
+#include "integer.h"
 #include "object.h"
+#include "user_interface.h"
 #include "variables.h"
 
 #include <cstring>
@@ -1332,11 +1335,88 @@ bool runtime::run_select_while(bool condition)
     }
 
     size_t sz = condition ? 0 : 4;
-    Returns += sz;
     if (sz && size_t(HighMem - Returns) % CALLS_BLOCK <= sz)
         call_stack_drop();
+    Returns += sz;
 
     return true;
+}
+
+
+bool runtime::run_select_start_step(bool for_loop, bool has_step)
+// ----------------------------------------------------------------------------
+//   Select true or false case from run_conditionals
+// ----------------------------------------------------------------------------
+{
+    if (Returns + 4 > HighMem)
+    {
+        record(runtime_error,
+               "select_stert_step (%+s %+s) Returns=%p HighMem=%p",
+               for_loop ? "for" : "start",
+               has_step ? "step" : "next",
+               Returns, HighMem);
+        return false;
+    }
+
+    bool down = false;
+    algebraic_g step;
+    if (has_step)
+    {
+        object_p obj = rt.pop();
+        if (!obj)
+            return false;
+        step = obj->as_algebraic();
+        if (!step)
+        {
+            rt.command("step").type_error();
+            return false;
+        }
+        down = step->is_negative();
+    }
+    else
+    {
+        step = integer::make(1);
+        if (!step)
+            return false;
+    }
+
+    // Increment and compare with last iteration
+    algebraic_g cur = Returns[0]->as_algebraic();
+    algebraic_g last = Returns[1]->as_algebraic();
+    if (!cur || !last)
+    {
+        rt.command(for_loop ? "for" : "start");
+        return false;
+    }
+    cur = cur + step;
+    last = down ? (cur < last) : (cur > last);
+    Returns[0] = cur;
+
+    // Write the current value in the variable if it's a for loop
+    if (for_loop)
+        rt.local(0, cur);
+
+    // Check the truth value
+    int finished = last->as_truth(true);
+    if (finished < 0)
+        return false;
+
+    if (finished)
+    {
+        if ((HighMem - Returns) % CALLS_BLOCK <= 4)
+            call_stack_drop();
+        Returns += 4;
+    }
+    else
+    {
+        object::id type = object::id(object::ID_start_next_conditional
+                                     + 2*for_loop
+                                     + has_step);
+        return object::defer(type) && run_push(Returns[4], Returns[5]);
+    }
+
+    return true;
+
 }
 
 

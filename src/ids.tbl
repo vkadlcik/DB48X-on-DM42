@@ -705,6 +705,10 @@ ID(tag)
 
 ID(conditional)
 ID(while_conditional)
+ID(start_next_conditional)
+ID(start_step_conditional)
+ID(for_next_conditional)
+ID(for_step_conditional)
 
 #undef ID
 #undef OP

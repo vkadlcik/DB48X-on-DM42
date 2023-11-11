@@ -534,7 +534,7 @@ struct object
         }
 
 #define ID(x)
-#define FLAGS(name, ...)                                                \
+#define ID_RANGE(name, ...)                                             \
         static INLINE bool name(id ty)                                  \
         /* ------------------------------------------------------- */   \
         /*   Range-based type checking (faster than memory reads)  */   \
@@ -547,7 +547,7 @@ struct object
     };
 
 #define ID(x)
-#define FLAGS(name, ...)                                                \
+#define ID_RANGE(name, ...)                                             \
     static INLINE bool name(id ty)                                      \
     /* ------------------------------------------------------- */       \
     /*   Range-based type checking (faster than memory reads)  */       \

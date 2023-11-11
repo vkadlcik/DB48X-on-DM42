@@ -56,8 +56,8 @@
 #define UNIT_MENU(id)           ID(id)
 #endif
 
-#ifndef FLAGS
-#define FLAGS(name, ...)
+#ifndef ID_RANGE
+#define ID_RANGE(name, ...)
 #endif
 
 // ============================================================================
@@ -66,27 +66,27 @@
 //
 // ============================================================================
 
-FLAGS(is_type,          directory,      decimal128)
+ID_RANGE(is_type,          directory,      decimal128)
 #if CONFIG_FIXED_BASED_OBJECTS
-FLAGS(is_integer,       hex_integer,    neg_integer)
-FLAGS(is_based,         hex_integer,    based_integer, hex_bignum, based_bignum)
-FLAGS(is_bignum,        hex_bignum,     neg_bignum)
+ID_RANGE(is_integer,       hex_integer,    neg_integer)
+ID_RANGE(is_based,         hex_integer,    based_integer, hex_bignum, based_bignum)
+ID_RANGE(is_bignum,        hex_bignum,     neg_bignum)
 #else
-FLAGS(is_integer,       based_integer,  neg_integer)
-FLAGS(is_based,         based_integer,  based_integer, based_bignum, based_bignum)
-FLAGS(is_bignum,        based_bignum,   neg_bignum)
+ID_RANGE(is_integer,       based_integer,  neg_integer)
+ID_RANGE(is_based,         based_integer,  based_integer, based_bignum, based_bignum)
+ID_RANGE(is_bignum,        based_bignum,   neg_bignum)
 #endif // CONFIG_FIXED_BASED_OBJECTS
-FLAGS(is_fraction,      fraction,       neg_big_fraction)
-FLAGS(is_decimal,       decimal32,      decimal128)
-FLAGS(is_real,          bignum,         decimal128)
-FLAGS(is_complex,       rectangular,    polar)
-FLAGS(is_command,       Drop,           Unimplemented)
-FLAGS(is_symbolic,      expression,     symbol,        pi, ImaginaryUnit)
-FLAGS(is_algebraic_fn,  add,            ToFraction,    asinh, det)
-FLAGS(is_immediate,     MainMenu,       SelfInsert)
-FLAGS(is_unit,          unit,           unit)
-FLAGS(is_plot,          Function,       Parametric)
-FLAGS(is_program,       program,        expression)
+ID_RANGE(is_fraction,      fraction,       neg_big_fraction)
+ID_RANGE(is_decimal,       decimal32,      decimal128)
+ID_RANGE(is_real,          bignum,         decimal128)
+ID_RANGE(is_complex,       rectangular,    polar)
+ID_RANGE(is_command,       Drop,           Unimplemented)
+ID_RANGE(is_symbolic,      expression,     symbol,        pi, ImaginaryUnit)
+ID_RANGE(is_algebraic_fn,  add,            ToFraction,    asinh, det)
+ID_RANGE(is_immediate,     MainMenu,       SelfInsert)
+ID_RANGE(is_unit,          unit,           unit)
+ID_RANGE(is_plot,          Function,       Parametric)
+ID_RANGE(is_program,       program,        expression)
 
 
 
@@ -742,4 +742,4 @@ ID(for_step_conditional)
 #undef UNIT_MENU
 #undef NAMED
 #undef ALIAS
-#undef FLAGS
+#undef ID_RANGE

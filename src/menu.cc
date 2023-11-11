@@ -527,35 +527,62 @@ MENU(StatisticsMenu,
 // ----------------------------------------------------------------------------
 //   Statistics
 // ----------------------------------------------------------------------------
-     "Σ+",      ID_Unimplemented,
-     "Σ-",      ID_Unimplemented,
-     "Total",   ID_Unimplemented,
-     "Mean",    ID_Unimplemented,
-     "StdDev" , ID_Unimplemented,
+     "Σ+",      ID_AddData,
+     "Σ-",      ID_RemoveData,
+     "Total",   ID_Total,
+     "Mean",    ID_Mean,
+     "StdDev" , ID_StandardDeviation,
+     "Corr",    ID_Correlation,
 
-     "ΣData",   ID_Unimplemented,
-     "ClrΣ",    ID_Unimplemented,
-     "PopSize", ID_Unimplemented,
-     "Median",  ID_Unimplemented,
-     "PopSDev", ID_Unimplemented,
+     "XCol",    ID_IndependentColumn,
+     "YCol",    ID_DependentColumn,
+     "MinΣ",    ID_MinData,
+     "MaxΣ",    ID_MaxData,
+     "ΣSize",   ID_DataSize,
+     "Median",  ID_Median,
 
-     "Regres",  ID_Unimplemented,
-     "Plot",    ID_Unimplemented,
-     "MaxΣ",    ID_Unimplemented,
-     "MinΣ",    ID_Unimplemented,
-     "Varnce",  ID_Unimplemented,
+     "StoΣ",    ID_StoreData,
+     "RclΣ",    ID_RecallData,
+     "ClrΣ",    ID_ClearData,
+     "Popul",   ID_PopulationMenu,
+     "Regres",  ID_RegressionMenu,
+     "Plot",    ID_PlotMenu);
 
-     "Bins",    ID_Unimplemented,
-     "Info",    ID_Unimplemented,
-     "PopVar",  ID_Unimplemented,
-     "PopSDev", ID_Unimplemented,
-     "PCovar",  ID_Unimplemented,
+MENU(RegressionMenu,
+// ----------------------------------------------------------------------------
+//   Statistics regression menu
+// ----------------------------------------------------------------------------
+     "BestFit", ID_BestFit,
+     "ExpFit",  ID_LinearFit,
+     "LinFit",  ID_ExponentialFit,
+     "LogFit",  ID_PowerFit,
+     "PwrFit",  ID_LogarithmicFit,
+     "LR",      ID_LinearRegression,
 
-     "BestFit", ID_Unimplemented,
-     "ExpFit",  ID_Unimplemented,
-     "LinFit",  ID_Unimplemented,
-     "LogFit",  ID_Unimplemented,
-     "PwrFit",  ID_Unimplemented);
+     "XCol",    ID_IndependentColumn,
+     "YCol",    ID_DependentColumn,
+     "StdDev" , ID_StandardDeviation,
+     "Corr",    ID_Correlation,
+     "Inter",   ID_Intercept,
+     "Slope",   ID_Slope,
+
+     "ΣX",      ID_SumOfX,
+     "ΣY",      ID_SumOfY,
+     "ΣXY",     ID_SumOfXY,
+     "ΣX²",     ID_SumOfXSquares,
+     "ΣY²",     ID_SumOfYSquares,
+     "ΣSize",   ID_DataSize);
+
+MENU(PopulationMenu,
+// ----------------------------------------------------------------------------
+//   Statistics population menu
+// ----------------------------------------------------------------------------
+     "XCol",    ID_IndependentColumn,
+     "YCol",    ID_DependentColumn,
+     "Bins",    ID_Bins,
+     "PopVar",  ID_PopulationVariance,
+     "PopSDev", ID_PopulationStandardDeviation,
+     "PCovar",  ID_PopulationCovariance);
 
 
 MENU(SignalProcessingMenu,
@@ -665,6 +692,13 @@ MENU(TestsMenu,
 // ----------------------------------------------------------------------------
 //   Tests
 // ----------------------------------------------------------------------------
+     "<",               ID_TestLT,
+     "=",               ID_TestEQ,
+     ">",               ID_TestGT,
+     "≤",               ID_TestLE,
+     "≠",               ID_TestNE,
+     "≥",               ID_TestGE,
+
      "IfThen",          ID_IfThen,
      "IfElse",          ID_IfThenElse,
      "IfErr",           ID_IfErrThen,

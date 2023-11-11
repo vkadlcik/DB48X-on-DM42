@@ -62,6 +62,7 @@
 #include "settings.h"
 #include "solve.h"
 #include "stack-cmds.h"
+#include "stats.h"
 #include "symbol.h"
 #include "tag.h"
 #include "text.h"

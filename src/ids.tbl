@@ -474,6 +474,50 @@ CMD(LastX)
 
 // ============================================================================
 //
+//   Statistics
+//
+// ============================================================================
+
+NAMED(AddData,          "Σ+")
+NAMED(RemoveData,       "Σ-")
+NAMED(RecallData,       "RecallΣ")      ALIAS(RecallData,               "RclΣ")
+NAMED(StoreData,        "StoreΣ")       ALIAS(StoreData,                "StoΣ")
+NAMED(ClearData,        "ClearΣ")       ALIAS(ClearData,                "ClΣ")
+CMD(Mean)
+CMD(Median)
+NAMED(MinData,          "MinΣ")
+NAMED(MaxData,          "MaxΣ")
+NAMED(DataSize,         "ΣSize")
+NAMED(SumOfX,           "ΣX")
+NAMED(SumOfY,           "ΣY")
+NAMED(SumOfXY,          "ΣXY")
+NAMED(SumOfXSquares,    "ΣX²")          ALIAS(SumOfXSquares,            "ΣX2")
+NAMED(SumOfYSquares,    "ΣY²")          ALIAS(SumOfYSquares,            "ΣY2")
+CMD(Variance)                           ALIAS(Variance,                 "Var")
+CMD(Correlation)                        ALIAS(Correlation,              "Corr")
+CMD(Covariance)                         ALIAS(Covariance,               "Cov")
+CMD(StandardDeviation)                  ALIAS(StandardDeviation,        "SDev")
+CMD(Bins)
+CMD(PopulationVariance)                 ALIAS(PopulationVariance,       "PVar")
+CMD(PopulationStandardDeviation)        ALIAS(PopulationStandardDeviation, "PSDev")
+CMD(PopulationCovariance)               ALIAS(PopulationCovariance,     "PCov")
+CMD(Total)                              ALIAS(Total,                    "Tot")
+CMD(IndependentColumn)                  ALIAS(IndependentColumn,        "XCol")
+CMD(DependentColumn)                    ALIAS(DependentColumn,          "YCol")
+NAMED(DataColumns,      "ColΣ")
+CMD(Intercept)
+CMD(Slope)
+CMD(LinearRegression)                   ALIAS(LinearRegression,         "LR")
+CMD(BestFit)
+CMD(LinearFit)                          ALIAS(LinearFit,                "LinFit")
+CMD(ExponentialFit)                     ALIAS(ExponentialFit,           "ExpFit")
+CMD(PowerFit)                           ALIAS(PowerFit,                 "PwrFit")
+CMD(LogarithmicFit)                     ALIAS(LogarithmicFit,           "LogFit")
+
+
+
+// ============================================================================
+//
 //   Settings
 //
 // ============================================================================
@@ -618,6 +662,8 @@ MENU(ProbabilitiesMenu)
 MENU(NumbersMenu)
 MENU(DebugMenu)
 MENU(StatisticsMenu)
+MENU(RegressionMenu)
+MENU(PopulationMenu)
 MENU(SignalProcessingMenu)
 MENU(ConstantsMenu)
 MENU(EquationsMenu)

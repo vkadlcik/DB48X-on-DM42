@@ -80,6 +80,7 @@ SOURCES +=                                      \
 	../src/graphics.cc			\
 	../src/grob.cc                          \
 	../src/plot.cc	                        \
+	../src/stats.cc	                        \
 	../src/solve.cc	                        \
 	../src/integrate.cc                     \
 	../src/tests.cc

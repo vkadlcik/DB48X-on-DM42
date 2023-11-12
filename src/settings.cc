@@ -240,12 +240,7 @@ ularge setting_value<ularge>(object_p obj, ularge init)
 //   Specialization for the ularge type
 // ----------------------------------------------------------------------------
 {
-    if (integer_p ival = obj->as<integer>())
-        return ival->value<ularge>();
-    if (bignum_p ival = obj->as<bignum>())
-        return ival->value<ularge>();
-    rt.type_error();
-    return init;
+    return obj->as_uint64(init, true);
 }
 
 

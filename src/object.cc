@@ -260,12 +260,26 @@ uint32_t object::as_uint32(uint32_t def, bool err) const
     id ty = type();
     switch(ty)
     {
+#if CONFIG_FIXED_BASED_OBJECTS
+    case ID_hex_integer:
+    case ID_dec_integer:
+    case ID_oct_integer:
+    case ID_bin_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+    case ID_based_integer:
     case ID_integer:
         return integer_p(this)->value<uint32_t>();
     case ID_neg_integer:
         if (err)
             rt.value_error();
         return def;
+#if CONFIG_FIXED_BASED_OBJECTS
+    case ID_hex_bignum:
+    case ID_dec_bignum:
+    case ID_oct_bignum:
+    case ID_bin_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+    case ID_based_bignum:
     case ID_bignum:
         return bignum_p(this)->value<uint32_t>();
     case ID_neg_bignum:
@@ -280,9 +294,9 @@ uint32_t object::as_uint32(uint32_t def, bool err) const
         return decimal32_p(this)->as_unsigned();
 
     case ID_fraction:
-        return fraction_p(this)->as_uint32();
+        return fraction_p(this)->as_unsigned();
     case ID_big_fraction:
-        return big_fraction_p(this)->as_uint32();
+        return big_fraction_p(this)->as_unsigned();
 
     default:
         if (err)
@@ -300,10 +314,24 @@ int32_t object::as_int32 (int32_t  def, bool err)  const
     id ty = type();
     switch(ty)
     {
+#if CONFIG_FIXED_BASED_OBJECTS
+    case ID_hex_integer:
+    case ID_dec_integer:
+    case ID_oct_integer:
+    case ID_bin_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+    case ID_based_integer:
     case ID_integer:
         return integer_p(this)->value<uint32_t>();
     case ID_neg_integer:
         return  -integer_p(this)->value<uint32_t>();
+#if CONFIG_FIXED_BASED_OBJECTS
+    case ID_hex_bignum:
+    case ID_dec_bignum:
+    case ID_oct_bignum:
+    case ID_bin_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+    case ID_based_bignum:
     case ID_bignum:
         return bignum_p(this)->value<uint32_t>();
     case ID_neg_bignum:
@@ -317,13 +345,124 @@ int32_t object::as_int32 (int32_t  def, bool err)  const
         return decimal32_p(this)->as_integer();
 
     case ID_fraction:
-        return fraction_p(this)->as_uint32();
+        return fraction_p(this)->as_unsigned();
     case ID_neg_fraction:
-        return -fraction_p(this)->as_uint32();
+        return -fraction_p(this)->as_unsigned();
     case ID_big_fraction:
-        return big_fraction_p(this)->as_uint32();
+        return big_fraction_p(this)->as_unsigned();
     case ID_neg_big_fraction:
-        return -big_fraction_p(this)->as_uint32();
+        return -big_fraction_p(this)->as_unsigned();
+
+    default:
+        if (err)
+            rt.type_error();
+        return def;
+    }
+}
+
+
+uint64_t object::as_uint64(uint64_t def, bool err) const
+// ----------------------------------------------------------------------------
+//   Return the given object as an uint64
+// ----------------------------------------------------------------------------
+//   def is the default value if no valid value comes from object
+//   err indicates if we error out in that case
+{
+    id ty = type();
+    switch(ty)
+    {
+#if CONFIG_FIXED_BASED_OBJECTS
+    case ID_hex_integer:
+    case ID_dec_integer:
+    case ID_oct_integer:
+    case ID_bin_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+    case ID_based_integer:
+    case ID_integer:
+        return integer_p(this)->value<uint64_t>();
+    case ID_neg_integer:
+        if (err)
+            rt.value_error();
+        return def;
+#if CONFIG_FIXED_BASED_OBJECTS
+    case ID_hex_bignum:
+    case ID_dec_bignum:
+    case ID_oct_bignum:
+    case ID_bin_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+    case ID_based_bignum:
+    case ID_bignum:
+        return bignum_p(this)->value<uint64_t>();
+    case ID_neg_bignum:
+        if (err)
+            rt.value_error();
+        return def;
+    case ID_decimal128:
+        return decimal128_p(this)->as_unsigned();
+    case ID_decimal64:
+        return decimal64_p(this)->as_unsigned();
+    case ID_decimal32:
+        return decimal32_p(this)->as_unsigned();
+
+    case ID_fraction:
+        return fraction_p(this)->as_unsigned();
+    case ID_big_fraction:
+        return big_fraction_p(this)->as_unsigned();
+
+    default:
+        if (err)
+            rt.type_error();
+        return def;
+    }
+}
+
+
+int64_t object::as_int64 (int64_t  def, bool err)  const
+// ----------------------------------------------------------------------------
+//   Return the given object as an int64
+// ----------------------------------------------------------------------------
+{
+    id ty = type();
+    switch(ty)
+    {
+#if CONFIG_FIXED_BASED_OBJECTS
+    case ID_hex_integer:
+    case ID_dec_integer:
+    case ID_oct_integer:
+    case ID_bin_integer:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+    case ID_based_integer:
+    case ID_integer:
+        return integer_p(this)->value<uint64_t>();
+    case ID_neg_integer:
+        return  -integer_p(this)->value<uint64_t>();
+#if CONFIG_FIXED_BASED_OBJECTS
+    case ID_hex_bignum:
+    case ID_dec_bignum:
+    case ID_oct_bignum:
+    case ID_bin_bignum:
+#endif // CONFIG_FIXED_BASED_OBJECTS
+    case ID_based_bignum:
+    case ID_bignum:
+        return bignum_p(this)->value<uint64_t>();
+    case ID_neg_bignum:
+        return -bignum_p(this)->value<uint64_t>();
+
+    case ID_decimal128:
+        return decimal128_p(this)->as_integer();
+    case ID_decimal64:
+        return decimal64_p(this)->as_integer();
+    case ID_decimal32:
+        return decimal32_p(this)->as_integer();
+
+    case ID_fraction:
+        return fraction_p(this)->as_unsigned();
+    case ID_neg_fraction:
+        return -fraction_p(this)->as_unsigned();
+    case ID_big_fraction:
+        return big_fraction_p(this)->as_unsigned();
+    case ID_neg_big_fraction:
+        return -big_fraction_p(this)->as_unsigned();
 
     default:
         if (err)

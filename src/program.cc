@@ -148,11 +148,8 @@ object::result program::run_loop(size_t depth)
     {
         if (interrupted())
         {
-            if (halted)
-            {
-                obj->defer();
-            }
-            else
+            obj->defer();
+            if (!halted)
             {
                 result = ERROR;
                 rt.interrupted_error().command(obj->fancy());

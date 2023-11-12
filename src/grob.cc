@@ -163,7 +163,7 @@ RENDER_BODY(grob)
     }
     else
     {
-        r.put(Settings.command_fmt, utf8("grob"));
+        r.put(Settings.CommandDisplayMode(), utf8("grob"));
         r.printf(" %u %u ", w, h);
 
         // Flip the bits from right to left for HP48 compatibility

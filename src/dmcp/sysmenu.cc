@@ -251,8 +251,8 @@ static int state_save_callback(cstring fpath,
     renderer render(&prog);
     settings saved = Settings;
     Settings = settings();
-    Settings.fancy_exponent = false;
-    Settings.standard_exp = 1;
+    Settings.FancyExponent(false);
+    Settings.StandardExponent(1);
 
     // Save global variables
     gcp<directory> home = rt.homedir();
@@ -409,18 +409,18 @@ static int state_load_callback(cstring path, cstring name, void *merge)
         if (edstr)
         {
             gcutf8 editor = edstr->value();
-            char ds = Settings.decimal_mark;
-            Settings.decimal_mark = '.';
-            bool store_at_end = Settings.store_at_end;
-            Settings.store_at_end = true;
+            bool dc = Settings.DecimalComma();
+            Settings.DecimalComma(false);
+            bool store_at_end = Settings.StoreAtEnd();
+            Settings.StoreAtStart(true);
             program_g cmds = program::parse(editor, edlen);
-            Settings.decimal_mark = ds;
+            Settings.DecimalComma(dc);
             if (cmds)
             {
                 // We successfully parsed the line
                 rt.clear();
                 object::result exec = cmds->run();
-                Settings.store_at_end = store_at_end;
+                Settings.StoreAtEnd(store_at_end);
                 if (exec != object::OK)
                 {
                     lcd_print(t24, "Error loading file");
@@ -440,7 +440,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
                 utf8 pos = rt.source();
                 utf8 ed = editor;
 
-                Settings.store_at_end = store_at_end;
+                Settings.StoreAtEnd(store_at_end);
                 lcd_print(t24, "Error at byte %u", pos - ed);
                 lcd_puts(t24, rt.error() ? (cstring) rt.error() : "");
                 lcd_refresh();
@@ -608,19 +608,18 @@ bool save_system_state()
 }
 
 
-static char next_date_sep(char sep)
+static void cycle_date()
 // ----------------------------------------------------------------------------
-//   Compute the next date separator
+//   Cycle date settting
 // ----------------------------------------------------------------------------
 {
-    switch(sep)
-    {
-    case '/':   return '.';
-    case '.':   return '-';
-    case '-':   return ' ';
-    default:
-    case ' ':   return '/';
-    }
+    uint index = Settings.ShowDate()
+        * (1 + Settings.YearFirst() * 2 + Settings.MonthBeforeDay());
+    index = (index + 1) % 5;
+    Settings.ShowDate(index);
+    index -= 1;
+    Settings.YearFirst(index & 2);
+    Settings.MonthBeforeDay(index & 1);
 }
 
 
@@ -642,23 +641,23 @@ int menu_item_run(uint8_t menu_id)
     case MI_48STATE_CLEAN: ret = state_clear(); break;
 
     case MI_48STATUS:
-        ret = handle_menu(&status_bar_menu, MENU_ADD, 0); break;
+        ret = handle_menu(&status_bar_menu, MENU_ADD, 0);               break;
     case MI_48STATUS_DAY_OF_WEEK:
-        Settings.show_dow = !Settings.show_dow; break;
+        Settings.ShowDayOfWeek(!Settings.ShowDayOfWeek());              break;
     case MI_48STATUS_DATE:
-        Settings.show_date = settings::dmy_ord((int(Settings.show_date) + 1) & 3); break;
+        cycle_date();                                                   break;
     case MI_48STATUS_DATE_SEPARATOR:
-        Settings.date_separator = next_date_sep(Settings.date_separator); break;
+        Settings.NextDateSeparator();                                   break;
     case MI_48STATUS_SHORT_MONTH:
-        Settings.show_month = !Settings.show_month;                     break;
+        Settings.ShowMonthName(!Settings.ShowMonthName());              break;
     case MI_48STATUS_TIME:
-        Settings.show_time = !Settings.show_time;                       break;
+        Settings.ShowTime(!Settings.ShowTime());                        break;
     case MI_48STATUS_SECONDS:
-        Settings.show_seconds = !Settings.show_seconds;                 break;
+        Settings.ShowSeconds(!Settings.ShowSeconds());                  break;
     case MI_48STATUS_24H:
-        Settings.show_24h = !Settings.show_24h;                         break;
+        Settings.Time24H(!Settings.Time24H());                          break;
     case MI_48STATUS_VOLTAGE:
-        Settings.show_voltage = !Settings.show_voltage;                 break;
+        Settings.ShowVoltage(!Settings.ShowVoltage());                  break;
     default:
         ret = MRET_UNIMPL; break;
     }
@@ -667,12 +666,12 @@ int menu_item_run(uint8_t menu_id)
 }
 
 
-static char *sep_str(char *s, cstring txt, char sep)
+static char *dsep_str(char *s, cstring txt)
 // ----------------------------------------------------------------------------
 //   Build a separator string
 // ----------------------------------------------------------------------------
 {
-    snprintf(s, 40, "[%c] %s", sep, txt);
+    snprintf(s, 40, "[%c] %s", Settings.DateSeparator(), txt);
     return s;
 }
 
@@ -682,16 +681,19 @@ static char *flag_str(char *s, cstring txt, bool flag)
 //   Build a flag string
 // ----------------------------------------------------------------------------
 {
-    return sep_str(s, txt, flag ? 'X' : '_');
+    snprintf(s, 40, "[%c] %s", flag ? 'X' : '_', txt);
+    return s;
 }
 
 
-static char *dord_str(char *s, cstring txt, settings::dmy_ord flag)
+static char *dord_str(char *s, cstring txt)
 // ----------------------------------------------------------------------------
 //   Build a string for date order
 // ----------------------------------------------------------------------------
 {
-    cstring order[] = { "___", "DMY", "MDY", "YMD" };
+    cstring order[] = { "___", "DMY", "MDY", "YDM", "YMD" };
+    uint flag = Settings.ShowDate()
+        * (1 + Settings.YearFirst() * 2 + Settings.MonthBeforeDay());
     snprintf(s, 40, "[%s] %s", order[flag], txt);
     return s;
 }
@@ -717,21 +719,21 @@ cstring menu_item_description(uint8_t menu_id, char *s, const int UNUSED len)
 
     case MI_48STATUS:                   ln = "Status bar >";            break;
     case MI_48STATUS_DAY_OF_WEEK:
-        ln = flag_str(s, "Day of week", Settings.show_dow);             break;
+        ln = flag_str(s, "Day of week", Settings.ShowDayOfWeek());      break;
     case MI_48STATUS_DATE:
-        ln = dord_str(s, "Date", Settings.show_date);                   break;
+        ln = dord_str(s, "Date");                                       break;
     case MI_48STATUS_DATE_SEPARATOR:
-        ln = sep_str(s, "Date separator", Settings.date_separator);     break;
+        ln = dsep_str(s, "Date separator");                             break;
     case MI_48STATUS_SHORT_MONTH:
-        ln = flag_str(s, "Month name", Settings.show_month);            break;
+        ln = flag_str(s, "Month name", Settings.ShowMonthName());       break;
     case MI_48STATUS_TIME:
-        ln = flag_str(s, "Time", Settings.show_time);                   break;
+        ln = flag_str(s, "Time", Settings.ShowTime());                  break;
     case MI_48STATUS_SECONDS:
-        ln = flag_str(s, "Show seconds", Settings.show_seconds);        break;
+        ln = flag_str(s, "Show seconds", Settings.ShowSeconds());       break;
     case MI_48STATUS_24H:
-        ln = flag_str(s, "Show 24h time", Settings.show_24h);           break;
+        ln = flag_str(s, "Show 24h time", Settings.Time24H());          break;
     case MI_48STATUS_VOLTAGE:
-        ln = flag_str(s, "Voltage", Settings.show_voltage);             break;
+        ln = flag_str(s, "Voltage", Settings.ShowVoltage());            break;
 
     default:                            ln = NULL;                      break;
     }

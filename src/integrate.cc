@@ -115,7 +115,7 @@ algebraic_p integrate(program_g   eq,
 
     // Set independent variable
     save<symbol_g *> iref(expression::independent, &name);
-    int              prec = -Settings.integprec;
+    int              prec = -Settings.IntegratePrecision();
     algebraic_g eps = rt.make<decimal128>(object::ID_decimal128, prec, true);
 
     // Initial integration step and first trapezoidal step
@@ -128,7 +128,7 @@ algebraic_p integrate(program_g   eq,
 
     // Loop for a maximum number of conversion iterations
     size_t loops = 1;
-    uint   max   = Settings.maxinteg;
+    uint   max   = Settings.IntegratePrecision();
 
     // Depth of the original stack, to return to after computation
     size_t depth = rt.depth();

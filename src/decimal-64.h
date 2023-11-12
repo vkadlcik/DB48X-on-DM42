@@ -168,6 +168,19 @@ struct decimal64 : algebraic
         return result;
     }
 
+    large as_integer() const
+    {
+        bid64 fval = value();
+        large result;
+        bid64_to_int64_int(&result, &fval.value);
+        return result;
+    }
+
+    ularge as_unsigned() const
+    {
+        return (ularge) as_integer();
+    }
+
     enum class_type
     // ------------------------------------------------------------------------
     //   Class type for bid64 numbers
@@ -263,8 +276,8 @@ struct decimal64 : algebraic
         return is_negative_or_zero(value());
     }
 
-    algebraic_p to_fraction(uint count = Settings.fraciter,
-                            uint decimals = Settings.fracprec) const;
+    algebraic_p to_fraction(uint count = Settings.FractionIterations(),
+                            uint decimals = Settings.FractionDigits()) const;
 
 public:
     OBJECT_DECL(decimal64);

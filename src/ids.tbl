@@ -60,6 +60,30 @@
 #define ID_RANGE(name, ...)
 #endif
 
+#ifndef FLAG
+#define FLAG(Enable, Disable)                                           \
+    ID(Enable) ID(Disable) ID(Recall##Enable) ID(Recall##Disable)
+#endif // FLAG
+
+#ifndef SETTING
+#define SETTING(Name, Low, High, Init)                                  \
+        ID(Name) ID(Recall##Name)
+#endif
+
+#ifndef SETTING_BITS
+#define SETTING_BITS(Name,Bits,Low,High,Init)   SETTING(Name,Low,High,Init)
+#endif
+
+#ifndef SETTING_VALUE
+#define SETTING_VALUE(Name, Alias, Base, Value) NAMED(Name, Alias)
+#endif
+
+#ifndef SETTING_ENUM
+#define SETTING_ENUM(Name, Alias, Base)         \
+    SETTING_VALUE(Name, Alias, Base, ID_##Name)
+#endif
+
+
 // ============================================================================
 //
 //   Range of types for attributes
@@ -438,94 +462,113 @@ NAMED(Integrate, "∫")
 CMD(Modes)
 CMD(ResetModes)
 
-NAMED(Std, "StandardDisplay")
-NAMED(Fix, "FixedDisplay")
-NAMED(Sci, "ScientificDisplay")
-NAMED(Eng, "EngineeringDisplay")
-NAMED(Sig, "SignificantDisplay")
+// Default is on the right
+FLAG(NoStackSave,               SaveStack)
+FLAG(NoLastArguments,           SaveLastArguments)
+FLAG(ProgramLastArguments,      NoProgramLastArguments)
+FLAG(PrincipalSolution,         AllSolutions)
+FLAG(NumericalConstants,        SymbolicConstants)
+FLAG(NumericalResults,          SymbolicResults)
+FLAG(CarefulEvaluation,         LazyEvaluation)
+FLAG(NoAutoSimplify,            AutoSimplify)
+FLAG(ClassicExponent,           FancyExponent)
+FLAG(MixedFractions,            ImproperFractions)
+FLAG(BigFractions,              SmallFractions)
+FLAG(DecimalComma,              DecimalDot)
+FLAG(NoTrailingDecimal,         TrailingDecimal)
+FLAG(ShowBuiltinUnits,          HideBuiltinUnits)
+FLAG(SquareMenus,               RoundedMenus)
+FLAG(GraphicStackDisplay,       TextStackDisplay)
+FLAG(StoreAtEnd,                StoreAtStart)
+FLAG(HideDate,                  ShowDate)
+FLAG(HideTime,                  ShowTime)
+FLAG(ShowSeconds,               HideSeconds)
+FLAG(Time12H,                   Time24H)
+FLAG(HideMonthName,             ShowMonthName)
+FLAG(MonthBeforeDay,            DayBeforeMonth)
+FLAG(YearFirst,                 YearLast)
+FLAG(FourDigitYear,             TwoDigitYear)
+FLAG(HideDayOfWeek,             ShowDayOfWeek)
+FLAG(HideVoltage,               ShowVoltage)
 
-NAMED(Deg, "Degrees")
-NAMED(Rad, "Radians")
-NAMED(Grad, "Grads")
-CMD(PiRadians)
+SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
+SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)
+SETTING_ENUM(Sci, "ScientificDisplay",  DisplayMode)
+SETTING_ENUM(Eng, "EngineeringDisplay", DisplayMode)
+SETTING_ENUM(Sig, "SignificantDisplay", DisplayMode)
+SETTING_BITS(DisplayMode,       3,      ID_Std, ID_Sig,         ID_Std)
+SETTING_BITS(DisplayDigits,     6,      0U, DB48X_MAXDIGITS,    12U)
+SETTING_BITS(StandardExponent,  6,      0U, DB48X_MAXDIGITS,    9U)
+SETTING_BITS(Precision,         6,      0U, DB48X_MAXDIGITS,    DB48X_MAXDIGITS)
+SETTING_BITS(MinimumSignificantDigits,6,-1, int(DB48X_MAXDIGITS),0)
+SETTING_BITS(MantissaSpacing,   4,      0, 15,                  3)
+SETTING_BITS(FractionSpacing,   4,      0, 15,                  5)
+SETTING_BITS(BasedSpacing,      4,      0, 15,                  3)
 
-CMD(LowerCase)
-CMD(UpperCase)
-CMD(Capitalized)
-CMD(LongForm)
+SETTING_ENUM(Deg, "Degrees",            AngleMode)
+SETTING_ENUM(Rad, "Radians",            AngleMode)
+SETTING_ENUM(Grad, "Grads",             AngleMode)
+SETTING_ENUM(PiRadians, nullptr,        AngleMode)
+SETTING_BITS(AngleMode, 2,      ID_Deg, ID_PiRadians,   ID_Deg)
 
-CMD(DecimalDot)
-CMD(DecimalComma)
-CMD(NoTrailingDecimal)
-CMD(TrailingDecimal)
-CMD(Precision)
-CMD(StandardExponent)
-CMD(MinimumSignificantDigits)
-CMD(FancyExponent)
-CMD(ClassicExponent)
-CMD(MixedFractions)
-CMD(ImproperFractions)
-CMD(SmallFractions)
-CMD(BigFractions)
+SETTING_ENUM(LowerCase,   nullptr,      CommandDisplayMode)
+SETTING_ENUM(UpperCase,   nullptr,      CommandDisplayMode)
+SETTING_ENUM(Capitalized, nullptr,      CommandDisplayMode)
+SETTING_ENUM(LongForm,    nullptr,      CommandDisplayMode)
+SETTING_BITS(CommandDisplayMode,2,  ID_LowerCase, ID_LongForm, ID_LongForm)
 
-CMD(Base)
-NAMED(Bin, "Binary")
-NAMED(Oct, "Octal")
-NAMED(Dec, "Decimal")
-NAMED(Hex, "Hexadecimal")
+SETTING_VALUE(Bin, "Binary",            Base, 2)
+SETTING_VALUE(Oct, "Octal",             Base, 8)
+SETTING_VALUE(Dec, "Decimal",           Base, 10)
+SETTING_VALUE(Hex, "Hexadecimal",       Base, 16)
+SETTING_BITS(Base,              6,      1, 37,                  16)
 
-NAMED(stws, "StoreWordSize")
-NAMED(rcws, "WordSize")
+SETTING_BITS(ResultFont,        4,      settings::FIRST_FONT, settings::LAST_FONT,     settings::STACK)
+SETTING_BITS(StackFont,         4,      settings::FIRST_FONT, settings::LAST_FONT,     settings::STACK)
+SETTING_BITS(EditorFont,        4,      settings::FIRST_FONT, settings::LAST_FONT,     settings::EDITOR)
+SETTING_BITS(MultilineEditorFont, 4,    settings::FIRST_FONT, settings::LAST_FONT,     settings::STACK)
 
-CMD(ResultFontSize)
-CMD(StackFontSize)
-CMD(EditorFontSize)
-CMD(EditorMultilineFontSize)
+SETTING_ENUM(NumberSpaces,      nullptr,        NumberSeparatorCommand)
+SETTING_ENUM(NumberDotOrComma,  nullptr,        NumberSeparatorCommand)
+SETTING_ENUM(NumberTicks,       nullptr,        NumberSeparatorCommand)
+SETTING_ENUM(NumberUnderscore,  nullptr,        NumberSeparatorCommand)
+SETTING_ENUM(BasedSpaces,       nullptr,        BasedSeparatorCommand)
+SETTING_ENUM(BasedDotOrComma,   nullptr,        BasedSeparatorCommand)
+SETTING_ENUM(BasedTicks,        nullptr,        BasedSeparatorCommand)
+SETTING_ENUM(BasedUnderscore,   nullptr,        BasedSeparatorCommand)
+SETTING_BITS(NumberSeparatorCommand, 2, ID_NumberSpaces, ID_NumberUnderscore, ID_NumberSpaces)
+SETTING_BITS(BasedSeparatorCommand,  2, ID_BasedSpaces,  ID_BasedUnderscore,  ID_BasedSpaces)
 
-CMD(MantissaSpacing)
-CMD(FractionSpacing)
-CMD(BasedSpacing)
+SETTING(WordSize,               1U, 256U * 1024U,       512U)
+ALIAS(RecallWordSize,           "rcws")
+ALIAS(WordSize,                 "stws")
+SETTING(MaxBigNumBits,          1U, 256U * 1024U,       512U)
+SETTING(MaxRewrites,            1U, 10000U,             100U)
+SETTING(FractionIterations,     1U, 10000U,             10U)
+ALIAS(FractionIterations,       "→QIterations")
+SETTING_BITS(FractionDigits,  6,1U, DB48X_MAXDIGITS, 12U)
+ALIAS(FractionDigits,           "→QDigits")
+SETTING(SolverIterations,       1U, 10000U,             10U)
+SETTING_BITS(SolverPrecision, 6,0U, DB48X_MAXDIGITS,    DB48X_MAXDIGITS)
+SETTING(IntegrateIterations,    1U, 10000U,             10U)
+SETTING_BITS(IntegratePrecision, 6,0U, DB48X_MAXDIGITS, DB48X_MAXDIGITS)
 
-CMD(NumberSpaces)
-CMD(NumberDotOrComma)
-CMD(NumberTicks)
-CMD(NumberUnderscore)
-CMD(BasedSpaces)
-CMD(BasedDotOrComma)
-CMD(BasedTicks)
-CMD(BasedUnderscore)
 
-CMD(AutoSimplify)
-CMD(NoAutoSimplify)
+SETTING_ENUM(SingleRowMenus,    nullptr,        MenuAppearance)
+SETTING_ENUM(FlatMenus,         nullptr,        MenuAppearance)
+SETTING_ENUM(ThreeRowsMenus,    nullptr,        MenuAppearance)
+SETTING_BITS(MenuAppearance, 2, ID_SingleRowMenus, ID_ThreeRowsMenus, ID_ThreeRowsMenus)
 
-CMD(NumericResults)
-CMD(SymbolicResults)
+SETTING_BITS(LineWidth, 8,      0, 255,                 1)
+SETTING(Foreground,             ularge(0), ~ularge(0),  ularge(0))
+SETTING(Background,             ularge(0), ~ularge(0), ~ularge(0))
+SETTING(CursorBlinkRate,        10, 10000,              500)
 
-CMD(MaxBigNumBits)
-CMD(MaxRewrites)
-
-NAMED(ToFractionIterations, "→FracIterations")
-ALIAS(ToFractionIterations, "→QIterations")
-NAMED(ToFractionDigits, "→FracDigits")
-ALIAS(ToFractionDigits, "→QDigits")
-
-CMD(SingleRowMenus)
-CMD(FlatMenus)
-CMD(ThreeRowsMenus)
-CMD(RoundedMenus)
-CMD(SquareMenus)
-
-CMD(LineWidth)
-CMD(Foreground)
-CMD(Background)
-
-CMD(GraphicsStackDisplay)
-CMD(TextStackDisplay)
-
-CMD(CursorBlinkRate)
-
-CMD(ShowBuiltinUnits)
-CMD(HideBuiltinUnits)
+SETTING_ENUM(DateSlash,         nullptr,        DateSeparatorCommand)
+SETTING_ENUM(DateDash,          nullptr,        DateSeparatorCommand)
+SETTING_ENUM(DateDot,           nullptr,        DateSeparatorCommand)
+SETTING_ENUM(DateTick,          nullptr,        DateSeparatorCommand)
+SETTING_BITS(DateSeparatorCommand, 2, ID_DateSlash, ID_DateTick, ID_DateSlash)
 
 
 
@@ -743,3 +786,8 @@ ID(for_step_conditional)
 #undef NAMED
 #undef ALIAS
 #undef ID_RANGE
+#undef FLAG
+#undef SETTING
+#undef SETTING_BITS
+#undef SETTING_ENUM
+#undef SETTING_VALUE

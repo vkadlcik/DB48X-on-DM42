@@ -436,11 +436,13 @@ COMMAND_BODY(Disp)
             else if (text_p tr = todisp->as_text(true, false))
                 txt = tr->value(&len);
 
-            pattern bg   = invert ? Settings.foreground : Settings.background;
-            pattern fg   = invert ? Settings.background : Settings.foreground;
+            pattern bg   = Settings.Background();
+            pattern fg   = Settings.Foreground();
             utf8    last = txt + len;
             coord   x0   = x;
 
+            if (invert)
+                std::swap(bg, fg);
             ui.draw_graphics();
             while (txt < last)
             {
@@ -504,7 +506,7 @@ COMMAND_BODY(Line)
             rt.drop(2);
             ui.draw_graphics();
             Screen.line(x1, y1, x2, y2,
-                        Settings.line_width, Settings.foreground);
+                        Settings.LineWidth(), Settings.Foreground());
             ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
             refresh_dirty();
             return OK;
@@ -535,7 +537,7 @@ COMMAND_BODY(Ellipse)
             rt.drop(2);
             ui.draw_graphics();
             Screen.ellipse(x1, y1, x2, y2,
-                           Settings.line_width, Settings.foreground);
+                           Settings.LineWidth(), Settings.Foreground());
             ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
             refresh_dirty();
             return OK;
@@ -574,7 +576,7 @@ COMMAND_BODY(Circle)
             coord y2 = y + (ry-1)/2;
             ui.draw_graphics();
             Screen.ellipse(x1, y1, x2, y2,
-                           Settings.line_width, Settings.foreground);
+                           Settings.LineWidth(), Settings.Foreground());
             ui.draw_dirty(x1, y1, x2, y2);
             refresh_dirty();
             return OK;
@@ -605,7 +607,7 @@ COMMAND_BODY(Rect)
             rt.drop(2);
             ui.draw_graphics();
             Screen.rectangle(x1, y1, x2, y2,
-                             Settings.line_width, Settings.foreground);
+                             Settings.LineWidth(), Settings.Foreground());
             ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
             refresh_dirty();
             return OK;
@@ -638,7 +640,8 @@ COMMAND_BODY(RRect)
             rt.drop(3);
             ui.draw_graphics();
             Screen.rounded_rectangle(x1, y1, x2, y2, r,
-                                     Settings.line_width, Settings.foreground);
+                                     Settings.LineWidth(),
+                                     Settings.Foreground());
             ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
             refresh_dirty();
             return OK;

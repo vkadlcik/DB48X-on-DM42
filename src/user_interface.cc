@@ -285,8 +285,8 @@ bool user_interface::end_edit()
         gcutf8  ed   = rt.editor();
         size_t  o    = 0;
         bool    text = false;
-        unicode nspc = Settings.space;
-        unicode hspc = Settings.space_based;
+        unicode nspc = Settings.NumberSeparator();
+        unicode hspc = Settings.BasedSeparator();
 
         draw_busy();
 
@@ -325,10 +325,10 @@ bool user_interface::end_edit()
                 editor_save(saved, false);
                 clear_editor();
                 this->editing = nullptr;
-                if (Settings.save_stack)
+                if (Settings.SaveStack())
                     rt.save();
                 save<bool> no_halt(program::halted, false);
-                cmds->run(Settings.save_last);
+                cmds->run(Settings.SaveLastArguments());
             }
             else
             {
@@ -573,10 +573,10 @@ void user_interface::update_mode()
     uint    fnum  = 0;
     uint    hnum  = 0;
     uint    parn  = 0;
-    unicode nspc  = Settings.space;
-    unicode hspc  = Settings.space_based;
-    unicode dmrk  = Settings.decimal_mark;
-    unicode emrk  = Settings.exponent_mark;
+    unicode nspc  = Settings.NumberSeparator();
+    unicode hspc  = Settings.BasedSeparator();
+    unicode dmrk  = Settings.DecimalSeparator();
+    unicode emrk  = Settings.ExponentSeparator();
     utf8    num   = nullptr;
 
     mode = DIRECT;
@@ -729,7 +729,7 @@ void user_interface::update_mode()
             {
                 byte   encoding[4];
                 size_t ulen = utf8_encode(nspc, encoding);
-                uint   sf   = Settings.spacing_fraction;
+                uint   sf   = Settings.FractionSpacing();
                 size_t end  = o;
 
                 o = frpos - 1;
@@ -750,11 +750,13 @@ void user_interface::update_mode()
             }
 
             // Then insert markers on the integral part
-            byte   encoding[4];
-            uint sp = hnum ? Settings.spacing_based : Settings.spacing_mantissa;
+            byte encoding[4];
+            uint sp = hnum ? Settings.BasedSpacing()
+                           : Settings.MantissaSpacing();
             if (sp)
             {
-                unicode spc = hnum ? Settings.space_based : Settings.space;
+                unicode spc  = hnum ? Settings.BasedSeparator()
+                                    : Settings.NumberSeparator();
                 size_t ulen = utf8_encode(spc, encoding);
                 while (o > start + sp)
                 {
@@ -1129,8 +1131,12 @@ bool user_interface::draw_menus()
     static unsigned menuShift = 0;
     menuShift++;
 
-    int planes = menu_planes();
-    int visiblePlanes = Settings.menu_single_ln ? 1 : planes;
+    int  planes        = menu_planes();
+    id   menuStyle     = Settings.MenuAppearance();
+    bool single        = menuStyle == object::ID_SingleRowMenus;
+    bool flat          = menuStyle == object::ID_FlatMenus;
+    bool square        = Settings.SquareMenus();
+    int  visiblePlanes = single ? 1 : planes;
     uint newMenuHeight = 1 + visiblePlanes * mh;
     if (newMenuHeight != menuHeight)
     {
@@ -1139,7 +1145,7 @@ bool user_interface::draw_menus()
         dirtyEditor = true;
     }
 
-    if (Settings.menu_flatten)
+    if (flat)
     {
         object_p prevo = command::static_object(command::ID_MenuPreviousPage);
         object_p nexto = command::static_object(command::ID_MenuNextPage);
@@ -1178,11 +1184,11 @@ bool user_interface::draw_menus()
             labels = helpMenu;
         }
 
-        if (Settings.menu_single_ln)
+        if (single)
             if (plane != shplane)
                 continue;
 
-        int my = LCD_H - (plane * !Settings.menu_single_ln + 1) * mh;
+        int my = LCD_H - (plane * !single + 1) * mh;
         for (int m = 0; m < NUM_SOFTKEYS; m++)
         {
             uint animask = (1<<(m + plane * NUM_SOFTKEYS));
@@ -1198,7 +1204,7 @@ bool user_interface::draw_menus()
             bool alt = planes > 1 && plane != shplane;
             pattern color = pattern::black;
 
-            if (Settings.menu_square)
+            if (square)
             {
                 mrect.x2++;
                 mrect.y2++;
@@ -1258,6 +1264,10 @@ bool user_interface::draw_menus()
                 {
                     if (unicode mark = menu_marker[plane][m])
                     {
+                        if (mark == 1)
+                        {
+                            mark = settings::MARK;
+                        }
                         if (mark == L'░')
                         {
                             color = pattern::gray50;
@@ -1293,7 +1303,7 @@ bool user_interface::draw_menus()
                 {
                     x = (trect.x1 + trect.x2 - tw) / 2;
                 }
-                coord ty = mrect.y1 - (Settings.menu_square ? 2 : 3);
+                coord ty = mrect.y1 - (3 - square);
                 x = Screen.text(x, ty, label, len, font, color);
                 if (marker)
                 {
@@ -1301,7 +1311,7 @@ bool user_interface::draw_menus()
                     bool dossier = marker==L'◥';
                     if (dossier)
                     {
-                        if (alt || Settings.menu_square)
+                        if (alt || square)
                             Screen.glyph(mkx+3, ty-3, marker, font, color);
                         Screen.clip(clip);
                         Screen.glyph(mkx+4, ty-4, marker, font, pattern::white);
@@ -1320,9 +1330,9 @@ bool user_interface::draw_menus()
             }
         }
     }
-    if (Settings.menu_square && shplane < visiblePlanes)
+    if (square && shplane < visiblePlanes)
     {
-        int my = LCD_H - (shplane * !Settings.menu_single_ln + 1) * mh;
+        int my = LCD_H - (shplane * !single + 1) * mh;
         Screen.fill(0, my, LCD_W-1, my, pattern::black);
     }
 
@@ -1385,59 +1395,55 @@ bool user_interface::draw_header()
         char buffer[MAX_LCD_LINE_LEN];
         size_t sz = 0;
 
+#define EMIT(...)                                               \
+        do                                                      \
+        {                                                       \
+            char  *to  = buffer + sz;                           \
+            size_t max = MAX_LCD_LINE_LEN - sz;                 \
+            size_t wr  = snprintf(to, max, __VA_ARGS__);        \
+            sz += wr;                                           \
+        } while (0)
+
         // Read the real-time clock
-        if (Settings.show_date)
+        if (Settings.ShowDate())
         {
             char mname[4];
-            if (Settings.show_month)
+            if (Settings.ShowMonthName())
                 snprintf(mname, 4, "%s", get_month_shortcut(month));
             else
                 snprintf(mname, 4, "%d", month);
+            char ytext[6];
+            if (Settings.TwoDigitYear())
+                snprintf(ytext, 6, "%02d", year % 100);
+            else
+                snprintf(ytext, 6, "%d", year);
 
-            if (Settings.show_dow)
-                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%s ",
-                               get_wday_shortcut(dow));
+            if (Settings.ShowDayOfWeek())
+                EMIT("%s ", get_wday_shortcut(dow));
 
-            char sep = Settings.date_separator;
-            switch (Settings.show_date)
+            char sep   = Settings.DateSeparator();
+            uint index = 2 * Settings.YearFirst() + Settings.MonthBeforeDay();
+            switch(index)
             {
-            default:
-            case settings::NO_DATE:
-                break;
-            case settings::DMY:
-                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
-                               "%d%c%s%c%d ",
-                               day, sep, mname, sep, year);
-                break;
-            case settings::MDY:
-                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
-                               "%s%c%d%c%d ",
-                               mname, sep, day, sep, year);
-                break;
-            case settings::YMD:
-                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
-                               "%d%c%s%c%d ",
-                               year, sep, mname, sep, day);
-                break;
+            case 0: EMIT("%d%c%s%c%s", day,   sep, mname, sep, ytext); break;
+            case 1: EMIT("%s%c%d%c%s", mname, sep, day,   sep, ytext); break;
+            case 2: EMIT("%s%c%d%c%s", ytext, sep, day,   sep, mname); break;
+            case 3: EMIT("%s%c%s%c%d", ytext, sep, mname, sep, day);   break;
             }
         }
-        if (Settings.show_time)
+        if (Settings.ShowTime())
         {
-            sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%d",
-                           Settings.show_24h ? hour : hour % 12);
-            sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, ":%02d", minute);
-
-            if (Settings.show_seconds)
-                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz,
-                               ":%02d", second);
-            if (!Settings.show_24h)
-                sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%c",
-                               hour < 12 ? 'A' : 'P');
-            sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, " ");
-            draw_refresh(Settings.show_seconds ? 1000 : 1000 * (60 - second));
+            EMIT("%d", Settings.Time24H() ? hour : hour % 12);
+            EMIT(":%02d", minute);
+            if (Settings.ShowSeconds())
+                EMIT(":%02d", second);
+            if (Settings.Time12H())
+                EMIT("%c", hour < 12 ? 'A' : 'P');
+            EMIT(" ");
+            draw_refresh(Settings.ShowSeconds() ? 1000 : 1000 * (60 - second));
         }
 
-        sz += snprintf(buffer + sz, MAX_LCD_LINE_LEN - sz, "%s", state_name());
+        EMIT("%s", state_name());
 
         Screen.text(1, 0, utf8(buffer), HeaderFont, pattern::white);
         Screen.clip(clip);
@@ -1554,10 +1560,11 @@ bool user_interface::draw_battery()
     const int vmin = BATTERY_VMIN;
     const int vlow = BATTERY_VLOW;
 
-    coord x = Settings.show_voltage ? 311 : 370;
+    bool showv = Settings.ShowVoltage();
+    coord x = showv ? 311 : 370;
     rect bat(x + 3, ann_y+2, x + 25, ann_y + ann_height);
     Screen.fill(x-3, 0, LCD_W, hfh + 1, pattern::black);
-    if (Settings.show_voltage)
+    if (showv)
     {
         char buffer[64];
         snprintf(buffer, sizeof(buffer), "%d.%03dV", vdd / 1000, vdd % 1000);
@@ -1931,7 +1938,7 @@ bool user_interface::draw_cursor(int show, uint ncursor)
 
     static uint lastT = 0;
     uint time = sys_current_ms();
-    const uint period = Settings.cursor_blink_rate;
+    const uint period = Settings.CursorBlinkRate();
 
     if (!force && !show && time - lastT < period)
     {
@@ -3542,9 +3549,9 @@ bool user_interface::handle_digits(int key)
             byte   *ed          = rt.editor();
             byte   *p           = ed + cursor;
             unicode c           = utf8_codepoint(p);
-            unicode dm          = Settings.decimal_mark;
-            unicode ns          = Settings.space;
-            unicode hs          = Settings.space_based;
+            unicode dm          = Settings.DecimalSeparator();
+            unicode ns          = Settings.NumberSeparator();
+            unicode hs          = Settings.BasedSeparator();
             bool    had_complex = false;
             while (p > ed)
             {
@@ -3563,7 +3570,7 @@ bool user_interface::handle_digits(int key)
             }
 
             utf8 i = (p > ed || had_complex) ? utf8_next(p) : p;
-            if (c == 'e' || c == 'E' || c == Settings.exponent_mark)
+            if (c == 'e' || c == 'E' || c == Settings.ExponentSeparator())
                 c  = utf8_codepoint(p);
 
             if (had_complex)
@@ -3588,7 +3595,7 @@ bool user_interface::handle_digits(int key)
         else if (key == KEY_E && !~searching)
         {
             byte   buf[4];
-            size_t sz = utf8_encode(Settings.exponent_mark, buf);
+            size_t sz = utf8_encode(Settings.ExponentSeparator(), buf);
             cursor += rt.insert(cursor, buf, sz);
             last = 0;
             dirtyEditor = true;
@@ -3622,7 +3629,7 @@ bool user_interface::handle_digits(int key)
         if (c == '_')
             return false;
         if (c == '.')
-            c = Settings.decimal_mark;
+            c = Settings.DecimalSeparator();
         edit(c, DIRECT);
         repeat = true;
         return true;
@@ -3911,9 +3918,9 @@ bool user_interface::handle_functions(int key)
         draw_busy();
         if (!imm && !rt.editing())
         {
-            if (Settings.save_stack)
+            if (Settings.SaveStack())
                 rt.save();
-            if (Settings.save_last)
+            if (Settings.SaveLastArguments())
                 rt.need_save();
         }
         obj->evaluate();

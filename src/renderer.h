@@ -64,7 +64,7 @@ struct renderer
     bool   put(unicode code);
     bool   put(utf8 s)                  { return put(cstring(s)); }
     bool   put(utf8 s, size_t len)      { return put(cstring(s), len); }
-    bool   put(settings::commands fmt, utf8 s);
+    bool   put(object::id fmt, utf8 s);
 
     bool   editing() const              { return edit; }
     bool   equation() const             { return eq; }

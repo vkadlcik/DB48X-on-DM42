@@ -51,7 +51,7 @@ void draw_axes(const PlotParameters &ppar)
     coord y = ppar.pixel_adjust(ppar.yorigin.Safe(), ppar.ymin, ppar.ymax, h);
 
     // Draw axes proper
-    pattern pat = Settings.foreground;
+    pattern pat = Settings.Foreground();
     Screen.fill(0, y, w, y, pat);
     Screen.fill(x, 0, x, h, pat);
 
@@ -161,7 +161,7 @@ object::result draw_plot(object::id            kind,
                 lx = rx;
                 ly = ry;
             }
-            Screen.line(lx,ly,rx,ry, Settings.line_width, Settings.foreground);
+            Screen.line(lx,ly,rx,ry, Settings.LineWidth(), Settings.Foreground());
             ui.draw_dirty(lx, ly, rx, ry);
             uint now = sys_current_ms();
             if (now - then > 500)

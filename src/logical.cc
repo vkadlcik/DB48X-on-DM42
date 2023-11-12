@@ -84,14 +84,15 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big)
         if (y->is_integer())
         {
             integer_p yi = integer_p(object_p(y));
-            if (Settings.wordsize <= 64 && yi->native() && xi->native())
+            size_t ws = Settings.WordSize();
+            if (ws <= 64 && yi->native() && xi->native())
             {
                 // Short-enough integers to fit as native machine type
                 ularge xv = xi->value<ularge>();
                 ularge yv = yi->value<ularge>();
                 ularge value = native(yv, xv);
-                if (Settings.wordsize < 64)
-                    value &= (1ULL << Settings.wordsize) - 1ULL;
+                if (ws < 64)
+                    value &= (1ULL << ws) - 1ULL;
                 rt.pop();
                 integer_p result = rt.make<integer>(xt, value);
                 if (result && rt.top(result))
@@ -180,12 +181,13 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big)
     case ID_based_integer:
     {
         integer_p xi = integer_p(object_p(x));
-        if (Settings.wordsize <= 64 && xi->native())
+        size_t ws = Settings.WordSize();
+        if (ws <= 64 && xi->native())
         {
             ularge xv = xi->value<ularge>();
             ularge value = native(xv);
-            if (Settings.wordsize < 64)
-                value &= (1ULL << Settings.wordsize) - 1ULL;
+            if (ws < 64)
+                value &= (1ULL << ws) - 1ULL;
             integer_p result = rt.make<integer>(xt, value);
             if (result && rt.top(result))
                 return OK;

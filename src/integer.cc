@@ -121,7 +121,7 @@ PARSE_BODY(integer)
             // The HP syntax takes A-F as digits, and b/d as bases
             // Prefer to accept B and D suffixes, but only if no
             // digit above was found in the base
-            base     = Settings.base;
+            base     = Settings.Base();
             type     = ID_based_integer;
 
             uint max = 0;
@@ -394,8 +394,8 @@ PARSE_BODY(integer)
     // Check if we finish with something indicative of a fraction or real number
     if (!endp)
     {
-        if (*s == Settings.decimal_mark ||
-            utf8_codepoint(s) == Settings.exponent_mark)
+        if (*s == Settings.DecimalSeparator() ||
+            utf8_codepoint(s) == Settings.ExponentSeparator())
             return SKIP;
     }
 
@@ -433,7 +433,7 @@ static size_t render_num(renderer &r,
     bool lower = *fmt == 'v';
     if (upper || lower)
         fmt++;
-    if (!Settings.small_fractions || r.editing())
+    if (!Settings.SmallFractions() || r.editing())
         upper = lower = false;
     static uint16_t fancy_upper_digits[10] =
     {
@@ -449,8 +449,8 @@ static size_t render_num(renderer &r,
     // Check which kind of spacing to use
     bool based = *fmt == '#';
     bool fancy_base = based && r.stack();
-    uint spacing = based ? Settings.spacing_based : Settings.spacing_mantissa;
-    unicode space = based ? Settings.space_based : Settings.space;
+    uint spacing = based ? Settings.BasedSpacing() : Settings.MantissaSpacing();
+    unicode space = based ? Settings.BasedSeparator() : Settings.NumberSeparator();
 
     if (raw)
     {
@@ -620,7 +620,7 @@ RENDER_BODY(based_integer)
 //   Render the based integer value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, o, Settings.base, "#");
+    return render_num(r, o, Settings.Base(), "#");
 }
 
 
@@ -641,7 +641,7 @@ static size_t fraction_render(fraction_p o, renderer &r, bool negative)
 {
     integer_g n = o->numerator(1);
     integer_g d = o->denominator(1);
-    if (r.stack() && Settings.mixed_fractions)
+    if (r.stack() && Settings.MixedFractions())
     {
         ularge nv = n->value<ularge>();
         ularge dv = d->value<ularge>();

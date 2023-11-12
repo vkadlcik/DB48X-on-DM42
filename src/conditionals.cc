@@ -127,7 +127,7 @@ RENDER_BODY(IfThenElse)
     object_g cond   = object_p(p);
     object_g ift    = cond->skip();
     object_g iff    = ift->skip();
-    auto     format = Settings.command_fmt;
+    auto     format = Settings.CommandDisplayMode();
 
     // Write the header
     r.put('\n');

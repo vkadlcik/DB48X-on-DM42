@@ -69,7 +69,7 @@ bool arithmetic::real_promotion(algebraic_g &x, algebraic_g &y)
     if (!is_real(xt) || !is_real(yt))
         return false;
 
-    uint16_t prec  = Settings.precision;
+    uint16_t prec  = Settings.Precision();
     id       minty = prec > BID64_MAXDIGITS ? ID_decimal128
                    : prec > BID32_MAXDIGITS ? ID_decimal64
                                             : ID_decimal32;
@@ -148,7 +148,7 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
 //   - Object + text: Concatenation of object text + text
 {
     // Deal with basic auto-simplifications rules
-    if (Settings.auto_simplify && x->is_algebraic() && y->is_algebraic())
+    if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
     {
         if (x->is_zero(false))                  // 0 + X = X
             return y;
@@ -308,7 +308,7 @@ algebraic_p arithmetic::non_numeric<sub>(algebraic_r x, algebraic_r y)
 //   This deals with vector and matrix operations
 {
     // Deal with basic auto-simplifications rules
-    if (Settings.auto_simplify && x->is_algebraic() && y->is_algebraic())
+    if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
     {
         if (y->is_zero(false))                  // X - 0 = X
             return x;
@@ -439,7 +439,7 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
 //   - Integer * text: Repeat the text
 {
     // Deal with basic auto-simplifications rules
-    if (Settings.auto_simplify && x->is_algebraic() && y->is_algebraic())
+    if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
     {
         if (x->is_zero(false))                  // 0 * X = 0
             return x;
@@ -589,7 +589,7 @@ algebraic_p arithmetic::non_numeric<struct div>(algebraic_r x, algebraic_r y)
 //   This deals with vector and matrix operations
 {
     // Deal with basic auto-simplifications rules
-    if (Settings.auto_simplify && x->is_algebraic() && y->is_algebraic())
+    if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
     {
         if (x->is_zero(false))                  // 0 / X = 0
         {
@@ -901,7 +901,7 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
             return nullptr;
 
         // Auto-simplify x^0 = 1 and x^1 = x
-        if (Settings.auto_simplify)
+        if (Settings.AutoSimplify())
         {
             if (y->is_zero(false))
             {
@@ -1115,8 +1115,8 @@ algebraic_p arithmetic::non_numeric<struct atan2>(algebraic_r y, algebraic_r x)
 //   Note that the first argument to atan2 is traditionally called y,
 //   and represents the imaginary axis for complex numbers
 {
-    auto angle_mode = Settings.angle_mode;
-    if (angle_mode != settings::RADIANS)
+    auto angle_mode = Settings.AngleMode();
+    if (angle_mode != object::ID_Rad)
     {
         // Deal with special cases without rounding
         if (y->is_zero(false))
@@ -1142,11 +1142,11 @@ algebraic_p arithmetic::non_numeric<struct atan2>(algebraic_r y, algebraic_r x)
             int  num  = posdiag ? (xneg ? -3 : 1) : (xneg ? 3 : -1);
             switch (angle_mode)
             {
-            case settings::PI_RADIANS:
+            case object::ID_PiRadians:
                 return fraction::make(integer::make(num), integer::make(4));
-            case settings::DEGREES:
+            case object::ID_Deg:
                 return integer::make(num * 45);
-            case settings::GRADS:
+            case object::ID_Grad:
                 return integer::make(num * 50);
             default:
                 break;
@@ -1179,7 +1179,7 @@ algebraic_p arithmetic::evaluate(id          op,
     algebraic_g y = yr;
 
     // Convert arguments to numeric if necessary
-    if (Settings.numeric)
+    if (Settings.NumericalResults())
     {
         (void) to_decimal(x, true);          // May fail silently
         (void) to_decimal(y, true);
@@ -1221,7 +1221,7 @@ algebraic_p arithmetic::evaluate(id          op,
         if (ops.bignum_ok(xg, yg))
         {
             x = xg.Safe();
-            if (Settings.numeric)
+            if (Settings.NumericalResults())
                 (void) to_decimal(x, true);
             return x;
         }
@@ -1244,7 +1244,7 @@ algebraic_p arithmetic::evaluate(id          op,
                         if (d->is(1))
                             return algebraic_p(bignum_p(xf->numerator()));
                     }
-                    if (Settings.numeric)
+                    if (Settings.NumericalResults())
                         (void) to_decimal(x, true);
                     return x;
                 }

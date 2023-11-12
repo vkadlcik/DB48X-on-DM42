@@ -657,7 +657,7 @@ expression_p expression::rewrite(expression_r from, expression_r to) const
     // Information about part we replace
     bool       replaced = false;
     size_t     matchsz  = 0;
-    uint       rewrites = Settings.maxrewrites;
+    uint       rewrites = Settings.MaxRewrites();
 
     // Loop while there are replacements found
     do
@@ -823,7 +823,7 @@ expression_p expression::rewrite_all(size_t size, const byte_p rewrites[]) const
     uint count = 0;
     expression_g last = nullptr;
     expression_g eq = this;
-    while (count++ < Settings.maxrewrites && eq && eq.Safe() != last.Safe())
+    while (count++ < Settings.MaxRewrites() && eq && eq.Safe() != last.Safe())
     {
         // Check if we produced the same value
         if (last && last->is_same_as(eq))
@@ -832,7 +832,7 @@ expression_p expression::rewrite_all(size_t size, const byte_p rewrites[]) const
         last = eq;
         eq = eq->rewrite(size, rewrites);
     }
-    if (count >= Settings.maxrewrites)
+    if (count >= Settings.MaxRewrites())
         rt.too_many_rewrites_error();
     return eq;
 }
@@ -1142,8 +1142,8 @@ algebraic_p expression::simplify_products() const
             return algebraic_p(inner);
 
     // Save auto-simplify and set it
-    bool auto_simplify = Settings.auto_simplify;
-    Settings.auto_simplify = true;
+    bool auto_simplify = Settings.AutoSimplify();
+    Settings.AutoSimplify(true);
     save<bool> save(unit::mode, false);
 
     // Need a GC pointer since stack operations may move us
@@ -1165,7 +1165,7 @@ algebraic_p expression::simplify_products() const
                                               scale, exponent);
                 if (!rest || !scale || !exponent)
                 {
-                    Settings.auto_simplify = auto_simplify;
+                    Settings.AutoSimplify(auto_simplify);
                     return nullptr;
                 }
                 if (exponent->is_negative(false))
@@ -1198,7 +1198,7 @@ algebraic_p expression::simplify_products() const
     }
 
     num = num / den;
-    Settings.auto_simplify = auto_simplify;
+    Settings.AutoSimplify(auto_simplify);
     return num;
 }
 

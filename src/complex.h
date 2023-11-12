@@ -48,7 +48,7 @@ struct complex : algebraic
 //    Base class shared by both rectangular and polar implementations
 // ----------------------------------------------------------------------------
 {
-    typedef settings::angles angle_unit;
+    typedef id angle_unit;
 
     complex(id type, algebraic_r x, algebraic_r y): algebraic(type)
     {

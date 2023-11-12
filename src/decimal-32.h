@@ -168,6 +168,19 @@ struct decimal32 : algebraic
         return result;
     }
 
+    large as_integer() const
+    {
+        bid32 fval = value();
+        large result;
+        bid32_to_int64_int(&result, &fval.value);
+        return result;
+    }
+
+    ularge as_unsigned() const
+    {
+        return (ularge) as_integer();
+    }
+
     enum class_type
     // ------------------------------------------------------------------------
     //   Class type for bid32 numbers
@@ -263,8 +276,8 @@ struct decimal32 : algebraic
         return is_negative_or_zero(value());
     }
 
-    algebraic_p to_fraction(uint count = Settings.fraciter,
-                            uint decimals = Settings.fracprec) const;
+    algebraic_p to_fraction(uint count = Settings.FractionIterations(),
+                            uint decimals = Settings.FractionDigits()) const;
 
 public:
     OBJECT_DECL(decimal32);

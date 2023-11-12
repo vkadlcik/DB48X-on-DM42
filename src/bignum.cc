@@ -146,7 +146,7 @@ static size_t render_num(renderer &r,
     bool lower = *fmt == 'v';
     if (upper || lower)
         fmt++;
-    if (!Settings.small_fractions || r.editing())
+    if (!Settings.SmallFractions() || r.editing())
         upper = lower = false;
     static uint16_t fancy_upper_digits[10] =
     {
@@ -162,8 +162,9 @@ static size_t render_num(renderer &r,
     // Check which kind of spacing to use
     bool based = *fmt == '#';
     bool fancy_base = based && r.stack();
-    uint spacing = based ? Settings.spacing_based : Settings.spacing_mantissa;
-    unicode space = based ? Settings.space_based : Settings.space;
+    uint spacing = based ? Settings.BasedSpacing() : Settings.MantissaSpacing();
+    unicode space = based ? Settings.BasedSeparator() : Settings.NumberSeparator();
+
     if (raw)
     {
         fancy_base = false;
@@ -295,8 +296,9 @@ RENDER_BODY(based_bignum)
 //   Render the hexadecimal bignum value into the given string buffer
 // ----------------------------------------------------------------------------
 {
-    return render_num(r, o, Settings.base, "#");
+    return render_num(r, o, Settings.Base(), "#");
 }
+
 
 
 // ============================================================================
@@ -504,7 +506,7 @@ bignum_g bignum::multiply(bignum_r yg, bignum_r xg, id ty)
     size_t wbits = wordsize(xt);
     size_t wbytes = (wbits + 7) / 8;
     size_t needed = xs + ys;
-    if (needed * 8 > Settings.maxbignum)
+    if (needed * 8 > Settings.MaxBigNumBits())
     {
         rt.number_too_big_error();
         return nullptr;
@@ -754,7 +756,7 @@ static size_t fraction_render(big_fraction_p o, renderer &r, bool negative)
 {
     bignum_g n = o->numerator();
     bignum_g d = o->denominator();
-    if (r.stack() && Settings.mixed_fractions)
+    if (r.stack() && Settings.MixedFractions())
     {
         bignum_g quo, rem;
         if (bignum::quorem(n, d, bignum::ID_bignum, &quo, &rem))

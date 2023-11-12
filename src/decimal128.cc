@@ -210,7 +210,7 @@ PARSE_BODY(decimal128)
 
     // Check exponent
     utf8 exponent = nullptr;
-    if (*s == 'e' || *s == 'E' || utf8_codepoint(s) == Settings.exponent_mark)
+    if (*s == 'e' || *s == 'E' || utf8_codepoint(s) == Settings.ExponentSeparator())
     {
         s = utf8_next(s);
         exponent = s;
@@ -242,13 +242,15 @@ PARSE_BODY(decimal128)
     // Patch the input to the BID library
     char buf[50];
     char *b = buf;
+    char ds = Settings.DecimalSeparator();
+    unicode exp = Settings.ExponentSeparator();
     for (utf8 u = source; u < s && b < buf+sizeof(buf) - 1; u++)
     {
-        if (*u == Settings.decimal_mark)
+        if (*u == ds)
         {
             *b++ = '.';
         }
-        else if (utf8_codepoint(u) == Settings.exponent_mark)
+        else if (utf8_codepoint(u) == exp)
         {
             *b++ = 'E';
             u = utf8_next(u) - 1;
@@ -301,20 +303,20 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
     strncpy(copy, buf, sizeof(copy)-1);
 
     // Read settings
-    const settings &display = Settings;
-    auto            mode    = editing ? display.NORMAL : display.display_mode;
-    int             digits  = editing ? BID128_MAXDIGITS : display.displayed;
-    int             std_exp = display.standard_exp;
-    bool            showdec = display.show_decimal;
-    unicode         space   = display.space;
-    uint            mant_spc = display.spacing_mantissa;
-    uint            frac_spc = display.spacing_fraction;
-    bool            fancy   = !editing && display.fancy_exponent;
-    char            decimal = display.decimal_mark; // Can be '.' or ','
+    const settings &ds = Settings;
+    auto            mode    = editing ? object::ID_Std : ds.DisplayMode();
+    int             digits  = editing ? BID128_MAXDIGITS : ds.DisplayDigits();
+    int             std_exp = ds.StandardExponent();
+    bool            showdec = ds.TrailingDecimal();
+    unicode         space   = ds.NumberSeparator();
+    uint            mant_spc = ds.MantissaSpacing();
+    uint            frac_spc = ds.FractionSpacing();
+    bool            fancy   = !editing && ds.FancyExponent();
+    char            decimal = ds.DecimalSeparator(); // Can be '.' or ','
 
     if (raw)
     {
-        mode = display.NORMAL;
+        mode = object::ID_Std;
         digits = BID128_MAXDIGITS;
         std_exp = 9;
         showdec = true;
@@ -324,6 +326,8 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         fancy = false;
         decimal = '.';
     }
+    if (mode == object::ID_Std)
+        mode = object::ID_Sig;
 
     static uint16_t fancy_digit[10] =
     {
@@ -408,15 +412,15 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         // Also, since DB48X can compute on 34 digits, and counting zeroes
         // can be annoying, there is a separate setting for when to switch
         // to scientific notation.
-        bool hasexp = mode >= settings::display::SCI;
+        bool hasexp = mode == object::ID_Sci || mode == object::ID_Eng;
         if (!hasexp)
         {
             if (realexp < 0)
             {
-                if (mode <= settings::display::FIX)
+                if (mode <= object::ID_Fix)
                 {
                     int shown = digits + realexp + (*in >= '5');
-                    int minfix = display.min_fix_digits;
+                    int minfix = ds.MinimumSignificantDigits();
                     if (minfix < 0)
                     {
                         if (shown < 0)
@@ -484,7 +488,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
 
         // Adjust exponent being displayed for engineering mode
         int dispexp = realexp;
-        bool engmode = mode == display.ENG;
+        bool engmode = mode == object::ID_Eng;
         if (engmode)
         {
             int offset = dispexp >= 0 ? dispexp % 3 : (dispexp - 2) % 3 + 2;
@@ -496,7 +500,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         }
 
         // Copy significant digits, inserting decimal separator when needed
-        bool sigmode = mode == display.NORMAL;
+        bool sigmode = mode == object::ID_Sig;
         char *lastnz = out;
         while (in < last && decimals > 0)
         {
@@ -538,7 +542,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         {
             char *rptr = out;
             bool rounding = true;
-            bool stripzeros = mode == display.NORMAL;
+            bool stripzeros = mode == object::ID_Sig;
             while (rounding && --rptr >= buf)
             {
                 if (*rptr >= '0' && *rptr <= '9')   // Do not convert '.' or '-'
@@ -595,7 +599,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         }
 
         // Return to position of last inserted zero
-        else if (mode == display.NORMAL && out > lastnz)
+        else if (mode == object::ID_Sig && out > lastnz)
         {
             out = lastnz;
             in = last;
@@ -610,7 +614,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
             else
                 decimals = 0;
         }
-        else if (mode == display.FIX && decpos > 0)
+        else if (mode == object::ID_Fix && decpos > 0)
         {
             decimals = digits + decpos;
         }
@@ -636,7 +640,7 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
         // Add exponent if necessary
         if (hasexp)
         {
-            size_t sz = utf8_encode(display.exponent_mark, (byte *) out);
+            size_t sz = utf8_encode(ds.ExponentSeparator(), (byte *) out);
             out += sz;
             size_t remaining = buf + MAXBIDCHAR - out;
             if (fancy)

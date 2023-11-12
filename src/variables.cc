@@ -202,7 +202,7 @@ bool directory::store(object_g name, object_g value)
 
         // Move memory from directory up
         object_p start = object_p(body.Safe());
-        if (Settings.store_at_end)
+        if (Settings.StoreAtEnd())
             start += dirsize;
         rt.move_globals(start + requested, start);
 

@@ -140,7 +140,8 @@ object::result program::run_loop(size_t depth)
 {
     result   result    = OK;
     bool     outer     = depth == 0 && !running;
-    bool     last_args = outer ? Settings.save_last : Settings.prog_save_last;
+    bool     last_args =
+        outer ? Settings.SaveLastArguments() : Settings.ProgramLastArguments();
 
     save<bool> save_running(running, true);
     while (object_p obj = rt.run_next(depth))

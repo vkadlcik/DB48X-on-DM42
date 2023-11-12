@@ -77,7 +77,7 @@ EVAL_BODY(fraction)
 //   Evaluate either as a fraction or decimal
 // ----------------------------------------------------------------------------
 {
-    if (Settings.numeric)
+    if (Settings.NumericalResults())
     {
         algebraic_g x = o;
         if (algebraic::real_promotion(x))

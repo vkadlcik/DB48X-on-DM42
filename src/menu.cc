@@ -65,7 +65,7 @@ void menu::items_init(info &mi, uint nitems, uint planes, uint vplanes)
 //   Initialize the info structure
 // ----------------------------------------------------------------------------
 {
-    if (Settings.menu_flatten)
+    if (Settings.MenuAppearance() == ID_FlatMenus)
     {
         planes = 1;
         vplanes = 1;
@@ -467,13 +467,13 @@ MENU(BasesMenu,
      ID_Xor,
      ID_Not,
 
-     Base::menu_label, ID_Base,
+     Base::label, ID_Base,
      "Bin",     ID_Bin,
      "Oct",     ID_Oct,
      "Dec",     ID_Dec,
      "Hex",     ID_Hex,
 
-     stws::menu_label,  ID_stws,
+     WordSize::label,  ID_WordSize,
      ID_NAnd,
      ID_NOr,
      ID_Implies,
@@ -1015,8 +1015,8 @@ MENU(FractionsMenu,
 
      "→HMS",    ID_Unimplemented,
      "HMS→",    ID_Unimplemented,
-     ToFractionIterations::menu_label,  ID_ToFractionIterations,
-     ToFractionDigits::menu_label,      ID_ToFractionDigits
+     FractionIterations::label,         ID_FractionIterations,
+     FractionDigits::label,             ID_FractionDigits
 );
 
 MENU(PlotMenu,
@@ -1079,18 +1079,18 @@ MENU(DisplayModesMenu,
 // ----------------------------------------------------------------------------
 //   Mode setting for numbers
 // ----------------------------------------------------------------------------
-     Std::menu_label,   ID_Std,
-     Fix::menu_label,   ID_Fix,
-     Sci::menu_label,   ID_Sci,
-     Eng::menu_label,   ID_Eng,
-     Sig::menu_label,   ID_Sig,
-     Precision::menu_label, ID_Precision,
+     "Std",             ID_Std,
+     Fix::label,        ID_Fix,
+     Sci::label,        ID_Sci,
+     Eng::label,        ID_Eng,
+     Sig::label,        ID_Sig,
+     Precision::label,  ID_Precision,
 
-     MantissaSpacing::menu_label, ID_MantissaSpacing,
-     FractionSpacing::menu_label, ID_FractionSpacing,
-     BasedSpacing::menu_label,    ID_BasedSpacing,
-     StandardExponent::menu_label, ID_StandardExponent,
-     MinimumSignificantDigits::menu_label, ID_MinimumSignificantDigits,
+     MantissaSpacing::label, ID_MantissaSpacing,
+     FractionSpacing::label, ID_FractionSpacing,
+     BasedSpacing::label,    ID_BasedSpacing,
+     StandardExponent::label, ID_StandardExponent,
+     MinimumSignificantDigits::label, ID_MinimumSignificantDigits,
      "Seps",            ID_SeparatorModesMenu,
 
      "cmd",             ID_LowerCase,
@@ -1105,14 +1105,14 @@ MENU(SeparatorModesMenu,
 //   Separators
 // ----------------------------------------------------------------------------
      "1 000",           ID_NumberSpaces,
-     Settings.decimal_mark == '.' ? "1,000." : "1.000,",  ID_NumberDotOrComma,
+     Settings.DecimalComma() ? "1.000," : "1,000.",  ID_NumberDotOrComma,
      "1'000",           ID_NumberTicks,
      "1_000",           ID_NumberUnderscore,
      "2.3",             ID_DecimalDot,
      "2,3",             ID_DecimalComma,
 
      "#1 000",          ID_BasedSpaces,
-     Settings.decimal_mark == '.' ? "#1,000" : "#1.000",  ID_BasedDotOrComma,
+     Settings.DecimalComma() ? "#1.000" : "#1,000",  ID_BasedDotOrComma,
      "#1'000",          ID_BasedTicks,
      "#1_000",          ID_BasedUnderscore,
      "Disp",            ID_DisplayModesMenu,
@@ -1127,12 +1127,12 @@ MENU(UserInterfaceModesMenu,
 // ----------------------------------------------------------------------------
 //   Mode setting for numbers
 // ----------------------------------------------------------------------------
-     "GrStk",                                   ID_GraphicsStackDisplay,
+     "GrStk",                                   ID_GraphicStackDisplay,
      "TxtStk",                                  ID_TextStackDisplay,
-     ResultFontSize::menu_label,                ID_ResultFontSize,
-     StackFontSize::menu_label,                 ID_StackFontSize,
-     EditorFontSize::menu_label,                ID_EditorFontSize,
-     EditorMultilineFontSize::menu_label,       ID_EditorMultilineFontSize,
+     ResultFont::label,                         ID_ResultFont,
+     StackFont::label,                          ID_StackFont,
+     EditorFont::label,                         ID_EditorFont,
+     MultilineEditorFont::label,                ID_MultilineEditorFont,
 
      "3-lines",                                 ID_ThreeRowsMenus,
      "1-line",                                  ID_SingleRowMenus,
@@ -1141,7 +1141,7 @@ MENU(UserInterfaceModesMenu,
      "Square",                                  ID_SquareMenus,
      "Modes",                                   ID_ModesMenu,
 
-     CursorBlinkRate::menu_label,               ID_CursorBlinkRate,
+     CursorBlinkRate::label,                    ID_CursorBlinkRate,
      "Show Units",                              ID_ShowBuiltinUnits,
      "Hide Units",                              ID_HideBuiltinUnits);
 
@@ -1149,12 +1149,12 @@ MENU(MathModesMenu,
 // ----------------------------------------------------------------------------
 //   Mode setting for numbers
 // ----------------------------------------------------------------------------
-     "Num",                     ID_NumericResults,
+     "Num",                     ID_NumericalResults,
      "Sym",                     ID_SymbolicResults,
      "Simplify",                ID_AutoSimplify,
      "KeepAll",                 ID_NoAutoSimplify,
-     MaxBigNumBits::menu_label, ID_MaxBigNumBits,
-     MaxRewrites::menu_label,   ID_MaxRewrites,
+     MaxBigNumBits::label,      ID_MaxBigNumBits,
+     MaxRewrites::label,        ID_MaxRewrites,
 
      "iℂ",                      ID_Unimplemented,
      "Auto ℂ",                  ID_Unimplemented,

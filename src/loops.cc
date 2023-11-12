@@ -320,7 +320,7 @@ intptr_t loop::object_renderer(renderer &r,
     // Isolate condition and body
     object_g first  = object_p(p);
     object_g second = middle ? first->skip() : nullptr;
-    auto     format = Settings.command_fmt;
+    auto     format = Settings.CommandDisplayMode();
 
     // Write the header, e.g. "DO"
     r.put('\n');

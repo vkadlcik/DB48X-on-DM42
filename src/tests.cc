@@ -449,7 +449,7 @@ void tests::arithmetic()
 
     step("Adding ten small integers at random");
     srand48(sys_current_ms());
-    Settings.spacing_mantissa = 0;
+    Settings.MantissaSpacing(0);
     for (int i = 0; i < 10; i++)
     {
         large x = (lrand48() & 0xFFFFFF) - 0x800000;
@@ -458,7 +458,7 @@ void tests::arithmetic()
             .explain("Computing ", x, " + ", y, ", ")
             .expect(x + y);
     }
-    Settings.spacing_mantissa = 3;
+    Settings.MantissaSpacing(3);
 
     step("Integer subtraction");
     test(CLEAR, 1, ENTER, 1, SUB).type(object::ID_integer).expect("0");
@@ -482,7 +482,7 @@ void tests::arithmetic()
         .expect("-18 446 744 073 709 551 618");
 
     step("Subtracting ten small integers at random");
-    Settings.spacing_mantissa = 0;
+    Settings.MantissaSpacing(0);
     for (int i = 0; i < 10; i++)
     {
         large x = (lrand48() & 0xFFFFFF) - 0x800000;
@@ -491,7 +491,7 @@ void tests::arithmetic()
             .explain("Computing ", x, " - ", y, ", ")
             .expect(x - y);
     }
-    Settings.spacing_mantissa = 3;
+    Settings.MantissaSpacing(3);
 
     step("Integer multiplication");
     test(CLEAR, 3, ENTER, 7, MUL).type(object::ID_integer).expect("21");
@@ -501,7 +501,7 @@ void tests::arithmetic()
     test(-7, MUL).type(object::ID_integer).expect("2 646");
 
     step("Multiplying ten small integers at random");
-    Settings.spacing_mantissa = 0;
+    Settings.MantissaSpacing(0);
     for (int i = 0; i < 10; i++)
     {
         large x = (lrand48() & 0xFFFFFF) - 0x800000;
@@ -510,7 +510,7 @@ void tests::arithmetic()
             .explain("Computing ", x, " * ", y, ", ")
             .expect(x * y);
     }
-    Settings.spacing_mantissa = 3;
+    Settings.MantissaSpacing(3);
 
     step("Integer division");
     test(CLEAR, 210, ENTER, 2, DIV).type(object::ID_integer).expect("105");
@@ -519,7 +519,7 @@ void tests::arithmetic()
     test(-7, DIV).type(object::ID_integer).expect("1");
 
     step("Dividing ten small integers at random");
-    Settings.spacing_mantissa = 0;
+    Settings.MantissaSpacing(0);
     for (int i = 0; i < 10; i++)
     {
         large x = (lrand48() & 0x3FFF) - 0x4000;
@@ -528,7 +528,7 @@ void tests::arithmetic()
             .explain("Computing ", x * y, " / ", y, ", ")
             .expect(x);
     }
-    Settings.spacing_mantissa = 3;
+    Settings.MantissaSpacing(3);
 
     step("Division with fractional output");
     test(CLEAR, 1, ENTER, 3, DIV).expect("1/3");

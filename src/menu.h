@@ -107,7 +107,7 @@ struct menu : command
     }
 
     // Dynamic menus
-    typedef cstring (*menu_label_fn)(info &mi);
+    typedef cstring (*menu_label_fn)(object::id ty);
 
     template <typename... Args>
     static uint count(menu_label_fn UNUSED lbl, id UNUSED action, Args... args)
@@ -142,7 +142,7 @@ void menu::items(info &mi, menu_label_fn lblfn, id type, Args... args)
 //   Update menu items
 // ----------------------------------------------------------------------------
 {
-    items(mi, lblfn(mi), type);
+    items(mi, lblfn(type), type);
     items(mi, args...);
 }
 

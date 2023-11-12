@@ -164,7 +164,7 @@ bool renderer::put(char c)
 }
 
 
-bool renderer::put(settings::commands format, utf8 text)
+bool renderer::put(object::id format, utf8 text)
 // ----------------------------------------------------------------------------
 //   Render a command with proper capitalization
 // ----------------------------------------------------------------------------
@@ -177,24 +177,25 @@ bool renderer::put(settings::commands format, utf8 text)
 
     switch(format)
     {
-    case settings::commands::LOWERCASE:
+    case object::ID_LowerCase:
         for (utf8 s = text; *s; s = utf8_next(s))
             result = put(unicode(towlower(utf8_codepoint(s))));
         break;
 
-    case settings::commands::UPPERCASE:
+    case object::ID_UpperCase:
         for (utf8 s = text; *s; s = utf8_next(s))
             result = put(unicode(towupper(utf8_codepoint(s))));
         break;
 
-    case settings::commands::CAPITALIZED:
+    case object::ID_Capitalized:
         for (utf8 s = text; *s; s = utf8_next(s))
             result = put(unicode(s == text
                                  ? towupper(utf8_codepoint(s))
                                  : towlower(utf8_codepoint(s))));
         break;
 
-    case settings::commands::LONG_FORM:
+    default:
+    case object::ID_LongForm:
         for (cstring p = cstring(text); *p; p++)
             result = put(*p);
         break;

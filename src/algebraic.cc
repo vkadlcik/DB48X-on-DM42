@@ -248,7 +248,7 @@ object::id algebraic::real_promotion(algebraic_g &x)
 // ----------------------------------------------------------------------------
 {
     // Auto-selection of type
-    uint16_t prec = Settings.precision;
+    uint16_t prec = Settings.Precision();
     id       type = prec > BID64_MAXDIGITS ? ID_decimal128
                   : prec > BID32_MAXDIGITS ? ID_decimal64
                                            : ID_decimal32;
@@ -299,7 +299,7 @@ bool algebraic::complex_promotion(algebraic_g &x, object::id type)
     {
         algebraic_g zero = algebraic_p(integer::make(0));
         if (type == ID_polar)
-            x = polar::make(x, zero, settings::PI_RADIANS);
+            x = polar::make(x, zero, object::ID_PiRadians);
         else
             x = rectangular::make(x, zero);
         return x.Safe();
@@ -378,7 +378,7 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
         algebraic_g arg = z->pifrac();
         if (!decimal_to_fraction(mod) || !decimal_to_fraction(arg))
             return false;
-        x = polar::make(mod, arg, settings::PI_RADIANS);
+        x = polar::make(mod, arg, object::ID_PiRadians);
         return true;
     }
     case ID_unit:
@@ -429,7 +429,7 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
         if (to_decimal(mod, weak) &&
             (mod->is_fraction() || to_decimal(arg, weak)))
         {
-            x = polar::make(mod, arg, settings::PI_RADIANS);
+            x = polar::make(mod, arg, object::ID_PiRadians);
             return true;
         }
         break;
@@ -470,10 +470,10 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
         if (!unit::mode)
         {
             expression_p eq = expression_p(x.Safe());
-            bool save = Settings.numeric;
-            Settings.numeric = true;
+            bool save = Settings.NumericalResults();
+            Settings.NumericalResults(true);
             result r = eq->run();
-            Settings.numeric = save;
+            Settings.NumericalResults(save);
             if (r == OK)
                 if (object_p obj = rt.pop())
                     if (algebraic_p alg = obj->as_algebraic())

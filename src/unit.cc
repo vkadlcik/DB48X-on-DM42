@@ -841,10 +841,10 @@ bool unit::convert(unit_g &x) const
             return false;
 
         // Compute conversion factor
-        bool as = Settings.auto_simplify;
-        Settings.auto_simplify = true;
+        bool as = Settings.AutoSimplify();
+        Settings.AutoSimplify(true);
         o = o / u;
-        Settings.auto_simplify = as;
+        Settings.AutoSimplify(as);
 
         // Check if this is a unit and if so, make sure the unit is 1
         while (unit_p cf = o->as<unit>())
@@ -943,7 +943,7 @@ unit_p unit::cycle() const
                 unit_g nunit = unit::make(integer::make(1), nuexpr);
                 if (nunit->convert(u))
                 {
-                    algebraic_g mag   = integer::make(Settings.standard_exp);
+                    algebraic_g mag   = integer::make(Settings.StandardExponent());
                     algebraic_g range = integer::make(10);
                     algebraic_g nvalue = u->value();
                     range = pow(range, mag);
@@ -1205,7 +1205,7 @@ utf8 unit_menu::name(id type, size_t &len)
                 if (!count--)
                     return mname->value(&len);
 
-    if (Settings.builtin_units)
+    if (Settings.ShowBuiltinUnits())
     {
         size_t maxu = sizeof(basic_units) / sizeof(basic_units[0]);
         for (size_t u = 0; u < maxu; u += 2)
@@ -1259,7 +1259,7 @@ MENU_BODY(unit_menu)
     }
 
      // Disable built-in units if we loaded a file
-    if (!matching || Settings.builtin_units)
+    if (!matching || Settings.ShowBuiltinUnits())
     {
         bool found = false;
         for (size_t u = 0; u < maxu; u += 2)
@@ -1337,7 +1337,7 @@ MENU_BODY(UnitsMenu)
                     break;
 
     // Count built-in unit menu titles
-    if (!infile || Settings.builtin_units)
+    if (!infile || Settings.ShowBuiltinUnits())
     {
         for (size_t u = 0; u < maxu; u += 2)
             if (!basic_units[u+1] || !*basic_units[u+1])
@@ -1362,7 +1362,7 @@ MENU_BODY(UnitsMenu)
             items(mi, mname, id(ID_UnitMenu00 + infile++));
         }
     }
-    if (!infile || Settings.builtin_units)
+    if (!infile || Settings.ShowBuiltinUnits())
     {
         for (size_t u = 0; u < maxu; u += 2)
         {

@@ -92,7 +92,7 @@ const object::dispatch object::handler[NUM_IDS] =
 #define NAMED(id, label)                                     \
     [ID_##id] = {                                            \
         .name         = #id,                                 \
-        .fancy        = label,                               \
+        .fancy        = label ? label : #id,                 \
         .size         = (size_fn) id::do_size,               \
         .parse        = (parse_fn) id::do_parse,             \
         .help         = (help_fn) id::do_help,               \
@@ -273,26 +273,11 @@ uint32_t object::as_uint32(uint32_t def, bool err) const
             rt.value_error();
         return def;
     case ID_decimal128:
-    {
-        uint result = def;
-        bid128 v = decimal128_p(this)->value();
-        bid128_to_uint32_int(&result, &v.value);
-        return result;
-    }
+        return decimal128_p(this)->as_unsigned();
     case ID_decimal64:
-    {
-        uint result = def;
-        bid64 v = decimal64_p(this)->value();
-        bid64_to_uint32_int(&result, &v.value);
-        return result;
-    }
+        return decimal64_p(this)->as_unsigned();
     case ID_decimal32:
-    {
-        uint result = def;
-        bid32 v = decimal32_p(this)->value();
-        bid32_to_uint32_int(&result, &v.value);
-        return result;
-    }
+        return decimal32_p(this)->as_unsigned();
 
     case ID_fraction:
         return fraction_p(this)->as_uint32();
@@ -325,26 +310,11 @@ int32_t object::as_int32 (int32_t  def, bool err)  const
         return -bignum_p(this)->value<uint32_t>();
 
     case ID_decimal128:
-    {
-        int result = def;
-        bid128 v = decimal128_p(this)->value();
-        bid128_to_int32_int(&result, &v.value);
-        return result;
-    }
+        return decimal128_p(this)->as_integer();
     case ID_decimal64:
-    {
-        int result = def;
-        bid64 v = decimal64_p(this)->value();
-        bid64_to_int32_int(&result, &v.value);
-        return result;
-    }
+        return decimal64_p(this)->as_integer();
     case ID_decimal32:
-    {
-        int result = def;
-        bid32 v = decimal32_p(this)->value();
-        bid32_to_int32_int(&result, &v.value);
-        return result;
-    }
+        return decimal32_p(this)->as_integer();
 
     case ID_fraction:
         return fraction_p(this)->as_uint32();

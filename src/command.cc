@@ -125,7 +125,7 @@ RENDER_BODY(command)
     id ty = o->type();
     if (ty < NUM_IDS)
     {
-        auto format = Settings.command_fmt;
+        auto format = Settings.CommandDisplayMode();
 
         // Ensure that we display + as `+` irrespective of mode
         utf8 fname = fancy(ty);
@@ -133,7 +133,7 @@ RENDER_BODY(command)
         {
             if (utf8_length(fname) == 1)
             {
-                format = settings::commands::LONG_FORM;
+                format = ID_LongForm;
                 while (unit::mode)
                 {
                     if (ty == ID_div)
@@ -148,8 +148,7 @@ RENDER_BODY(command)
         }
 
 
-        utf8 text = utf8(format == settings::commands::LONG_FORM
-                         ? fname : name(ty));
+        utf8 text = utf8(format == ID_LongForm ? fname : name(ty));
         r.put(format, text);
     }
 
@@ -422,7 +421,7 @@ COMMAND_BODY(Bytes)
         if (object_p top = rt.top())
         {
             size_t size = top->size();
-            size_t maxsize = (Settings.wordsize + 7) / 8;
+            size_t maxsize = (Settings.WordSize() + 7) / 8;
             size_t hashsize = size > maxsize ? maxsize : size;
             gcbytes bytes = byte_p(top);
 #if CONFIG_FIXED_BASED_OBJECTS
@@ -684,18 +683,18 @@ COMMAND_BODY(Cycle)
 #else // ! CONFIG_FIXED_BASED_OBJECTS
         case ID_based_integer:
         case ID_based_bignum:
-            switch(Settings.base)
+            switch(Settings.Base())
             {
             default:
-            case 2:                     Settings.base = 16;     return OK;
-            case 8:                     Settings.base = 2;      return OK;
-            case 10:                    Settings.base = 8;      return OK;
-            case 16:                    Settings.base = 10;     return OK;
+            case 2:                     Settings.Base(16);     return OK;
+            case 8:                     Settings.Base(2);      return OK;
+            case 10:                    Settings.Base(8);      return OK;
+            case 16:                    Settings.Base(10);     return OK;
             }
             break;
 #endif // CONFIG_FIXED_BASED_OBJECTS
         case ID_expression:
-            Settings.graph_stack = !Settings.graph_stack;
+            Settings.GraphicStackDisplay(!Settings.GraphicStackDisplay());
             break;
         case ID_list:                   type = ID_array;        break;
         case ID_array:                  type = ID_program;      break;

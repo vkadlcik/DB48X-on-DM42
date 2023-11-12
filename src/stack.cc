@@ -117,9 +117,9 @@ void stack::draw_stack()
         grob_g   graph = nullptr;
         object_g obj   = rt.stack(level);
         size     w = 0;
-        if (Settings.graph_stack)
+        if (Settings.GraphicStackDisplay())
         {
-            auto fid = !level ? Settings.result_sz : Settings.stack_sz;
+            auto fid = !level ? Settings.ResultFont() : Settings.StackFont();
             grapher  g(avail - 2, bottom - top, fid,
                        pattern::black, pattern::gray90, true);
             graph = obj->graph(g);

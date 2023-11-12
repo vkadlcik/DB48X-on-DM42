@@ -129,13 +129,13 @@ algebraic_p solve(program_g eq, symbol_g name, object_g guess)
 
     // Set independent variable
     save<symbol_g *> iref(expression::independent, &name);
-    int              prec = -Settings.solveprec;
+    int              prec = -Settings.SolverPrecision();
     algebraic_g      eps = rt.make<decimal128>(object::ID_decimal128,
                                                prec, true);
 
     bool is_constant = true;
     bool is_valid = false;
-    uint max = Settings.maxsolve;
+    uint max = Settings.SolverIterations();
     for (uint i = 0; i < max && !program::interrupted(); i++)
     {
         bool           jitter = false;
@@ -281,7 +281,7 @@ algebraic_p solve(program_g eq, symbol_g name, object_g guess)
             if (x->is_complex())
                 dx = polar::make(integer::make(997 * s * i),
                                  integer::make(421 * s * i * i),
-                                 settings::DEGREES);
+                                 object::ID_Deg);
             else
                 dx = integer::make(0x1081 * s * i);
             dx = dx * eps;

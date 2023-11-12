@@ -48,7 +48,7 @@ MENU_BODY(Catalog)
 }
 
 
-static object::id sorted_ids[object::NUM_IDS];
+static uint16_t sorted_ids[object::NUM_IDS];
 
 
 static uint       NUM_COMMANDS = 0;
@@ -58,8 +58,8 @@ static int sort_ids(const void *left, const void *right)
 //   Sort the IDs alphabetically based on their fancy name
 // ----------------------------------------------------------------------------
 {
-    object::id l = *((object::id *) left);
-    object::id r = *((object::id *) right);
+    object::id l = object::id(*((uint16_t *) left));
+    object::id r = object::id(*((uint16_t *) right));
     return strcasecmp(cstring(object::fancy(l)), cstring(object::fancy(r)));
 }
 
@@ -105,7 +105,7 @@ uint Catalog::count_commands()
 
     for (uint i = 0; i < NUM_COMMANDS; i++)
     {
-        id sorted = sorted_ids[i];
+        id sorted = object::id(sorted_ids[i]);
         if (!filter                             ||
             matches(start, size, name(sorted))  ||
             matches(start, size, fancy(sorted)))
@@ -127,7 +127,7 @@ void Catalog::list_commands(info &mi)
 
     for (uint i = 0; i < NUM_COMMANDS; i++)
     {
-        id sorted = sorted_ids[i];
+        id sorted = object::id(sorted_ids[i]);
         if (!filter                                  ||
             matches(start, size, name(sorted))       ||
             matches(start, size, fancy(sorted)))

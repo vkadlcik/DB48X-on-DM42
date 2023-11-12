@@ -31,6 +31,7 @@
 
 #include "command.h"
 #include "menu.h"
+#include "renderer.h"
 #include "target.h"
 
 #include <types.h>
@@ -38,11 +39,37 @@
 
 struct renderer;
 
+#define DB48X_MAXDIGITS uint(BID128_MAXDIGITS)
+
 struct settings
 // ----------------------------------------------------------------------------
 //    Internal representation of settings
 // ----------------------------------------------------------------------------
 {
+public:
+#define ID(id)
+#define FLAG(Enable, Disable)
+#define SETTING(Name, Low, High, Init)          typeof(Init) Name##_bits;
+#define SETTING_BITS(Name,Bits,Low,High,Init)
+#include "ids.tbl"
+
+    // Define the packed bits settings
+#define ID(id)
+#define FLAG(Enable, Disable)
+#define SETTING(Name, Low, High, Init)
+#define SETTING_BITS(Name,Bits,Low,High,Init)   uint Name##_bits : Bits;
+#include "ids.tbl"
+
+    // Define the flags
+#define ID(id)
+#define FLAG(Enable, Disable)                   bool Enable##_bit : 1;
+#define SETTING(Name, Low, High, Init)
+#define SETTING_BITS(Name,Bits,Low,High,Init)
+#include "ids.tbl"
+
+    bool reserved : 1;
+
+public:
     enum { STD_DISPLAYED = 20 };
 
     enum
@@ -65,103 +92,6 @@ struct settings
         PI_RADIANS_SYMBOL       = L'π',
     };
 
-    settings()
-        : precision(BID128_MAXDIGITS),
-          display_mode(NORMAL),
-          displayed(STD_DISPLAYED),
-          spacing_mantissa(3),
-          spacing_fraction(5),
-          spacing_based(4),
-          decimal_mark('.'),
-          exponent_mark(L'⁳'),
-          space(SPACE_DEFAULT),
-          space_based(SPACE_DEFAULT),
-          standard_exp(9),
-          min_fix_digits(0),
-          angle_mode(DEGREES),
-          base(16),
-          wordsize(64),
-          maxbignum(1024),
-          maxsolve(1024),
-          maxinteg(10),
-          solveprec(24),
-          integprec(24),
-          maxrewrites(100),
-          fraciter(10),
-          fracprec(12),
-          cursor_blink_rate(500),
-          command_fmt(LONG_FORM),
-          show_decimal(true),
-          fancy_exponent(true),
-          mixed_fractions(false),
-          small_fractions(true),
-          auto_simplify(true),
-          numeric(false),
-          show_time(true),
-          show_24h(true),
-          show_seconds(true),
-          show_date(DMY),
-          show_dow(true),
-          show_month(true),
-          show_voltage(true),
-          menu_single_ln(false),
-          menu_flatten(false),
-          menu_square(false),
-          graph_stack(false),
-          store_at_end(false),
-          save_stack(true),
-          save_last(true),
-          prog_save_last(false),
-          builtin_units(false),
-          date_separator('/'),
-          result_sz(STACK),
-          stack_sz(STACK),
-          editor_sz(EDITOR),
-          editor_ml_sz(STACK),
-          line_width(1),
-          background(pattern::white),
-          foreground(pattern::black)
-    {}
-
-    enum angles
-    // ------------------------------------------------------------------------
-    //   The base used for angles
-    // ------------------------------------------------------------------------
-    {
-        DEGREES,
-        RADIANS,
-        GRADS,
-        PI_RADIANS,
-        NUM_ANGLES,
-    };
-
-    enum display
-    // ------------------------------------------------------------------------
-    //   The display mode for numbers
-    // ------------------------------------------------------------------------
-    {
-        NORMAL, FIX, SCI, ENG
-    };
-
-    enum commands
-    // ------------------------------------------------------------------------
-    //   Display of commands
-    // ------------------------------------------------------------------------
-    {
-        LOWERCASE,              // Display the short name in lowercase
-        UPPERCASE,              // Display the short name in uppercase
-        CAPITALIZED,            // Display the short name capitalized
-        LONG_FORM,              // Display the long form
-    };
-
-    enum dmy_ord
-    // ------------------------------------------------------------------------
-    //   Order for date, month and year
-    // ------------------------------------------------------------------------
-    {
-        NO_DATE, DMY, MDY, YMD
-    };
-
     enum font_id
     // ------------------------------------------------------------------------
     //  Selection of font size for the stack
@@ -171,210 +101,257 @@ struct settings
         LIB28, LIB25, LIB22, LIB20, LIB18, LIB17,
         SKR24, SKR18,
         FREE42,
+        FIRST_FONT = EDITOR,
+        LAST_FONT = FREE42,
         NUM_FONTS
     };
 
+#define ID(i)   static const object::id ID_##i = object::ID_##i;
+#include "ids.tbl"
+
+
+    settings() :
+#define ID(id)
+#define FLAG(Enable, Disable)
+#define SETTING(Name,Low,High,Init)             Name##_bits(Init),
+#define SETTING_BITS(Name,Bits,Low,High,Init)
+#include "ids.tbl"
+
+    // Define the packed bits settings
+#define ID(id)
+#define FLAG(Enable, Disable)
+#define SETTING(Name, Low, High, Init)
+#define SETTING_BITS(Name,Bits,Low,High,Init)   Name##_bits(Init - Low),
+#include "ids.tbl"
+
+    // Define the flags
+#define ID(id)
+#define FLAG(Enable, Disable)                   Enable##_bit(false),
+#define SETTINGS(Name, Low, High, Init)
+#define SETTING_BITS(Name,Bits,Low,High,Init)
+#include "ids.tbl"
+
+        reserved(false)
+    {}
+
+    // Accessor functions
+#define ID(id)
+#define FLAG(Enable,Disable)                                            \
+    bool Enable() const                 { return Enable##_bit; }        \
+    bool Disable() const                { return !Enable##_bit; }       \
+    void Enable(bool flag)              { Enable##_bit = flag; }        \
+    void Disable(bool flag)             { Enable##_bit = !flag; }
+#define SETTING(Name, Low, High, Init)                                  \
+    typeof(Init) Name() const           { return Name##_bits;  }        \
+    void Name(typeof(Init) value)       { Name##_bits = value; }
+#define SETTING_BITS(Name, Bits, Low, High, Init)                       \
+    typeof(Init) Name() const           { return (typeof(Init)) (Low + Name##_bits);  } \
+    void Name(typeof(Init) value)       { Name##_bits = value - Low; }
+#include "ids.tbl"
+
     static font_p font(font_id sz);
     static font_p cursor_font(font_id sz);
-    font_p result_font()        { return font(result_sz); }
-    font_p stack_font()         { return font(stack_sz); }
-    font_p editor_font(bool ml) { return font(ml ? editor_ml_sz : editor_sz); }
-    font_p cursor_font(bool ml) { return cursor_font(ml ? editor_ml_sz : editor_sz); }
+    font_p result_font()        { return font(EditorFont()); }
+    font_p stack_font()         { return font(StackFont()); }
+    font_p editor_font(bool ml) { return font(ml ? MultilineEditorFont() : EditorFont()); }
+    font_p cursor_font(bool ml) { return cursor_font(ml ? MultilineEditorFont() : EditorFont()); }
+
+    static unicode digit_separator(uint index);
+
+    unicode NumberSeparator() const
+    {
+        return digit_separator(NumberSeparatorCommand() - object::ID_NumberSpaces);
+    }
+    unicode BasedSeparator() const
+    {
+        return digit_separator(BasedSeparatorCommand() - object::ID_BasedSpaces);
+    }
+    unicode DecimalSeparator() const
+    {
+        return DecimalComma() ? ',' : '.';
+    }
+    unicode ExponentSeparator() const
+    {
+        return FancyExponent() ? L'⁳' : 'E';
+    }
+
+    char DateSeparator() const
+    {
+        uint index = DateSeparatorCommand() - object::ID_DateSlash;
+        static char sep[4] = { '/', '-', '.', '\'' };
+        return sep[index];
+    }
+
+    void NextDateSeparator()
+    {
+        DateSeparatorCommand_bits++;
+    }
 
     void save(renderer &out, bool show_defaults = false);
-
-
-public:
-    uint16_t precision;         // Internal precision for numbers
-    display  display_mode;      // Display mode
-    uint8_t  displayed;         // Number of displayed digits
-    uint8_t  spacing_mantissa;  // Spacing for the mantissa (0 = none)
-    uint8_t  spacing_fraction;  // Spacing for the fraction (0 = none)
-    uint8_t  spacing_based;     // Spacing for based numbers
-    char     decimal_mark;      // Character used for decimal separator
-    unicode  exponent_mark;     // The character used to represent exponents
-    unicode  space;             // Space to use for normal numbers
-    unicode  space_based;       // Space to use for based numbers
-    uint16_t standard_exp;      // Maximum exponent before switching to sci
-    int16_t  min_fix_digits;    // Minimum number of digits to display in FIX
-    angles   angle_mode;        // Angle mode ( degrees, radians or grads)
-    uint8_t  base;              // The default base for #numbers
-    size_t   wordsize;          // Wordsize for binary numbers (in bits)
-    size_t   maxbignum;         // Maximum size for a bignum (in bits)
-    size_t   maxsolve;          // Maximum number of iterations for solver
-    size_t   maxinteg;          // Maximum number of iterations for integration
-    uint16_t solveprec;         // Precision of solver in digits
-    uint16_t integprec;         // Precision of integration in digits
-    uint16_t maxrewrites;       // Maximum number of rewrites
-    uint16_t fraciter;          // Number of iterations for ->Q
-    uint16_t fracprec;          // Number of digits for ->Q
-    uint16_t cursor_blink_rate; // Blink rate for cursor in millisecond
-    commands command_fmt;       // How we prefer to display commands
-    bool     show_decimal   :1; // Show decimal dot for integral real numbers
-    bool     fancy_exponent :1; // Show exponent with fancy superscripts
-    bool     mixed_fractions:1; // Show 3/2 as 1 1/2
-    bool     small_fractions:1; // Show fractions with small digits
-    bool     auto_simplify  :1; // Automatically simplify symbolic results
-    bool     numeric        :1; // Convert results to numeric values
-    bool     show_time      :1; // Show time in status bar
-    bool     show_24h       :1; // Show 24-hours clock
-    bool     show_seconds   :1; // Show seconds in status bar
-    dmy_ord  show_date      :2; // Order for date, month and year
-    bool     show_dow       :1; // Show day of week in status bar
-    bool     show_month     :1; // Show month name in status bar
-    bool     show_voltage   :1; // Show battery voltage in status bar
-    bool     menu_single_ln :1; // Single-line menu
-    bool     menu_flatten   :1; // Show same menu entries with shift
-    bool     menu_square    :1; // Square or rounded menus
-    bool     graph_stack    :1; // Graphical rendering on stack
-    bool     store_at_end   :1; // 'STO' stores at end of directory
-    bool     save_stack     :1; // Save last stack
-    bool     save_last      :1; // Save last args
-    bool     prog_save_last :1; // Save last args while running programs
-    bool     builtin_units  :1; // Show built-in units after loaded ones
-    char     date_separator;    // Date separator
-    font_id  result_sz;         // Size for stack top
-    font_id  stack_sz;          // Size for other stack levels
-    font_id  editor_sz;         // Size for normal editor
-    font_id  editor_ml_sz;      // Size for editor in multi-line mode
-    size     line_width;        // Line width for drawing
-    pattern  background;        // Background color
-    pattern  foreground;        // Foreground color
 };
 
 
 extern settings Settings;
 
+template<typename T>
+T setting_value(object_p obj, T init)
+{
+    return T(obj->as_uint32(init, true));
+}
 
-// Macro to defined a simple command handler for derived classes
-#define SETTINGS_COMMAND_DECLARE(derived)               \
-    struct derived : command                            \
-    {                                                   \
-        derived(id i = ID_##derived) : command(i) {}    \
-                                                        \
-        OBJECT_DECL(derived);                           \
-        EVAL_DECL(derived)                              \
-        {                                               \
-            rt.command(fancy(ID_##derived));            \
-            result r = evaluate();                      \
-            ui.menu_refresh();                          \
-            return r;                                   \
-        }                                               \
-        MARKER_DECL(derived);                           \
-                                                        \
-        static result  evaluate();                      \
-        static cstring menu_label(menu::info &mi);      \
+template <>
+ularge setting_value<ularge>(object_p obj, ularge init);
+
+
+struct setting : command
+// ----------------------------------------------------------------------------
+//   Shared code for settings
+// ----------------------------------------------------------------------------
+{
+    setting(id i) : command(i) {}
+    static result update(id ty)
+    {
+        rt.command(fancy(ty));
+        ui.menu_refresh();
+        return OK;
     }
 
-#define SETTINGS_COMMAND_BODY(derived, mkr)     \
-    MARKER_BODY(derived)                        \
-    {                                           \
-        return mkr ? settings::MARK : 0;        \
-    }                                           \
-    object::result derived::evaluate()
+    template<typename T>
+    static bool validate(id type, T &valref, T low, T high)
+    {
+        if (rt.args(1))
+        {
+            if (object_p obj = rt.top())
+            {
+                T val = setting_value(obj, T(valref));
+                if (!rt.error())
+                {
+                    if (val >= low && val <= high)
+                    {
+                        valref = T(val);
+                        rt.pop();
+                        return true;
+                    }
+                    rt.domain_error();
+                }
+            }
+        }
+        rt.command(fancy(type));
+        return false;
+    }
 
-#define SETTINGS_COMMAND_NOLABEL(derived, mkr)          \
-    MARKER_BODY(derived)                                \
-    {                                                   \
-        return mkr ? settings::MARK : 0;                \
-    }                                                   \
-    cstring derived::menu_label(menu::info UNUSED &mi)  \
-    {                                                   \
-        return #derived;                                \
-    }                                                   \
-    object::result derived::evaluate()
+    static cstring label(id ty);
+    static cstring printf(cstring format, ...);
+};
 
-#define SETTINGS_COMMAND_LABEL(derived)                 \
-    cstring derived::menu_label(menu::info UNUSED &mi)
+
+struct recall_setting : command
+// ----------------------------------------------------------------------------
+//   Recall the value of a setting
+// ----------------------------------------------------------------------------
+{
+    recall_setting(id type) : command(type) {}
+    EVAL_DECL(recall_setting);
+};
+
+
+struct value_setting : setting
+// ----------------------------------------------------------------------------
+//   Use a setting value
+// ----------------------------------------------------------------------------
+{
+    value_setting(id type): setting(type) {}
+    EVAL_DECL(value_setting);
+};
+
+#define ID(i)
+
+#define FLAG(Enable, Disable)                           \
+                                                        \
+struct Enable : setting                                 \
+{                                                       \
+    Enable(id i = ID_##Enable): setting(i) {}           \
+    OBJECT_DECL(Enable);                                \
+    EVAL_DECL(Enable)                                   \
+    {                                                   \
+        Settings.Enable(true);                          \
+        return update(ID_##Enable);                     \
+    }                                                   \
+    MARKER_DECL(Enable)                                 \
+    {                                                   \
+        return Settings.Enable();                       \
+    }                                                   \
+};                                                      \
+                                                        \
+struct Disable : setting                                \
+{                                                       \
+    Disable(id i = ID_##Disable): setting(i) {}         \
+    OBJECT_DECL(Disable);                               \
+    EVAL_DECL(Disable)                                  \
+    {                                                   \
+        Settings.Disable(true);                         \
+        return update(ID_##Disable);                    \
+    }                                                   \
+    MARKER_DECL(Disable)                                \
+    {                                                   \
+        return Settings.Disable();                      \
+    }                                                   \
+};                                                      \
+                                                        \
+struct Recall##Enable : recall_setting                  \
+{                                                       \
+    Recall##Enable(id ty = ID_##Recall##Enable)         \
+    : recall_setting(ty) {}                             \
+    OBJECT_DECL(Recall##Enable);                        \
+};                                                      \
+                                                        \
+struct Recall##Disable : recall_setting                 \
+{                                                       \
+    Recall##Disable(id ty = ID_##Recall##Disable)       \
+    : recall_setting(ty) {}                             \
+    OBJECT_DECL(Recall##Disable);                       \
+};
+
+
+#define SETTING(Name, Low, High, Init)                                  \
+                                                                        \
+struct Name : setting                                                   \
+{                                                                       \
+    Name(id i = ID_##Name) : setting(i) {}                              \
+                                                                        \
+    OBJECT_DECL(Name);                                                  \
+    EVAL_DECL(Name)                                                     \
+    {                                                                   \
+        auto value = Settings.Name();                                   \
+        if (!validate(ID_##Name, value, Low, High))                     \
+            return ERROR;                                               \
+        Settings.Name(value);                                           \
+        update(ID_##Name);                                              \
+        return OK;                                                      \
+    }                                                                   \
+};                                                                      \
+                                                                        \
+struct Recall##Name : recall_setting                                    \
+{                                                                       \
+    Recall##Name(id i = ID_##Recall##Name): recall_setting(i) {}        \
+    OBJECT_DECL(Recall##Name);                                          \
+};
+
+#define SETTING_VALUE(Name, Alias, Base, Value)                 \
+    struct Name : value_setting                                 \
+    {                                                           \
+        Name(id ty = ID_##Name) : value_setting(ty) {  }        \
+        OBJECT_DECL(Name);                                      \
+        MARKER_DECL(Name)                                       \
+        {                                                       \
+            return Settings.Base() == Value;                    \
+        }                                                       \
+    };
+
+#include "ids.tbl"
 
 
 COMMAND_DECLARE(Modes);
 COMMAND_DECLARE(ResetModes);
-
-SETTINGS_COMMAND_DECLARE(Std);
-SETTINGS_COMMAND_DECLARE(Fix);
-SETTINGS_COMMAND_DECLARE(Sci);
-SETTINGS_COMMAND_DECLARE(Eng);
-SETTINGS_COMMAND_DECLARE(Sig);
-
-SETTINGS_COMMAND_DECLARE(Deg);
-SETTINGS_COMMAND_DECLARE(Rad);
-SETTINGS_COMMAND_DECLARE(Grad);
-SETTINGS_COMMAND_DECLARE(PiRadians);
-
-SETTINGS_COMMAND_DECLARE(LowerCase);
-SETTINGS_COMMAND_DECLARE(UpperCase);
-SETTINGS_COMMAND_DECLARE(Capitalized);
-SETTINGS_COMMAND_DECLARE(LongForm);
-
-SETTINGS_COMMAND_DECLARE(DecimalDot);
-SETTINGS_COMMAND_DECLARE(DecimalComma);
-SETTINGS_COMMAND_DECLARE(NoTrailingDecimal);
-SETTINGS_COMMAND_DECLARE(TrailingDecimal);
-SETTINGS_COMMAND_DECLARE(Precision);
-SETTINGS_COMMAND_DECLARE(StandardExponent);
-SETTINGS_COMMAND_DECLARE(MinimumSignificantDigits);
-SETTINGS_COMMAND_DECLARE(FancyExponent);
-SETTINGS_COMMAND_DECLARE(ClassicExponent);
-SETTINGS_COMMAND_DECLARE(MixedFractions);
-SETTINGS_COMMAND_DECLARE(ImproperFractions);
-SETTINGS_COMMAND_DECLARE(SmallFractions);
-SETTINGS_COMMAND_DECLARE(BigFractions);
-
-SETTINGS_COMMAND_DECLARE(Base);
-SETTINGS_COMMAND_DECLARE(Bin);
-SETTINGS_COMMAND_DECLARE(Oct);
-SETTINGS_COMMAND_DECLARE(Dec);
-SETTINGS_COMMAND_DECLARE(Hex);
-
-SETTINGS_COMMAND_DECLARE(stws);
-COMMAND_DECLARE(rcws);
-
-SETTINGS_COMMAND_DECLARE(ResultFontSize);
-SETTINGS_COMMAND_DECLARE(StackFontSize);
-SETTINGS_COMMAND_DECLARE(EditorFontSize);
-SETTINGS_COMMAND_DECLARE(EditorMultilineFontSize);
-
-SETTINGS_COMMAND_DECLARE(MantissaSpacing);
-SETTINGS_COMMAND_DECLARE(FractionSpacing);
-SETTINGS_COMMAND_DECLARE(BasedSpacing);
-
-SETTINGS_COMMAND_DECLARE(NumberSpaces);
-SETTINGS_COMMAND_DECLARE(NumberDotOrComma);
-SETTINGS_COMMAND_DECLARE(NumberTicks);
-SETTINGS_COMMAND_DECLARE(NumberUnderscore);
-SETTINGS_COMMAND_DECLARE(BasedSpaces);
-SETTINGS_COMMAND_DECLARE(BasedDotOrComma);
-SETTINGS_COMMAND_DECLARE(BasedTicks);
-SETTINGS_COMMAND_DECLARE(BasedUnderscore);
-
-SETTINGS_COMMAND_DECLARE(AutoSimplify);
-SETTINGS_COMMAND_DECLARE(NoAutoSimplify);
-SETTINGS_COMMAND_DECLARE(NumericResults);
-SETTINGS_COMMAND_DECLARE(SymbolicResults);
-
-SETTINGS_COMMAND_DECLARE(MaxBigNumBits);
-SETTINGS_COMMAND_DECLARE(MaxRewrites);
-
-SETTINGS_COMMAND_DECLARE(ToFractionIterations);
-SETTINGS_COMMAND_DECLARE(ToFractionDigits);
-
-SETTINGS_COMMAND_DECLARE(SingleRowMenus);
-SETTINGS_COMMAND_DECLARE(FlatMenus);
-SETTINGS_COMMAND_DECLARE(ThreeRowsMenus);
-SETTINGS_COMMAND_DECLARE(RoundedMenus);
-SETTINGS_COMMAND_DECLARE(SquareMenus);
-
-SETTINGS_COMMAND_DECLARE(LineWidth);
-SETTINGS_COMMAND_DECLARE(Foreground);
-SETTINGS_COMMAND_DECLARE(Background);
-
-SETTINGS_COMMAND_DECLARE(GraphicsStackDisplay);
-SETTINGS_COMMAND_DECLARE(TextStackDisplay);
-
-SETTINGS_COMMAND_DECLARE(CursorBlinkRate);
-
-SETTINGS_COMMAND_DECLARE(ShowBuiltinUnits);
-SETTINGS_COMMAND_DECLARE(HideBuiltinUnits);
 
 #endif // SETTINGS_H

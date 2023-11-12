@@ -104,16 +104,16 @@ void function::adjust_from_angle(bid128 &x)
 {
     if (!init)
         adjust_init();
-    switch(Settings.angle_mode)
+    switch(Settings.AngleMode())
     {
-    case Settings.DEGREES:
+    case object::ID_Deg:
         bid128_mul(&x.value, &x.value, &from_deg.value); break;
-    case Settings.GRADS:
+    case object::ID_Grad:
         bid128_mul(&x.value, &x.value, &from_grad.value); break;
-    case Settings.PI_RADIANS:
+    case object::ID_PiRadians:
         bid128_mul(&x.value, &x.value, &from_ratio.value); break;
     default:
-    case Settings.RADIANS:
+    case object::ID_Rad:
         break;
     }
 }
@@ -126,16 +126,16 @@ void function::adjust_to_angle(bid128 &x)
 {
     if (!init)
         adjust_init();
-    switch(Settings.angle_mode)
+    switch(Settings.AngleMode())
     {
-    case Settings.DEGREES:
+    case object::ID_Deg:
         bid128_div(&x.value, &x.value, &from_deg.value); break;
-    case Settings.GRADS:
+    case object::ID_Grad:
         bid128_div(&x.value, &x.value, &from_grad.value); break;
-    case Settings.PI_RADIANS:
+    case object::ID_PiRadians:
         bid128_div(&x.value, &x.value, &from_ratio.value); break;
     default:
-    case Settings.RADIANS:
+    case object::ID_Rad:
         break;
     }
 }
@@ -151,11 +151,11 @@ bool function::adjust_to_angle(algebraic_g &x)
     if (x->is_real())
     {
         bid128 *adjust = nullptr;
-        switch(Settings.angle_mode)
+        switch(Settings.AngleMode())
         {
-        case Settings.DEGREES:          adjust = &from_deg;     break;
-        case Settings.GRADS:            adjust = &from_grad;    break;
-        case Settings.PI_RADIANS:       adjust = &from_ratio;   break;
+        case object::ID_Deg:            adjust = &from_deg;     break;
+        case object::ID_Grad:           adjust = &from_grad;    break;
+        case object::ID_PiRadians:      adjust = &from_ratio;   break;
         default:                                                break;
         }
 
@@ -177,16 +177,17 @@ bool function::exact_trig(id op, algebraic_g &x)
 //   This matters to get exact results for rectangular -> polar
 {
     // When in radians mode, we cannot avoid rounding except for 0
-    if (Settings.angle_mode == settings::RADIANS && !x->is_zero(false))
+    id amode = Settings.AngleMode();
+    if (amode == ID_Rad && !x->is_zero(false))
         return false;
 
     algebraic_g degrees = x;
-    switch(Settings.angle_mode)
+    switch(amode)
     {
-    case settings::GRADS:
+    case object::ID_Grad:
         degrees = degrees * integer::make(90) / integer::make(100);
         break;
-    case settings::PI_RADIANS:
+    case object::ID_PiRadians:
         degrees = degrees * integer::make(180);
         break;
     default:
@@ -263,7 +264,7 @@ algebraic_p function::evaluate(algebraic_r xr,
             return x;
 
     // Convert arguments to numeric if necessary
-    if (Settings.numeric)
+    if (Settings.NumericalResults())
         (void) to_decimal(x, true);   // May fail silently, and that's OK
 
     id xt = x->type();
@@ -401,7 +402,7 @@ FUNCTION_BODY(arg)
     id xt = x->type();
     if (should_be_symbolic(xt))
         return symbolic(ID_arg, x);
-    auto angle_mode = Settings.angle_mode;
+    auto angle_mode = Settings.AngleMode();
     if (is_complex(xt))
         return complex_p(algebraic_p(x))->arg(angle_mode);
     algebraic_g zero = integer::make(0);
@@ -495,7 +496,7 @@ FUNCTION_BODY(sign)
     {
         return polar::make(integer::make(1),
                            complex_p(algebraic_p(x))->pifrac(),
-                           settings::PI_RADIANS);
+                           object::ID_PiRadians);
     }
 
     rt.type_error();
@@ -559,7 +560,7 @@ FUNCTION_BODY(sq)
     if (!x.Safe())
         return nullptr;
     if (x->is_symbolic())
-        if (!Settings.auto_simplify || x->type() != ID_ImaginaryUnit)
+        if (!Settings.AutoSimplify() || x->type() != ID_ImaginaryUnit)
             return expression::make(ID_sq, x);
     return x * x;
 }
@@ -583,7 +584,7 @@ FUNCTION_BODY(cubed)
     if (!x.Safe())
         return nullptr;
     if (x->is_symbolic())
-        if (!Settings.auto_simplify || x->type() != ID_ImaginaryUnit)
+        if (!Settings.AutoSimplify() || x->type() != ID_ImaginaryUnit)
             return expression::make(ID_cubed, x);
     return x * x * x;
 }

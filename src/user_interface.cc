@@ -125,6 +125,7 @@ user_interface::user_interface()
       autoComplete(false),
       adjustSeps(false),
       graphics(false),
+      dbl_release(false),
       helpfile()
 {
     for (uint p = 0; p < NUM_PLANES; p++)
@@ -470,13 +471,15 @@ void user_interface::clear_menu()
     menus(0, nullptr, nullptr);
 }
 
-
 bool user_interface::key(int key, bool repeating, bool talpha)
 // ----------------------------------------------------------------------------
 //   Process an input key
 // ----------------------------------------------------------------------------
 {
     int skey = key;
+
+    if (handle_screen_capture(key))
+        return true;
 
     longpress = key && repeating;
     record(user_interface,
@@ -1425,10 +1428,10 @@ bool user_interface::draw_header()
             uint index = 2 * Settings.YearFirst() + Settings.MonthBeforeDay();
             switch(index)
             {
-            case 0: EMIT("%d%c%s%c%s", day,   sep, mname, sep, ytext); break;
-            case 1: EMIT("%s%c%d%c%s", mname, sep, day,   sep, ytext); break;
-            case 2: EMIT("%s%c%d%c%s", ytext, sep, day,   sep, mname); break;
-            case 3: EMIT("%s%c%s%c%d", ytext, sep, mname, sep, day);   break;
+            case 0: EMIT("%d%c%s%c%s ", day,   sep, mname, sep, ytext); break;
+            case 1: EMIT("%s%c%d%c%s ", mname, sep, day,   sep, ytext); break;
+            case 2: EMIT("%s%c%d%c%s ", ytext, sep, day,   sep, mname); break;
+            case 3: EMIT("%s%c%s%c%d ", ytext, sep, mname, sep, day);   break;
             }
         }
         if (Settings.ShowTime())
@@ -2838,6 +2841,35 @@ bool user_interface::noHelpForKey(int key)
 
 
 
+bool user_interface::handle_screen_capture(int key)
+// ----------------------------------------------------------------------------
+//   Check if we need to do a screen capture
+// ----------------------------------------------------------------------------
+{
+    if (key >= KEY_SCREENSHOT)
+    {
+        if (key == KEY_SCREENSHOT)
+        {
+            shift = xshift = alpha = longpress = repeat = false;
+            last = 0;
+            draw_annunciators();
+            refresh_dirty();
+            if (!screenshot())
+                rt.screenshot_capture_error();
+        }
+        if (key == KEY_DOUBLE_RELEASE)
+            dbl_release = true; // Ignore next key
+        return true;
+    }
+    if (!key && dbl_release)
+    {
+        dbl_release = false;
+        return true;
+    }
+    return false;
+}
+
+
 bool user_interface::handle_help(int &key)
 // ----------------------------------------------------------------------------
 //   Handle help keys when showing help
@@ -3700,7 +3732,7 @@ static const byte defaultUnshiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_F5,    0),
     OP2BYTES(KEY_F6,    0),
 
-    OP2BYTES(KEY_SCREENSHOT, 0),
+    OP2BYTES(KEY_SCREENSHOT, command::ID_ScreenCapture),
     OP2BYTES(KEY_SH_UP,  0),
     OP2BYTES(KEY_SH_DOWN, 0),
 };
@@ -3757,7 +3789,7 @@ static const byte defaultShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_F5,    0),
     OP2BYTES(KEY_F6,    0),
 
-    OP2BYTES(KEY_SCREENSHOT, 0),
+    OP2BYTES(KEY_SCREENSHOT, command::ID_ScreenCapture),
     OP2BYTES(KEY_SH_UP, 0),
     OP2BYTES(KEY_SH_DOWN, 0),
 };
@@ -3814,7 +3846,7 @@ static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_F5,    0),
     OP2BYTES(KEY_F6,    0),
 
-    OP2BYTES(KEY_SCREENSHOT, 0),
+    OP2BYTES(KEY_SCREENSHOT, command::ID_ScreenCapture),
     OP2BYTES(KEY_SH_UP, 0),
     OP2BYTES(KEY_SH_DOWN, 0),
 };

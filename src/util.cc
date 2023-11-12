@@ -69,11 +69,14 @@ void click(int frequency)
 //   A very short beep
 // ----------------------------------------------------------------------------
 {
+    bool silent = Settings.SilentBeepOn();
+    Settings.SilentBeepOn(false);
     beep(frequency, 10);
+    Settings.SilentBeepOn(silent);
 }
 
 
-void screenshot()
+bool screenshot()
 // ----------------------------------------------------------------------------
 //  Take a screenshot
 // ----------------------------------------------------------------------------
@@ -85,8 +88,11 @@ void screenshot()
     {
         // Was error just wait for confirmation
         wait_for_key_press();
+        return false;
     }
 
     // End click
     click(8000);
+
+    return true;
 }

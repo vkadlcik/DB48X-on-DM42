@@ -47,6 +47,7 @@
 #include "unit.h"
 #include "user_interface.h"
 #include "utf8.h"
+#include "util.h"
 #include "version.h"
 
 #include <ctype.h>
@@ -503,6 +504,19 @@ COMMAND_BODY(SystemSetup)
         return ERROR;
     system_setup();
     return OK;
+}
+
+
+COMMAND_BODY(ScreenCapture)
+// ----------------------------------------------------------------------------
+//   Snapshot the screen and save to a file
+// ----------------------------------------------------------------------------
+{
+    if (screenshot())
+        return OK;
+
+    rt.screenshot_capture_error();
+    return ERROR;
 }
 
 

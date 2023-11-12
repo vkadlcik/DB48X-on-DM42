@@ -5711,6 +5711,11 @@ Display the built-in system setup
 Save the machine's state to disk, using the current state if one was previously
 loaded. This is intended to quickly save the state for example before a system
 upgrade.
+
+
+## ScreenCapture
+
+Capture the current state of the screen in a dated file stored on the flash storage under the `SCREENS/` directory. This is activated by *holding* 🟨 and _O_ simultaneously. Pressing the keys one after another activates the [DisplayMenu](#displaymenu).
 # Tagged objects
 
 Tagged objects are a way to indicate what a value represents, using a *tag*

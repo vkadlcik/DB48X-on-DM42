@@ -139,6 +139,7 @@ COMMAND_DECLARE(TypeName);      // Return the type name of the object
 COMMAND_DECLARE(Off);           // Switch the calculator off
 COMMAND_DECLARE(SaveState);     // Save state to disk
 COMMAND_DECLARE(SystemSetup);   // Select the system menu
+COMMAND_DECLARE(ScreenCapture); // Snapshot screen state to a file
 COMMAND_DECLARE(Version);       // Return a version string
 COMMAND_DECLARE(Help);          // Activate online help
 COMMAND_DECLARE(LastArg);       // Return last arguments

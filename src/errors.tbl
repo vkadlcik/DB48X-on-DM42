@@ -75,5 +75,6 @@ ERROR(invalid_equation,         "Not an equation or program")
 ERROR(no_equation,              "EQ variable not found")
 ERROR(malformed_local_program,  "Malformed local program")
 ERROR(invalid_setting,          "Invalid setting command")
+ERROR(screenshot_capture,       "Screenshot capture failed")
 
 #undef ERROR

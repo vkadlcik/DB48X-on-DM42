@@ -179,6 +179,7 @@ struct user_interface
     void        load_help(utf8 topic, size_t len = 0);
 
 protected:
+    bool        handle_screen_capture(int key);
     bool        handle_shifts(int &key, bool talpha);
     bool        handle_help(int &key);
     bool        handle_editing(int key);
@@ -246,6 +247,7 @@ protected:
     bool     autoComplete : 1;  // Menu is auto-complete
     bool     adjustSeps   : 1;  // Need to adjust separators
     bool     graphics     : 1;  // Displaying user-defined graphics screen
+    bool     dbl_release  : 1;  // Double release
 
 protected:
     // Key mappings

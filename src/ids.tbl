@@ -446,10 +446,31 @@ CMD(Bytes)
 CMD(Type)
 CMD(TypeName)
 CMD(Version)
+CMD(ScreenCapture)
 
 // High-level applications
 CMD(Root)
 NAMED(Integrate, "∫")
+
+// On-line help
+CMD(Help)
+
+// Debugging
+CMD(Halt)
+CMD(Debug)
+ALIAS(Debug, "dbug")
+CMD(SingleStep)
+ALIAS(SingleStep, "sst")
+CMD(StepOver)
+CMD(StepOut)
+CMD(MultipleSteps)
+CMD(Continue)
+ALIAS(Continue, "cont")
+CMD(Kill)
+
+NAMED(LastArg, "LastArguments")
+CMD(LastX)
+CMD(Unimplemented)
 
 
 
@@ -733,31 +754,6 @@ CMD(Undo)                       // Do not save stack before Undo
 
 CMD(SelfInsert)                 // Last immediate command
 
-
-// ============================================================================
-//
-//   Non-immediate Commmands
-//
-// ============================================================================
-
-CMD(Help)
-
-// Debugging
-CMD(Halt)
-CMD(Debug)
-ALIAS(Debug, "dbug")
-CMD(SingleStep)
-ALIAS(SingleStep, "sst")
-CMD(StepOver)
-CMD(StepOut)
-CMD(MultipleSteps)
-CMD(Continue)
-ALIAS(Continue, "cont")
-CMD(Kill)
-
-NAMED(LastArg, "LastArguments")
-CMD(LastX)
-CMD(Unimplemented)
 
 
 // ============================================================================

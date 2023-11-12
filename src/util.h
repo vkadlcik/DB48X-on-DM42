@@ -34,7 +34,7 @@
 
 void beep(int frequency, int duration);
 void click(int frequency = 4400);
-void screenshot();
+bool screenshot();
 
 
 inline cstring strend(cstring s)        { return s + strlen(s); }

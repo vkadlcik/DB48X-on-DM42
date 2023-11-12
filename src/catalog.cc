@@ -83,9 +83,16 @@ static bool matches(utf8 start, size_t size, utf8 name)
 //   Check if what was typed matches the name
 // ----------------------------------------------------------------------------
 {
-    bool found = true;
-    for (uint i = 0; found && i < size; i++)
-        found = tolower(start[i]) == tolower(name[i]);
+    size_t len   = strlen(cstring(name));
+    bool   found = false;
+    // printf("[%.*s] vs [%s] is ", int(size), start, name);
+    for (uint o = 0; !found && o + size < len; o++)
+    {
+        found = true;
+        for (uint i = 0; found && i < size; i++)
+            found = tolower(start[i]) == tolower(name[i + o]);
+    }
+    // printf("%s\n", found ? "true" : "false");
     return found;
 }
 

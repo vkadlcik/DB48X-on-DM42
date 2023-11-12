@@ -470,8 +470,6 @@ CMD(Kill)
 
 NAMED(LastArg, "LastArguments")
 CMD(LastX)
-CMD(Unimplemented)
-
 
 
 // ============================================================================
@@ -723,6 +721,8 @@ NAMED(Off, "PowerOff")
 CMD(SaveState)
 CMD(SystemSetup)
 
+CMD(Unimplemented)              // Last command in catalog
+
 CMD(EditorSelect)
 CMD(EditorWordLeft)
 CMD(EditorWordRight)
@@ -753,6 +753,7 @@ CMD(VariablesMenuStore)
 CMD(Undo)                       // Do not save stack before Undo
 
 CMD(SelfInsert)                 // Last immediate command
+
 
 
 

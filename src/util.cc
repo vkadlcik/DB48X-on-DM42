@@ -28,16 +28,39 @@
 // ****************************************************************************
 
 #include "util.h"
+
+#include "settings.h"
+#include "target.h"
+
 #include <dmcp.h>
+
+void invert_screen()
+// ----------------------------------------------------------------------------
+//   Invert the screen and refresh it
+// ----------------------------------------------------------------------------
+{
+    Screen.invert();
+    lcd_refresh_lines(0, LCD_H);
+}
+
 
 void beep(int frequency, int duration)
 // ----------------------------------------------------------------------------
 //   Emit a short beep
 // ----------------------------------------------------------------------------
 {
-    start_buzzer_freq(frequency * 1000);
+    bool beeping = Settings.BeepOn();
+    bool flash = Settings.SilentBeepOn();
+
+    if (beeping)
+        start_buzzer_freq(frequency * 1000);
+    if (flash)
+        invert_screen();
     sys_delay(duration);
-    stop_buzzer();
+    if (beeping)
+        stop_buzzer();
+    if (flash)
+        invert_screen();
 }
 
 

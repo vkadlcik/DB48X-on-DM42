@@ -490,6 +490,8 @@ FLAG(YearFirst,                 YearLast)
 FLAG(FourDigitYear,             TwoDigitYear)
 FLAG(HideDayOfWeek,             ShowDayOfWeek)
 FLAG(HideVoltage,               ShowVoltage)
+FLAG(BeepOff,                   BeepOn)
+FLAG(SilentBeepOn,              SilentBeepOff)
 
 SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
 SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)

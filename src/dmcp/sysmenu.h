@@ -42,6 +42,7 @@ enum menu_item
 {
     MI_DB48_SETTINGS = 1,       // Application settings
     MI_DB48_ABOUT,              // Display the "About" dialog
+    MI_DB48_FLASH,              // Silent flash for beep
 
     MI_48STATE,                 // Menu for 48 state load and save
     MI_48STATE_CLEAN,           // Restart with a clean state

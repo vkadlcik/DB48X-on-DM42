@@ -126,6 +126,7 @@ const uint8_t settings_menu_items[] =
     MI_SET_TIME,                // Standard set time menu
     MI_SET_DATE,                // Standard set date menu
     MI_BEEP_MUTE,               // Mute the beep
+    MI_DB48_FLASH,              // Mute the beep
     MI_SLOW_AUTOREP,            // Slow auto-repeat
     0
 }; // Terminator
@@ -634,11 +635,15 @@ int menu_item_run(uint8_t menu_id)
     {
     case MI_DB48_ABOUT:    about_dialog(); break;
     case MI_DB48_SETTINGS: ret = handle_menu(&settings_menu, MENU_ADD, 0); break;
+
     case MI_48STATE:       ret = handle_menu(&state_menu, MENU_ADD, 0); break;
-    case MI_48STATE_LOAD:  ret = state_load(false); break;
-    case MI_48STATE_MERGE: ret = state_load(true); break;
-    case MI_48STATE_SAVE:  ret = state_save(); break;
-    case MI_48STATE_CLEAN: ret = state_clear(); break;
+    case MI_48STATE_LOAD:  ret = state_load(false);                     break;
+    case MI_48STATE_MERGE: ret = state_load(true);                      break;
+    case MI_48STATE_SAVE:  ret = state_save();                          break;
+    case MI_48STATE_CLEAN: ret = state_clear();                         break;
+
+    case MI_DB48_FLASH:
+        Settings.SilentBeepOn(!Settings.SilentBeepOn());                break;
 
     case MI_48STATUS:
         ret = handle_menu(&status_bar_menu, MENU_ADD, 0);               break;
@@ -710,6 +715,8 @@ cstring menu_item_description(uint8_t menu_id, char *s, const int UNUSED len)
     {
     case MI_DB48_SETTINGS:              ln = "Settings >";              break;
     case MI_DB48_ABOUT:                 ln = "About >";                 break;
+    case MI_DB48_FLASH:
+        ln = flag_str(s, "Silent beep", Settings.SilentBeepOn());       break;
 
     case MI_48STATE:                    ln = "State >";                 break;
     case MI_48STATE_LOAD:               ln = "Load State";              break;

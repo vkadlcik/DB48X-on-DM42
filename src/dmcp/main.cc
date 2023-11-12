@@ -174,6 +174,25 @@ static void handle_key(int key, bool repeating, bool talpha)
 }
 
 
+void db48x_set_beep_mute(int val)
+// ----------------------------------------------------------------------------
+//   Set the beep flag (shared with firmware)
+// ----------------------------------------------------------------------------
+{
+    Settings.BeepOff(val);
+    Settings.SilentBeepOn(val);
+}
+
+
+int db48x_is_beep_mute()
+// ----------------------------------------------------------------------------
+//   Check the beep flag from our settings
+// ----------------------------------------------------------------------------
+{
+    return Settings.BeepOff();
+}
+
+
 extern uint memory_size;
 void program_init()
 // ----------------------------------------------------------------------------
@@ -183,6 +202,8 @@ void program_init()
     // Setup application menu callbacks
     run_menu_item_app = menu_item_run;
     menu_line_str_app = menu_item_description;
+    is_beep_mute = db48x_is_beep_mute;
+    set_beep_mute = db48x_set_beep_mute;
 
     // Setup default fonts
     font_defaults();

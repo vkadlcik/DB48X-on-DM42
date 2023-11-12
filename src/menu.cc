@@ -1068,10 +1068,10 @@ MENU(ModesMenu,
      "Seps",    ID_SeparatorModesMenu,
      "UI",      ID_UserInterfaceModesMenu,
 
-     "1 1/2",   ID_MixedFractions,
-     "3/2",     ID_ImproperFractions,
-     "1/3",     ID_BigFractions,
-     "¹/₃",     ID_SmallFractions,
+     "Beep",    ID_BeepOn,
+     "Silent",  ID_BeepOff,
+     "Flash",   ID_SilentBeepOn,
+     "NoFlash", ID_SilentBeepOff,
      "Modes",   ID_Modes,
      "Reset",   ID_ResetModes);
 
@@ -1093,10 +1093,10 @@ MENU(DisplayModesMenu,
      MinimumSignificantDigits::label, ID_MinimumSignificantDigits,
      "Seps",            ID_SeparatorModesMenu,
 
-     "cmd",             ID_LowerCase,
-     "CMD",             ID_UpperCase,
-     "Cmd",             ID_Capitalized,
-     "Command",         ID_LongForm,
+     "1 1/2",           ID_MixedFractions,
+     "3/2",             ID_ImproperFractions,
+     "1/3",             ID_BigFractions,
+     "¹/₃",             ID_SmallFractions,
      "UI",              ID_UserInterfaceModesMenu,
      "Math",            ID_MathModesMenu);
 
@@ -1139,9 +1139,12 @@ MENU(UserInterfaceModesMenu,
      "Flat",                                    ID_FlatMenus,
      "Round",                                   ID_RoundedMenus,
      "Square",                                  ID_SquareMenus,
-     "Modes",                                   ID_ModesMenu,
-
      CursorBlinkRate::label,                    ID_CursorBlinkRate,
+
+     "cmd",                                     ID_LowerCase,
+     "CMD",                                     ID_UpperCase,
+     "Cmd",                                     ID_Capitalized,
+     "Command",                                 ID_LongForm,
      "Show Units",                              ID_ShowBuiltinUnits,
      "Hide Units",                              ID_HideBuiltinUnits);
 

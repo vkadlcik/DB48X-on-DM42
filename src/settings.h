@@ -151,7 +151,7 @@ public:
 
     static font_p font(font_id sz);
     static font_p cursor_font(font_id sz);
-    font_p result_font()        { return font(EditorFont()); }
+    font_p result_font()        { return font(ResultFont()); }
     font_p stack_font()         { return font(StackFont()); }
     font_p editor_font(bool ml) { return font(ml ? MultilineEditorFont() : EditorFont()); }
     font_p cursor_font(bool ml) { return cursor_font(ml ? MultilineEditorFont() : EditorFont()); }

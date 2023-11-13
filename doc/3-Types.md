@@ -96,7 +96,7 @@ Vector and matrices follow their own arithmetic rules. Vectors are
 one-dimensional, matrices are two-dimensional. DB48X also supports tables with a
 higher number of dimensions, but only offers limited operations on them.
 
-DB48X implements vector addition, subtraction, multipplication and division,
+DB48X implements vector addition, subtraction, multiplication and division,
 which apply component-wise. Multiplication and division are an extension
 compared to the HP48.
 
@@ -144,13 +144,15 @@ separated values, and is a common interchange format for spreadsheet data.
 Here is an example of file that would let you have a units menu called `Money`
 to convert between various monetary units:
 
-`"Money"`
-`"USD", "1_USD"`
-`"EUR", "1.07_USD"`
-`"GBP", "1.24_USD"`
-`"CAD", "0.73_USD"`
-`"AUD", "0.65_USD"`
-`"CHF", "1.11_USD"`
+```
+"Money"
+"USD", "1_USD"
+"EUR", "1.07_USD"
+"GBP", "1.24_USD"
+"CAD", "0.73_USD"
+"AUD", "0.65_USD"
+"CHF", "1.11_USD"
+```
 
 * All values must be placed between quotes. Separators between text values are
   mostly ignored.
@@ -194,12 +196,14 @@ The menu name `"=Cycle"` is reserved to define sequences of units that the
 `Cycle` command (bound to the _EEX_ key) will recognize as special. For example,
 you can ensure that `mm` and `in` convert to one another as follows:
 
-`"=Cycle"`
-`"in", "mm"`
-`"mm", "in"`
-`"USD", "EUR"`
-`"EUR", "CHF"`
-`"CHF", "USD"`
+```
+"=Cycle"
+"in", "mm"
+"mm", "in"
+"USD", "EUR"
+"EUR", "CHF"
+"CHF", "USD"
+```
 
 If you do provide a `Cycle` customization for a unit, other normal behaviours of
 the `Cycle` command for units are disabled, notably conversion between various
@@ -207,4 +211,6 @@ relevant scales and conversion between fractions and decimal. To force a
 particular conversion to happen in decimal, you can override the definition of
 the corresponding unit in the units file, for example:
 
-`"in",   "25.4_mm"`
+```
+"in",   "25.4_mm"
+```

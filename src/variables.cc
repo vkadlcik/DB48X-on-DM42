@@ -138,12 +138,12 @@ RENDER_BODY(directory)
 }
 
 
-EVAL_BODY(directory)
+object::result directory::enter() const
 // ----------------------------------------------------------------------------
 //   Enter directory when executing a directory
 // ----------------------------------------------------------------------------
 {
-    if (rt.enter(o))
+    if (rt.enter(this))
     {
         ui.menu_refresh(ID_VariablesMenu);
         return OK;
@@ -900,7 +900,7 @@ COMMAND_BODY(VariablesMenuExecute)
                     size_t sz = 0;
                     utf8 help = name->value(&sz);
                     ui.draw_user_command(help, sz);
-                    return value->evaluate();
+                    return program::run(value);
                 }
             }
         }

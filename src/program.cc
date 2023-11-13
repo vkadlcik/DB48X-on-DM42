@@ -27,8 +27,10 @@
 // ****************************************************************************
 
 #include "program.h"
+
 #include "parser.h"
 #include "settings.h"
+#include "variables.h"
 
 RECORDER(program, 16, "Program evaluation");
 
@@ -124,6 +126,8 @@ object::result program::run(object_p obj, bool sync)
 {
     if (program_p prog = obj->as_program())
         return prog->run(sync);
+    if (directory_p dir = obj->as<directory>())
+        return dir->enter();
     return obj->evaluate();
 }
 

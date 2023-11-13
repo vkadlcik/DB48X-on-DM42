@@ -558,12 +558,7 @@ algebraic_p algebraic::evaluate() const
 // ----------------------------------------------------------------------------
 {
     stack_depth_restore sdr;
-    if (program_p prog = as_program())
-    {
-        if (!prog->run())
-            return nullptr;
-    }
-    else if (object::evaluate() != OK)
+    if (program::run(this) != OK)
         return nullptr;
 
     if (rt.depth() != sdr.depth + 1)

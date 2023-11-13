@@ -135,12 +135,16 @@ struct directory : list
     //   Return the current directory path
     // ------------------------------------------------------------------------
 
+    result enter() const;
+    // ------------------------------------------------------------------------
+    //   Enter a directory
+    // ------------------------------------------------------------------------
+
 
 public:
     OBJECT_DECL(directory);
     PARSE_DECL(directory);
     RENDER_DECL(directory);
-    EVAL_DECL(directory);
 
 private:
     static void adjust_sizes(directory_r dir, int delta);

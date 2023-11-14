@@ -126,6 +126,8 @@ struct user_interface
     bool        draw_editor();
     bool        draw_stack();
     bool        draw_error();
+    bool        draw_message(utf8 header, uint count, utf8 msg[]);
+    bool        draw_message(cstring header, cstring = 0, cstring = 0);
     bool        draw_help();
     bool        draw_command();
     void        draw_user_command(utf8 cmd, size_t sz);

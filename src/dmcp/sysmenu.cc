@@ -30,14 +30,15 @@
 #include "sysmenu.h"
 
 #include "file.h"
-#include "user_interface.h"
-#include "program.h"
 #include "main.h"
 #include "object.h"
+#include "program.h"
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
+#include "target.h"
 #include "types.h"
+#include "user_interface.h"
 #include "util.h"
 #include "variables.h"
 
@@ -90,21 +91,21 @@ void about_dialog()
 
     // Header based on original system about
     lcd_for_calc(DISP_ABOUT);
-    lcd_putsAt(t24,4,"");
-    lcd_prevLn(t24);
 
-    // Display the main text
-    int h2 = lcd_lineHeight(t20)/2; // Extra spacing
-    lcd_setXY(t20, t24->x, t24->y + h2);
-    lcd_puts(t20, "DB48X v" PROGRAM_VERSION " (C) C. de Dinechin");
-    t20->y += h2;
-    lcd_puts(t20, "DMCP platform (C) SwissMicros GmbH");
-    lcd_puts(t20, "Intel Decimal Floating Point Lib v2.0u1");
-    lcd_puts(t20, "  (C) 2007-2018, Intel Corp.");
-
-    t20->y = LCD_Y - lcd_lineHeight(t20);
-    lcd_putsR(t20, "    Press EXIT key to continue...");
-
+    font_p font = LibMonoFont10x17;
+    coord x = 0;
+    coord y = LCD_H / 2 + 20;
+    size  h = font->height();
+    coord x2;
+    for (uint i = 0; i < 2; i++)
+        x2 = Screen.text(x + i, y, utf8("DB48X "), font, pattern::black);
+    Screen.text(x2, y, utf8("v" PROGRAM_VERSION " © C. de Dinechin"), font);
+    y += 2 * h;
+    Screen.text(x, y, utf8("Intel Decimal Floating Point Lib v2.0u1"), font);
+    y += h;
+    Screen.text(x, y, utf8(" © 2007-2018, Intel Corp."), font);
+    y += 2*h;
+    Screen.text(x, y, utf8("    Press EXIT key to continue..."), font);
     lcd_refresh();
 
     wait_for_key_press();
@@ -224,17 +225,13 @@ static bool state_save_variable(symbol_p name, object_p obj, void *renderer_ptr)
 }
 
 
-static int state_save_callback(cstring fpath,
-                                 cstring fname,
-                                 void       *)
+static int state_save_callback(cstring fpath, cstring fname, void *)
 // ----------------------------------------------------------------------------
 //   Callback when a file is selected
 // ----------------------------------------------------------------------------
 {
     // Display the name of the file being saved
-    lcd_puts(t24,"Saving state...");
-    lcd_puts(t24, fname);
-    lcd_refresh();
+    ui.draw_message("Saving state...", fname);
 
     // Store the state file name so that we automatically reload it
     set_reset_state_file(fpath);
@@ -308,32 +305,23 @@ static int state_save()
 
 
 static bool danger_will_robinson(cstring header,
-                                 cstring msg1,
-                                 cstring msg2 = "",
-                                 cstring msg3 = "",
-                                 cstring msg4 = "",
-                                 cstring msg5 = "",
-                                 cstring msg6 = "",
-                                 cstring msg7 = "")
+                                 cstring msg1 = nullptr,
+                                 cstring msg2 = nullptr,
+                                 cstring msg3 = nullptr,
+                                 cstring msg4 = nullptr,
+                                 cstring msg5 = nullptr)
 // ----------------------------------------------------------------------------
 //  Warn user about the possibility to lose calculator state
 // ----------------------------------------------------------------------------
 {
-    lcd_writeClr(t24);
-    lcd_clear_buf();
-    lcd_putsR(t24, header);
-    t24->ln_offs = 8;
+    utf8 msgs[] =
+    {
+        utf8(msg1), utf8(msg2), utf8(msg3), utf8(msg4), utf8(msg5),
+        utf8(""),
+        utf8("Press [ENTER] to confirm.")
+    };
 
-    lcd_puts(t24, msg1);
-    lcd_puts(t24, msg2);
-    lcd_puts(t24, msg3);
-    lcd_puts(t24, msg4);
-    lcd_puts(t24, msg5);
-    lcd_puts(t24, msg6);
-    lcd_puts(t24, msg7);
-    lcd_puts(t24, "Press [ENTER] to confirm.");
-    lcd_refresh();
-
+    ui.draw_message(utf8(header), sizeof(msgs)/sizeof(*msgs), msgs);
     wait_for_key_release(-1);
 
     while (true)
@@ -373,12 +361,8 @@ static int state_load_callback(cstring path, cstring name, void *merge)
     }
 
     // Display the name of the file being saved
-    lcd_writeClr(t24);
-    lcd_clear_buf();
-    lcd_putsR(t24, merge ? "Merge state" : "Load state");
-    lcd_puts(t24,"Loading state...");
-    lcd_puts(t24, name);
-    lcd_refresh();
+    ui.draw_message(merge ? "Merge state" : "Load state",
+                    "Loading state...", name);
 
     // Store the state file name
     file prog;
@@ -391,7 +375,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
     }
 
     // Loop on the input file and process it as if it was being typed
-    uint bytes = 0;
+    size_t bytes = 0;
     rt.clear();
 
     for (unicode c = prog.get(); c; c = prog.get())
@@ -424,11 +408,8 @@ static int state_load_callback(cstring path, cstring name, void *merge)
                 Settings.StoreAtEnd(store_at_end);
                 if (exec != object::OK)
                 {
-                    lcd_print(t24, "Error loading file");
-                    lcd_puts(t24, (cstring) rt.error());
-                    lcd_print(t24, "executing %s", rt.command());
-                    lcd_refresh();
-                    wait_for_key_press();
+                    ui.draw_error();
+                    refresh_dirty();
                     return 1;
                 }
 
@@ -442,12 +423,9 @@ static int state_load_callback(cstring path, cstring name, void *merge)
                 utf8 ed = editor;
 
                 Settings.StoreAtEnd(store_at_end);
-                lcd_print(t24, "Error at byte %u", pos - ed);
-                lcd_puts(t24, rt.error() ? (cstring) rt.error() : "");
-                lcd_refresh();
+                if (!rt.error())
+                    rt.syntax_error();
                 beep(3300, 100);
-                wait_for_key_press();
-
                 if (pos >= editor && pos <= ed + edlen)
                     ui.cursor_position(pos - ed);
                 if (!rt.edit(ed, edlen))
@@ -458,10 +436,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
         }
         else
         {
-            lcd_print(t24, "Out of memory");
-            lcd_refresh();
-            beep(3300, 100);
-            wait_for_key_press();
+            rt.out_of_memory_error();
             return 1;
         }
     }

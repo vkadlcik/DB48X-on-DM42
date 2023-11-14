@@ -2150,6 +2150,61 @@ bool user_interface::draw_error()
 }
 
 
+bool user_interface::draw_message(utf8 header, uint count, utf8 msgs[])
+// ----------------------------------------------------------------------------
+//   Draw an immediate message
+// ----------------------------------------------------------------------------
+{
+    font_p font   = LibMonoFont10x17;
+    size   h      = font->height();
+    size   ch     = h * 5 / 2 + h * count + 10;
+    coord  top    = HeaderFont->height() + 10;
+    size   height = ch < LCD_H / 3 ? LCD_H / 3 : ch;
+    size   width  = LCD_W - 8;
+    coord  x      = LCD_W / 2 - width / 2;
+    coord  y      = top;
+    rect   clip   = Screen.clip();
+    rect   r(x, y, x + width - 1, y + height - 1);
+
+    draw_dirty(r);
+    Screen.fill(r, pattern::gray50);
+    r.inset(1);
+    Screen.fill(r, pattern::white);
+    r.inset(1);
+    Screen.fill(r, pattern::black);
+    r.inset(2);
+    Screen.fill(r, pattern::white);
+    r.inset(2);
+
+    Screen.clip(r);
+    x = r.x1;
+    y = r.y1;
+
+    Screen.text(x+0, y, header, font);
+    Screen.text(x+1, y, header, font);
+    y += h * 3 / 2;
+
+    for (uint i = 0; i < count; i++)
+        if (msgs[i])
+            Screen.text(x, y + i * h, msgs[i], font);
+
+    Screen.clip(clip);
+    refresh_dirty();
+
+    return true;
+}
+
+
+bool user_interface::draw_message(cstring header, cstring msg1, cstring msg2)
+// ----------------------------------------------------------------------------
+//   Draw an immediate message in C string mode
+// ----------------------------------------------------------------------------
+{
+    utf8 msgs[] = { utf8(msg1), utf8(msg2) };
+    return draw_message(utf8(header), 2, msgs);
+}
+
+
 bool user_interface::draw_stack()
 // ----------------------------------------------------------------------------
 //   Redraw the stack if dirty

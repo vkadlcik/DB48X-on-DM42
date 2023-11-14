@@ -62,8 +62,28 @@ struct text : algebraic
             *p++ = *s++;
     }
 
+    text(id type, gcutf8 source, size_t len, size_t quotes): algebraic(type)
+    {
+        utf8 s = (utf8) source;
+        byte *p = (byte *) payload();
+        p = leb128(p, len - quotes);
+        while (len--)
+        {
+            *p = *s++;
+            if (*p != '"' || *s != '"')
+                p++;
+        }
+    }
+
     static size_t required_memory(id i, gcutf8 UNUSED str, size_t len)
     {
+        return leb128size(i) + leb128size(len) + len;
+    }
+
+    static size_t required_memory(id i, gcutf8 UNUSED str,
+                                  size_t len, size_t quotes)
+    {
+        len -= quotes;
         return leb128size(i) + leb128size(len) + len;
     }
 

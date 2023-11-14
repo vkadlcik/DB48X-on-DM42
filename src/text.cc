@@ -59,22 +59,34 @@ PARSE_BODY(text)
     if (*s++ != '"')
         return SKIP;
 
-    utf8 end = source + p.length;
-    while (s < end && *s != '"')
-        s++;
+    utf8   end    = source + p.length;
+    size_t quotes = 0;
+    bool   ok     = false;
+    while (s < end)
+    {
+        if (*s++ == '"')
+        {
+            if (s >= end || *s != '"')
+            {
+                ok = true;
+                break;
+            }
+            s++;
+            quotes++;
+        }
+    }
 
-    if (*s != '"')
+    if (!ok)
     {
         rt.unterminated_error().source(p.source);
         return ERROR;
     }
-    s++;
 
     size_t parsed = s - source;
     size_t slen   = parsed - 2;
     gcutf8 txt    = source + 1;
     p.end         = parsed;
-    p.out         = rt.make<text>(ID_text, txt, slen);
+    p.out         = rt.make<text>(ID_text, txt, slen, quotes);
 
     return p.out ? OK : ERROR;
 }
@@ -85,10 +97,18 @@ RENDER_BODY(text)
 //   Render the text into the given text buffer
 // ----------------------------------------------------------------------------
 {
-    size_t  len = 0;
-    utf8 txt = o->value(&len);
+    size_t len = 0;
+    gcutf8 txt = o->value(&len);
+    size_t off = 0;
     r.put('"');
-    r.put(txt, len);
+    while (off < len)
+    {
+        unicode c = utf8_codepoint(txt + off);
+        if (c == '"')
+            r.put('"');
+        r.put(c);
+        off += utf8_size(c);
+    }
     r.put('"');
     return r.size();
 }

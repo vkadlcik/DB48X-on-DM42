@@ -78,8 +78,8 @@
 #include "recorder.h"
 #include "types.h"
 
-#include <cstdio>
-#include <cstring>
+#include <stdio.h>
+#include <string.h>
 
 
 struct object;                  // RPL object

@@ -77,4 +77,36 @@ ERROR(malformed_local_program,  "Malformed local program")
 ERROR(invalid_setting,          "Invalid setting command")
 ERROR(screenshot_capture,       "Screenshot capture failed")
 
+// Filesystem errors
+#ifndef FRROR
+#define FRROR(name, msg, sys)   ERROR(name, msg)
+#endif
+
+ERROR(file_name_too_long,       "File name is too long")
+ERROR(invalid_magic_number,     "Invalid magic number")
+ERROR(incompatible_binary,      "Incompatible binary file")
+ERROR(invalid_object_in_file,   "File contains no valid object")
+ERROR(unable_to_allocate,       "Unable to allocate object")
+
+FRROR(disk_io_error,            "I/O error",                    DISK_ERR)
+FRROR(disk_assertion_failed,    "FatFS assertion failed",       INT_ERR)
+FRROR(disk_not_ready,           "FAT disk not ready",           NOT_READY)
+FRROR(file_not_found,           "File not found",               NO_FILE)
+FRROR(path_not_found,           "Path not found",               NO_PATH)
+FRROR(invalid_file_name,        "Invalid file name",            INVALID_NAME)
+FRROR(file_access_denied,       "File access denied",           DENIED)
+FRROR(file_already_exists,      "File exists",                  EXIST)
+FRROR(invalid_file_object,      "Invalid file object",          INVALID_OBJECT)
+FRROR(write_protected,          "File is write-protected",      WRITE_PROTECTED)
+FRROR(invalid_drive,            "Invalid drive number",         INVALID_DRIVE)
+FRROR(file_not_enabled,         "File/volume is not enabled",   NOT_ENABLED)
+FRROR(no_filesystem,            "No valid filesystem",          NO_FILESYSTEM)
+FRROR(file_system_not_created,  "Filesystem was not created",   MKFS_ABORTED)
+FRROR(file_system_timeout,      "Timeout accessing the file",   TIMEOUT)
+FRROR(file_locked,              "File is locked",               LOCKED)
+FRROR(file_out_of_memory,       "File system out of memory",    NOT_ENOUGH_CORE)
+FRROR(too_many_open_files,      "Too many open files",          TOO_MANY_OPEN_FILES)
+FRROR(invalid_file_parameter,   "Invalid file parameter",       INVALID_PARAMETER)
+
 #undef ERROR
+#undef FRROR

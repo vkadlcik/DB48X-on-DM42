@@ -28,9 +28,14 @@
 // ****************************************************************************
 
 #include "file.h"
+
 #include "ff_ifc.h"
 #include "recorder.h"
+#include "text.h"
 #include "utf8.h"
+
+#include <unistd.h>
+
 
 
 RECORDER(file,          16, "File operations");
@@ -93,6 +98,31 @@ file::file(cstring path, bool writing)
 }
 
 
+file::file(text_p name, bool writing)
+// ----------------------------------------------------------------------------
+//   Open a file from a text value
+// ----------------------------------------------------------------------------
+    : data()
+{
+    char   buf[80];
+    size_t len  = 0;
+    utf8   path = name->value(&len);
+    if (len < sizeof(buf))
+    {
+        memcpy(buf, path, len);
+        buf[len] = 0;
+        if (writing)
+            open_for_writing(buf);
+        else
+            open(buf);
+    }
+    else
+    {
+        rt.file_name_too_long_error();
+    }
+}
+
+
 file::~file()
 // ----------------------------------------------------------------------------
 //   Close the help file
@@ -110,10 +140,7 @@ void file::open(cstring path)
 #if SIMULATOR
     data = fopen(path, "r");
     if (!data)
-    {
         record(file_error, "Error %s opening %s", strerror(errno), path);
-        return;
-    }
 #else
     FRESULT ok = f_open(&data, path, FA_READ);
     data.err = ok;
@@ -213,6 +240,20 @@ bool file::write(const char *buf, size_t len)
 }
 
 
+bool file::read(char *buf, size_t len)
+// ----------------------------------------------------------------------------
+//   Read data from a file
+// ----------------------------------------------------------------------------
+{
+#if SIMULATOR
+    return fread(buf, 1, len, data) == len;
+#else
+    UINT bw = 0;
+    return f_read(&data, buf, len, &bw) == FR_OK && bw == len;
+#endif
+}
+
+
 char file::getchar()
 // ----------------------------------------------------------------------------
 //   Read char code at offset
@@ -288,4 +329,73 @@ uint file::rfind(unicode  cp)
     }
     while (c != cp);
     return off;
+}
+
+
+cstring file::error(int err) const
+// ----------------------------------------------------------------------------
+//   Return error from error code
+// ----------------------------------------------------------------------------
+{
+#ifdef SIMULATOR
+    return strerror(err);
+#else
+    switch (err)
+    {
+    case FR_OK:
+        return nullptr;
+
+#define ERROR(name, msg)
+#define FRROR(name, msg, sys)   case FR_##sys: return msg; break;
+#include "errors.tbl"
+
+    default: break;
+    }
+    return "Unkown error";
+#endif // SIMULATOR
+}
+
+
+cstring file::error() const
+// ----------------------------------------------------------------------------
+//   Return error from errno or data.err
+// ----------------------------------------------------------------------------
+{
+#ifdef SIMULATOR
+    return error(errno);
+#else
+    return error(data.err);
+#endif
+}
+
+
+bool file::unlink(text_p name)
+// ----------------------------------------------------------------------------
+//   Purge (unlink) a file
+// ----------------------------------------------------------------------------
+{
+    char   buf[80];
+    size_t len  = 0;
+    utf8   path = name->value(&len);
+    if (len < sizeof(buf))
+    {
+        memcpy(buf, path, len);
+        buf[len] = 0;
+        return unlink(buf);
+    }
+    rt.file_name_too_long_error();
+    return false;
+}
+
+
+bool file::unlink(cstring file)
+// ----------------------------------------------------------------------------
+//   Purge (unlink) a file
+// ----------------------------------------------------------------------------
+{
+#ifdef SIMULATOR
+    return ::unlink(file) == 0;
+#else // !SIMULATOR
+    return f_unlink(file) == FR_OK;
+#endif // SIMULATOR
 }

@@ -31,6 +31,7 @@
 
 #include "command.h"
 #include "expression.h"
+#include "files.h"
 #include "integer.h"
 #include "list.h"
 #include "locals.h"
@@ -443,14 +444,25 @@ COMMAND_BODY(Sto)
         symbol_p name = x->as_quoted<symbol>();
         if (!name)
         {
-            rt.invalid_name_error();
+            text_g tname = x->as<text>();
+            if (!tname)
+            {
+                rt.invalid_name_error();
+                return ERROR;
+            }
+            object_g value = y;
+            files_g disk = files::make("data");
+            if (disk->store(tname, value))
+            {
+                rt.drop(2);
+                return OK;
+            }
             return ERROR;
         }
 
         if (dir->store(name, y))
         {
-            rt.drop();
-            rt.drop();
+            rt.drop(2);
             return OK;
         }
     }
@@ -482,7 +494,16 @@ COMMAND_BODY(Rcl)
     symbol_p name = x->as_quoted<symbol>();
     if (!name)
     {
-        rt.invalid_name_error();
+        text_g tname = x->as<text>();
+        if (!tname)
+        {
+            rt.invalid_name_error();
+            return ERROR;
+        }
+        files_g disk = files::make("data");
+        if (object_p value = disk->recall(tname))
+            if (rt.top(value))
+                return OK;
         return ERROR;
     }
 
@@ -513,10 +534,17 @@ COMMAND_BODY(Purge)
     symbol_g name = x->as_quoted<symbol>();
     if (!name)
     {
-        rt.invalid_name_error();
-        return ERROR;
+        text_p tname = x->as<text>();
+        if (!tname)
+        {
+            rt.invalid_name_error();
+            return ERROR;
+        }
+        files_g disk = files::make("data");
+        disk->purge(tname);
+        rt.drop();
+        return OK;
     }
-    rt.pop();
 
     // Lookup all directorys, starting with innermost one
     directory *dir = rt.variables(0);
@@ -528,6 +556,7 @@ COMMAND_BODY(Purge)
 
     // Purge the object (HP48 doesn't error out if name does not exist)
     dir->purge(name);
+    rt.drop();
     return OK;
 }
 

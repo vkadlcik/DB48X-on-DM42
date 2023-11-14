@@ -605,6 +605,8 @@ list_g list::map(algebraic_r x, arithmetic_fn fn) const
         {
             list_g sub = list_p(obj)->map(x, fn);
             obj = sub.Safe();
+            if (!obj)
+                return nullptr;
         }
         else
         {

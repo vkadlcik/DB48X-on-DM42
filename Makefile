@@ -230,6 +230,7 @@ CXX_SOURCES +=				\
 	src/conditionals.cc		\
 	src/font.cc			\
 	src/tag.cc			\
+	src/files.cc			\
 	src/graphics.cc			\
 	src/grob.cc			\
 	src/plot.cc			\

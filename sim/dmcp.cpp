@@ -44,6 +44,8 @@
 #include <QFileDialog>
 #include <QSettings>
 #include <iostream>
+#include <sys/stat.h>
+
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
@@ -1019,4 +1021,10 @@ cstring get_month_shortcut(int month)
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };
     return name[month];
+}
+
+
+int check_create_dir(const char * dir)
+{
+    return mkdir(dir, 0777);
 }

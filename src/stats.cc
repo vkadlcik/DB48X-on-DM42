@@ -43,8 +43,8 @@ StatsParameters::StatsParameters()
 //   Default values
 // ----------------------------------------------------------------------------
     : model(command::ID_LinearFit),
-      xcol(integer::make(1)),
-      ycol(integer::make(2)),
+      xcol(1),
+      ycol(2),
       intercept(integer::make(0)),
       slope(integer::make(0))
 {
@@ -68,10 +68,12 @@ bool StatsParameters::parse(list_g parms)
         switch(index)
         {
         case 0:
-            xcol = obj->algebraic_child(0);
+            if (object_p xc = obj->algebraic_child(0))
+                xcol = xc->as_uint32(1, true);
             break;
         case 1:
-            ycol = obj->algebraic_child(1);
+            if (object_p yc = obj->algebraic_child(1))
+                ycol = yc->as_uint32(2, true);
             break;
         case 2:
             intercept = obj->algebraic_child(2);
@@ -126,7 +128,7 @@ bool StatsParameters::parse()
 //   Check if we have StatsParameters or PPAR
 // ----------------------------------------------------------------------------
 {
-    return parse("StatsParameters") || parse("ΣPAR");
+    return parse("ΣParameters") || parse("ΣPAR");
 }
 
 

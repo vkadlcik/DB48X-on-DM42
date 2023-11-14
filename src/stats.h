@@ -30,6 +30,7 @@
 // ****************************************************************************
 
 #include "algebraic.h"
+#include "array.h"
 #include "command.h"
 #include "list.h"
 #include "symbol.h"
@@ -38,18 +39,39 @@
 
 struct StatsParameters
 // ----------------------------------------------------------------------------
-//   A replication of the StatsParameters / ΣPAR vaariable
+//   A replication of the ΣParameters / ΣPAR variable
 // ----------------------------------------------------------------------------
 {
     StatsParameters();
 
     object::id  model;
-    algebraic_g xcol;
-    algebraic_g ycol;
+    size_t      xcol;
+    size_t      ycol;
     algebraic_g intercept;
     algebraic_g slope;
 
     bool parse(list_g list);
+    bool parse(symbol_g name);
+    bool parse(cstring name);
+    bool parse();
+};
+
+
+struct StatsData
+// ----------------------------------------------------------------------------
+//   Helper to access the ΣData / ΣDAT variable
+// ----------------------------------------------------------------------------
+{
+    StatsData();
+    ~StatsData();
+
+    text_g      file;
+    symbol_g    variable;
+    array_g     data;
+    size_t      columns;
+    size_t      rows;
+
+    bool parse(array_g data);
     bool parse(symbol_g name);
     bool parse(cstring name);
     bool parse();

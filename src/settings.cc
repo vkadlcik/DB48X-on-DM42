@@ -40,6 +40,7 @@
 #include "renderer.h"
 #include "symbol.h"
 #include "user_interface.h"
+#include "variables.h"
 
 #include <cstdarg>
 #include <cstdlib>
@@ -207,6 +208,13 @@ COMMAND_BODY(ResetModes)
 }
 
 
+
+// ============================================================================
+//
+//    Font management
+//
+// ============================================================================
+
 font_p settings::font(font_id size)
 // ----------------------------------------------------------------------------
 //   Return a font based on a font size
@@ -261,7 +269,6 @@ font_p settings::cursor_font(font_id size)
 }
 
 
-
 unicode settings::digit_separator(uint index)
 // ----------------------------------------------------------------------------
 //   Find the digit separator from
@@ -273,6 +280,13 @@ unicode settings::digit_separator(uint index)
     return sep[index];
 }
 
+
+
+// ============================================================================
+//
+//   Setting a value in settings
+//
+// ============================================================================
 
 template<>
 ularge setting_value<ularge>(object_p obj, ularge init)
@@ -331,6 +345,29 @@ EVAL_BODY(value_setting)
 }
 
 
+bool settings::store(object::id name, object_p value)
+// ----------------------------------------------------------------------------
+//   Store settings and special variables such as ΣData
+// ----------------------------------------------------------------------------
+{
+    switch(name)
+    {
+        // For all settings, 'store' is much like running it
+#define ID(n)
+#define SETTING(Name, Low, High, Init)          case ID_##Name:
+#include "ids.tbl"
+        if (rt.push(value))
+            return command::static_object(name)->evaluate() == object::OK;
+        return false;
+
+    default:
+        break;
+    }
+    return false;
+}
+
+
+
 template <typename Value>
 static object_p object_from_value(Value value)
 // ----------------------------------------------------------------------------
@@ -353,43 +390,64 @@ object_p object_from_value<object::id>(object::id value)
 }
 
 
-
-EVAL_BODY(recall_setting)
+object_p settings::recall(object::id name)
 // ----------------------------------------------------------------------------
 //   Recall the value of a setting
 // ----------------------------------------------------------------------------
 {
-    id       ty  = o->type();
-    id       rty = ID_object;
-    object_p obj = nullptr;
+    object::id rty = ID_object;
+    object_p   obj = nullptr;
 
-    switch (ty)
+    switch (name)
     {
 #define ID(i)
-#define FLAG(Enable, Disable)                           \
-    case ID_Recall##Enable:                             \
-        rty = Settings.Enable() ? ID_True : ID_False;   \
-        break;                                          \
-    case ID_Recall##Disable:                            \
+#define FLAG(Enable, Disable)                                   \
+        case ID_##Enable:                                       \
+            rty = Settings.Enable() ? ID_True : ID_False;       \
+            break;                                              \
+    case ID_##Disable:                                          \
         rty = Settings.Disable() ? ID_True : ID_False;
 
 #define SETTING(Name, Low, High, Init)                          \
-        case ID_Recall##Name:                                   \
+        case ID_##Name:                                         \
             obj = object_from_value(Settings.Name());           \
             break;
 #include "ids.tbl"
 
     default:
-        rt.invalid_setting_error();
-        return ERROR;
+        return nullptr;
     }
 
     if (rty)
         obj = command::static_object(rty);
-    if (!obj || rt.push(obj))
-        return ERROR;
+    return obj;
+}
 
-    return OK;
+
+bool settings::purge(object::id name)
+// ----------------------------------------------------------------------------
+//   Purging a setting returns it to initial value
+// ----------------------------------------------------------------------------
+{
+    switch(name)
+    {
+        // For all settings, 'store' is much like running it
+#define ID(n)
+#define SETTING(Name, Low, High, Init)          \
+    case ID_##Name:                             \
+        Settings.Name(Init);                    \
+        break;
+#define FLAG(Enable, Disable)                   \
+    case ID_##Enable:                           \
+    case ID_##Disable:                          \
+        Settings.Disable();                     \
+        break;
+#include "ids.tbl"
+
+    default:
+        return false;
+    }
+    return true;
 }
 
 
@@ -465,4 +523,14 @@ cstring setting::label(object::id ty)
         break;
     }
     return cstring(object::fancy(ty));
+}
+
+
+COMMAND_BODY(RecallWordSize)
+// ----------------------------------------------------------------------------
+//   There is a dedicated rcws command
+// ----------------------------------------------------------------------------
+{
+    integer_p ws = integer::make(Settings.WordSize());
+    return (ws && rt.push(ws)) ? OK : ERROR;
 }

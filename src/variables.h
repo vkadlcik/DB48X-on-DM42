@@ -91,12 +91,12 @@ struct directory : list
     //    Store an object in the directory
     // ------------------------------------------------------------------------
 
-    object_p recall(symbol_p name) const;
+    object_p recall(object_p name) const;
     // ------------------------------------------------------------------------
     //    Check if a name exists in the directory, return value pointer if it does
     // ------------------------------------------------------------------------
 
-    static object_p recall_all(symbol_p name);
+    static object_p recall_all(object_p name);
     // ------------------------------------------------------------------------
     //    Check if a name exists in the directory, return value pointer if it does
     // ------------------------------------------------------------------------
@@ -111,6 +111,11 @@ struct directory : list
     //   Purge an entry from the directory, return purged size
     // ------------------------------------------------------------------------
 
+    static size_t purge_all(object_p name);
+    // ------------------------------------------------------------------------
+    //   Purge an entry from the directory and parents
+    // ------------------------------------------------------------------------
+
     size_t count() const
     // ------------------------------------------------------------------------
     //   Return the number of variables in the directory
@@ -119,13 +124,29 @@ struct directory : list
         return enumerate(nullptr, nullptr);
     }
 
-    typedef bool (*enumeration_fn)(symbol_p name, object_p obj, void *arg);
+    object_p name(uint element) const;
+    // ------------------------------------------------------------------------
+    //   Return the n-th name in the directory
+    // ------------------------------------------------------------------------
+
+    object_p value(uint element) const;
+    // ------------------------------------------------------------------------
+    //   Return the n-th value in the directory
+    // ------------------------------------------------------------------------
+
+    bool find(uint element, object_p &name, object_p &value) const;
+    // ------------------------------------------------------------------------
+    //   Return the n-th value in the directory
+    // ------------------------------------------------------------------------
+
+
+    typedef bool (*enumeration_fn)(object_p name, object_p obj, void *arg);
     size_t enumerate(enumeration_fn callback, void *arg) const;
     // ------------------------------------------------------------------------
     //   Enumerate all the variables in the directory, return count of true
     // ------------------------------------------------------------------------
 
-    static bool render_name(symbol_p name, object_p obj, void *renderer_ptr);
+    static bool render_name(object_p name, object_p obj, void *renderer_ptr);
     // ------------------------------------------------------------------------
     //   Render an entry in the directory
     // ------------------------------------------------------------------------

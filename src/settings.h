@@ -188,6 +188,10 @@ public:
     }
 
     void save(renderer &out, bool show_defaults = false);
+
+    static bool     store(object::id name, object_p value);
+    static object_p recall(object::id name);
+    static bool     purge(object::id name);
 };
 
 
@@ -248,16 +252,6 @@ struct setting : command
 };
 
 
-struct recall_setting : command
-// ----------------------------------------------------------------------------
-//   Recall the value of a setting
-// ----------------------------------------------------------------------------
-{
-    recall_setting(id type) : command(type) {}
-    EVAL_DECL(recall_setting);
-};
-
-
 struct value_setting : setting
 // ----------------------------------------------------------------------------
 //   Use a setting value
@@ -299,20 +293,6 @@ struct Disable : setting                                \
     {                                                   \
         return Settings.Disable();                      \
     }                                                   \
-};                                                      \
-                                                        \
-struct Recall##Enable : recall_setting                  \
-{                                                       \
-    Recall##Enable(id ty = ID_##Recall##Enable)         \
-    : recall_setting(ty) {}                             \
-    OBJECT_DECL(Recall##Enable);                        \
-};                                                      \
-                                                        \
-struct Recall##Disable : recall_setting                 \
-{                                                       \
-    Recall##Disable(id ty = ID_##Recall##Disable)       \
-    : recall_setting(ty) {}                             \
-    OBJECT_DECL(Recall##Disable);                       \
 };
 
 
@@ -332,12 +312,6 @@ struct Name : setting                                                   \
         update(ID_##Name);                                              \
         return OK;                                                      \
     }                                                                   \
-};                                                                      \
-                                                                        \
-struct Recall##Name : recall_setting                                    \
-{                                                                       \
-    Recall##Name(id i = ID_##Recall##Name): recall_setting(i) {}        \
-    OBJECT_DECL(Recall##Name);                                          \
 };
 
 #define SETTING_VALUE(Name, Alias, Base, Value)                 \
@@ -356,5 +330,6 @@ struct Recall##Name : recall_setting                                    \
 
 COMMAND_DECLARE(Modes);
 COMMAND_DECLARE(ResetModes);
+COMMAND_DECLARE(RecallWordSize);
 
 #endif // SETTINGS_H

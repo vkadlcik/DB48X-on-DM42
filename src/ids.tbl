@@ -62,12 +62,12 @@
 
 #ifndef FLAG
 #define FLAG(Enable, Disable)                                           \
-    ID(Enable) ID(Disable) ID(Recall##Enable) ID(Recall##Disable)
+    ID(Enable) ID(Disable)
 #endif // FLAG
 
 #ifndef SETTING
 #define SETTING(Name, Low, High, Init)                                  \
-        ID(Name) ID(Recall##Name)
+        ID(Name)
 #endif
 
 #ifndef SETTING_BITS
@@ -605,8 +605,8 @@ SETTING_ENUM(BasedUnderscore,   nullptr,        BasedSeparatorCommand)
 SETTING_BITS(BasedSeparatorCommand,  2, ID_BasedSpaces,  ID_BasedUnderscore,  ID_BasedSpaces)
 
 SETTING(WordSize,               1U, 256U * 1024U,       512U)
-ALIAS(RecallWordSize,           "rcws")
 ALIAS(WordSize,                 "stws")
+OP(RecallWordSize,              "rcws")
 SETTING(MaxBigNumBits,          1U, 256U * 1024U,       512U)
 SETTING(MaxRewrites,            1U, 10000U,             100U)
 SETTING(FractionIterations,     1U, 10000U,             10U)

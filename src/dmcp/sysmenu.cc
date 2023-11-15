@@ -207,14 +207,14 @@ const smenu_t state_menu =
 };
 
 
-static bool state_save_variable(symbol_p name, object_p obj, void *renderer_ptr)
+static bool state_save_variable(object_p name, object_p obj, void *renderer_ptr)
 // ----------------------------------------------------------------------------
 //   Emit Object 'Name' STO for each object in the top level directory
 // ----------------------------------------------------------------------------
 {
     renderer &r = *((renderer *) renderer_ptr);
 
-    symbol_g  n = name;
+    object_g  n = name;
     object_g  o = obj;
 
     o->render(r);

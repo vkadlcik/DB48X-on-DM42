@@ -600,7 +600,7 @@ struct blitter
         //   Draw a text with a foreground and background
         // --------------------------------------------------------------------
 
-        template <clipping Clip = CLIP_DST>
+        template <clipping Clip = FILL_SAFE>
         void line(coord   x1,
                   coord   y1,
                   coord   x2,
@@ -611,7 +611,7 @@ struct blitter
         //   Draw a line between the given coordinates
         // --------------------------------------------------------------------
 
-        template <clipping Clip = CLIP_DST>
+        template <clipping Clip = FILL_SAFE>
         void ellipse(coord   x1,
                      coord   y1,
                      coord   x2,
@@ -622,7 +622,7 @@ struct blitter
         //   Draw an ellipse with the given coordinates
         // --------------------------------------------------------------------
 
-        template <clipping Clip = CLIP_DST>
+        template <clipping Clip = FILL_SAFE>
         void circle(coord x, coord y, size r, size width, pattern fg)
         // --------------------------------------------------------------------
         //   Draw a circle with the given coordinates
@@ -636,7 +636,7 @@ struct blitter
                     fg);
         }
 
-        template <clipping Clip = CLIP_DST>
+        template <clipping Clip = FILL_SAFE>
         void rectangle(coord x1, coord y1,
                        coord x2, coord y2,
                        size width, pattern fg)
@@ -647,7 +647,7 @@ struct blitter
             rounded_rectangle(x1, y1, x2, y2, 0, width, fg);
         }
 
-        template <clipping Clip = CLIP_DST>
+        template <clipping Clip = FILL_SAFE>
         void rounded_rectangle(coord x1, coord y1,
                                coord x2, coord y2,
                                size r, size width, pattern fg);
@@ -1478,6 +1478,7 @@ void blitter::blit(Dst           &dst,
                 {
                     sp += xdir;
                     smem = snew;
+                    ASSERT(sp >= src.pixels);
                     snew = sp[0];
                 }
 
@@ -1499,6 +1500,8 @@ void blitter::blit(Dst           &dst,
                 cdata64 = rotate(cdata64, cxs);
             }
 
+            ASSERT(dp >= dst.pixels);
+            ASSERT(dp <= dst.pixels + (dst.scanline * dst.height + (BPW-1)) / BPW);
             pixword ddata = dp[0];
             pixword tdata = op(ddata, sdata, cdata);
             *dp           = (tdata & dmask) | (ddata & ~dmask);

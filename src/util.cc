@@ -96,3 +96,12 @@ bool screenshot()
 
     return true;
 }
+
+
+void assertion_failed(const char *msg)
+// ----------------------------------------------------------------------------
+//   Function to make it easier to put a breakpoint somewhere
+// ----------------------------------------------------------------------------
+{
+    record(assert_error, "Assertion failed: %s", msg);
+}

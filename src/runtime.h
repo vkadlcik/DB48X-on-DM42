@@ -834,21 +834,22 @@ struct runtime
         return ErrorSave;
     }
 
-    runtime &source(utf8 spos)
+    runtime &source(utf8 spos, size_t len = 0)
     // ------------------------------------------------------------------------
     //   Set the source location for the current error
     // ------------------------------------------------------------------------
     {
         ErrorSource = spos;
+        ErrorSrcLen = len;
         return *this;
     }
 
-    runtime &source(cstring spos)
+    runtime &source(cstring spos, size_t len = 0)
     // ------------------------------------------------------------------------
     //   Set the source location for the current error
     // ------------------------------------------------------------------------
     {
-        return source(utf8(spos));
+        return source(utf8(spos), len);
     }
 
     utf8 source()
@@ -857,6 +858,14 @@ struct runtime
     // ------------------------------------------------------------------------
     {
         return ErrorSource;
+    }
+
+    size_t source_length()
+    // ------------------------------------------------------------------------
+    //   Get the length of text for the problem
+    // ------------------------------------------------------------------------
+    {
+        return ErrorSrcLen;
     }
 
     runtime &command(utf8 cmd);
@@ -915,6 +924,7 @@ protected:
     utf8      Error;        // Error message if any
     utf8      ErrorSave;    // Last error message (for ERRM)
     utf8      ErrorSource;  // Source of the error if known
+    size_t    ErrorSrcLen;  // Length of error in source
     utf8      ErrorCommand; // Source of the error if known
     object_p  LowMem;       // Bottom of available memory
     object_p  Globals;      // End of global objects

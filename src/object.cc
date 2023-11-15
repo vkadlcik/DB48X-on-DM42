@@ -128,9 +128,10 @@ object_p object::parse(utf8 source, size_t &size, int precedence)
     size -= skipped;
 
     parser p(source, size, precedence);
-    utf8   err = nullptr;
-    utf8   src = source;
-    result r   = SKIP;
+    utf8   err  = nullptr;
+    utf8   src  = source;
+    size_t slen = 0;
+    result r    = SKIP;
 
     // Try parsing with the various handlers
     do
@@ -159,6 +160,7 @@ object_p object::parse(utf8 source, size_t &size, int precedence)
             {
                 err = rt.error();
                 src = rt.source();
+                slen = rt.source_length();
                 rt.clear_error();
                 r = SKIP;
             }
@@ -171,9 +173,9 @@ object_p object::parse(utf8 source, size_t &size, int precedence)
     if (r == SKIP)
     {
         if (err)
-            rt.error(err).source(src);
+            rt.error(err).source(src, slen);
         else
-            rt.syntax_error().source(p.source);
+            rt.syntax_error().source(p.source, size);
     }
 
     return r == OK ? p.out : nullptr;

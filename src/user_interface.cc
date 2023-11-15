@@ -334,10 +334,12 @@ bool user_interface::end_edit()
             else
             {
                 // Move cursor to error if there is one
-                utf8 pos = rt.source();
-                utf8 ed = editor;
+                utf8   pos  = rt.source();
+                utf8   ed   = editor;
+                size_t slen = rt.source_length();
                 if (pos >= editor && pos <= ed + edlen)
-                    cursor = select = pos - ed;
+                    cursor = pos - ed;
+                select = slen ? cursor + slen : ~0U;
                 if (!rt.edit(ed, edlen))
                 {
                     cursor = 0;

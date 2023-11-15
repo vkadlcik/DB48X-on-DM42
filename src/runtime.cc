@@ -65,6 +65,7 @@ runtime::runtime(byte *mem, size_t size)
     : Error(nullptr),
       ErrorSave(nullptr),
       ErrorSource(nullptr),
+      ErrorSrcLen(0),
       ErrorCommand(nullptr),
       LowMem(),
       Globals(),

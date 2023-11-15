@@ -56,50 +56,79 @@ settings Settings;
 //
 // ============================================================================
 
-template<typename Obj, typename T>
-static void format(settings UNUSED &s, renderer &out,
-                   cstring command, T value)
+static void format(settings UNUSED &s,
+                   renderer        &out,
+                   cstring          command,
+                   object::id       value)
+// ----------------------------------------------------------------------------
+//   Print ids as commands
+// ----------------------------------------------------------------------------
+{
+    out.printf("'%s' %s\n", command::fancy(value), command);
+}
+
+
+static void format(settings UNUSED &s,
+                   renderer        &out,
+                   cstring          command,
+                   unsigned         value)
 // ----------------------------------------------------------------------------
 //   By default, we print values as integers
 // ----------------------------------------------------------------------------
 {
-    out.printf("%d %s\n", int(value), command);
+    out.printf("%u %s\n", value, command);
 }
 
 
-template<>
-void format<Foreground,ularge>(settings UNUSED &s, renderer &out,
-                               cstring command, ularge value)
+static void format(settings UNUSED &s,
+                   renderer        &out,
+                   cstring          command,
+                   int              value)
 // ----------------------------------------------------------------------------
-//   Format foreground output
+//   By default, we print values as integers
+// ----------------------------------------------------------------------------
+{
+    out.printf("%d %s\n", value, command);
+}
+
+
+static void format(settings UNUSED &s,
+                   renderer        &out,
+                   cstring          command,
+                   ularge           value)
+// ----------------------------------------------------------------------------
+//   When we have 64-bit values, print them in hex (Foreground / Background)
 // ----------------------------------------------------------------------------
 {
     out.printf("16#%llX %s\n", value, command);
 }
 
 
-template<>
-void format<Background,ularge>(settings UNUSED &s, renderer &out,
-                               cstring command, ularge value)
+static void format(settings UNUSED &s, renderer &out, cstring command)
 // ----------------------------------------------------------------------------
-//   Format background output
+//   Case of SETTING_VALUE
 // ----------------------------------------------------------------------------
 {
-    out.printf("16#%llX %s\n", value, command);
+    out.printf("%s\n", command);
 }
 
 
-template<>
-void format<DisplayMode,object::id>(settings &s, renderer &out,
-                                    cstring command, object::id value)
+static void format(settings &s, renderer &out, object::id type, cstring command)
 // ----------------------------------------------------------------------------
-//   Format background output
+//   Case of SETTING_ENUM
 // ----------------------------------------------------------------------------
 {
-    if (value == object::ID_Std)
-        out.printf("%s\n", value, command);
-    else
-        out.printf("%d %s\n", s.DisplayDigits(), command);
+    switch (type)
+    {
+        // The FIX, SCI, ENG and SIG commands take an argument
+    case object::ID_Fix:
+    case object::ID_Sci:
+    case object::ID_Eng:
+    case object::ID_Sig:
+        out.printf("%u %s\n", s.DisplayDigits(), command);
+        break;
+    default: out.printf("%s\n", command); break;
+    }
 }
 
 
@@ -120,7 +149,18 @@ void settings::save(renderer &out, bool show_defaults)
 
 #define SETTING(Name, Low, High, Init)                                  \
     if (Name() != Defaults.Name() || show_defaults)                     \
-        format<struct Name, typeof(Name())>(*this, out, #Name, Name());
+        format(*this, out, #Name, Name());
+
+#define SETTING_VALUE(Name, Alias, Base, Value)                         \
+    if (Base() == Value && (Value != Defaults.Base() || show_defaults)) \
+        format(*this, out, #Name);                                      \
+    else
+
+#define SETTING_ENUM(Name, Alias, Base)                          \
+    if (Base() == ID_##Name &&                                   \
+        (ID_##Name != Defaults.Base() || show_defaults))         \
+        format(*this, out, ID_##Name, #Name);                    \
+    else
 
 #include "ids.tbl"
 
@@ -244,6 +284,18 @@ ularge setting_value<ularge>(object_p obj, ularge init)
 }
 
 
+template<>
+object::id setting_value<object::id>(object_p obj, object::id UNUSED init)
+// ----------------------------------------------------------------------------
+//   Specialization for the object::id type
+// ----------------------------------------------------------------------------
+{
+    if (object_p quote = obj->as_quoted(object::ID_object))
+        return quote->type();
+    return obj->type();
+}
+
+
 EVAL_BODY(value_setting)
 // ----------------------------------------------------------------------------
 //   Evaluate a value setting by invoking the base command
@@ -257,7 +309,6 @@ EVAL_BODY(value_setting)
         if (!validate(ty, digits, 0U, DB48X_MAXDIGITS))
             return ERROR;
         Settings.DisplayDigits(digits);
-
     }
     else if (ty == ID_Std)
     {
@@ -409,7 +460,6 @@ cstring setting::label(object::id ty)
         return printf("Bits %u", s.MaxBigNumBits());
     case ID_MaxRewrites:
         return printf("Rwr %u", s.MaxRewrites());
-
 
     default:
         break;

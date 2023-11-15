@@ -202,6 +202,9 @@ T setting_value(object_p obj, T init)
 template <>
 ularge setting_value<ularge>(object_p obj, ularge init);
 
+template <>
+object::id setting_value<object::id>(object_p obj, object::id init);
+
 
 struct setting : command
 // ----------------------------------------------------------------------------

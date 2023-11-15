@@ -65,10 +65,6 @@ PARSE_BODY(command)
     id      i      = p.candidate;
     bool    eq     = p.precedence;
 
-    // If we are parsing an equation, only accept algebraic command
-    if (eq && !is_algebraic(i))
-        return SKIP;
-
     id      found  = id(0);
     cstring ref    = cstring(utf8(p.source));
     size_t  maxlen = p.length;
@@ -97,7 +93,8 @@ PARSE_BODY(command)
             if (len <= maxlen
                 && strncasecmp(ref, cmd, len) == 0
                 && (len >= maxlen
-                    || (eq && !is_valid_as_name_initial(utf8(cmd)))
+                    || (eq && (!is_valid_as_name_initial(utf8(cmd)) ||
+                               !is_valid_as_name_initial(utf8(ref + len))))
                     || is_separator(utf8(ref + len))))
                 found = id(i);
         }

@@ -68,6 +68,9 @@ object::result list::list_parse(id type,
     bool     negate     = false;
     int      precedence = p.precedence;
     int      lowest     = precedence;
+    size_t   objcount   = 0;
+    size_t   non_alg    = 0;
+    size_t   non_alg_len= 0;
 
     record(list, "Parse %+s %lc%lc precedence %d length %u [%s]",
            p.child ? "top-level" : "child", open, close, precedence, max,
@@ -203,8 +206,13 @@ object::result list::list_parse(id type,
                 id type = obj->type();
                 if (!is_algebraic(type))
                 {
-                    rt.prefix_expected_error();
-                    return ERROR;
+                    if (objcount)
+                    {
+                        rt.prefix_expected_error().source(s, length);
+                        return ERROR;
+                    }
+                    non_alg = s.Safe() - p.source.Safe();
+                    non_alg_len = length;
                 }
 
                 // TODO: A symbol could be a function, need to deal with that
@@ -240,6 +248,7 @@ object::result list::list_parse(id type,
             do
             {
                 record(list_parse, "Copying %t to scratchpad", object_p(obj));
+                objcount++;
 
                 size_t objsize = obj->size();
 
@@ -252,6 +261,7 @@ object::result list::list_parse(id type,
                 if (!objcopy)
                     return ERROR;
                 memmove(objcopy, (byte *) obj, objsize);
+
                 if (prefix)
                 {
                     obj = prefix;
@@ -297,12 +307,18 @@ object::result list::list_parse(id type,
         return ERROR;
     }
 
+    if (non_alg && objcount != 1)
+    {
+        rt.syntax_error().source(p.source + non_alg, non_alg_len);
+        return ERROR;
+    }
+
     // Check that we have a matching closing character
     if (close && cp != close && !p.child)
     {
         record(list_error, "Missing terminator, got %u (%c) not %u (%c) at %s",
                cp, cp, close, close, utf8(s));
-        rt.unterminated_error().source(p.source);
+        rt.unterminated_error().source(p.source, s.Safe() - p.source.Safe());
         return ERROR;
     }
 

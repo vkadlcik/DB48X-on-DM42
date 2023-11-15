@@ -114,14 +114,14 @@ struct expression : program
     expression_p collect() const;
     expression_p simplify() const;
     expression_p as_difference_for_solve() const; // Transform A=B into A-B
-    object_p   outermost_operator() const;
-    size_t     render(renderer &r, bool quoted = false) const
+    object_p     outermost_operator() const;
+    size_t       render(renderer &r, bool quoted = false) const
     {
         return render(this, r, quoted);
     }
-    algebraic_p simplify_products() const;
-    static algebraic_p factor_out(algebraic_g expr,
-                                  algebraic_g factor,
+    algebraic_p        simplify_products() const;
+    static algebraic_p factor_out(algebraic_g  expr,
+                                  algebraic_g  factor,
                                   algebraic_g &scale,
                                   algebraic_g &exponent);
 

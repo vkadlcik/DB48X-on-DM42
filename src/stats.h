@@ -37,44 +37,57 @@
 #include "target.h"
 
 
-struct StatsParameters
+struct StatsParameters : command
 // ----------------------------------------------------------------------------
 //   A replication of the ΣParameters / ΣPAR variable
 // ----------------------------------------------------------------------------
 {
-    StatsParameters();
+    StatsParameters(id type = ID_StatsParameters) : command(type) {}
 
-    object::id  model;
-    size_t      xcol;
-    size_t      ycol;
-    algebraic_g intercept;
-    algebraic_g slope;
+    struct Access
+    {
+        Access();
+        ~Access();
 
-    bool parse(list_g list);
-    bool parse(symbol_g name);
-    bool parse(cstring name);
-    bool parse();
+        object::id      model;
+        size_t          xcol;
+        size_t          ycol;
+        algebraic_g     intercept;
+        algebraic_g     slope;
+
+        static symbol_p name();
+
+        bool            parse(list_g list);
+        bool            parse(symbol_p n = name());
+
+        bool            write(symbol_p n = name()) const;
+    };
 };
 
 
-struct StatsData
+struct StatsData : command
 // ----------------------------------------------------------------------------
 //   Helper to access the ΣData / ΣDAT variable
 // ----------------------------------------------------------------------------
 {
-    StatsData();
-    ~StatsData();
+    StatsData(id type = ID_StatsData) : command(type) {}
 
-    text_g      file;
-    symbol_g    variable;
-    array_g     data;
-    size_t      columns;
-    size_t      rows;
+    struct Access
+    {
+        Access();
+        ~Access();
 
-    bool parse(array_g data);
-    bool parse(symbol_g name);
-    bool parse(cstring name);
-    bool parse();
+        array_g         data;
+        size_t          columns;
+        size_t          rows;
+
+        static symbol_p name();
+
+        bool            parse(array_g a);
+        bool            parse(symbol_p n = name());
+
+        bool            write(symbol_p n = name()) const;
+    };
 };
 
 

@@ -154,6 +154,37 @@ bool array::is_matrix(size_t *rows, size_t *cols) const
 }
 
 
+array_p array::append(array_p a) const
+// ----------------------------------------------------------------------------
+//   Append the second array to this one
+// ----------------------------------------------------------------------------
+{
+    text_g x = text_p(this);
+    text_g y = text_p(a);
+    return array_p((x + y).Safe());
+}
+
+
+array_p array::append(object_p o) const
+// ----------------------------------------------------------------------------
+//   Append object to array
+// ----------------------------------------------------------------------------
+{
+    text_g x = text_p(this);
+    text_g y = text::make(byte_p(o), o->size());
+    return array_p((x + y).Safe());
+}
+
+
+array_p array::wrap(object_p o)
+// ----------------------------------------------------------------------------
+//   Wrap object in a single-item arrray
+// ----------------------------------------------------------------------------
+{
+    return array_p(list::make(ID_array, byte_p(o), o->size()));
+}
+
+
 
 // ============================================================================
 //

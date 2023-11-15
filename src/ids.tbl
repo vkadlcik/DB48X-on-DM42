@@ -478,6 +478,9 @@ CMD(LastX)
 //
 // ============================================================================
 
+OP(StatsData,           "ΣData")        ALIAS(StatsData,                "ΣDAT")
+OP(StatsParameters,     "ΣParameters")  ALIAS(StatsParameters,          "ΣPAR")
+
 NAMED(AddData,          "Σ+")
 NAMED(RemoveData,       "Σ-")
 NAMED(RecallData,       "RecallΣ")      ALIAS(RecallData,               "RclΣ")
@@ -487,7 +490,7 @@ CMD(Mean)
 CMD(Median)
 NAMED(MinData,          "MinΣ")
 NAMED(MaxData,          "MaxΣ")
-NAMED(DataSize,         "ΣSize")
+NAMED(DataSize,         "ΣSize")        ALIAS(DataSize,                 "ΣX")
 NAMED(SumOfX,           "ΣX")
 NAMED(SumOfY,           "ΣY")
 NAMED(SumOfXY,          "ΣXY")

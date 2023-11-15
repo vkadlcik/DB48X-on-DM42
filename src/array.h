@@ -1,3 +1,4 @@
+
 #ifndef ARRAY_H
 #define ARRAY_H
 // ****************************************************************************
@@ -62,6 +63,11 @@ struct array : list
         return array_p(list::map(x, fn).Safe());
     }
 
+    // Append data
+    array_p append(array_p a) const;
+    array_p append(object_p o) const;
+    static array_p wrap(object_p o);
+
     // Check if vector or matrix, and push all elements on stack
     bool is_vector(size_t *size) const;
     bool is_matrix(size_t *rows, size_t *columns) const;
@@ -73,15 +79,15 @@ struct array : list
                                      size_t ry, size_t cy);
     typedef bool (*dimension_fn)(size_t rx, size_t cx, size_t ry, size_t cy,
                                  size_t *rr, size_t *cr);
-    static array_g do_matrix(array_r x, array_r y,
-                             dimension_fn d, vector_fn v, matrix_fn m);
+    static array_g      do_matrix(array_r x, array_r y,
+                                  dimension_fn d, vector_fn v, matrix_fn m);
 
-    algebraic_g determinant() const;
-    algebraic_g norm_square() const;
-    algebraic_g norm() const;
-    array_g invert() const;
+    algebraic_g         determinant() const;
+    algebraic_g         norm_square() const;
+    algebraic_g         norm() const;
+    array_g             invert() const;
 
-public:
+  public:
     OBJECT_DECL(array);
     PARSE_DECL(array);
     RENDER_DECL(array);

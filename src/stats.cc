@@ -34,11 +34,11 @@
 
 // ============================================================================
 //
-//   Stats parameters
+//   Stats parameters access
 //
 // ============================================================================
 
-StatsParameters::StatsParameters()
+StatsParameters::Access::Access()
 // ----------------------------------------------------------------------------
 //   Default values
 // ----------------------------------------------------------------------------
@@ -48,13 +48,32 @@ StatsParameters::StatsParameters()
       intercept(integer::make(0)),
       slope(integer::make(0))
 {
-    parse();
+    parse(name());
 }
 
 
-bool StatsParameters::parse(list_g parms)
+StatsParameters::Access::~Access()
 // ----------------------------------------------------------------------------
-//   Parse a PPAR / StatsParameters list
+//   Save values on exit
+// ----------------------------------------------------------------------------
+{
+    write();
+}
+
+
+symbol_p StatsParameters::Access::name()
+// ----------------------------------------------------------------------------
+//   Return the name for the variable
+// ----------------------------------------------------------------------------
+{
+    object_p cmd = command::static_object(ID_StatsParameters);
+    return cmd->as_symbol(false);
+}
+
+
+bool StatsParameters::Access::parse(list_g parms)
+// ----------------------------------------------------------------------------
+//   Parse a stats parameters list
 // ----------------------------------------------------------------------------
 {
     if (!parms)
@@ -101,9 +120,9 @@ bool StatsParameters::parse(list_g parms)
 }
 
 
-bool StatsParameters::parse(symbol_g name)
+bool StatsParameters::Access::parse(symbol_p name)
 // ----------------------------------------------------------------------------
-//   Parse plot parameters from a variable name
+//   Parse stats parameters from a variable name
 // ----------------------------------------------------------------------------
 {
     if (object_p obj = directory::recall_all(name))
@@ -113,97 +132,300 @@ bool StatsParameters::parse(symbol_g name)
 }
 
 
-bool StatsParameters::parse(cstring name)
+bool StatsParameters::Access::write(symbol_p name) const
 // ----------------------------------------------------------------------------
-//   Parse plot parameters from C variable name
-// ----------------------------------------------------------------------------
-{
-    symbol_p sym = symbol::make(name);
-    return parse(sym);
-}
-
-
-bool StatsParameters::parse()
-// ----------------------------------------------------------------------------
-//   Check if we have StatsParameters or PPAR
+//   Write stats parameters back to variable
 // ----------------------------------------------------------------------------
 {
-    return parse("ΣParameters") || parse("ΣPAR");
+    if (directory *dir = rt.variables(0))
+    {
+        integer_g xc = integer::make(xcol);
+        integer_g yc = integer::make(ycol);
+        object_g  m  = command::static_object(model);
+        object_g par = list::make(xc, yc, slope, intercept, m);
+        return dir->store(name, par);
+    }
+    return false;
 }
 
 
 
 // ============================================================================
 //
-//   Statistics
+//   Stats data access
 //
 // ============================================================================
 
+StatsData::Access::Access()
+// ----------------------------------------------------------------------------
+//   Default values, load variable if it exists
+// ----------------------------------------------------------------------------
+    : data(), columns(), rows()
+{
+    parse(name());
+}
+
+
+StatsData::Access::~Access()
+// ----------------------------------------------------------------------------
+//   Save values on exit
+// ----------------------------------------------------------------------------
+{
+    write();
+}
+
+
+symbol_p StatsData::Access::name()
+// ----------------------------------------------------------------------------
+//   Return the name for the variable
+// ----------------------------------------------------------------------------
+{
+    object_p cmd = command::static_object(ID_StatsData);
+    return cmd->as_symbol(false);
+}
+
+
+bool StatsData::Access::parse(array_g values)
+// ----------------------------------------------------------------------------
+//   Parse a stats data array
+// ----------------------------------------------------------------------------
+//   We want a rectangular data array with only numerical values
+{
+    if (!values)
+        return false;
+
+    columns = 0;
+    rows    = 0;
+
+    for (object_p row : *values)
+    {
+        if (array_p ra = row->as<array>())
+        {
+            size_t ccount = 0;
+            for (object_p column : *ra)
+            {
+                ccount++;
+                if (!column->is_real() && !column->is_complex())
+                    goto err;
+            }
+            if (rows > 0 && columns != ccount)
+                goto err;
+            columns = ccount;
+        }
+        else
+        {
+            if (rows > 0 && columns != 1)
+                goto err;
+            if (!row->is_real() && !row->is_complex())
+                goto err;
+            columns = 1;
+        }
+        rows++;
+    }
+
+    data = values;
+    return true;
+
+err:
+    rt.invalid_stats_data_error();
+    return false;
+}
+
+
+bool StatsData::Access::parse(symbol_p name)
+// ----------------------------------------------------------------------------
+//   Parse stats data from a variable name
+// ----------------------------------------------------------------------------
+{
+    if (object_p obj = directory::recall_all(name))
+        if (array_p values = obj->as<array>())
+            return parse(values);
+    return false;
+}
+
+
+bool StatsData::Access::write(symbol_p name) const
+// ----------------------------------------------------------------------------
+//   Write statistical data to variable or disk
+// ----------------------------------------------------------------------------
+{
+    if (directory *dir = rt.variables(0))
+        if (data.Safe())
+            return dir->store(name, data.Safe());
+    return false;
+}
+
+
+
+
+// ============================================================================
+//
+//   Statistics data entry
+//
+// ============================================================================
 
 COMMAND_BODY(AddData)
 // ----------------------------------------------------------------------------
-//
+//   Add data to the stats data
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    if (rt.args(1))
+    {
+        if (object_p value = rt.top())
+        {
+            size_t columns = 1;
+            if (array_p row = value->as<array>())
+            {
+                columns = 0;
+                for (object_p item : *row)
+                {
+                    columns++;
+                    if (!item->is_real() && !item->is_complex())
+                    {
+                        rt.invalid_stats_data_error();
+                        return ERROR;
+                    }
+                }
+            }
+            else if (value->is_real() || value->is_complex())
+            {
+                value = array::wrap(value);
+            }
+            else
+            {
+                rt.type_error();
+                return ERROR;
+            }
+
+            StatsData::Access stats;
+            if (stats.rows && columns != stats.columns)
+            {
+                rt.invalid_stats_data_error();
+                return ERROR;
+            }
+
+            if (!stats.data)
+                stats.data = array_p(array::make(ID_array, nullptr, 0));
+            stats.data = stats.data->append(value);
+            rt.drop();
+            return OK;
+        }
+    }
+
+    return ERROR;
 }
 
 
 COMMAND_BODY(RemoveData)
 // ----------------------------------------------------------------------------
-//
+//   Remove data from the statistics data
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    StatsData::Access stats;
+    if (stats.rows >= 1)
+    {
+        size_t   size   = 0;
+        object_p first  = stats.data->objects(&size);
+        size_t   offset = 0;
+        object_p last   = first;
+        object_p obj    = first;
+        while (offset < size)
+        {
+            size_t osize = obj->size();
+            last = obj;
+            obj += osize;
+            offset += osize;
+        }
+
+        object_g removed = rt.clone(last);
+        if (!rt.push(removed))
+            return ERROR;
+
+        size = last - first;
+        stats.data = array_p(array::make(ID_array, byte_p(first), size));
+        return OK;
+    }
+    rt.invalid_stats_data_error();
+    return ERROR;
 }
 
 
 
 COMMAND_BODY(RecallData)
 // ----------------------------------------------------------------------------
-//
+//  Recall stats data
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    StatsData::Access stats;
+    if (rt.push(stats.data.Safe()))
+        return OK;
+    return ERROR;
 }
 
 
 
 COMMAND_BODY(StoreData)
 // ----------------------------------------------------------------------------
-//
+//   Store stats data
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    if (rt.args(1))
+    {
+        if (object_p obj = rt.top())
+        {
+            if (array_p values = obj->as<array>())
+            {
+                StatsData::Access stats;
+                if (stats.parse(values))
+                    return OK;
+            }
+            else
+            {
+                rt.type_error();
+            }
+        }
+    }
+    return ERROR;
 }
-
 
 
 COMMAND_BODY(ClearData)
 // ----------------------------------------------------------------------------
-//
+//  Clear statistics data
 // ----------------------------------------------------------------------------
 {
+    StatsData::Access stats;
+    stats.data = array_p(array::make(ID_array, nullptr, 0));
     return OK;
 }
 
 
+
+// ============================================================================
+//
+//    Basic analysis of the data
+//
+// ============================================================================
 
 COMMAND_BODY(DataSize)
 // ----------------------------------------------------------------------------
-//
+//   Return the number of entries in statistics data
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    StatsData::Access stats;
+    integer_p count = integer::make(stats.rows);
+    if (count && rt.push(count))
+        return OK;
+    return ERROR;
 }
-
 
 
 COMMAND_BODY(Mean)
 // ----------------------------------------------------------------------------
-//
+//   Compute the mean of all input data
 // ----------------------------------------------------------------------------
 {
+
     return OK;
 }
 

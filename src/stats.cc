@@ -4,7 +4,7 @@
 //
 //   File Description:
 //
-//
+//     Implementation of statistics functions
 //
 //
 //
@@ -469,7 +469,7 @@ algebraic_p StatsAccess::sum(sxy_fn op, uint xcol, uint ycol) const
     {
         if (array_p a = row->as<array>())
         {
-            uint col = 1;
+            size_t col = 1;
             x = nullptr;
             y = nullptr;
             for (object_p item : *a)
@@ -768,6 +768,169 @@ algebraic_p StatsAccess::max() const
 }
 
 
+algebraic_p StatsAccess::average() const
+// ----------------------------------------------------------------------------
+//   Compute the average value
+// ----------------------------------------------------------------------------
+{
+    if (rows <= 0)
+    {
+        rt.insufficient_stats_data_error();
+        return nullptr;
+    }
+    if (algebraic_g sum = total())
+    {
+        algebraic_g count = integer::make(rows);
+        sum = sum / count;
+        return sum;
+    }
+    return nullptr;
+}
+
+
+static algebraic_p do_variance(algebraic_r s, algebraic_r x, algebraic_r mean)
+// ----------------------------------------------------------------------------
+//   Compute the terms of the variance
+// ----------------------------------------------------------------------------
+{
+    algebraic_g xdev = (x - mean);
+    return s + xdev * xdev;
+}
+
+
+algebraic_p StatsAccess::variance() const
+// ----------------------------------------------------------------------------
+//   Compute the variance (used for `Variance` and `StandardDeviation`)
+// ----------------------------------------------------------------------------
+{
+    if (rows <= 1)
+    {
+        rt.insufficient_stats_data_error();
+        return nullptr;
+    }
+    if (algebraic_g mean = average())
+    {
+        algebraic_g sum = total(do_variance, mean);
+        algebraic_g num = integer::make(rows - 1);
+        sum = sum / num;
+        return sum;
+    }
+    return nullptr;
+}
+
+
+algebraic_p StatsAccess::standard_deviation() const
+// ----------------------------------------------------------------------------
+//   Compute the standard deviation
+// ----------------------------------------------------------------------------
+{
+    algebraic_g var = variance();
+    if (array_p vara = var->as<array>())
+        return vara->map(sqrt::evaluate);
+    return sqrt::evaluate(var);
+}
+
+
+algebraic_p StatsAccess::correlation() const
+// ----------------------------------------------------------------------------
+//   Compute the correlation
+// ----------------------------------------------------------------------------
+{
+    if (rows <= 0)
+    {
+        rt.insufficient_stats_data_error();
+        return nullptr;
+    }
+
+    algebraic_g n     = integer::make(rows);
+    algebraic_g avg_x = sum_x() / n;
+    algebraic_g avg_y = sum_y() / n;
+    algebraic_g num   = integer::make(0);
+    algebraic_g den_x = num;
+    algebraic_g den_y = num;
+    algebraic_g x, y, sq;
+
+    for (object_g row : *data)
+    {
+        array_g ra = row->as<array>();
+        if (!ra)
+        {
+            rt.insufficient_stats_data_error();
+            return nullptr;
+        }
+        size_t col = 1;
+        x = nullptr;
+        y = nullptr;
+        for (object_g cobj : *ra)
+        {
+            if (col == xcol)
+                x = cobj->as_algebraic();
+            if (col == ycol)
+                y = cobj->as_algebraic();
+            if (x && y)
+            {
+                num = num + (x - avg_x) * (y - avg_y);
+                sq = x - avg_x;
+                den_x = den_x + sq * sq;
+                sq = y - avg_y;
+                den_y = den_y + sq * sq;
+                break;
+            }
+            col++;
+        }
+    }
+
+    return num / sqrt::run(den_x * den_y);
+}
+
+
+algebraic_p StatsAccess::covariance() const
+// ----------------------------------------------------------------------------
+//   Compute the covariance
+// ----------------------------------------------------------------------------
+{
+    if (rows <= 1)
+    {
+        rt.insufficient_stats_data_error();
+        return nullptr;
+    }
+    algebraic_g n     = integer::make(rows);
+    algebraic_g avg_x = sum_x() / n;
+    algebraic_g avg_y = sum_y() / n;
+    algebraic_g num   = integer::make(0);
+    algebraic_g x, y;
+
+    for (object_g row : *data)
+    {
+        array_g ra = row->as<array>();
+        if (!ra)
+        {
+            rt.insufficient_stats_data_error();
+            return nullptr;
+        }
+        size_t col = 1;
+        x = nullptr;
+        y = nullptr;
+        for (object_g cobj : *ra)
+        {
+            if (col == xcol)
+                x = cobj->as_algebraic();
+            if (col == ycol)
+                y = cobj->as_algebraic();
+            if (x && y)
+            {
+                num = num + (x - avg_x) * (y - avg_y);
+                break;
+            }
+            col++;
+        }
+    }
+
+    n = integer::make(rows - 1);
+    return num / n;
+}
+
+
 
 // ============================================================================
 //
@@ -808,16 +971,9 @@ COMMAND_BODY(Average)
 {
     StatsAccess stats;
     if (stats)
-    {
-        if (algebraic_g total = stats.total())
-        {
-            algebraic_g count = integer::make(stats.rows);
-            total = total / count;
-            if (object_p obj = total)
-                if (rt.push(obj))
-                    return OK;
-        }
-    }
+        if (algebraic_g avg = stats.average())
+            if (rt.push(avg.Safe()))
+                return OK;
     return ERROR;
 }
 
@@ -929,79 +1085,57 @@ COMMAND_BODY(SumOfYSquares)
 }
 
 
-static algebraic_p variance(algebraic_r s, algebraic_r x, algebraic_r mean)
-// ----------------------------------------------------------------------------
-//   Compute the terms of the variance
-// ----------------------------------------------------------------------------
-{
-    algebraic_g xdev = (x - mean);
-    return s + xdev * xdev;
-}
-
-
 COMMAND_BODY(Variance)
 // ----------------------------------------------------------------------------
 //   Compute the variance
 // ----------------------------------------------------------------------------
 {
     StatsAccess stats;
-    if (stats)
-    {
-        if (stats.rows <= 1)
-        {
-            rt.insufficient_stats_data_error();
-            return ERROR;
-        }
-        if (algebraic_g mean = stats.total())
-        {
-            algebraic_g count = integer::make(stats.rows);
-            mean = mean / count;
-            algebraic_g sum = stats.total(variance, mean);
-            count = integer::make(stats.rows - 1);
-            sum = sum / count;
-            if (object_p obj = sum)
-                if (rt.push(obj))
-                    return OK;
-        }
-    }
-    if (!rt.error())
-        rt.invalid_stats_data_error();
-    return ERROR;
+    if (!stats)
+        return ERROR;
+    algebraic_g var = stats.variance();
+    return var && rt.push(var.Safe()) ? OK : ERROR;
 }
 
+
+COMMAND_BODY(StandardDeviation)
+// ----------------------------------------------------------------------------
+//   Compute the standard deviation (square root of variance)
+// ----------------------------------------------------------------------------
+{
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g var = stats.standard_deviation();
+    return var && rt.push(var.Safe()) ? OK : ERROR;
+}
 
 
 COMMAND_BODY(Correlation)
 // ----------------------------------------------------------------------------
-//
+//  Compute the correlation
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g corr = stats.correlation();
+    return corr && rt.push(corr.Safe()) ? OK : ERROR;
 }
 
 
 
 COMMAND_BODY(Covariance)
 // ----------------------------------------------------------------------------
-//
+//   Compute the covariance
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g cov = stats.covariance();
+    return cov && rt.push(cov.Safe()) ? OK : ERROR;
 }
-
-
-
-COMMAND_BODY(StandardDeviation)
-// ----------------------------------------------------------------------------
-//
-// ----------------------------------------------------------------------------
-{
-    rt.unimplemented_error();
-    return ERROR;
-}
-
 
 
 COMMAND_BODY(PopulationVariance)

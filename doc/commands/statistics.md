@@ -132,6 +132,11 @@ exist, `Correlation` creates it and sets the elements to their default values
 
 ## StandardDeviation (SDEV)
 
+Calculates the sample standard deviation of each of the columns of coordinate values in the current statistics matrix (reserved variable `ΣData`).
+
+`StandardDeviation`  returns a vector of numbers, or a single number there is only one column of data.
+
+The standard deviation is the square root of the `Variance`.
 
 CMD(StandardDeviation)                  ALIAS(StandardDeviation,        "SDev")
 CMD(Bins)

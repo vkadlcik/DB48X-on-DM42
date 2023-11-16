@@ -120,6 +120,11 @@ struct StatsAccess : StatsParameters::Access, StatsData::Access
     algebraic_p         total() const;
     algebraic_p         min() const;
     algebraic_p         max() const;
+    algebraic_p         average() const;
+    algebraic_p         variance() const;
+    algebraic_p         standard_deviation() const;
+    algebraic_p         correlation() const;
+    algebraic_p         covariance() const;
 
     operator bool() const
     {

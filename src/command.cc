@@ -70,34 +70,32 @@ PARSE_BODY(command)
     size_t  maxlen = p.length;
     size_t  len    = maxlen;
 
-    bool disambiguate = eq && (i == ID_sq || i == ID_cubed || i == ID_inv);
+    bool    disambiguate = eq && (i == ID_sq || i == ID_cubed || i == ID_inv);
+    cstring basename     = cstring(name(i));
+    cstring fancyname    = disambiguate ? nullptr : cstring(object::fancy(i));
 
-    cstring names[3] = { nullptr };
-    names[0] = disambiguate ? nullptr : cstring(object::fancy(i));
-    names[1] = cstring(name(i));
-    switch(i)
+    for (uint attempt = 0; !found; attempt++)
     {
-#define ALIAS(base, name)                                               \
-        case ID_##base: names[2] = name; break;
-#define ID(i)
-#include "ids.tbl"
-        default:
-            break;
-    }
-
-    for (uint attempt = 0; !found && attempt < 3; attempt++)
-    {
-        if (cstring cmd = names[attempt])
+        cstring cmd = attempt == 0 ? fancyname : basename;
+        if (attempt >= 2)
         {
-            len = strlen(cmd);
-            if (len <= maxlen
-                && strncasecmp(ref, cmd, len) == 0
-                && (len >= maxlen
-                    || (eq && (!is_valid_as_name_initial(utf8(cmd)) ||
-                               !is_valid_as_name_initial(utf8(ref + len))))
-                    || is_separator(utf8(ref + len))))
-                found = id(i);
+            uint count = attempt - 2;
+            cmd = nullptr;
+#define ID(i)
+#define ALIAS(op, name)         if (i == ID_##op && count-- == 0) cmd = name;
+#include "ids.tbl"
         }
+        if (!cmd)
+            break;
+
+        len = strlen(cmd);
+        if (len <= maxlen
+            && strncasecmp(ref, cmd, len) == 0
+            && (len >= maxlen
+                || (eq && (!is_valid_as_name_initial(utf8(cmd)) ||
+                           !is_valid_as_name_initial(utf8(ref + len))))
+                || is_separator(utf8(ref + len))))
+            found = id(i);
     }
 
     record(command,
@@ -126,28 +124,36 @@ RENDER_BODY(command)
         auto format = Settings.CommandDisplayMode();
 
         // Ensure that we display + as `+` irrespective of mode
-        utf8 fname = fancy(ty);
-        if (!is_valid_as_name_initial(utf8_codepoint(fname)))
+        utf8 fname;
+        switch(ty)
         {
-            if (utf8_length(fname) == 1)
-            {
-                format = ID_LongForm;
-                while (unit::mode)
-                {
-                    if (ty == ID_div)
-                        r.put('/');
-                    else if (ty == ID_mul)
-                        r.put(unicode(L'·'));
-                    else
-                        break;
-                    return r.size();
-                }
-            }
+#define ID(id)
+#define OP(id, name)    case ID_##id:   fname = utf8(name); break;
+#include "ids.tbl"
+        default:
+            fname = format == ID_LongForm ? fancy(ty) : name(ty);
+            break;
         }
 
+        if (format != ID_LongForm)
+        {
+#define ID(id)
+#define ALIAS(id, name) if (ty == ID_##id)      fname = utf8(name);
+#include "ids.tbl"
+        }
 
-        utf8 text = utf8(format == ID_LongForm ? fname : name(ty));
-        r.put(format, text);
+        while (unit::mode)
+        {
+            if (ty == ID_div)
+                r.put('/');
+            else if (ty == ID_mul)
+                r.put(unicode(L'·'));
+            else
+                break;
+            return r.size();
+        }
+
+        r.put(format, fname);
     }
 
     record(command, "Render %u as [%s]", ty, (cstring) r.text());

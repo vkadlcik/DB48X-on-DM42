@@ -38,12 +38,12 @@
 #define NAMED(id, longname)     CMD(id)
 #endif
 
-// Operators, e.g. "+"
+// Operators, e.g. "+", where the name is valid both in long and short form
 #ifndef OP
-#define OP(i, n)                NAMED(i, n)
+#define OP(id, name)            NAMED(id, name)
 #endif
 
-// Aliases for commands with multiple spelling
+// Aliases for commands with multiple spelling (there can be multiple aliases)
 #ifndef ALIAS
 #define ALIAS(op, name)
 #endif
@@ -341,7 +341,7 @@ CMD(erf)
 CMD(erfc)
 NAMED(tgamma, "Gamma")
 NAMED(lgamma, "LogGamma")
-NAMED(fact, "!")
+OP(fact, "!")
 ALIAS(fact, "factorial")
 
 NAMED(cbrt, "∛")
@@ -478,24 +478,24 @@ CMD(LastX)
 //
 // ============================================================================
 
-OP(StatsData,           "ΣData")        ALIAS(StatsData,                "ΣDAT")
-OP(StatsParameters,     "ΣParameters")  ALIAS(StatsParameters,          "ΣPAR")
+OP(StatsData,           "ΣData")        ALIAS(StatsData,                "ΣDat")
+OP(StatsParameters,     "ΣParameters")  ALIAS(StatsParameters,          "ΣPar")
 
-NAMED(AddData,          "Σ+")
-NAMED(RemoveData,       "Σ-")
-NAMED(RecallData,       "RecallΣ")      ALIAS(RecallData,               "RclΣ")
-NAMED(StoreData,        "StoreΣ")       ALIAS(StoreData,                "StoΣ")
-NAMED(ClearData,        "ClearΣ")       ALIAS(ClearData,                "ClΣ")
+OP(AddData,             "Σ+")
+OP(RemoveData,          "Σ-")
+OP(RecallData,          "RecallΣ")      ALIAS(RecallData,               "RclΣ")
+OP(StoreData,           "StoreΣ")       ALIAS(StoreData,                "StoΣ")
+OP(ClearData,           "ClearΣ")       ALIAS(ClearData,                "ClΣ")
 CMD(Mean)
 CMD(Median)
-NAMED(MinData,          "MinΣ")
-NAMED(MaxData,          "MaxΣ")
-NAMED(DataSize,         "ΣSize")        ALIAS(DataSize,                 "ΣX")
-NAMED(SumOfX,           "ΣX")
-NAMED(SumOfY,           "ΣY")
-NAMED(SumOfXY,          "ΣXY")
-NAMED(SumOfXSquares,    "ΣX²")          ALIAS(SumOfXSquares,            "ΣX2")
-NAMED(SumOfYSquares,    "ΣY²")          ALIAS(SumOfYSquares,            "ΣY2")
+OP(MinData,             "MinΣ")
+OP(MaxData,             "MaxΣ")
+OP(DataSize,            "ΣSize")        ALIAS(DataSize,                 "NΣ")
+OP(SumOfX,              "ΣX")
+OP(SumOfY,              "ΣY")
+OP(SumOfXY,             "ΣXY")
+OP(SumOfXSquares,       "ΣX²")          ALIAS(SumOfXSquares,            "ΣX2")
+OP(SumOfYSquares,       "ΣY²")          ALIAS(SumOfYSquares,            "ΣY2")
 CMD(Variance)                           ALIAS(Variance,                 "Var")
 CMD(Correlation)                        ALIAS(Correlation,              "Corr")
 CMD(Covariance)                         ALIAS(Covariance,               "Cov")

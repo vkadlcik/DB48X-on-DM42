@@ -164,6 +164,29 @@ bool renderer::put(char c)
 }
 
 
+static unicode db48x_to_lower(unicode cp)
+// ----------------------------------------------------------------------------
+//   Case conversion to lowercase ignoring special DB48X characters
+// ----------------------------------------------------------------------------
+{
+    if (cp == L'Σ' || cp == L'∏' || cp == L'∆')
+        return cp;
+    return towlower(cp);
+}
+
+
+static unicode db48x_to_upper(unicode cp)
+// ----------------------------------------------------------------------------
+//   Case conversion to uppercase ignoring special DB48X characters
+// ----------------------------------------------------------------------------
+{
+    if (cp == L'∂' || cp ==  L'ρ' || cp == L'π' ||
+        cp == L'μ' || cp == L'θ' || cp == L'ε')
+        return cp;
+    return towupper(cp);
+}
+
+
 bool renderer::put(object::id format, utf8 text)
 // ----------------------------------------------------------------------------
 //   Render a command with proper capitalization
@@ -179,19 +202,19 @@ bool renderer::put(object::id format, utf8 text)
     {
     case object::ID_LowerCase:
         for (utf8 s = text; *s; s = utf8_next(s))
-            result = put(unicode(towlower(utf8_codepoint(s))));
+            result = put(unicode(db48x_to_lower(utf8_codepoint(s))));
         break;
 
     case object::ID_UpperCase:
         for (utf8 s = text; *s; s = utf8_next(s))
-            result = put(unicode(towupper(utf8_codepoint(s))));
+            result = put(unicode(db48x_to_upper(utf8_codepoint(s))));
         break;
 
     case object::ID_Capitalized:
         for (utf8 s = text; *s; s = utf8_next(s))
             result = put(unicode(s == text
-                                 ? towupper(utf8_codepoint(s))
-                                 : towlower(utf8_codepoint(s))));
+                                 ? db48x_to_upper(utf8_codepoint(s))
+                                 : utf8_codepoint(s)));
         break;
 
     default:
@@ -203,7 +226,6 @@ bool renderer::put(object::id format, utf8 text)
 
     return result;
 }
-
 
 
 size_t renderer::printf(const char *format, ...)

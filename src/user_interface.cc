@@ -2476,7 +2476,7 @@ bool user_interface::draw_help()
     coord      ytop   = HeaderFont->height() + 2;
     coord      ybot   = LCD_H - (MenuFont->height() + 4);
     coord      xleft  = 0;
-    coord      xright = LCD_W;
+    coord      xright = LCD_W - 1;
     style_name style  = NORMAL;
 
 
@@ -2484,7 +2484,7 @@ bool user_interface::draw_help()
     rect clip = Screen.clip();
     rect r(xleft, ytop, xright, ybot);
     draw_dirty(r);
-    Screen.fill(r, pattern::gray25);
+    Screen.fill(r, pattern::gray50);
     r.inset(2);
     Screen.fill(r, pattern::black);
     r.inset(2);
@@ -2534,6 +2534,12 @@ bool user_interface::draw_help()
 
             switch (ch)
             {
+            case 0:
+                emit = true;
+                skip = true;
+                newline = true;
+                break;
+
             case ' ':
                 if (style <= SUBTITLE)
                 {

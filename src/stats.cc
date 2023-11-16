@@ -28,6 +28,9 @@
 // ****************************************************************************
 
 #include "stats.h"
+
+#include "arithmetic.h"
+#include "compare.h"
 #include "integer.h"
 #include "variables.h"
 
@@ -61,17 +64,17 @@ StatsParameters::Access::~Access()
 }
 
 
-symbol_p StatsParameters::Access::name()
+object_p StatsParameters::Access::name()
 // ----------------------------------------------------------------------------
 //   Return the name for the variable
 // ----------------------------------------------------------------------------
 {
-    object_p cmd = command::static_object(ID_StatsParameters);
-    return cmd->as_symbol(false);
+    return command::static_object(ID_StatsParameters);
+
 }
 
 
-bool StatsParameters::Access::parse(list_g parms)
+bool StatsParameters::Access::parse(list_p parms)
 // ----------------------------------------------------------------------------
 //   Parse a stats parameters list
 // ----------------------------------------------------------------------------
@@ -83,30 +86,29 @@ bool StatsParameters::Access::parse(list_g parms)
     object::id type;
     for (object_p obj: *parms)
     {
-        bool valid = false;
+        bool valid = true;
         switch(index)
         {
         case 0:
-            if (object_p xc = obj->algebraic_child(0))
-                xcol = xc->as_uint32(1, true);
-            break;
         case 1:
-            if (object_p yc = obj->algebraic_child(1))
-                ycol = yc->as_uint32(2, true);
+            (index ? ycol : xcol) = obj->as_uint32(1, true);
+            valid = !rt.error();
             break;
         case 2:
-            intercept = obj->algebraic_child(2);
-            break;
         case 3:
-            slope = obj->algebraic_child(3);
+            valid = obj->is_real() || obj->is_complex();
+            if (valid)
+                (index == 2 ? intercept : slope) = algebraic_p(obj);
             break;
         case 4:
             type = obj->type();
-            if (type >= object::ID_LinearFit &&
-                type <= object::ID_LogarithmicFit)
+            valid = (type >= object::ID_LinearFit &&
+                     type <= object::ID_LogarithmicFit);
+            if (valid)
                 model = type;
             break;
         default:
+            valid = false;
             break;
         }
         if (!valid)
@@ -120,7 +122,7 @@ bool StatsParameters::Access::parse(list_g parms)
 }
 
 
-bool StatsParameters::Access::parse(symbol_p name)
+bool StatsParameters::Access::parse(object_p name)
 // ----------------------------------------------------------------------------
 //   Parse stats parameters from a variable name
 // ----------------------------------------------------------------------------
@@ -132,7 +134,7 @@ bool StatsParameters::Access::parse(symbol_p name)
 }
 
 
-bool StatsParameters::Access::write(symbol_p name) const
+bool StatsParameters::Access::write(object_p name) const
 // ----------------------------------------------------------------------------
 //   Write stats parameters back to variable
 // ----------------------------------------------------------------------------
@@ -175,17 +177,16 @@ StatsData::Access::~Access()
 }
 
 
-symbol_p StatsData::Access::name()
+object_p StatsData::Access::name()
 // ----------------------------------------------------------------------------
 //   Return the name for the variable
 // ----------------------------------------------------------------------------
 {
-    object_p cmd = command::static_object(ID_StatsData);
-    return cmd->as_symbol(false);
+    return command::static_object(ID_StatsData);
 }
 
 
-bool StatsData::Access::parse(array_g values)
+bool StatsData::Access::parse(array_p values)
 // ----------------------------------------------------------------------------
 //   Parse a stats data array
 // ----------------------------------------------------------------------------
@@ -232,7 +233,7 @@ err:
 }
 
 
-bool StatsData::Access::parse(symbol_p name)
+bool StatsData::Access::parse(object_p name)
 // ----------------------------------------------------------------------------
 //   Parse stats data from a variable name
 // ----------------------------------------------------------------------------
@@ -244,7 +245,7 @@ bool StatsData::Access::parse(symbol_p name)
 }
 
 
-bool StatsData::Access::write(symbol_p name) const
+bool StatsData::Access::write(object_p name) const
 // ----------------------------------------------------------------------------
 //   Write statistical data to variable or disk
 // ----------------------------------------------------------------------------
@@ -377,7 +378,10 @@ COMMAND_BODY(StoreData)
             {
                 StatsData::Access stats;
                 if (stats.parse(values))
+                {
+                    rt.drop();
                     return OK;
+                }
             }
             else
             {
@@ -407,117 +411,562 @@ COMMAND_BODY(ClearData)
 //
 // ============================================================================
 
+algebraic_p StatsAccess::sum(sum_fn op, uint xcol) const
+// ----------------------------------------------------------------------------
+//   Run a sum on a single column
+// ----------------------------------------------------------------------------
+{
+    algebraic_g s = integer::make(0);
+    algebraic_g x;
+    for (object_p row : *data)
+    {
+        if (array_p a = row->as<array>())
+        {
+            uint col = 1;
+            for (object_p item : *a)
+            {
+                if (!item->is_real() && !item->is_complex())
+                {
+                    rt.invalid_stats_data_error();
+                    return nullptr;
+                }
+                if (col == xcol)
+                {
+                    x = algebraic_p(item);
+                    s = op(s, x);
+                    break;
+                }
+                col++;
+            }
+        }
+        else if (xcol == 1)
+        {
+            if (!row->is_real() && !row->is_complex())
+            {
+                rt.invalid_stats_data_error();
+                return nullptr;
+            }
+            x = algebraic_p(row);
+            s = op(s, x);
+        }
+        else
+        {
+            break;
+        }
+    }
+    return s;
+}
+
+
+algebraic_p StatsAccess::sum(sxy_fn op, uint xcol, uint ycol) const
+// ----------------------------------------------------------------------------
+//   Run a sum on a single column
+// ----------------------------------------------------------------------------
+{
+    algebraic_g s = integer::make(0);
+    algebraic_g x, y;
+    for (object_p row : *data)
+    {
+        if (array_p a = row->as<array>())
+        {
+            uint col = 1;
+            x = nullptr;
+            y = nullptr;
+            for (object_p item : *a)
+            {
+                if (!item->is_real() && !item->is_complex())
+                {
+                    rt.invalid_stats_data_error();
+                    return nullptr;
+                }
+                if (col == xcol)
+                    x = algebraic_p(item);
+                if (col == ycol)
+                    y = algebraic_p(item);
+                if (x && y)
+                {
+                    s = op(s, x, y);
+                    break;
+                }
+                col++;
+            }
+        }
+        else if (xcol == 1 && ycol == 1)
+        {
+            if (!row->is_real() && !row->is_complex())
+            {
+                rt.invalid_stats_data_error();
+                return nullptr;
+            }
+            x = algebraic_p(row);
+            y = x;
+            s = op(s, x, y);
+        }
+        else
+        {
+            break;
+        }
+    }
+    return s;
+}
+
+
+static algebraic_p sum1(algebraic_r s, algebraic_r x)
+// ----------------------------------------------------------------------------
+//   Simply add values
+// ----------------------------------------------------------------------------
+{
+    return s + x;
+}
+
+
+static algebraic_p smallest(algebraic_r s, algebraic_r x)
+// ----------------------------------------------------------------------------
+//   Simply add values
+// ----------------------------------------------------------------------------
+{
+    int test = 0;
+    comparison::compare(&test, s, x);
+    return test < 0 ? s : x;
+}
+
+
+static algebraic_p largest(algebraic_r s, algebraic_r x)
+// ----------------------------------------------------------------------------
+//   Simply add values
+// ----------------------------------------------------------------------------
+{
+    int test = 0;
+    comparison::compare(&test, s, x);
+    return test > 0 ? s : x;
+}
+
+
+static algebraic_p sum2(algebraic_r s, algebraic_r x)
+// ----------------------------------------------------------------------------
+//   Add squares
+// ----------------------------------------------------------------------------
+{
+    return s + x * x;
+}
+
+
+static algebraic_p sumxy(algebraic_r s, algebraic_r x, algebraic_r y)
+// ----------------------------------------------------------------------------
+//   Add squares
+// ----------------------------------------------------------------------------
+{
+    return s + x * y;
+}
+
+
+algebraic_p StatsAccess::sum_x() const
+// ----------------------------------------------------------------------------
+//   Return the sum of values in the X column
+// ----------------------------------------------------------------------------
+{
+    return sum(sum1, xcol);
+}
+
+
+algebraic_p StatsAccess::sum_y() const
+// ----------------------------------------------------------------------------
+//   Return the sum of values in the Y column
+// ----------------------------------------------------------------------------
+{
+    return sum(sum1, ycol);
+}
+
+
+algebraic_p StatsAccess::sum_xy() const
+// ----------------------------------------------------------------------------
+//   Return the sum of product of values in X and Y column
+// ----------------------------------------------------------------------------
+{
+    return sum(sumxy, xcol, ycol);
+}
+
+
+algebraic_p StatsAccess::sum_x2() const
+// ----------------------------------------------------------------------------
+//   Return the sum of squares of values in the X column
+// ----------------------------------------------------------------------------
+{
+    return sum(sum2, xcol);
+}
+
+
+algebraic_p StatsAccess::sum_y2() const
+// ----------------------------------------------------------------------------
+//   Return the sum of squares of values in the Y column
+// ----------------------------------------------------------------------------
+{
+    return sum(sum2, ycol);
+}
+
+
+algebraic_p StatsAccess::total(sum_fn op) const
+// ----------------------------------------------------------------------------
+//    Perform an iterative operation on all items
+// ----------------------------------------------------------------------------
+{
+    algebraic_g result;
+    algebraic_g row, x, y;
+    array_g arow;
+    for (object_p robj : *data)
+    {
+        object::id rty = robj->type();
+        bool is_array = rty == object::ID_array;
+        bool is_value = object::is_real(rty) || object::is_complex(rty);
+        if (!is_value && !is_array)
+        {
+            rt.type_error();
+            return nullptr;
+        }
+
+        if (is_array && columns == 1)
+        {
+            robj = array_p(robj)->objects();
+            if (!robj)
+                return nullptr;
+            is_array = false;
+        }
+        row = algebraic_p(robj);
+        if (result)
+        {
+            if (is_array)
+            {
+                array_g ra = array_p(robj);
+                arow = array_p(array::make(object::ID_array, nullptr, 0));
+                if (!arow)
+                    return nullptr;
+                if (array_p ares = result->as<array>())
+                {
+                    array::iterator ai = ares->begin();
+                    for (object_p cobj : *ra)
+                    {
+                        object_p aobj = *ai++;
+                        if (!aobj)
+                            return nullptr;
+                        x = aobj->as_algebraic();
+                        y = cobj->as_algebraic();
+                        if (!x || !y)
+                            return nullptr;
+                        x = op(x, y);
+                        arow = arow->append(x);
+                    }
+                    row = arow.Safe();
+                }
+                else
+                {
+                    rt.invalid_stats_data_error();
+                    return nullptr;
+                }
+            }
+            else
+            {
+                row = op(result, row);
+            }
+        }
+        result = row;
+    }
+    return result;
+}
+
+
+algebraic_p StatsAccess::total(sxy_fn op, algebraic_r arg) const
+// ----------------------------------------------------------------------------
+//    Perform an iterative operation on all items
+// ----------------------------------------------------------------------------
+{
+    algebraic_g result;
+    algebraic_g row, x, y, a;
+    array_g     arow;
+    bool        arg_is_array = arg->type() == object::ID_array;
+    for (object_p robj : *data)
+    {
+        object::id rty = robj->type();
+        bool is_array = rty == object::ID_array;
+        bool is_value = object::is_real(rty) || object::is_complex(rty);
+        if (!is_value && !is_array)
+        {
+            rt.type_error();
+            return nullptr;
+        }
+
+        if (is_array && columns == 1)
+        {
+            robj = array_p(robj)->objects();
+            if (!robj)
+                return nullptr;
+            is_array = false;
+        }
+        row = algebraic_p(robj);
+        if (is_array)
+        {
+            array_g ra = array_p(robj);
+            arow = array_p(array::make(object::ID_array, nullptr, 0));
+            if (!arow)
+                return nullptr;
+            array::iterator argi =
+                arg_is_array ? array_p(arg.Safe())->begin() : ra->begin();
+            array_p ares = result ? result->as<array>() : nullptr;
+            array::iterator ai = ares ? ares->begin() : ra->begin();
+            for (object_p cobj : *ra)
+            {
+                object_p aobj = ares ? *ai++ : integer::make(0);
+                if (!aobj)
+                    return nullptr;
+                x = aobj->as_algebraic();
+                y = cobj->as_algebraic();
+                if (!x || !y)
+                    return nullptr;
+                a = arg_is_array ? algebraic_p(*argi++) : arg.Safe();
+                x = op(x, y, a);
+                if (!x)
+                    return nullptr;
+                arow = arow->append(x);
+                if (!arow)
+                    return nullptr;
+            }
+            row = arow.Safe();
+        }
+        else
+        {
+            row = op(result, row, arg);
+        }
+        result = row;
+    }
+    return result;
+}
+
+
+algebraic_p StatsAccess::total() const
+// ----------------------------------------------------------------------------
+//  Perform a sum of the columns
+// ----------------------------------------------------------------------------
+{
+    return total(sum1);
+}
+
+
+algebraic_p StatsAccess::min() const
+// ----------------------------------------------------------------------------
+//  Find the minimum of all columns
+// ----------------------------------------------------------------------------
+{
+    return total(smallest);
+}
+
+
+algebraic_p StatsAccess::max() const
+// ----------------------------------------------------------------------------
+//  Find the maximum of all columns
+// ----------------------------------------------------------------------------
+{
+    return total(largest);
+}
+
+
+
+// ============================================================================
+//
+//   User-level data analysis commands
+//
+// ============================================================================
+
 COMMAND_BODY(DataSize)
 // ----------------------------------------------------------------------------
 //   Return the number of entries in statistics data
 // ----------------------------------------------------------------------------
 {
     StatsData::Access stats;
+    if (!stats)
+        return ERROR;
     integer_p count = integer::make(stats.rows);
-    if (count && rt.push(count))
-        return OK;
-    return ERROR;
+    return count && rt.push(count) ? OK : ERROR;
 }
 
 
-COMMAND_BODY(Mean)
+COMMAND_BODY(Total)
+// ----------------------------------------------------------------------------
+//   Compute the sum of items
+// ----------------------------------------------------------------------------
+{
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g sum = stats.total();
+    return sum && rt.push(sum.Safe()) ? OK : ERROR;
+}
+
+
+COMMAND_BODY(Average)
 // ----------------------------------------------------------------------------
 //   Compute the mean of all input data
 // ----------------------------------------------------------------------------
 {
-
-    return OK;
+    StatsAccess stats;
+    if (stats)
+    {
+        if (algebraic_g total = stats.total())
+        {
+            algebraic_g count = integer::make(stats.rows);
+            total = total / count;
+            if (object_p obj = total)
+                if (rt.push(obj))
+                    return OK;
+        }
+    }
+    return ERROR;
 }
-
 
 
 COMMAND_BODY(Median)
 // ----------------------------------------------------------------------------
-//
+//  Find the median of the input data
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
 
 COMMAND_BODY(MinData)
 // ----------------------------------------------------------------------------
-//
+//  Find the minimum of all data
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g min = stats.min();
+    return min && rt.push(min.Safe()) ? OK : ERROR;
 }
 
 
 
 COMMAND_BODY(MaxData)
 // ----------------------------------------------------------------------------
-//
+//  Find the maximum of all data
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g max = stats.max();
+    return max && rt.push(max.Safe()) ? OK : ERROR;
 }
 
 
 COMMAND_BODY(SumOfX)
 // ----------------------------------------------------------------------------
-//
+//  Compute the sum of X values
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g sum = stats.sum_x();
+    return sum && rt.push(sum.Safe()) ? OK : ERROR;
 }
 
 
 
 COMMAND_BODY(SumOfY)
 // ----------------------------------------------------------------------------
-//
+//  Compute the sum of Y values
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g sum = stats.sum_y();
+    return sum && rt.push(sum.Safe()) ? OK : ERROR;
 }
 
 
 
 COMMAND_BODY(SumOfXY)
 // ----------------------------------------------------------------------------
-//
+//  Compute the sum of X*Y products
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g sum = stats.sum_xy();
+    return sum && rt.push(sum.Safe()) ? OK : ERROR;
 }
 
 
 
 COMMAND_BODY(SumOfXSquares)
 // ----------------------------------------------------------------------------
-//
+//  Compute the sum of X squared
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g sum = stats.sum_x2();
+    return sum && rt.push(sum.Safe()) ? OK : ERROR;
 }
 
 
 
 COMMAND_BODY(SumOfYSquares)
 // ----------------------------------------------------------------------------
-//
+//  Compute the sum of Y squared
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g sum = stats.sum_y2();
+    return sum && rt.push(sum.Safe()) ? OK : ERROR;
 }
 
 
-
+static algebraic_p variance(algebraic_r s, algebraic_r x, algebraic_r mean)
+// ----------------------------------------------------------------------------
+//   Compute the terms of the variance
+// ----------------------------------------------------------------------------
+{
+    algebraic_g xdev = (x - mean);
+    return s + xdev * xdev;
+}
 
 
 COMMAND_BODY(Variance)
 // ----------------------------------------------------------------------------
-//
+//   Compute the variance
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    StatsAccess stats;
+    if (stats)
+    {
+        if (stats.rows <= 1)
+        {
+            rt.insufficient_stats_data_error();
+            return ERROR;
+        }
+        if (algebraic_g mean = stats.total())
+        {
+            algebraic_g count = integer::make(stats.rows);
+            mean = mean / count;
+            algebraic_g sum = stats.total(variance, mean);
+            count = integer::make(stats.rows - 1);
+            sum = sum / count;
+            if (object_p obj = sum)
+                if (rt.push(obj))
+                    return OK;
+        }
+    }
+    if (!rt.error())
+        rt.invalid_stats_data_error();
+    return ERROR;
 }
 
 
@@ -527,7 +976,8 @@ COMMAND_BODY(Correlation)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -537,7 +987,8 @@ COMMAND_BODY(Covariance)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -547,7 +998,8 @@ COMMAND_BODY(StandardDeviation)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -557,7 +1009,8 @@ COMMAND_BODY(PopulationVariance)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -567,7 +1020,8 @@ COMMAND_BODY(PopulationStandardDeviation)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -577,7 +1031,8 @@ COMMAND_BODY(PopulationCovariance)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -587,18 +1042,9 @@ COMMAND_BODY(Bins)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
-
-
-COMMAND_BODY(Total)
-// ----------------------------------------------------------------------------
-//
-// ----------------------------------------------------------------------------
-{
-    return OK;
-}
-
 
 
 COMMAND_BODY(IndependentColumn)
@@ -606,7 +1052,8 @@ COMMAND_BODY(IndependentColumn)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -616,7 +1063,8 @@ COMMAND_BODY(DependentColumn)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -626,7 +1074,8 @@ COMMAND_BODY(DataColumns)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -636,7 +1085,8 @@ COMMAND_BODY(Intercept)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -646,7 +1096,8 @@ COMMAND_BODY(Slope)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -656,7 +1107,8 @@ COMMAND_BODY(LinearRegression)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -665,7 +1117,8 @@ COMMAND_BODY(BestFit)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -674,7 +1127,8 @@ COMMAND_BODY(LinearFit)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -683,7 +1137,8 @@ COMMAND_BODY(ExponentialFit)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -692,7 +1147,8 @@ COMMAND_BODY(PowerFit)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }
 
 
@@ -701,5 +1157,6 @@ COMMAND_BODY(LogarithmicFit)
 //
 // ----------------------------------------------------------------------------
 {
-    return OK;
+    rt.unimplemented_error();
+    return ERROR;
 }

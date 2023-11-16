@@ -55,12 +55,14 @@ struct StatsParameters : command
         algebraic_g     intercept;
         algebraic_g     slope;
 
-        static symbol_p name();
+        static object_p name();
 
-        bool            parse(list_g list);
-        bool            parse(symbol_p n = name());
+        bool            parse(list_p list);
+        bool            parse(object_p n = name());
 
-        bool            write(symbol_p n = name()) const;
+        bool            write(object_p n = name()) const;
+
+        operator bool() const   { return intercept.Safe() && slope.Safe(); }
     };
 };
 
@@ -81,13 +83,51 @@ struct StatsData : command
         size_t          columns;
         size_t          rows;
 
-        static symbol_p name();
+        static object_p name();
 
-        bool            parse(array_g a);
-        bool            parse(symbol_p n = name());
+        bool            parse(array_p a);
+        bool            parse(object_p n = name());
 
-        bool            write(symbol_p n = name()) const;
+        bool            write(object_p n = name()) const;
+
+        operator bool() const   { return data.Safe(); }
     };
+};
+
+
+struct StatsAccess : StatsParameters::Access, StatsData::Access
+// ----------------------------------------------------------------------------
+//   Access to stats for processing operations
+// ----------------------------------------------------------------------------
+{
+    StatsAccess(): StatsParameters::Access(), StatsData::Access() {}
+    ~StatsAccess() {}
+
+
+    typedef algebraic_p (*sum_fn)(algebraic_r s, algebraic_r x);
+    typedef algebraic_p (*sxy_fn)(algebraic_r s, algebraic_r x, algebraic_r y);
+    algebraic_p         total(sum_fn op) const;
+    algebraic_p         total(sxy_fn op, algebraic_r arg) const;
+    algebraic_p         sum(sum_fn op, uint xcol) const;
+    algebraic_p         sum(sxy_fn op, uint xcol, uint ycol) const;
+
+    algebraic_p         sum_x() const;
+    algebraic_p         sum_y() const;
+    algebraic_p         sum_xy() const;
+    algebraic_p         sum_x2() const;
+    algebraic_p         sum_y2() const;
+
+    algebraic_p         total() const;
+    algebraic_p         min() const;
+    algebraic_p         max() const;
+
+    operator bool() const
+    {
+        if (data.Safe() && intercept.Safe() && slope.Safe())
+            return true;
+        rt.invalid_stats_data_error();
+        return false;
+    }
 };
 
 
@@ -97,7 +137,7 @@ COMMAND_DECLARE(RecallData);
 COMMAND_DECLARE(StoreData);
 COMMAND_DECLARE(ClearData);
 COMMAND_DECLARE(DataSize);
-COMMAND_DECLARE(Mean);
+COMMAND_DECLARE(Average);
 COMMAND_DECLARE(Median);
 COMMAND_DECLARE(MinData);
 COMMAND_DECLARE(MaxData);

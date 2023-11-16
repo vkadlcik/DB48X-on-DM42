@@ -530,7 +530,7 @@ MENU(StatisticsMenu,
      "Σ+",      ID_AddData,
      "Σ-",      ID_RemoveData,
      "Total",   ID_Total,
-     "Mean",    ID_Mean,
+     "Mean",    ID_Average,
      "StdDev" , ID_StandardDeviation,
      "Corr",    ID_Correlation,
 

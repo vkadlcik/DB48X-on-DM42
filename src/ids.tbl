@@ -585,6 +585,12 @@ SETTING_ENUM(Capitalized, nullptr,      CommandDisplayMode)
 SETTING_ENUM(LongForm,    nullptr,      CommandDisplayMode)
 SETTING_BITS(CommandDisplayMode,2,  ID_LowerCase, ID_LongForm, ID_LongForm)
 
+SETTING_ENUM(LowerCaseNames,   nullptr,      NameDisplayMode)
+SETTING_ENUM(UpperCaseNames,   nullptr,      NameDisplayMode)
+SETTING_ENUM(CapitalizedNames, nullptr,      NameDisplayMode)
+SETTING_ENUM(LongFormNames,    nullptr,      NameDisplayMode)
+SETTING_BITS(NameDisplayMode,2,  ID_LowerCaseNames, ID_LongFormNames, ID_LongFormNames)
+
 SETTING_VALUE(Bin, "Binary",            Base, 2)
 SETTING_VALUE(Oct, "Octal",             Base, 8)
 SETTING_VALUE(Dec, "Decimal",           Base, 10)

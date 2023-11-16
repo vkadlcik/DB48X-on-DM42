@@ -5151,7 +5151,15 @@ DB48X has four command spelling modes:
 * [Lowercase](#LowerCase): Display `sto`
 * [Uppercase](#UpperCase): Display `STO`
 * [Capitalized](#Capitalized): Display `Sto`
-* [Long form](#LongForm): Display `Store`
+* [LongForm](#LongForm): Display `Store`
+
+There are four parallel settings for displaying a variable name such as `varName`:
+
+* [LowercaseNames](#LowerCaseNames): Display as `varname`
+* [UppercaseNames](#UpperCaseNames): Display as `VARNAME`
+* [CapitalizedNames](#CapitalizedNames): Display as `VarName`
+* [LongFormNames](#LongFormNames): Display as `varName`
+
 
 ## LowerCase
 
@@ -5168,6 +5176,22 @@ Display comands using the short form capitalized, for example `Sto`.
 ## LongForm
 
 Display comands using the long form, for example `Store`.
+
+## LowerCaseNames
+
+Display names using the short form in lower case, for example `varName` will show as `varname`.
+
+## UpperCase
+
+Display names using the short form in upper case, for example `varName` will show as `VARNAME`.
+
+## Capitalized
+
+Display names using the short form capitalized, for example `varName` will show as `VarName`.
+
+## LongForm
+
+Display names using the long form, for example `varName` will show as `varName`.
 
 # Decimal separator settings
 

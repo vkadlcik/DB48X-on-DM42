@@ -187,7 +187,7 @@ static unicode db48x_to_upper(unicode cp)
 }
 
 
-bool renderer::put(object::id format, utf8 text)
+bool renderer::put(object::id format, utf8 text, size_t len)
 // ----------------------------------------------------------------------------
 //   Render a command with proper capitalization
 // ----------------------------------------------------------------------------
@@ -200,26 +200,31 @@ bool renderer::put(object::id format, utf8 text)
 
     switch(format)
     {
+    case object::ID_LowerCaseNames:
     case object::ID_LowerCase:
-        for (utf8 s = text; *s; s = utf8_next(s))
+        for (utf8 s = text; size_t(s - text) < len &&  *s; s = utf8_next(s))
             result = put(unicode(db48x_to_lower(utf8_codepoint(s))));
         break;
 
+    case object::ID_UpperCaseNames:
     case object::ID_UpperCase:
-        for (utf8 s = text; *s; s = utf8_next(s))
+
+        for (utf8 s = text; size_t(s - text) < len && *s; s = utf8_next(s))
             result = put(unicode(db48x_to_upper(utf8_codepoint(s))));
         break;
 
+    case object::ID_CapitalizedNames:
     case object::ID_Capitalized:
-        for (utf8 s = text; *s; s = utf8_next(s))
+        for (utf8 s = text; size_t(s - text) < len &&  *s; s = utf8_next(s))
             result = put(unicode(s == text
                                  ? db48x_to_upper(utf8_codepoint(s))
                                  : utf8_codepoint(s)));
         break;
 
     default:
+    case object::ID_LongFormNames:
     case object::ID_LongForm:
-        for (cstring p = cstring(text); *p; p++)
+        for (cstring p = cstring(text); size_t(utf8(p) - text) < len && *p; p++)
             result = put(*p);
         break;
     }

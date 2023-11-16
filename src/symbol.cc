@@ -92,9 +92,10 @@ RENDER_BODY(symbol)
 //   Render the symbol into the given symbol buffer
 // ----------------------------------------------------------------------------
 {
-    size_t len = 0;
-    utf8   txt = o->value(&len);
-    r.put(txt, len);
+    size_t len    = 0;
+    utf8   txt    = o->value(&len);
+    auto   format = r.editing() ? ID_LongFormNames : Settings.NameDisplayMode();
+    r.put(format, txt, len);
     return r.size();
 }
 

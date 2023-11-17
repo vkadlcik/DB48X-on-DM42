@@ -411,6 +411,15 @@ COMMAND_BODY(ClearData)
 //
 // ============================================================================
 
+algebraic_p StatsAccess::num_rows() const
+// ----------------------------------------------------------------------------
+//   Return number of rows
+// ----------------------------------------------------------------------------
+{
+    return integer::make(rows);
+}
+
+
 algebraic_p StatsAccess::sum(sum_fn op, uint xcol) const
 // ----------------------------------------------------------------------------
 //   Run a sum on a single column
@@ -931,6 +940,24 @@ algebraic_p StatsAccess::covariance(bool population) const
 }
 
 
+algebraic_p StatsAccess::covariance() const
+// ----------------------------------------------------------------------------
+//   Covariance
+// ----------------------------------------------------------------------------
+{
+    return covariance(false);
+}
+
+
+algebraic_p StatsAccess::population_covariance() const
+// ----------------------------------------------------------------------------
+//   Compute the population covariance
+// ----------------------------------------------------------------------------
+{
+    return covariance(true);
+}
+
+
 static algebraic_p do_popvar(algebraic_r s, algebraic_r x, algebraic_r mean)
 // ----------------------------------------------------------------------------
 //   Compute the terms of the population variance
@@ -974,12 +1001,16 @@ algebraic_p StatsAccess::population_standard_deviation() const
 }
 
 
-algebraic_p StatsAccess::population_covariance() const
+object::result StatsAccess::evaluate(eval_fn op)
 // ----------------------------------------------------------------------------
-//   Compute the population covariance
+//   Evaluate a a given statistical function for RPL
 // ----------------------------------------------------------------------------
 {
-    return covariance(true);
+    StatsAccess stats;
+    if (!stats)
+        return object::ERROR;
+    algebraic_g value = (stats.*op)();
+    return value && rt.push(value.Safe()) ? object::OK : object::ERROR;
 }
 
 
@@ -995,11 +1026,7 @@ COMMAND_BODY(DataSize)
 //   Return the number of entries in statistics data
 // ----------------------------------------------------------------------------
 {
-    StatsData::Access stats;
-    if (!stats)
-        return ERROR;
-    integer_p count = integer::make(stats.rows);
-    return count && rt.push(count) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::num_rows);
 }
 
 
@@ -1008,11 +1035,7 @@ COMMAND_BODY(Total)
 //   Compute the sum of items
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g sum = stats.total();
-    return sum && rt.push(sum.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::total);
 }
 
 
@@ -1021,12 +1044,7 @@ COMMAND_BODY(Average)
 //   Compute the mean of all input data
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (stats)
-        if (algebraic_g avg = stats.average())
-            if (rt.push(avg.Safe()))
-                return OK;
-    return ERROR;
+    return StatsAccess::evaluate(&StatsAccess::average);
 }
 
 
@@ -1046,11 +1064,7 @@ COMMAND_BODY(MinData)
 //  Find the minimum of all data
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g min = stats.min();
-    return min && rt.push(min.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::min);
 }
 
 
@@ -1060,11 +1074,7 @@ COMMAND_BODY(MaxData)
 //  Find the maximum of all data
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g max = stats.max();
-    return max && rt.push(max.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::max);
 }
 
 
@@ -1073,11 +1083,7 @@ COMMAND_BODY(SumOfX)
 //  Compute the sum of X values
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g sum = stats.sum_x();
-    return sum && rt.push(sum.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::sum_x);
 }
 
 
@@ -1087,11 +1093,7 @@ COMMAND_BODY(SumOfY)
 //  Compute the sum of Y values
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g sum = stats.sum_y();
-    return sum && rt.push(sum.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::sum_y);
 }
 
 
@@ -1101,11 +1103,7 @@ COMMAND_BODY(SumOfXY)
 //  Compute the sum of X*Y products
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g sum = stats.sum_xy();
-    return sum && rt.push(sum.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::sum_xy);
 }
 
 
@@ -1115,11 +1113,7 @@ COMMAND_BODY(SumOfXSquares)
 //  Compute the sum of X squared
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g sum = stats.sum_x2();
-    return sum && rt.push(sum.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::sum_x2);
 }
 
 
@@ -1129,11 +1123,7 @@ COMMAND_BODY(SumOfYSquares)
 //  Compute the sum of Y squared
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g sum = stats.sum_y2();
-    return sum && rt.push(sum.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::sum_y2);
 }
 
 
@@ -1142,11 +1132,7 @@ COMMAND_BODY(Variance)
 //   Compute the variance
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g var = stats.variance();
-    return var && rt.push(var.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::variance);
 }
 
 
@@ -1155,11 +1141,7 @@ COMMAND_BODY(StandardDeviation)
 //   Compute the standard deviation (square root of variance)
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g var = stats.standard_deviation();
-    return var && rt.push(var.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::standard_deviation);
 }
 
 
@@ -1168,11 +1150,7 @@ COMMAND_BODY(Correlation)
 //  Compute the correlation
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g corr = stats.correlation();
-    return corr && rt.push(corr.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::correlation);
 }
 
 
@@ -1182,11 +1160,7 @@ COMMAND_BODY(Covariance)
 //   Compute the covariance
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g cov = stats.covariance();
-    return cov && rt.push(cov.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::covariance);
 }
 
 
@@ -1195,11 +1169,7 @@ COMMAND_BODY(PopulationVariance)
 //  Compute the population variance
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g pvar = stats.population_variance();
-    return pvar && rt.push(pvar.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::population_variance);
 }
 
 
@@ -1209,11 +1179,7 @@ COMMAND_BODY(PopulationStandardDeviation)
 //  Compute population standard deviation
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g psdev = stats.population_standard_deviation();
-    return psdev && rt.push(psdev.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::population_standard_deviation);
 }
 
 
@@ -1223,11 +1189,7 @@ COMMAND_BODY(PopulationCovariance)
 //  Compute population covariance
 // ----------------------------------------------------------------------------
 {
-    StatsAccess stats;
-    if (!stats)
-        return ERROR;
-    algebraic_g pcov = stats.population_covariance();
-    return pcov && rt.push(pcov.Safe()) ? OK : ERROR;
+    return StatsAccess::evaluate(&StatsAccess::population_covariance);
 }
 
 

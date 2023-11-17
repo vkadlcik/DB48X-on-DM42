@@ -111,6 +111,7 @@ struct StatsAccess : StatsParameters::Access, StatsData::Access
     algebraic_p         sum(sum_fn op, uint xcol) const;
     algebraic_p         sum(sxy_fn op, uint xcol, uint ycol) const;
 
+    algebraic_p         num_rows() const;
     algebraic_p         sum_x() const;
     algebraic_p         sum_y() const;
     algebraic_p         sum_xy() const;
@@ -124,10 +125,14 @@ struct StatsAccess : StatsParameters::Access, StatsData::Access
     algebraic_p         variance() const;
     algebraic_p         standard_deviation() const;
     algebraic_p         correlation() const;
-    algebraic_p         covariance(bool pop = false) const;
+    algebraic_p         covariance(bool pop) const;
+    algebraic_p         covariance() const;
     algebraic_p         population_variance() const;
     algebraic_p         population_standard_deviation() const;
     algebraic_p         population_covariance() const;
+
+    typedef algebraic_p (StatsAccess::*eval_fn)() const;
+    static object::result evaluate(eval_fn op);
 
     operator bool() const
     {

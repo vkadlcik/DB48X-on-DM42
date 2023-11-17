@@ -298,6 +298,15 @@ ularge setting_value<ularge>(object_p obj, ularge init)
 }
 
 
+template <>
+int setting_value<int>(object_p obj, int init)
+// ----------------------------------------------------------------------------
+//   Specialization for signed integer values
+// ----------------------------------------------------------------------------
+{
+    return int(obj->as_int32(init, true));
+}
+
 template<>
 object::id setting_value<object::id>(object_p obj, object::id UNUSED init)
 // ----------------------------------------------------------------------------

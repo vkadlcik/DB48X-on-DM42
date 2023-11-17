@@ -80,6 +80,7 @@ struct StatsData : command
         ~Access();
 
         array_g         data;
+        array_g         original_data;
         size_t          columns;
         size_t          rows;
 

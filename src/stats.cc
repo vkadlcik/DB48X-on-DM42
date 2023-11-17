@@ -146,7 +146,8 @@ bool StatsParameters::Access::write(object_p name) const
         integer_g yc = integer::make(ycol);
         object_g  m  = command::static_object(model);
         object_g par = list::make(xc, yc, slope, intercept, m);
-        return dir->store(name, par);
+        if (par)
+            return dir->store(name, par);
     }
     return false;
 }
@@ -163,7 +164,7 @@ StatsData::Access::Access()
 // ----------------------------------------------------------------------------
 //   Default values, load variable if it exists
 // ----------------------------------------------------------------------------
-    : data(), columns(), rows()
+    : data(), original_data(), columns(), rows()
 {
     parse(name());
 }
@@ -240,8 +241,25 @@ bool StatsData::Access::parse(object_p name)
 // ----------------------------------------------------------------------------
 {
     if (object_p obj = directory::recall_all(name))
+    {
+        object::id oty = obj->type();
+        if (oty == object::ID_text || oty == object::ID_symbol)
+        {
+            obj = directory::recall_all(obj);
+            if (!obj)
+                return false;
+        }
+
         if (array_p values = obj->as<array>())
-            return parse(values);
+        {
+            if (parse(values))
+            {
+                original_data = data;
+                return true;
+            }
+        }
+    }
+
     return false;
 }
 
@@ -251,9 +269,19 @@ bool StatsData::Access::write(object_p name) const
 //   Write statistical data to variable or disk
 // ----------------------------------------------------------------------------
 {
-    if (directory *dir = rt.variables(0))
-        if (data.Safe())
+    if (data.Safe() && data.Safe() != original_data.Safe())
+    {
+        if (directory *dir = rt.variables(0))
+        {
+            if (object_p existing = dir->recall_all(name))
+            {
+                object::id nty = existing->type();
+                if (nty == object::ID_text || nty == object::ID_symbol)
+                    name = existing;
+            }
             return dir->store(name, data.Safe());
+        }
+    }
     return false;
 }
 
@@ -358,9 +386,10 @@ COMMAND_BODY(RecallData)
 //  Recall stats data
 // ----------------------------------------------------------------------------
 {
-    StatsData::Access stats;
-    if (rt.push(stats.data.Safe()))
-        return OK;
+    if (directory *dir = rt.variables(0))
+        if (object_p value = dir->recall(command::static_object(ID_StatsData)))
+            if (rt.push(value))
+                return OK;
     return ERROR;
 }
 
@@ -375,13 +404,26 @@ COMMAND_BODY(StoreData)
     {
         if (object_p obj = rt.top())
         {
-            if (array_p values = obj->as<array>())
+            id ty = obj->type();
+            if (ty == ID_array)
             {
                 StatsData::Access stats;
-                if (stats.parse(values))
+                if (stats.parse(array_p(obj)))
                 {
+                    rt.clear_error();
                     rt.drop();
                     return OK;
+                }
+            }
+            else if (ty == ID_text || ty == ID_symbol)
+            {
+                if (directory *dir = rt.variables(0))
+                {
+                    if (dir->store(command::static_object(ID_StatsData), obj))
+                    {
+                        rt.drop();
+                        return OK;
+                    }
                 }
             }
             else

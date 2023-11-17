@@ -567,6 +567,18 @@ bool files::mkdir() const
 }
 
 
+static inline bool find_colon(utf8 txt, size_t len)
+// ----------------------------------------------------------------------------
+//   Check if there is a colon in the given text
+// ----------------------------------------------------------------------------
+{
+    while (len--)
+        if (*txt++ == ':')
+            return true;
+    return false;
+}
+
+
 text_p files::filename(text_p name, bool writing) const
 // ----------------------------------------------------------------------------
 //   Build a filename from given input
@@ -575,7 +587,7 @@ text_p files::filename(text_p name, bool writing) const
     // If name is an absolute path, use it directly
     size_t len = 0;
     utf8   txt = name->value(&len);
-    if (txt[0] == '/' || strchr(cstring(txt), ':'))
+    if (txt[0] == '/' || find_colon(txt, len))
         return name;
 
     // Check if length of this one is zero or if it's just '/'

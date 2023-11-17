@@ -412,6 +412,37 @@ COMMAND_BODY(ClearData)
 //
 // ============================================================================
 
+algebraic_p StatsAccess::fit_transform(algebraic_r x, uint col) const
+// ----------------------------------------------------------------------------
+//   Adjust data to be able to perform standard linear interpolation
+// ----------------------------------------------------------------------------
+//   There are four curve fitting models:
+//   1. Linear fit:     y = a*x + b
+//   2. Exp fit:        y = b * exp(a*x)
+//   3. Log fit:        y = a * ln(x) + b
+//   4. Power fit:      y = x ^ a * b
+//
+//   In order to find the best fit, data is adjusted during processing:
+//   1. Linear fit:     no change
+//   2. Exp fit:        ln(y) = a*x + ln(b)
+//   3. Log fit:        y = a*ln(x) + b
+//   4. Power fit:      ln(y) = a*ln(x) + ln(b)
+{
+    bool dolog = false;
+    switch (model)
+    {
+    default:
+    case object::ID_LinearFit:                                          break;
+    case object::ID_ExponentialFit: dolog = col == ycol;                break;
+    case object::ID_LogarithmicFit: dolog = col == xcol;                break;
+    case object::ID_PowerFit:       dolog = col == xcol || col == ycol; break;
+    }
+    if (dolog)
+        return log::evaluate(x);
+    return x;
+}
+
+
 algebraic_p StatsAccess::num_rows() const
 // ----------------------------------------------------------------------------
 //   Return number of rows
@@ -421,7 +452,7 @@ algebraic_p StatsAccess::num_rows() const
 }
 
 
-algebraic_p StatsAccess::sum(sum_fn op, uint xcol) const
+algebraic_p StatsAccess::sum(sum_fn op, uint scol) const
 // ----------------------------------------------------------------------------
 //   Run a sum on a single column
 // ----------------------------------------------------------------------------
@@ -440,16 +471,17 @@ algebraic_p StatsAccess::sum(sum_fn op, uint xcol) const
                     rt.invalid_stats_data_error();
                     return nullptr;
                 }
-                if (col == xcol)
+                if (col == scol)
                 {
                     x = algebraic_p(item);
+                    x = fit_transform(x, scol);
                     s = op(s, x);
                     break;
                 }
                 col++;
             }
         }
-        else if (xcol == 1)
+        else if (scol == 1)
         {
             if (!row->is_real() && !row->is_complex())
             {
@@ -457,6 +489,7 @@ algebraic_p StatsAccess::sum(sum_fn op, uint xcol) const
                 return nullptr;
             }
             x = algebraic_p(row);
+            x = fit_transform(x, scol);
             s = op(s, x);
         }
         else
@@ -490,9 +523,15 @@ algebraic_p StatsAccess::sum(sxy_fn op, uint xcol, uint ycol) const
                     return nullptr;
                 }
                 if (col == xcol)
+                {
                     x = algebraic_p(item);
+                    x = fit_transform(x, col);
+                }
                 if (col == ycol)
+                {
                     y = algebraic_p(item);
+                    y = fit_transform(y, col);
+                }
                 if (x && y)
                 {
                     s = op(s, x, y);
@@ -510,6 +549,8 @@ algebraic_p StatsAccess::sum(sxy_fn op, uint xcol, uint ycol) const
             }
             x = algebraic_p(row);
             y = x;
+            x = fit_transform(x, 1);
+            y = fit_transform(y, 1);
             s = op(s, x, y);
         }
         else
@@ -874,9 +915,15 @@ algebraic_p StatsAccess::correlation() const
         for (object_g cobj : *ra)
         {
             if (col == xcol)
+            {
                 x = cobj->as_algebraic();
+                x = fit_transform(x, col);
+            }
             if (col == ycol)
+            {
                 y = cobj->as_algebraic();
+                y = fit_transform(y, col);
+            }
             if (x && y)
             {
                 num = num + (x - avg_x) * (y - avg_y);
@@ -890,7 +937,7 @@ algebraic_p StatsAccess::correlation() const
         }
     }
 
-    return num / sqrt::run(den_x * den_y);
+    return num / sqrt::evaluate(den_x * den_y);
 }
 
 
@@ -924,9 +971,15 @@ algebraic_p StatsAccess::covariance(bool population) const
         for (object_g cobj : *ra)
         {
             if (col == xcol)
+            {
                 x = cobj->as_algebraic();
+                x = fit_transform(x, col);
+            }
             if (col == ycol)
+            {
                 y = cobj->as_algebraic();
+                y = fit_transform(y, col);
+            }
             if (x && y)
             {
                 num = num + (x - avg_x) * (y - avg_y);
@@ -1002,15 +1055,21 @@ algebraic_p StatsAccess::population_standard_deviation() const
 }
 
 
-object::result StatsAccess::evaluate(eval_fn op)
+object::result StatsAccess::evaluate(eval_fn op, bool two_columns)
 // ----------------------------------------------------------------------------
 //   Evaluate a a given statistical function for RPL
 // ----------------------------------------------------------------------------
 {
     StatsAccess stats;
-    if (!stats)
+    if (!stats || (two_columns && !stats.two_columns()))
         return object::ERROR;
-    algebraic_g value = (stats.*op)();
+
+    algebraic_g value;
+    object::id fit = stats.model;
+    if (fit != object::ID_LinearFit && Settings.LinearFitSums())
+        stats.model = object::ID_LinearFit;
+    value = (stats.*op)();
+    stats.model = fit;
     return value && rt.push(value.Safe()) ? object::OK : object::ERROR;
 }
 
@@ -1027,7 +1086,7 @@ COMMAND_BODY(DataSize)
 //   Return the number of entries in statistics data
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::num_rows);
+    return StatsAccess::evaluate(&StatsAccess::num_rows, false);
 }
 
 
@@ -1036,7 +1095,7 @@ COMMAND_BODY(Total)
 //   Compute the sum of items
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::total);
+    return StatsAccess::evaluate(&StatsAccess::total, false);
 }
 
 
@@ -1045,7 +1104,7 @@ COMMAND_BODY(Average)
 //   Compute the mean of all input data
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::average);
+    return StatsAccess::evaluate(&StatsAccess::average, false);
 }
 
 
@@ -1065,7 +1124,7 @@ COMMAND_BODY(MinData)
 //  Find the minimum of all data
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::min);
+    return StatsAccess::evaluate(&StatsAccess::min, false);
 }
 
 
@@ -1075,7 +1134,7 @@ COMMAND_BODY(MaxData)
 //  Find the maximum of all data
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::max);
+    return StatsAccess::evaluate(&StatsAccess::max, false);
 }
 
 
@@ -1084,7 +1143,7 @@ COMMAND_BODY(SumOfX)
 //  Compute the sum of X values
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::sum_x);
+    return StatsAccess::evaluate(&StatsAccess::sum_x, true);
 }
 
 
@@ -1094,7 +1153,7 @@ COMMAND_BODY(SumOfY)
 //  Compute the sum of Y values
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::sum_y);
+    return StatsAccess::evaluate(&StatsAccess::sum_y, true);
 }
 
 
@@ -1104,7 +1163,7 @@ COMMAND_BODY(SumOfXY)
 //  Compute the sum of X*Y products
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::sum_xy);
+    return StatsAccess::evaluate(&StatsAccess::sum_xy, true);
 }
 
 
@@ -1114,7 +1173,7 @@ COMMAND_BODY(SumOfXSquares)
 //  Compute the sum of X squared
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::sum_x2);
+    return StatsAccess::evaluate(&StatsAccess::sum_x2, true);
 }
 
 
@@ -1124,7 +1183,7 @@ COMMAND_BODY(SumOfYSquares)
 //  Compute the sum of Y squared
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::sum_y2);
+    return StatsAccess::evaluate(&StatsAccess::sum_y2, true);
 }
 
 
@@ -1133,7 +1192,7 @@ COMMAND_BODY(Variance)
 //   Compute the variance
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::variance);
+    return StatsAccess::evaluate(&StatsAccess::variance, false);
 }
 
 
@@ -1142,7 +1201,7 @@ COMMAND_BODY(StandardDeviation)
 //   Compute the standard deviation (square root of variance)
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::standard_deviation);
+    return StatsAccess::evaluate(&StatsAccess::standard_deviation, false);
 }
 
 
@@ -1151,7 +1210,7 @@ COMMAND_BODY(Correlation)
 //  Compute the correlation
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::correlation);
+    return StatsAccess::evaluate(&StatsAccess::correlation, true);
 }
 
 
@@ -1161,7 +1220,7 @@ COMMAND_BODY(Covariance)
 //   Compute the covariance
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::covariance);
+    return StatsAccess::evaluate(&StatsAccess::covariance, true);
 }
 
 
@@ -1170,7 +1229,7 @@ COMMAND_BODY(PopulationVariance)
 //  Compute the population variance
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::population_variance);
+    return StatsAccess::evaluate(&StatsAccess::population_variance, true);
 }
 
 
@@ -1180,7 +1239,7 @@ COMMAND_BODY(PopulationStandardDeviation)
 //  Compute population standard deviation
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::population_standard_deviation);
+    return StatsAccess::evaluate(&StatsAccess::population_standard_deviation, false);
 }
 
 
@@ -1190,14 +1249,14 @@ COMMAND_BODY(PopulationCovariance)
 //  Compute population covariance
 // ----------------------------------------------------------------------------
 {
-    return StatsAccess::evaluate(&StatsAccess::population_covariance);
+    return StatsAccess::evaluate(&StatsAccess::population_covariance, true);
 }
 
 
 
 COMMAND_BODY(FrequencyBins)
 // ----------------------------------------------------------------------------
-//
+//  Compute frequency bits for the independent column in the data
 // ----------------------------------------------------------------------------
 {
     rt.unimplemented_error();
@@ -1205,57 +1264,86 @@ COMMAND_BODY(FrequencyBins)
 }
 
 
-COMMAND_BODY(IndependentColumn)
+static object::result set_columns(bool setx, bool sety)
 // ----------------------------------------------------------------------------
-//
+//   Set a default column from the stack
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    if (rt.args(setx + sety))
+    {
+        StatsParameters::Access stats;
+        if (!stats)
+            return object::ERROR;
+        if (setx)
+        {
+            if (object_p arg = rt.stack(sety))
+            {
+                stats.xcol = arg->as_uint32(1, true);
+                if (rt.error())
+                    return object::ERROR;
+            }
+        }
+        if (sety)
+        {
+            if (object_p arg = rt.stack(0))
+            {
+                stats.ycol = arg->as_uint32(2, true);
+                if (rt.error())
+                    return object::ERROR;
+            }
+        }
+        return object::OK;
+    }
+    return object::ERROR;
+}
+
+
+COMMAND_BODY(IndependentColumn)
+// ----------------------------------------------------------------------------
+//   Set the independent (X) column
+// ----------------------------------------------------------------------------
+{
+    return set_columns(true, false);
 }
 
 
 
 COMMAND_BODY(DependentColumn)
 // ----------------------------------------------------------------------------
-//
+//  Set the depeendent (Y) column
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    return set_columns(false, true);
 }
 
 
 
 COMMAND_BODY(DataColumns)
 // ----------------------------------------------------------------------------
-//
+//  Set both X and Y
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    return set_columns(true, true);
 }
 
 
 
 COMMAND_BODY(Intercept)
 // ----------------------------------------------------------------------------
-//
+//   Return current intercept value
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    return StatsAccess::evaluate(&StatsAccess::intercept_value, true);
 }
 
 
 
 COMMAND_BODY(Slope)
 // ----------------------------------------------------------------------------
-//
+//   Return the current slope
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    return StatsAccess::evaluate(&StatsAccess::slope_value, true);
 }
 
 
@@ -1277,6 +1365,8 @@ COMMAND_BODY(LinearRegression)
     algebraic_g ssxy = sxy - sx * sy / n;
     algebraic_g slope = ssxy / ssxx;
     algebraic_g intercept = (sy - slope * sx) / n;
+    if (stats.model == ID_ExponentialFit || stats.model == ID_PowerFit)
+        intercept = exp::evaluate(intercept);
     if (!intercept || !slope)
         return ERROR;
     stats.intercept = intercept;
@@ -1293,49 +1383,80 @@ COMMAND_BODY(LinearRegression)
 
 COMMAND_BODY(BestFit)
 // ----------------------------------------------------------------------------
-//
+//  Try the four fit modes, and select the one with the highest correlation
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+
+    algebraic_g best_correlation, correlation, test;
+    object::id  best_model = ID_LinearFit;
+    for (uint type = ID_LinearFit; type <= ID_LogarithmicFit; type++)
+    {
+        stats.model = object::id(type);
+        correlation = stats.correlation();
+        bool is_best = !best_correlation;
+        if (!is_best)
+        {
+            test = correlation > best_correlation;
+            if (!test)
+                return ERROR;
+            is_best = test->as_truth(false);
+        }
+        if (is_best)
+        {
+            best_correlation = correlation;
+            best_model = stats.model;
+        }
+    }
+    stats.model = best_model;
+    return OK;
+}
+
+
+static object::result set_fit(object::id type)
+// ----------------------------------------------------------------------------
+//   Set the fit model in statistics parameters
+// ----------------------------------------------------------------------------
+{
+    StatsParameters::Access stats;
+    stats.model = type;
+    return object::OK;
 }
 
 
 COMMAND_BODY(LinearFit)
 // ----------------------------------------------------------------------------
-//
+//   Select linear fit
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    return set_fit(ID_LinearFit);
 }
 
 
 COMMAND_BODY(ExponentialFit)
 // ----------------------------------------------------------------------------
-//
+//   Select exponential fit
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    return set_fit(ID_ExponentialFit);
 }
 
 
 COMMAND_BODY(PowerFit)
 // ----------------------------------------------------------------------------
-//
+//   Select power fit
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    return set_fit(ID_PowerFit);
 }
 
 
 COMMAND_BODY(LogarithmicFit)
 // ----------------------------------------------------------------------------
-//
+//   Select logarithmic fit
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    return set_fit(ID_LogarithmicFit);
 }

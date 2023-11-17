@@ -245,12 +245,11 @@ CMD(sin)
 CMD(cos)
 CMD(tan)                        // WARNING: order used in function.cc
 
-CMD(log)
+NAMED(log, "ln")
 CMD(exp)
 CMD(log10)
 CMD(exp10)
 ALIAS(exp10, "alog")
-
 
 NAMED(ToDecimal, "→Num")
 ALIAS(ToDecimal, "→Decimal")
@@ -558,6 +557,7 @@ FLAG(HideDayOfWeek,             ShowDayOfWeek)
 FLAG(HideVoltage,               ShowVoltage)
 FLAG(BeepOff,                   BeepOn)
 FLAG(SilentBeepOn,              SilentBeepOff)
+FLAG(LinearFitSums,             CurrentFitSums)
 
 SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
 SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)

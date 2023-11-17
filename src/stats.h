@@ -100,9 +100,8 @@ struct StatsAccess : StatsParameters::Access, StatsData::Access
 //   Access to stats for processing operations
 // ----------------------------------------------------------------------------
 {
-    StatsAccess(): StatsParameters::Access(), StatsData::Access() {}
+    StatsAccess() : StatsParameters::Access(), StatsData::Access() {}
     ~StatsAccess() {}
-
 
     typedef algebraic_p (*sum_fn)(algebraic_r s, algebraic_r x);
     typedef algebraic_p (*sxy_fn)(algebraic_r s, algebraic_r x, algebraic_r y);
@@ -110,6 +109,7 @@ struct StatsAccess : StatsParameters::Access, StatsData::Access
     algebraic_p         total(sxy_fn op, algebraic_r arg) const;
     algebraic_p         sum(sum_fn op, uint xcol) const;
     algebraic_p         sum(sxy_fn op, uint xcol, uint ycol) const;
+    algebraic_p         fit_transform(algebraic_r x, uint scol) const;
 
     algebraic_p         num_rows() const;
     algebraic_p         sum_x() const;
@@ -131,8 +131,11 @@ struct StatsAccess : StatsParameters::Access, StatsData::Access
     algebraic_p         population_standard_deviation() const;
     algebraic_p         population_covariance() const;
 
+    algebraic_p         intercept_value() const         { return intercept; }
+    algebraic_p         slope_value() const             { return slope; }
+
     typedef algebraic_p (StatsAccess::*eval_fn)() const;
-    static object::result evaluate(eval_fn op);
+    static object::result evaluate(eval_fn op, bool two_columns);
 
     operator bool() const
     {
@@ -140,6 +143,16 @@ struct StatsAccess : StatsParameters::Access, StatsData::Access
             return true;
         rt.invalid_stats_data_error();
         return false;
+    }
+
+    bool two_columns() const
+    {
+        if (xcol == 0 || ycol == 0 || xcol > columns || ycol > columns)
+        {
+            rt.invalid_stats_parameters_error();
+            return false;
+        }
+        return true;
     }
 };
 

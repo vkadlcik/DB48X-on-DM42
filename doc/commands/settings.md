@@ -329,6 +329,18 @@ Show built-in units in the `UnitsMenu` even when a units file was loaded.
 Hide built-in units in the `UnitsMenu` when a units file was loaded.
 The built-in units will still show up if the units file fails to load.
 
+## LinearFitSums
+
+When this setting is active, statistics functions that return sums, such as
+`ΣXY` or `ΣX²`, operate without any adjustment to the data, i.e. as if the
+fitting model in `ΣParameters` was `LinearFit`.
+
+## CurrentFitSums
+
+When this setting is active, statistics functions that return sums, such as
+`ΣXY` or `ΣX²`, will adjust their input according to the current fitting model
+in special variable `ΣParameters`, in the same way as required for
+`LinearRegression`.
 
 # States
 

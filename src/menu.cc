@@ -1068,7 +1068,7 @@ MENU(ClearThingsMenu,
 // ----------------------------------------------------------------------------
      "Stack",   ID_Unimplemented,
      "Dir",     ID_Unimplemented,
-     "Stats",   ID_Unimplemented,
+     "Stats",   ID_ClearData,
      "Mem",     ID_Unimplemented,
      "Error",   ID_err0,
      "LCD",     ID_ClLCD);

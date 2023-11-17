@@ -80,26 +80,36 @@ Return the number of data rows in the statistics data array `ΣData`.
 
 ## ΣX
 
-Return the sum of values in the `XCol` column of the statistics data array `ΣData`.
+Return the sum of values in the `XCol` column of the statistics data array
+`ΣData`. The values are adjusted according to the current fitting model defined
+in `ΣParameters` if the `CurrentFitSums` setting is active.
 
 ## ΣY
 
-Return the sum of values in the `YCol` column of the statistics data array `ΣData`.
+Return the sum of values in the `YCol` column of the statistics data array
+`ΣData`. The values are adjusted according to the current fitting model defined
+in `ΣParameters` if the `CurrentFitSums` setting is active.
 
 ## ΣXY
 
 Return the sum of the product of values in the `XCol` and `YCol` columns of the
-statistics data array `ΣData`.
+statistics data array `ΣData`. The values are adjusted according to the current
+fitting model defined in `ΣParameters` if the `CurrentFitSums` setting is
+active.
 
 ## ΣX²
 
 Return the sum of the squares of the values in the `XCol` column of the
-statistics data array `ΣData`.
+statistics data array `ΣData`. The values are adjusted according to the current
+fitting model defined in `ΣParameters` if the `CurrentFitSums` setting is
+active.
 
 ## ΣY²
 
 Return the sum of the squares of the values in the `YCol` column of the
-statistics data array `ΣData`.
+statistics data array `ΣData`. The values are adjusted according to the current
+fitting model defined in `ΣParameters` if the `CurrentFitSums` setting is
+active.
 
 ## Total (TOT)
 
@@ -204,8 +214,17 @@ Select power fit, i.e. try to model data with an equation `y = x^a * b`.
 
 ## FrequencyBins (BINS)
 
-Sorts the elements of the independent column (XCOL) of the current statistics matrix (the reserved variable ΣDAT) into (nbins + 2) bins, where the left edge of bin 1 starts at value xmin and each bin has width xwidth.
-BINS returns a matrix containing the frequency of occurrences in each bin, and a 2-element array containing the frequency of occurrences falling below or above the defined range of x-values. The array can be stored into the reserved variable ΣDAT and used to plot a bar histogram of the bin data (for example, by executing BARPLOT).
+Sorts the elements of the independent column (`XCol`) of the current statistics
+matrix (the reserved variable `ΣDat`) into (`nbins + 2`) bins, where the left
+edge of bin 1 starts at value `xmin` and each bin has width `xwidth`.
+
+`FrequencyBins` returns a matrix containing the frequency of occurrences in each
+bin, and a 2-element array containing the frequency of occurrences falling below
+or above the defined range of x-values. The array can be stored into the
+reserved variable `ΣData` and used to plot a bar histogram of the bin data, for
+example, by executing `BarPlot`.
+
+`xmin` `xwidth` `nbins` ▶ `[[ n1 .. n2 ]]` `[ nlow nhigh ]`
 
 
 ## PopulationVariance (PVAR)

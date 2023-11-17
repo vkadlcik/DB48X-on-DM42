@@ -597,6 +597,8 @@ list_g list::map(arithmetic_fn fn, algebraic_r y) const
             obj = a.Safe();
         }
 
+        if (!obj)
+            return nullptr;
         size_t objsz = obj->size();
         byte_p objp = byte_p(obj);
         if (!rt.append(objsz, objp))

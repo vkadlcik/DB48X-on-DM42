@@ -579,7 +579,7 @@ MENU(PopulationMenu,
 // ----------------------------------------------------------------------------
      "XCol",    ID_IndependentColumn,
      "YCol",    ID_DependentColumn,
-     "Bins",    ID_Bins,
+     "Bins",    ID_FrequencyBins,
      "PopVar",  ID_PopulationVariance,
      "PopSDev", ID_PopulationStandardDeviation,
      "PCovar",  ID_PopulationCovariance);

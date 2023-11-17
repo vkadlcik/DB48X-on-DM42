@@ -32,6 +32,7 @@
 #include "arithmetic.h"
 #include "compare.h"
 #include "integer.h"
+#include "tag.h"
 #include "variables.h"
 
 
@@ -1194,7 +1195,7 @@ COMMAND_BODY(PopulationCovariance)
 
 
 
-COMMAND_BODY(Bins)
+COMMAND_BODY(FrequencyBins)
 // ----------------------------------------------------------------------------
 //
 // ----------------------------------------------------------------------------
@@ -1261,11 +1262,32 @@ COMMAND_BODY(Slope)
 
 COMMAND_BODY(LinearRegression)
 // ----------------------------------------------------------------------------
-//
+//   Compute linear regression
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g n = stats.num_rows();
+    algebraic_g sx2 = stats.sum_x2();
+    algebraic_g sx = stats.sum_x();
+    algebraic_g sy = stats.sum_y();
+    algebraic_g sxy = stats.sum_xy();
+    algebraic_g ssxx = sx2 - sx * sx / n;
+    algebraic_g ssxy = sxy - sx * sy / n;
+    algebraic_g slope = ssxy / ssxx;
+    algebraic_g intercept = (sy - slope * sx) / n;
+    if (!intercept || !slope)
+        return ERROR;
+    stats.intercept = intercept;
+    stats.slope = slope;
+    tag_g itag = tag::make("Intercept", intercept.Safe());
+    tag_g stag = tag::make("Slope", slope.Safe());
+    if (!itag || !stag)
+        return ERROR;
+    if (!rt.push(itag.Safe()) || !rt.push(stag.Safe()))
+        return ERROR;
+    return OK;
 }
 
 

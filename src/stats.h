@@ -166,7 +166,7 @@ COMMAND_DECLARE(StandardDeviation);
 COMMAND_DECLARE(PopulationVariance);
 COMMAND_DECLARE(PopulationStandardDeviation);
 COMMAND_DECLARE(PopulationCovariance);
-COMMAND_DECLARE(Bins);
+COMMAND_DECLARE(FrequencyBins);
 COMMAND_DECLARE(Total);
 COMMAND_DECLARE(IndependentColumn);
 COMMAND_DECLARE(DependentColumn);

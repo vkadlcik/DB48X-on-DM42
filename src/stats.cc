@@ -884,7 +884,7 @@ algebraic_p StatsAccess::correlation() const
 }
 
 
-algebraic_p StatsAccess::covariance() const
+algebraic_p StatsAccess::covariance(bool population) const
 // ----------------------------------------------------------------------------
 //   Compute the covariance
 // ----------------------------------------------------------------------------
@@ -926,8 +926,60 @@ algebraic_p StatsAccess::covariance() const
         }
     }
 
-    n = integer::make(rows - 1);
+    n = integer::make(rows - !population);
     return num / n;
+}
+
+
+static algebraic_p do_popvar(algebraic_r s, algebraic_r x, algebraic_r mean)
+// ----------------------------------------------------------------------------
+//   Compute the terms of the population variance
+// ----------------------------------------------------------------------------
+{
+    algebraic_g xdev = (x - mean);
+    return s + xdev * xdev;
+}
+
+
+algebraic_p StatsAccess::population_variance() const
+// ----------------------------------------------------------------------------
+//   Compute the population variance
+// ----------------------------------------------------------------------------
+{
+    if (rows <= 0)
+    {
+        rt.insufficient_stats_data_error();
+        return nullptr;
+    }
+    if (algebraic_g mean = average())
+    {
+        algebraic_g sum = total(do_popvar, mean);
+        algebraic_g num = integer::make(rows);
+        sum = sum / num;
+        return sum;
+    }
+    return nullptr;
+}
+
+
+algebraic_p StatsAccess::population_standard_deviation() const
+// ----------------------------------------------------------------------------
+//   Compute the population variance
+// ----------------------------------------------------------------------------
+{
+    algebraic_g pvar = population_variance();
+    if (array_p pvara = pvar->as<array>())
+        return pvara->map(sqrt::evaluate);
+    return sqrt::evaluate(pvar);
+}
+
+
+algebraic_p StatsAccess::population_covariance() const
+// ----------------------------------------------------------------------------
+//   Compute the population covariance
+// ----------------------------------------------------------------------------
+{
+    return covariance(true);
 }
 
 
@@ -1140,33 +1192,42 @@ COMMAND_BODY(Covariance)
 
 COMMAND_BODY(PopulationVariance)
 // ----------------------------------------------------------------------------
-//
+//  Compute the population variance
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g pvar = stats.population_variance();
+    return pvar && rt.push(pvar.Safe()) ? OK : ERROR;
 }
 
 
 
 COMMAND_BODY(PopulationStandardDeviation)
 // ----------------------------------------------------------------------------
-//
+//  Compute population standard deviation
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g psdev = stats.population_standard_deviation();
+    return psdev && rt.push(psdev.Safe()) ? OK : ERROR;
 }
 
 
 
 COMMAND_BODY(PopulationCovariance)
 // ----------------------------------------------------------------------------
-//
+//  Compute population covariance
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return ERROR;
+    StatsAccess stats;
+    if (!stats)
+        return ERROR;
+    algebraic_g pcov = stats.population_covariance();
+    return pcov && rt.push(pcov.Safe()) ? OK : ERROR;
 }
 
 

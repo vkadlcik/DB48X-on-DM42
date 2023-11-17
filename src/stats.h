@@ -124,7 +124,10 @@ struct StatsAccess : StatsParameters::Access, StatsData::Access
     algebraic_p         variance() const;
     algebraic_p         standard_deviation() const;
     algebraic_p         correlation() const;
-    algebraic_p         covariance() const;
+    algebraic_p         covariance(bool pop = false) const;
+    algebraic_p         population_variance() const;
+    algebraic_p         population_standard_deviation() const;
+    algebraic_p         population_covariance() const;
 
     operator bool() const
     {

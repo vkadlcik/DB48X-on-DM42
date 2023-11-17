@@ -373,7 +373,7 @@ static const cstring basic_units[] =
     "kHz",      "=",                    // Kilohertz
     "MHz",      "=",                    // Megahertz
     "GHz",      "=",                    // Gigahertz
-    "rpm",      "60_Hz",                // Rotations per minute
+    "rpm",      "1/60_Hz",              // Rotations per minute
 
     // Alias names for common time units
     "year",     "1_y",                  // Year

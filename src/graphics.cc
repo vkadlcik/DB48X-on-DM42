@@ -32,6 +32,7 @@
 #include "arithmetic.h"
 #include "bignum.h"
 #include "blitter.h"
+#include "complex.h"
 #include "grob.h"
 #include "integer.h"
 #include "list.h"
@@ -53,7 +54,7 @@ using std::min;
 //
 // ============================================================================
 
-PlotParameters::PlotParameters()
+PlotParametersAccess::PlotParametersAccess()
 // ----------------------------------------------------------------------------
 //   Default values
 // ----------------------------------------------------------------------------
@@ -78,9 +79,19 @@ PlotParameters::PlotParameters()
 }
 
 
-bool PlotParameters::parse(list_g parms)
+object_p PlotParametersAccess::name()
 // ----------------------------------------------------------------------------
-//   Parse a PPAR / PlotParameters list
+//   Return the name for the variable
+// ----------------------------------------------------------------------------
+{
+    return command::static_object(object::ID_PlotParameters);
+
+}
+
+
+bool PlotParametersAccess::parse(list_p parms)
+// ----------------------------------------------------------------------------
+//   Parse a PPAR / PlotParametersAccess list
 // ----------------------------------------------------------------------------
 {
     if (!parms)
@@ -218,7 +229,7 @@ bool PlotParameters::parse(list_g parms)
 }
 
 
-bool PlotParameters::parse(symbol_g name)
+bool PlotParametersAccess::parse(object_p name)
 // ----------------------------------------------------------------------------
 //   Parse plot parameters from a variable name
 // ----------------------------------------------------------------------------
@@ -230,23 +241,31 @@ bool PlotParameters::parse(symbol_g name)
 }
 
 
-bool PlotParameters::parse(cstring name)
+bool PlotParametersAccess::write(object_p name) const
 // ----------------------------------------------------------------------------
-//   Parse plot parameters from C variable name
-// ----------------------------------------------------------------------------
-{
-    symbol_p sym = symbol::make(name);
-    return parse(sym);
-}
-
-
-bool PlotParameters::parse()
-// ----------------------------------------------------------------------------
-//   Check if we have PlotParameters or PPAR
+//   Write out the plot parameters in case they were changed
 // ----------------------------------------------------------------------------
 {
-    return parse("PlotParameters") || parse("PPAR");
+    if (directory *dir = rt.variables(0))
+    {
+        rectangular_g zmin = rectangular::make(xmin, ymin);
+        rectangular_g zmax = rectangular::make(xmax, ymax);
+        list_g        indep = list::make(independent, imin, imax);
+        complex_g     zorig = rectangular::make(xorigin, yorigin);
+        list_g        ticks = list::make(xticks, yticks);
+        list_g        axes  = list::make(zorig, ticks, xlabel, ylabel);
+        object_g      ptype = command::static_object(type);
+        symbol_g      dep = dependent;
+
+        list_g        par =
+            list::make(zmin, zmax, indep, resolution, axes, ptype, dep);
+        if (par)
+            return dir->store(name, par.Safe());
+    }
+    return false;
+
 }
+
 
 
 
@@ -256,7 +275,7 @@ bool PlotParameters::parse()
 //
 // ============================================================================
 
-coord PlotParameters::pixel_adjust(object_r    obj,
+coord PlotParametersAccess::pixel_adjust(object_r    obj,
                                    algebraic_r min,
                                    algebraic_r max,
                                    uint        scale,
@@ -330,7 +349,20 @@ coord PlotParameters::pixel_adjust(object_r    obj,
 }
 
 
-coord PlotParameters::pair_pixel_x(object_r pos) const
+coord PlotParametersAccess::size_adjust(object_r    p,
+                                        algebraic_r min,
+                                        algebraic_r max,
+                                        uint        scale)
+// ----------------------------------------------------------------------------
+//   Adjust the size of the parameters
+// ----------------------------------------------------------------------------
+{
+    return pixel_adjust(p, min, max, scale, true);
+}
+
+
+
+coord PlotParametersAccess::pair_pixel_x(object_r pos) const
 // ----------------------------------------------------------------------------
 //   Given a position (can be a complex, a list or a vector), return x
 // ----------------------------------------------------------------------------
@@ -341,7 +373,7 @@ coord PlotParameters::pair_pixel_x(object_r pos) const
 }
 
 
-coord PlotParameters::pair_pixel_y(object_r pos) const
+coord PlotParametersAccess::pair_pixel_y(object_r pos) const
 // ----------------------------------------------------------------------------
 //   Given a position (can be a complex, a list or a vector), return y
 // ----------------------------------------------------------------------------
@@ -352,7 +384,7 @@ coord PlotParameters::pair_pixel_y(object_r pos) const
 }
 
 
-coord PlotParameters::pixel_x(algebraic_r x) const
+coord PlotParametersAccess::pixel_x(algebraic_r x) const
 // ----------------------------------------------------------------------------
 //   Adjust a position given as an algebraic value
 // ----------------------------------------------------------------------------
@@ -362,7 +394,7 @@ coord PlotParameters::pixel_x(algebraic_r x) const
 }
 
 
-coord PlotParameters::pixel_y(algebraic_r y) const
+coord PlotParametersAccess::pixel_y(algebraic_r y) const
 // ----------------------------------------------------------------------------
 //   Adjust a position given as an algebraic value
 // ----------------------------------------------------------------------------
@@ -392,7 +424,7 @@ COMMAND_BODY(Disp)
     {
         if (object_g todisp = rt.pop())
         {
-            PlotParameters ppar;
+            PlotParametersAccess ppar;
             coord          x      = 0;
             coord          y      = 0;
             font_p         font   = settings::font(settings::STACK);
@@ -496,7 +528,7 @@ COMMAND_BODY(Line)
     object_g p2 = rt.stack(0);
     if (p1 && p2)
     {
-        PlotParameters ppar;
+        PlotParametersAccess ppar;
         coord x1 = ppar.pair_pixel_x(p1);
         coord y1 = ppar.pair_pixel_y(p1);
         coord x2 = ppar.pair_pixel_x(p2);
@@ -527,7 +559,7 @@ COMMAND_BODY(Ellipse)
     object_g p2 = rt.stack(0);
     if (p1 && p2)
     {
-        PlotParameters ppar;
+        PlotParametersAccess ppar;
         coord x1 = ppar.pair_pixel_x(p1);
         coord y1 = ppar.pair_pixel_y(p1);
         coord x2 = ppar.pair_pixel_x(p2);
@@ -558,7 +590,7 @@ COMMAND_BODY(Circle)
     object_g ro = rt.stack(0);
     if (co && ro)
     {
-        PlotParameters ppar;
+        PlotParametersAccess ppar;
         coord x = ppar.pair_pixel_x(co);
         coord y = ppar.pair_pixel_y(co);
         coord rx = ppar.size_adjust(ro, ppar.xmin, ppar.xmax, 2*ScreenWidth());
@@ -597,7 +629,7 @@ COMMAND_BODY(Rect)
     object_g p2 = rt.stack(0);
     if (p1 && p2)
     {
-        PlotParameters ppar;
+        PlotParametersAccess ppar;
         coord x1 = ppar.pair_pixel_x(p1);
         coord y1 = ppar.pair_pixel_y(p1);
         coord x2 = ppar.pair_pixel_x(p2);
@@ -629,7 +661,7 @@ COMMAND_BODY(RRect)
     object_g ro = rt.stack(0);
     if (p1 && p2 && ro)
     {
-        PlotParameters ppar;
+        PlotParametersAccess ppar;
         coord x1 = ppar.pair_pixel_x(p1);
         coord y1 = ppar.pair_pixel_y(p1);
         coord x2 = ppar.pair_pixel_x(p2);

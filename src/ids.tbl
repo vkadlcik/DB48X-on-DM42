@@ -365,26 +365,29 @@ NAMED(det, "Determinant")
 //
 // ============================================================================
 
-NAMED(DispXY, "DrawStyledText")
-NAMED(Line, "DrawLine")
-NAMED(Ellipse, "DrawEllipse")
-NAMED(Circle, "DrawCircle")
-NAMED(Rect, "DrawRectangle")
-NAMED(RRect, "DrawRoundedRectangle")
-NAMED(Draw, "DrawPlot")
-NAMED(Drax, "DrawAxes")
+CMD(PlotParameters)     ALIAS(PlotParameters, "PPar")
+
+NAMED(DispXY,           "DrawStyledText")
+NAMED(Line,             "DrawLine")
+NAMED(Ellipse,          "DrawEllipse")
+NAMED(Circle,           "DrawCircle")
+NAMED(Rect,             "DrawRectangle")
+NAMED(RRect,            "DrawRoundedRectangle")
+NAMED(Draw,             "DrawPlot")
+NAMED(Drax,             "DrawAxes")
 
 NAMED(Function,         "FunctionPlot")
 NAMED(Polar,            "PolarPlot")
 NAMED(Parametric,       "ParametricPlot")
+// NAMED(Scatter,          "ScatterPlot")
 
 CMD(Clip)
 CMD(CurrentClip)
 
-NAMED(GXor, "GraphicXor")
-NAMED(GOr,  "GraphicOr")
-NAMED(GAnd, "GraphicAnd")
-NAMED(Pict, "GraphicPicture")
+NAMED(GXor,             "GraphicXor")
+NAMED(GOr,              "GraphicOr")
+NAMED(GAnd,             "GraphicAnd")
+NAMED(Pict,             "GraphicPicture")
 
 
 

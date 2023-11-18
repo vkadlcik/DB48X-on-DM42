@@ -220,7 +220,7 @@ object::result grob::command(grob::blitop op)
         return ERROR;
     if (object_p coords = rt.stack(1))
     {
-        PlotParameters ppar;
+        PlotParametersAccess ppar;
         coord x = ppar.pair_pixel_x(coords);
         coord y = ppar.pair_pixel_y(coords);
         object_p src = rt.stack(0);

@@ -32,56 +32,67 @@
 #include "algebraic.h"
 #include "command.h"
 #include "list.h"
+#include "stats.h"
 #include "symbol.h"
 #include "target.h"
 
 
-struct PlotParameters
+struct PlotParameters : command
 // ----------------------------------------------------------------------------
 //   A replication of the PlotParameters / PPAR vaariable
 // ----------------------------------------------------------------------------
 {
-    PlotParameters();
+    PlotParameters(id type = ID_PlotParameters) : command(type) {}
 
-    object::id  type;
-    algebraic_g xmin;
-    algebraic_g ymin;
-    algebraic_g xmax;
-    algebraic_g ymax;
-    symbol_g    independent;
-    algebraic_g imin;
-    algebraic_g imax;
-    symbol_g    dependent;
-    algebraic_g resolution;
-    algebraic_g xorigin;
-    algebraic_g yorigin;
-    algebraic_g xticks;
-    algebraic_g yticks;
-    text_g      xlabel;
-    text_g      ylabel;
+};
 
-    bool parse(list_g list);
-    bool parse(symbol_g name);
-    bool parse(cstring name);
-    bool parse();
 
-    static coord pixel_adjust(object_r p,
-                              algebraic_r min,
-                              algebraic_r max,
-                              uint scale,
-                              bool isSize = false);
-    static coord size_adjust(object_r p,
-                             algebraic_r min,
-                             algebraic_r max,
-                             uint scale)
-    {
-        return pixel_adjust(p, min, max, scale, true);
-    }
-    coord pair_pixel_x(object_r pos) const;
-    coord pair_pixel_y(object_r pos) const;
+struct PlotParametersAccess
+// ----------------------------------------------------------------------------
+//  Access to the plot parameters
+// ----------------------------------------------------------------------------
+{
+    PlotParametersAccess();
 
-    coord pixel_x(algebraic_r pos) const;
-    coord pixel_y(algebraic_r pos) const;
+    object::id      type;
+    algebraic_g     xmin;
+    algebraic_g     ymin;
+    algebraic_g     xmax;
+    algebraic_g     ymax;
+    symbol_g        independent;
+    algebraic_g     imin;
+    algebraic_g     imax;
+    symbol_g        dependent;
+    algebraic_g     resolution;
+    algebraic_g     xorigin;
+    algebraic_g     yorigin;
+    algebraic_g     xticks;
+    algebraic_g     yticks;
+    text_g          xlabel;
+    text_g          ylabel;
+
+    static object_p name();
+
+    bool            parse(list_p list);
+    bool            parse(object_p n = name());
+
+    bool            write(object_p n = name()) const;
+
+
+    static coord    pixel_adjust(object_r    p,
+                                 algebraic_r min,
+                                 algebraic_r max,
+                                 uint        scale,
+                                 bool        isSize = false);
+    static coord    size_adjust(object_r    p,
+                                algebraic_r min,
+                                algebraic_r max,
+                                uint        scale);
+    coord           pair_pixel_x(object_r pos) const;
+    coord           pair_pixel_y(object_r pos) const;
+
+    coord           pixel_x(algebraic_r pos) const;
+    coord           pixel_y(algebraic_r pos) const;
 };
 
 

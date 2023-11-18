@@ -40,7 +40,7 @@
 #include "variables.h"
 
 
-void draw_axes(const PlotParameters &ppar)
+void draw_axes(const PlotParametersAccess &ppar)
 // ----------------------------------------------------------------------------
 //   Draw axes
 // ----------------------------------------------------------------------------
@@ -82,7 +82,7 @@ void draw_axes(const PlotParameters &ppar)
 
 
 object::result draw_plot(object::id            kind,
-                         const PlotParameters &ppar,
+                         const PlotParametersAccess &ppar,
                          object_g              eqobj = nullptr)
 // ----------------------------------------------------------------------------
 //  Draw an equation that takes input from the stack
@@ -209,7 +209,7 @@ COMMAND_BODY(Function)
         return ERROR;
     if (object_g eq = rt.pop())
     {
-        PlotParameters ppar;
+        PlotParametersAccess ppar;
         return draw_plot(ID_Function, ppar, eq);
     }
     return ERROR;
@@ -225,7 +225,7 @@ COMMAND_BODY(Parametric)
         return ERROR;
     if (object_g eq = rt.pop())
     {
-        PlotParameters ppar;
+        PlotParametersAccess ppar;
         return draw_plot(ID_Parametric, ppar, eq);
     }
     return ERROR;
@@ -241,7 +241,7 @@ COMMAND_BODY(Polar)
         return ERROR;
     if (object_g eq = rt.pop())
     {
-        PlotParameters ppar;
+        PlotParametersAccess ppar;
         return draw_plot(ID_Polar, ppar, eq);
     }
     return ERROR;
@@ -255,7 +255,7 @@ COMMAND_BODY(Draw)
 {
     if (!rt.args(0))
         return ERROR;
-    PlotParameters ppar;
+    PlotParametersAccess ppar;
     switch(ppar.type)
     {
     default:
@@ -278,7 +278,7 @@ COMMAND_BODY(Drax)
         return ERROR;
     ui.draw_graphics();
 
-    PlotParameters ppar;
+    PlotParametersAccess ppar;
     draw_axes(ppar);
     refresh_dirty();
 

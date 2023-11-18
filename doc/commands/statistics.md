@@ -78,33 +78,33 @@ Compute the largest of the values in the statistics data array `ΣData`.
 
 Return the number of data rows in the statistics data array `ΣData`.
 
-## ΣX
+## SumOfX (ΣX)
 
 Return the sum of values in the `XCol` column of the statistics data array
 `ΣData`. The values are adjusted according to the current fitting model defined
 in `ΣParameters` if the `CurrentFitSums` setting is active.
 
-## ΣY
+## SumOfY (ΣY)
 
 Return the sum of values in the `YCol` column of the statistics data array
 `ΣData`. The values are adjusted according to the current fitting model defined
 in `ΣParameters` if the `CurrentFitSums` setting is active.
 
-## ΣXY
+## SumOfXY (ΣXY)
 
 Return the sum of the product of values in the `XCol` and `YCol` columns of the
 statistics data array `ΣData`. The values are adjusted according to the current
 fitting model defined in `ΣParameters` if the `CurrentFitSums` setting is
 active.
 
-## ΣX²
+## SumOfXSquares (ΣX²)
 
 Return the sum of the squares of the values in the `XCol` column of the
 statistics data array `ΣData`. The values are adjusted according to the current
 fitting model defined in `ΣParameters` if the `CurrentFitSums` setting is
 active.
 
-## ΣY²
+## SumOfYSquares (ΣY²)
 
 Return the sum of the squares of the values in the `YCol` column of the
 statistics data array `ΣData`. The values are adjusted according to the current

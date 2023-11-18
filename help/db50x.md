@@ -1892,27 +1892,35 @@ HP48 implementation.
 
 The following is a list of the HP50 RPL commands which are implemented in DB50X.
 
+* [!](#fact) (Factorial)
+* [+](#add) (Add)
+* [<](#testlt) (Less than)
+* [==](#same) (Different meaning: object equality)
+* [=](#testeq) (Equal)
+* [>](#testgt) (Greater than)
 * [ABS](#abs)
-* [ACOS](#acos)
 * [ACOSH](#acosh)
+* [ACOS](#acos)
 * [ADD](#add)
 * [ALOG](#alog)
 * [AND](#and)
 * [ARG](#arg)
-* [ASIN](#asin)
 * [ASINH](#asinh)
-* [ATAN](#atan)
+* [ASIN](#asin)
 * [ATANH](#atanh)
+* [ATAN](#atan)
 * [AXES](#axes)
 * [BIN](#bin)
 * [BYTES](#bytes)
 * [B→R](#binarytoreal)
+* [CF](#clearflag)
 * [CLLCD](#cllcd)
+* [CLΣ](#cleardata)
 * [CONJ](#conj)
 * [CONT](#continue)
 * [CONVERT](#convert)
-* [COS](#cos)
 * [COSH](#cosh)
+* [COS](#cos)
 * [CRDIR](#crdir)
 * [C→R](#complextoreal)
 * [DBUG](#debug)
@@ -1921,17 +1929,17 @@ The following is a list of the HP50 RPL commands which are implemented in DB50X.
 * [DEPTH](#depth)
 * [DIR](#dir)
 * [DISP](#disp)
-* [DO](#do)
 * [DOERR](#doerr)
+* [DO](#do)
 * [DRAW](#draw)
 * [DRAX](#drax)
-* [DROP](#drop)
 * [DROP2](#drop2)
 * [DROPN](#dropn)
+* [DROP](#drop)
 * [DTAG](#dtag)
-* [DUP](#dup)
 * [DUP2](#dup2)
 * [DUPN](#dupn)
+* [DUP](#dup)
 * [ELSE](#else)
 * [END](#end)
 * [ENG](#eng)
@@ -1939,13 +1947,17 @@ The following is a list of the HP50 RPL commands which are implemented in DB50X.
 * [ERRM](#errm)
 * [ERRN](#errn)
 * [EVAL](#eval)
-* [EXP](#exp)
-* [EXPAN](#expan)
 * [EXPAND](#expand)
+* [EXPAN](#expan)
 * [EXPM](#expm)
+* [EXP](#exp)
 * [FACT](#fact)
+* [FC?C](#testflagclearthenclear)
+* [FC?](#testflagclear)
 * [FIX](#fix)
 * [FOR](#for)
+* [FS?C](#testflagsetthenclear)
+* [FS?](#testflagset)
 * [FUNCTION](#function)
 * [GAMMA](#gamma)
 * [GET](#get)
@@ -1956,26 +1968,26 @@ The following is a list of the HP50 RPL commands which are implemented in DB50X.
 * [HELP](#help) (Different meaning)
 * [HEX](#hex)
 * [HOME](#home)
-* [i](#iconstant)
-* [IF](#if)
 * [IFERR](#iferr)
-* [IFT](#ift)
 * [IFTE](#ifte)
+* [IFT](#ift)
+* [IF](#if)
 * [IM](#im)
 * [INV](#inv)
 * [KILL](#kill)
 * [LASTARG](#lastarg)
 * [LINE](#line)
-* [→LIST](#tolist)
-* [LN](#ln)
 * [LNP1](#lnp1)
+* [LN](#ln)
 * [LOG](#log)
+* [MAXΣ](#maxdata)
+* [MEAN](#mean)
 * [MEM](#mem)
+* [MINΣ](#mindata)
 * [MOD](#mod)
 * [NEG](#neg)
 * [NEXT](#next)
 * [NOT](#not)
-* [→NUM](#todecimal)
 * [OCT](#oct)
 * [OFF](#off)
 * [OR](#or)
@@ -1987,69 +1999,74 @@ The following is a list of the HP50 RPL commands which are implemented in DB50X.
 * [PICT](#pict)
 * [POLAR](#polar)
 * [PURGE](#purge)
-* [→Q](#tofraction)
 * [RAD](#rad)
 * [RCL](#rcl)
 * [RCWS](#rcws)
 * [RECT](#rect) (Different meaning: draws a rectangle)
 * [REPEAT](#repeat)
 * [REWRITE](#rewrite) (Different meaning: performs a rewrite)
-* [ROLL](#roll)
 * [ROLLD](#rolld)
+* [ROLL](#roll)
 * [ROOT](#root)
 * [ROT](#rot)
 * [R→B](#realtobinary)
 * [R→C](#realtocomplex)
 * [SAME](#same)
 * [SCI](#sci)
+* [SF](#showflag)
 * [SIGN](#sign)
-* [SIN](#sin)
 * [SINH](#sinh)
+* [SIN](#sin)
 * [SQ](#sq)
 * [SST](#stepover)
 * [SST↓](#singlestep)
 * [STEP](#step)
-* [STO](#sto)
 * [STORE](#store) (Different meaning: long form of STO)
-* [→STR](#→str)
+* [STO](#sto)
 * [STWS](#stws)
 * [SWAP](#swap)
-* [→TAG](#→tag)
-* [TAN](#tan)
 * [TANH](#tanh)
+* [TAN](#tan)
 * [THEN](#then)
 * [TICKS](#ticks)
 * [TYPE](#type)
 * [UBASE](#ubase)
 * [UFACT](#ufact)
-* [→UNIT](#→unit)
 * [UNTIL](#until)
 * [UPDIR](#updir)
 * [UVAL](#uval)
 * [VERSION](#version)
 * [WAIT](#wait)
 * [WHILE](#while)
+* [XCOL](#independentcolumn)
 * [XOR](#xor)
 * [XROOT](#xroot)
-* [+](#add) (Add)
-* [–](#sub) (Subtract)
+* [YCOL](#dependentcolumn)
+* [^](#pow) (Power)
+* [i](#iconstant)
+* [«»](#programs) (Program delimiters)
 * [×](#mul) (Multiply)
 * [÷](#div) (Divide)
-* [^](#pow) (Power)
-* [√](#sqrt) (Square root)
+* [ΣXY](#sumofxy)
+* [ΣX](#sumofx)
+* [ΣX²](#sumofxsquares)
+* [ΣY](#sumofy)
+* [ΣY²](#sumofysquares)
 * [π](#pi) (Pi)
-* [!](#fact) (Factorial)
-* [＿](#units) (Unit attachment)
-* [∫](#integrate) (Integrate)
-* [«»](#programs) (Program delimiters)
-* [<](#testlt) (Less than)
-* [≤](#testle) (Less than or equal)
-* [>](#testgt) (Greater than)
-* [≥](#testge) (Greater than or Equal)
-* [≠](#testne) (Not equal)
-* [=](#testeq) (Equal)
-* [==](#same) (Different meaning: object equality)
+* [–](#sub) (Subtract)
+* [→LIST](#tolist)
+* [→NUM](#todecimal)
+* [→Q](#tofraction)
+* [→STR](#→str)
+* [→TAG](#→tag)
+* [→UNIT](#→unit)
 * [→](#locals) (Create Local)
+* [√](#sqrt) (Square root)
+* [∫](#integrate) (Integrate)
+* [≠](#testne) (Not equal)
+* [≤](#testle) (Less than or equal)
+* [≥](#testge) (Greater than or Equal)
+* [＿](#units) (Unit attachment)
 
 
 
@@ -2105,7 +2122,6 @@ commands.
 * CASE
 * CEIL
 * CENTR
-* CF
 * %CH
 * CHINREM
 * CHOLESKY
@@ -2116,7 +2132,6 @@ commands.
 * CLEAR
 * CLKADJ
 * CLOSEIO
-* CLΣ
 * CLUSR
 * CLVAR
 * CMPLX
@@ -2213,8 +2228,6 @@ commands.
 * FANNING
 * FAST3D
 * FCOEF
-* FC?
-* FC?C
 * FDISTRIB
 * FFT
 * FILER
@@ -2232,8 +2245,6 @@ commands.
 * FREE
 * FREEZE
 * FROOTS
-* FS?
-* FS?C
 * FXND
 * GAUSS
 * GBASIS
@@ -2343,9 +2354,7 @@ commands.
 * MATR
 * MAX
 * MAXR
-* MAXΣ
 * MCALC
-* MEAN
 * MENU
 * MENUXY
 * MERGE
@@ -2355,7 +2364,6 @@ commands.
 * →MINIFONT
 * MINIT
 * MINR
-* MINΣ
 * MITM
 * MKISOM
 * MODSTO
@@ -2519,7 +2527,6 @@ commands.
 * SERIES
 * SERVER
 * SEVAL
-* SF
 * SHOW
 * SIDENS
 * SIGMA
@@ -2638,10 +2645,6 @@ commands.
 * *W
 * WIREFRAME
 * WSLOG
-* ΣX
-* ΣX2
-* ΣX^2
-* XCOL
 * XGET
 * XMIT
 * XNUM
@@ -2654,12 +2657,6 @@ commands.
 * XSERV
 * XVOL
 * XXRNG
-* ΣXY
-* ΣX*Y
-* ΣY
-* ΣY2
-* ΣY^2
-* YCOL
 * YRNG
 * YSLICE
 * YVOL
@@ -5522,33 +5519,33 @@ Compute the largest of the values in the statistics data array `ΣData`.
 
 Return the number of data rows in the statistics data array `ΣData`.
 
-## ΣX
+## SumOfX (ΣX)
 
 Return the sum of values in the `XCol` column of the statistics data array
 `ΣData`. The values are adjusted according to the current fitting model defined
 in `ΣParameters` if the `CurrentFitSums` setting is active.
 
-## ΣY
+## SumOfY (ΣY)
 
 Return the sum of values in the `YCol` column of the statistics data array
 `ΣData`. The values are adjusted according to the current fitting model defined
 in `ΣParameters` if the `CurrentFitSums` setting is active.
 
-## ΣXY
+## SumOfXY (ΣXY)
 
 Return the sum of the product of values in the `XCol` and `YCol` columns of the
 statistics data array `ΣData`. The values are adjusted according to the current
 fitting model defined in `ΣParameters` if the `CurrentFitSums` setting is
 active.
 
-## ΣX²
+## SumOfXSquares (ΣX²)
 
 Return the sum of the squares of the values in the `XCol` column of the
 statistics data array `ΣData`. The values are adjusted according to the current
 fitting model defined in `ΣParameters` if the `CurrentFitSums` setting is
 active.
 
-## ΣY²
+## SumOfYSquares (ΣY²)
 
 Return the sum of the squares of the values in the `YCol` column of the
 statistics data array `ΣData`. The values are adjusted according to the current

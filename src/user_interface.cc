@@ -3981,21 +3981,23 @@ bool user_interface::handle_functions(int key)
                 if (obj->is_command())
                 {
                     dirtyEditor = true;
+                    edRows = 0;
                     return obj->insert(*this) != object::ERROR;
                 }
                 break;
 
             case ALGEBRAIC:
             case PARENTHESES:
-                if (obj->is_algebraic())
-                {
-                    dirtyEditor = true;
-                    return obj->insert(*this) != object::ERROR;
-                }
-                else if (obj->type() == object::ID_Sto)
+                if (obj->type() == object::ID_Sto)
                 {
                     if (!end_edit())
                         return false;
+                }
+                else if (obj->is_algebraic() || obj->is_command())
+                {
+                    dirtyEditor = true;
+                    edRows = 0;
+                    return obj->insert(*this) != object::ERROR;
                 }
                 break;
 

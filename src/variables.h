@@ -213,4 +213,23 @@ COMMAND_DECLARE(VariablesMenuExecute);
 COMMAND_DECLARE(VariablesMenuRecall);
 COMMAND_DECLARE(VariablesMenuStore);
 
+
+// ============================================================================
+//
+//   Flag commands
+//
+// ============================================================================
+
+COMMAND_DECLARE(SetFlag);
+COMMAND_DECLARE(ClearFlag);
+COMMAND_DECLARE(FlipFlag);
+COMMAND_DECLARE(TestFlagSet);
+COMMAND_DECLARE(TestFlagClear);
+COMMAND_DECLARE(TestFlagClearThenClear);
+COMMAND_DECLARE(TestFlagClearThenSet);
+COMMAND_DECLARE(TestFlagSetThenClear);
+COMMAND_DECLARE(TestFlagSetThenSet);
+COMMAND_DECLARE(FlagsToBinary);
+COMMAND_DECLARE(BinaryToFlags);
+
 #endif // VARIABLES_H

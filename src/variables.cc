@@ -29,6 +29,7 @@
 
 #include "variables.h"
 
+#include "bignum.h"
 #include "command.h"
 #include "expression.h"
 #include "files.h"
@@ -1116,6 +1117,187 @@ COMMAND_BODY(VariablesMenuStore)
                 if (object_p value = rt.pop())
                     if (dir->store(name, value))
                         return OK;
+        }
+    }
+    return ERROR;
+}
+
+
+
+// ============================================================================
+//
+//   Flag commands
+//
+// ============================================================================
+
+static byte  *flags      = nullptr;
+static size_t flags_size = 0;
+
+static byte *init_flags()
+// ----------------------------------------------------------------------------
+//  Reinitialize the flags
+// ----------------------------------------------------------------------------
+{
+    size_t maxflags = Settings.MaxFlags();
+    maxflags = (maxflags + 7) / 8;
+    if (!flags || flags_size != maxflags)
+    {
+        flags = (byte *) realloc(flags, maxflags);
+        if (flags)
+        {
+            memset(flags + flags_size, 0, maxflags - flags_size);
+            flags_size = maxflags;
+        }
+    }
+    if (!flags)
+        rt.out_of_memory_error();
+    return flags;
+}
+
+
+static object::result do_flag(bool read, bool test, bool write, bool set)
+// ----------------------------------------------------------------------------
+//   RPL command for changing flag
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        object_p   arg     = rt.top();
+        object::id aty     = arg->type();
+        bool       value   = false;
+        bool       builtin = false;
+        bool       flip    = !read && !write;
+
+        // Check built-in flags
+        if (object_p quoted = arg->as_quoted(object::ID_object))
+        {
+            arg = quoted;
+            aty = arg->type();
+        }
+
+        if (read && Settings.flag(aty, &value))
+            builtin = true;
+        if (write && Settings.flag(arg->type(), set))
+            builtin = true;
+        if (builtin)
+        {
+            rt.drop();
+            if (read)
+            {
+                if (!test)
+                    value = !value;
+                object::id rty = value ? object::ID_True : object::ID_False;
+                object_p value = command::static_object(rty);
+                if (!rt.push(value))
+                    return object::ERROR;
+            }
+            return object::OK;
+        }
+
+        // Normal numeric flags
+        int32_t index = arg->as_int32(0, true);
+        if (rt.error())
+            return object::ERROR;
+
+        // System flags are not implemented yet (need mapping)
+        if (index < 0)
+        {
+            rt.unimplemented_error();
+            return object::ERROR;
+        }
+
+        size_t maxflags = Settings.MaxFlags();
+        if (size_t(index) > maxflags)
+        {
+            rt.index_error();
+            return object::ERROR;
+        }
+
+        // Allocate memory for the flags if necessary
+        if (!init_flags())
+            return object::ERROR;
+        byte *fp = flags + index / 8;
+        byte bits = 1 << (index % 8);
+        value = *fp & bits;
+        if (flip)
+            set = !value;
+        if (write)
+            *fp = (*fp & ~bits) | (set ? bits : 0);
+        rt.drop();
+        if (read)
+        {
+            if (!test)
+                value = !value;
+            object::id rty = value ? object::ID_True : object::ID_False;
+            object_p value = command::static_object(rty);
+            if (!rt.push(value))
+                return object::ERROR;
+        }
+        return object::OK;
+    }
+
+    return object::ERROR;
+}
+
+
+COMMAND_BODY(SetFlag)                   { return do_flag(false, false, true,  true);  }
+COMMAND_BODY(ClearFlag)                 { return do_flag(false, false, true,  false); }
+COMMAND_BODY(FlipFlag)                  { return do_flag(false, false, false, false); }
+COMMAND_BODY(TestFlagSet)               { return do_flag(true,  true,  false, false); }
+COMMAND_BODY(TestFlagClear)             { return do_flag(true,  false, false, false); }
+COMMAND_BODY(TestFlagClearThenClear)    { return do_flag(true,  false, true,  false); }
+COMMAND_BODY(TestFlagClearThenSet)      { return do_flag(true,  false, true,  true); }
+COMMAND_BODY(TestFlagSetThenClear)      { return do_flag(true,  true,  true,  false); }
+COMMAND_BODY(TestFlagSetThenSet)        { return do_flag(true,  true,  true,  true); }
+
+
+COMMAND_BODY(FlagsToBinary)
+// ----------------------------------------------------------------------------
+//   Create a big integer from the flags
+// ----------------------------------------------------------------------------
+{
+    size_t maxflags = Settings.MaxFlags();
+    object::id type = ID_based_bignum;
+    if (!init_flags())
+        return object::ERROR;
+    bignum_p binary = rt.make<bignum>(type, byte_p(flags), (maxflags+7)/8);
+    if (binary && rt.push(binary))
+        return OK;
+    return ERROR;
+}
+
+
+COMMAND_BODY(BinaryToFlags)
+// ----------------------------------------------------------------------------
+//   Store a binary value into the flags
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        object_p value = rt.top();
+        if (value->is_integer())
+        {
+            bignum_g big;
+            if (value->is_bignum())
+                big = bignum_p(value);
+            else
+                big = rt.make<bignum>(integer_g(integer_p(value)));
+            size_t sz = 0;
+            byte_p data = big->value(&sz);
+            size_t maxflags = Settings.MaxFlags();
+            if (sz * 8 > maxflags)
+                sz = (maxflags + 7) / 8;
+
+            if (!init_flags())
+                return object::ERROR;
+            memcpy(flags, data, sz);
+            if (sz < maxflags / 8)
+                memset(flags + sz, 0, (maxflags + 7) / 8 - sz);
+            return OK;
+        }
+        else
+        {
+            rt.type_error();
         }
     }
     return ERROR;

@@ -740,18 +740,24 @@ MENU(FlagsMenu,
 // ----------------------------------------------------------------------------
 //   Operations on flags
 // ----------------------------------------------------------------------------
-     "FSet",    ID_Unimplemented,
-     "FClr",    ID_Unimplemented,
-     "FSet?",   ID_Unimplemented,
-     "FClr?",   ID_Unimplemented,
-     "FSet?C",  ID_Unimplemented,
-     "FClr?C",  ID_Unimplemented,
+     "Set",     ID_SetFlag,
+     "Clear",   ID_ClearFlag,
+     "Set?",    ID_TestFlagSet,
+     "Clear?",  ID_TestFlagClear,
+     "Set?Clr", ID_TestFlagSetThenClear,
+     "Clr?Clr", ID_TestFlagClearThenClear,
 
-     "F→Bin",   ID_Unimplemented,
-     "Modes",   ID_ModesMenu,
+     "F→Bin",   ID_FlagsToBinary,
+     "Bin→F",   ID_BinaryToFlags,
      "Tests",   ID_TestsMenu,
+     "Flip",    ID_FlipFlag,
+     "Set?Set", ID_TestFlagSetThenSet,
+     "Clr?Set", ID_TestFlagClearThenSet,
+
+     "Prog",    ID_ProgramMenu,
      "Loops",   ID_LoopsMenu,
-     "Prog",    ID_ProgramMenu);
+     "Modes",   ID_ModesMenu
+);
 
 MENU(LoopsMenu,
 // ----------------------------------------------------------------------------

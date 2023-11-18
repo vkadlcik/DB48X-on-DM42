@@ -460,6 +460,58 @@ bool settings::purge(object::id name)
 }
 
 
+bool settings::flag(object::id name, bool value)
+// ----------------------------------------------------------------------------
+//   Setting a named flag
+// ----------------------------------------------------------------------------
+{
+    switch(name)
+    {
+        // For all settings, 'store' is much like running it
+#define ID(n)
+#define SETTING(Name, Low, High, Init)
+#define FLAG(Enable, Disable)                   \
+    case ID_##Enable:                           \
+        Settings.Enable(value);                 \
+        return true;                            \
+    case ID_##Disable:                          \
+        Settings.Disable(value);                \
+        return true;
+#include "ids.tbl"
+
+    default:
+        break;
+    }
+    return false;
+}
+
+
+bool settings::flag(object::id name, bool *value)
+// ----------------------------------------------------------------------------
+//   Reading a named flag
+// ----------------------------------------------------------------------------
+{
+    switch(name)
+    {
+        // For all settings, 'store' is much like running it
+#define ID(n)
+#define SETTING(Name, Low, High, Init)
+#define FLAG(Enable, Disable)                   \
+    case ID_##Enable:                           \
+        *value = Settings.Enable();             \
+        return true;                            \
+    case ID_##Disable:                          \
+        *value = Settings.Disable();            \
+        return true;
+#include "ids.tbl"
+
+    default:
+        break;
+    }
+    return false;
+}
+
+
 cstring setting::printf(cstring format, ...)
 // ----------------------------------------------------------------------------
 //   Render a setting using some specific format

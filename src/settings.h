@@ -192,6 +192,9 @@ public:
     static bool     store(object::id name, object_p value);
     static object_p recall(object::id name);
     static bool     purge(object::id name);
+
+    static bool     flag(object::id name, bool value);
+    static bool     flag(object::id name, bool *value);
 };
 
 

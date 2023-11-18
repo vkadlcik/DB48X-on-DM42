@@ -158,7 +158,8 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
         return true;
     }
 
-    if (!ok && xt == ID_text && yt == ID_text)
+    if (!ok && ((xt == ID_text && yt == ID_text) ||
+                (xt == ID_symbol && yt == ID_symbol)))
     {
         // Lexical comparison
         size_t xl = 0;
@@ -178,6 +179,39 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
         }
 
         *cmp = (xl > yl) - (xl < yl);
+        return true;
+    }
+
+    if (!ok && ((xt == ID_list && yt == ID_list) ||
+                (xt == ID_array && yt == ID_array)))
+    {
+        list_p xl = list_p(x.Safe());
+        list_p yl = list_p(y.Safe());
+        list::iterator xi = xl->begin();
+        list::iterator xe = xl->end();
+        list::iterator yi = yl->begin();
+        list::iterator ye = yl->end();
+
+        // Lexicographic comparison of arrays and lists
+        while(xi != xe && yi != ye)
+        {
+            object_p xo = *xi++;
+            object_p yo = *yi++;
+            if (xo->is_algebraic() && yo->is_algebraic())
+            {
+                algebraic_g xa = algebraic_p(xo);
+                algebraic_g ya = algebraic_p(yo);
+                if (compare(cmp, xa, ya))
+                    if (*cmp)
+                        return true;
+            }
+            else if (int d = xo->compare_to(yo))
+            {
+                *cmp = d;
+                return true;
+            }
+        }
+        *cmp = (xi != xe) - (yi != ye);
         return true;
     }
 

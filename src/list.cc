@@ -31,6 +31,7 @@
 
 #include "algebraic.h"
 #include "array.h"
+#include "compare.h"
 #include "expression.h"
 #include "parser.h"
 #include "precedence.h"
@@ -40,6 +41,7 @@
 #include "utf8.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 
 RECORDER(list, 16, "Lists");
@@ -648,4 +650,165 @@ list_g list::map(algebraic_r x, arithmetic_fn fn) const
     }
 
     return list::make(ty, scr.scratch(), scr.growth());
+}
+
+
+
+// ============================================================================
+//
+//   Sorting
+//
+// ============================================================================
+
+static int memory_compare(object_p *xp, object_p *yp)
+// ----------------------------------------------------------------------------
+//   Compare using type IDs and memory content
+// ----------------------------------------------------------------------------
+{
+    object_p x = *xp;
+    object_p y = *yp;
+    return x->compare_to(y);
+}
+
+
+static int value_compare(object_p *xp, object_p *yp)
+// ----------------------------------------------------------------------------
+//   Sort items according to value
+// ----------------------------------------------------------------------------
+{
+    object_p x = *xp;
+    object_p y = *yp;
+    object::id xty = x->type();
+    object::id yty = y->type();
+    if ((object::is_algebraic(xty) && object::is_algebraic(yty)) ||
+        (xty == object::ID_array   && yty == object::ID_array) ||
+        (xty == object::ID_list    && yty == object::ID_list))
+    {
+        algebraic_g xa     = algebraic_p(x);
+        algebraic_g ya     = algebraic_p(y);
+        int         result = 0;
+        if (comparison::compare(&result, xa, ya))
+            return result;
+    }
+    return x->compare_to(y);
+}
+
+
+static int value_compare_reverse(object_p *xp, object_p *yp)
+// ----------------------------------------------------------------------------
+//   Sort item according in decreasing value order
+// ----------------------------------------------------------------------------
+{
+    return -value_compare(xp, yp);
+}
+
+
+static int memory_compare_reverse(object_p *xp, object_p *yp)
+// ----------------------------------------------------------------------------
+//   Sort item according in decreasing value order
+// ----------------------------------------------------------------------------
+{
+    return -memory_compare(xp, yp);
+}
+
+
+static object::result do_sort(int (*compare)(object_p *x, object_p *y))
+// ----------------------------------------------------------------------------
+//   RPL command for a sort
+// ----------------------------------------------------------------------------
+{
+    typedef int (*qsort_fn)(const void *, const void*);
+
+    if (rt.args(1))
+    {
+        if  (object_p obj = rt.stack(0))
+        {
+            object::id oty = obj->type();
+            if (oty == object::ID_list || oty == object::ID_array)
+            {
+                size_t   depth = rt.depth();
+                list_g   items = list_p(obj);
+                size_t   count;
+                scribble scr;
+                qsort_fn cmp = qsort_fn(compare);
+
+                for (object_p item : *items)
+                    if (!rt.push(item))
+                        goto err;
+                count = rt.depth() - depth;
+                if (cmp)
+                    qsort(rt.stack_base(), count, sizeof(object_p), cmp);
+
+                for (uint i = 0; i < count; i++)
+                {
+                    if (object_g obj = rt.stack(i))
+                    {
+                        size_t objsz = obj->size();
+                        byte_p objp = byte_p(obj);
+                        if (!rt.append(objsz, objp))
+                            goto err;
+                    }
+                }
+                rt.drop(count);
+                items = list::make(oty, scr.scratch(), scr.growth());
+                if (items && rt.top(items.Safe()))
+                    return object::OK;
+
+            err:
+                rt.drop(rt.depth() - depth);
+                return object::ERROR;
+            }
+            else
+            {
+                rt.type_error();
+            }
+        }
+
+    }
+    return object::ERROR;
+}
+
+
+COMMAND_BODY(Sort)
+// ----------------------------------------------------------------------------
+//   Sort contents of a list according to value
+// ----------------------------------------------------------------------------
+{
+    return do_sort(value_compare);
+}
+
+
+COMMAND_BODY(QuickSort)
+// ----------------------------------------------------------------------------
+//   Sort contents of a list using memory comparisons
+// ----------------------------------------------------------------------------
+{
+    return do_sort(memory_compare);
+}
+
+
+COMMAND_BODY(ReverseSort)
+// ----------------------------------------------------------------------------
+//   Sort contents of a list according to value
+// ----------------------------------------------------------------------------
+{
+    return do_sort(value_compare_reverse);
+}
+
+
+COMMAND_BODY(ReverseQuickSort)
+// ----------------------------------------------------------------------------
+//   Sort contents of a list using memory comparisons
+// ----------------------------------------------------------------------------
+{
+    return do_sort(memory_compare_reverse);
+}
+
+
+COMMAND_BODY(ReverseList)
+// ----------------------------------------------------------------------------
+//   Reverse a list
+// ----------------------------------------------------------------------------
+{
+    return do_sort(nullptr);
 }

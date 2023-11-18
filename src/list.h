@@ -294,6 +294,12 @@ public:
 typedef const list *list_p;
 
 COMMAND_DECLARE(Get);
+COMMAND_DECLARE(Sort);
+COMMAND_DECLARE(QuickSort);
+COMMAND_DECLARE(ReverseSort);
+COMMAND_DECLARE(ReverseQuickSort);
+COMMAND_DECLARE(ReverseList);
+
 
 inline list_g operator+(list_r x, list_r y)
 // ----------------------------------------------------------------------------

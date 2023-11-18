@@ -175,6 +175,7 @@ ID(decimal128)
 ID(comment)
 ID(grob)
 
+// Stack commands
 CMD(Drop)
 CMD(Drop2)
 CMD(DropN)
@@ -187,19 +188,23 @@ CMD(Pick)
 CMD(Rot)
 CMD(Roll)
 NAMED(RollD, "RollDown")
-NAMED(Eval, "Evaluate")
+CMD(Depth)
+
+// Variables
 NAMED(Sto, "Store")
 NAMED(Rcl, "Recall")
+CMD(Purge)
 
-CMD(True)
-CMD(False)
-
+// Evaluation and rendering
+NAMED(Eval, "Evaluate")
 NAMED(ToText, "→Text")
 ALIAS(ToText, "→Str")
 
+// Constants
 NAMED(pi, "π")
 NAMED(ImaginaryUnit, "ⅈ")
 
+// Arithmetic and basic operations
 OP(add, "+")
 OP(sub, "-")
 OP(mul, "×")
@@ -210,15 +215,16 @@ CMD(mod)
 CMD(rem)
 
 NAMED(neg, "Negate")
+CMD(abs)
+ALIAS(abs, "norm")
 NAMED(inv, "x⁻¹")
+NAMED(sqrt, "√")
 NAMED(sq,  "x²")
 NAMED(cubed, "x³")
 
-NAMED(sqrt, "√")
-
-CMD(abs)
-ALIAS(abs, "norm")
-
+// Logical
+CMD(True)
+CMD(False)
 OP(And,         "and")
 OP(Or,          "or")
 OP(Xor,         "xor")
@@ -229,6 +235,7 @@ OP(Equiv,       "equiv")
 OP(Excludes,    "excludes")
 OP(Not,         "not")
 
+// Tests
 CMD(same)                       // HP48 distinguises == and same
 NAMED(TestSame, "==")           // Must be before =
 NAMED(TestLT,   "<")
@@ -238,6 +245,7 @@ NAMED(TestLE,   "≤")
 NAMED(TestNE,   "≠")
 NAMED(TestGE,   "≥")
 
+// Trigonometric functions
 NAMED(asin, "sin⁻¹")            // WARNING: order used in functions.cc
 NAMED(acos,  "cos⁻¹")
 NAMED(atan,  "tan⁻¹")
@@ -245,12 +253,14 @@ CMD(sin)
 CMD(cos)
 CMD(tan)                        // WARNING: order used in function.cc
 
+// Exp and log
 NAMED(log, "ln")
 CMD(exp)
 CMD(log10)
 CMD(exp10)
 ALIAS(exp10, "alog")
 
+// Conversions
 NAMED(ToDecimal, "→Num")
 ALIAS(ToDecimal, "→Decimal")
 NAMED(ToFraction, "→Frac")         // Last algebraic
@@ -279,31 +289,16 @@ CMD(ForStep)
 //
 // ============================================================================
 
-CMD(Depth)
+// Data processing
 NAMED(ToList, "→List")
 CMD(Get)
+CMD(Sort)
 
 // Tests
 NAMED(IFT, "IfThen")
 NAMED(IFTE, "IfThenElse")
 CMD(IfErrThen)
 CMD(IfErrThenElse)
-
-// Memory management
-CMD(Purge)
-CMD(PurgeAll)
-NAMED(Mem, "AvailableMemory")
-CMD(FreeMemory)
-CMD(SystemMemory)
-CMD(GarbageCollect)
-
-// Directories
-NAMED(home, "HomeDirectory")
-CMD(CurrentDirectory)
-NAMED(path, "DirectoryPath")
-NAMED(crdir, "CreateDirectory")
-NAMED(updir, "UpDirectory")
-NAMED(pgdir, "PurgeDirectory")
 
 // Graphics
 NAMED(Disp, "DrawText")
@@ -391,9 +386,24 @@ NAMED(Pict, "GraphicPicture")
 
 // ============================================================================
 //
-//   Rarely used commands
+//   Rarely used commands (two bytes)
 //
 // ============================================================================
+
+// Memory management
+CMD(PurgeAll)
+NAMED(Mem, "AvailableMemory")
+CMD(FreeMemory)
+CMD(SystemMemory)
+CMD(GarbageCollect)
+
+// Directories
+NAMED(home, "HomeDirectory")
+CMD(CurrentDirectory)
+NAMED(path, "DirectoryPath")
+NAMED(crdir, "CreateDirectory")
+NAMED(updir, "UpDirectory")
+NAMED(pgdir, "PurgeDirectory")
 
 /// Equations
 CMD(Rewrite)
@@ -426,12 +436,12 @@ NAMED(doerr, "DoError")
 //   These functions are put "late" in the IDs table to leave more room
 //   for single-byte commands above
 
-// Rare type f
+// Rare type functions
 NAMED(ToTag, "→Tag")
 NAMED(FromTag, "Tag→")
 NAMED(dtag, "DeleteTag")
 
-// Object cycle
+// Object cycle (often used from keyboard, rarely in programs)
 CMD(Cycle)
 CMD(RealToBinary)
 ALIAS(RealToBinary, "R→B")
@@ -450,6 +460,12 @@ CMD(ScreenCapture)
 // High-level applications
 CMD(Root)
 NAMED(Integrate, "∫")
+
+// Additional sorting functions
+CMD(QuickSort)
+CMD(ReverseSort)
+CMD(ReverseQuickSort)
+CMD(ReverseList)                ALIAS(ReverseList, "RevList")
 
 // On-line help
 CMD(Help)

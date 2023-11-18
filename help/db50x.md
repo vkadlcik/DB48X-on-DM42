@@ -4406,11 +4406,32 @@ Product of all elements in a list
 Concatenate lists and/or elements
 
 
-## SORT
-Sort elements in a list
+## Sort
 
+Sort elements in a list or array, sorting by increasing values when comparing
+numers, text or symbols.
 
-## REVLIST
+This may be a little slower than `QuickSort`, but is useful to sort
+lists or arrays of numerical values or text values.
+
+## QuickSort
+
+Sort elements in a list or array using the memory representation of objects.
+This guarantees a consistent sorting order, but one that does not necessarily
+preserve numerical or textual properties, unlike `Sort`. Comparisons are,
+however, significantly faster than `Sort`.
+
+## ReverseSort
+
+Sort a list or array by value, in reverse order compared to `Sort`.
+
+## ReverseQuickSort
+
+Sort a list or array using the memory representation of objects, in reverse
+order compared to `QuickSort`.
+
+## ReverseList (REVLIST)
+
 Reverse the order of elements in a list
 
 
@@ -4420,7 +4441,6 @@ Add elements to a list, keep only the last N elements
 
 ## SEQ
 Assemble a list from results of sequential procedure
-
 # Operations with Matrices and vectors
 
 ## TOARRAY

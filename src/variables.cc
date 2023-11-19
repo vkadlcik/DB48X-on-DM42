@@ -366,12 +366,6 @@ object_p directory::recall_all(object_p name)
     if (object_p quoted = name->as_quoted(ID_object))
         name = quoted;
 
-    // Check independent / dependent values for plotting
-    if (expression::independent && name->is_same_as(*expression::independent))
-        return *expression::independent_value;
-    if (expression::dependent && name->is_same_as(*expression::dependent))
-        return *expression::dependent_value;
-
     // Deal with all special cases
     id nty = name->type();
     switch (nty)
@@ -389,7 +383,15 @@ object_p directory::recall_all(object_p name)
 
     default:
     case ID_symbol:
+    {
+        // Check independent / dependent values for plotting
+        symbol_p s = symbol_p(name);
+        if (expression::independent && s->is_same_as (*expression::independent))
+            return *expression::independent_value;
+        if (expression::dependent && s->is_same_as(*expression::dependent))
+            return *expression::dependent_value;
         break;
+    }
 
 #define ID(n)
 #define SETTING(Name, Low, High, Init)          \

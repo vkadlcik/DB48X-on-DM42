@@ -58,12 +58,15 @@ void draw_axes(const PlotParametersAccess &ppar)
     // Draw tick marks
     coord tx = ppar.size_adjust(ppar.xticks.Safe(), ppar.xmin, ppar.xmax, w);
     coord ty = ppar.size_adjust(ppar.yticks.Safe(), ppar.ymin, ppar.ymax, h);
-    if (tx)
+    if (tx > 0)
     {
         for (coord i = tx; x + i <= w; i += tx)
             Screen.fill(x + i, y - 2, x + i, y + 2, pat);
         for (coord i = tx; x - i >= 0; i += tx)
             Screen.fill(x - i, y - 2, x - i, y + 2, pat);
+    }
+    if (ty > 0)
+    {
         for (coord i = ty; y + i <= h; i += ty)
             Screen.fill(x - 2, y + i, x + 2, y + i, pat);
         for (coord i = ty; y - i >= 0; i += ty)

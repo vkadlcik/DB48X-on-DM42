@@ -366,6 +366,7 @@ NAMED(det, "Determinant")
 // ============================================================================
 
 CMD(PlotParameters)     ALIAS(PlotParameters, "PPar")
+CMD(Equation)           ALIAS(Equation, "eq")
 
 NAMED(DispXY,           "DrawStyledText")
 NAMED(Line,             "DrawLine")
@@ -379,7 +380,8 @@ NAMED(Drax,             "DrawAxes")
 NAMED(Function,         "FunctionPlot")
 NAMED(Polar,            "PolarPlot")
 NAMED(Parametric,       "ParametricPlot")
-// NAMED(Scatter,          "ScatterPlot")
+NAMED(Scatter,          "ScatterPlot")
+NAMED(Bar,              "BarPlot")
 
 CMD(Clip)
 CMD(CurrentClip)

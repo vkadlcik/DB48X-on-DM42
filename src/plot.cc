@@ -35,6 +35,7 @@
 #include "functions.h"
 #include "graphics.h"
 #include "program.h"
+#include "stats.h"
 #include "sysmenu.h"
 #include "target.h"
 #include "variables.h"
@@ -84,57 +85,180 @@ void draw_axes(const PlotParametersAccess &ppar)
 }
 
 
-object::result draw_plot(object::id            kind,
+uint draw_data(array::iterator &it, array::iterator &end,
+               algebraic_g &x, algebraic_g &y, size_t xcol, size_t ycol)
+// ----------------------------------------------------------------------------
+//   Fetch data from a stats array
+// ----------------------------------------------------------------------------
+{
+    if (it == end)
+        return 0;
+
+    object_p data = *it++;
+    if (data->is_real())
+    {
+        y = algebraic_p(data);
+        return 1;
+    }
+    else if (data->type() == object::ID_array)
+    {
+        array_p row = array_p(data);
+        algebraic_g xx, yy;
+        size_t col = 1;
+        for (object_p cdata : *row)
+        {
+            if (!cdata->is_real())
+                return false;
+            if (col == xcol)
+                xx = algebraic_p(cdata);
+            if (col == ycol)
+                yy = algebraic_p(cdata);
+            if (xx && yy)
+            {
+                x = xx;
+                y = yy;
+                return 2;
+            }
+            col++;
+        }
+    }
+    return 0;
+}
+
+
+
+object::result draw_plot(object::id                  kind,
                          const PlotParametersAccess &ppar,
-                         object_g              eqobj = nullptr)
+                         object_g                    to_plot = nullptr)
 // ----------------------------------------------------------------------------
 //  Draw an equation that takes input from the stack
 // ----------------------------------------------------------------------------
 {
-    bool           isFn   = kind == object::ID_Function;
-    algebraic_g    x      = isFn ? ppar.xmin : ppar.imin;
     object::result result = object::ERROR;
     coord          lx     = -1;
     coord          ly     = -1;
     uint           then   = sys_current_ms();
-    algebraic_g    step   = ppar.resolution;
+    algebraic_g    min, max, step;
+    object::id     dname;
+
+    // Select plotting parameters
+    switch(kind)
+    {
+    default:
+    case object::ID_Function:
+        min = ppar.xmin;
+        max = ppar.xmax;
+        dname = object::ID_Equation;
+        break;
+
+    case object::ID_Polar:
+    case object::ID_Parametric:
+        min = ppar.imin;
+        max = ppar.imax;
+        step = ppar.resolution;
+        if (step->is_zero())
+            step = (max - min) / integer::make(ScreenWidth());
+        dname = object::ID_Equation;
+        break;
+
+    case object::ID_Scatter:
+    case object::ID_Bar:
+        min = ppar.xmin;
+        max = ppar.xmax;
+        dname = object::ID_StatsData;
+        break;
+    }
+
+    step = ppar.resolution;
     if (step->is_zero())
-        step = (isFn
-                ? (ppar.xmax - ppar.xmin)
-                : (ppar.imax - ppar.imin))
-            / integer::make(ScreenWidth());
+        step = (max - min) / integer::make(ScreenWidth());
 
-    if (!eqobj)
-        eqobj = directory::recall_all(symbol::make("eq"));
-    if (!eqobj)
+    if (!to_plot)
     {
-        rt.no_equation_error();
-        return object::ERROR;
+        to_plot = directory::recall_all(command::static_object(dname));
+        if (!to_plot)
+        {
+            if (dname == object::ID_Equation)
+                rt.no_equation_error();
+            else
+                rt.no_data_error();
+            return object::ERROR;
+        }
     }
-    if (!eqobj->is_program())
-    {
-        rt.invalid_equation_error();
-        return object::ERROR;
-    }
-    program_g eq = program_p(eqobj.Safe());
 
+    program_g       eq;
+    array_g         data;
+    array::iterator it, end;
+    size_t          xcol = 0, ycol = 0;
+    size            bar_width = 0, bar_skip = 0;
+    size            bar_x = 0;
+    coord           yzero = 0;
+
+    if (dname == object::ID_Equation)
+    {
+        if (!to_plot->is_program())
+        {
+            rt.invalid_equation_error();
+            return object::ERROR;
+        }
+        eq = program_p(to_plot.Safe());
+    }
+    else if (dname == object::ID_StatsData)
+    {
+        if (to_plot->type() != object::ID_array)
+        {
+            rt.invalid_plot_data_error();
+            return object::ERROR;
+        }
+
+        data = array_p(to_plot.Safe());
+        size_t items = data->items();
+        data = array_p(to_plot.Safe());
+        step = (max - min) / integer::make(items);
+        bar_skip = items && items < ScreenWidth() ? ScreenWidth() / items : 1;
+        bar_width = bar_skip > 2 ? bar_skip - 2: bar_skip;
+        it = data->begin();
+        end = data->end();
+        StatsParameters::Access stats;
+        xcol = stats.xcol;
+        ycol = stats.ycol;
+        yzero = ppar.pixel_y(integer::make(0));
+    }
+
+    algebraic_g      x = min;
+    algebraic_g      y;
     save<symbol_g *> iref(expression::independent,
                           (symbol_g *) &ppar.independent);
     if (ui.draw_graphics())
         if (Settings.DrawPlotAxes())
             draw_axes(ppar);
 
-    bool split_points = Settings.NoCurveFilling();
+    bool    split_points = Settings.NoCurveFilling();
+    size    lw           = Settings.LineWidth();
+    pattern fg           = Settings.Foreground();
+
     while (!program::interrupted())
     {
-        coord  rx = 0, ry = 0;
-        algebraic_g y = algebraic::evaluate_function(eq, x);
+        coord rx     = 0;
+        coord ry     = 0;
+        uint  dcount = 1;
+        if (dname == object::ID_Equation)
+        {
+            y = algebraic::evaluate_function(eq, x);
+        }
+        else
+        {
+            dcount = draw_data(it, end, x, y, xcol, ycol);
+            if (!dcount)
+                break;
+        }
+
         if (y)
         {
             switch(kind)
             {
             default:
-                case object::ID_Function:
+            case object::ID_Function:
                 rx = ppar.pixel_x(x);
                 ry = ppar.pixel_y(y);
                 break;
@@ -156,17 +280,36 @@ object::result draw_plot(object::id            kind,
                         ry = ppar.pixel_y(cy);
                 }
                 break;
+
+            case object::ID_Scatter:
+            case object::ID_Bar:
+                rx = ppar.pixel_x(x);
+                ry = ppar.pixel_y(y);
+                break;
             }
         }
 
         if (y)
         {
-            if (lx < 0 || split_points)
+            if (kind != object::ID_Bar)
             {
-                lx = rx;
-                ly = ry;
+                if (lx < 0 || split_points)
+                {
+                    lx = rx;
+                    ly = ry;
+                }
+                Screen.line(lx,ly,rx,ry, lw, fg);
             }
-            Screen.line(lx,ly,rx,ry, Settings.LineWidth(), Settings.Foreground());
+            else
+            {
+                lx = bar_x;
+                ly = dcount == 1 ? yzero : rx;
+                rx = lx + bar_width - 1;
+                if (ry < ly)
+                    std::swap(ly, ry);
+                Screen.fill(lx, ly, rx, ry, fg);
+                bar_x += bar_skip;
+            }
             ui.draw_dirty(lx, ly, rx, ry);
             uint now = sys_current_ms();
             if (now - then > 500)
@@ -190,12 +333,19 @@ object::result draw_plot(object::id            kind,
             lx = ly = -1;
             rt.clear_error();
         }
-        x = x + step;
-        algebraic_g cmp = x > (isFn ? ppar.xmax : ppar.imax);
-        if (!cmp)
-            goto err;
-        if (cmp->as_truth(false))
-            break;
+
+        if (kind != object::ID_Scatter)
+        {
+            x = x + step;
+            if (kind != object::ID_Bar)
+            {
+                algebraic_g cmp = x > max;
+                if (!cmp)
+                    goto err;
+                if (cmp->as_truth(false))
+                    break;
+            }
+        }
     }
     result = object::OK;
 
@@ -205,19 +355,28 @@ err:
 }
 
 
+static object::result draw_plot(object::id type)
+// ----------------------------------------------------------------------------
+//   Draw the various kinds of plot
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return object::ERROR;
+    if (object_g eq = rt.pop())
+    {
+        PlotParametersAccess ppar;
+        return draw_plot(type, ppar, eq);
+    }
+    return object::ERROR;
+}
+
+
 COMMAND_BODY(Function)
 // ----------------------------------------------------------------------------
 //   Draw plot from function on the stack taking stack arguments
 // ----------------------------------------------------------------------------
 {
-    if (!rt.args(1))
-        return ERROR;
-    if (object_g eq = rt.pop())
-    {
-        PlotParametersAccess ppar;
-        return draw_plot(ID_Function, ppar, eq);
-    }
-    return ERROR;
+    return draw_plot(ID_Function);
 }
 
 
@@ -226,30 +385,34 @@ COMMAND_BODY(Parametric)
 //   Draw plot from function on the stack taking stack arguments
 // ----------------------------------------------------------------------------
 {
-    if (!rt.args(1))
-        return ERROR;
-    if (object_g eq = rt.pop())
-    {
-        PlotParametersAccess ppar;
-        return draw_plot(ID_Parametric, ppar, eq);
-    }
-    return ERROR;
+    return draw_plot(ID_Parametric);
 }
 
 
 COMMAND_BODY(Polar)
 // ----------------------------------------------------------------------------
-//   Set polar plot type
+//   Draw polar plot from function on the stack
 // ----------------------------------------------------------------------------
 {
-    if (!rt.args(1))
-        return ERROR;
-    if (object_g eq = rt.pop())
-    {
-        PlotParametersAccess ppar;
-        return draw_plot(ID_Polar, ppar, eq);
-    }
-    return ERROR;
+    return draw_plot(ID_Polar);
+}
+
+
+COMMAND_BODY(Scatter)
+// ----------------------------------------------------------------------------
+//   Draw scatter plot from data on the stack
+// ----------------------------------------------------------------------------
+{
+    return draw_plot(ID_Scatter);
+}
+
+
+COMMAND_BODY(Bar)
+// ----------------------------------------------------------------------------
+//   Draw bar plot from data on the stack
+// ----------------------------------------------------------------------------
+{
+    return draw_plot(ID_Bar);
 }
 
 

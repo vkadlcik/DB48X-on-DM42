@@ -35,7 +35,17 @@
 COMMAND_DECLARE(Function);
 COMMAND_DECLARE(Polar);
 COMMAND_DECLARE(Parametric);
+COMMAND_DECLARE(Scatter);
+COMMAND_DECLARE(Bar);
 COMMAND_DECLARE(Draw);
 COMMAND_DECLARE(Drax);
+
+struct Equation : command
+// ----------------------------------------------------------------------------
+//   A shortcut name for `EQ`
+// ----------------------------------------------------------------------------
+{
+    Equation(id ty = ID_Equation): command(ty) {}
+};
 
 #endif // PLOT_H

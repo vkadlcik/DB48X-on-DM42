@@ -139,12 +139,12 @@ struct list : text
         typedef size_t difference_type;
 
         explicit iterator(list_p list, bool atend = false)
-            : first(list->objects()),
-              size(list->length()),
+            : size(0),
+              first(list->objects(&size)),
               index(atend ? size : 0) {}
         explicit iterator(list_p list, size_t skip)
-            : first(object_p(list->value())),
-              size(list->length()),
+            : size(0),
+              first(list->objects(&size)),
               index(0)
         {
             while (skip && index < size)
@@ -153,6 +153,7 @@ struct list : text
                 skip--;
             }
         }
+        iterator() : size(0), first(), index(0) {}
 
     public:
         iterator& operator++()
@@ -189,8 +190,8 @@ struct list : text
         }
 
     public:
-        object_g first;
         size_t   size;
+        object_g first;
         size_t   index;
     };
     iterator begin() const      { return iterator(this); }

@@ -1063,10 +1063,18 @@ MENU(PlotMenu,
 // ----------------------------------------------------------------------------
 //   Plot and drawing menu
 // ----------------------------------------------------------------------------
-     "Plot",    ID_Unimplemented,
-     "Clear",   ID_Unimplemented,
-     "Axes",    ID_Unimplemented,
-     "Auto",    ID_Unimplemented);
+     "Function",ID_Function,
+     "Polar",   ID_Polar,
+     "Param",   ID_Parametric,
+     "Scatter", ID_Scatter,
+     "Bar",     ID_Bar,
+     "Axes",    ID_Drax,
+
+     "Lines",   ID_CurveFilling,
+     "Points",  ID_NoCurveFilling,
+     "Axes",    ID_DrawPlotAxes,
+     "No Axes", ID_NoPlotAxes,
+     "Clear",   ID_ClLCD);
 
 MENU(ClearThingsMenu,
 // ----------------------------------------------------------------------------

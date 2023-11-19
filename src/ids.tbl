@@ -389,6 +389,15 @@ NAMED(GOr,              "GraphicOr")
 NAMED(GAnd,             "GraphicAnd")
 NAMED(Pict,             "GraphicPicture")
 
+CMD(PlotMin)                                    ALIAS(PlotMin, "PMin")
+CMD(PlotMax)                                    ALIAS(PlotMax, "PMax")
+NAMED(XRange,           "PlotXRange")           ALIAS(XRange,  "XRng")
+NAMED(YRange,           "PlotYRange")           ALIAS(YRange,  "YRng")
+NAMED(Scale,            "PlotScale")
+NAMED(XScale,           "PlotScaleX")           ALIAS(XScale, "ScaleX") ALIAS(XScale, "ScaleH")
+NAMED(YScale,           "PlotScaleY")           ALIAS(YScale, "ScaleY") ALIAS(YScale, "ScaleW")
+NAMED(Center,           "PlotCenter")           ALIAS(Center, "Centr")
+
 
 
 // ============================================================================

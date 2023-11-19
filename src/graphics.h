@@ -78,6 +78,7 @@ struct PlotParametersAccess
 
     bool            write(object_p n = name()) const;
 
+    bool            check_validity() const;
 
     static coord    pixel_adjust(object_r    p,
                                  algebraic_r min,
@@ -128,5 +129,14 @@ COMMAND_DECLARE(GXor);
 COMMAND_DECLARE(GOr);
 COMMAND_DECLARE(GAnd);
 COMMAND_DECLARE(Pict);
+
+COMMAND_DECLARE(PlotMin);
+COMMAND_DECLARE(PlotMax);
+COMMAND_DECLARE(XRange);
+COMMAND_DECLARE(YRange);
+COMMAND_DECLARE(Scale);
+COMMAND_DECLARE(XScale);
+COMMAND_DECLARE(YScale);
+COMMAND_DECLARE(Center);
 
 #endif // GRAPHICS_H

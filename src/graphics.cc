@@ -32,6 +32,7 @@
 #include "arithmetic.h"
 #include "bignum.h"
 #include "blitter.h"
+#include "compare.h"
 #include "complex.h"
 #include "grob.h"
 #include "integer.h"
@@ -218,6 +219,11 @@ bool PlotParametersAccess::parse(list_p parms)
         default:
             break;
         }
+
+        // Check that we have sane input
+        if (valid)
+            valid = check_validity();
+
         if (!valid)
         {
             rt.invalid_ppar_error();
@@ -246,6 +252,12 @@ bool PlotParametersAccess::write(object_p name) const
 //   Write out the plot parameters in case they were changed
 // ----------------------------------------------------------------------------
 {
+    if (!check_validity())
+    {
+        rt.invalid_ppar_error();
+        return false;
+    }
+
     if (directory *dir = rt.variables(0))
     {
         rectangular_g zmin = rectangular::make(xmin, ymin);
@@ -264,6 +276,56 @@ bool PlotParametersAccess::write(object_p name) const
     }
     return false;
 
+}
+
+
+bool PlotParametersAccess::check_validity() const
+// ----------------------------------------------------------------------------
+//   Check validity of the plot parameters
+// ----------------------------------------------------------------------------
+{
+    // All labels must be defined
+    if (!xmin.Safe() || !xmax.Safe() || !ymin.Safe() || !ymax.Safe())
+        return false;
+    if (!independent.Safe() || !dependent.Safe() || !resolution.Safe())
+        return false;
+    if (!imin.Safe() || !imax.Safe())
+        return false;
+    if (!resolution.Safe() || !xorigin.Safe() || !yorigin.Safe())
+        return false;
+    if (!xticks.Safe() || !yticks.Safe() || !xlabel.Safe() || !ylabel.Safe())
+        return false;
+
+    // Check values that must be real
+    if (!xmin->is_real() || !xmax->is_real())
+        return false;
+    if (!ymin->is_real() || !ymax->is_real())
+        return false;
+    if (!imin->is_real() || !imax->is_real())
+        return false;
+    if (!resolution->is_real())
+        return false;
+    if (!xorigin->is_real() || !yorigin->is_real())
+        return false;
+    if (!xticks->is_real() && !xticks->is_based())
+        return false;
+    if (!yticks->is_real() && !yticks->is_based())
+        return false;
+    if (xlabel->type() != object::ID_text || ylabel->type() != object::ID_text)
+        return false;
+
+    // Check that the ranges are not empty
+    algebraic_g test = xmin >= xmax;
+    if (test->as_truth(true))
+        return false;
+    test = ymin >= ymax;
+    if (test->as_truth(true))
+        return false;
+    test = imin >= imax;
+    if (test->as_truth(true))
+        return false;
+
+    return true;
 }
 
 
@@ -802,4 +864,204 @@ COMMAND_BODY(Pict)
         return ERROR;
     rt.push(static_object(ID_Pict));
     return OK;
+}
+
+
+static object::result set_ppar_corner(bool max)
+// ----------------------------------------------------------------------------
+//   Shared code for PMin and PMax
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        object_p corner = rt.top();
+        if (corner->is_complex())
+        {
+            if (rectangular_g pos = complex_p(corner)->as_rectangular())
+            {
+                PlotParametersAccess ppar;
+                (max ? ppar.xmax : ppar.xmin) = pos->re();
+                (max ? ppar.ymax : ppar.ymin) = pos->im();
+                if (ppar.write())
+                {
+                    rt.drop();
+                    return object::OK;
+                }
+            }
+            else
+            {
+                rt.type_error();
+            }
+        }
+    }
+    return object::ERROR;
+}
+
+
+COMMAND_BODY(PlotMin)
+// ----------------------------------------------------------------------------
+//   Set the XMin factor in the plot parameters
+// ----------------------------------------------------------------------------
+{
+    return set_ppar_corner(false);
+}
+
+
+COMMAND_BODY(PlotMax)
+{
+    return set_ppar_corner(true);
+}
+
+
+static object::result set_ppar_range(bool y)
+// ----------------------------------------------------------------------------
+//   Shared code for XRange and YRange
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(2))
+    {
+        object_p min = rt.stack(1);
+        object_p max = rt.stack(0);
+        if (min->is_real() && max->is_real())
+        {
+            PlotParametersAccess ppar;
+            (y ? ppar.ymin : ppar.xmin) = algebraic_p(min);
+            (y ? ppar.ymax : ppar.xmax) = algebraic_p(max);
+            if (ppar.write())
+            {
+                rt.drop(2);
+                return object::OK;
+            }
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+    return object::ERROR;
+}
+
+
+COMMAND_BODY(XRange)
+// ----------------------------------------------------------------------------
+//   Select the horizontal range for plotting
+// ----------------------------------------------------------------------------
+{
+    return set_ppar_range(false);
+}
+
+
+COMMAND_BODY(YRange)
+// ----------------------------------------------------------------------------
+//   Select the vertical range for plotting
+// ----------------------------------------------------------------------------
+{
+    return set_ppar_range(true);
+}
+
+
+static object::result set_ppar_scale(bool y)
+// ----------------------------------------------------------------------------
+//   Shared code for XScale and YScale
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        object_p scale = rt.top();
+        if (scale->is_real())
+        {
+            PlotParametersAccess ppar;
+            algebraic_g s = algebraic_p(scale);
+            algebraic_g &min = y ? ppar.ymin : ppar.xmin;
+            algebraic_g &max = y ? ppar.ymax : ppar.xmax;
+            algebraic_g two = integer::make(2);
+            algebraic_g center = (min + max) / two;
+            algebraic_g width = (max - min) / two;
+            min = center - width * s;
+            max = center + width * s;
+            if (ppar.write())
+            {
+                rt.drop();
+                return object::OK;
+            }
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+    return object::ERROR;
+}
+
+
+COMMAND_BODY(XScale)
+// ----------------------------------------------------------------------------
+//   Adjust the horizontal scale
+// ----------------------------------------------------------------------------
+{
+    return set_ppar_scale(false);
+}
+
+
+COMMAND_BODY(YScale)
+// ----------------------------------------------------------------------------
+//   Adjust the vertical scale
+// ----------------------------------------------------------------------------
+{
+    return set_ppar_scale(true);
+}
+
+
+COMMAND_BODY(Scale)
+// ----------------------------------------------------------------------------
+//  Adjust both horizontal and vertical scale
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(2))
+    {
+        if (object::result err = set_ppar_scale(true))
+            return err;
+        if (object::result err = set_ppar_scale(false))
+            return err;
+        return OK;
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(Center)
+// ----------------------------------------------------------------------------
+//   Center around the given coordinate
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        object_p center = rt.top();
+        if (center->is_complex())
+        {
+            if (rectangular_g pos = complex_p(center)->as_rectangular())
+            {
+                PlotParametersAccess ppar;
+                algebraic_g          two = integer::make(2);
+                algebraic_g          w   = (ppar.xmax - ppar.xmin) / two;
+                algebraic_g          h   = (ppar.ymax - ppar.ymin) / two;
+                algebraic_g          cx  = pos->re();
+                algebraic_g          cy  = pos->im();
+                ppar.xmin = cx - w;
+                ppar.xmax = cx + w;
+                ppar.ymin = cy - h;
+                ppar.ymax = cy + h;
+                if (ppar.write())
+                {
+                    rt.drop();
+                    return object::OK;
+                }
+            }
+            else
+            {
+                rt.type_error();
+            }
+        }
+    }
+    return object::ERROR;
 }

@@ -599,6 +599,8 @@ FLAG(HideVoltage,               ShowVoltage)
 FLAG(BeepOff,                   BeepOn)
 FLAG(SilentBeepOn,              SilentBeepOff)
 FLAG(LinearFitSums,             CurrentFitSums)
+FLAG(NoPlotAxes,                DrawPlotAxes)
+FLAG(NoCurveFilling,            CurveFilling)
 
 SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
 SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)

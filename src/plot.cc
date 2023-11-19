@@ -118,8 +118,10 @@ object::result draw_plot(object::id            kind,
     save<symbol_g *> iref(expression::independent,
                           (symbol_g *) &ppar.independent);
     if (ui.draw_graphics())
-        draw_axes(ppar);
+        if (Settings.DrawPlotAxes())
+            draw_axes(ppar);
 
+    bool split_points = Settings.NoCurveFilling();
     while (!program::interrupted())
     {
         coord  rx = 0, ry = 0;
@@ -156,7 +158,7 @@ object::result draw_plot(object::id            kind,
 
         if (y)
         {
-            if (lx < 0)
+            if (lx < 0 || split_points)
             {
                 lx = rx;
                 ly = ry;

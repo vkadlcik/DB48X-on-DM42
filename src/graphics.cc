@@ -338,10 +338,10 @@ bool PlotParametersAccess::check_validity() const
 // ============================================================================
 
 coord PlotParametersAccess::pixel_adjust(object_r    obj,
-                                   algebraic_r min,
-                                   algebraic_r max,
-                                   uint        scale,
-                                   bool        isSize)
+                                         algebraic_r min,
+                                         algebraic_r max,
+                                         uint        scale,
+                                         bool        isSize)
 // ----------------------------------------------------------------------------
 //  Convert an object to a coordinate
 // ----------------------------------------------------------------------------

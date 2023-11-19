@@ -48,7 +48,7 @@ void draw_axes(const PlotParametersAccess &ppar)
     coord w = Screen.area().width();
     coord h = Screen.area().height();
     coord x = ppar.pixel_adjust(ppar.xorigin.Safe(), ppar.xmin, ppar.xmax, w);
-    coord y = ppar.pixel_adjust(ppar.yorigin.Safe(), ppar.ymin, ppar.ymax, h);
+    coord y = ppar.pixel_adjust(ppar.yorigin.Safe(), ppar.ymax, ppar.ymin, h);
 
     // Draw axes proper
     pattern pat = Settings.Foreground();

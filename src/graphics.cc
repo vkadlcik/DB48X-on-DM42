@@ -579,6 +579,23 @@ COMMAND_BODY(DispXY)
 }
 
 
+static void graphics_dirty(coord x1, coord y1, coord x2, coord y2, size lw)
+// ----------------------------------------------------------------------------
+//   Mark region as dirty with extra size
+// ----------------------------------------------------------------------------
+{
+    if (x1 > x2)
+        std::swap(x1, x2);
+    if (y1 > y2)
+        std::swap(y1, y2);
+    if (lw)
+        ui.draw_dirty(x1 - lw/2, y1 - lw/2, x2 + (lw-1)/2, y2 + (lw-1)/2);
+    else
+        ui.draw_dirty(x1, y1, x2, y2);
+    refresh_dirty();
+}
+
+
 COMMAND_BODY(Line)
 // ----------------------------------------------------------------------------
 //   Draw a line between the coordinates
@@ -597,12 +614,11 @@ COMMAND_BODY(Line)
         coord y2 = ppar.pair_pixel_y(p2);
         if (!rt.error())
         {
+            blitter::size lw = Settings.LineWidth();
             rt.drop(2);
             ui.draw_graphics();
-            Screen.line(x1, y1, x2, y2,
-                        Settings.LineWidth(), Settings.Foreground());
-            ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
-            refresh_dirty();
+            Screen.line(x1, y1, x2, y2, lw, Settings.Foreground());
+            graphics_dirty(x1, y1, x2, y2, lw);
             return OK;
         }
     }
@@ -628,12 +644,11 @@ COMMAND_BODY(Ellipse)
         coord y2 = ppar.pair_pixel_y(p2);
         if (!rt.error())
         {
+            blitter::size lw = Settings.LineWidth();
             rt.drop(2);
             ui.draw_graphics();
-            Screen.ellipse(x1, y1, x2, y2,
-                           Settings.LineWidth(), Settings.Foreground());
-            ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
-            refresh_dirty();
+            Screen.ellipse(x1, y1, x2, y2, lw, Settings.Foreground());
+            graphics_dirty(x1, y1, x2, y2, lw);
             return OK;
         }
     }
@@ -663,16 +678,15 @@ COMMAND_BODY(Circle)
             ry = -ry;
         if (!rt.error())
         {
+            blitter::size lw = Settings.LineWidth();
             rt.drop(2);
             coord x1 = x - rx/2;
             coord x2 = x + (rx-1)/2;
             coord y1 = y - ry/2;
             coord y2 = y + (ry-1)/2;
             ui.draw_graphics();
-            Screen.ellipse(x1, y1, x2, y2,
-                           Settings.LineWidth(), Settings.Foreground());
-            ui.draw_dirty(x1, y1, x2, y2);
-            refresh_dirty();
+            Screen.ellipse(x1, y1, x2, y2, lw, Settings.Foreground());
+            graphics_dirty(x1, y1, x2, y2, lw);
             return OK;
         }
     }
@@ -731,13 +745,12 @@ COMMAND_BODY(RRect)
         coord r  = ppar.size_adjust(ro, ppar.xmin, ppar.xmax, 2*ScreenWidth());
         if (!rt.error())
         {
+            blitter::size lw = Settings.LineWidth();
             rt.drop(3);
             ui.draw_graphics();
-            Screen.rounded_rectangle(x1, y1, x2, y2, r,
-                                     Settings.LineWidth(),
-                                     Settings.Foreground());
-            ui.draw_dirty(min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2));
-            refresh_dirty();
+            Screen.rounded_rectangle(x1, y1, x2, y2,
+                                     r, lw, Settings.Foreground());
+            graphics_dirty(x1, y1, x2, y2, lw);
             return OK;
         }
     }
@@ -754,8 +767,7 @@ COMMAND_BODY(ClLCD)
         return ERROR;
     ui.draw_graphics();
     Screen.fill(0, 0, LCD_W, LCD_H, pattern::white);
-    ui.draw_dirty(0, 0, LCD_W-1, LCD_H-1);
-    refresh_dirty();
+    graphics_dirty(0, 0, LCD_W-1, LCD_H-1, 0);
     return OK;
 }
 

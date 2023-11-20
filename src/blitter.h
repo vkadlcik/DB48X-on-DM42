@@ -1973,6 +1973,8 @@ void blitter::surface<Mode>::rounded_rectangle(coord   x1,
         r = a;
     if (r > b)
         r = b;
+    a -= r;
+    b -= r;
     int   d  = r / 2;
     coord x  = r;
     coord y  = 0;
@@ -1983,8 +1985,6 @@ void blitter::surface<Mode>::rounded_rectangle(coord   x1,
     coord yt = yc - b;
     coord yb = yc + b;
 
-    a -= r;
-    b -= r;
     while (x >= y)
     {
         if (width)

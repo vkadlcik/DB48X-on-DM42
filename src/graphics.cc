@@ -1065,3 +1065,78 @@ COMMAND_BODY(Center)
     }
     return object::ERROR;
 }
+
+
+COMMAND_BODY(Gray)
+// ----------------------------------------------------------------------------
+//   Create a pattern from a gray level
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        algebraic_g gray = algebraic_p(rt.top());
+        if (gray->is_real())
+        {
+            gray = gray * integer::make(255);
+            uint level = gray->as_uint32(0, true);
+            if (level > 255)
+                level = 255;
+            pattern pat = pattern(level, level, level);
+#if CONFIG_FIXED_BASED_OBJECTS
+            integer_p bits = rt.make<hex_integer>(pat.bits);
+#else
+            integer_p bits = rt.make<based_integer>(pat.bits);
+#endif
+            if (bits && rt.top(bits))
+                return OK;
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(RGB)
+// ----------------------------------------------------------------------------
+//   Create a pattern from RGB levels
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(3))
+    {
+        algebraic_g red   = algebraic_p(rt.stack(2));
+        algebraic_g green = algebraic_p(rt.stack(1));
+        algebraic_g blue  = algebraic_p(rt.stack(0));
+        if (red->is_real() && green->is_real() && blue->is_real())
+        {
+            algebraic_g scale = integer::make(255);
+            red = red * scale;
+            green = green * scale;
+            blue = blue * scale;
+            uint rl = red->as_uint32(0, true);
+            uint gl = green->as_uint32(0, true);
+            uint bl = blue->as_uint32(0, true);
+            if (rl > 255)
+                rl = 255;
+            if (gl > 255)
+                gl = 255;
+            if (bl > 255)
+                bl = 255;
+            pattern pat = pattern(rl, gl, bl);
+#if CONFIG_FIXED_BASED_OBJECTS
+            integer_p bits = rt.make<hex_integer>(pat.bits);
+#else
+            integer_p bits = rt.make<based_integer>(pat.bits);
+#endif
+            if (bits && rt.drop(2) && rt.top(bits))
+                return OK;
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+    return ERROR;
+}

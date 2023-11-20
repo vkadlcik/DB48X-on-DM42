@@ -386,6 +386,10 @@ NAMED(Bar,              "BarPlot")
 CMD(Clip)
 CMD(CurrentClip)
 
+NAMED(Gray,             "GrayPattern")          ALIAS(Gray,     "GreyPattern")
+                                                ALIAS(Gray,     "Grey")
+NAMED(RGB,              "RGBPattern")
+
 NAMED(GXor,             "GraphicXor")
 NAMED(GOr,              "GraphicOr")
 NAMED(GAnd,             "GraphicAnd")

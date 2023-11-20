@@ -1070,10 +1070,14 @@ MENU(PlotMenu,
      "Bar",     ID_Bar,
      "Axes",    ID_Drax,
 
+     "Foregnd", ID_Foreground,
+     "LineWdth",ID_LineWidth,
      "Lines",   ID_CurveFilling,
      "Points",  ID_NoCurveFilling,
      "Axes",    ID_DrawPlotAxes,
      "No Axes", ID_NoPlotAxes,
+
+     "Backgnd", ID_Background,
      "Clear",   ID_ClLCD);
 
 MENU(ClearThingsMenu,
@@ -1260,6 +1264,9 @@ MENU(GraphicsMenu,
      "GXor",    ID_And,
      "ClLCD",   ID_ClLCD,
 
+     "LnWidth", ID_LineWidth,
+     "Foregnd", ID_Foreground,
+     "Bckgnd",  ID_Background,
      "Clip",    ID_Clip,
      "Current", ID_CurrentClip);
 

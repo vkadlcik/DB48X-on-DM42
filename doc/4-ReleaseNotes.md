@@ -1,8 +1,40 @@
 # Release notes
 
-## Release v0.4.12: Emergency bug fixes
+## Release 0.5.0: Statistics and flags
 
-Release v0.4.12: Emergency bug fixes, filesystem access
+This release provides statistics functions and flags.
+
+### New features
+
+* Statistics (#495) and linear regression (#569)
+* File-based statistics (#571)
+* `Sort`, `QuickSort`, `ReverseSort`, `ReverseQuickSort` and `RevList` (#572)
+* Flags, i.e. `CF`, `SF`, `FS?`, etc (#43)
+* Plot scaling commands such as `SCALE`, `CENTR`, `XRNG`, ... (#582)
+* Add `CurveFilling` and `DrawPlotAxes` setting flags (#580)
+* `ScatterPlot` (#577) and `BarPlot` (#579)
+
+### Bugs
+
+* Save settings enumerations as portable text (#565)
+* Avoid infinite loop when reading at end of help file
+* Repair behaviour of `-1 DIG`, broken by settings improvements
+* Fix definition of `rpm` in units and units file
+* Crash in `list::map` when called function errors out (#570)
+* Fix editor horizontal movement when inserting commands (#576)
+* Repair plotting demo (#583)
+* Fix vertical position of axes in `DrawAxes` (#584)
+* Very long drawing loop if `ppar` axes are backwards (#585)
+
+### Improvements
+
+* Sets editor selection correctly for command-line errors
+* Ability to parse command and setting names in quotes, e.g. `'Radians'`
+* Insert command names inside quotes (#575)
+* Update documentation of implemented features (#569)
+* Make `PlotParameters` a keyword (#578)
+
+## Release v0.4.12: Emergency bug fixes, filesyste, access
 
 A few quick bug fixes related to issues found in 0.4.11.
 

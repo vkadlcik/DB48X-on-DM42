@@ -578,12 +578,17 @@ struct runtime
 
     bool run_select_while(bool condition);
     // ------------------------------------------------------------------------
-    //   Select true or false case from run_conditionals
+    //   Select true or false branch for while loops
     // ------------------------------------------------------------------------
 
     bool run_select_start_step(bool for_loop, bool has_step);
     // ------------------------------------------------------------------------
     //   Select the next branch in for-next, for-step, start-next or start-step
+    // ------------------------------------------------------------------------
+
+    bool run_select_case(bool condition);
+    // ------------------------------------------------------------------------
+    //   Select true or false case for case statement
     // ------------------------------------------------------------------------
 
 

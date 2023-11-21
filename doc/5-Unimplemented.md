@@ -34,6 +34,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [BIN](#bin)
 * [BYTES](#bytes)
 * [B→R](#binarytoreal)
+* [CASE](#case)
 * [CF](#clearflag)
 * [CLLCD](#cllcd)
 * [CLΣ](#cleardata)
@@ -240,7 +241,6 @@ commands.
 * C2P
 * CASCFG
 * CASCMD
-* CASE
 * CEIL
 * CENTR
 * %CH

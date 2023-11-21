@@ -445,10 +445,13 @@ unintentional differences, since the implementation is completely new.
 * DB48X will borrow to the DM-42 the idea of _special variables_ for settings,
   which are variables with a special meaning. For example, the `Precision`
   special variable is the current operating precision for floating point, in
-  number of digits. While there is a `SetPrecision` command, it is also possible
-  to use `'Precision' STO`. This does not imply that there is an internal
-  `Precision` variable somewhere. Special variables will be available for most
-  settings in a later revision of the firmware.
+  number of digits. While there is a `Precision` command that sets the value, it
+  is also possible to use `'Precision' STO` to set it, and `'Precision' RCL` to
+  fetch the current value. This does not imply that there is an internal
+  `Precision` variable somewhere. This applies to all settings and
+  flags. Additionally, binary settings can be set with `SF` and `CF`, and
+  queried with `SF?` and `CF?`. For example, `'HideDate' CF` will clear the
+  `HideDate` flag, meaning that the date will show in the header.
 
 * The DB48X also provides full-screen setup menus, taking advantage of the DM42
   existing system menus. It is likely that the same menu objects used for
@@ -550,6 +553,9 @@ favorite text editor, which should normally be GNU Emacs. This is notably the
 case for state files with extension `.48S` which you can find in the `STATE`
 directory on the calculator.
 
+The `Size` operation when applying to text counts the number of Unicode
+characters, not the number of bytes. The number of bytes can be computed using
+the `Bytes` command.
 
 ## Help
 

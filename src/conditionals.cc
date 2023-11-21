@@ -30,10 +30,10 @@
 #include "conditionals.h"
 
 #include "integer.h"
+#include "parser.h"
 #include "renderer.h"
 #include "settings.h"
 #include "user_interface.h"
-
 
 
 // ============================================================================
@@ -292,6 +292,415 @@ INSERT_BODY(IfErrThenElse)
 // ----------------------------------------------------------------------------
 {
     return ui.edit(utf8("iferr  then  else  end"), ui.PROGRAM, 6);
+}
+
+
+
+// ============================================================================
+//
+//   Case statement
+//
+// ============================================================================
+
+static inline bool match(cstring s, cstring sep, size_t len, size_t remaining)
+// ----------------------------------------------------------------------------
+//   Check if we match a given input
+// ----------------------------------------------------------------------------
+{
+    return (len <= remaining &&
+            strncasecmp(s, sep, len) == 0 &&
+            (len >= remaining || command::is_separator(utf8(s) + len)));
+}
+
+
+PARSE_BODY(CaseStatement)
+// ----------------------------------------------------------------------------
+//   Leverage the conditional loop parsing to process a case statement
+// ----------------------------------------------------------------------------
+{
+    // We have to be careful that we may have to GC to make room for loop
+    gcutf8   src      = p.source;
+    size_t   max      = p.length;
+    object_g obj1     = nullptr;
+    object_g obj2     = nullptr;
+    bool     had_then = false;
+    bool     had_when = false;
+    bool     had_end  = false;
+
+    // Quick exit if we are not parsing a "case"
+    if (!match(cstring(src.Safe()), "case", 4, max))
+        return SKIP;
+    src += size_t(4);
+
+    // Outer scribble collects the various conditions
+    scribble outer_scr;
+
+    // Loop over the two or three separators we got
+    while (!had_end)
+    {
+        while (!had_end)
+        {
+            // Inner scribble collects the various code blocks
+            scribble scr;
+
+            // Scan the body of the loop
+            while (utf8_more(p.source, src, max))
+            {
+                // Skip spaces
+                unicode cp = utf8_codepoint(src);
+                if (utf8_whitespace(cp))
+                {
+                    src = utf8_next(src);
+                    continue;
+                }
+
+                // Check if we have 'end'
+                size_t  remaining = max - size_t(utf8(src) - utf8(p.source));
+                cstring s         = cstring(src.Safe());
+                if (match(s, "end", 3, remaining))
+                {
+                    src += size_t(3);
+                    had_end = true;
+                    break;
+                }
+
+                // Check if we have "then" or "when"
+                if (!had_then)
+                {
+                    had_then = match(s, "then", 4, remaining);
+                    if (had_then)
+                    {
+                        src += size_t(4);
+                        break;
+                    }
+                }
+                if (!had_when)
+                {
+                    had_when = match(s, "when", 4, remaining);
+                    if (had_when)
+                    {
+                        src += size_t(4);
+                        break;
+                    }
+                }
+
+                // Parse an object
+                size_t   done   = utf8(src) - utf8(p.source);
+                size_t   length = max > done ? max - done : 0;
+                object_g obj    = object::parse(src, length);
+                if (!obj)
+                    return ERROR;
+
+                // Copy the parsed object to the scratch pad (may GC)
+                size_t objsize = obj->size();
+                byte *objcopy = rt.allocate(objsize);
+                if (!objcopy)
+                    return ERROR;
+                memmove(objcopy, (byte *) obj, objsize);
+
+                // Jump past what we parsed
+                src = utf8(src) + length;
+            }
+
+            // Create the program object for condition or body
+            gcbytes  scratch = scr.scratch();
+            size_t   alloc   = scr.growth();
+            object_p prog    = rt.make<program>(ID_block, scratch, alloc);
+            if (!had_end)
+            {
+                obj1 = prog;
+            }
+            else if (had_then || had_when)
+            {
+                id type = had_when ? ID_CaseWhen : ID_CaseThen;
+                obj2 = prog;
+                obj1 = rt.make<CaseThen>(type, obj1, obj2);
+                had_then = had_when = false;
+                had_end = false;
+                break;
+            }
+        } // Loop on conditions and blocks
+
+        // Here, either had_end, and obj1 is the tail block, or adding a cond
+        if (!had_end)
+        {
+            // Copy the parsed object to the scratch pad (may GC)
+            size_t objsize = obj1->size();
+            byte *objcopy = rt.allocate(objsize);
+            if (!objcopy)
+                return ERROR;
+            memmove(objcopy, (byte *) obj1.Safe(), objsize);
+            obj1 = nullptr;
+        }
+    }
+
+    size_t parsed = utf8(src) - utf8(p.source);
+    if (!had_end)
+    {
+        // If we did not find the terminator, we reached end of text1
+        rt.unterminated_error().source(p.source, parsed);
+        return ERROR;
+    }
+
+    // Create the program object for the conditions
+    if (!obj1)
+        obj1 = rt.make<program>(ID_block, nullptr, 0);
+    gcbytes  scratch = outer_scr.scratch();
+    size_t   alloc   = outer_scr.growth();
+    object_p prog    = rt.make<program>(ID_block, scratch, alloc);
+    object_p cases   = rt.make<CaseStatement>(prog, obj1);
+    p.end            = parsed;
+    p.out            = cases;
+
+    return OK;
+}
+
+
+static size_t render_case(renderer &r, cstring first, object_p o)
+// ----------------------------------------------------------------------------
+//   Render a then-end or when-end instruction
+// ----------------------------------------------------------------------------
+{
+    // Source objects
+    byte_p   p      = o->payload();
+    object_g cond   = object_p(p);
+    object_g body   = cond->skip();
+    auto     format = Settings.CommandDisplayMode();
+
+    cond->render(r);
+    r.put(' ');
+    r.put(format, utf8(first));
+    r.indent();
+    body->render(r);
+    r.unindent();
+    r.put(format, utf8("end"));
+    r.wantCR();
+    return r.size();
+}
+
+
+RENDER_BODY(CaseStatement)
+// ----------------------------------------------------------------------------
+//   Render case statement
+// ----------------------------------------------------------------------------
+{
+    // Source objects
+    byte_p   p      = o->payload();
+    object_g conds  = object_p(p);
+    object_g rest   = conds->skip();
+    auto     format = Settings.CommandDisplayMode();
+
+    r.put('\n');
+    r.put(format, utf8("case"));
+    r.indent();
+    conds->render(r);
+    if (block_p block = block_p(rest.Safe()))
+        if (block->length())
+            block->render(r);
+    r.unindent();
+    r.put(format, utf8("end"));
+    r.wantCR();
+    return r.size();
+
+}
+
+
+EVAL_BODY(CaseStatement)
+// ----------------------------------------------------------------------------
+//   Evaluate case statements
+// ----------------------------------------------------------------------------
+{
+    byte    *p     = (byte *) o->payload();
+    object_g conds = object_p(p);
+    object_p rest  = conds->skip();
+    if (defer(ID_case_end_conditional) && rest->defer() && conds->defer())
+        return OK;
+    return ERROR;
+}
+
+
+INSERT_BODY(CaseStatement)
+// ----------------------------------------------------------------------------
+//    Insert case statement in the editor
+// ----------------------------------------------------------------------------
+{
+    return ui.edit(utf8("case  end"), ui.PROGRAM, 3);
+}
+
+
+RENDER_BODY(case_end_conditional)
+// ----------------------------------------------------------------------------
+//   A non-parseable object used to mark the end of the current 'case' stmt
+// ----------------------------------------------------------------------------
+{
+    r.put("<case-end>");
+    return r.size();
+};
+
+
+EVAL_BODY(case_end_conditional)
+// ----------------------------------------------------------------------------
+//   Reaching the end of a case statement
+// ----------------------------------------------------------------------------
+{
+    return OK;
+}
+
+
+RENDER_BODY(case_skip_conditional)
+// ----------------------------------------------------------------------------
+//   A non-parseable object used to skip to the end of a case statement
+// ----------------------------------------------------------------------------
+{
+    r.put("<case-skip>");
+    return r.size();
+};
+
+
+EVAL_BODY(case_skip_conditional)
+// ----------------------------------------------------------------------------
+//   Skip to the end of a case statement
+// ----------------------------------------------------------------------------
+{
+    while (object_p next = rt.run_next(0))
+        if (next->type() == ID_case_end_conditional)
+            break;
+    return OK;
+}
+
+
+PARSE_BODY(CaseThen)
+// ----------------------------------------------------------------------------
+//   Leverage the conditional loop parsing to process a case statement
+// ----------------------------------------------------------------------------
+{
+    return SKIP;
+}
+
+
+RENDER_BODY(CaseThen)
+// ----------------------------------------------------------------------------
+//   Render case statement
+// ----------------------------------------------------------------------------
+{
+    return render_case(r, "then", o);
+}
+
+
+EVAL_BODY(CaseThen)
+// ----------------------------------------------------------------------------
+//   Evaluate case statements
+// ----------------------------------------------------------------------------
+{
+    byte    *p    = (byte *) o->payload();
+    object_g cond = object_p(p);
+    object_p body = cond->skip();
+    if (rt.run_conditionals(body, nullptr) &&
+        defer(ID_case_then_conditional) &&
+        cond->defer())
+        return OK;
+    return ERROR;
+}
+
+
+INSERT_BODY(CaseThen)
+// ----------------------------------------------------------------------------
+//    Insert case statement in the editor
+// ----------------------------------------------------------------------------
+{
+    return ui.edit(utf8("then  end"), ui.PROGRAM, 3);
+}
+
+
+RENDER_BODY(case_then_conditional)
+// ----------------------------------------------------------------------------
+//   A non-parseable object used to test the 'then' in a case statement
+// ----------------------------------------------------------------------------
+{
+    r.put("<case-then>");
+    return r.size();
+};
+
+
+EVAL_BODY(case_then_conditional)
+// ----------------------------------------------------------------------------
+//   Check a condition in a 'case' statement. If successful, exit case
+// ----------------------------------------------------------------------------
+{
+    if (object_p cond = rt.pop())
+    {
+        int truth = cond->as_truth(true);
+        if (truth >= 0)
+            if (rt.run_select_case(truth))
+                return OK;
+    }
+    return ERROR;
+}
+
+
+PARSE_BODY(CaseWhen)
+// ----------------------------------------------------------------------------
+//   Leverage the conditional loop parsing to process a case statement
+// ----------------------------------------------------------------------------
+{
+    return SKIP;
+}
+
+
+RENDER_BODY(CaseWhen)
+// ----------------------------------------------------------------------------
+//   Render case statement
+// ----------------------------------------------------------------------------
+{
+    return render_case(r, "when", o);
+}
+
+
+EVAL_BODY(CaseWhen)
+// ----------------------------------------------------------------------------
+//   Evaluate case statements
+// ----------------------------------------------------------------------------
+{
+    byte    *p    = (byte *) o->payload();
+    object_g cond = object_p(p);
+    object_p body = cond->skip();
+    if (rt.run_conditionals(body, nullptr) &&
+        defer(ID_case_when_conditional) &&
+        cond->defer())
+        return OK;
+    return ERROR;
+}
+
+
+INSERT_BODY(CaseWhen)
+// ----------------------------------------------------------------------------
+//    Insert case statement in the editor
+// ----------------------------------------------------------------------------
+{
+    return ui.edit(utf8("when  end"), ui.PROGRAM, 3);
+}
+
+
+RENDER_BODY(case_when_conditional)
+// ----------------------------------------------------------------------------
+//   A non-parseable object used to test the 'when' in a case statement
+// ----------------------------------------------------------------------------
+{
+    r.put("<case-when>");
+    return r.size();
+};
+
+
+EVAL_BODY(case_when_conditional)
+// ----------------------------------------------------------------------------
+//   Check a condition in a 'case' statement. If successful, exit case
+// ----------------------------------------------------------------------------
+{
+    if (object_p value = rt.pop())
+        if (object_p ref = rt.top())
+            if (rt.run_select(value->is_same_as(ref)))
+                return OK;
+    return ERROR;
 }
 
 

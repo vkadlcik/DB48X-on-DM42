@@ -706,6 +706,9 @@ MENU(TestsMenu,
      "IFT",             ID_IFT,
      "IFTE",            ID_IFTE,
 
+     "Case",            ID_CaseStatement,
+     "Then",            ID_CaseThen,
+     "When",            ID_CaseWhen,
      "Compare",         ID_CompareMenu,
      "Loops",           ID_LoopsMenu,
      "Prog",            ID_ProgramMenu);

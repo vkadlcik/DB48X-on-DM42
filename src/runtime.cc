@@ -1320,7 +1320,7 @@ bool runtime::run_select(bool condition)
 
 bool runtime::run_select_while(bool condition)
 // ----------------------------------------------------------------------------
-//   Select which condition ofa while path to pick
+//   Select which condition of a while path to pick
 // ----------------------------------------------------------------------------
 //   In that case, we have pushed the loop and its body
 //   If the condition is true, we leave loop and body
@@ -1346,7 +1346,7 @@ bool runtime::run_select_while(bool condition)
 
 bool runtime::run_select_start_step(bool for_loop, bool has_step)
 // ----------------------------------------------------------------------------
-//   Select true or false case from run_conditionals
+//   Select evaluation branches in a for loop
 // ----------------------------------------------------------------------------
 {
     if (Returns + 4 > HighMem)
@@ -1417,7 +1417,43 @@ bool runtime::run_select_start_step(bool for_loop, bool has_step)
     }
 
     return true;
+}
 
+
+bool runtime::run_select_case(bool condition)
+// ----------------------------------------------------------------------------
+//   Select evaluation branches in a case statement
+// ----------------------------------------------------------------------------
+//   In that case, we have the true case at level 0, null at level 2
+//   If the condition is true, we put an ID_case_skip_conditional in level 2
+//
+{
+    if (Returns + 4 > HighMem)
+    {
+        record(runtime_error,
+               "select_case (%+s) Returns=%p HighMem=%p",
+               condition ? "true" : "false",
+               Returns, HighMem);
+        return false;
+    }
+
+    if (condition)
+    {
+        object_p obj = command::static_object(object::ID_case_skip_conditional);
+        ASSERT(Returns[0] == nullptr && Returns[1] == nullptr);
+        Returns[0] = Returns[2];
+        Returns[1] = Returns[3];
+        Returns[2] = obj;
+        Returns[3] = obj->skip();
+    }
+    else
+    {
+        if (size_t(HighMem - Returns) % CALLS_BLOCK <= 4)
+            call_stack_drop();
+        Returns += 4;
+    }
+
+    return true;
 }
 
 
@@ -1426,7 +1462,7 @@ bool runtime::call_stack_grow(object_p &next, object_p &end)
 //   Grow the call stack by a block
 // ----------------------------------------------------------------------------
 {
-    size_t   block = sizeof(object_p) * CALLS_BLOCK;
+    size_t   block = sizeof(object_p) * CALLS_BLOCK ;
     object_g nextg = next;
     object_g endg  = end;
     if (available(block) < block)

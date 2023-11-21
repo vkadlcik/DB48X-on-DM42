@@ -156,10 +156,11 @@ object::result loop::object_parser(parser  &p,
             }
 
             // Check if we have the separator
-            size_t remaining = max - size_t(utf8(src) - utf8(p.source));
-            if (len <= remaining
+            size_t   done   = utf8(src) - utf8(p.source);
+            size_t   length = max > done ? max - done : 0;
+            if (len <= length
                 && strncasecmp(cstring(utf8(src)), sep, len) == 0
-                && (len >= remaining ||
+                && (len >= length ||
                     command::is_separator(utf8(src) + len)))
             {
                 if (loopvar && sep != open)
@@ -180,9 +181,9 @@ object::result loop::object_parser(parser  &p,
             if (sep == close1 && close2)
             {
                 size_t len2 = strlen(close2);
-                if (len2 <= remaining
+                if (len2 <= length
                     && strncasecmp(cstring(utf8(src)), close2, len2) == 0
-                    && (len2 >= remaining ||
+                    && (len2 >= length ||
                         command::is_separator(utf8(src) + len2)))
                 {
                     if (loopvar && sep != open)
@@ -199,8 +200,8 @@ object::result loop::object_parser(parser  &p,
             }
 
             // Parse an object
-            size_t   done   = utf8(src) - utf8(p.source);
-            size_t   length = max > done ? max - done : 0;
+            done   = utf8(src) - utf8(p.source);
+            length = max > done ? max - done : 0;
             object_g obj    = object::parse(src, length);
             if (!obj)
                 return ERROR;

@@ -281,6 +281,10 @@ CMD(StartNext)
 CMD(StartStep)
 CMD(ForNext)
 CMD(ForStep)
+CMD(CaseStatement)
+CMD(CaseThen)
+CMD(CaseWhen)
+
 
 
 // ============================================================================
@@ -881,6 +885,10 @@ ID(start_next_conditional)
 ID(start_step_conditional)
 ID(for_next_conditional)
 ID(for_step_conditional)
+ID(case_then_conditional)
+ID(case_when_conditional)
+ID(case_skip_conditional)
+ID(case_end_conditional)
 
 #undef ID
 #undef OP

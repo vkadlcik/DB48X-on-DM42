@@ -62,7 +62,7 @@ struct loop : command
 
 protected:
     // Shared code for parsing and rendering, taking delimiters as input
-    static result object_parser(parser UNUSED &p,
+    static result object_parser(parser &p,
                                 cstring open,
                                 cstring middle,
                                 cstring close2, id id2,
@@ -78,6 +78,14 @@ protected:
     {
         // Warning: close1/close2 intentionally swapped here
         return object_parser(p, op, mid, cl1, id1, cl2, id2, nullptr, loopvar);
+    }
+    static result object_parser(parser UNUSED &p,
+                                cstring op,
+                                cstring mid,
+                                cstring cl1, id id1)
+    {
+        // Warning: close1/close2 intentionally swapped here
+        return object_parser(p, op, mid, cl1, id1, 0, id1, 0, false);
     }
     intptr_t object_renderer(renderer &r,
                              cstring open, cstring middle, cstring close,

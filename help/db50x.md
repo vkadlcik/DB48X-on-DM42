@@ -397,10 +397,13 @@ unintentional differences, since the implementation is completely new.
 * DB50X will borrow to the DM-42 the idea of _special variables_ for settings,
   which are variables with a special meaning. For example, the `Precision`
   special variable is the current operating precision for floating point, in
-  number of digits. While there is a `SetPrecision` command, it is also possible
-  to use `'Precision' STO`. This does not imply that there is an internal
-  `Precision` variable somewhere. Special variables will be available for most
-  settings in a later revision of the firmware.
+  number of digits. While there is a `Precision` command that sets the value, it
+  is also possible to use `'Precision' STO` to set it, and `'Precision' RCL` to
+  fetch the current value. This does not imply that there is an internal
+  `Precision` variable somewhere. This applies to all settings and
+  flags. Additionally, binary settings can be set with `SF` and `CF`, and
+  queried with `SF?` and `CF?`. For example, `'HideDate' CF` will clear the
+  `HideDate` flag, meaning that the date will show in the header.
 
 * The DB50X also provides full-screen setup menus, taking advantage of the DM32
   existing system menus. It is likely that the same menu objects used for
@@ -502,6 +505,9 @@ favorite text editor, which should normally be GNU Emacs. This is notably the
 case for state files with extension `.48S` which you can find in the `STATE`
 directory on the calculator.
 
+The `Size` operation when applying to text counts the number of Unicode
+characters, not the number of bytes. The number of bytes can be computed using
+the `Bytes` command.
 
 ## Help
 
@@ -1945,6 +1951,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB50X.
 * [BIN](#bin)
 * [BYTES](#bytes)
 * [B→R](#binarytoreal)
+* [CASE](#case)
 * [CF](#clearflag)
 * [CLLCD](#cllcd)
 * [CLΣ](#cleardata)
@@ -2151,7 +2158,6 @@ commands.
 * C2P
 * CASCFG
 * CASCMD
-* CASE
 * CEIL
 * CENTR
 * %CH
@@ -3869,11 +3875,15 @@ Early exit from the current program or loop
 
 ## If
 
-The `if` statement provides conditional structurs that let a program make decisions. It comes in two forms:
+The `if` statement provides conditional structurs that let a program make
+decisions. It comes in two forms:
 
-* `if` *condition* `then` *true-clause* `end`: This evaluates *condition* and, if true, evaluates *true-clause*.
+* `if` *condition* `then` *true-clause* `end`: This evaluates *condition* and,
+  if true, evaluates *true-clause*.
 
-* `if` *condition* `then` *true-clause* `else` *false-clause* `end`: This evaluates *condition* and, if true, evaluates *true-clause*, otherwise evaluates *false-clause*.
+* `if` *condition* `then` *true-clause* `else` *false-clause* `end`: This
+  evaluates *condition* and, if true, evaluates *true-clause*, otherwise
+  evaluates *false-clause*.
 
 A condition is true if:
 * It is a number with a non-zero value
@@ -3884,8 +3894,25 @@ A condition is false if:
 * It is the word `False`
 
 
-## CASE
-Conditional CASE ... THEN ... END THEN ... END END statement
+## Case
+
+The `case` statement can be used to select one case among many.
+Inside a `case`, there is a list of conditions, each followed by `then` or
+`when`. Code following `then` or `when` is executed when the condition is met.
+
+* A condition preceding `then` is a boolean condition, similar to the condition
+  in an `if` statement.
+
+* A condition preceding `when` is a value that must match the current value on
+  the stack exactly.
+
+For example, `X case dup 0 < then "N" end dup 0 > then "P" end "Z" end`
+will return the value `"N"`, `"P"` or `"Z"` depending on whether `X` is
+negative, positive or null.
+
+The `when` syntax is useful to test exact values, for example
+`X case 0 when "zero" end 1 when "one" end 2 when "two" end end` will compute
+the English spelling for value `0`, `1` and `2`.
 
 
 ## THENCASE

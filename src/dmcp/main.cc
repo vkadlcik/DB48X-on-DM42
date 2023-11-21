@@ -446,9 +446,11 @@ bool program::interrupted()
 //   Return true if the current program must be interrupted
 // ----------------------------------------------------------------------------
 {
+    reset_auto_off();
     while (!key_empty())
     {
-        if (key_tail() == KEY_EXIT)
+        int tail = key_tail();
+        if (tail == KEY_EXIT)
             return true;
 #if SIMULATOR
         int key = key_pop();

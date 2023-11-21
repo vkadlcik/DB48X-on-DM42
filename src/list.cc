@@ -486,6 +486,40 @@ COMMAND_BODY(ToList)
 }
 
 
+COMMAND_BODY(FromList)
+// ----------------------------------------------------------------------------
+//   Convert elements to a list
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        object_p obj = rt.top();
+        if (list_p li = obj->as<list>())
+        {
+            rt.drop();
+            size_t depth = rt.depth();
+            for (object_p obj : *li)
+            {
+                if (!rt.push(obj))
+                {
+                    rt.drop(rt.depth() - depth);
+                    rt.push(li);
+                    return ERROR;
+                }
+            }
+            integer_p count = integer::make(rt.depth() - depth);
+            if (count && rt.push(count))
+                return OK;
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+    return ERROR;
+}
+
+
 COMMAND_BODY(Get)
 // ----------------------------------------------------------------------------
 //   Get an element in a list

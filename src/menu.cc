@@ -785,15 +785,15 @@ MENU(ListMenu,
 // ----------------------------------------------------------------------------
 //   Operations on list
 // ----------------------------------------------------------------------------
-     "→List",   ID_Unimplemented,
-     "List→",   ID_Unimplemented,
+     "→List",   ID_ToList,
+     "List→",   ID_FromList,
      "Size",    ID_Unimplemented,
      "Map",     ID_Unimplemented,
      "Reduce",  ID_Unimplemented,
      "Filter",  ID_Unimplemented,
 
-     "Sort",    ID_Unimplemented,
-     "Reverse", ID_Unimplemented,
+     "Sort",    ID_Sort,
+     "Reverse", ID_ReverseList,
      "∑List",   ID_Unimplemented,
      "∏List",   ID_Unimplemented,
      "∆List",   ID_Unimplemented);

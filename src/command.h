@@ -148,7 +148,6 @@ COMMAND_DECLARE(LastX);         // Return last X argument
 COMMAND_DECLARE(Undo);          // Revert to the Undo stack
 COMMAND_DECLARE(ToolsMenu);     // Automatic selection of the right menu
 COMMAND_DECLARE(LastMenu);      // Return to previous menu
-COMMAND_DECLARE(ToList);        // Build a list from stack
 COMMAND_DECLARE(Cycle);         // Cycle object across multiple representations
 COMMAND_DECLARE(BinaryToReal);  // Convert binary to real
 COMMAND_DECLARE(RealToBinary);  // Convert real to binary

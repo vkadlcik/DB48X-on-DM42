@@ -294,6 +294,8 @@ public:
 };
 typedef const list *list_p;
 
+COMMAND_DECLARE(ToList);
+COMMAND_DECLARE(FromList);
 COMMAND_DECLARE(Get);
 COMMAND_DECLARE(Sort);
 COMMAND_DECLARE(QuickSort);

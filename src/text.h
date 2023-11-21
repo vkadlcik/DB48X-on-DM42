@@ -228,6 +228,10 @@ struct text : algebraic
         return iterator(this, index).as_text();
     }
 
+    bool compile_and_run() const;
+    // ------------------------------------------------------------------------
+    //   Compile and run the text
+    // ------------------------------------------------------------------------
 
 public:
     OBJECT_DECL(text);

@@ -1,4 +1,6 @@
-# Cycle
+# Objects
+
+## Cycle
 
 Cycle through various representations of the object on the first level of the stack.
 
@@ -36,3 +38,31 @@ cycle as follows:
 * `0.001_hm`
 * `0.01_dam`
 * `0.1_m` at which point the cycle repeats.
+
+
+## Explode (OBJ→)
+
+Explode an object into its sub-components. The various sub-components are placed
+on the stack, and if necessary, information about the size is places on the
+first level of the stack.
+
+* Complex numbers are split into real and imaginary part (for rectangular form)
+  or modulus and argument (for polar form). The latter is an extension compared
+  to classical RPL, which always represent complex numbers in rectangular form.
+
+* Unit objects are split into the value and unit expression. This is a deviation
+  from standard RPL, which places a unit object on the first level of the stack.
+
+* Lists, programs and expressions are split into their individual components,
+  and the number of components is placed on the first level of the stack. For
+  programs, this is an extension of standard RPL. For expressions, this is a
+  deviation: HP calculators instead place only the top level object and
+  the arity.
+
+* Arrays and vectors are split into their individual components, and the number
+  of elements is placed as a list on the first level of the stack. The dimension
+  list has one element for vectors, and two for matrices. If a given matrix is
+  not rectangular, then the command reports an `Invalid dimension` error.
+
+* Text is evaluated as if it had been executed on the command line, in a way
+  similar to the `STR→` command.

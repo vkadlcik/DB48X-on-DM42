@@ -296,7 +296,7 @@ CMD(CaseWhen)
 // Data processing
 NAMED(ToList, "→List")
 NAMED(FromList, "List→")
-// NAMED(Explode, "Object→")               ALIAS(Explode, "Obj→")
+NAMED(Explode, "Object→")               ALIAS(Explode, "Obj→")
 CMD(Get)
 CMD(Size)
 CMD(Sort)

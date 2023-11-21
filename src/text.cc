@@ -30,6 +30,7 @@
 #include "text.h"
 
 #include "parser.h"
+#include "program.h"
 #include "renderer.h"
 #include "runtime.h"
 
@@ -236,4 +237,23 @@ text_p text::import() const
             result = ok;
 
     return result;
+}
+
+
+bool text::compile_and_run() const
+// ----------------------------------------------------------------------------
+//   Compile and run the text as if on the command line
+// ----------------------------------------------------------------------------
+{
+    size_t    len  = 0;
+    utf8      txt  = value(&len);
+    program_g cmds = program::parse(txt, len);
+    if (cmds)
+    {
+        // We successfully parsed the line, execute it
+        rt.drop();
+        save<bool> no_halt(program::halted, false);
+        return cmds->run(false);
+    }
+    return false;
 }

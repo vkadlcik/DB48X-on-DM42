@@ -44,6 +44,7 @@
 #include "settings.h"
 #include "symbol.h"
 #include "sysmenu.h"
+#include "tag.h"
 #include "unit.h"
 #include "user_interface.h"
 #include "utf8.h"
@@ -294,22 +295,92 @@ COMMAND_BODY(Compile)
         {
             if (text_p tobj = obj->as<text>())
             {
-                size_t    len  = 0;
-                utf8      txt  = tobj->value(&len);
-                program_g cmds = program::parse(txt, len);
-                if (cmds)
-                {
-                    // We successfully parsed the line, execute it
-                    rt.drop();
-                    save<bool> no_halt(program::halted, false);
-                    if (cmds->run(false))
-                        return OK;
-                }
+                if (tobj->compile_and_run())
+                    return OK;
             }
             else
             {
                 rt.type_error();
             }
+        }
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(Explode)
+// ----------------------------------------------------------------------------
+//  Implement the Obj→ command
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        object_p obj = rt.top();
+        id       oty = obj->type();
+        switch (oty)
+        {
+        case ID_rectangular:
+        case ID_polar:
+        case ID_unit:
+        {
+            complex_p cplx = complex_p(obj);
+            if (rt.top(cplx->x()) && rt.push(cplx->y().Safe()))
+                return OK;
+            break;
+        }
+        case ID_program:
+        case ID_expression:
+        case ID_list:
+            if (rt.drop())
+            {
+                if (list_p(obj)->expand())
+                    return OK;
+                rt.push(obj);
+            }
+            break;
+        case ID_array:
+            if (rt.drop())
+            {
+                if (array_p(obj)->expand())
+                    return OK;
+                rt.dimension_error();
+                rt.push(obj);
+            }
+            break;
+        case ID_text:
+            if (rt.drop())
+            {
+                size_t depth = rt.depth();
+                if (text_p(obj)->compile_and_run())
+                    return OK;
+                // Try to undo the damage - Won't always work
+                if (rt.depth() > depth)
+                    rt.drop(rt.depth() - depth);
+                rt.push(obj);
+            }
+            break;
+        case ID_fraction:
+        case ID_neg_fraction:
+        case ID_big_fraction:
+        case ID_neg_big_fraction:
+        {
+            fraction_p frac = fraction_p(obj);
+            bignum_g num = frac->numerator();
+            bignum_g den = frac->denominator();
+            if (num && den && rt.top(num.Safe()) && rt.push(den.Safe()))
+                return OK;
+            break;
+        }
+        case ID_tag:
+        {
+            tag_p tobj = tag_p(obj);
+            if (rt.top(tobj->tagged_object()) && rt.push(tobj->label()))
+                return OK;
+            break;
+        }
+        default:
+            rt.type_error();
+            break;
         }
     }
     return ERROR;

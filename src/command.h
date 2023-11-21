@@ -130,7 +130,7 @@ struct Unimplemented : command
 // Various global commands
 COMMAND_DECLARE(Eval);          // Evaluate an object
 COMMAND_DECLARE(Compile);       // Compile and evalaute a text
-//COMMAND_DECLARE(Explode);       // Explode an object
+COMMAND_DECLARE(Explode);       // Explode an object (aka Obj→)
 COMMAND_DECLARE(ToText);        // Convert an object to text
 COMMAND_DECLARE(SelfInsert);    // Enter menu label in the editor
 COMMAND_DECLARE(Ticks);         // Return number of ticks

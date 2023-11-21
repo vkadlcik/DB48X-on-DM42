@@ -418,6 +418,38 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
 }
 
 
+bool list::expand_without_size() const
+// ----------------------------------------------------------------------------
+//   Expand items on the stack, but do not add the size
+// ----------------------------------------------------------------------------
+{
+    size_t depth = rt.depth();
+    for (object_p obj : *this)
+    {
+        if (!rt.push(obj))
+        {
+            rt.drop(rt.depth() - depth);
+            return false;
+        }
+    }
+    return true;
+}
+
+
+bool list::expand() const
+// ----------------------------------------------------------------------------
+//   Expand items on
+// ----------------------------------------------------------------------------
+{
+    size_t depth = rt.depth();
+    if (expand_without_size())
+        if (rt.push(integer::make(rt.depth() - depth)))
+            return true;
+    rt.drop(rt.depth() - depth);
+    return false;
+}
+
+
 PARSE_BODY(list)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an list
@@ -498,18 +530,7 @@ COMMAND_BODY(FromList)
         if (list_p li = obj->as<list>())
         {
             rt.drop();
-            size_t depth = rt.depth();
-            for (object_p obj : *li)
-            {
-                if (!rt.push(obj))
-                {
-                    rt.drop(rt.depth() - depth);
-                    rt.push(li);
-                    return ERROR;
-                }
-            }
-            integer_p count = integer::make(rt.depth() - depth);
-            if (count && rt.push(count))
+            if (li->expand())
                 return OK;
         }
         else

@@ -210,24 +210,11 @@ struct list : text
     }
 
 
-    size_t expand() const
+    bool expand_without_size() const;
+    bool expand() const;
     // ------------------------------------------------------------------------
     //   Expand items to the stack, and return number of them
     // ------------------------------------------------------------------------
-    {
-        size_t result = 0;
-        for (object_p obj : *this)
-        {
-            if (!rt.push(obj))
-            {
-                if (result)
-                    rt.drop(result);
-                return 0;
-            }
-            result++;
-        }
-        return result;
-    }
 
 
     object_p operator[](size_t index) const

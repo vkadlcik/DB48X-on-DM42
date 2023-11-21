@@ -900,21 +900,20 @@ MENU(ObjectMenu,
      "Bytes",   ID_Bytes,
      "Type",    ID_Type,
      "TypeName",ID_TypeName,
-     "→Obj",    ID_Unimplemented,
-     "Obj→",    ID_Unimplemented,
      "Clone",   ID_Unimplemented,
-
+     "Obj→",    ID_Explode,
      "→Text",   ID_ToText,
-     "→List",   ID_Unimplemented,
+
+     "→List",   ID_ToList,
      "→Prog",   ID_Unimplemented,
      "→Array",  ID_Unimplemented,
      "→Num",    ID_ToDecimal,
      "→Frac",   ID_ToFraction,
+     "→Graph",  ID_Unimplemented,
 
      "→Tag",    ID_ToTag,
      "Tag→",    ID_FromTag,
-     "DTag",    ID_dtag,
-     "→Graph",  ID_Unimplemented);
+     "DTag",    ID_dtag);
 
 
 MENU(UnitsConversionsMenu,

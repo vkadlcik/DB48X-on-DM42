@@ -154,27 +154,40 @@ bool array::is_matrix(size_t *rows, size_t *cols, bool push) const
 }
 
 
-list_p array::dimensions() const
+list_p array::dimensions(bool expand) const
 // ----------------------------------------------------------------------------
 //   Return the dimensions of the array
 // ----------------------------------------------------------------------------
 {
     size_t rows = 0, columns = 0;
-    if (is_vector(&columns, false))
+    size_t depth = rt.depth();
+    if (is_vector(&columns, expand))
     {
         integer_g cobj = integer::make(columns);
         if (cobj)
             return list::make(cobj);
     }
-    else if (is_matrix(&rows, &columns, false))
+    else if (is_matrix(&rows, &columns, expand))
     {
         integer_g robj = integer::make(rows);
         integer_g cobj = integer::make(columns);
         if (robj && cobj)
             return list::make(robj, cobj);
     }
-
+    rt.drop(rt.depth() - depth);
     return nullptr;
+}
+
+
+bool array::expand() const
+// ----------------------------------------------------------------------------
+//   Expand the array
+// ----------------------------------------------------------------------------
+{
+    if (list_p dims = dimensions(true))
+        if (rt.push(dims))
+            return true;
+    return false;
 }
 
 

@@ -110,6 +110,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [NEG](#neg)
 * [NEXT](#next)
 * [NOT](#not)
+* [OBJ→](#explode)
 * [OCT](#oct)
 * [OFF](#off)
 * [OR](#or)
@@ -509,7 +510,6 @@ commands.
 * NUM
 * NUMX
 * NUMY
-* OBJ→
 * OLDPRT
 * OPENIO
 * ORDER

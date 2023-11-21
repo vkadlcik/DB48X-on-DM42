@@ -393,7 +393,8 @@ static int state_load_callback(cstring path, cstring name, void *merge)
         text_g edstr = rt.close_editor(true);
         if (edstr)
         {
-            gcutf8 editor = edstr->value();
+            // Need to re-fetch editor length after text conversion
+            gcutf8 editor = edstr->value(&edlen);
             bool dc = Settings.DecimalComma();
             Settings.DecimalComma(false);
             bool store_at_end = Settings.StoreAtEnd();

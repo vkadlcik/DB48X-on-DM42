@@ -33,7 +33,7 @@
 //
 //   A list is a sequence of bytes containing:
 //   - The type ID
-//   - The UTF8-encoded length of the payload
+//   - The LEB128-encoded length of the payload
 //   - Each object in the list in turn
 //
 //   To save space, there is no explicit marker for the end of list
@@ -296,6 +296,7 @@ typedef const list *list_p;
 
 COMMAND_DECLARE(ToList);
 COMMAND_DECLARE(FromList);
+COMMAND_DECLARE(Size);
 COMMAND_DECLARE(Get);
 COMMAND_DECLARE(Sort);
 COMMAND_DECLARE(QuickSort);

@@ -69,8 +69,9 @@ struct array : list
     static array_p wrap(object_p o);
 
     // Check if vector or matrix, and push all elements on stack
-    bool is_vector(size_t *size) const;
-    bool is_matrix(size_t *rows, size_t *columns) const;
+    bool is_vector(size_t *size, bool push = true) const;
+    bool is_matrix(size_t *rows, size_t *columns, bool push = true) const;
+    list_p dimensions() const;
 
     // Compute the result at row r column c from stack-exploded input
     typedef algebraic_g (*vector_fn)(size_t c, size_t cx, size_t cy);

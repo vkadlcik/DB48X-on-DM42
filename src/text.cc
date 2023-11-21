@@ -158,6 +158,22 @@ text_g operator*(text_r xr, uint y)
 }
 
 
+size_t text::utf8_characters() const
+// ----------------------------------------------------------------------------
+//   Count number of utf8 characters (for the `Size` command
+// ----------------------------------------------------------------------------
+{
+    byte_p p     = payload(this);
+    size_t len   = leb128<size_t>(p);
+    utf8   start = utf8(p);
+    utf8   end   = start + len;
+    size_t count = 0;
+    for (utf8 s = start; s < end; s = utf8_next(s))
+        count++;
+    return count;
+}
+
+
 static cstring conversions[] =
 // ----------------------------------------------------------------------------
 //   Conversion from standard ASCII to HP-48 characters

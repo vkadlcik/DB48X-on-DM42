@@ -33,6 +33,7 @@
 #include "array.h"
 #include "compare.h"
 #include "expression.h"
+#include "grob.h"
 #include "parser.h"
 #include "precedence.h"
 #include "program.h"
@@ -515,6 +516,56 @@ COMMAND_BODY(FromList)
         {
             rt.type_error();
         }
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(Size)
+// ----------------------------------------------------------------------------
+//   Return the size of an object
+// ----------------------------------------------------------------------------
+//   Behaves differently from standard RPL for integers, equations and units
+//   where it returns 1 and not some weirdo internal count
+{
+    if (rt.args(1))
+    {
+        object_p obj    = rt.top();
+        id       oty    = obj->type();
+        size_t   size   = 1;
+
+        switch (oty)
+        {
+        case ID_list:
+            size = list_p(obj)->items(); break;
+        case ID_array:
+            if (object_p result = array_p(obj)->dimensions())
+                if (rt.top(result))
+                    return OK;
+            break;
+        case ID_text:
+            size = text_p(obj)->utf8_characters(); break;
+        case ID_grob:
+        case ID_bitmap:
+            if (grob_p gr = grob_p(obj))
+            {
+                grob::pixsize w = 0, h = 0;
+                if (gr->pixels(&w, &h))
+                {
+                    integer_g wo = rt.make<based_integer>(w);
+                    integer_g ho = rt.make<based_integer>(h);
+                    if (wo && ho && rt.top(wo.Safe()) && rt.push(ho.Safe()))
+                        return OK;
+                }
+            }
+            return ERROR;
+        default:
+            break;
+        }
+
+        integer_p szo = integer::make(size);
+        if (szo && rt.top(szo))
+            return OK;
     }
     return ERROR;
 }

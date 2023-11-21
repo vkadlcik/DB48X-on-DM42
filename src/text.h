@@ -123,6 +123,7 @@ struct text : algebraic
         return (utf8) p;
     }
 
+    size_t utf8_characters() const;
     text_p import() const;      // Import text containing << or >> or ->
 
     // Iterator, built in a way that is robust to garbage collection in loops

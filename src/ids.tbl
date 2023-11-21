@@ -298,13 +298,12 @@ CMD(CaseWhen)
 NAMED(ToList, "→List")
 NAMED(FromList, "List→")
 CMD(Get)
+CMD(Size)
 CMD(Sort)
 
 // Tests
 NAMED(IFT, "IfThen")
 NAMED(IFTE, "IfThenElse")
-CMD(IfErrThen)
-CMD(IfErrThenElse)
 CMD(SetFlag)            ALIAS(SetFlag,          "SF")
 CMD(ClearFlag)          ALIAS(ClearFlag,        "CF")
 CMD(TestFlagSet)        ALIAS(TestFlagSet,      "FS?")
@@ -460,6 +459,8 @@ ALIAS(ToRectangular, "→Rect")
 NAMED(ToPolar, "→Polar")
 
 // Rare tests
+CMD(IfErrThen)
+CMD(IfErrThenElse)
 NAMED(errm, "ErrorMessage")
 NAMED(errn, "ErrorNumber")
 NAMED(err0, "ClearError")

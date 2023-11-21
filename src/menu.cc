@@ -787,7 +787,7 @@ MENU(ListMenu,
 // ----------------------------------------------------------------------------
      "→List",   ID_ToList,
      "List→",   ID_FromList,
-     "Size",    ID_Unimplemented,
+     "Size",    ID_Size,
      "Map",     ID_Unimplemented,
      "Reduce",  ID_Unimplemented,
      "Filter",  ID_Unimplemented,

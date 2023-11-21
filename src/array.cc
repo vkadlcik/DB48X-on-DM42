@@ -80,7 +80,7 @@ HELP_BODY(array)
 //   When they return true, these operations push all elements on the stack
 //
 
-bool array::is_vector(size_t *size) const
+bool array::is_vector(size_t *size, bool push) const
 // ----------------------------------------------------------------------------
 //   Check if this is a vector, and if so, push all elements on stack
 // ----------------------------------------------------------------------------
@@ -94,7 +94,7 @@ bool array::is_vector(size_t *size) const
             id oty = obj->type();
             if (oty == ID_array || oty == ID_list)
                 result = false;
-            else if (!rt.push(obj))
+            else if (push && !rt.push(obj))
                 result = false;
             if (!result)
                 break;
@@ -109,7 +109,7 @@ bool array::is_vector(size_t *size) const
 }
 
 
-bool array::is_matrix(size_t *rows, size_t *cols) const
+bool array::is_matrix(size_t *rows, size_t *cols, bool push) const
 // ----------------------------------------------------------------------------
 //   Check if this is a vector, and if so, push all elements on stack
 // ----------------------------------------------------------------------------
@@ -129,7 +129,7 @@ bool array::is_matrix(size_t *rows, size_t *cols) const
             if (result)
             {
                 size_t rcol = 0;
-                result = array_p(robj)->is_vector(&rcol);
+                result = array_p(robj)->is_vector(&rcol, push);
                 if (result && first)
                     c = rcol;
                 else if (rcol != c)
@@ -151,6 +151,30 @@ bool array::is_matrix(size_t *rows, size_t *cols) const
         }
     }
     return result;
+}
+
+
+list_p array::dimensions() const
+// ----------------------------------------------------------------------------
+//   Return the dimensions of the array
+// ----------------------------------------------------------------------------
+{
+    size_t rows = 0, columns = 0;
+    if (is_vector(&columns, false))
+    {
+        integer_g cobj = integer::make(columns);
+        if (cobj)
+            return list::make(cobj);
+    }
+    else if (is_matrix(&rows, &columns, false))
+    {
+        integer_g robj = integer::make(rows);
+        integer_g cobj = integer::make(columns);
+        if (robj && cobj)
+            return list::make(robj, cobj);
+    }
+
+    return nullptr;
 }
 
 

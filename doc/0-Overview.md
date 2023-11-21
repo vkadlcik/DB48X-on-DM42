@@ -439,6 +439,10 @@ unintentional differences, since the implementation is completely new.
   using `==`. For example, `0=0.0` is true, but `0==0.0` is false, because `0`
   is an integer whereas `0.0` is a floating-point.
 
+* Because of differences in internal representation that would require expensive
+  computations to mimic the HP50G behaviour with limited benefit, `Size` returns
+  1 for integers, algebraic expressions and unit objects.
+
 
 ### Alignment with SwissMicros calculators
 

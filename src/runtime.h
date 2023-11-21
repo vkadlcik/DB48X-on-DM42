@@ -566,7 +566,7 @@ struct runtime
     }
 
 
-    bool run_conditionals(object_p truecase, object_p falsecase);
+    bool run_conditionals(object_p trueC, object_p falseC, bool xeq = false);
     // ------------------------------------------------------------------------
     //   Push true and false paths on the evaluation stack
     // ------------------------------------------------------------------------

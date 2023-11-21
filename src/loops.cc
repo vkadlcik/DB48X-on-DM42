@@ -86,6 +86,31 @@ loop::loop(id type, object_g body, symbol_g name)
 }
 
 
+object::result loop::evaluate_condition(id type, bool (runtime::*method)(bool))
+// ----------------------------------------------------------------------------
+//   Evaluate the stack condition and call runtime method
+// ----------------------------------------------------------------------------
+{
+    if (object_p cond = rt.pop())
+    {
+        // Evaluate expressions in conditionals
+        if (cond->is_program())
+        {
+            if (program::defer(type) && program::run_program(cond) == OK)
+                return OK;
+        }
+        else
+        {
+            int truth = cond->as_truth(true);
+            if (truth >= 0)
+                if ((rt.*method)(truth))
+                    return OK;
+        }
+    }
+    return ERROR;
+}
+
+
 SIZE_BODY(conditional_loop)
 // ----------------------------------------------------------------------------
 //   Compute size for a conditional loop
@@ -764,16 +789,7 @@ EVAL_BODY(conditional)
 //  Picks which branch to choose at runtime
 // ----------------------------------------------------------------------------
 {
-    if (object_p cond = rt.pop())
-    {
-        int truth = cond->as_truth(true);
-        if (truth >= 0)
-        {
-            rt.run_select(truth);
-            return OK;
-        }
-    }
-    return ERROR;
+    return loop::evaluate_condition(ID_conditional, &runtime::run_select);
 }
 
 
@@ -792,16 +808,8 @@ EVAL_BODY(while_conditional)
 //  Picks which branch of a while loop to choose at runtime
 // ----------------------------------------------------------------------------
 {
-    if (object_p cond = rt.pop())
-    {
-        int truth = cond->as_truth(true);
-        if (truth >= 0)
-        {
-            rt.run_select_while(truth);
-            return OK;
-        }
-    }
-    return ERROR;
+    return loop::evaluate_condition(ID_while_conditional,
+                                    &runtime::run_select_while);
 }
 
 

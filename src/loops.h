@@ -58,7 +58,9 @@ struct loop : command
             + body->size();
     }
 
-    static bool interrupted()   { return program::interrupted(); }
+    static bool    interrupted()   { return program::interrupted(); }
+    static result  evaluate_condition(id type, bool (runtime::*method)(bool));
+
 
 protected:
     // Shared code for parsing and rendering, taking delimiters as input
@@ -90,6 +92,7 @@ protected:
     intptr_t object_renderer(renderer &r,
                              cstring open, cstring middle, cstring close,
                              bool loopvar = false) const;
+
 
 public:
     SIZE_DECL(loop);

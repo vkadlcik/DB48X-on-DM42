@@ -33,6 +33,7 @@
 #include "compare.h"
 #include "integer.h"
 #include "object.h"
+#include "program.h"
 #include "user_interface.h"
 #include "variables.h"
 
@@ -1269,21 +1270,26 @@ bool runtime::updir(size_t count)
 #  pragma GCC optimize("-O3")
 #endif // DM42
 
-bool runtime::run_conditionals(object_p truecase, object_p falsecase)
+bool runtime::run_conditionals(object_p truecase, object_p falsecase, bool xeq)
 // ----------------------------------------------------------------------------
 //   Push the two conditionals
 // ----------------------------------------------------------------------------
 {
-    object_g f = falsecase;
-    bool     result = truecase ? run_push(truecase, truecase->skip())
-                               : run_push(nullptr, nullptr);
-    if (result)
+    object_g tc = truecase;
+    object_g tce = truecase ? truecase->skip() : nullptr;
+    object_g fc = falsecase;
+    object_g fce = falsecase ? falsecase->skip() : nullptr;
+
+    if (xeq)
     {
-        falsecase = f;
-        result    = falsecase ? run_push(falsecase, falsecase->skip())
-                              : run_push(nullptr, nullptr);
+        // For IFT / IFTE, we want to execute programs, not put them on stack
+        if (tc && tc->is_program())
+            tc = program_p(tc.Safe())->objects();
+        if (fc && fc->is_program())
+            fc = program_p(fc.Safe())->objects();
     }
-    return result;
+
+    return run_push(tc, tce) && run_push(fc, fce);
 }
 
 

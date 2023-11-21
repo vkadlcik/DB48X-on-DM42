@@ -34,6 +34,7 @@
 #include "renderer.h"
 #include "settings.h"
 #include "user_interface.h"
+#include "program.h"
 
 
 // ============================================================================
@@ -74,7 +75,7 @@ EVAL_BODY(IfThen)
     object_p body = cond->skip();
     if (rt.run_conditionals(body, nullptr)      &&
         defer(ID_conditional)                   &&
-        cond->defer())
+        program::run_program(cond) == OK)
         return OK;
     return ERROR;
 }
@@ -169,7 +170,7 @@ EVAL_BODY(IfThenElse)
 
     if (rt.run_conditionals(ift, iff)   &&
         defer(ID_conditional)           &&
-        cond->defer())
+        program::run_program(cond) == OK)
         return OK;
     return ERROR;
 }
@@ -627,14 +628,8 @@ EVAL_BODY(case_then_conditional)
 //   Check a condition in a 'case' statement. If successful, exit case
 // ----------------------------------------------------------------------------
 {
-    if (object_p cond = rt.pop())
-    {
-        int truth = cond->as_truth(true);
-        if (truth >= 0)
-            if (rt.run_select_case(truth))
-                return OK;
-    }
-    return ERROR;
+    return loop::evaluate_condition(ID_case_then_conditional,
+                                    &runtime::run_select_case);
 }
 
 
@@ -722,9 +717,9 @@ COMMAND_BODY(IFT)
         {
             if (object_g condition = rt.pop())
             {
-                if (rt.run_conditionals(toexec, nullptr)        &&
+                if (rt.run_conditionals(toexec, nullptr, true)  &&
                     defer(ID_conditional)                       &&
-                    condition->defer())
+                    program::run_program(condition) == OK)
                     return OK;
             }
         }
@@ -746,9 +741,9 @@ COMMAND_BODY(IFTE)
             {
                 if (object_g condition = rt.pop())
                 {
-                    if (rt.run_conditionals(ift, iff)       &&
+                    if (rt.run_conditionals(ift, iff, true) &&
                         defer(ID_conditional)               &&
-                        condition->defer())
+                        program::run_program(condition) == OK)
                         return OK;
                 }
             }

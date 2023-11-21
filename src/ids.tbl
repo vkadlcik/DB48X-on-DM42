@@ -427,11 +427,11 @@ CMD(SystemMemory)
 CMD(GarbageCollect)
 
 // Flags
-CMD(FlipFlag)
+CMD(FlipFlag)                   ALIAS(FlipFlag,               "FF")
 CMD(TestFlagClearThenClear)     ALIAS(TestFlagClearThenClear, "FC?C")
-CMD(TestFlagClearThenSet)       ALIAS(TestFlagClearThenClear, "FC?S")
-CMD(TestFlagSetThenClear)       ALIAS(TestFlagClearThenClear, "FS?C")
-CMD(TestFlagSetThenSet)         ALIAS(TestFlagClearThenClear, "FS?S")
+CMD(TestFlagClearThenSet)       ALIAS(TestFlagClearThenSet,   "FC?S")
+CMD(TestFlagSetThenClear)       ALIAS(TestFlagSetThenClear,   "FS?C")
+CMD(TestFlagSetThenSet)         ALIAS(TestFlagSetThenSet,     "FS?S")
 CMD(FlagsToBinary)              ALIAS(FlagsToBinary,          "RclF")
 CMD(BinaryToFlags)              ALIAS(BinaryToFlags,          "StoF")
 

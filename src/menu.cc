@@ -285,8 +285,8 @@ MENU(PartsMenu,
 
      "RowNorm", ID_Unimplemented,
      "ColNorm", ID_Unimplemented,
-     "Dim",     ID_Unimplemented,
-     "Type",    ID_Unimplemented);
+     "Dim",     ID_Size,
+     "Type",    ID_Type);
 
 
 MENU(NumbersMenu,

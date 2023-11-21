@@ -2100,7 +2100,8 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [→LIST](#tolist)
 * [→NUM](#todecimal)
 * [→Q](#tofraction)
-* [→STR](#→str)
+* [→STR](#totext)
+* [STR→](#compile)
 * [→TAG](#→tag)
 * [→UNIT](#→unit)
 * [→](#locals) (Create Local)
@@ -2608,7 +2609,6 @@ commands.
 * STO*
 * STO/
 * STOΣ
-* STR→
 * STREAM
 * STRM
 * STURM
@@ -5775,71 +5775,6 @@ Set both the independent and dependent data columns in the reserved variable
 `ΣParameters`.
 
 `XCol` `YCol` ▶ (Update `ΣParameters`)
-# Operations with Strings
-
-## TOUTF
-Create a Utf8 string from a list of code points
-
-
-## FROMUTF
-List all code points in a Utf8 string
-
-
-## TOSTR
-Decompile any object (convert to string)
-
-
-## FROMSTR
-Compile a string into RPL objects
-
-
-## SREV
-Reverse the characters on a string
-
-
-## NTOKENS
-Number of tokens in a string
-
-
-## NTHTOKEN
-Token at position N in a string
-
-
-## NTHTOKENPOS
-Position of token N in a string
-
-
-## TRIM
-Remove characters at end of string
-
-
-## RTRIM
-Remove characters at start of string
-
-
-## SSTRLEN
-Length of string in characters
-
-
-## STRLENCP
-Length of string in Unicode code points
-
-
-## TONFC
-Normalize a string to Unicode NFC
-
-
-## SREPL
-Find and replace text in a string
-
-
-## TODISPSTR
-Decompile formatted for display
-
-
-## TOEDITSTR
-Decompile formatted for edit
-
 # Operations with Symbolic Expressions
 
 ## Rewrite
@@ -6141,6 +6076,74 @@ For example, `:Hello:1 Tag→` results in `"Hello"` in level 1 and `1` in level 
 
 Remove a tag from an object. For example, `:Hello:1 DeleteTag` results in `1`.
 If there is no tag, the object is returned as is.
+# Operations on text
+
+
+## TOUTF
+Create a Utf8 string from a list of code points
+
+
+## FROMUTF
+List all code points in a Utf8 string
+
+
+## ToText (→STR, →TEXT)
+
+Convert an object to its text representation.
+
+## Compile (STR→, TEXT→)
+
+Compile and evaluate the text, as if it was typed on the command line.
+
+`"1 2 + 4" TEXT→` will push `3` and `4` on the stack.
+
+
+## SREV
+Reverse the characters on a string
+
+
+## NTOKENS
+Number of tokens in a string
+
+
+## NTHTOKEN
+Token at position N in a string
+
+
+## NTHTOKENPOS
+Position of token N in a string
+
+
+## TRIM
+Remove characters at end of string
+
+
+## RTRIM
+Remove characters at start of string
+
+
+## SSTRLEN
+Length of string in characters
+
+
+## STRLENCP
+Length of string in Unicode code points
+
+
+## TONFC
+Normalize a string to Unicode NFC
+
+
+## SREPL
+Find and replace text in a string
+
+
+## TODISPSTR
+Decompile formatted for display
+
+
+## TOEDITSTR
+Decompile formatted for edit
 # Transcendental functions
 
 ## SIN

@@ -208,4 +208,15 @@ struct SysMenu : menu                                                   \
 #include "ids.tbl"
 
 
+
+// ============================================================================
+//
+//   Commands related to menus
+//
+// ============================================================================
+
+COMMAND_DECLARE(LastMenu);      // Return to previous menu
+COMMAND_DECLARE(ToolsMenu);     // Automatic selection of the right menu
+
+
 #endif // MENU_H

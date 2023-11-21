@@ -129,6 +129,8 @@ struct Unimplemented : command
 
 // Various global commands
 COMMAND_DECLARE(Eval);          // Evaluate an object
+COMMAND_DECLARE(Compile);       // Compile and evalaute a text
+//COMMAND_DECLARE(Explode);       // Explode an object
 COMMAND_DECLARE(ToText);        // Convert an object to text
 COMMAND_DECLARE(SelfInsert);    // Enter menu label in the editor
 COMMAND_DECLARE(Ticks);         // Return number of ticks
@@ -146,8 +148,6 @@ COMMAND_DECLARE(Help);          // Activate online help
 COMMAND_DECLARE(LastArg);       // Return last arguments
 COMMAND_DECLARE(LastX);         // Return last X argument
 COMMAND_DECLARE(Undo);          // Revert to the Undo stack
-COMMAND_DECLARE(ToolsMenu);     // Automatic selection of the right menu
-COMMAND_DECLARE(LastMenu);      // Return to previous menu
 COMMAND_DECLARE(Cycle);         // Cycle object across multiple representations
 COMMAND_DECLARE(BinaryToReal);  // Convert binary to real
 COMMAND_DECLARE(RealToBinary);  // Convert real to binary

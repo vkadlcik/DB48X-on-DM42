@@ -198,8 +198,7 @@ CMD(Purge)
 
 // Evaluation and rendering
 NAMED(Eval, "Evaluate")
-NAMED(ToText, "→Text")
-ALIAS(ToText, "→Str")
+NAMED(ToText, "→Text") ALIAS(ToText, "ToStr")           ALIAS(ToText, "→Str")
 
 // Constants
 NAMED(pi, "π")
@@ -297,6 +296,7 @@ CMD(CaseWhen)
 // Data processing
 NAMED(ToList, "→List")
 NAMED(FromList, "List→")
+// NAMED(Explode, "Object→")               ALIAS(Explode, "Obj→")
 CMD(Get)
 CMD(Size)
 CMD(Sort)
@@ -304,10 +304,10 @@ CMD(Sort)
 // Tests
 NAMED(IFT, "IfThen")
 NAMED(IFTE, "IfThenElse")
-CMD(SetFlag)            ALIAS(SetFlag,          "SF")
-CMD(ClearFlag)          ALIAS(ClearFlag,        "CF")
-CMD(TestFlagSet)        ALIAS(TestFlagSet,      "FS?")
-CMD(TestFlagClear)      ALIAS(TestFlagClear,    "FC?")
+CMD(SetFlag)                            ALIAS(SetFlag,          "SF")
+CMD(ClearFlag)                          ALIAS(ClearFlag,        "CF")
+CMD(TestFlagSet)                        ALIAS(TestFlagSet,      "FS?")
+CMD(TestFlagClear)                      ALIAS(TestFlagClear,    "FC?")
 
 // Graphics
 NAMED(Disp, "DrawText")
@@ -425,6 +425,9 @@ NAMED(Mem, "AvailableMemory")
 CMD(FreeMemory)
 CMD(SystemMemory)
 CMD(GarbageCollect)
+
+// Object commands
+NAMED(Compile, "Text→")         ALIAS(Compile, "Str→")
 
 // Flags
 CMD(FlipFlag)                   ALIAS(FlipFlag,               "FF")

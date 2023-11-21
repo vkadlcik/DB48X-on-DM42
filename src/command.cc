@@ -283,6 +283,39 @@ COMMAND_BODY(ToText)
 }
 
 
+COMMAND_BODY(Compile)
+// ----------------------------------------------------------------------------
+//   Interpret the object as a command line and evaluate it
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        if (object_p obj = rt.top())
+        {
+            if (text_p tobj = obj->as<text>())
+            {
+                size_t    len  = 0;
+                utf8      txt  = tobj->value(&len);
+                program_g cmds = program::parse(txt, len);
+                if (cmds)
+                {
+                    // We successfully parsed the line, execute it
+                    rt.drop();
+                    save<bool> no_halt(program::halted, false);
+                    if (cmds->run(false))
+                        return OK;
+                }
+            }
+            else
+            {
+                rt.type_error();
+            }
+        }
+    }
+    return ERROR;
+}
+
+
 COMMAND_BODY(SelfInsert)
 // ----------------------------------------------------------------------------
 //   Find the label associated to the menu and enter it in the editor
@@ -621,80 +654,6 @@ COMMAND_BODY(Help)
 }
 
 
-COMMAND_BODY(ToolsMenu)
-// ----------------------------------------------------------------------------
-//   Contextual tool menu
-// ----------------------------------------------------------------------------
-{
-    id menu = ID_MainMenu;
-
-    if (rt.editing())
-    {
-        switch(ui.editing_mode())
-        {
-        case ui.DIRECT:                 menu = ID_MathMenu; break;
-        case ui.TEXT:                   menu = ID_TextMenu; break;
-        case ui.PROGRAM:                menu = ID_ProgramMenu; break;
-        case ui.ALGEBRAIC:              menu = ID_EquationsMenu; break;
-        case ui.MATRIX:                 menu = ID_MatrixMenu; break;
-        case ui.BASED:                  menu = ID_BasesMenu; break;
-        default:
-        case ui.STACK:                  break;
-        }
-    }
-    else if (rt.depth())
-    {
-        if (!rt.args(1))
-            return ERROR;
-        if (object_p top = rt.top())
-        {
-            switch(top->type())
-            {
-            case ID_integer:
-            case ID_neg_integer:
-            case ID_bignum:
-            case ID_neg_bignum:
-            case ID_decimal128:
-            case ID_decimal64:
-            case ID_decimal32:          menu = ID_RealMenu; break;
-            case ID_fraction:
-            case ID_neg_fraction:
-            case ID_big_fraction:
-            case ID_neg_big_fraction:   menu = ID_FractionsMenu; break;
-            case ID_polar:
-            case ID_rectangular:        menu = ID_ComplexMenu; break;
-#if CONFIG_FIXED_BASED_OBJECTS
-            case ID_hex_integer:
-            case ID_dec_integer:
-            case ID_oct_integer:
-            case ID_bin_integer:
-            case ID_hex_bignum:
-            case ID_dec_bignum:
-            case ID_oct_bignum:
-            case ID_bin_bignum:
-#endif // CONFIG_FIXED_BASED_OBJECTS
-            case ID_based_integer:
-            case ID_based_bignum:       menu = ID_BasesMenu; break;
-            case ID_expression:         menu = ID_SymbolicMenu; break;
-            case ID_program:            menu = ID_DebugMenu; break;
-            case ID_list:               menu = ID_ListMenu; break;
-            case ID_array:              menu = ID_MatrixMenu; break;
-            case ID_tag:                menu = ID_ObjectMenu; break;
-            case ID_unit:               menu = ID_UnitsConversionsMenu; break;
-            default:                    break;
-            }
-        }
-    }
-    else if (!rt.args(0))
-    {
-        return ERROR;
-    }
-
-    object_p obj = command::static_object(menu);
-    return obj->evaluate();
-}
-
-
 COMMAND_BODY(Cycle)
 // ----------------------------------------------------------------------------
 //  Cycle object across multiple representations
@@ -899,18 +858,6 @@ COMMAND_BODY(RealToBinary)
 
     }
     return ERROR;
-}
-
-
-COMMAND_BODY(LastMenu)
-// ----------------------------------------------------------------------------
-//   Go back one entry in the menu history
-// ----------------------------------------------------------------------------
-{
-    if (!rt.args(0))
-        return ERROR;
-    ui.menu_pop();
-    return OK;
 }
 
 

@@ -179,7 +179,8 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [→LIST](#tolist)
 * [→NUM](#todecimal)
 * [→Q](#tofraction)
-* [→STR](#→str)
+* [→STR](#totext)
+* [STR→](#compile)
 * [→TAG](#→tag)
 * [→UNIT](#→unit)
 * [→](#locals) (Create Local)
@@ -687,7 +688,6 @@ commands.
 * STO*
 * STO/
 * STOΣ
-* STR→
 * STREAM
 * STRM
 * STURM

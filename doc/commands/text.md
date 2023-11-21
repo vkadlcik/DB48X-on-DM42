@@ -1,4 +1,5 @@
-# Operations with Strings
+# Operations on text
+
 
 ## TOUTF
 Create a Utf8 string from a list of code points
@@ -8,12 +9,15 @@ Create a Utf8 string from a list of code points
 List all code points in a Utf8 string
 
 
-## TOSTR
-Decompile any object (convert to string)
+## ToText (→STR, →TEXT)
 
+Convert an object to its text representation.
 
-## FROMSTR
-Compile a string into RPL objects
+## Compile (STR→, TEXT→)
+
+Compile and evaluate the text, as if it was typed on the command line.
+
+`"1 2 + 4" TEXT→` will push `3` and `4` on the stack.
 
 
 ## SREV
@@ -62,4 +66,3 @@ Decompile formatted for display
 
 ## TOEDITSTR
 Decompile formatted for edit
-

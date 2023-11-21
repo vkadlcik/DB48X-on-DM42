@@ -397,7 +397,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
             bool dc = Settings.DecimalComma();
             Settings.DecimalComma(false);
             bool store_at_end = Settings.StoreAtEnd();
-            Settings.StoreAtStart(true);
+            Settings.StoreAtEnd(true);
             program_g cmds = program::parse(editor, edlen);
             Settings.DecimalComma(dc);
             if (cmds)

@@ -523,6 +523,43 @@ COMMAND_BODY(ScreenCapture)
 }
 
 
+COMMAND_BODY(Beep)
+// ----------------------------------------------------------------------------
+//   Emit a sound
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(2))
+    {
+        algebraic_g duration  = rt.stack(0)->as_real();
+        if (!duration)
+        {
+            rt.type_error();
+            return ERROR;
+        }
+        uint frequency = rt.stack(1)->as_uint32(4400, true);
+        if (frequency < 1 || frequency > 18000)
+        {
+            rt.drop(2);
+            return OK;
+        }
+        duration = duration * integer::make(1000);
+        if (duration)
+        {
+            uint ms = duration->as_uint32(10, true);
+            if (ms > 10000)
+                ms = 10000;
+            if (!rt.error())
+            {
+                rt.drop(2);
+                beep(frequency, ms);
+                return OK;
+            }
+        }
+    }
+    return ERROR;
+}
+
+
 COMMAND_BODY(Version)
 // ----------------------------------------------------------------------------
 //   Return a version string

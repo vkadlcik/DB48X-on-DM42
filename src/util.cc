@@ -31,6 +31,7 @@
 
 #include "settings.h"
 #include "target.h"
+#include "program.h"
 
 #include <dmcp.h>
 
@@ -44,7 +45,17 @@ void invert_screen()
 }
 
 
-void beep(int frequency, int duration)
+bool exit_key_pressed()
+// ----------------------------------------------------------------------------
+//   Check if exit key is pressed
+// ----------------------------------------------------------------------------
+{
+    save<bool> nohalt(program::halted, false);
+    return program::interrupted();
+}
+
+
+void beep(uint frequency, uint duration)
 // ----------------------------------------------------------------------------
 //   Emit a short beep
 // ----------------------------------------------------------------------------
@@ -56,7 +67,13 @@ void beep(int frequency, int duration)
         start_buzzer_freq(frequency * 1000);
     if (flash)
         invert_screen();
-    sys_delay(duration);
+    while (duration > 20 && !exit_key_pressed())
+    {
+        sys_delay(20);
+        duration -= 20;
+    }
+    if (duration && duration <= 20)
+        sys_delay(duration);
     if (beeping)
         stop_buzzer();
     if (flash)
@@ -64,7 +81,7 @@ void beep(int frequency, int duration)
 }
 
 
-void click(int frequency)
+void click(uint frequency)
 // ----------------------------------------------------------------------------
 //   A very short beep
 // ----------------------------------------------------------------------------

@@ -32,9 +32,10 @@
 #include "types.h"
 #include <cstring>
 
-void beep(int frequency, int duration);
-void click(int frequency = 4400);
+void beep(uint frequency, uint duration);
+void click(uint frequency = 4400);
 bool screenshot();
+bool exit_key_pressed();
 
 
 inline cstring strend(cstring s)        { return s + strlen(s); }

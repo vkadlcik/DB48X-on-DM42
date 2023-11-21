@@ -174,6 +174,7 @@ ID(decimal128)
 
 ID(comment)
 ID(grob)
+ID(bitmap)
 
 // Stack commands
 CMD(Drop)
@@ -611,6 +612,7 @@ FLAG(SilentBeepOn,              SilentBeepOff)
 FLAG(LinearFitSums,             CurrentFitSums)
 FLAG(NoPlotAxes,                DrawPlotAxes)
 FLAG(NoCurveFilling,            CurveFilling)
+FLAG(CompatibleGROBs,           PackedBitmaps)
 
 SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
 SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)

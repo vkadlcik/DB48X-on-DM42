@@ -32,6 +32,10 @@
 #include "settings.h"
 #include "variables.h"
 
+#ifdef SIMULATOR
+#include "tests.h"
+#endif // SIMULATOR
+
 RECORDER(program, 16, "Program evaluation");
 
 
@@ -176,6 +180,41 @@ object::result program::run_loop(size_t depth)
 
     return result;
 }
+
+
+bool program::interrupted()
+// ----------------------------------------------------------------------------
+//   Return true if the current program must be interrupted
+// ----------------------------------------------------------------------------
+{
+    reset_auto_off();
+    while (!key_empty())
+    {
+        int tail = key_tail();
+        if (tail == KEY_EXIT)
+        {
+            halted = true;
+            stepping = 0;
+            return true;
+        }
+#if SIMULATOR
+        int key = key_pop();
+        extern int last_key;
+
+        record(program, "Runner popped key %d, last=%d", key, last_key);
+        if (key == tests::KEYSYNC)
+            keysync_done = keysync_sent;
+        else if (key > 0)
+            last_key = key;
+        else if (last_key > 0)
+            last_key = -last_key;
+#else
+        key_pop();
+#endif
+    }
+    return halted;
+}
+
 
 
 

@@ -252,15 +252,100 @@ void program_init()
 }
 
 
-extern "C" void program_main()
+bool power_check(bool draw_off_image)
 // ----------------------------------------------------------------------------
-//   DMCP main entry point and main loop
+//   Check power state, returns true if we need to keep looping
 // ----------------------------------------------------------------------------
 // Status flags:
 // ST(STAT_PGM_END)   - Program should go to off state (set by auto off timer)
 // ST(STAT_SUSPENDED) - Program signals it is ready for off
 // ST(STAT_OFF)       - Program in off state (only [EXIT] key can wake it up)
 // ST(STAT_RUNNING)   - OS doesn't sleep in this mode
+{
+    // Already in off mode and suspended
+    if ((ST(STAT_PGM_END) && ST(STAT_SUSPENDED)) ||
+        // Go to sleep if no keys available
+        (!ST(STAT_PGM_END) && key_empty()))
+    {
+        CLR_ST(STAT_RUNNING);
+        sys_sleep();
+    }
+
+    // Wakeup in off state or going to sleep
+    if (ST(STAT_PGM_END) || ST(STAT_SUSPENDED))
+    {
+        if (!ST(STAT_SUSPENDED))
+        {
+            bool lowbat = read_power_voltage() < BATTERY_VOFF;
+
+            // Going to off mode
+            lcd_set_buf_cleared(0); // Mark no buffer change region
+            if (draw_off_image)
+                draw_power_off_image(0);
+            else
+                ui.draw_message("Switched off to conserve battery",
+                                "Press the ON/EXIT key to resume");
+            if (lowbat)
+            {
+                rt.command("Low Battery");
+                rt.error("Connect to USB / change battery");
+                ui.draw_error();
+                refresh_dirty();
+            }
+
+            sys_critical_start();
+            SET_ST(STAT_SUSPENDED);
+            LCD_power_off(0);
+            SET_ST(STAT_OFF);
+            sys_critical_end();
+        }
+        // Already in OFF -> just continue to sleep above
+        return true;
+    }
+
+    // Check power change or wakeup
+    if (ST(STAT_CLK_WKUP_FLAG))
+    {
+        CLR_ST(STAT_CLK_WKUP_FLAG);
+        return true;
+    }
+    if (ST(STAT_POWER_CHANGE))
+    {
+        CLR_ST(STAT_POWER_CHANGE);
+        return true;
+    }
+
+    // Well, we are woken-up
+    SET_ST(STAT_RUNNING);
+
+    // Get up from OFF state
+    if (ST(STAT_OFF))
+    {
+        LCD_power_on();
+
+        // Ensure that RTC readings after power off will be OK
+        rtc_wakeup_delay();
+
+        CLR_ST(STAT_OFF);
+
+        // Check if we need to redraw
+        if (lcd_get_buf_cleared())
+            redraw_lcd(true);
+        else
+            lcd_forced_refresh();
+    }
+
+    // We definitely reached active state, clear suspended flag
+    CLR_ST(STAT_SUSPENDED);
+
+    return false;
+}
+
+
+extern "C" void program_main()
+// ----------------------------------------------------------------------------
+//   DMCP main entry point and main loop
+// ----------------------------------------------------------------------------
 {
     int  key        = 0;
     bool transalpha = false;
@@ -273,77 +358,9 @@ extern "C" void program_main()
     // Main loop
     while (true)
     {
-        // Already in off mode and suspended
-        if ((ST(STAT_PGM_END) && ST(STAT_SUSPENDED)) ||
-            // Go to sleep if no keys available
-            (!ST(STAT_PGM_END) && key_empty()))
-        {
-            CLR_ST(STAT_RUNNING);
-            sys_sleep();
-        }
-
-        // Wakeup in off state or going to sleep
-        if (ST(STAT_PGM_END) || ST(STAT_SUSPENDED))
-        {
-            if (!ST(STAT_SUSPENDED))
-            {
-                bool lowbat = read_power_voltage() < BATTERY_VOFF;
-
-                // Going to off mode
-                lcd_set_buf_cleared(0); // Mark no buffer change region
-                draw_power_off_image(0);
-                if (lowbat)
-                {
-                    rt.command("Low Battery");
-                    rt.error("Connect to USB / change battery");
-                    ui.draw_error();
-                    refresh_dirty();
-                }
-
-                sys_critical_start();
-                SET_ST(STAT_SUSPENDED);
-                LCD_power_off(0);
-                SET_ST(STAT_OFF);
-                sys_critical_end();
-            }
-            // Already in OFF -> just continue to sleep above
+        // Check power state, and switch off if necessary
+        if (power_check(true))
             continue;
-        }
-
-        // Check power change or wakeup
-        if (ST(STAT_CLK_WKUP_FLAG))
-        {
-            CLR_ST(STAT_CLK_WKUP_FLAG);
-            continue;
-        }
-        if (ST(STAT_POWER_CHANGE))
-        {
-            CLR_ST(STAT_POWER_CHANGE);
-            continue;
-        }
-
-        // Well, we are woken-up
-        SET_ST(STAT_RUNNING);
-
-        // Get up from OFF state
-        if (ST(STAT_OFF))
-        {
-            LCD_power_on();
-
-            // Ensure that RTC readings after power off will be OK
-            rtc_wakeup_delay();
-
-            CLR_ST(STAT_OFF);
-
-            // Check if we need to redraw
-            if (lcd_get_buf_cleared())
-                redraw_lcd(true);
-            else
-                lcd_forced_refresh();
-        }
-
-        // We definitely reached active state, clear suspended flag
-        CLR_ST(STAT_SUSPENDED);
 
         // Key is ready -> clear auto off timer
         bool hadKey = false;
@@ -438,32 +455,4 @@ extern "C" void program_main()
                 redraw_periodics();
         }
     }
-}
-
-
-bool program::interrupted()
-// ----------------------------------------------------------------------------
-//   Return true if the current program must be interrupted
-// ----------------------------------------------------------------------------
-{
-    reset_auto_off();
-    while (!key_empty())
-    {
-        int tail = key_tail();
-        if (tail == KEY_EXIT)
-            return true;
-#if SIMULATOR
-        int key = key_pop();
-        record(main, "Runner popped key %d, last=%d", key, last_key);
-        if (key == tests::KEYSYNC)
-            keysync_done = keysync_sent;
-        else if (key > 0)
-            last_key = key;
-        else if (last_key > 0)
-            last_key = -last_key;
-#else
-        key_pop();
-#endif
-    }
-    return halted;
 }

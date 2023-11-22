@@ -487,17 +487,31 @@ COMMAND_BODY(Wait)
                     ui.draw_menus();
                 while (!key)
                 {
-                    int remains = infinite ? 100 : int(end - sys_current_ms());
+                    // Sleep in chunks of one minute
+                    int remains = infinite ? 60000 : int(end - sys_current_ms());
                     if (remains <= 0)
                         break;
-                    if (remains > 50)
-                        remains = 50;
-                    sys_delay(remains);
+                    if (remains > 60000)
+                        remains = 60000;
+
+                    // Refresh screen moving elements after the requested period
+                    sys_timer_disable(TIMER1);
+                    sys_timer_start(TIMER1, remains);
+
+                    // Honor auto-off while waiting, do not erase drawn image
+                    if (power_check(false))
+                        continue;
+
                     if (!key_empty())
 #if SIMULATOR
                         if (key_tail() != KEY_EXIT)
 #endif
                             key = key_pop();
+                    if (key == KEY_EXIT)
+                    {
+                        program::halted = true;
+                        program::stepping = 0;
+                    }
                 }
                 if (infinite)
                 {

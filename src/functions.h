@@ -189,6 +189,8 @@ algebraic_p derived::evaluate(algebraic_r x)
 
 FUNCTION_MAT(abs);
 FUNCTION(sign);
+FUNCTION(IntPart);
+FUNCTION(FracPart);
 FUNCTION_FANCY_MAT(inv);
 FUNCTION(neg);
 FUNCTION_FANCY_MAT(sq);

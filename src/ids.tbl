@@ -263,8 +263,7 @@ ALIAS(exp10, "alog")
 // Conversions
 NAMED(ToDecimal, "→Num")
 ALIAS(ToDecimal, "→Decimal")
-NAMED(ToFraction, "→Frac")         // Last algebraic
-ALIAS(ToFraction, "→Q")
+NAMED(ToFraction, "→Frac")              ALIAS(ToFraction, "→Q") // Last algebr.
 
 
 // ============================================================================
@@ -355,6 +354,8 @@ OP(atan2, "∠")
 CMD(xroot)
 
 CMD(sign)
+NAMED(IntPart,   "IntegerPart")         ALIAS(IntPart,  "IP")
+NAMED(FracPart,  "FractionalPart")      ALIAS(FracPart, "FP")
 
 CMD(re)
 CMD(im)

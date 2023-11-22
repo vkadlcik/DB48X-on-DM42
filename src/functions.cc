@@ -504,6 +504,51 @@ FUNCTION_BODY(sign)
 }
 
 
+FUNCTION_BODY(IntPart)
+// ----------------------------------------------------------------------------
+//   Implementation of 'IP'
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+
+    id xt = x->type();
+    if (should_be_symbolic(xt))
+        return symbolic(ID_IntPart, x);
+
+    if (is_real(xt))
+    {
+        algebraic_g one = integer::make(1);
+        algebraic_g r = rem::evaluate(x, one);
+        return x - r;
+    }
+    rt.type_error();
+    return nullptr;
+}
+
+
+FUNCTION_BODY(FracPart)
+// ----------------------------------------------------------------------------
+//   Implementation of 'FP'
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+
+    id xt = x->type();
+    if (should_be_symbolic(xt))
+        return symbolic(ID_FracPart, x);
+
+    if (is_real(xt))
+    {
+        algebraic_g one = integer::make(1);
+        return rem::evaluate(x, one);
+    }
+    rt.type_error();
+    return nullptr;
+}
+
+
 FUNCTION_BODY(inv)
 // ----------------------------------------------------------------------------
 //   Invert is implemented as 1/x

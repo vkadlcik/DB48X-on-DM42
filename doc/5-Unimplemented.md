@@ -78,6 +78,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [FC?](#testflagclear)
 * [FIX](#fix)
 * [FOR](#for)
+* [FP](#FractionalPart)
 * [FS?C](#testflagsetthenclear)
 * [FS?](#testflagset)
 * [FUNCTION](#function)
@@ -96,6 +97,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [IF](#if)
 * [IM](#im)
 * [INV](#inv)
+* [IP](#IntegerPart)
 * [KILL](#kill)
 * [LASTARG](#lastarg)
 * [LINE](#line)
@@ -364,7 +366,6 @@ commands.
 * FONT→
 * →FONT
 * FOURIER
-* FP
 * FREE
 * FREEZE
 * FROOTS
@@ -416,7 +417,6 @@ commands.
 * INTEGER
 * INTVX
 * INVMOD
-* IP
 * IQUOT
 * IREMAINDER
 * ISOL

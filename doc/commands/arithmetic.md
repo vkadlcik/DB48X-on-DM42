@@ -96,19 +96,23 @@ Set the current system precision
 Get the current system precision
 
 
-## FLOOR
+## Floor
+
 Largest integer less than the input
 
 
-## CEIL
+## Ceil
+
 Smallest integer larger than the input
 
 
-## IP
+## IntegerPart (IP, IntPart)
+
 Integer part of a number
 
 
-## FP
+## FractionalPart (FP, FracPart)
+
 Fractional part of a number
 
 
@@ -152,23 +156,33 @@ Mantissa of a real number (M*10<sup>exp</sup>)
 Exponent of a number represented as (M*10<sup>exp</sup>)
 
 
-## SIGN
+## Sign
+
 Sign of a number, -1, 0 or 1.
 
 For complex numbers, returns a unit number on the unit circle with the same
 argument as the original number.
 
 
-## PERCENT
+## Percent (%)
+
 Percentage of a number
 
+`Y` `X` ▶ `Y×(X÷100)`
 
-## PERCENTCH
+
+## PercentChange (%CH)
+
 Percentage of change on a number
 
+`Y` `X` ▶ `(X÷Y-1)×100`
 
-## PERCENTTOT
+
+## PercentTotal (%T)
+
 Get percentage of a total
+
+`Y` `X` ▶ `(X÷Y)×100`
 
 
 ## GCD

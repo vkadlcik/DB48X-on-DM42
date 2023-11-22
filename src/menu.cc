@@ -372,8 +372,8 @@ MENU(PartsMenu,
 
      "Round",   ID_Unimplemented,
      "Trunc",   ID_Unimplemented,
-     "IPart",   ID_Unimplemented,
-     "FPart",   ID_Unimplemented,
+     "IntPart", ID_IntPart,
+     "FrcPart", ID_FracPart,
      "Mant",    ID_Unimplemented,
      "Xpon",    ID_Unimplemented,
 

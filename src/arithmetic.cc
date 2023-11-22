@@ -1456,6 +1456,7 @@ template object::result arithmetic::evaluate<struct pow>();
 template object::result arithmetic::evaluate<struct hypot>();
 template object::result arithmetic::evaluate<struct atan2>();
 
+template algebraic_p arithmetic::evaluate<struct rem>(algebraic_r x, algebraic_r y);
 template algebraic_p arithmetic::evaluate<struct hypot>(algebraic_r x, algebraic_r y);
 template algebraic_p arithmetic::evaluate<struct atan2>(algebraic_r x, algebraic_r y);
 

@@ -342,5 +342,7 @@ COMMAND_BODY(Kill)
 {
     // Flush the current program
     while (rt.run_next(0));
+    program::halted = false;
+    program::stepping = 0;
     return OK;
 }

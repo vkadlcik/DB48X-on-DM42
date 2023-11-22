@@ -732,7 +732,6 @@ bignum_g bignum::pow(bignum_r yr, bignum_r xr)
     size_t   xs = 0;
     byte_p   x  = xr->value(&xs);
     bignum_g y  = yr;
-
     for (size_t xi = 0; xi < xs; xi++)
     {
         byte xv = x[xi];

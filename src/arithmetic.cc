@@ -890,6 +890,16 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
         return unit::simple(pow(xv, y), pow(xe, y));
     }
 
+    // Check 0^0 (but check compatibility flag, since HPs return 1)
+    // See https://www.hpcalc.org/hp48/docs/faq/48faq-5.html#ss5.2 as
+    // to rationale on why HP calculators compute 0^0 as 1.
+    if (x->is_zero(false) && y->is_zero(false))
+    {
+        if (Settings.ZeroPowerZeroIsUndefined())
+            rt.undefined_operation_error();
+        return integer::make(1);
+    }
+
     // Deal with X^N where N is a positive  or negative integer
     id   yt   = y->type();
     bool negy = yt == ID_neg_integer;
@@ -900,18 +910,11 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
         if (x->is_integer() && !negy)
             return nullptr;
 
-        // Auto-simplify x^0 = 1 and x^1 = x
+        // Auto-simplify x^0 = 1 and x^1 = x (we already tested 0^0)
         if (Settings.AutoSimplify())
         {
             if (y->is_zero(false))
-            {
-                if (x->is_zero(false))
-                {
-                    rt.undefined_operation_error();
-                    return nullptr;
-                }
                 return integer::make(1);
-            }
             if (y->is_one())
                 return x;
         }
@@ -922,12 +925,6 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
 
         // Deal with X^N where N is a positive integer
         ularge yv = integer_p(y.Safe())->value<ularge>();
-        if (yv == 0 && x->is_zero(false))
-        {
-            rt.undefined_operation_error();
-            return nullptr;
-        }
-
         algebraic_g r = integer::make(1);
         algebraic_g xx = x;
         while (yv)
@@ -953,13 +950,6 @@ inline bool pow::integer_ok(object::id &xt, object::id &yt,
 //   Compute Y^X
 // ----------------------------------------------------------------------------
 {
-    // Check 0^0
-    if (xv == 0 && yv == 0)
-    {
-        rt.undefined_operation_error();
-        return false;
-    }
-
     // Cannot raise to a negative power as integer
     if (yt == ID_neg_integer)
         return false;

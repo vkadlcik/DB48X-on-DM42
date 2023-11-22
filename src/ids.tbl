@@ -508,7 +508,14 @@ NAMED(Integrate, "∫")
 CMD(QuickSort)
 CMD(ReverseSort)
 CMD(ReverseQuickSort)
-CMD(ReverseList)                ALIAS(ReverseList, "RevList")
+CMD(ReverseList)                        ALIAS(ReverseList, "RevList")
+
+// Characters
+NAMED(CharToUnicode, "Char→Code")       ALIAS(CharToUnicode, "Codepoint")
+                                        ALIAS(CharToUnicode, "Num")
+NAMED(UnicodeToText, "Code→Text")       ALIAS(UnicodeToText, "Code→Char")
+                                        ALIAS(UnicodeToText, "Chr")
+NAMED(TextToUnicode, "Text→Code")
 
 // On-line help
 CMD(Help)

@@ -513,6 +513,15 @@ The `Size` operation when applying to text counts the number of Unicode
 characters, not the number of bytes. The number of bytes can be computed using
 the `Bytes` command.
 
+The `Num` and `Chr` commands (also spelled `Char→Code` and `Code→Char`) deal
+with Unicode codepoints, and do not use the special HP characters codes. In
+addition, `Num` return `-1` for an empty string, not `0`. `0` is only returned
+for a string that begins with a `NUL` codepoint.
+
+The `Code→Char` command can also be spelled as `Code→Text`, and take a list of
+Unicode codepoints as input. Conversely, `Text→Code` will generate a list of all
+the codepoints in a text.
+
 ## Help
 
 The DB48X project includes an extensive built-in help, which you are presently
@@ -6127,6 +6136,24 @@ Compile and evaluate the text, as if it was typed on the command line.
 
 `"1 2 + 4" TEXT→` will push `3` and `4` on the stack.
 
+## Char→Code (NUM, CODEPOINT, CharToUnicode)
+
+Return the Unicode codepoint of the first character in the text, or `-1` if the
+text is empty. `"Hello" NUM` returns `72`.
+
+## "Text→Code" (TextToUnicode)
+
+Return a list of the Unicode codepoints for all codepoints in the given text.
+`"Hello" Text→Code` returns `{ 72 101 108 108 111 }`.
+
+
+## Code→Text (CHR, Code→Char)
+
+Build a text out of a Unicode codepoint. The argument can be either a single
+numerical value or a list of numerical values. A negative numerical value
+produces an empty text. `{ 87 111 114 -22 108 100 }` returns `"World"`, the
+value `-22` producing no character. `42 CHR` returns `"*"`, and `34 CHR` returns
+`""""`, which is a 1-character text containing an ASCII quote `"`.
 
 ## SREV
 Reverse the characters on a string

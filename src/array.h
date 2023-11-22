@@ -64,8 +64,8 @@ struct array : list
     }
 
     // Append data
-    array_p append(array_p a) const;
-    array_p append(object_p o) const;
+    array_p append(array_p a) const     { return array_p(list::append(a)); }
+    array_p append(object_p o) const    { return array_p(list::append(o)); }
     static array_p wrap(object_p o);
 
     // Check if vector or matrix, and push all elements on stack

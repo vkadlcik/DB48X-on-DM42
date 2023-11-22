@@ -268,6 +268,11 @@ struct list : text
         return y->map(x, fn);
     }
 
+    // Append data to a list
+    list_p append(list_p a) const;
+    list_p append(object_p o) const;
+
+
 public:
     // Shared code for parsing and rendering, taking delimiters as input
     static result list_parse(id type, parser &p, unicode open, unicode close);

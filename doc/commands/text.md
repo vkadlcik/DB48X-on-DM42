@@ -19,6 +19,24 @@ Compile and evaluate the text, as if it was typed on the command line.
 
 `"1 2 + 4" TEXT→` will push `3` and `4` on the stack.
 
+## Char→Code (NUM, CODEPOINT, CharToUnicode)
+
+Return the Unicode codepoint of the first character in the text, or `-1` if the
+text is empty. `"Hello" NUM` returns `72`.
+
+## "Text→Code" (TextToUnicode)
+
+Return a list of the Unicode codepoints for all codepoints in the given text.
+`"Hello" Text→Code` returns `{ 72 101 108 108 111 }`.
+
+
+## Code→Text (CHR, Code→Char)
+
+Build a text out of a Unicode codepoint. The argument can be either a single
+numerical value or a list of numerical values. A negative numerical value
+produces an empty text. `{ 87 111 114 -22 108 100 }` returns `"World"`, the
+value `-22` producing no character. `42 CHR` returns `"*"`, and `34 CHR` returns
+`""""`, which is a 1-character text containing an ASCII quote `"`.
 
 ## SREV
 Reverse the characters on a string

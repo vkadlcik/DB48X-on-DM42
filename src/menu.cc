@@ -1429,8 +1429,12 @@ MENU(TextMenu,
 // ----------------------------------------------------------------------------
 //   Text operations
 // ----------------------------------------------------------------------------
-     "→Text",   ID_ToText,
-     "Text→",   ID_Compile,
-     "Length",  ID_Size,
-     "Append",  ID_add,
-     "Repeat",  ID_mul);
+     "→Text",           ID_ToText,
+     "Text→",           ID_Compile,
+     "Length",          ID_Size,
+     "Append",          ID_add,
+     "Repeat",          ID_mul,
+     "C→Code",          ID_CharToUnicode,
+
+     "T→Code",          ID_TextToUnicode,
+     "Code→T",          ID_UnicodeToText);

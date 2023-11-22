@@ -561,6 +561,15 @@ The `Size` operation when applying to text counts the number of Unicode
 characters, not the number of bytes. The number of bytes can be computed using
 the `Bytes` command.
 
+The `Num` and `Chr` commands (also spelled `Char→Code` and `Code→Char`) deal
+with Unicode codepoints, and do not use the special HP characters codes. In
+addition, `Num` return `-1` for an empty string, not `0`. `0` is only returned
+for a string that begins with a `NUL` codepoint.
+
+The `Code→Char` command can also be spelled as `Code→Text`, and take a list of
+Unicode codepoints as input. Conversely, `Text→Code` will generate a list of all
+the codepoints in a text.
+
 ## Help
 
 The DB48X project includes an extensive built-in help, which you are presently

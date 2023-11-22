@@ -29,10 +29,12 @@
 
 #include "text.h"
 
+#include "integer.h"
 #include "parser.h"
 #include "program.h"
 #include "renderer.h"
 #include "runtime.h"
+#include "utf8.h"
 
 #include <stdio.h>
 
@@ -256,4 +258,127 @@ bool text::compile_and_run() const
         return cmds->run(false);
     }
     return false;
+}
+
+
+static object::result to_unicode(bool (*body)(text_r tobj))
+// ----------------------------------------------------------------------------
+//   Convert a top-level text to a single character code or to a list
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        if (text_g tobj = rt.top()->as<text>())
+        {
+            if (body(tobj))
+                return object::OK;
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+    return object::ERROR;
+}
+
+
+static bool to_unicode_char(text_r tobj)
+// ----------------------------------------------------------------------------
+//   Generate a single character on the stack
+// ----------------------------------------------------------------------------
+{
+    size_t len = 0;
+    utf8 first = tobj->value(&len);
+    int code = len ? utf8_codepoint(first) : -1;
+    integer_p icode = integer::make(code);
+    return icode && rt.top(icode);
+}
+
+
+COMMAND_BODY(CharToUnicode)
+// ----------------------------------------------------------------------------
+//   Convert the first character in the string to an integer
+// ----------------------------------------------------------------------------
+{
+    return to_unicode(to_unicode_char);
+}
+
+
+static bool to_unicode_list(text_r tobj)
+// ----------------------------------------------------------------------------
+//   Generate a single character on the stack
+// ----------------------------------------------------------------------------
+{
+    size_t len = 0;
+    gcutf8 first = tobj->value(&len);
+    list_g result = list::make(nullptr, 0);
+    for (size_t o = 0; o < len; o = utf8_next(first, o, len))
+    {
+        unicode code = utf8_codepoint(first + o);
+        integer_p icode = integer::make(code);
+        if (!icode)
+            return false;
+        result = result->append(icode);
+        if (!result)
+            return false;
+    }
+    return result && rt.top(result.Safe());
+}
+
+
+COMMAND_BODY(TextToUnicode)
+// ----------------------------------------------------------------------------
+//  Convert the text to a list of unicode code points
+// ----------------------------------------------------------------------------
+{
+    return to_unicode(to_unicode_list);
+}
+
+
+static text_p unicode_to_text(object_p obj)
+// ----------------------------------------------------------------------------
+//   Convert an object to unicode
+// ----------------------------------------------------------------------------
+{
+    int32_t code = obj->as_int32(-1, true);
+    if (rt.error())
+        return nullptr;
+
+    byte buffer[4];
+    size_t sz = code < 0 ? 0 : utf8_encode(unicode(code), buffer);
+    text_p result = text::make(buffer, sz);
+    return result;
+}
+
+
+
+COMMAND_BODY(UnicodeToText)
+// ----------------------------------------------------------------------------
+//   Convert a single integer to a one-character text, or a list to a text
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        object_p obj = rt.top();
+        if (list_g lobj = obj->as<list>())
+        {
+            text_g result = text::make("", 0);
+            for (object_p iobj : *lobj)
+            {
+                text_g chr = unicode_to_text(iobj);
+                if (!chr)
+                    return ERROR;
+                result = result + chr;
+            }
+            if (result && rt.top(result))
+                return OK;
+        }
+        else
+        {
+            text_p chr = unicode_to_text(obj);
+            if (chr && rt.top(chr))
+                return OK;
+        }
+    }
+    return ERROR;
 }

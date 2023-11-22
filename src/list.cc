@@ -418,6 +418,28 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
 }
 
 
+list_p list::append(list_p a) const
+// ----------------------------------------------------------------------------
+//   Append the second list to this one
+// ----------------------------------------------------------------------------
+{
+    text_g x = text_p(this);
+    text_g y = text_p(a);
+    return list_p((x + y).Safe());
+}
+
+
+list_p list::append(object_p o) const
+// ----------------------------------------------------------------------------
+//   Append object to list
+// ----------------------------------------------------------------------------
+{
+    text_g x = text_p(this);
+    text_g y = text::make(byte_p(o), o->size());
+    return list_p((x + y).Safe());
+}
+
+
 bool list::expand_without_size() const
 // ----------------------------------------------------------------------------
 //   Expand items on the stack, but do not add the size

@@ -1180,9 +1180,27 @@ algebraic_p arithmetic::evaluate(id          op,
     id yt = y->type();
 
     // All non-numeric cases, e.g. string concatenation
-    // Must come first, e.g. for optimization of X^3
-    if (algebraic_p result = ops.non_numeric(x, y))
-        return result;
+    // Must come first, e.g. for optimization of X^3 or list + tagged object
+    while(true)
+    {
+        if (algebraic_p result = ops.non_numeric(x, y))
+            return result;
+
+        if (xt == ID_tag)
+        {
+            x = algebraic_p(tag_p(x.Safe())->tagged_object());
+            xt = x->type();
+        }
+        else if (yt == ID_tag)
+        {
+            y = algebraic_p(tag_p(y.Safe())->tagged_object());
+            yt = y->type();
+        }
+        else
+        {
+            break;
+        }
+    }
 
     // Integer types%
     if (is_integer(xt) && is_integer(yt))
@@ -1328,15 +1346,8 @@ object::result arithmetic::evaluate(id op, ops_t ops)
     if (!x)
         return ERROR;
 
-    // Strip tags
-    while (tag_p xtag = x->as<tag>())
-        x = algebraic_p(xtag->tagged_object());
-    while (tag_p ytag = y->as<tag>())
-        y = algebraic_p(ytag->tagged_object());
-
     // Evaluate the operation
     algebraic_g r = evaluate(op, y, x, ops);
-
 
     // If result is valid, drop second argument and push result on stack
     if (r)

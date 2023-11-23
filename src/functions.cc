@@ -549,6 +549,52 @@ FUNCTION_BODY(FracPart)
 }
 
 
+FUNCTION_BODY(ceil)
+// ----------------------------------------------------------------------------
+//   The `ceil` command returns the integer, or the integer immediately above
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+
+    id xt = x->type();
+    if (should_be_symbolic(xt))
+        return symbolic(ID_ceil, x);
+
+    if (is_real(xt))
+    {
+        algebraic_g one = integer::make(1);
+        algebraic_g r = mod::evaluate(one - x, one);
+        return x + r;
+    }
+    rt.type_error();
+    return nullptr;
+}
+
+
+FUNCTION_BODY(floor)
+// ----------------------------------------------------------------------------
+//   The `floor` command returns the integer imediately below
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe())
+        return nullptr;
+
+    id xt = x->type();
+    if (should_be_symbolic(xt))
+        return symbolic(ID_floor, x);
+
+    if (is_real(xt))
+    {
+        algebraic_g one = integer::make(1);
+        algebraic_g r = mod::evaluate(x, one);
+        return x - r;
+    }
+    rt.type_error();
+    return nullptr;
+}
+
+
 FUNCTION_BODY(inv)
 // ----------------------------------------------------------------------------
 //   Invert is implemented as 1/x

@@ -1473,6 +1473,7 @@ template object::result arithmetic::evaluate<struct atan2>();
 template object::result arithmetic::evaluate<struct Min>();
 template object::result arithmetic::evaluate<struct Max>();
 
+template algebraic_p arithmetic::evaluate<struct mod>(algebraic_r x, algebraic_r y);
 template algebraic_p arithmetic::evaluate<struct rem>(algebraic_r x, algebraic_r y);
 template algebraic_p arithmetic::evaluate<struct hypot>(algebraic_r x, algebraic_r y);
 template algebraic_p arithmetic::evaluate<struct atan2>(algebraic_r x, algebraic_r y);

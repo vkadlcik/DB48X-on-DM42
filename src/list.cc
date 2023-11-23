@@ -40,6 +40,7 @@
 #include "renderer.h"
 #include "runtime.h"
 #include "utf8.h"
+#include "variables.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -625,6 +626,16 @@ COMMAND_BODY(Get)
     // Check we have an object at level 2
     if (object_p items = rt.stack(1))
     {
+        if (symbol_p name = items->as_quoted<symbol>())
+        {
+            items = directory::recall_all(name);
+            if (!items)
+            {
+                rt.undefined_name_error();
+                return ERROR;
+            }
+        }
+
         if (object_p index = rt.stack(0))
         {
             id idxty = index->type();
@@ -644,13 +655,15 @@ COMMAND_BODY(Get)
                     if (rt.top(items))
                         return OK;
             }
-
-            uint32_t i = index->as_uint32();
-            if (!rt.error())
-                if (object_p item = items->at(i-1))
-                    if (rt.pop())
-                        if (rt.top(item))
-                            return OK;
+            else
+            {
+                uint32_t i = index->as_uint32();
+                if (!rt.error())
+                    if (object_p item = items->at(i-1))
+                        if (rt.pop())
+                            if (rt.top(item))
+                                return OK;
+            }
         }
     }
     return ERROR;

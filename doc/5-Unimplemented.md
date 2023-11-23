@@ -49,6 +49,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [DEC](#dec)
 * [DEG](#deg)
 * [DEPTH](#depth)
+* [DET](#determinant)
 * [DIR](#dir)
 * [DISP](#disp)
 * [DOERR](#doerr)
@@ -104,9 +105,11 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [LNP1](#lnp1)
 * [LN](#ln)
 * [LOG](#log)
+* [MAX](#max)
 * [MAXΣ](#maxdata)
 * [MEAN](#mean)
 * [MEM](#mem)
+* [MIN](#min)
 * [MINΣ](#mindata)
 * [MOD](#mod)
 * [NEG](#neg)
@@ -301,7 +304,6 @@ commands.
 * DERIV
 * DERVX
 * DESOLVE
-* DET
 * DETACH
 * DIAG→
 * →DIAG
@@ -475,13 +477,11 @@ commands.
 * ↑MATCH
 * MATHS
 * MATR
-* MAX
 * MAXR
 * MCALC
 * MENU
 * MENUXY
 * MERGE
-* MIN
 * MINEHUNT
 * MINIFONT→
 * →MINIFONT

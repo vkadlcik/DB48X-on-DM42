@@ -117,7 +117,7 @@
 - [x] Exponentials and logarithms, e.g. `exp`, `ln`, ...
 - [x] Hyperbolic functions, e.g. `sinh`, `atanh`, ...
 - [ ] Probabilities functions, like `Factorial`, `Combinations`, etc.
-- [ ] Statistics functions, like `Σ+`, `Mean` or `Median`
+- [X] Statistics functions, like `Σ+`, `Mean` or `Median`
 - [ ] Special functions, like `Bessel`, `FastFourierTransforma`, etc
 - [ ] Constant tables with arbitrary precision from files on USB disk
 - [ ] Equation tables with explanatory graphics from files on USB disk

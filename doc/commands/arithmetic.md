@@ -277,11 +277,11 @@ Addition of polynomials as coefficient vector
 Subtraction of polynomials as coefficient vector
 
 
-## MIN
+## Min
 Smallest of 2 objects
 
 
-## MAX
+## Max
 Largest of 2 objects
 
 

@@ -359,6 +359,8 @@ NAMED(FracPart,         "FractionalPart")       ALIAS(FracPart, "FP")
 OP(Percent,             "%")
 NAMED(PercentChange,    "%Change")              ALIAS(PercentChange, "%Ch")
 NAMED(PercentTotal,     "%Total")               ALIAS(PercentChange, "%T")
+CMD(Min)
+CMD(Max)
 
 CMD(re)
 CMD(im)

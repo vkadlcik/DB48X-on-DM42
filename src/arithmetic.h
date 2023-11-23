@@ -120,6 +120,14 @@ protected:
     {
         return nullptr;
     }
+
+    // Min and Max implementations
+    static void bid128_Min(BID_UINT128 *res, BID_UINT128 *x, BID_UINT128 *y);
+    static void bid64_Min (BID_UINT64  *res, BID_UINT64  *x, BID_UINT64  *y);
+    static void bid32_Min (BID_UINT32  *res, BID_UINT32  *x, BID_UINT32  *y);
+    static void bid128_Max(BID_UINT128 *res, BID_UINT128 *x, BID_UINT128 *y);
+    static void bid64_Max (BID_UINT64  *res, BID_UINT64  *x, BID_UINT64  *y);
+    static void bid32_Max (BID_UINT32  *res, BID_UINT32  *x, BID_UINT32  *y);
 };
 
 
@@ -167,6 +175,8 @@ ARITHMETIC_DECLARE(rem,                 MULTIPLICATIVE);
 ARITHMETIC_DECLARE(pow,                 POWER);
 ARITHMETIC_DECLARE(hypot,               POWER);
 ARITHMETIC_DECLARE(atan2,               POWER);
+ARITHMETIC_DECLARE(Min,                 FUNCTION);
+ARITHMETIC_DECLARE(Max,                 FUNCTION);
 
 
 void bid64_hypot(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);

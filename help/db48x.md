@@ -451,6 +451,10 @@ operate on these items when it makes sense. Therefore:
   `[ 1 2 3 ] 3 ×` gives `[ 3 6 9 ]` and `[ 1 2 3 ] 5 ÷` gives
   `[ 1/5 2/5 3/5 ]`.
 
+* Two lists can be compared using lexicographic order. This also applies to the
+  `Min` and `Max` functions, which compares the entire lists, whereas on HP50G,
+  it compares element by element (element-wise comparison applies to arrays).
+
 
 ### Vectors and matrices differences
 
@@ -496,6 +500,10 @@ operate on these items when it makes sense. Therefore:
   matrix. `[ a b c ] x +` returns `[ 'a+x' 'b+x' 'c+x' ]`. Consistent with that
   logic, `inv` works on vectors, and inverts each component, so that
   `[1 2 3] inv` gives `[1/1 1/2 1/3]`.
+
+* The `Min` and `Max` operations on arrays apply element by element, in a way
+  similar to how these operations apply to lists on the HP50G (which seems to
+  be undocumented).
 
 
 ### Unicode support
@@ -1979,6 +1987,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [DEC](#dec)
 * [DEG](#deg)
 * [DEPTH](#depth)
+* [DET](#determinant)
 * [DIR](#dir)
 * [DISP](#disp)
 * [DOERR](#doerr)
@@ -2034,9 +2043,11 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [LNP1](#lnp1)
 * [LN](#ln)
 * [LOG](#log)
+* [MAX](#max)
 * [MAXΣ](#maxdata)
 * [MEAN](#mean)
 * [MEM](#mem)
+* [MIN](#min)
 * [MINΣ](#mindata)
 * [MOD](#mod)
 * [NEG](#neg)
@@ -2231,7 +2242,6 @@ commands.
 * DERIV
 * DERVX
 * DESOLVE
-* DET
 * DETACH
 * DIAG→
 * →DIAG
@@ -2405,13 +2415,11 @@ commands.
 * ↑MATCH
 * MATHS
 * MATR
-* MAX
 * MAXR
 * MCALC
 * MENU
 * MENUXY
 * MERGE
-* MIN
 * MINEHUNT
 * MINIFONT→
 * →MINIFONT
@@ -3381,11 +3389,11 @@ Addition of polynomials as coefficient vector
 Subtraction of polynomials as coefficient vector
 
 
-## MIN
+## Min
 Smallest of 2 objects
 
 
-## MAX
+## Max
 Largest of 2 objects
 
 
@@ -4543,8 +4551,9 @@ Cross produce of vectors
 Swap two columns in a matrix
 
 
-## DET
-Determinant of a matrix
+## Determinant (DET)
+
+Compute the determinant of a matrix
 
 
 ## DIAGMAP
@@ -4700,7 +4709,6 @@ Decompose A into LDUP such that P*A=L*D<sup>-1</sup>*U
 
 ## MMAP
 Apply expression or program to the elements of a matrix
-
 # Numerical functions
 
 ## ∫ (Integrate)

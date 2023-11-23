@@ -31,6 +31,7 @@
 
 #include "array.h"
 #include "bignum.h"
+#include "compare.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
@@ -1345,6 +1346,9 @@ object::result arithmetic::evaluate(id op, ops_t ops)
             return OK;
     }
 
+    // Default error is "Bad argument type", unless we got something else
+    if (!rt.error())
+        rt.type_error();
     return ERROR;
 }
 
@@ -1455,6 +1459,8 @@ template object::result arithmetic::evaluate<struct rem>();
 template object::result arithmetic::evaluate<struct pow>();
 template object::result arithmetic::evaluate<struct hypot>();
 template object::result arithmetic::evaluate<struct atan2>();
+template object::result arithmetic::evaluate<struct Min>();
+template object::result arithmetic::evaluate<struct Max>();
 
 template algebraic_p arithmetic::evaluate<struct rem>(algebraic_r x, algebraic_r y);
 template algebraic_p arithmetic::evaluate<struct hypot>(algebraic_r x, algebraic_r y);
@@ -1626,4 +1632,101 @@ EVAL_BODY(Percent)
     }
 
     return ERROR;
+}
+
+
+
+// ============================================================================
+//
+//   Min and Max operations
+//
+// ============================================================================
+
+// Min and Max implementations are just stubs, never called
+void arithmetic::bid128_Min(BID_UINT128 *, BID_UINT128 *, BID_UINT128 *) {}
+void arithmetic::bid64_Min (BID_UINT64  *, BID_UINT64  *, BID_UINT64  *) {}
+void arithmetic::bid32_Min (BID_UINT32  *, BID_UINT32  *, BID_UINT32  *) {}
+void arithmetic::bid128_Max(BID_UINT128 *, BID_UINT128 *, BID_UINT128 *) {}
+void arithmetic::bid64_Max (BID_UINT64  *, BID_UINT64  *, BID_UINT64  *) {}
+void arithmetic::bid32_Max (BID_UINT32  *, BID_UINT32  *, BID_UINT32  *) {}
+
+
+bool Min::integer_ok(id &, id &, ularge &, ularge &)    { return false; }
+bool Max::integer_ok(id &, id &, ularge &, ularge &)    { return false; }
+bool Min::bignum_ok(bignum_g &, bignum_g &)             { return false; }
+bool Max::bignum_ok(bignum_g &, bignum_g &)             { return false; }
+bool Min::fraction_ok(fraction_g &, fraction_g &)       { return false; }
+bool Max::fraction_ok(fraction_g &, fraction_g &)       { return false; }
+bool Min::complex_ok(complex_g &, complex_g &)          { return false; }
+bool Max::complex_ok(complex_g &, complex_g &)          { return false; }
+
+
+static algebraic_p min_max(algebraic_r x, algebraic_r y, int sign)
+// ----------------------------------------------------------------------------
+//   Compute min / max
+// ----------------------------------------------------------------------------
+{
+    if (array_g xa = x->as<array>())
+    {
+        if (array_g ya = y->as<array>())
+        {
+            auto xi = xa->begin();
+            auto xe = xa->end();
+            auto yi = ya->begin();
+            auto ye = ya->end();
+            array_g ra = array_p(rt.make<array>(nullptr, 0));
+            algebraic_g xo, yo;
+            while (xi != xe && yi != ye)
+            {
+                object_p xobj = *xi++;
+                if (!xobj->is_algebraic())
+                    return nullptr;
+                object_p yobj = *yi++;
+                if (!yobj->is_algebraic())
+                    return nullptr;
+                xo = algebraic_p(xobj);
+                yo = algebraic_p(yobj);
+                xo = min_max(xo, yo, sign);
+                if (!xo)
+                    return nullptr;
+                ra = ra->append(xo.Safe());
+            }
+            if (xi != xe || yi != ye)
+            {
+                rt.dimension_error();
+                return nullptr;
+            }
+            return ra;
+        }
+        return xa->map(Min::evaluate, y);
+    }
+    else if (array_g ya = y->as<array>())
+    {
+        return ya->map(x, Min::evaluate);
+    }
+
+    int cmp = 0;
+    if (comparison::compare(&cmp, x, y))
+        return sign * cmp > 0 ? x : y;
+    return nullptr;
+}
+
+
+template<>
+algebraic_p arithmetic::non_numeric<Min>(algebraic_r x, algebraic_r y)
+// ----------------------------------------------------------------------------
+//   Process the Min command
+// ----------------------------------------------------------------------------
+{
+    return min_max(x, y, -1);
+}
+
+
+template<>
+algebraic_p arithmetic::non_numeric<Max>(algebraic_r x, algebraic_r y)
+// ----------------------------------------------------------------------------
+//  Process the Max command
+// ----------------------------------------------------------------------------
+{
+    return min_max(x, y, 1);
 }

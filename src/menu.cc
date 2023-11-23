@@ -344,8 +344,8 @@ MENU(RealMenu,
 // ----------------------------------------------------------------------------
 //   Functions on real numbers
 // ----------------------------------------------------------------------------
-     "Min",     ID_Unimplemented,
-     "Max",     ID_Unimplemented,
+     "Min",     ID_Min,
+     "Max",     ID_Max,
      ID_mod,
      ID_abs,
      "→Num",    ID_ToDecimal,
@@ -1023,7 +1023,7 @@ MENU(IntegrationMenu,
      "Symb ∫",  ID_Unimplemented,
      "Prim",    ID_Unimplemented,
 
-     "Eq",      ID_Unimplemented,
+     "Eq",      ID_Equation,
      "Indep",   ID_Unimplemented);
 
 MENU(DifferentiationMenu,
@@ -1034,14 +1034,14 @@ MENU(DifferentiationMenu,
      "Symb",    ID_Unimplemented,
      "Diff",    ID_Unimplemented,
 
-     "Eq",      ID_Unimplemented,
+     "Eq",      ID_Equation,
      "Indep",   ID_Unimplemented);
 
 MENU(SolverMenu,
 // ----------------------------------------------------------------------------
 //   The solver menu / application
 // ----------------------------------------------------------------------------
-     "Eq",      ID_Unimplemented,
+     "Eq",      ID_Equation,
      "Indep",   ID_Unimplemented,
      "Root",    ID_Root,
      "MultiR",  ID_Unimplemented,
@@ -1067,7 +1067,7 @@ MENU(NumericalSolverMenu,
 // ----------------------------------------------------------------------------
 //  Menu for numerical equation solving
 // ----------------------------------------------------------------------------
-     "Eq",      ID_Unimplemented,
+     "Eq",      ID_Equation,
      "Indep",   ID_Unimplemented,
      "Root",    ID_Unimplemented,
 
@@ -1077,7 +1077,7 @@ MENU(DifferentialSolverMenu,
 // ----------------------------------------------------------------------------
 //   Menu for differential equation solving
 // ----------------------------------------------------------------------------
-     "Eq",      ID_Unimplemented,
+     "Eq",      ID_Equation,
      "Indep",   ID_Unimplemented,
      "Root",    ID_Unimplemented,
 
@@ -1088,7 +1088,7 @@ MENU(SymbolicSolverMenu,
 // ----------------------------------------------------------------------------
 //   Menu for symbolic equation solving
 // ----------------------------------------------------------------------------
-     "Eq",      ID_Unimplemented,
+     "Eq",      ID_Equation,
      "Indep",   ID_Unimplemented,
      "Root",    ID_Unimplemented,
 
@@ -1098,7 +1098,7 @@ MENU(PolynomialSolverMenu,
 // ----------------------------------------------------------------------------
 //   Menu for polynom solving
 // ----------------------------------------------------------------------------
-     "Eq",      ID_Unimplemented,
+     "Eq",      ID_Equation,
      "Indep",   ID_Unimplemented,
      "Root",    ID_Unimplemented,
 
@@ -1108,7 +1108,7 @@ MENU(LinearSolverMenu,
 // ----------------------------------------------------------------------------
 //   Menu for linear system solving
 // ----------------------------------------------------------------------------
-     "Eq",      ID_Unimplemented,
+     "Eq",      ID_Equation,
      "Indep",   ID_Unimplemented,
      "Root",    ID_Unimplemented,
 
@@ -1156,6 +1156,11 @@ MENU(FractionsMenu,
      "→Frac",   ID_ToFraction,
      "Frac→",   ID_Explode,
      "→Num",    ID_ToDecimal,
+
+     "1 1/2",   ID_MixedFractions,
+     "3/2",     ID_ImproperFractions,
+     "1/3",     ID_BigFractions,
+     "¹/₃",     ID_SmallFractions,
 
      "→HMS",    ID_Unimplemented,
      "HMS→",    ID_Unimplemented,
@@ -1308,19 +1313,25 @@ MENU(MathModesMenu,
 // ----------------------------------------------------------------------------
 //   Mode setting for numbers
 // ----------------------------------------------------------------------------
-     "Num",                     ID_NumericalResults,
-     "Sym",                     ID_SymbolicResults,
-     "Simplify",                ID_AutoSimplify,
-     "KeepAll",                 ID_NoAutoSimplify,
-     MaxBigNumBits::label,      ID_MaxBigNumBits,
-     MaxRewrites::label,        ID_MaxRewrites,
+     "Num",                                     ID_NumericalResults,
+     "Sym",                                     ID_SymbolicResults,
+     "Simplify",                                ID_AutoSimplify,
+     "KeepAll",                                 ID_NoAutoSimplify,
+     "iℂ",                                      ID_Unimplemented,
+     "Auto ℂ",                                  ID_Unimplemented,
 
-     "iℂ",                      ID_Unimplemented,
-     "Auto ℂ",                  ID_Unimplemented,
-     "Modes",                   ID_ModesMenu,
-     "Display",                 ID_DisplayModesMenu,
-     "UI",                      ID_UserInterfaceModesMenu,
-     "Modes",                   ID_Modes);
+     "0^0=1",                                   ID_ZeroPowerZeroIsOne,
+     "0^0=?",                                   ID_ZeroPowerZeroIsUndefined,
+     MaxBigNumBits::label,                      ID_MaxBigNumBits,
+     MaxRewrites::label,                        ID_MaxRewrites,
+     FractionIterations::label,                 ID_FractionIterations,
+     FractionDigits::label,                     ID_FractionDigits,
+
+     "Modes",                                   ID_Modes,
+     "Display",                                 ID_DisplayModesMenu,
+     "Disp",                                    ID_DisplayModesMenu,
+     "UI",                                      ID_UserInterfaceModesMenu,
+     "Modes",                                   ID_ModesMenu);
 
 MENU(PrintingMenu,
 // ----------------------------------------------------------------------------

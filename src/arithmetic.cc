@@ -786,8 +786,8 @@ inline bool mod::bignum_ok(bignum_g &x, bignum_g &y)
     bignum_g r = x % y;
     if (byte_p(r) == nullptr)
         return false;
-    if (y->type() == ID_neg_bignum && !r->is_zero())
-        x = y - r;
+    if (x->type() == ID_neg_bignum && !r->is_zero())
+        x = y->type() == ID_neg_bignum ? r - y : r + y;
     else
         x = r;
     return true;
@@ -805,8 +805,8 @@ inline bool mod::fraction_ok(fraction_g &x, fraction_g &y)
         return false;
     }
     x = x % y;
-    if (y->type() == ID_neg_fraction && !x->is_zero())
-        x = y - x;
+    if (x->is_negative() && !x->is_zero())
+        x = y->is_negative() ? x - y : x + y;
     return true;
 }
 

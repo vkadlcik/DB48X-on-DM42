@@ -1302,11 +1302,11 @@ bool user_interface::draw_menus()
                 if (tw + 2 >= mcw)
                 {
                     animate |= animask;
-                    x = trect.x1 - menuShift % (tw - mcw + 5);
+                    x = mrect.x1 - menuShift % (tw - mcw + 5);
                 }
                 else
                 {
-                    x = (trect.x1 + trect.x2 - tw) / 2;
+                    x = (mrect.x1 + mrect.x2 - tw) / 2;
                 }
                 coord ty = mrect.y1 - (3 - square);
                 x = Screen.text(x, ty, label, len, font, color);

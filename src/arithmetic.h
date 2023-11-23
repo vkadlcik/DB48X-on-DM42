@@ -158,15 +158,16 @@ struct derived : arithmetic                                             \
 }
 
 
-ARITHMETIC_DECLARE(add,         ADDITIVE);
-ARITHMETIC_DECLARE(sub,         ADDITIVE);
-ARITHMETIC_DECLARE(mul,         MULTIPLICATIVE);
-ARITHMETIC_DECLARE(div,         MULTIPLICATIVE);
-ARITHMETIC_DECLARE(mod,         MULTIPLICATIVE);
-ARITHMETIC_DECLARE(rem,         MULTIPLICATIVE);
-ARITHMETIC_DECLARE(pow,         POWER);
-ARITHMETIC_DECLARE(hypot,       POWER);
-ARITHMETIC_DECLARE(atan2,       POWER);
+ARITHMETIC_DECLARE(add,                 ADDITIVE);
+ARITHMETIC_DECLARE(sub,                 ADDITIVE);
+ARITHMETIC_DECLARE(mul,                 MULTIPLICATIVE);
+ARITHMETIC_DECLARE(div,                 MULTIPLICATIVE);
+ARITHMETIC_DECLARE(mod,                 MULTIPLICATIVE);
+ARITHMETIC_DECLARE(rem,                 MULTIPLICATIVE);
+ARITHMETIC_DECLARE(pow,                 POWER);
+ARITHMETIC_DECLARE(hypot,               POWER);
+ARITHMETIC_DECLARE(atan2,               POWER);
+
 
 void bid64_hypot(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
 void bid32_hypot(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
@@ -174,6 +175,24 @@ void bid64_atan2(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
 void bid32_atan2(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
 void bid64_pow(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
 void bid32_pow(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
+
+
+struct Percent : arithmetic
+// ----------------------------------------------------------------------------
+//  Percentage commands
+// ----------------------------------------------------------------------------
+{
+    Percent(id i = ID_Percent) : arithmetic(i) {}
+
+    OBJECT_DECL(Percent)
+    ARITY_DECL(2);
+    PREC_DECL(MULTIPLICATIVE);
+    EVAL_DECL(Percent);
+};
+
+
+struct PercentChange : Percent {};
+struct PercentTotal  : Percent {};
 
 
 

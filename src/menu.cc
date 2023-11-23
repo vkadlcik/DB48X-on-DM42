@@ -354,8 +354,15 @@ MENU(RealMenu,
      "Ceil",    ID_Unimplemented,
      "Floor",   ID_Unimplemented,
      ID_rem,
-     "%",       ID_Unimplemented,
-     "%Chg",    ID_Unimplemented,
+     "%",       ID_Percent,
+     "%Chg",    ID_PercentChange,
+     "%Total",  ID_PercentTotal,
+
+     "Trig",    ID_CircularMenu,
+     "Hyper",   ID_HyperbolicMenu,
+     "Exp/Log", ID_ExpLogMenu,
+     "Prob",    ID_ProbabilitiesMenu,
+     "Angles",  ID_AnglesMenu,
      "Parts",   ID_PartsMenu);
 
 
@@ -1138,15 +1145,16 @@ MENU(PowersMenu,
      ID_cbrt,
      "xroot",   ID_Unimplemented);
 
+
 MENU(FractionsMenu,
 // ----------------------------------------------------------------------------
 //   Operations on fractions
 // ----------------------------------------------------------------------------
-     "%",       ID_Unimplemented,
-     "%Chg",    ID_Unimplemented,
-     "%Total",  ID_Unimplemented,
+     "%",       ID_Percent,
+     "%Chg",    ID_PercentChange,
+     "%Total",  ID_PercentTotal,
      "→Frac",   ID_ToFraction,
-     "Frac→",   ID_Unimplemented,
+     "Frac→",   ID_Explode,
      "→Num",    ID_ToDecimal,
 
      "→HMS",    ID_Unimplemented,

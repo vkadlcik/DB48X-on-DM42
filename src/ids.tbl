@@ -354,8 +354,11 @@ OP(atan2, "∠")
 CMD(xroot)
 
 CMD(sign)
-NAMED(IntPart,   "IntegerPart")         ALIAS(IntPart,  "IP")
-NAMED(FracPart,  "FractionalPart")      ALIAS(FracPart, "FP")
+NAMED(IntPart,          "IntegerPart")          ALIAS(IntPart,  "IP")
+NAMED(FracPart,         "FractionalPart")       ALIAS(FracPart, "FP")
+OP(Percent,             "%")
+NAMED(PercentChange,    "%Change")              ALIAS(PercentChange, "%Ch")
+NAMED(PercentTotal,     "%Total")               ALIAS(PercentChange, "%T")
 
 CMD(re)
 CMD(im)

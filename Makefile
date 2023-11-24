@@ -153,6 +153,19 @@ help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md)
 	sed -e 's/DB48X/$(PRODUCT_NAME)/g' \
             -e 's/DM42/$(PRODUCT_MACHINE)/g' > $@
 	cp doc/*.png help/
+check-ids: help/$(TARGET).md
+	@for I in $$(cpp -xc++ -D'ID(n)=n' src/ids.tbl | 		\
+		   sed -e 's/##//g' | sed -e 's/^#.*//g');		\
+	do								\
+	  if  ! grep -q $$I src/ignored_menus.csv ; then		\
+	    grep -q "ID_$$I" src/menu.cc || 				\
+	      echo "$$I not in menus";					\
+	  fi;								\
+	  if  ! grep -q $$I src/ignored_help.csv ; then			\
+	    grep -q "^#.*[[:<:]]$$I[[:>:]]" help/$(TARGET).md ||	\
+	      echo "$$I not in help";					\
+	  fi;								\
+	done
 
 debug-%:
 	$(MAKE) $* OPT=debug

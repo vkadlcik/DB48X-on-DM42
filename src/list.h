@@ -259,6 +259,7 @@ struct list : text
 
 
     // Apply an algebraic function to all elements in list
+    list_p map(object_p prg) const;
     list_p map(algebraic_fn fn) const;
     list_p map(arithmetic_fn fn, algebraic_r y) const;
     list_p map(algebraic_r x, arithmetic_fn fn) const;
@@ -279,6 +280,11 @@ struct list : text
     list_p append(list_p a) const;
     list_p append(object_p o) const;
 
+    // Reduce and filter operations
+    object_p reduce(object_p prg) const;
+    list_p   filter(object_p prg) const;
+    object_p map_as_object(object_p prg) const          { return map(prg);    }
+    object_p filter_as_object(object_p prg) const       { return filter(prg); }
 
 public:
     // Shared code for parsing and rendering, taking delimiters as input
@@ -305,6 +311,9 @@ COMMAND_DECLARE(ReverseQuickSort);
 COMMAND_DECLARE(ReverseList);
 COMMAND_DECLARE(Head);
 COMMAND_DECLARE(Tail);
+COMMAND_DECLARE(Map);
+COMMAND_DECLARE(Reduce);
+COMMAND_DECLARE(Filter);
 
 
 inline list_g operator+(list_r x, list_r y)

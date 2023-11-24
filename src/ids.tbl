@@ -520,6 +520,9 @@ CMD(ReverseQuickSort)
 CMD(ReverseList)                        ALIAS(ReverseList, "RevList")
 CMD(Head)
 CMD(Tail)
+CMD(Map)
+CMD(Reduce)                             ALIAS(Reduce, "Stream")
+CMD(Filter)
 
 // Characters
 NAMED(CharToUnicode, "Char→Code")       ALIAS(CharToUnicode, "Codepoint")

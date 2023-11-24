@@ -50,41 +50,31 @@ the list is empty.
 
 `{ A B ... }` ▶ `{ B ... }`
 
+## Map
 
-## INNERCOMP
-Split a list into its elements
+Apply an operation on all elements in a list or array. The operation on the
+first level of the stack should take one argument and return a single value.
 
+`{ A B ... }` `F` ▶ `{ F(A) F(B) ... }`
 
-## CMDDOLIST
-Do a procedure with elements of lists
+## Reduce
 
+Apply a cumulative pairwise operation on all elements in a list or array.
+The operation on the first level of the stack should take two arguments and
+combine them into a single value. The result is the repeated application of that
+operation to all elements.
 
-## DOSUBS
-Do a procedure on a subset of a list
-
-
-## MAP
-Do a procedure on each element of a list, recursively
-
-
-## MAPINNERCOMP
-Do a procedure on each element recursively, return individual elements
+`{ A B ... }` `F` ▶ `F(F(A, B), ...)`
 
 
-## STREAM
-Do a procedure on consecutive elements of a list
+## Filter
 
+Filter elements in a list of array based on a predicate. The predicate given on
+level 1 of the stack takes a value as argument, and returns a truth values. The
+resulting list is built with all elements where the predicate is true.
 
-## DELTALIST
-First differences on the elements of a list
+`{ A B ... }` `P` ▶ `{ A ... }` if `P(A)` is true and `P(B)` is false.
 
-
-## SUMLIST
-Sum of all elements in a list
-
-
-## PRODLIST
-Product of all elements in a list
 
 ## Get
 

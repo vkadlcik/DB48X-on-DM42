@@ -753,6 +753,64 @@ COMMAND_BODY(Tail)
 }
 
 
+static object::result map_reduce_filter(object_p (list::*cmd)(object_p) const)
+// ----------------------------------------------------------------------------
+//   Shared code for map, reduce and filter
+// ----------------------------------------------------------------------------
+{
+    size_t depth = rt.depth();
+    if (rt.args(2))
+    {
+        object_p   obj = rt.stack(1);
+        object_g   prg = rt.top();
+        object::id ty  = obj->type();
+        if (ty == object::ID_list || ty == object::ID_array)
+        {
+            object_p result = (list_p(obj)->*cmd)(prg);
+            if (!result)
+                goto error;
+            if (rt.drop() && rt.top(result))
+                return object::OK;
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+error:
+    if (rt.depth() > depth)
+        rt.drop(rt.depth() - depth);
+    return object::ERROR;
+}
+
+
+COMMAND_BODY(Map)
+// ----------------------------------------------------------------------------
+//   Apply unary function in level 1 to all elements in level 2
+// ----------------------------------------------------------------------------
+{
+    return map_reduce_filter(&list::map_as_object);
+}
+
+
+COMMAND_BODY(Reduce)
+// ----------------------------------------------------------------------------
+//   Apply binary function in level 1 pairwise to combine elements in level 2
+// ----------------------------------------------------------------------------
+{
+    return map_reduce_filter(&list::reduce);
+}
+
+
+COMMAND_BODY(Filter)
+// ----------------------------------------------------------------------------
+//   Filter the function in level 1 to all elements in level 2
+// ----------------------------------------------------------------------------
+{
+    return map_reduce_filter(&list::filter_as_object);
+}
+
+
 object_p list::head() const
 // ----------------------------------------------------------------------------
 //   Return the first element in the list
@@ -778,6 +836,149 @@ list_p list::tail() const
     size_t osize = first->size();
     byte_p rest  = byte_p(first) + osize;
     return list::make(type(), rest, size - osize);
+}
+
+
+list_p list::map(object_p prgobj) const
+// ----------------------------------------------------------------------------
+//   Apply an RPL object (nominally a program) on all elements in the list
+// ----------------------------------------------------------------------------
+{
+    id       ty    = type();
+    object_g prg   = prgobj;
+    size_t   depth = rt.depth();
+    scribble scr;
+    for (object_p obj : *this)
+    {
+        id oty = obj->type();
+        if (oty == ID_array || oty == ID_list)
+        {
+            list_g sub = list_p(obj)->map(prg);
+            obj = sub.Safe();
+        }
+        else
+        {
+            if (!rt.push(obj))
+                goto error;
+            if (program::run(prg, true) != OK)
+                goto error;
+            if (rt.depth() != depth + 1)
+            {
+                rt.misbehaving_program_error();
+                goto error;
+            }
+            obj = rt.pop();
+        }
+        if (!obj)
+            goto error;
+
+        size_t objsz = obj->size();
+        byte_p objp = byte_p(obj);
+        if (!rt.append(objsz, objp))
+            goto error;
+    }
+
+    return list::make(ty, scr.scratch(), scr.growth());
+
+error:
+    if (rt.depth() > depth)
+        rt.drop(rt.depth() - depth);
+    return nullptr;
+
+}
+
+
+object_p list::reduce(object_p prgobj) const
+// ----------------------------------------------------------------------------
+//   Apply an RPL object (nominally a program) on pairs of list elements
+// ----------------------------------------------------------------------------
+{
+    object_g prg    = prgobj;
+    size_t   depth  = rt.depth();
+    object_g result = nullptr;
+    for (object_p obj : *this)
+    {
+        if (!rt.push(obj))
+            goto error;
+        if (!result)
+        {
+            result = obj;
+        }
+        else
+        {
+            if (program::run(prg, true)!= OK)
+                goto error;
+            if (rt.depth() != depth + 1)
+                rt.misbehaving_program_error();
+            result = rt.top();
+        }
+        if (rt.error())
+            goto error;
+    }
+    if (rt.depth() > depth)
+        rt.drop(rt.depth() - depth);
+    return result;
+
+error:
+    if (rt.depth() > depth)
+        rt.drop(rt.depth() - depth);
+    return nullptr;
+}
+
+
+list_p list::filter(object_p prgobj) const
+// ----------------------------------------------------------------------------
+//   Apply an RPL object (nominally a program) to filter elements in a list
+// ----------------------------------------------------------------------------
+{
+    id       ty    = type();
+    object_g prg   = prgobj;
+    size_t   depth = rt.depth();
+    scribble scr;
+    for (object_g obj : *this)
+    {
+        id   oty  = obj->type();
+        bool keep = false;
+        if (oty == ID_array || oty == ID_list)
+        {
+            object_g sub = list_p(obj.Safe())->filter(prg);
+            obj = sub.Safe();
+            keep = true;
+        }
+        else
+        {
+            if (!rt.push(obj))
+                goto error;
+            if (program::run(prg, true)!= OK)
+                goto error;
+            if (rt.depth() != depth + 1)
+            {
+                rt.misbehaving_program_error();
+                goto error;
+            }
+            object_p test = rt.pop();
+            keep = test->as_truth(true);
+            if (rt.error())
+                goto error;
+        }
+
+        if (!obj)
+            goto error;
+        if (keep)
+        {
+            size_t objsz = obj->size();
+            byte_p objp = byte_p(obj);
+            if (!rt.append(objsz, objp))
+                goto error;
+        }
+    }
+
+    return list::make(ty, scr.scratch(), scr.growth());
+
+error:
+    if (rt.depth() > depth)
+        rt.drop(rt.depth() - depth);
+    return nullptr;
 }
 
 
@@ -811,6 +1012,8 @@ list_p list::map(algebraic_fn fn) const
             obj = a.Safe();
         }
 
+        if (!obj)
+            return nullptr;
         size_t objsz = obj->size();
         byte_p objp = byte_p(obj);
         if (!rt.append(objsz, objp))

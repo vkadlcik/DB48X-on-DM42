@@ -294,8 +294,7 @@ CMD(CaseWhen)
 
 // Data processing
 NAMED(ToList, "→List")
-NAMED(FromList, "List→")
-NAMED(Explode, "Object→")               ALIAS(Explode, "Obj→")
+NAMED(Explode, "Object→") ALIAS(Explode, "FromObj") ALIAS(Explode, "Obj→")
 CMD(Get)
 CMD(Put)
 CMD(Size)
@@ -513,11 +512,14 @@ CMD(ScreenCapture)
 CMD(Root)
 NAMED(Integrate, "∫")
 
-// Additional sorting functions
+// Additional list and data sorting functions
+NAMED(FromList, "List→")
 CMD(QuickSort)
 CMD(ReverseSort)
 CMD(ReverseQuickSort)
 CMD(ReverseList)                        ALIAS(ReverseList, "RevList")
+CMD(Head)
+CMD(Tail)
 
 // Characters
 NAMED(CharToUnicode, "Char→Code")       ALIAS(CharToUnicode, "Codepoint")
@@ -776,6 +778,7 @@ MENU(TestsMenu)
 MENU(CompareMenu)
 MENU(LoopsMenu)
 MENU(ListMenu)
+MENU(DataMenu)
 MENU(StackMenu)
 MENU(ClearThingsMenu)
 MENU(ObjectMenu)

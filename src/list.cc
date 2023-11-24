@@ -693,6 +693,66 @@ COMMAND_BODY(Put)
 }
 
 
+COMMAND_BODY(Head)
+// ----------------------------------------------------------------------------
+//   Return first element in a list
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        object_p obj = rt.top();
+        id ty = obj->type();
+        if (ty == ID_list || ty == ID_array)
+        {
+            if (object_p hd = list_p(obj)->head())
+            {
+                if (rt.top(hd))
+                    return OK;
+            }
+            else
+            {
+                rt.dimension_error();
+            }
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+    return ERROR;
+}
+
+
+COMMAND_BODY(Tail)
+// ----------------------------------------------------------------------------
+//   Return all but first element in a list
+// ----------------------------------------------------------------------------
+{
+    if (rt.args(1))
+    {
+        object_p obj = rt.top();
+        id ty = obj->type();
+        if (ty == ID_list || ty == ID_array)
+        {
+            if (object_p tl = list_p(obj)->tail())
+            {
+                if (rt.top(tl))
+                    return OK;
+            }
+            else
+            {
+                rt.dimension_error();
+            }
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+    return ERROR;
+}
+
+
 object_p list::head() const
 // ----------------------------------------------------------------------------
 //   Return the first element in the list

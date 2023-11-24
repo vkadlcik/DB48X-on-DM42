@@ -889,23 +889,49 @@ MENU(ListMenu,
      "→List",   ID_ToList,
      "List→",   ID_FromList,
      "Size",    ID_Size,
+     "Head",    ID_Head,
+     "Tail",    ID_Tail,
+     "Get",     ID_Get,
+
+     "Sort",    ID_Sort,
+     "QSort",   ID_QuickSort,
+     "Reverse", ID_ReverseList,
+     "GetI",    ID_Unimplemented,
+     "PutI",    ID_Unimplemented,
+     "Put",     ID_Put,
+
+     "RSort",   ID_ReverseSort,
+     "RQSort",  ID_ReverseQuickSort,
+     "Objects", ID_ObjectMenu,
+     "Matrix",  ID_MatrixMenu,
+     "Vector",  ID_VectorMenu,
+     "Data",    ID_DataMenu);
+
+
+MENU(DataMenu,
+// ----------------------------------------------------------------------------
+//   Operations on data
+// ----------------------------------------------------------------------------
+     "→List",   ID_ToList,
+     "Obj→",    ID_Explode,
+     "Sort",    ID_Sort,
      "Map",     ID_Unimplemented,
      "Reduce",  ID_Unimplemented,
      "Filter",  ID_Unimplemented,
 
+     "∑",       ID_Unimplemented,
+     "∏",       ID_Unimplemented,
+     "∆",       ID_Unimplemented,
      "Get",     ID_Get,
      "Put",     ID_Put,
-     "Sort",    ID_Sort,
      "Reverse", ID_ReverseList,
-     "∑List",   ID_Unimplemented,
-     "∏List",   ID_Unimplemented,
 
-     "GetI",    ID_Unimplemented,
-     "PutI",    ID_Unimplemented,
+     "Find",    ID_Unimplemented,
      "QSort",   ID_QuickSort,
      "RSort",   ID_ReverseSort,
      "RQSort",  ID_ReverseQuickSort,
-     "∆List",   ID_Unimplemented);
+     "Objects", ID_ObjectMenu,
+     "Lists",   ID_ListMenu);
 
 
 MENU(ObjectMenu,
@@ -928,7 +954,10 @@ MENU(ObjectMenu,
 
      "→Tag",    ID_ToTag,
      "Tag→",    ID_FromTag,
-     "DTag",    ID_dtag);
+     "DTag",    ID_dtag,
+     "Matrix",  ID_MatrixMenu,
+     "List",    ID_ListMenu,
+     "Data",    ID_DataMenu);
 
 
 MENU(UnitsConversionsMenu,

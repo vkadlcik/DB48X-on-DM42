@@ -4376,10 +4376,57 @@ Recall private data with default value
 ## LIBCLEAR
 Purge all private data for a specific library
 
-# Operations with Lists
+# Operations with data
 
-## TOLIST
-Assemble a list from its elements
+Data in RPL is generally represented using lists, such as `{ {1 2 } 3 "A"}`.
+Numerical data can be represented using arrays, such as `[1 2 3 4]`. In the
+DB48X implementation of RPL, arrays and list can have any number of dimensions,
+and are not necessarily rectangular, although some operations (e.g. matrix
+operations using arrays as input) can impose stricter constraints.
+
+
+## →List (ToList)
+
+Build a list from elements on the stack. Level 1 of the stack contains the
+number of elements in the list. The elements are on the stack, the first element
+being deepest in the stack. This is the opposite of [List→](#fromlist).
+
+`A` `B` ... `Count` ▶ `{ A B ... }`
+
+## List→ (FromList)
+
+Expand a list on the stack and return the number of elements. After executing
+the command, level 1 contains the number of elements, and a corresponding number
+of stack levels contain individual elements of the list, the first element being
+at the deepest level in the stack. This is the opposite of [→List](#tolist). The
+[Obj→](#explode) command performs the same operation when applied to a list.
+
+`{ A B ... }` ▶ `A` `B` ... `Count`
+
+
+## List→ (FromList)
+
+Expand a list on the stack and return the number of elements. After executing
+the command, level 1 contains the number of elements, and a corresponding number
+of stack levels contain individual elements of the list, the first element being
+at the deepest level in the stack. This is the opposite of [→List](#tolist). The
+[Obj→](#fromobj) command performs the same operation when applied to a list.
+
+`{ A B ... }` ▶ `A` `B` ... `Count`
+
+## Head
+
+Return the first element of a list, or an `Invalid dimension` error if the list
+is empty.
+
+`{ A B ... }` ▶ `A`
+
+## Tail
+
+Return all but the first element of a list, or an `Invalid dimension` error if
+the list is empty.
+
+`{ A B ... }` ▶ `{ B ... }`
 
 
 ## INNERCOMP

@@ -303,6 +303,8 @@ COMMAND_DECLARE(QuickSort);
 COMMAND_DECLARE(ReverseSort);
 COMMAND_DECLARE(ReverseQuickSort);
 COMMAND_DECLARE(ReverseList);
+COMMAND_DECLARE(Head);
+COMMAND_DECLARE(Tail);
 
 
 inline list_g operator+(list_r x, list_r y)

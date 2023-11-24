@@ -91,6 +91,11 @@ struct directory : list
     //    Store an object in the directory
     // ------------------------------------------------------------------------
 
+    static bool update(object_p name, object_p value);
+    // ------------------------------------------------------------------------
+    //    Update an existing name
+    // ------------------------------------------------------------------------
+
     object_p recall(object_p name) const;
     // ------------------------------------------------------------------------
     //    Check if a name exists in the directory, return value pointer if it does

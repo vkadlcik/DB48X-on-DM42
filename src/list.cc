@@ -636,41 +636,92 @@ COMMAND_BODY(Get)
             }
         }
 
-        if (object_p index = rt.stack(0))
-        {
-            id idxty = index->type();
-            if (idxty == ID_list || idxty == ID_array)
-            {
-                list_p ilist = list_p(index);
-                for (object_p i : *ilist)
-                {
-                    uint32_t ival = i->as_uint32();
-                    if (rt.error())
-                        return ERROR;
-                    items = items->at(ival-1);
-                    if (!items)
-                        return ERROR;
-                }
-                if (rt.pop())
-                    if (rt.top(items))
-                        return OK;
-            }
-            else
-            {
-                uint32_t i = index->as_uint32();
-                if (!rt.error())
-                    if (object_p item = items->at(i-1))
-                        if (rt.pop())
-                            if (rt.top(item))
-                                return OK;
-            }
-        }
+        object_p item = items->at(rt.stack(0));
+        if (!item)
+            rt.index_error();
+        else if (rt.pop() && rt.top(item))
+            return OK;
     }
     return ERROR;
 }
 
 
-list_g list::map(algebraic_fn fn) const
+COMMAND_BODY(Put)
+// ----------------------------------------------------------------------------
+//   Put an element in a list
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(3))
+        return ERROR;
+
+    // Check that we have an object at level 2
+    if (object_p items = rt.stack(2))
+    {
+        symbol_p name = items->as_quoted<symbol>();
+        if (name)
+        {
+            items = directory::recall_all(name);
+            if (!items)
+            {
+                rt.undefined_name_error();
+                return ERROR;
+            }
+        }
+
+        if (object_p result = items->at(rt.stack(1), rt.stack(0)))
+        {
+            if (name)
+            {
+                name = rt.stack(2)->as_quoted<symbol>();
+                if (directory::update(name, result))
+                {
+                    rt.drop(3);
+                    return OK;
+                }
+            }
+            else
+            {
+                if (rt.drop(2) && rt.top(result))
+                    return OK;
+            }
+        }
+
+        if(!rt.error())
+            rt.index_error();
+    }
+    return ERROR;
+}
+
+
+object_p list::head() const
+// ----------------------------------------------------------------------------
+//   Return the first element in the list
+// ----------------------------------------------------------------------------
+{
+    size_t   size  = 0;
+    object_p first = objects(&size);
+    if (!size)
+        return nullptr;
+    return first;
+}
+
+
+list_p list::tail() const
+// ----------------------------------------------------------------------------
+//   Return the tail elements of the list
+// ----------------------------------------------------------------------------
+{
+    size_t   size  = 0;
+    object_p first = objects(&size);
+    if (!size)
+        return nullptr;
+    size_t osize = first->size();
+    byte_p rest  = byte_p(first) + osize;
+    return list::make(type(), rest, size - osize);
+}
+
+
+list_p list::map(algebraic_fn fn) const
 // ----------------------------------------------------------------------------
 //   Apply an algebraic function on all elements in the list
 // ----------------------------------------------------------------------------
@@ -710,7 +761,7 @@ list_g list::map(algebraic_fn fn) const
 }
 
 
-list_g list::map(arithmetic_fn fn, algebraic_r y) const
+list_p list::map(arithmetic_fn fn, algebraic_r y) const
 // ----------------------------------------------------------------------------
 //   Right-apply an arithmtic function on all elements in the list
 // ----------------------------------------------------------------------------
@@ -752,7 +803,7 @@ list_g list::map(arithmetic_fn fn, algebraic_r y) const
 }
 
 
-list_g list::map(algebraic_r x, arithmetic_fn fn) const
+list_p list::map(algebraic_r x, arithmetic_fn fn) const
 // ----------------------------------------------------------------------------
 //   Left-apply an arithmtic function on all elements in the list
 // ----------------------------------------------------------------------------

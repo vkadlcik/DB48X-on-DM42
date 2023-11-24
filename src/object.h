@@ -403,8 +403,15 @@ struct object
 
 
     object_p at(size_t index, bool err = true) const;
+    object_p at(object_p index) const;
     // ------------------------------------------------------------------------
     //   Extract a subobject at given index, works for list, array and text
+    // ------------------------------------------------------------------------
+
+
+    object_p at(object_p index, object_p value) const;
+    // ------------------------------------------------------------------------
+    //   Set a subobject at given index, works for list, array and text
     // ------------------------------------------------------------------------
 
 

@@ -260,6 +260,24 @@ bool directory::store(object_g name, object_g value)
 }
 
 
+bool directory::update(object_p name, object_p value)
+// ----------------------------------------------------------------------------
+//   Update an existing value
+// ----------------------------------------------------------------------------
+{
+    // Strip quote if any
+    if (object_p quoted = name->as_quoted(ID_object))
+        name = quoted;
+
+    // Check if this exists somewhere, if so update it with new value
+    directory *dir = nullptr;
+    for (uint depth = 0; (dir = rt.variables(depth)); depth++)
+        if (dir->recall(name))
+            return dir->store(name, value);
+    return false;
+}
+
+
 void directory::adjust_sizes(directory_r thisdir, int delta)
 // ----------------------------------------------------------------------------
 //   Ajust the size for this directory and all enclosing ones

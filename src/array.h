@@ -48,19 +48,19 @@ struct array : list
         return x->map(fn);
     }
 
-    array_g map(algebraic_fn fn) const
+    array_p map(algebraic_fn fn) const
     {
-        return array_p(list::map(fn).Safe());
+        return array_p(list::map(fn));
     }
 
-    array_g map(arithmetic_fn fn, algebraic_r y) const
+    array_p map(arithmetic_fn fn, algebraic_r y) const
     {
-        return array_p(list::map(fn, y).Safe());
+        return array_p(list::map(fn, y));
     }
 
-    array_g map(algebraic_r x, arithmetic_fn fn) const
+    array_p map(algebraic_r x, arithmetic_fn fn) const
     {
-        return array_p(list::map(x, fn).Safe());
+        return array_p(list::map(x, fn));
     }
 
     // Append data

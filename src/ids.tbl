@@ -297,6 +297,7 @@ NAMED(ToList, "→List")
 NAMED(FromList, "List→")
 NAMED(Explode, "Object→")               ALIAS(Explode, "Obj→")
 CMD(Get)
+CMD(Put)
 CMD(Size)
 CMD(Sort)
 

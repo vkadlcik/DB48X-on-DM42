@@ -500,6 +500,121 @@ object_p object::at(size_t index, bool err) const
 }
 
 
+object_p object::at(object_p index) const
+// ----------------------------------------------------------------------------
+//  Index an object, either from a list or a numerical value
+// ----------------------------------------------------------------------------
+{
+    if (list_p idxlist = index->as<list>())
+    {
+        object_p result = this;
+        for (object_p idxobj : *idxlist)
+        {
+            result = result->at(idxobj);
+            if (!result)
+                return nullptr;
+        }
+        return result;
+    }
+
+    size_t idx = index->as_uint32(1, true);
+    if (!idx)
+        rt.index_error();
+    if (rt.error())
+        return nullptr;
+    return at(idx - 1);
+}
+
+
+object_p object::at(object_p index, object_p value) const
+// ----------------------------------------------------------------------------
+//  Replace an object at given index with the value
+// ----------------------------------------------------------------------------
+//  Consider a list L and an index
+//    {
+//       { 1 2 3 }
+//       4
+//       {
+//          5
+//          { 6 7 }
+//       }
+//    }
+//    { 3 3 } "ABC" PUT
+//
+//    This turns into:
+//    L 3 L 3 GET 3 "ABC" PUT PUT
+//
+{
+    object_g ref  = this;
+    object_g head = index;
+    list_g   tail = nullptr;
+    object_g item = value;
+
+    if (list_p idxlist = index->as<list>())
+    {
+        head = idxlist->head();
+        tail = idxlist->tail();
+    }
+    size_t idx = head->as_uint32(1, true);
+    if (!idx)
+        rt.index_error();
+    if (rt.error())
+        return nullptr;
+    idx--;
+
+    id ty = ref->type();
+    if (ty == ID_list || ty == ID_array)
+    {
+        object_g first = ref->at(idx);
+
+        // Check if we need to recurse
+        if (tail && tail->length())
+            item = first->at(tail, value);
+
+        // For a list, copy bytes before, value bytes, and bytes after
+        size_t   size  = 0;
+        object_g items = list_p(ref.Safe())->objects(&size);
+        size_t   fsize = first->size();
+        object_g next  = first.Safe() + fsize;
+        size_t   hsize = first.Safe() - items.Safe();
+        size_t   tsize = size - (next.Safe() - items.Safe());
+        list_g   head  = rt.make<list>(ty, byte_p(items.Safe()), hsize);
+        list_g   mid   = rt.make<list>(ty, byte_p(item.Safe()), item->size());
+        list_g   tail  = rt.make<list>(ty, byte_p(next.Safe()), tsize);
+        return head + mid + tail;
+    }
+
+    if (ty == ID_text)
+    {
+        if (tail && tail->length())
+        {
+            rt.dimension_error();
+            return nullptr;
+        }
+
+        // For text, replace the indexed character with the value as text
+        text_g tval = value->as_text();
+        size_t size  = 0;
+        gcutf8 chars = text_p(this)->value(&size);
+        size_t o = 0;
+        for (o = 0; idx && o < size; o = utf8_next(chars, o))
+            idx--;
+        if (idx)
+        {
+            rt.index_error();
+            return nullptr;
+        }
+        size_t n = utf8_next(chars, o);
+        text_g head = text::make(chars, o);
+        text_g tail = text::make(chars + n, size - n);
+        return head + tval + tail;
+    }
+
+    rt.type_error();
+    return nullptr;
+}
+
+
 void object::object_error(id type, object_p ptr)
 // ----------------------------------------------------------------------------
 //    Report an error in an object

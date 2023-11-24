@@ -251,19 +251,26 @@ struct list : text
         return list->at(rest...);
     }
 
+    object_p    head() const;
+    list_p      tail() const;
+    // ------------------------------------------------------------------------
+    //   Return the head and tail of a list
+    // ------------------------------------------------------------------------
+
+
     // Apply an algebraic function to all elements in list
-    list_g map(algebraic_fn fn) const;
-    list_g map(arithmetic_fn fn, algebraic_r y) const;
-    list_g map(algebraic_r x, arithmetic_fn fn) const;
-    static list_g map(algebraic_fn fn, list_r x)
+    list_p map(algebraic_fn fn) const;
+    list_p map(arithmetic_fn fn, algebraic_r y) const;
+    list_p map(algebraic_r x, arithmetic_fn fn) const;
+    static list_p map(algebraic_fn fn, list_r x)
     {
         return x->map(fn);
     }
-    static list_g map(arithmetic_fn fn, list_r x, algebraic_r y)
+    static list_p map(arithmetic_fn fn, list_r x, algebraic_r y)
     {
         return x->map(fn, y);
     }
-    static list_g map(arithmetic_fn fn, algebraic_r x, list_r y)
+    static list_p map(arithmetic_fn fn, algebraic_r x, list_r y)
     {
         return y->map(x, fn);
     }
@@ -290,6 +297,7 @@ COMMAND_DECLARE(ToList);
 COMMAND_DECLARE(FromList);
 COMMAND_DECLARE(Size);
 COMMAND_DECLARE(Get);
+COMMAND_DECLARE(Put);
 COMMAND_DECLARE(Sort);
 COMMAND_DECLARE(QuickSort);
 COMMAND_DECLARE(ReverseSort);

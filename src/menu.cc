@@ -893,10 +893,18 @@ MENU(ListMenu,
      "Reduce",  ID_Unimplemented,
      "Filter",  ID_Unimplemented,
 
+     "Get",     ID_Get,
+     "Put",     ID_Put,
      "Sort",    ID_Sort,
      "Reverse", ID_ReverseList,
      "∑List",   ID_Unimplemented,
      "∏List",   ID_Unimplemented,
+
+     "GetI",    ID_Unimplemented,
+     "PutI",    ID_Unimplemented,
+     "QSort",   ID_QuickSort,
+     "RSort",   ID_ReverseSort,
+     "RQSort",  ID_ReverseQuickSort,
      "∆List",   ID_Unimplemented);
 
 

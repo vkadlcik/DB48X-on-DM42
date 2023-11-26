@@ -39,6 +39,7 @@
 #include "program.h"
 #include "renderer.h"
 #include "runtime.h"
+#include "symbol.h"
 #include "utf8.h"
 #include "variables.h"
 
@@ -808,6 +809,116 @@ COMMAND_BODY(Filter)
 // ----------------------------------------------------------------------------
 {
     return map_reduce_filter(&list::filter_as_object);
+}
+
+
+algebraic_p sum_product(symbol_g  name,
+                        large     a,
+                        large     b,
+                        program_g expr,
+                        bool      product)
+// ----------------------------------------------------------------------------
+//   Perform a sum or product
+// ----------------------------------------------------------------------------
+{
+    algebraic_g result = integer::make(uint(product));
+    algebraic_g value;
+    save<symbol_g *> iref(expression::independent, &name);
+
+    for (large i = a; i <= b; i++)
+    {
+        value = integer::make(i);
+        value = algebraic::evaluate_function(expr, value);
+        if (!value)
+            return nullptr;
+        result = product ? result * value : result + value;
+    }
+
+    return result;
+}
+
+
+static object::result pair_map(object::id cmd)
+// ----------------------------------------------------------------------------
+//   Shared code for map, reduce and filter
+// ----------------------------------------------------------------------------
+{
+    size_t depth = rt.depth();
+    if (rt.args(1))
+    {
+        object_p   obj = rt.stack(0);
+        object::id ty  = obj->type();
+        if (ty == object::ID_list || ty == object::ID_array)
+        {
+            object_p result = list_p(obj)->reduce(command::static_object(cmd));
+            if (result && rt.top(result))
+                return object::OK;
+        }
+        else if (rt.args(4))
+        {
+            symbol_g name = rt.stack(3)->as_quoted<symbol>();
+            if (!name)
+                goto error;
+            object_g init = rt.stack(2);
+            object_g last = rt.stack(1);
+            object_g expr = rt.stack(0);
+            if (!expr->is_program())
+            {
+                rt.type_error();
+                goto error;
+            }
+
+            if (init->is_symbolic() || last->is_symbolic())
+            {
+                object_g prg = command::static_object(cmd);
+                expr = rt.make<list>(object::ID_expression,
+                                     name, init, last, expr, prg);
+                if (expr && rt.drop(3) && rt.top(expr))
+                    return object::OK;
+                goto error;
+            }
+            else if (init->is_integer() && last->is_integer())
+            {
+                bool      prod = cmd == object::ID_Product;
+                program_g prg  = program_p(expr.Safe());
+                large     a    = init->as_int64();
+                large     b    = last->as_int64();
+                expr           = sum_product(name, a, b, prg, prod);
+                if (expr && rt.drop(3) && rt.top(expr))
+                    return object::OK;
+            }
+            else
+            {
+                rt.type_error();
+            }
+        }
+        else
+        {
+            rt.type_error();
+        }
+    }
+error:
+    if (rt.depth() > depth)
+        rt.drop(rt.depth() - depth);
+    return object::ERROR;
+}
+
+
+COMMAND_BODY(Sum)
+// ----------------------------------------------------------------------------
+//   Return the sum of a list or array
+// ----------------------------------------------------------------------------
+{
+    return pair_map(ID_add);
+}
+
+
+COMMAND_BODY(Product)
+// ----------------------------------------------------------------------------
+//   Return the product of a list or array
+// ----------------------------------------------------------------------------
+{
+    return pair_map(ID_mul);
 }
 
 

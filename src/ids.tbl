@@ -523,6 +523,8 @@ CMD(Tail)
 CMD(Map)
 CMD(Reduce)                             ALIAS(Reduce, "Stream")
 CMD(Filter)
+OP(Sum, "Σ")
+OP(Product, "∏")
 
 // Characters
 NAMED(CharToUnicode, "Char→Code")       ALIAS(CharToUnicode, "Codepoint")

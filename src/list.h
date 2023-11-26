@@ -314,6 +314,9 @@ COMMAND_DECLARE(Tail);
 COMMAND_DECLARE(Map);
 COMMAND_DECLARE(Reduce);
 COMMAND_DECLARE(Filter);
+COMMAND_DECLARE(Sum);
+COMMAND_DECLARE(Product);
+
 
 
 inline list_g operator+(list_r x, list_r y)

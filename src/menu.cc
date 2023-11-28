@@ -580,18 +580,41 @@ MENU(BasesMenu,
      ID_Implies,
      ID_Excludes,
 
-     "ShL",     ID_Unimplemented,
-     "ShR",     ID_Unimplemented,
-     "AShR",    ID_Unimplemented,
-     "RoL",     ID_Unimplemented,
-     "RoR",     ID_Unimplemented,
+     "SL",      ID_SL,
+     "SR",      ID_SR,
+     "ASR",     ID_ASR,
+     "RL",      ID_RL,
+     "RR",      ID_RR,
 
-     "2Comp",   ID_Unimplemented,
-     "1Comp",   ID_Unimplemented,
-     "Unsgnd",  ID_Unimplemented,
+     "SLB",     ID_SLB,
+     "SRB",     ID_SRB,
+     "ASRB",    ID_ASRB,
+     "RLB",     ID_RLB,
+     "RRB",     ID_RRB,
+
+     "SLC",     ID_SLC,
+     "SRC",     ID_SRC,
+     "ASRC",    ID_ASRC,
+     "RLC",     ID_RLC,
+     "RRC",     ID_RRC,
+
+     "#",       ID_SelfInsert,
      "R→B",     ID_RealToBinary,
-     "B→R",     ID_BinaryToReal
-    );
+     "B→R",     ID_BinaryToReal,
+     Base::label, ID_Base,
+     WordSize::label,  ID_WordSize,
+
+     ID_And,
+     ID_Or,
+     ID_Xor,
+     ID_Not,
+     "neg",     ID_neg,
+
+     "FstSet",  ID_Unimplemented,
+     "LstSet",  ID_Unimplemented,
+     "PopCnt",  ID_Unimplemented,
+     "1-comp",  ID_OnesComplement,
+     "2-comp",  ID_TwosComplement);
 
 
 MENU(ProbabilitiesMenu,

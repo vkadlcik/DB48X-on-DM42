@@ -37,6 +37,7 @@
 #include "fraction.h"
 #include "integer.h"
 #include "list.h"
+#include "logical.h"
 #include "tag.h"
 #include "unit.h"
 

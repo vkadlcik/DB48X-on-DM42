@@ -526,6 +526,24 @@ CMD(Filter)
 OP(Sum, "Σ")
 OP(Product, "∏")
 
+// Bitwise operations
+NAMED(RL, "RotateLeft")
+NAMED(RR, "RotateRight")
+NAMED(RLB, "RotateLeftByte")
+NAMED(RRB, "RotateRightByte")
+NAMED(SL, "ShiftLeft")
+NAMED(SR, "ShiftRight")
+NAMED(SLB, "ShiftLeftByte")
+NAMED(SRB, "ShiftRightByte")
+NAMED(ASR, "ArithmeticShiftRight")
+NAMED(ASRB, "ArithmeticShiftRightByte")
+
+NAMED(RLC, "RotateLeftCount")
+NAMED(RRC, "RotateRightCount")
+NAMED(SLC, "ShiftLeftCount")
+NAMED(SRC, "ShiftRightCount")
+NAMED(ASRC, "ArithmeticShiftRightCount")
+
 // Characters
 NAMED(CharToUnicode, "Char→Code")       ALIAS(CharToUnicode, "Codepoint")
                                         ALIAS(CharToUnicode, "Num")

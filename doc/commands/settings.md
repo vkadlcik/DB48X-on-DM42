@@ -249,13 +249,24 @@ Selects base 16
 
 Select an arbitrary base for computations
 
-## StoreWordSize (STWS)
+## WordSize (STWS)
 
-Store the word size for binary computations
+Store the current [word size](#wordsize) in bits. The word size is used for
+operations on based numbers. The value must be greater than 1, and the number of
+bits is limited only by memory and performance.
 
-## WordSize (RCWS)
+## RecallWordSize (RCWS)
 
-Recall the word size for binary computations
+Return the current [word size](#wordsize) in bits.
+
+## STWS
+
+`STWS` is a compatibility spelling for the [WordSize](#wordsize) command.
+
+## RCWS
+
+`RCWS` is a compatibility spelling for the [RecallWordSize](#recallwordsize)
+command.
 
 ## MaxRewrites
 

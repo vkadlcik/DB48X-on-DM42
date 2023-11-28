@@ -792,3 +792,172 @@ RENDER_BODY(neg_big_fraction)
 {
     return fraction_render(o, r, true);
 }
+
+
+
+// ============================================================================
+//
+//   Shift and rotate operations
+//
+// ============================================================================
+
+bignum_p bignum::shift(bignum_r xg, int bits, bool rotate, bool arith)
+// ----------------------------------------------------------------------------
+//   Perform a shift / rotate operation on a bignum
+// ----------------------------------------------------------------------------
+//   This uses the scratch pad AND can cause garbage collection
+//   Bits is signed like a memory offset, so bits>0 shifts left
+{
+    if (bits == 0)
+        return xg.Safe();
+    if (!xg.Safe())
+        return nullptr;
+    size_t   xs     = 0;
+    byte_p   x      = xg->value(&xs);
+    id       xt     = xg->type();
+    size_t   ws = Settings.WordSize();
+    size_t   wbits  = (rotate || arith) ? ws : wordsize(xt);
+    size_t   wbytes = (wbits + 7) / 8;
+    size_t   abits  = bits < 0 ? 0 : bits;
+    size_t   needed = std::max(xs + (abits + 7) / 8, wbytes) ;
+    if (needed * 8 > Settings.MaxBigNumBits())
+    {
+        rt.number_too_big_error();
+        return nullptr;
+    }
+    if (wbits)
+        needed = wbytes;
+    else
+        wbytes = needed;
+    byte *buffer = rt.allocate(needed); // May GC here
+    if (!buffer)
+        return nullptr; // Out of memory
+    x = xg->value(&xs); // Re-read after potential GC
+    byte *end = buffer + needed;
+
+    // Start with zeroes
+    for (uint i = 0; i < needed; i++)
+        buffer[i] = 0;
+
+    // Check if we shift by "too much"
+    bool done = false;
+    if (bits > int(ws) || bits < -int(ws))
+    {
+        // If we want to return 0, do so
+        done = (!rotate && !arith);
+        bits %= wbits;
+    }
+    if (!done)
+    {
+        // Process input data
+        size_t max = std::min(xs, needed);
+        int o = (bits / 8) % int(needed);
+
+        if (bits > 0)
+        {
+            // Shift left (we store data little endian)
+            uint lbits = bits % 8;
+            for (uint i = 0; i < max; i++)
+            {
+                uint xd = x[i] << lbits;
+                if (rotate || size_t(o) < needed)
+                    buffer[o % needed] |= byte(xd);
+                o++;
+                if (rotate || size_t(o) < needed)
+                    buffer[o % needed] |= byte(xd >> 8);
+            }
+        }
+        else
+        {
+            // Shift right
+            uint lbits = (-bits) % 8;
+            bool sbit = arith && xs >= wbytes && (x[xs-1]&(1<<((wbits-1) % 8)));
+            if (rotate)
+                o += needed;
+            o--;
+            for (uint i = 0; i < max; i++)
+            {
+                uint xd = (uint(x[i]) << 8) >> lbits;
+                if (o >= 0)
+                    buffer[o % needed] |= byte(xd);
+                o++;
+                if (o >= 0)
+                    buffer[o % needed] |= byte(xd>>8);
+            }
+            if (sbit)
+            {
+                byte *d = end - 1;
+                while (bits < -8)
+                {
+                    *d-- = 0xFF;
+                    bits += 8;
+                }
+                *d |= 0xFF << (8+bits);
+            }
+        }
+    }
+
+    // Drop highest zeros (this can reach i == 0 for value 0)
+    while (wbytes > 0 && buffer[wbytes - 1] == 0)
+        wbytes--;
+
+    // Check if we have a word size like 12 and we need to truncate result
+    if (wbytes == needed && (wbits % 8))
+        buffer[wbytes-1] &= byte(0xFFu >> (8 - wbits % 8));
+
+    // Create the resulting bignum
+    gcbytes buf = buffer;
+    bignum_g result = rt.make<bignum>(xt, buf, wbytes);
+    rt.free(needed);
+    return result;
+}
+
+
+bignum_g operator<<(bignum_r y, bignum_r x)
+// ----------------------------------------------------------------------------
+//   Shift left
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe() || !y.Safe())
+        return nullptr;
+    uint shift = x->as_uint32(0, true);
+    if (rt.error())
+        return nullptr;
+    return bignum::shift(y, int(shift), false, false);
+}
+
+
+bignum_g operator>>(bignum_r y, bignum_r x)
+// ----------------------------------------------------------------------------
+//  Shift right (as an unsigned)
+// ----------------------------------------------------------------------------
+{
+    if (!x.Safe() || !y.Safe())
+        return nullptr;
+    uint shift = x->as_uint32(0, true);
+    if (rt.error())
+        return nullptr;
+    return bignum::shift(y, -int(shift), false, false);
+}
+
+
+bignum_g operator<<(bignum_r y, uint x)
+// ----------------------------------------------------------------------------
+//   Shift left
+// ----------------------------------------------------------------------------
+{
+    if (!y.Safe())
+        return nullptr;
+    return bignum::shift(y, int(x), false, false);
+}
+
+
+bignum_g operator>>(bignum_r y, uint x)
+// ----------------------------------------------------------------------------
+//  Shift right (as an unsigned)
+// ----------------------------------------------------------------------------
+{
+    if (!y.Safe())
+        return nullptr;
+    return bignum::shift(y, -int(x), false, false);
+}

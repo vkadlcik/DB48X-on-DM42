@@ -28,6 +28,8 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [ARG](#arg)
 * [ASINH](#asinh)
 * [ASIN](#asin)
+* [ASR](#asr)
+* [ASRC](#asr)
 * [ATANH](#atanh)
 * [ATAN](#atan)
 * [AXES](#axes)
@@ -133,10 +135,16 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [RECT](#rect) (Different meaning: draws a rectangle)
 * [REPEAT](#repeat)
 * [REWRITE](#rewrite) (Different meaning: performs a rewrite)
+* [RL](#rl)
+* [RLB](#rlb)
+* [RLC](#rlc)
 * [ROLLD](#rolld)
 * [ROLL](#roll)
 * [ROOT](#root)
 * [ROT](#rot)
+* [RR](#rr)
+* [RRB](#rrb)
+* [RRC](#rrb)
 * [R→B](#realtobinary)
 * [R→C](#realtocomplex)
 * [SAME](#same)
@@ -145,6 +153,9 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [SIGN](#sign)
 * [SINH](#sinh)
 * [SIN](#sin)
+* [SL](#sl)
+* [SLB](#slb)
+* [SLC](#slb)
 * [SQ](#sq)
 * [SST](#stepover)
 * [SST↓](#singlestep)
@@ -224,7 +235,6 @@ commands.
 * ASIN2C
 * ASIN2T
 * ASN
-* ASR
 * ASSUME
 * ATAN2S
 * ATICK
@@ -610,8 +620,6 @@ commands.
 * RKF
 * RKFERR
 * RKFSTEP
-* RL
-* RLB
 * RND
 * RNRM
 * ROMUPLOAD
@@ -620,8 +628,6 @@ commands.
 * ROW→
 * →ROW
 * RPL>
-* RR
-* RRB
 * rref
 * RREF
 * RREFMOD
@@ -659,8 +665,6 @@ commands.
 * SINCOS
 * SINV
 * SIZE
-* SL
-* SLB
 * SLOPEFIELD
 * SNEG
 * SNRM

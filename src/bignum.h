@@ -189,6 +189,7 @@ public:
     static bignum_g multiply(bignum_r y, bignum_r x, id ty);
     static bool quorem(bignum_r y, bignum_r x, id ty, bignum_g *q, bignum_g *r);
     static bignum_g pow(bignum_r y, bignum_r x);
+    static bignum_p shift(bignum_r x, int bits, bool rotate, bool arith);
 
 public:
     OBJECT_DECL(bignum);
@@ -280,7 +281,10 @@ bignum_g operator% (bignum_r y, bignum_r x);
 bignum_g operator& (bignum_r y, bignum_r x);
 bignum_g operator| (bignum_r y, bignum_r x);
 bignum_g operator^ (bignum_r y, bignum_r x);
-
+bignum_g operator<<(bignum_r y, bignum_r x);
+bignum_g operator>>(bignum_r y, bignum_r x);
+bignum_g operator<<(bignum_r y, uint x);
+bignum_g operator>>(bignum_r y, uint x);
 
 
 

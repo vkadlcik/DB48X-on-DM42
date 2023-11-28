@@ -548,7 +548,7 @@ cstring setting::label(object::id ty)
     case ID_Base:
         return printf("Base %u", s.Base());
     case ID_WordSize:
-        return printf("WSize %u", s.WordSize());
+        return printf("%u bits", s.WordSize());
     case ID_FractionIterations:
         return printf("→QIter %u", s.FractionIterations());
     case ID_FractionDigits:

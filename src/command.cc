@@ -902,30 +902,20 @@ COMMAND_BODY(RealToBinary)
         return ERROR;
     if (object_p top = rt.top())
     {
-        id type = top->type();
-        id to = ID_object;
+        id   type = top->type();
+        id   to   = ID_object;
+        bool neg  = type == ID_neg_integer || type == ID_neg_bignum;
 
         switch (type)
         {
         case ID_neg_integer:
-        case ID_neg_bignum:
-        case ID_neg_fraction:
-        case ID_neg_big_fraction:
-            rt.domain_error();
-            return ERROR;
         case ID_integer:
             to = ID_based_integer;
             break;
+        case ID_neg_bignum:
         case ID_bignum:
             to = ID_based_bignum;
             break;
-        case ID_fraction:
-        case ID_big_fraction:
-        case ID_decimal128:
-        case ID_decimal64:
-        case ID_decimal32:
-            rt.unimplemented_error();
-            return ERROR;
         default:
             rt.type_error();
             return ERROR;
@@ -937,7 +927,11 @@ COMMAND_BODY(RealToBinary)
             byte *p = (byte *) clone;
             leb128(p, to);
             if (rt.top(clone))
+            {
+                if (neg)
+                    return neg::evaluate();
                 return OK;
+            }
         }
         return ERROR;
 

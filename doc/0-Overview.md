@@ -465,8 +465,10 @@ unintentional differences, since the implementation is completely new.
 * The whole banking and flash access storage mechanism of the HP48 will be
   replaced with a system that works well with FAT USB storage. It should be
   possible to directly use a part of the flash storage to store RPL programs,
-  either in source or compiled form.
-
+  either in source or compiled form. As an example, using a text argument to
+  `STO` and `RCL` accesses files on the USB disk, e.g. `1 "FOO.TXT" STO` stores
+  the text representation of `1` in a file named `DATA/FOO.TXT` on the USB
+  flash storage.
 
 ### List operation differences
 
@@ -698,7 +700,7 @@ largely because of that community.
 ### HP Museum
 
 The [HP Museum](https://www.hpmuseum.org) not only extensively documents the
-history of RPN and RPL calcuators, it also provides a
+history of RPN and RPL calculators, it also provides a
 [very active forum](https://www.hpmuseum.org/forum/) for calculator enthusiasts
 all over the world.
 

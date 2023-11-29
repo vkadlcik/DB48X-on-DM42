@@ -49,9 +49,18 @@ The [Bases Menu](#bases-menu) list operations on based numbers.
 
 Like integers, based numbers can be [arbitrary large](#big-integers).
 However, operations on based numbers can be truncated to a specific number of
-bits using the [STWS](#stws) command. This makes it possible to perform
+bits using the [WordSize](#wordsize) setting. This makes it possible to perform
 computations simulating a 16-bit or 256-bit processor.
 
+
+## Boolean values
+
+DB48X has two boolean values, `True` and `False`. These values are typically
+returned by operations such as tests that return a truth value.
+
+In addition, numerical values are interpreted as being `False` if the value is
+0, and `True` otherwise. This applies to conditional tests, conditional loops,
+and other operations that consume a truth value.
 
 ## Complex numbers
 

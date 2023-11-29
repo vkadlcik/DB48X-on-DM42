@@ -1210,12 +1210,17 @@ algebraic_p arithmetic::evaluate(id          op,
             // Perform conversion of integer values to the same base
             integer_p xi = integer_p(object_p(x.Safe()));
             integer_p yi = integer_p(object_p(y.Safe()));
-            if (xi->native() && yi->native())
+            uint      ws = Settings.WordSize();
+            if (xi->native() && yi->native() && (!is_based(xt) || ws < 64))
             {
                 ularge xv = xi->value<ularge>();
                 ularge yv = yi->value<ularge>();
                 if (ops.integer_ok(xt, yt, xv, yv))
+                {
+                    if (is_based(xt))
+                        xv &= (1UL << ws) - 1UL;
                     return rt.make<integer>(xt, xv);
+                }
             }
         }
 

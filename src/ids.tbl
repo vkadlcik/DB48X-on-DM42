@@ -721,7 +721,7 @@ SETTING_BITS(BasedSeparatorCommand,  2, ID_BasedSpaces,  ID_BasedUnderscore,  ID
 SETTING(WordSize,               1U, 256U * 1024U,       512U)
 ALIAS(WordSize,                 "stws")
 OP(RecallWordSize,              "rcws")
-SETTING(MaxBigNumBits,          1U, 256U * 1024U,       512U)
+SETTING(MaxNumberBits,          1U, 256U * 1024U,       512U)
 SETTING(MaxFlags,               8U, 32768U,             128U)
 SETTING(MaxRewrites,            1U, 10000U,             100U)
 SETTING(FractionIterations,     1U, 10000U,             10U)

@@ -506,7 +506,7 @@ bignum_g bignum::multiply(bignum_r yg, bignum_r xg, id ty)
     size_t wbits = wordsize(xt);
     size_t wbytes = (wbits + 7) / 8;
     size_t needed = xs + ys;
-    if (needed * 8 > Settings.MaxBigNumBits())
+    if (needed * 8 > Settings.MaxNumberBits())
     {
         rt.number_too_big_error();
         return nullptr;
@@ -820,7 +820,7 @@ bignum_p bignum::shift(bignum_r xg, int bits, bool rotate, bool arith)
     size_t   wbytes = (wbits + 7) / 8;
     size_t   abits  = bits < 0 ? 0 : bits;
     size_t   needed = std::max(xs + (abits + 7) / 8, wbytes) ;
-    if (needed * 8 > Settings.MaxBigNumBits())
+    if (needed * 8 > Settings.MaxNumberBits())
     {
         rt.number_too_big_error();
         return nullptr;

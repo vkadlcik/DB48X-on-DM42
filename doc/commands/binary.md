@@ -5,7 +5,7 @@ shifts. They operate on [based numbers](#based-numbers),
 [integers](#integers) or [big integers](#big-integers). When operating on based
 numbers, the operation happens on the number of bits defined by the
 [WordSize](#wordsize) setting. For integer values, the maximum number of bits is
-defined by the [MaxBigNumBits](#maxbignumbits) setting.
+defined by the [MaxNumberBits](#maxnumberbits) setting.
 
 ## ShiftLeft (SL)
 

@@ -324,7 +324,7 @@ bignum_g bignum::binary(Op op, bignum_r xg, bignum_r yg, id ty)
     size_t   wbytes = (wbits + 7) / 8;
     uint16_t c      = 0;
     size_t   needed = std::max(xs, ys) + 1;
-    if (needed * 8 > Settings.MaxBigNumBits())
+    if (needed * 8 > Settings.MaxNumberBits())
     {
         rt.number_too_big_error();
         return nullptr;

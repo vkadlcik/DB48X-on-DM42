@@ -1382,7 +1382,7 @@ MENU(MathModesMenu,
 
      "0^0=1",                                   ID_ZeroPowerZeroIsOne,
      "0^0=?",                                   ID_ZeroPowerZeroIsUndefined,
-     MaxBigNumBits::label,                      ID_MaxBigNumBits,
+     MaxNumberBits::label,                      ID_MaxNumberBits,
      MaxRewrites::label,                        ID_MaxRewrites,
      FractionIterations::label,                 ID_FractionIterations,
      FractionDigits::label,                     ID_FractionDigits,

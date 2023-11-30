@@ -575,8 +575,8 @@ cstring setting::label(object::id ty)
         return printf("MLEd %u", s.MultilineEditorFont());
     case ID_CursorBlinkRate:
         return printf("Blink %u", s.CursorBlinkRate());
-    case ID_MaxBigNumBits:
-        return printf("Bits %u", s.MaxBigNumBits());
+    case ID_MaxNumberBits:
+        return printf("Bits %u", s.MaxNumberBits());
     case ID_MaxRewrites:
         return printf("Rwr %u", s.MaxRewrites());
 

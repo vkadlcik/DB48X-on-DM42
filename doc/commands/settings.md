@@ -276,15 +276,21 @@ Defines the maximum number of rewrites in an equation.
 'B+A' rewrite` can never end, since it keeps rewriting terms. This setting
 indicates how many attempts at rewriting will be done before erroring out.
 
-## MaxBigNumBits
+## MaxNumberBits
 
-Define the maxmimum number of bits for a large integer.
+Define the maxmimum number of bits for numbers.
 
 Large integer operations can take a very long time, notably when displaying them
 on the stack. With the default value of 1024 bits, you can compute `100!` but
 computing `200!` will result in an error, `Number is too big`. You can however
-compute it seting a higher value for `MaxBigNumBits`, for example
-`2048 MaxBigNumBits`.
+compute it seting a higher value for `MaxNumberBits`, for example
+`2048 MaxNumberBits`.
+
+This setting applies to integer components in a number. In other words, it
+applies separately for the numerator and denominator in a fraction, or for the
+real and imaginary part in a complex number. A complex number made of two
+fractions can therefore take up to four times the number of bits specified by
+this setting.
 
 ## ToFractionIterations (→QIterations, →FracIterations)
 
@@ -352,6 +358,24 @@ When this setting is active, statistics functions that return sums, such as
 `ΣXY` or `ΣX²`, will adjust their input according to the current fitting model
 in special variable `ΣParameters`, in the same way as required for
 `LinearRegression`.
+
+## DetailedTypes
+
+The `Type` command returns detailed DB48X type values, which can distinguish
+between all DB48X object types, e.g. distinguish between polar and rectangular
+objects, or the three internal representations for decimal numbers. Returned
+values are all negative, which distinguishes them from RPL standard values, and
+makes it possible to write code that accepts both the compatible and detailed
+values.
+
+This is the opposite of [CompatibleTypes](#compatibletypes).
+
+## CompatibleTypes
+
+The `Type` command returns values as close to possible to the values documented
+on page 3-262 of the HP50G advanced reference manual. This is the opposite of
+[NativeTypes](#nativetypes).
+
 
 # States
 

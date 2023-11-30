@@ -900,7 +900,7 @@ Hewlett-Packard RPL implementation.
 * [MathMenu](#mathmenu)
 * [MathModesMenu](#mathmodesmenu)
 * [MatrixMenu](#matrixmenu)
-* [MaxBigNumBits](#maxbignumbits): Maximum number of bits for a big integer
+* [MaxNumberBits](#maxnumberbits): Maximum number of bits used by a number
 * [MaxRewrites](#maxrewrites): Maximum number of equation rewrites
 * [MemMenu](#memmenu)
 * [MenuFirstPage](#menufirstpage)

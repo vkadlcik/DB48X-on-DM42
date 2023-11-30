@@ -1197,7 +1197,7 @@ static object::result do_flag(bool read, bool test, bool write, bool set)
 
         if (read && Settings.flag(aty, &value))
             builtin = true;
-        if (write && Settings.flag(arg->type(), set))
+        if (write && Settings.flag(aty, set))
             builtin = true;
         if (builtin)
         {

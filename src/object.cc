@@ -615,6 +615,47 @@ object_p object::at(object_p index, object_p value) const
 }
 
 
+bool object::next_index(object_p *indexp) const
+// ----------------------------------------------------------------------------
+//  Find the next index on this object, returns true if we wrap
+// ----------------------------------------------------------------------------
+{
+    bool wrap = false;
+    object_g index = *indexp;
+    if (list_g idxlist = index->as<list>())
+    {
+        object_g obj     = this;
+        object_g idxhead = idxlist->head();
+        list_p   idxtail = idxlist->tail();
+        if (idxtail->length())
+        {
+            object_g itobj   = idxtail;
+            object_g child   = obj->at(idxhead.Safe());
+            if (child->next_index(&itobj.Safe()))
+                wrap = obj->next_index(&idxhead.Safe());
+            idxlist = list::make(idxhead);
+            idxlist = idxlist + list_g(list_p(itobj.Safe()));
+            *indexp = idxlist.Safe();
+            return wrap;
+        }
+        wrap = obj->next_index(&idxhead.Safe());
+        idxlist = list::make(idxhead);
+        *indexp = idxlist.Safe();
+        return wrap;
+    }
+
+    size_t idx = index->as_uint32(1, true);
+    if (!idx)
+        rt.index_error();
+    if (rt.error())
+        return false;
+    wrap = at(idx, false) == nullptr;
+    idx = wrap ? 1 : idx + 1;
+    *indexp = integer::make(idx);
+    return wrap;
+}
+
+
 void object::object_error(id type, object_p ptr)
 // ----------------------------------------------------------------------------
 //    Report an error in an object

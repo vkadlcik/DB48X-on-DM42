@@ -616,13 +616,13 @@ COMMAND_BODY(Size)
 }
 
 
-COMMAND_BODY(Get)
+static object::result get(bool increment)
 // ----------------------------------------------------------------------------
-//   Get an element in a list
+//   Get element from structure, incrementing index or not
 // ----------------------------------------------------------------------------
 {
     if (!rt.args(2))
-        return ERROR;
+        return object::ERROR;
 
     // Check we have an object at level 2
     if (object_p items = rt.stack(1))
@@ -633,27 +633,61 @@ COMMAND_BODY(Get)
             if (!items)
             {
                 rt.undefined_name_error();
-                return ERROR;
+                return object::ERROR;
             }
         }
 
         object_p item = items->at(rt.stack(0));
         if (!item)
+        {
             rt.index_error();
+        }
+        else if (increment)
+        {
+            rt.push(item);
+            object_g index = rt.stack(1);
+            bool wrap = items->next_index(&index.Safe());
+            if (index.Safe())
+            {
+                rt.stack(1, index);
+                Settings.IndexWrapped(wrap);
+                return object::OK;
+            }
+        }
         else if (rt.pop() && rt.top(item))
-            return OK;
+        {
+            return object::OK;
+        }
     }
-    return ERROR;
+    return object::ERROR;
 }
 
 
-COMMAND_BODY(Put)
+COMMAND_BODY(Get)
 // ----------------------------------------------------------------------------
-//   Put an element in a list
+//   Get an element in a list
+// ----------------------------------------------------------------------------
+{
+    return get(false);
+}
+
+
+COMMAND_BODY(GetI)
+// ----------------------------------------------------------------------------
+//   Get an element in a list and increment the index
+// ----------------------------------------------------------------------------
+{
+    return get(true);
+}
+
+
+static object::result put(bool increment)
+// ----------------------------------------------------------------------------
+//   Put element in structure, incrementing index or not
 // ----------------------------------------------------------------------------
 {
     if (!rt.args(3))
-        return ERROR;
+        return object::ERROR;
 
     // Check that we have an object at level 2
     if (object_p items = rt.stack(2))
@@ -665,32 +699,61 @@ COMMAND_BODY(Put)
             if (!items)
             {
                 rt.undefined_name_error();
-                return ERROR;
+                return object::ERROR;
             }
         }
 
-        if (object_p result = items->at(rt.stack(1), rt.stack(0)))
+        if (object_g result = items->at(rt.stack(1), rt.top()))
         {
+            if (increment)
+            {
+                object_g index = rt.stack(1);
+                bool wrap = result->next_index(&index.Safe());
+                if (index.Safe())
+                {
+                    rt.stack(1, index.Safe());
+                    Settings.IndexWrapped(wrap);
+                }
+            }
             if (name)
             {
                 name = rt.stack(2)->as_quoted<symbol>();
                 if (directory::update(name, result))
                 {
-                    rt.drop(3);
-                    return OK;
+                    rt.drop(increment ? 1 : 3);
+                    return object::OK;
                 }
             }
             else
             {
-                if (rt.drop(2) && rt.top(result))
-                    return OK;
+                if (rt.drop(increment ? 1 : 2))
+                    if (rt.stack(increment ? 1 : 0, result))
+                        return object::OK;
             }
         }
 
         if(!rt.error())
             rt.index_error();
     }
-    return ERROR;
+    return object::ERROR;
+}
+
+
+COMMAND_BODY(Put)
+// ----------------------------------------------------------------------------
+//   Put an element in a list
+// ----------------------------------------------------------------------------
+{
+    return put(false);
+}
+
+
+COMMAND_BODY(PutI)
+// ----------------------------------------------------------------------------
+//   Put an element in a list, incrementing the index
+// ----------------------------------------------------------------------------
+{
+    return put(true);
 }
 
 

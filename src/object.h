@@ -415,6 +415,12 @@ struct object
     // ------------------------------------------------------------------------
 
 
+    bool next_index(object_p *index) const;
+    // ------------------------------------------------------------------------
+    //   Find the next index for the current object, returns true if wraps
+    // ------------------------------------------------------------------------
+
+
     result insert(user_interface &i) const
     // ------------------------------------------------------------------------
     //   Insert in the editor at cursor position, with possible offset

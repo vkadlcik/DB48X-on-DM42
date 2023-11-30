@@ -359,33 +359,65 @@ unintentional differences, since the implementation is completely new.
   `ROOT`.
 
 
-### Representation of objects
+### Numbers
 
-* Internally, the calculator deals with various representations for
-  numbers. Notably, it keeps integer values and fractions in exact form for
+* DB48X has several separate representations for numbers: integers, fractions
+  and decimal. Notably, it keeps integer values and fractions in exact form for
   as long as possible to optimize both performance and memory usage.
-  This is somewhat similar to what the HP49 and HP50 implemented, where there is
-  a difference between `2` (where `TYPE` returns 28) and `2.` (where `TYPE`
-  return 0).
+  This is closer to the HP50G in exact mode than to the HP48. Like
+  the HP50G, DB48X will distinguish `1` (an integer) from `1.` (a decimal
+  value), and the `TYPE` command will return distinct values.
 
-* The calculator features at least 3 floating-point precisions using 32-bit,
-  64-bit and 128-bit respectively, provided by the DMCP's existing Intel Binary
-  Decimal Floating-Point library. The 128-bit format gives the calculator 34
-  significant digits of precision, like the DM42. DB48X may support other
-  formats in the future, like the arbitrary-precision floating-point found in
-  newRPL. The `Precision` command (in the `DisplayModesMenu`) can be used to
-  select the precision for arithmetic operations.
+* Integer and fraction arithmetic can be performed with arbitrary
+  precision, similar to the HP50G. The `MaxNumberBits` setting controls how much
+  memory can be used for integer arithmetic.
+
+* DB48X has true fractions. From a user's perspective, this is somewhat similar
+  to fractions on the HP50G, except that fractions are first-class numbers,
+  whereas the HP50G treats them like expressions. On the HP50G, `1 3 / TYPE`
+  returns `9.`, like for `'A + B'`. On DB48X, the `TYPE` for fractions is
+  different than for expressions. Fractions can be shown either as
+  `MixedFractions` or `ImproperFractions`.
+
+* On HP50G, decimal numbers often outperform integers or fractions, and
+  benchmark code will contain `1.` instead of `1` for that reason. On DB48X,
+  arithmetic on integers and fractions is generally faster.
+
+* Like the HP Prime, DB48X displays a leading zero for decimal values, whereas
+  HP RPL calculators do not. For example, it will display `0.5` and not `.5`.
+
+* DB48X has two distinct representations for complex numbers, polar and
+  rectangular, and transparently converts between the two formats as needed.
+  The polar representation internally uses fractions of pi for the
+  angle, which allows exact computations. By contrast, HP RPL implementations
+  always represent complex numbers in rectangular form internally, possibly
+  converting it to polar form at display time.
+
+* DB48X features at least 3 floating-point precisions using 32-bit, 64-bit and
+  128-bit respectively, provided by the DMCP's existing [Intel Binary Decimal
+  Floating-Point library](#intel-decimal-floating-point-math). The 128-bit
+  format gives the calculator 34 significant digits of precision, like the
+  DM42. DB48X may support other formats in the future, like the
+  arbitrary-precision floating-point found in newRPL. The `Precision` command
+  (in the `DisplayModesMenu`) can be used to select the precision for arithmetic
+  operations.
 
 * Based numbers with an explicit base, like `#123h` keep their base, which makes
   it possible to show on stack binary and decimal numbers side by side. Mixed
   operations convert to the base in stack level X, so that `#10d #A0h +`
   evaluates as `#AAh`. Based numbers without an explicit base change base
-  depending on the `Base` setting, much like based numbers on the HP48.
+  depending on the [Base](#base) setting, much like based numbers on the HP48,
+  but with the option to any base between 2 and 36. In addition to the
+  HP-compatible trailing letter syntax (e.g. `#1Ah`), the base can be given
+  before the number (e.g. `16#1A`), which works for all supported bases.
+
+### Representation of objects
 
 * The storage of data in memory uses a denser format than on the HP48.
   Therefore, objects will almost always use less space on DB48X. Notably, the
   most frequently used functions and data types consume only one byte on DB48X,
-  as opposed to 5 nibbles (2.5 bytes) on the HP48.
+  as opposed to 5 nibbles (2.5 bytes) on the HP48. A number like `123` consumes
+  2 bytes on DB48X vs. 7 on the HP50 and 10.5 on the HP48.
 
 * Numerical equality can be tested with `=`,  whereas object equality is tested
   using `==`. For example, `0=0.0` is true, but `0==0.0` is false, because `0`
@@ -395,6 +427,11 @@ unintentional differences, since the implementation is completely new.
   computations to mimic the HP50G behaviour with limited benefit, `Size` returns
   1 for integers, algebraic expressions and unit objects.
 
+* The `Type` command returns HP-compatible values that are sometimes imprecise
+  (e.g. it cannot distinguish between polar and rectangular complex values).
+  The `TypeName` command is an extension that returns more precise textual
+  information, and should be preferred both for readability and future
+  compatibility.
 
 ### Alignment with SwissMicros calculators
 
@@ -2849,7 +2886,7 @@ Hewlett-Packard RPL implementation.
 * [MathMenu](#mathmenu)
 * [MathModesMenu](#mathmodesmenu)
 * [MatrixMenu](#matrixmenu)
-* [MaxBigNumBits](#maxbignumbits): Maximum number of bits for a big integer
+* [MaxNumberBits](#maxnumberbits): Maximum number of bits used by a number
 * [MaxRewrites](#maxrewrites): Maximum number of equation rewrites
 * [MemMenu](#memmenu)
 * [MenuFirstPage](#menufirstpage)
@@ -3468,7 +3505,7 @@ shifts. They operate on [based numbers](#based-numbers),
 [integers](#integers) or [big integers](#big-integers). When operating on based
 numbers, the operation happens on the number of bits defined by the
 [WordSize](#wordsize) setting. For integer values, the maximum number of bits is
-defined by the [MaxBigNumBits](#maxbignumbits) setting.
+defined by the [MaxNumberBits](#maxnumberbits) setting.
 
 ## ShiftLeft (SL)
 
@@ -5528,15 +5565,21 @@ Defines the maximum number of rewrites in an equation.
 'B+A' rewrite` can never end, since it keeps rewriting terms. This setting
 indicates how many attempts at rewriting will be done before erroring out.
 
-## MaxBigNumBits
+## MaxNumberBits
 
-Define the maxmimum number of bits for a large integer.
+Define the maxmimum number of bits for numbers.
 
 Large integer operations can take a very long time, notably when displaying them
 on the stack. With the default value of 1024 bits, you can compute `100!` but
 computing `200!` will result in an error, `Number is too big`. You can however
-compute it seting a higher value for `MaxBigNumBits`, for example
-`2048 MaxBigNumBits`.
+compute it seting a higher value for `MaxNumberBits`, for example
+`2048 MaxNumberBits`.
+
+This setting applies to integer components in a number. In other words, it
+applies separately for the numerator and denominator in a fraction, or for the
+real and imaginary part in a complex number. A complex number made of two
+fractions can therefore take up to four times the number of bits specified by
+this setting.
 
 ## ToFractionIterations (→QIterations, →FracIterations)
 
@@ -5604,6 +5647,24 @@ When this setting is active, statistics functions that return sums, such as
 `ΣXY` or `ΣX²`, will adjust their input according to the current fitting model
 in special variable `ΣParameters`, in the same way as required for
 `LinearRegression`.
+
+## DetailedTypes
+
+The `Type` command returns detailed DB48X type values, which can distinguish
+between all DB48X object types, e.g. distinguish between polar and rectangular
+objects, or the three internal representations for decimal numbers. Returned
+values are all negative, which distinguishes them from RPL standard values, and
+makes it possible to write code that accepts both the compatible and detailed
+values.
+
+This is the opposite of [CompatibleTypes](#compatibletypes).
+
+## CompatibleTypes
+
+The `Type` command returns values as close to possible to the values documented
+on page 3-262 of the HP50G advanced reference manual. This is the opposite of
+[NativeTypes](#nativetypes).
+
 
 # States
 
@@ -6261,11 +6322,23 @@ value of the integer, and `xx` represents the integer type, as returned by the
 
 Return the type of the object as a numerical value. The value is not guaranteed
 to be portable across versions of DB48X (and pretty much is guarantteed to _not_
-be portable), nor to ever match the value returned by the `TYPE` command on the
-HP48.
+be portable at the current stage of development).
+
+If the `CompatibleTypes` setting is active, the returned value roughly matches
+the value returned by the HP50G. It always returns `29` for arrays, not `3`
+(real array) nor `4` (complex array). It returns `1` for both polar and
+rectangular complex numbers, irrespective of their precision. 128-bit decimal
+values return `21` (extended real), 32-bit and 64-bit return `0` (real number).
+The separation between `18` (built-in function) and `19` (built-in command) may
+not be accurate.
+
+If the `DetailedTypes` setting is active, the return value is negative, and
+matches the internal representation precisely. For example, distinct values will
+be returned for fractions and expressions.
 
 *Note* The [TypeName](#typename) command returns the type as text, and
-this is less likely to change from one release to the next.
+this is less likely to change from one release to the next. DB48X-only code
+should favor the use of `TypeName`, both for portability and readability.
 
 ## TypeName
 

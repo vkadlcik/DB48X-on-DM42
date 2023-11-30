@@ -137,11 +137,23 @@ value of the integer, and `xx` represents the integer type, as returned by the
 
 Return the type of the object as a numerical value. The value is not guaranteed
 to be portable across versions of DB48X (and pretty much is guarantteed to _not_
-be portable), nor to ever match the value returned by the `TYPE` command on the
-HP48.
+be portable at the current stage of development).
+
+If the `CompatibleTypes` setting is active, the returned value roughly matches
+the value returned by the HP50G. It always returns `29` for arrays, not `3`
+(real array) nor `4` (complex array). It returns `1` for both polar and
+rectangular complex numbers, irrespective of their precision. 128-bit decimal
+values return `21` (extended real), 32-bit and 64-bit return `0` (real number).
+The separation between `18` (built-in function) and `19` (built-in command) may
+not be accurate.
+
+If the `DetailedTypes` setting is active, the return value is negative, and
+matches the internal representation precisely. For example, distinct values will
+be returned for fractions and expressions.
 
 *Note* The [TypeName](#typename) command returns the type as text, and
-this is less likely to change from one release to the next.
+this is less likely to change from one release to the next. DB48X-only code
+should favor the use of `TypeName`, both for portability and readability.
 
 ## TypeName
 

@@ -663,6 +663,7 @@ FLAG(NoCurveFilling,            CurveFilling)
 FLAG(CompatibleGROBs,           PackedBitmaps)
 FLAG(ZeroPowerZeroIsUndefined,  ZeroPowerZeroIsOne)
 FLAG(OnesComplement,            TwosComplement)
+FLAG(DetailedTypes,             CompatibleTypes)
 
 SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
 SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)

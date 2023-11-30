@@ -63,40 +63,45 @@ PARSE_BODY(command)
 //    Try to parse this as a command, using either short or long name
 // ----------------------------------------------------------------------------
 {
-    id      i      = p.candidate;
-    bool    eq     = p.precedence;
+    // We scan all the commands in one loop under 'Drop'. Skip all other
+    id i = p.candidate;
+    if (i != ID_Drop)
+        return SKIP;
 
+    bool    eq     = p.precedence;
+    id      type   = id(0);
     id      found  = id(0);
     cstring ref    = cstring(utf8(p.source));
     size_t  maxlen = p.length;
     size_t  len    = maxlen;
 
-    bool    disambiguate = eq && (i == ID_sq || i == ID_cubed || i == ID_inv);
-    cstring basename     = cstring(name(i));
-    cstring fancyname    = disambiguate ? nullptr : cstring(object::fancy(i));
-
-    for (uint attempt = 0; !found; attempt++)
+    for (size_t i = 0; i < spelling_count; i++)
     {
-        cstring cmd = attempt == 0 ? fancyname : basename;
-        if (attempt >= 2)
+        if (!is_command(spellings[i].type))
+            continue;
+        if (cstring cmd = spellings[i].name)
         {
-            uint count = attempt - 2;
-            cmd = nullptr;
-#define ID(i)
-#define ALIAS(op, name)         if (i == ID_##op && count-- == 0) cmd = name;
-#include "ids.tbl"
-        }
-        if (!cmd)
-            break;
+            if (type != spellings[i].type)
+            {
+                type = spellings[i].type;
 
-        len = strlen(cmd);
-        if (len <= maxlen
-            && strncasecmp(ref, cmd, len) == 0
-            && (len >= maxlen
-                || (eq && (!is_valid_as_name_initial(utf8(cmd)) ||
-                           !is_valid_as_name_initial(utf8(ref + len))))
-                || is_separator(utf8(ref + len))))
-            found = id(i);
+                // When parsing an equation, parse x³ as cubed(x)
+                if (eq && (type == ID_sq || type == ID_cubed || type == ID_inv))
+                    continue;
+            }
+
+            len = strlen(cmd);
+            if (len <= maxlen
+                && strncasecmp(ref, cmd, len) == 0
+                && (len >= maxlen
+                    || (eq && (!is_valid_as_name_initial(utf8(cmd)) ||
+                               !is_valid_as_name_initial(utf8(ref + len))))
+                    || is_separator(utf8(ref + len))))
+            {
+                found = type;
+                break;
+            }
+        }
     }
 
     record(command,
@@ -125,23 +130,11 @@ RENDER_BODY(command)
         auto format = Settings.CommandDisplayMode();
 
         // Ensure that we display + as `+` irrespective of mode
-        utf8 fname;
-        switch(ty)
-        {
-#define ID(id)
-#define OP(id, name)    case ID_##id:   fname = utf8(name); break;
-#include "ids.tbl"
-        default:
-            fname = format == ID_LongForm ? fancy(ty) : name(ty);
-            break;
-        }
-
+        utf8 fname = object::name(ty);
+        utf8 bname = nullptr;
         if (format != ID_LongForm)
-        {
-#define ID(id)
-#define ALIAS(id, name) if (ty == ID_##id)      fname = utf8(name);
-#include "ids.tbl"
-        }
+            for (uint v = 1; (bname = object::name(ty, v)); v++)
+                fname = bname;
 
         while (unit::mode)
         {

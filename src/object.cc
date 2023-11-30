@@ -83,6 +83,58 @@ RECORDER(object_errors,  16, "Runtime errors on objects");
 RECORDER(assert_error,   16, "Assertion failures");
 
 
+const object::spelling object::spellings[] =
+// ----------------------------------------------------------------------------
+//   Table of all the possible spellings for a given type
+// ----------------------------------------------------------------------------
+{
+#define ALIAS(ty, name)         { ID_##ty, name },
+#define ID(ty)                  ALIAS(ty, #ty)
+#define NAMED(ty, name)         ALIAS(ty, name) ALIAS(ty, #ty)
+#include "ids.tbl"
+};
+
+const size_t object::spelling_count  = sizeof(spellings) / sizeof(*spellings);
+
+
+utf8 object::name(id t, uint index)
+// ----------------------------------------------------------------------------
+//   Return the name of the object at given index
+// ----------------------------------------------------------------------------
+{
+    for (size_t i = 0; i < spelling_count; i++)
+        if (t == spellings[i].type)
+            if (cstring name = spellings[i].name)
+                if (index-- == 0)
+                    return utf8(name);
+    return nullptr;
+}
+
+
+utf8 object::fancy(id t)
+// ----------------------------------------------------------------------------
+//   Return the fancy name for the given index
+// ----------------------------------------------------------------------------
+{
+    utf8 fname = nullptr;
+    for (size_t i = 0; i < spelling_count; i++)
+    {
+        if (t == spellings[i].type)
+        {
+            if (cstring name = spellings[i].name)
+                fname = utf8(name);
+        }
+        else if (fname)
+        {
+            return fname;
+        }
+    }
+
+    return fname;
+}
+
+
+
 const object::dispatch object::handler[NUM_IDS] =
 // ----------------------------------------------------------------------------
 //   Table of handlers for each object type
@@ -92,8 +144,6 @@ const object::dispatch object::handler[NUM_IDS] =
 #define CMD(id)         ID(id)
 #define NAMED(id, label)                                     \
     [ID_##id] = {                                            \
-        .name         = #id,                                 \
-        .fancy        = label ? label : #id,                 \
         .size         = (size_fn) id::do_size,               \
         .parse        = (parse_fn) id::do_parse,             \
         .help         = (help_fn) id::do_help,               \

@@ -2941,7 +2941,6 @@ bool user_interface::handle_help(int &key)
     if (!showing_help())
     {
         // Exit if we are editing or entering digits
-        bool editing  = rt.editing();
         if (last == KEY_SHIFT)
             return false;
 

@@ -44,23 +44,25 @@ MENU_BODY(Catalog)
     items_init(mi, nitems, 1);
     ui.menu_auto_complete();
     list_commands(mi);
+    if (mi.page >= mi.pages)
+        mi.page = 0;
     return OK;
 }
 
 
-static uint16_t sorted_ids[object::NUM_IDS];
+static uint16_t *sorted_ids = nullptr;
 
-
-static uint       NUM_COMMANDS = 0;
 
 static int sort_ids(const void *left, const void *right)
 // ----------------------------------------------------------------------------
 //   Sort the IDs alphabetically based on their fancy name
 // ----------------------------------------------------------------------------
 {
-    object::id l = object::id(*((uint16_t *) left));
-    object::id r = object::id(*((uint16_t *) right));
-    return strcasecmp(cstring(object::fancy(l)), cstring(object::fancy(r)));
+    uint16_t l = *((uint16_t *) left);
+    uint16_t r = *((uint16_t *) right);
+    if (!object::spellings[l].name || !object::spellings[r].name)
+        return !!object::spellings[l].name - !!object::spellings[r].name;
+    return strcasecmp(object::spellings[l].name, object::spellings[r].name);
 }
 
 
@@ -69,12 +71,14 @@ static void initialize_sorted_ids()
 //   Sort IDs alphabetically
 // ----------------------------------------------------------------------------
 {
-    uint count = 0;
-    for (uint i = 0; i < object::NUM_IDS; i++)
-        if (object::is_command(object::id(i)))
-            sorted_ids[count++] = object::id(i);
-    qsort(sorted_ids, count, sizeof(sorted_ids[0]), sort_ids);
-    NUM_COMMANDS = count;
+    size_t count = object::spelling_count;
+    sorted_ids   = (uint16_t *) realloc(sorted_ids, count * sizeof(uint16_t));
+    if (sorted_ids)
+    {
+        for (uint i = 0; i < count; i++)
+            sorted_ids[i] = i;
+        qsort(sorted_ids, count, sizeof(sorted_ids[0]), sort_ids);
+    }
 }
 
 
@@ -85,38 +89,35 @@ static bool matches(utf8 start, size_t size, utf8 name)
 {
     size_t len   = strlen(cstring(name));
     bool   found = false;
-    // printf("[%.*s] vs [%s] is ", int(size), start, name);
-    for (uint o = 0; !found && o + size < len; o++)
+    for (uint o = 0; !found && o + size <= len; o++)
     {
         found = true;
         for (uint i = 0; found && i < size; i++)
             found = tolower(start[i]) == tolower(name[i + o]);
     }
-    // printf("%s\n", found ? "true" : "false");
     return found;
 }
 
 
 uint Catalog::count_commands()
 // ----------------------------------------------------------------------------
-//    Count the variables in the current directory
+//    Count the commands to display in the catalog
 // ----------------------------------------------------------------------------
 {
-    if (!sorted_ids[0])
-        initialize_sorted_ids();
-
     utf8   start  = 0;
     size_t size   = 0;
     bool   filter = ui.current_word(start, size);
     uint   count  = 0;
 
-    for (uint i = 0; i < NUM_COMMANDS; i++)
+    for (size_t i = 0; i < spelling_count; i++)
     {
-        id sorted = object::id(sorted_ids[i]);
-        if (!filter                             ||
-            matches(start, size, name(sorted))  ||
-            matches(start, size, fancy(sorted)))
-            count++;
+        object::id ty = object::spellings[i].type;
+        if (!object::is_command(ty))
+            continue;
+
+        if (cstring name = spellings[i].name)
+            if (!filter || matches(start, size, utf8(name)))
+                count++;
     }
 
     return count;
@@ -125,20 +126,25 @@ uint Catalog::count_commands()
 
 void Catalog::list_commands(info &mi)
 // ----------------------------------------------------------------------------
-//   Fill the menu with variable names
+//   Fill the menu with all possible spellings of the command
 // ----------------------------------------------------------------------------
 {
     utf8   start  = nullptr;
     size_t size   = 0;
     bool   filter = ui.current_word(start, size);
 
-    for (uint i = 0; i < NUM_COMMANDS; i++)
+    if (!sorted_ids)
+        initialize_sorted_ids();
+
+    for (size_t i = 0; i < spelling_count; i++)
     {
-        id sorted = object::id(sorted_ids[i]);
-        if (!filter                                  ||
-            matches(start, size, name(sorted))       ||
-            matches(start, size, fancy(sorted)))
-            menu::items(mi, cstring(fancy(sorted)),
-                        command::static_object(sorted));
+        uint16_t j = sorted_ids ? sorted_ids[i] : i;
+        object::id ty = object::spellings[j].type;
+        if (!object::is_command(ty))
+            continue;
+
+        if (cstring name = spellings[j].name)
+            if (!filter || matches(start, size, utf8(name)))
+                menu::items(mi, name, command::static_object(ty));
     }
 }

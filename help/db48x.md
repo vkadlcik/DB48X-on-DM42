@@ -5999,7 +5999,6 @@ The equations for these transformations are:
 where b is the intercept and m is the slope. The logarithmic model requires
 positive x-values (XCOL), the exponential model requires positive y-values
 (YCOL), and the power model requires positive x- and y-values.
-CMD(LinearRegression) ALIAS(LinearRegression, "LR")
 
 ## Intercept
 

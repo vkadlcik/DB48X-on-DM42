@@ -82,6 +82,7 @@ ERROR(no_data,                  "ΣData variable not found")
 ERROR(malformed_local_program,  "Malformed local program")
 ERROR(invalid_setting,          "Invalid setting command")
 ERROR(screenshot_capture,       "Screenshot capture failed")
+ERROR(unsupported_flag,         "Unsupported system flag")
 
 // Filesystem errors
 #ifndef FRROR

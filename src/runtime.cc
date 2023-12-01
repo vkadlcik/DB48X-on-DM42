@@ -209,7 +209,7 @@ bool runtime::integrity_test()
 //   Check all the objects in a given range
 // ----------------------------------------------------------------------------
 {
-    return integrity_test(rt.Globals,rt.Temporaries,rt.Stack,rt.Returns);
+    return integrity_test(rt.Globals,rt.Temporaries,rt.Stack,rt.CallStack);
 }
 
 

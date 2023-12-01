@@ -703,7 +703,7 @@ SETTING_VALUE(Bin, "Binary",            Base, 2)
 SETTING_VALUE(Oct, "Octal",             Base, 8)
 SETTING_VALUE(Dec, "Decimal",           Base, 10)
 SETTING_VALUE(Hex, "Hexadecimal",       Base, 16)
-SETTING_BITS(Base,              6,      1, 37,                  16)
+SETTING_BITS(Base,              6,      2, 37,                  16)
 
 SETTING_BITS(ResultFont,        4,      settings::FIRST_FONT, settings::LAST_FONT,     settings::STACK)
 SETTING_BITS(StackFont,         4,      settings::FIRST_FONT, settings::LAST_FONT,     settings::STACK)

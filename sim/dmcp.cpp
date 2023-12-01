@@ -1009,7 +1009,7 @@ void rtc_read(tm_t * tm, dt_t *dt)
 
 cstring get_wday_shortcut(int day)
 {
-    static cstring dow[] = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+    static cstring dow[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
     return dow[day];
 }
 

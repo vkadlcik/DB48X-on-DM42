@@ -431,7 +431,7 @@ CMD(PurgeAll)
 NAMED(Mem, "AvailableMemory")
 CMD(FreeMemory)
 CMD(SystemMemory)
-CMD(GarbageCollect)
+CMD(GarbageCollect)             ALIAS(GarbageCollect, "GC")
 
 // Object commands
 NAMED(Compile, "Text→")         ALIAS(Compile, "Str→")

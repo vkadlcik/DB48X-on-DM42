@@ -371,7 +371,7 @@ size_t runtime::gc()
             if (!found)
             {
                 utf8 *label = (utf8 *) &ui.menu_label[0][0];
-                for (uint l = 0; l < ui.NUM_MENUS; l++)
+                for (uint l = 0; !found && l < ui.NUM_MENUS; l++)
                     found = label[l] >= start && label[l] < end;
             }
         }

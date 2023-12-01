@@ -2978,8 +2978,7 @@ bool user_interface::handle_help(int &key)
                     return true;
                 }
             }
-            if (!editing)
-                key = 0;
+            key = 0;
         }
         else
         {

@@ -340,6 +340,55 @@ object::id algebraic::bignum_promotion(algebraic_g &x)
 }
 
 
+object::id algebraic::based_promotion(algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   Promote the value x to a based number
+// ----------------------------------------------------------------------------
+{
+    id xt = x->type();
+
+    switch (xt)
+    {
+    case ID_integer:
+    case ID_neg_integer:
+        if (Settings.WordSize() < 64)
+        {
+            ularge value = integer_p(x.Safe())->value<ularge>();
+            if (xt == ID_neg_integer)
+                value = -value;
+            x = rt.make<based_integer>(value);
+            return ID_based_integer;
+        }
+        else
+        {
+            xt = xt == ID_neg_integer ? ID_neg_bignum : ID_bignum;
+            integer_g xi = integer_p(x.Safe());
+            bignum_g  xb = rt.make<bignum>(xt, xi);
+            x = xb.Safe();
+        }
+
+    case ID_bignum:
+    case ID_neg_bignum:
+    {
+        size_t   sz   = 0;
+        gcbytes  data = bignum_p(x.Safe())->value(&sz);
+        bignum_g xb   = rt.make<bignum>(ID_based_bignum, data, sz);
+        if (xt == ID_neg_bignum)
+        {
+            bignum_g zero = rt.make<based_bignum>(0);
+            xb = zero - xb;
+        }
+        x = xb.Safe();
+        return ID_based_bignum;
+    }
+
+    default:
+        break;
+    }
+    return xt;
+}
+
+
 bool algebraic::decimal_to_fraction(algebraic_g &x)
 // ----------------------------------------------------------------------------
 //  Check if we can promote the number to a fraction

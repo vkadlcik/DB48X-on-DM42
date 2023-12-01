@@ -412,22 +412,25 @@ bignum_g operator~(bignum_r x)
 }
 
 
-bignum_g bignum::add_sub(bignum_r yg, bignum_r xg, bool issub)
+bignum_g bignum::add_sub(bignum_r y, bignum_r x, bool issub)
 // ----------------------------------------------------------------------------
-//   Add the two bignum values, result has type of x
+//   Add the two bignum values
 // ----------------------------------------------------------------------------
 {
-    if (!xg.Safe() || !yg.Safe())
+    if (!x.Safe() || !y.Safe())
         return nullptr;
 
-    id yt = yg->type();
-    id xt = xg->type();
+    id       yt    = y->type();
+    id       xt    = x->type();
+    bool     based = is_based(xt) || is_based(yt);
+    bignum_g xg    = x;
+    bignum_g yg    = y;
 
     // Check if we have opposite signs
     bool samesgn = (xt == ID_neg_bignum) == (yt == ID_neg_bignum);
     if (samesgn == issub)
     {
-        int cmp = compare(yg, xg, true);
+        int cmp = based ? 0 : compare(yg, xg, true);
         if (cmp >= 0)
         {
             // abs Y > abs X: result has opposite type of X

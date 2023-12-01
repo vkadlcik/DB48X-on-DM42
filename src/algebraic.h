@@ -59,6 +59,9 @@ struct algebraic : command
     // Promotion of integer to bignum
     static id   bignum_promotion(algebraic_g &x);
 
+    // Promotion to based numbers
+    static id   based_promotion(algebraic_g &x);
+
     // Convert to a fraction
     static bool decimal_to_fraction(algebraic_g &x);
 

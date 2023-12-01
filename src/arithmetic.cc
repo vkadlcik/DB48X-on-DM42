@@ -708,7 +708,7 @@ inline bool div::bignum_ok(bignum_g &x, bignum_g &y)
         result = bignum_p(r) != nullptr;
     if (result)
     {
-        if (r->is_zero())
+        if (is_based(type) || r->is_zero())
             x = q;                  // Integer result
         else
             x = bignum_p(fraction_p(big_fraction::make(x, y))); // Wrong-cast
@@ -1202,22 +1202,29 @@ algebraic_p arithmetic::evaluate(id          op,
         }
     }
 
-    // Integer types%
+    // Integer types
     if (is_integer(xt) && is_integer(yt))
     {
+        bool based = is_based(xt) || is_based(yt);
+        if (based)
+        {
+            xt = algebraic::based_promotion(x);
+            yt = algebraic::based_promotion(y);
+        }
+
         if (!is_bignum(xt) && !is_bignum(yt))
         {
             // Perform conversion of integer values to the same base
             integer_p xi = integer_p(object_p(x.Safe()));
             integer_p yi = integer_p(object_p(y.Safe()));
             uint      ws = Settings.WordSize();
-            if (xi->native() && yi->native() && (!is_based(xt) || ws < 64))
+            if (xi->native() && yi->native() && (ws < 64 || !based))
             {
                 ularge xv = xi->value<ularge>();
                 ularge yv = yi->value<ularge>();
                 if (ops.integer_ok(xt, yt, xv, yv))
                 {
-                    if (is_based(xt))
+                    if (based)
                         xv &= (1UL << ws) - 1UL;
                     return rt.make<integer>(xt, xv);
                 }

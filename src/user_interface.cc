@@ -4514,15 +4514,18 @@ void debug_printf(int row, cstring format, ...)
 //   Debug printf on the given row
 // ----------------------------------------------------------------------------
 {
-    char buffer[256];
-    va_list va;
-    va_start(va, format);
-    vsnprintf(buffer, sizeof(buffer), format, va);
-    va_end(va);
-    size  h = HelpFont->height();
-    coord y = row * h;
-    Screen.text(0, y, utf8(buffer), HelpFont, pattern::white, pattern::black);
-    ui.draw_dirty(0, y, LCD_W, y + h - 1);
+    if (HelpFont)
+    {
+        char buffer[256];
+        va_list va;
+        va_start(va, format);
+        vsnprintf(buffer, sizeof(buffer), format, va);
+        va_end(va);
+        size  h = HelpFont->height();
+        coord y = row * h;
+        Screen.text(0, y, utf8(buffer), HelpFont, pattern::white, pattern::black);
+        ui.draw_dirty(0, y, LCD_W, y + h - 1);
+    }
 }
 
 

@@ -4,7 +4,7 @@
 //
 //   File Description:
 //
-//
+//     Numerical root finder
 //
 //
 //

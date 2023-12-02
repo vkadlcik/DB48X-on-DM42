@@ -97,7 +97,8 @@ PARSE_BODY(locals)
         }
         if (!is_valid_as_name_initial(cp))
         {
-            rt.syntax_error().source(s).command("locals");
+            object_p cmd = static_object(ID_locals);
+            rt.syntax_error().source(s).command(cmd);
             return ERROR;
         }
 
@@ -132,7 +133,8 @@ PARSE_BODY(locals)
     // If we did not get a program after the names, fail
     if (!is_program_separator(cp))
     {
-        rt.syntax_error().command("locals").source(s);
+        object_p cmd = static_object(ID_locals);
+        rt.syntax_error().command(cmd).source(s);
         return ERROR;
     }
 

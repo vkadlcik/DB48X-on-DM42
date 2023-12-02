@@ -152,7 +152,7 @@ struct derived : arithmetic                                             \
     PREC_DECL(Precedence);                                              \
     EVAL_DECL(derived)                                                  \
     {                                                                   \
-        rt.command(fancy(ID_##derived));                                \
+        rt.command(o);                                                  \
         return arithmetic::evaluate<derived>();                         \
     }                                                                   \
     static algebraic_g run(algebraic_r x, algebraic_r y)                \

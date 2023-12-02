@@ -87,7 +87,7 @@ struct derived : logical                                                \
     PREC_DECL(prec);                                                    \
     EVAL_DECL(derived)                                                  \
     {                                                                   \
-        rt.command(fancy(ID_##derived));                                \
+        rt.command(o);                                                  \
         return evaluate<derived>();                                     \
     }                                                                   \
                                                                         \
@@ -114,7 +114,7 @@ struct derived : logical                                                \
     PREC_DECL(NONE);                                                    \
     EVAL_DECL(derived)                                                  \
     {                                                                   \
-        rt.command(fancy(ID_##derived));                                \
+        rt.command(o);                                                  \
         return evaluate<derived>();                                     \
     }                                                                   \
     enum { numerical = num };                                           \

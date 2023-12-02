@@ -287,7 +287,8 @@ bool power_check(bool draw_off_image)
                                 "Press the ON/EXIT key to resume");
             if (lowbat)
             {
-                rt.command("Low Battery");
+                symbol_p cmd = symbol::make("Low power");
+                rt.command(cmd);
                 rt.error("Connect to USB / change battery");
                 ui.draw_error();
                 refresh_dirty();

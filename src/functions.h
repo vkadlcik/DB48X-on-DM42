@@ -100,7 +100,7 @@ public:                                                                 \
     PREC_DECL(FUNCTION);                                                \
     EVAL_DECL(derived)                                                  \
     {                                                                   \
-        rt.command(fancy(ID_##derived));                                \
+        rt.command(o);                                                  \
         return evaluate();                                              \
     }                                                                   \
     static result evaluate()                                            \
@@ -159,7 +159,7 @@ public:                                                                 \
     PREC_DECL(FUNCTION);                                                \
     EVAL_DECL(derived)                                                  \
     {                                                                   \
-        rt.command(fancy(ID_##derived));                                \
+        rt.command(o);                                                  \
         return evaluate();                                              \
     }                                                                   \
     extra                                                               \

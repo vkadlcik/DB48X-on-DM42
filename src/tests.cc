@@ -3518,7 +3518,9 @@ tests &tests::command(cstring ref)
 // ----------------------------------------------------------------------------
 {
     ready();
-    utf8 cmd = rt.command();
+    text_p cmdo = rt.command();
+    size_t sz = 0;
+    utf8 cmd = cmdo->value(&sz);
 
     if (!ref && cmd)
         return explain("Expected no command, got [", cmd, "]").fail();

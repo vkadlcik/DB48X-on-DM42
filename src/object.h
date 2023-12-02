@@ -317,7 +317,7 @@ struct object
     //  Evaluate an object by calling the handler
     // ------------------------------------------------------------------------
     {
-        record(eval, "Evaluating %+s %p", name(), this);
+        record(eval, "Evaluating %t", this);
         return ops().evaluate(this);
     }
 
@@ -334,7 +334,7 @@ struct object
     //   Render the object into an existing renderer
     // ------------------------------------------------------------------------
     {
-        record(render, "Rendering %+s %p into %p", name(), this, &r);
+        record(render, "Rendering %p into %p", this, &r);
         return ops().render(this, r);
     }
 
@@ -475,13 +475,25 @@ struct object
     }
 
 
-    static utf8 name(id i, uint index = 0);
+    static utf8 alias(id i, uint index);
     // ------------------------------------------------------------------------
-    //   Return the name for a given ID
+    //   Return the nth alias for a given ID
+    // ------------------------------------------------------------------------
+
+
+    static utf8 name(id i);
+    // ------------------------------------------------------------------------
+    //   Return the name for a given ID with current style
     // ------------------------------------------------------------------------
 
 
     static utf8 fancy(id i);
+    // ------------------------------------------------------------------------
+    //   Return the fancy name for a given ID
+    // ------------------------------------------------------------------------
+
+
+    static utf8 old_name(id i);
     // ------------------------------------------------------------------------
     //   Return the fancy name for a given ID
     // ------------------------------------------------------------------------

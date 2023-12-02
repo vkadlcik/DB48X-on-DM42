@@ -97,7 +97,7 @@ const object::spelling object::spellings[] =
 const size_t object::spelling_count  = sizeof(spellings) / sizeof(*spellings);
 
 
-utf8 object::name(id t, uint index)
+utf8 object::alias(id t, uint index)
 // ----------------------------------------------------------------------------
 //   Return the name of the object at given index
 // ----------------------------------------------------------------------------
@@ -116,21 +116,34 @@ utf8 object::fancy(id t)
 //   Return the fancy name for the given index
 // ----------------------------------------------------------------------------
 {
-    utf8 fname = nullptr;
+    return alias(t, 0);
+}
+
+
+utf8 object::name(id t)
+// ----------------------------------------------------------------------------
+//   Return the name for a given ID with current style
+// ------------------------------------------------------------------------
+{
+    bool compat = Settings.CommandDisplayMode() != ID_LongForm;
+    cstring result = nullptr;
     for (size_t i = 0; i < spelling_count; i++)
     {
         if (t == spellings[i].type)
         {
             if (cstring name = spellings[i].name)
-                fname = utf8(name);
+            {
+                result = name;
+                if (!compat)
+                    break;
+            }
         }
-        else if (fname)
+        else if (result)
         {
-            return fname;
+            break;
         }
     }
-
-    return fname;
+    return utf8(result);
 }
 
 

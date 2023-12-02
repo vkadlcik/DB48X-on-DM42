@@ -881,26 +881,16 @@ struct runtime
         return ErrorSrcLen;
     }
 
-    runtime &command(utf8 cmd);
+    runtime &command(const object *cmd);
     // ------------------------------------------------------------------------
     //   Set the faulting command
     // ------------------------------------------------------------------------
 
-    runtime &command(cstring cmd)
-    // ------------------------------------------------------------------------
-    //   Set the faulting command
-    // ------------------------------------------------------------------------
-    {
-        return command(utf8(cmd));
-    }
 
-    utf8 command()
+    text_p command() const;
     // ------------------------------------------------------------------------
-    //   Get the faulting command if there is one
+    //   Get the faulting command name
     // ------------------------------------------------------------------------
-    {
-        return ErrorCommand;
-    }
 
 
     bool is_user_command(utf8 cmd)
@@ -938,7 +928,7 @@ protected:
     utf8      ErrorSave;    // Last error message (for ERRM)
     utf8      ErrorSource;  // Source of the error if known
     size_t    ErrorSrcLen;  // Length of error in source
-    utf8      ErrorCommand; // Source of the error if known
+    object_p  ErrorCommand; // Source of the error if known
     object_p  LowMem;       // Bottom of available memory
     object_p  Globals;      // End of global objects
     object_p  Temporaries;  // Temporaries (must be valid objects)
@@ -1017,8 +1007,7 @@ const Obj *runtime::make(typename Obj::id type, const
     // Find required memory for this object
     size_t size = Obj::required_memory(type, args...);
     record(runtime,
-           "Initializing object %p type %d %+s size %u",
-           Temporaries, type, Obj::object::name(type), size);
+           "Initializing object %p type %d size %u", Temporaries, type, size);
 
     // Check if we have room (may cause garbage collection)
     if (available(size) < size)

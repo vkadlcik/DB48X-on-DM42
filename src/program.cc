@@ -160,7 +160,7 @@ object::result program::run_loop(size_t depth)
             if (!halted)
             {
                 result = ERROR;
-                rt.interrupted_error().command(obj->fancy());
+                rt.interrupted_error().command(obj);
             }
             break;
         }

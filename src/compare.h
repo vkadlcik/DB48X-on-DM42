@@ -66,7 +66,7 @@ struct derived : comparison                                             \
                                                                         \
     EVAL_DECL(derived)                                                  \
     {                                                                   \
-        rt.command(fancy(ID_##derived));                                \
+        rt.command(o);                                                  \
         return comparison::evaluate<derived>();                         \
     }                                                                   \
     static bool make_result(int cmp)    { return condition; }           \

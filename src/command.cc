@@ -131,10 +131,6 @@ RENDER_BODY(command)
 
         // Ensure that we display + as `+` irrespective of mode
         utf8 fname = object::name(ty);
-        utf8 bname = nullptr;
-        if (format != ID_LongForm)
-            for (uint v = 1; (bname = object::name(ty, v)); v++)
-                fname = bname;
 
         while (unit::mode)
         {
@@ -416,13 +412,13 @@ EVAL_BODY(Unimplemented)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    rt.command("Future");
+    rt.command(o);
     if (key >= KEY_F1 && key <= KEY_F6)
     {
         uint plane = ui.shift_plane();
         uint menu_idx = key - KEY_F1 + plane * ui.NUM_SOFTKEYS;
         if (cstring lbl = ui.label_text(menu_idx))
-            rt.command(lbl);
+            rt.command(symbol::make(lbl));
     }
     rt.unimplemented_error();
     return ERROR;

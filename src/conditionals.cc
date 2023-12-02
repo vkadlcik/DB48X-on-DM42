@@ -836,7 +836,6 @@ COMMAND_BODY(doerr)
 //   Generate an error message for the user
 // ----------------------------------------------------------------------------
 {
-    rt.command(fancy(ID_doerr));
     rt.source(utf8(nullptr));
     if (rt.args(1))
     {

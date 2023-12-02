@@ -305,9 +305,9 @@ object::result list::list_parse(id type,
     if (infix || prefix)
     {
         if (infix)
-            rt.command(infix->fancy());
+            rt.command(infix);
         else if (prefix)
-            rt.command(prefix->fancy());
+            rt.command(prefix);
         rt.argument_expected_error();
         return ERROR;
     }

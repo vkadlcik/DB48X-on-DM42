@@ -366,7 +366,7 @@ size_t runtime::gc()
             found = (Error         >= start && Error         < end)
                 ||  (ErrorSave     >= start && ErrorSave     < end)
                 ||  (ErrorSource   >= start && ErrorSource   < end)
-                ||  (ErrorCommand  >= start && ErrorCommand  < end)
+                ||  (ErrorCommand  >= obj   && ErrorCommand  < next)
                 ||  (ui.command    >= start && ui.command    < end);
             if (!found)
             {
@@ -490,7 +490,7 @@ void runtime::move(object_p to, object_p from,
         ErrorSave += delta;
     if (ErrorSource >= start && ErrorSource < end)
         ErrorSource += delta;
-    if (ErrorCommand >= start && ErrorCommand < end)
+    if (ErrorCommand >= from && ErrorCommand < last)
         ErrorCommand += delta;
     if (ui.command >= start && ui.command < end)
         ui.command += delta;
@@ -1083,7 +1083,7 @@ bool runtime::undo()
 }
 
 
-runtime &runtime::command(utf8 cmd)
+runtime &runtime::command(object_p cmd)
 // ----------------------------------------------------------------------------
 //   Set the command name and initialize the undo setup
 // ----------------------------------------------------------------------------
@@ -1091,8 +1091,6 @@ runtime &runtime::command(utf8 cmd)
     ErrorCommand = cmd;
     return *this;
 }
-
-
 
 
 
@@ -1375,7 +1373,9 @@ bool runtime::run_select_start_step(bool for_loop, bool has_step)
         step = obj->as_algebraic();
         if (!step)
         {
-            rt.command("step").type_error();
+            object::id ty = for_loop?object::ID_ForStep:object::ID_StartStep;
+            object_p cmd = command::static_object(ty);
+            rt.command(cmd).type_error();
             return false;
         }
         down = step->is_negative();
@@ -1392,7 +1392,9 @@ bool runtime::run_select_start_step(bool for_loop, bool has_step)
     algebraic_g last = Returns[1]->as_algebraic();
     if (!cur || !last)
     {
-        rt.command(for_loop ? "for" : "start");
+        object::id ty = for_loop?object::ID_ForStep:object::ID_StartStep;
+        object_p cmd = command::static_object(ty);
+        rt.command(cmd);
         return false;
     }
     cur = cur + step;
@@ -1515,6 +1517,17 @@ void runtime::call_stack_drop()
 //   Generation of the error functions
 //
 // ============================================================================
+
+text_p runtime::command() const
+// ----------------------------------------------------------------------------
+//   Return the name associated with the command
+// ----------------------------------------------------------------------------
+{
+    if (ErrorCommand)
+        return ErrorCommand->as_text();
+    return nullptr;
+}
+
 
 #define ERROR(name, msg)                        \
 runtime &runtime::name##_error()                \

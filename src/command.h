@@ -90,7 +90,7 @@ struct derived : base                                   \
     OBJECT_DECL(derived);                               \
     EVAL_DECL(derived)                                  \
     {                                                   \
-        rt.command(fancy(ID_##derived));                \
+        rt.command(o);                                  \
         return evaluate();                              \
     }                                                   \
     special                                             \

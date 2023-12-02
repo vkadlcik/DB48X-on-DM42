@@ -224,7 +224,7 @@ struct setting : command
     setting(id i) : command(i) {}
     static result update(id ty)
     {
-        rt.command(fancy(ty));
+        rt.command(static_object(ty));
         ui.menu_refresh();
         return OK;
     }
@@ -249,7 +249,7 @@ struct setting : command
                 }
             }
         }
-        rt.command(fancy(type));
+        rt.command(static_object(type));
         return false;
     }
 

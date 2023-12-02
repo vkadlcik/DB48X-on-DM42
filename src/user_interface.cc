@@ -2135,9 +2135,11 @@ bool user_interface::draw_error()
         r.inset(2);
 
         Screen.clip(r);
-        if (utf8 cmd = rt.command())
+        if (text_p cmd = rt.command())
         {
-            coord x = Screen.text(r.x1, r.y1, cmd, ErrorFont);
+            size_t sz = 0;
+            utf8 cmdt = cmd->value(&sz);
+            coord x = Screen.text(r.x1, r.y1, cmdt, sz, ErrorFont);
             Screen.text(x, r.y1, utf8(" error:"), ErrorFont);
         }
         else
@@ -2963,7 +2965,7 @@ bool user_interface::handle_help(int &key)
                     dirtyCommand = true;
                     if (longpress)
                     {
-                        rt.command("Help");
+                        rt.command(command::static_object(object::ID_Help));
                         load_help(htopic);
                         if (rt.error())
                         {

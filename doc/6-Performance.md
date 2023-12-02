@@ -47,6 +47,8 @@ is not there.
 
 | Version | Time    | PGM Size  | QSPI Size | Note                    |
 |---------|---------|-----------|-----------|-------------------------|
+| 0.5.1   | 1746    |           |           |
+| 0.5.0   | 1723    |           |           |
 | 0.4.10+ | 1804    | 761252    |           | RPL stack runloop       |
 | 0.4.10  | 1803    | 731052    |           | Focused optimizations   |
 | 0.4.9   | 2156    | 772732    | 1534316   | No LastArg in progs     |

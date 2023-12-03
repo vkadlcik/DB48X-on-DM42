@@ -1201,9 +1201,11 @@ static flag_conversion flag_conversions[] =
     { -41,        object::ID_Time24H            },
     { -42,        object::ID_DayBeforeMonth     },
     { -51,        object::ID_DecimalComma       },
+    { -52,        object::ID_MultiLineResult    },
     { -55,        object::ID_NoLastArguments    },
     { -56,        object::ID_BeepOff            },
     { -64,        object::ID_IndexWrapped       },
+    { -65,        object::ID_MultiLineStack     },
 };
 
 

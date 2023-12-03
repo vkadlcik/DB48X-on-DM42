@@ -162,7 +162,9 @@ void stack::draw_stack()
         else
         {
             // Text rendering
-            renderer r(nullptr, ~0U, true);
+            bool     ml = (level ? Settings.MultiLineStack()
+                                 : Settings.MultiLineResult());
+            renderer r(nullptr, ~0U, !ml);
             size_t   len = obj->render(r);
             utf8     out = r.text();
 #ifdef SIMULATOR
@@ -179,7 +181,7 @@ void stack::draw_stack()
             if (w >= avail)
             {
                 uint availRows = (y + lineHeight - 1 - top) / lineHeight;
-                bool dots = level != 0 || w >= avail * availRows;
+                bool dots      = !ml || w >= avail * availRows;
 
                 if (!dots)
                 {
@@ -193,9 +195,10 @@ void stack::draw_stack()
                     for (utf8 p = out; p < end; p = utf8_next(p))
                     {
                         unicode c = utf8_codepoint(p);
-                        size cw = font->width(c);
+                        bool cr = c == '\n';
+                        size cw = cr ? 0 : font->width(c);
                         rw += cw;
-                        if (rw >= avail)
+                        if (cr || rw >= avail)
                         {
                             if (rows >= availRows)
                             {
@@ -209,6 +212,8 @@ void stack::draw_stack()
                             rw = cw;
                         }
                     }
+                    if (rx < rw)
+                        rx = rw;
 
                     if (!dots)
                     {

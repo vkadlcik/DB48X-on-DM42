@@ -5668,6 +5668,31 @@ on page 3-262 of the HP50G advanced reference manual. This is the opposite of
 [NativeTypes](#nativetypes).
 
 
+## MultiLineResult
+
+Show the result (level 1 of the stack) using multiple lines.
+This is the opposite of [SingleLineResult](#singlelineresult).
+Other levels of the stack are controled by [MultiLineStack](#multilinestack)
+
+## SingleLineResult
+
+Show the result (level 1 of the stack) on a single line.
+This is the opposite of [MultiLineResult](#multilineresult).
+Other levels of the stack are controled by [SingleLineStack](#singlelinestack)
+
+## MultiLineStack
+
+Show the levels of the stack after the first one using multiple lines.
+This is the opposite of [SingleLineStack](#singlelinestack).
+Other levels of the stack are controled by [MultiLineResult](#multilineresult)
+
+## SingleLineStack
+
+Show the levels of the stack after the first one on a single line
+This is the opposite of [MultiLineStack](#multilinestack).
+Other levels of the stack are controled by [SingleLineResult](#singlelineresult)
+
+
 # States
 
 The calculator can save and restore state in files with extension `.48S`.

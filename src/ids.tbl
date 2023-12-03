@@ -666,6 +666,8 @@ FLAG(ZeroPowerZeroIsUndefined,  ZeroPowerZeroIsOne)
 FLAG(OnesComplement,            TwosComplement)
 FLAG(DetailedTypes,             CompatibleTypes)
 FLAG(IndexWrapped,              IndexDidNotWrap)
+FLAG(SingleLineResult,          MultiLineResult)
+FLAG(MultiLineStack,            SingleLineStack)
 
 SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
 SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)

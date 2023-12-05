@@ -164,7 +164,7 @@ void stack::draw_stack()
             // Text rendering
             bool     ml = (level ? Settings.MultiLineStack()
                                  : Settings.MultiLineResult());
-            renderer r(nullptr, ~0U, !ml);
+            renderer r(nullptr, ~0U, true, ml);
             size_t   len = obj->render(r);
             utf8     out = r.text();
 #ifdef SIMULATOR

@@ -100,7 +100,7 @@ bool renderer::put(char c)
 
 
     // Render flat for stack display: collect all spaces in one
-    if (flat)
+    if (stk && !mlstk)
     {
         if (isspace(c))
         {

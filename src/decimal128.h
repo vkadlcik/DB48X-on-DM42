@@ -38,6 +38,7 @@
 //   unnecessary.
 
 
+#ifndef CONFIG_NO_DECIMAL128
 #include "algebraic.h"
 #include "runtime.h"
 #include "settings.h"
@@ -48,6 +49,8 @@
 
 GCP(bignum);
 GCP(fraction);
+
+#define D128(X) X
 
 struct decimal128 : algebraic
 // ----------------------------------------------------------------------------
@@ -279,6 +282,17 @@ struct decimal128 : algebraic
     algebraic_p to_fraction(uint count = Settings.FractionIterations(),
                             uint decimals = Settings.FractionDigits()) const;
 
+    static algebraic_p pi();
+    static void        adjust_from_angle(bid128 &x);
+    static void        adjust_to_angle(bid128 &x);
+    static bool        adjust_to_angle(algebraic_g &x);
+    static void        init_constants();
+
+protected:
+    static bid128      from_deg;
+    static bid128      from_grad;
+    static bid128      from_ratio;
+
 public:
     OBJECT_DECL(decimal128);
     PARSE_DECL(decimal128);
@@ -296,4 +310,7 @@ void bid128_rem(BID_UINT128 *pres, BID_UINT128 *px, BID_UINT128 *py);
 // Utlity common to all formats to format a number for display
 size_t decimal_format(char *buf, size_t len, bool editing, bool raw);
 
+#else // !CONFIG_NO_DECIMAL128
+#define D128(X)
+#endif // CONFIG_NO_DECIMAL128
 #endif // DECIMAL128_H

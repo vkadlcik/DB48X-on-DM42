@@ -118,6 +118,7 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
         xt = xa->type();
         switch(xt)
         {
+#ifndef CONFIG_NO_DECIMAL32
         case ID_decimal32:
         {
             bid32 xv = decimal32_p(object_p(xa))->value();
@@ -129,6 +130,8 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
             bid32_quiet_greater(&rgt, &xv.value, &yv.value);
             break;
         }
+#endif // CONFIG_NO_DECIMAL32
+#ifndef CONFIG_NO_DECIMAL64
         case ID_decimal64:
         {
             bid64 xv = decimal64_p(object_p(xa))->value();
@@ -140,6 +143,8 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
             bid64_quiet_greater(&rgt, &xv.value, &yv.value);
             break;
         }
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL128
         case ID_decimal128:
         {
             bid128 xv = decimal128_p(object_p(xa))->value();
@@ -151,6 +156,7 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
             bid128_quiet_greater(&rgt, &xv.value, &yv.value);
             break;
         }
+#endif // CONFIG_NO_DECIMAL128
         default:
             return false;
         }

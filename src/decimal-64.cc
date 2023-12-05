@@ -1,3 +1,4 @@
+#ifndef CONFIG_NO_DECIMAL64
 // ****************************************************************************
 //  decimal64.cc                                                 DB48X project
 // ****************************************************************************
@@ -26,7 +27,6 @@
 //   but WITHOUT ANY WARRANTY; without even the implied warranty of
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
-
 #include "decimal-64.h"
 
 #include "arithmetic.h"
@@ -304,15 +304,15 @@ size_t decimal_format(char *buf, size_t len, bool editing, bool raw)
 
     // Read settings
     const settings &ds = Settings;
-    auto            mode    = editing ? object::ID_Std : ds.DisplayMode();
-    int             digits  = editing ? BID64_MAXDIGITS : ds.DisplayDigits();
-    int             std_exp = ds.StandardExponent();
-    bool            showdec = ds.TrailingDecimal();
-    unicode         space   = ds.NumberSeparator();
+    auto            mode     = editing ? object::ID_Std : ds.DisplayMode();
+    int             digits   = editing ? BID64_MAXDIGITS : ds.DisplayDigits();
+    int             std_exp  = ds.StandardExponent();
+    bool            showdec  = ds.TrailingDecimal();
+    unicode         space    = ds.NumberSeparator();
     uint            mant_spc = ds.MantissaSpacing();
     uint            frac_spc = ds.FractionSpacing();
-    bool            fancy   = !editing && ds.FancyExponent();
-    char            decimal = ds.DecimalSeparator(); // Can be '.' or ','
+    bool            fancy    = !editing && ds.FancyExponent();
+    char            decimal  = ds.DecimalSeparator(); // Can be '.' or ','
 
     if (raw)
     {
@@ -799,3 +799,121 @@ void bid64_rem(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py)
 {
     bid64_fmod(pres, px, py);
 }
+
+
+bid64 decimal64::from_deg;
+bid64 decimal64::from_grad;
+bid64 decimal64::from_ratio;
+static byte pi_rep[1 + sizeof(bid64)];
+
+
+static bool init = false;
+void decimal64::init_constants()
+// ----------------------------------------------------------------------------
+//   Initialize the constants used for adjustments
+// ----------------------------------------------------------------------------
+{
+    if (!init)
+    {
+        bid64_from_string(&from_deg.value,
+                           "1.745329251994329576923690768488613E-2");
+        bid64_from_string(&from_grad.value,
+                           "1.570796326794896619231321691639752E-2");
+        bid64_from_string(&from_ratio.value,
+                           "3.141592653589793238462643383279502884");
+
+        memcpy(pi_rep + 1, &from_ratio, sizeof(from_ratio));
+        pi_rep[0] = ID_decimal64;
+
+        init = true;
+    }
+}
+
+
+
+algebraic_p decimal64::pi()
+// ----------------------------------------------------------------------------
+//   Return a representation of pi as a decimal64
+// ----------------------------------------------------------------------------
+{
+    if (!init)
+        init_constants();
+    return decimal64_p(&pi_rep);
+}
+
+
+void decimal64::adjust_from_angle(bid64 &x)
+// ----------------------------------------------------------------------------
+//   Adjust an angle value for sin/cos/tan
+// ----------------------------------------------------------------------------
+{
+    if (!init)
+        init_constants();
+
+    switch(Settings.AngleMode())
+    {
+    case object::ID_Deg:
+        bid64_mul(&x.value, &x.value, &from_deg.value); break;
+    case object::ID_Grad:
+        bid64_mul(&x.value, &x.value, &from_grad.value); break;
+    case object::ID_PiRadians:
+        bid64_mul(&x.value, &x.value, &from_ratio.value); break;
+    default:
+    case object::ID_Rad:
+        break;
+    }
+}
+
+
+void decimal64::adjust_to_angle(bid64 &x)
+// ----------------------------------------------------------------------------
+//   Adjust an angle value for asin/acos/atan
+// ----------------------------------------------------------------------------
+{
+    if (!init)
+        init_constants();
+    switch(Settings.AngleMode())
+    {
+    case object::ID_Deg:
+        bid64_div(&x.value, &x.value, &from_deg.value); break;
+    case object::ID_Grad:
+        bid64_div(&x.value, &x.value, &from_grad.value); break;
+    case object::ID_PiRadians:
+        bid64_div(&x.value, &x.value, &from_ratio.value); break;
+    default:
+    case object::ID_Rad:
+        break;
+    }
+}
+
+
+bool decimal64::adjust_to_angle(algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   Adjust an angle value for asin/acos/atan
+// ----------------------------------------------------------------------------
+{
+    if (!init)
+        init_constants();
+    if (x->is_real())
+    {
+        bid64 *adjust = nullptr;
+        switch(Settings.AngleMode())
+        {
+        case object::ID_Deg:            adjust = &from_deg;     break;
+        case object::ID_Grad:           adjust = &from_grad;    break;
+        case object::ID_PiRadians:      adjust = &from_ratio;   break;
+        default:                                                break;
+        }
+
+        if (adjust)
+        {
+            algebraic_g div = rt.make<decimal64>(*adjust);
+            x = x / div;
+            return true;
+        }
+    }
+    return false;
+}
+
+
+#endif // CONFIG_NO_DECIMAL64

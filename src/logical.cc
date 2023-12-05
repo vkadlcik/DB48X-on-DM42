@@ -53,9 +53,15 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big, bool num)
     {
     case ID_True:
     case ID_False:
+#ifndef CONFIG_NO_DECIMAL128
     case ID_decimal128:
+#endif // CONFIG_NO_DECIMAL128
+#ifndef CONFIG_NO_DECIMAL64
     case ID_decimal64:
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL32
     case ID_decimal32:
+#endif // CONFIG_NO_DECIMAL32
         if (num)
         {
             rt.type_error();
@@ -165,9 +171,15 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big, bool num)
     {
     case ID_True:
     case ID_False:
+#ifndef CONFIG_NO_DECIMAL128
     case ID_decimal128:
+#endif // CONFIG_NO_DECIMAL128
+#ifndef CONFIG_NO_DECIMAL64
     case ID_decimal64:
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL32
     case ID_decimal32:
+#endif // CONFIG_NO_DECIMAL32
         if (num)
         {
             rt.type_error();

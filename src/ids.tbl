@@ -90,7 +90,7 @@
 //
 // ============================================================================
 
-ID_RANGE(is_type,          directory,      decimal128)
+ID_RANGE(is_type,          directory,      bitmap)
 #if CONFIG_FIXED_BASED_OBJECTS
 ID_RANGE(is_integer,       hex_integer,    neg_integer)
 ID_RANGE(is_based,         hex_integer,    based_integer, hex_bignum, based_bignum)
@@ -101,8 +101,13 @@ ID_RANGE(is_based,         based_integer,  based_integer, based_bignum, based_bi
 ID_RANGE(is_bignum,        based_bignum,   neg_bignum)
 #endif // CONFIG_FIXED_BASED_OBJECTS
 ID_RANGE(is_fraction,      fraction,       neg_big_fraction)
+#ifndef CONFIG_NO_DECIMAL128
 ID_RANGE(is_decimal,       decimal32,      decimal128)
 ID_RANGE(is_real,          bignum,         decimal128)
+#else
+ID_RANGE(is_decimal,       object,         object)
+ID_RANGE(is_real,          bignum,         neg_big_fraction)
+#endif // CONFIG_NO_DECIMAL128
 ID_RANGE(is_complex,       rectangular,    polar)
 ID_RANGE(is_command,       Drop,           Unimplemented)
 ID_RANGE(is_symbolic,      expression,     symbol,        pi, ImaginaryUnit)
@@ -168,9 +173,15 @@ ID(neg_fraction)
 ID(big_fraction)
 ID(neg_big_fraction)
 
+#ifndef CONFIG_NO_DECIMAL32
 ID(decimal32)
+#endif // CONFIG_NO_DECIMAL32
+#ifndef CONFIG_NO_DECIMAL64
 ID(decimal64)
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL128
 ID(decimal128)
+#endif // CONFIG_NO_DECIMAL128
 
 ID(comment)
 ID(grob)
@@ -236,7 +247,7 @@ OP(Excludes,    "excludes")
 OP(Not,         "not")
 
 // Tests
-CMD(same)                       // HP48 distinguises == and same
+CMD(same)                       // HP48 distinguishes == and same
 OP(TestSame, "==")           // Must be before =
 OP(TestLT,   "<")
 OP(TestEQ,   "=")

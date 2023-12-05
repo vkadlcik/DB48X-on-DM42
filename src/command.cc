@@ -562,9 +562,15 @@ static integer_p type_value(object_p obj)
     {
         switch (type)
         {
-        case object::ID_decimal32:
+#ifndef CONFIG_NO_DECIMAL32
+        case object::ID_decimal32:              type = 0; break;
+#endif // CONFIG_NO_DECIMAL32
+#ifndef CONFIG_NO_DECIMAL64
         case object::ID_decimal64:              type = 0; break;
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL128
         case object::ID_decimal128:             type = 21; break;
+#endif // CONFIG_NO_DECIMAL128
         case object::ID_rectangular:
         case object::ID_polar:                  type = 1; break;
         case object::ID_text:                   type = 2; break;
@@ -810,9 +816,15 @@ COMMAND_BODY(Cycle)
         id     ttype = top->type();
         switch(ttype)
         {
-        case ID_decimal128:
-        case ID_decimal64:
+#ifndef CONFIG_NO_DECIMAL128
+        case ID_decimal128:             cmd = ID_ToFraction;    break;
+#endif // CONFIG_NO_DECIMAL128
+#ifndef CONFIG_NO_DECIMAL64
+        case ID_decimal64:              cmd = ID_ToFraction;    break;
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL32
         case ID_decimal32:              cmd = ID_ToFraction;    break;
+#endif // CONFIG_NO_DECIMAL32
         case ID_integer:
         case ID_bignum:
         case ID_neg_integer:

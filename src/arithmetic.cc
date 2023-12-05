@@ -70,10 +70,20 @@ bool arithmetic::real_promotion(algebraic_g &x, algebraic_g &y)
     if (!is_real(xt) || !is_real(yt))
         return false;
 
-    uint16_t prec  = Settings.Precision();
-    id       minty = prec > BID64_MAXDIGITS ? ID_decimal128
-                   : prec > BID32_MAXDIGITS ? ID_decimal64
-                                            : ID_decimal32;
+    uint16_t prec  = Settings.Precision(); (void) prec;
+    id       minty = ID_object;
+#ifndef CONFIG_NO_DECIMAL128
+    if (prec <= BID128_MAXDIGITS)
+        minty = ID_decimal128;
+#endif // CONFIG_NO_DECIMAL128
+#ifndef CONFIG_NO_DECIMAL64
+    if (prec <= BID64_MAXDIGITS)
+        minty = ID_decimal64;
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL32
+    if (prec <= BID32_MAXDIGITS)
+        minty = ID_decimal32;
+#endif // CONFIG_NO_DECIMAL32
     if (is_decimal(xt) && xt > minty)
         minty = xt;
     if (is_decimal(yt) && yt > minty)
@@ -1280,6 +1290,7 @@ algebraic_p arithmetic::evaluate(id          op,
         xt = x->type();
         switch(xt)
         {
+#ifndef CONFIG_NO_DECIMAL32
         case ID_decimal32:
         {
             bid32 xv = x->as<decimal32>()->value();
@@ -1289,6 +1300,8 @@ algebraic_p arithmetic::evaluate(id          op,
             x = rt.make<decimal32>(ID_decimal32, res);
             break;
         }
+#endif // CONFIG_NO_DECIMAL32
+#ifndef CONFIG_NO_DECIMAL64
         case ID_decimal64:
         {
             bid64 xv = x->as<decimal64>()->value();
@@ -1298,6 +1311,8 @@ algebraic_p arithmetic::evaluate(id          op,
             x = rt.make<decimal64>(ID_decimal64, res);
             break;
         }
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL128
         case ID_decimal128:
         {
             bid128 xv = x->as<decimal128>()->value();
@@ -1307,11 +1322,14 @@ algebraic_p arithmetic::evaluate(id          op,
             x = rt.make<decimal128>(ID_decimal128, res);
             break;
         }
+#endif // CONFIG_NO_DECIMAL128
         default:
             break;
         }
+#ifndef CONFIG_NO_DECIMAL128
         if (op == ID_atan2)
-            function::adjust_to_angle(x);
+            decimal128::adjust_to_angle(x);
+#endif // CONFIG_NO_DECIMAL128
         return x;
     }
 
@@ -1388,6 +1406,7 @@ object::result arithmetic::evaluate(id op, ops_t ops)
 //   So we need to stub out some bid64 and bid42 functions and compute them
 //   using bid128
 
+#ifndef CONFIG_NO_DECIMAL64
 void bid64_pow(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py)
 // ----------------------------------------------------------------------------
 //   Perform the computation with bid128 code
@@ -1398,19 +1417,6 @@ void bid64_pow(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py)
     bid64_to_bid128(&y128, py);
     bid128_pow(&res128, &x128, &y128);
     bid128_to_bid64(pres, &res128);
-}
-
-
-void bid32_pow(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py)
-// ----------------------------------------------------------------------------
-//   Perform the computation with bid128 code
-// ----------------------------------------------------------------------------
-{
-    BID_UINT128 x128, y128, res128;
-    bid32_to_bid128(&x128, px);
-    bid32_to_bid128(&y128, py);
-    bid128_pow(&res128, &x128, &y128);
-    bid128_to_bid32(pres, &res128);
 }
 
 
@@ -1427,19 +1433,6 @@ void bid64_hypot(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py)
 }
 
 
-void bid32_hypot(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py)
-// ----------------------------------------------------------------------------
-//   Perform the computation with bid128 code
-// ----------------------------------------------------------------------------
-{
-    BID_UINT128 x128, y128, res128;
-    bid32_to_bid128(&x128, px);
-    bid32_to_bid128(&y128, py);
-    bid128_hypot(&res128, &x128, &y128);
-    bid128_to_bid32(pres, &res128);
-}
-
-
 void bid64_atan2(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py)
 // ----------------------------------------------------------------------------
 //   Perform the computation with bid128 code
@@ -1450,6 +1443,34 @@ void bid64_atan2(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py)
     bid64_to_bid128(&y128, py);
     bid128_atan2(&res128, &x128, &y128);
     bid128_to_bid64(pres, &res128);
+}
+#endif // CONFIG_NO_DECIMAL64
+
+
+#ifndef CONFIG_NO_DECIMAL32
+void bid32_pow(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py)
+// ----------------------------------------------------------------------------
+//   Perform the computation with bid128 code
+// ----------------------------------------------------------------------------
+{
+    BID_UINT128 x128, y128, res128;
+    bid32_to_bid128(&x128, px);
+    bid32_to_bid128(&y128, py);
+    bid128_pow(&res128, &x128, &y128);
+    bid128_to_bid32(pres, &res128);
+}
+
+
+void bid32_hypot(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py)
+// ----------------------------------------------------------------------------
+//   Perform the computation with bid128 code
+// ----------------------------------------------------------------------------
+{
+    BID_UINT128 x128, y128, res128;
+    bid32_to_bid128(&x128, px);
+    bid32_to_bid128(&y128, py);
+    bid128_hypot(&res128, &x128, &y128);
+    bid128_to_bid32(pres, &res128);
 }
 
 
@@ -1464,6 +1485,7 @@ void bid32_atan2(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py)
     bid128_atan2(&res128, &x128, &y128);
     bid128_to_bid32(pres, &res128);
 }
+#endif // CONFIG_NO_DECIMAL32
 
 
 
@@ -1499,9 +1521,15 @@ arithmetic::ops_t arithmetic::Ops()
 {
     static const ops result =
     {
+#ifndef CONFIG_NO_DECIMAL128
         Op::bid128_op,
+#endif // CONFIG_NO_DECIMAL128
+#ifndef CONFIG_NO_DECIMAL64
         Op::bid64_op,
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL32
         Op::bid32_op,
+#endif // CONFIG_NO_DECIMAL32
         Op::integer_ok,
         Op::bignum_ok,
         Op::fraction_ok,

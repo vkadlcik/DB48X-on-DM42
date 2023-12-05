@@ -116,7 +116,13 @@ algebraic_p integrate(program_g   eq,
     // Set independent variable
     save<symbol_g *> iref(expression::independent, &name);
     int              prec = -Settings.IntegratePrecision();
-    algebraic_g eps = rt.make<decimal128>(object::ID_decimal128, prec, true);
+    algebraic_g      eps;
+#ifndef CONFIG_NO_DECIMAL128
+    eps = rt.make<decimal128>(object::ID_decimal128, prec, true);
+#else
+    algebraic_g ten = integer::make(10);
+    eps = pow(ten, integer::make(prec));
+#endif // CONFIG_NO_DECIMAL128
 
     // Initial integration step and first trapezoidal step
     dx              = hx - lx;

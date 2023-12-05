@@ -62,7 +62,11 @@ algebraic_p function::symbolic(id op, algebraic_r x)
 }
 
 
-object::result function::evaluate(id op, bid128_fn op128, complex_fn zop)
+object::result function::evaluate(id op,
+#ifndef CONFIG_NO_DECIMAL128
+                                  bid128_fn op128,
+#endif // CONFIG_NO_DECIMAL128
+                                  complex_fn zop)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------
@@ -71,103 +75,14 @@ object::result function::evaluate(id op, bid128_fn op128, complex_fn zop)
     if (!x)
         return ERROR;
 
+#ifndef CONFIG_NO_DECIMAL128
     x = evaluate(x, op, op128, zop);
+#else // CONFIG_NO_DECIMAL128
+    x = evaluate(x, op, zop);
+#endif // CONFIG_NO_DECIMAL128
     if (x && rt.top(x))
         return OK;
     return ERROR;
-}
-
-
-static bid128 from_deg, from_grad, from_ratio;
-static bool   init = false;
-
-static void adjust_init()
-// ----------------------------------------------------------------------------
-//   Initialize the constants used for adjustments
-// ----------------------------------------------------------------------------
-{
-    if (!init)
-    {
-        bid128_from_string(&from_deg.value,
-                           "1.745329251994329576923690768488613E-2");
-        bid128_from_string(&from_grad.value,
-                           "1.570796326794896619231321691639752E-2");
-        bid128_from_string(&from_ratio.value,
-                           "3.141592653589793238462643383279503");
-        init = true;
-    }
-}
-
-void function::adjust_from_angle(bid128 &x)
-// ----------------------------------------------------------------------------
-//   Adjust an angle value for sin/cos/tan
-// ----------------------------------------------------------------------------
-{
-    if (!init)
-        adjust_init();
-    switch(Settings.AngleMode())
-    {
-    case object::ID_Deg:
-        bid128_mul(&x.value, &x.value, &from_deg.value); break;
-    case object::ID_Grad:
-        bid128_mul(&x.value, &x.value, &from_grad.value); break;
-    case object::ID_PiRadians:
-        bid128_mul(&x.value, &x.value, &from_ratio.value); break;
-    default:
-    case object::ID_Rad:
-        break;
-    }
-}
-
-
-void function::adjust_to_angle(bid128 &x)
-// ----------------------------------------------------------------------------
-//   Adjust an angle value for asin/acos/atan
-// ----------------------------------------------------------------------------
-{
-    if (!init)
-        adjust_init();
-    switch(Settings.AngleMode())
-    {
-    case object::ID_Deg:
-        bid128_div(&x.value, &x.value, &from_deg.value); break;
-    case object::ID_Grad:
-        bid128_div(&x.value, &x.value, &from_grad.value); break;
-    case object::ID_PiRadians:
-        bid128_div(&x.value, &x.value, &from_ratio.value); break;
-    default:
-    case object::ID_Rad:
-        break;
-    }
-}
-
-
-bool function::adjust_to_angle(algebraic_g &x)
-// ----------------------------------------------------------------------------
-//   Adjust an angle value for asin/acos/atan
-// ----------------------------------------------------------------------------
-{
-    if (!init)
-        adjust_init();
-    if (x->is_real())
-    {
-        bid128 *adjust = nullptr;
-        switch(Settings.AngleMode())
-        {
-        case object::ID_Deg:            adjust = &from_deg;     break;
-        case object::ID_Grad:           adjust = &from_grad;    break;
-        case object::ID_PiRadians:      adjust = &from_ratio;   break;
-        default:                                                break;
-        }
-
-        if (adjust)
-        {
-            algebraic_g div = rt.make<decimal128>(*adjust);
-            x = x / div;
-            return true;
-        }
-    }
-    return false;
 }
 
 
@@ -248,7 +163,9 @@ bool function::exact_trig(id op, algebraic_g &x)
 
 algebraic_p function::evaluate(algebraic_r xr,
                                id          op,
+#ifndef CONFIG_NO_DECIMAL128
                                bid128_fn   op128,
+#endif // CONFIG_NO_DECIMAL128
                                complex_fn  zop)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
@@ -289,12 +206,13 @@ algebraic_p function::evaluate(algebraic_r xr,
     // Call the right function
     // We need to only call the bid128 functions here, because the 32 and 64
     // variants are not in the DM42's QSPI, and take too much space here
+#ifndef CONFIG_NO_DECIMAL128
     if (real_promotion(x, ID_decimal128))
     {
         bid128 xv = decimal128_p(algebraic_p(x))->value();
         bid128 res;
         if (op == ID_sin || op == ID_cos || op == ID_tan)
-            adjust_from_angle(xv);
+            decimal128::adjust_from_angle(xv);
         op128(&res.value, &xv.value);
         int finite = false;
         bid128_isFinite(&finite, &res.value);
@@ -304,10 +222,11 @@ algebraic_p function::evaluate(algebraic_r xr,
             return nullptr;
         }
         if (op == ID_asin || op == ID_acos || op == ID_atan)
-            adjust_to_angle(res);
+            decimal128::adjust_to_angle(res);
         x = rt.make<decimal128>(ID_decimal128, res);
         return x;
     }
+#endif // CONFIG_NO_DECIMAL128
 
     // All other cases: report an error
     rt.type_error();
@@ -388,7 +307,11 @@ FUNCTION_BODY(abs)
     }
 
     // Fall-back to floating-point abs
+#ifndef CONFIG_NO_DECIMAL128
     return function::evaluate(x, ID_abs, bid128_abs, nullptr);
+#else
+    return function::evaluate(x, ID_abs, nullptr);
+#endif // CONFIG_NO_DECIMAL128
 }
 
 

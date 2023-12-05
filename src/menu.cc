@@ -210,9 +210,15 @@ COMMAND_BODY(ToolsMenu)
             case ID_neg_integer:
             case ID_bignum:
             case ID_neg_bignum:
-            case ID_decimal128:
-            case ID_decimal64:
+#ifndef CONFIG_NO_DECIMAL128
+            case ID_decimal128:         menu = ID_RealMenu; break;
+#endif // CONFIG_NO_DECIMAL128
+#ifndef CONFIG_NO_DECIMAL64
+            case ID_decimal64:          menu = ID_RealMenu; break;
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL32
             case ID_decimal32:          menu = ID_RealMenu; break;
+#endif // CONFIG_NO_DECIMAL32
             case ID_fraction:
             case ID_neg_fraction:
             case ID_big_fraction:

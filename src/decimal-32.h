@@ -38,6 +38,7 @@
 //   unnecessary.
 
 
+#ifndef CONFIG_NO_DECIMAL32
 #include "algebraic.h"
 #include "runtime.h"
 #include "settings.h"
@@ -48,6 +49,8 @@
 
 GCP(bignum);
 GCP(fraction);
+
+#define D32(X) X
 
 struct decimal32 : algebraic
 // ----------------------------------------------------------------------------
@@ -279,6 +282,17 @@ struct decimal32 : algebraic
     algebraic_p to_fraction(uint count = Settings.FractionIterations(),
                             uint decimals = Settings.FractionDigits()) const;
 
+    static algebraic_p pi();
+    static void        adjust_from_angle(bid32 &x);
+    static void        adjust_to_angle(bid32 &x);
+    static bool        adjust_to_angle(algebraic_g &x);
+    static void        init_constants();
+
+protected:
+    static bid32      from_deg;
+    static bid32      from_grad;
+    static bid32      from_ratio;
+
 public:
     OBJECT_DECL(decimal32);
     PARSE_DECL(decimal32);
@@ -296,4 +310,7 @@ void bid32_rem(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
 // Utlity common to all formats to format a number for display
 size_t decimal_format(char *buf, size_t len, bool editing, bool raw);
 
+#else // !CONFIG_NO_DECIMAL32
+#define D32(X)
+#endif // CONFIG_NO_DECIMAL32
 #endif // DECIMAL32_H

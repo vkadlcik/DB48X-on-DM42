@@ -219,6 +219,7 @@ void program_init()
     byte *memory = (byte *) malloc(size);
     rt.memory(memory, size);
 
+#ifndef CONFIG_NO_DECIMAL128
     // The following is just to link the same set of functions as DM42
     if (memory == (byte *) program_init)
     {
@@ -246,6 +247,7 @@ void program_init()
         num_acos(&res, &res);
         num_atan(&res, &res);
     }
+#endif // CONFIG_NO_DECIMAL128
 
     // Check if we have a state file to load
     load_system_state();

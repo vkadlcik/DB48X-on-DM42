@@ -78,16 +78,28 @@ protected:
     typedef bool (*complex_fn)(complex_g &x, complex_g &y);
 
     // Function pointers used by generic evaluation code
+#ifndef CONFIG_NO_DECIMAL128
     typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x, BID_UINT128 *y);
+#endif // CONFIG_NO_DECIMAL128
+#ifndef CONFIG_NO_DECIMAL64
     typedef void (*bid64_fn) (BID_UINT64  *res, BID_UINT64  *x, BID_UINT64  *y);
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL32
     typedef void (*bid32_fn) (BID_UINT32  *res, BID_UINT32  *x, BID_UINT32  *y);
+#endif // CONFIG_NO_DECIMAL32
 
     // Structure holding the function pointers called by generic code
     struct ops
     {
+#ifndef CONFIG_NO_DECIMAL128
         bid128_fn      op128;
+#endif // CONFIG_NO_DECIMAL128
+#ifndef CONFIG_NO_DECIMAL64
         bid64_fn       op64;
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL32
         bid32_fn       op32;
+#endif // CONFIG_NO_DECIMAL32
         integer_fn     integer_ok;
         bignum_fn      bignum_ok;
         fraction_fn    fraction_ok;
@@ -143,9 +155,9 @@ struct derived : arithmetic                                             \
     static bool bignum_ok(bignum_g &x, bignum_g &y);                    \
     static bool fraction_ok(fraction_g &x, fraction_g &y);              \
     static bool complex_ok(complex_g &x, complex_g &y);                 \
-    static constexpr auto bid32_op = bid32_##derived;                   \
-    static constexpr auto bid64_op = bid64_##derived;                   \
-    static constexpr auto bid128_op = bid128_##derived;                 \
+    D32(static constexpr auto bid32_op = bid32_##derived);              \
+    D64(static constexpr auto bid64_op = bid64_##derived);              \
+    D128(static constexpr auto bid128_op = bid128_##derived);           \
                                                                         \
     OBJECT_DECL(derived)                                                \
     ARITY_DECL(2);                                                      \

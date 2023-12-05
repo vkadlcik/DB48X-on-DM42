@@ -47,13 +47,20 @@ struct function : algebraic
 public:
     typedef complex_g (*complex_fn)(complex_r x);
 
-    static result evaluate(id op, bid128_fn op128, complex_fn zop);
+    static result evaluate(id op,
+#ifndef CONFIG_NO_DECIMAL128
+                           bid128_fn op128,
+#endif // CONFIG_NO_DECIMAL128
+                           complex_fn zop);
     // ------------------------------------------------------------------------
     //   Stack-based evaluation for all functions implemented in BID library
     // ------------------------------------------------------------------------
 
     static algebraic_p evaluate(algebraic_r x, id op,
-                                bid128_fn op128, complex_fn zop);
+#ifndef CONFIG_NO_DECIMAL128
+                                bid128_fn op128,
+#endif // CONFIG_NO_DECIMAL128
+                                complex_fn zop);
     // ------------------------------------------------------------------------
     //   C++ evaluation for all functions implemented in BID library
     // ------------------------------------------------------------------------
@@ -75,12 +82,17 @@ public:
 
     static bool exact_trig(id op, algebraic_g &x);
 
-    static void adjust_from_angle(bid128 &x);
-    static void adjust_to_angle(bid128 &x);
-    static bool adjust_to_angle(algebraic_g &x);
-
     static const bool does_matrices = false;
 };
+
+#ifndef CONFIG_NO_DECIMAL128
+#define FUNCTION_EVALUATE(a,b,c,d)      evaluate(a,b,c,d)
+#define FUNCTION_BIDOP(op)              static constexpr auto bid128_op = bid128_##op
+#else // CONFIG_NO_DECIMAL128
+#define FUNCTION_EVALUATE(a,b,c,d)      evaluate(a,b,d)
+#define FUNCTION_BIDOP(op)
+#endif // CONFIG_NO_DECIMAL128
+
 
 
 #define STANDARD_FUNCTION(derived)                                      \
@@ -91,7 +103,7 @@ struct derived : function                                               \
 {                                                                       \
     derived(id i = ID_##derived) : function(i) {}                       \
                                                                         \
-    static constexpr auto bid128_op = bid128_##derived;                 \
+    FUNCTION_BIDOP(derived);                                            \
     static constexpr complex_fn zop = complex::derived;                 \
                                                                         \
 public:                                                                 \
@@ -110,7 +122,8 @@ public:                                                                 \
     static algebraic_g run(algebraic_r x) { return evaluate(x); }       \
     static algebraic_p evaluate(algebraic_r x)                          \
     {                                                                   \
-        return function::evaluate(x, ID_##derived, bid128_op, zop);     \
+        return function::FUNCTION_EVALUATE(x, ID_##derived,             \
+                                           bid128_op, zop);             \
     }                                                                   \
 }
 

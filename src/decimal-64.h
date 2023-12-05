@@ -38,6 +38,7 @@
 //   unnecessary.
 
 
+#ifndef CONFIG_NO_DECIMAL64
 #include "algebraic.h"
 #include "runtime.h"
 #include "settings.h"
@@ -48,6 +49,8 @@
 
 GCP(bignum);
 GCP(fraction);
+
+#define D64(X) X
 
 struct decimal64 : algebraic
 // ----------------------------------------------------------------------------
@@ -279,6 +282,17 @@ struct decimal64 : algebraic
     algebraic_p to_fraction(uint count = Settings.FractionIterations(),
                             uint decimals = Settings.FractionDigits()) const;
 
+    static algebraic_p pi();
+    static void        adjust_from_angle(bid64 &x);
+    static void        adjust_to_angle(bid64 &x);
+    static bool        adjust_to_angle(algebraic_g &x);
+    static void        init_constants();
+
+protected:
+    static bid64      from_deg;
+    static bid64      from_grad;
+    static bid64      from_ratio;
+
 public:
     OBJECT_DECL(decimal64);
     PARSE_DECL(decimal64);
@@ -296,4 +310,7 @@ void bid64_rem(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
 // Utlity common to all formats to format a number for display
 size_t decimal_format(char *buf, size_t len, bool editing, bool raw);
 
+#else // !CONFIG_NO_DECIMAL64
+#define D64(X)
+#endif // CONFIG_NO_DECIMAL64
 #endif // DECIMAL64_H

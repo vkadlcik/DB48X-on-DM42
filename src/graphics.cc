@@ -362,9 +362,15 @@ coord PlotParametersAccess::pixel_adjust(object_r    obj,
     case object::ID_neg_fraction:
     case object::ID_big_fraction:
     case object::ID_neg_big_fraction:
+#ifndef CONFIG_NO_DECIMAL32
     case object::ID_decimal32:
+#endif // CONFIG_NO_DECIMAL32
+#ifndef CONFIG_NO_DECIMAL64
     case object::ID_decimal64:
+#endif // CONFIG_NO_DECIMAL64
+#ifndef CONFIG_NO_DECIMAL128
     case object::ID_decimal128:
+#endif // CONFIG_NO_DECIMAL128
     {
         algebraic_g range  = max - min;
         algebraic_g pos    = algebraic_p(obj.Safe());

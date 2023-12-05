@@ -527,6 +527,23 @@ cstring setting::printf(cstring format, ...)
 }
 
 
+static cstring disp_name(object::id ty)
+// ----------------------------------------------------------------------------
+//   Avoid capitalizing the Std/Fix/Sig differently in menu
+// ----------------------------------------------------------------------------
+{
+    switch(ty)
+    {
+    default:
+    case object::ID_Std:        return "Std";
+    case object::ID_Sig:        return "Sig";
+    case object::ID_Fix:        return "Fix";
+    case object::ID_Sci:        return "Sci";
+    case object::ID_Eng:        return "Eng";
+    }
+}
+
+
 cstring setting::label(object::id ty)
 // ----------------------------------------------------------------------------
 //   Render the label for the given type
@@ -537,13 +554,13 @@ cstring setting::label(object::id ty)
     {
     case ID_Sig:
         if (s.DisplayMode() == ID_Std)
-            return printf("%s %u", name(ty), s.DisplayDigits());
+            return printf("%s %u", disp_name(ty), s.DisplayDigits());
     case ID_Fix:
     case ID_Sci:
     case ID_Eng:
         if (ty == s.DisplayMode())
-            return printf("%s %u", name(ty), s.DisplayDigits());
-        return cstring(name(ty));
+            return printf("%s %u", disp_name(ty), s.DisplayDigits());
+        return disp_name(ty);
 
     case ID_Base:
         return printf("Base %u", s.Base());

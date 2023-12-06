@@ -105,7 +105,7 @@ ID_RANGE(is_fraction,      fraction,       neg_big_fraction)
 ID_RANGE(is_decimal,       decimal32,      decimal128)
 ID_RANGE(is_real,          bignum,         decimal128)
 #else
-ID_RANGE(is_decimal,       object,         object)
+ID_RANGE(is_decimal,       decimal,        decimal)
 ID_RANGE(is_real,          bignum,         neg_big_fraction)
 #endif // CONFIG_NO_DECIMAL128
 ID_RANGE(is_complex,       rectangular,    polar)
@@ -172,6 +172,9 @@ ID(fraction)
 ID(neg_fraction)
 ID(big_fraction)
 ID(neg_big_fraction)
+
+ID(decimal)
+ID(neg_decimal)
 
 #ifndef CONFIG_NO_DECIMAL32
 ID(decimal32)
@@ -680,6 +683,7 @@ FLAG(DetailedTypes,             CompatibleTypes)
 FLAG(IndexWrapped,              IndexDidNotWrap)
 FLAG(SingleLineResult,          MultiLineResult)
 FLAG(MultiLineStack,            SingleLineStack)
+FLAG(TooManyDigitsErrors,       NoErrorForTooManyDigits)
 
 SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
 SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)

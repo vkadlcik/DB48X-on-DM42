@@ -222,6 +222,7 @@ CXX_SOURCES +=				\
 	src/bignum.cc			\
 	src/fraction.cc			\
 	src/complex.cc			\
+	src/decimal.cc			\
 	src/decimal128.cc		\
 	$(DECIMAL_SOURCES)		\
 	src/text.cc		        \

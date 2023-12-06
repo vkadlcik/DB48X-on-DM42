@@ -40,6 +40,7 @@
 #include "conditionals.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
+#include "decimal.h"
 #include "decimal128.h"
 #include "expression.h"
 #include "font.h"

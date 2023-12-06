@@ -110,6 +110,17 @@ struct renderer
             put('\n');
         }
     }
+    void unwrite(size_t sz)
+    {
+        written -= sz;
+        if (!target)
+            rt.free(sz);
+    }
+    void reset_to(size_t sz)
+    {
+        if (written > sz)
+            unwrite(written - sz);
+    }
 
 protected:
     char        *target;        // Buffer where we render the object, or nullptr

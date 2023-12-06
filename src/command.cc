@@ -313,7 +313,7 @@ COMMAND_BODY(Explode)
         case ID_unit:
         {
             complex_p cplx = complex_p(obj);
-            if (rt.top(cplx->x()) && rt.push(cplx->y().Safe()))
+            if (rt.top(cplx->x()) && rt.push(+cplx->y()))
                 return OK;
             break;
         }
@@ -356,7 +356,7 @@ COMMAND_BODY(Explode)
             fraction_p frac = fraction_p(obj);
             bignum_g num = frac->numerator();
             bignum_g den = frac->denominator();
-            if (num && den && rt.top(num.Safe()) && rt.push(den.Safe()))
+            if (num && den && rt.top(num) && rt.push(+den))
                 return OK;
             break;
         }

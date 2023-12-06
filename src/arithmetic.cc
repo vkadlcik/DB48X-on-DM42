@@ -58,7 +58,7 @@ bool arithmetic::real_promotion(algebraic_g &x, algebraic_g &y)
 //   Promote x or y to the largest of both types
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x|| !y)
         return false;
 
     id xt = x->type();
@@ -99,7 +99,7 @@ bool arithmetic::complex_promotion(algebraic_g &x, algebraic_g &y)
 //   Return true if one type is complex and the other can be promoted
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x || !y)
         return false;
 
     id xt = x->type();
@@ -196,12 +196,12 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
     {
         if (list_g yl = y->as<list>())
             return xl + yl;
-        if (list_g yl = rt.make<list>(byte_p(y.Safe()), y->size()))
+        if (list_g yl = rt.make<list>(byte_p(+y), y->size()))
             return xl + yl;
     }
     else if (list_g yl = y->as<list>())
     {
-        if (list_g xl = rt.make<list>(byte_p(x.Safe()), x->size()))
+        if (list_g xl = rt.make<list>(byte_p(+x), x->size()))
             return xl + yl;
     }
 
@@ -889,7 +889,7 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
 //   Deal with non-numerical data types for multiplication
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x || !y)
         return nullptr;
 
     // Deal with the case of units
@@ -935,7 +935,7 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
             return expression::make(ID_pow, x, y);
 
         // Deal with X^N where N is a positive integer
-        ularge yv = integer_p(y.Safe())->value<ularge>();
+        ularge yv = integer_p(+y)->value<ularge>();
         algebraic_g r = integer::make(1);
         algebraic_g xx = x;
         while (yv)
@@ -1133,7 +1133,7 @@ algebraic_p arithmetic::non_numeric<struct atan2>(algebraic_r y, algebraic_r x)
         }
         algebraic_g s = x + y;
         algebraic_g d = x - y;
-        if (!s.Safe() || !d.Safe())
+        if (!s || !d)
             return nullptr;
         bool posdiag = d->is_zero(false);
         bool negdiag = s->is_zero(false);
@@ -1173,7 +1173,7 @@ algebraic_p arithmetic::evaluate(id          op,
 //   Shared code for all forms of evaluation, does not use the RPL stack
 // ----------------------------------------------------------------------------
 {
-    if (!xr.Safe() || !yr.Safe())
+    if (!xr || !yr)
         return nullptr;
 
     algebraic_g x = xr;
@@ -1198,12 +1198,12 @@ algebraic_p arithmetic::evaluate(id          op,
 
         if (xt == ID_tag)
         {
-            x = algebraic_p(tag_p(x.Safe())->tagged_object());
+            x = algebraic_p(tag_p(+x)->tagged_object());
             xt = x->type();
         }
         else if (yt == ID_tag)
         {
-            y = algebraic_p(tag_p(y.Safe())->tagged_object());
+            y = algebraic_p(tag_p(+y)->tagged_object());
             yt = y->type();
         }
         else
@@ -1225,8 +1225,8 @@ algebraic_p arithmetic::evaluate(id          op,
         if (!is_bignum(xt) && !is_bignum(yt))
         {
             // Perform conversion of integer values to the same base
-            integer_p xi = integer_p(object_p(x.Safe()));
-            integer_p yi = integer_p(object_p(y.Safe()));
+            integer_p xi = integer_p(object_p(+x));
+            integer_p yi = integer_p(object_p(+y));
             uint      ws = Settings.WordSize();
             if (xi->native() && yi->native() && (ws < 64 || !based))
             {
@@ -1247,11 +1247,11 @@ algebraic_p arithmetic::evaluate(id          op,
             yt = bignum_promotion(y);
 
         // Proceed with big integers if native did not fit
-        bignum_g xg = bignum_p(x.Safe());
-        bignum_g yg = bignum_p(y.Safe());
+        bignum_g xg = bignum_p(+x);
+        bignum_g yg = bignum_p(+y);
         if (ops.bignum_ok(xg, yg))
         {
-            x = xg.Safe();
+            x = +xg;
             if (Settings.NumericalResults())
                 (void) to_decimal(x, true);
             return x;
@@ -1269,7 +1269,7 @@ algebraic_p arithmetic::evaluate(id          op,
                 if (ops.fraction_ok(xf, yf))
                 {
                     x = algebraic_p(fraction_p(xf));
-                    if (x.Safe())
+                    if (x)
                     {
                         bignum_g d = xf->denominator();
                         if (d->is(1))
@@ -1342,7 +1342,7 @@ algebraic_p arithmetic::evaluate(id          op,
             return xc;
     }
 
-    if (!x.Safe() || !y.Safe())
+    if (!x || !y)
         return nullptr;
 
     if (x->is_symbolic_arg() && y->is_symbolic_arg())
@@ -1741,7 +1741,7 @@ static algebraic_p min_max(algebraic_r x, algebraic_r y, int sign)
                 xo = min_max(xo, yo, sign);
                 if (!xo)
                     return nullptr;
-                ra = ra->append(xo.Safe());
+                ra = ra->append(+xo);
             }
             if (xi != xe || yi != ye)
             {

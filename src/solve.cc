@@ -60,7 +60,7 @@ COMMAND_BODY(Root)
 
     record(solve,
            "Solving %t for variable %t with guess %t",
-           eqobj.Safe(), variable.Safe(), guess.Safe());
+           +eqobj, +variable, +guess);
 
     // Check that we have a variable name on stack level 1 and
     // a proram or equation on level 2
@@ -74,7 +74,7 @@ COMMAND_BODY(Root)
         return ERROR;
     }
     if (eqty == ID_expression)
-        eqobj = expression_p(eqobj.Safe())->as_difference_for_solve();
+        eqobj = expression_p(+eqobj)->as_difference_for_solve();
 
     // Drop input parameters
     rt.drop(3);
@@ -86,12 +86,12 @@ COMMAND_BODY(Root)
     }
 
     // Actual solving
-    program_g eq = program_p(eqobj.Safe());
+    program_g eq = program_p(+eqobj);
     if (algebraic_g x = solve(eq, name, guess))
     {
         size_t nlen = 0;
         gcutf8 ntxt = name->value(&nlen);
-        object_g top = tag::make(ntxt, nlen, x.Safe());
+        object_g top = tag::make(ntxt, nlen, +x);
         if (rt.push(top))
             return rt.error() ? ERROR : OK;
     }
@@ -112,8 +112,8 @@ algebraic_p solve(program_g eq, symbol_g name, object_g guess)
     object::id gty = guess->type();
     if (object::is_real(gty) || object::is_complex(gty))
     {
-        lx = algebraic_p(guess.Safe());
-        hx = algebraic_p(guess.Safe());
+        lx = algebraic_p(+guess);
+        hx = algebraic_p(+guess);
         y = integer::make(1000);
         hx = hx->is_zero() ? inv::run(y) : hx + hx / y;
     }
@@ -125,7 +125,7 @@ algebraic_p solve(program_g eq, symbol_g name, object_g guess)
             return nullptr;
     }
     x = lx;
-    record(solve, "Initial range %t-%t", lx.Safe(), hx.Safe());
+    record(solve, "Initial range %t-%t", +lx, +hx);
 
     // Set independent variable
     save<symbol_g *> iref(expression::independent, &name);
@@ -147,7 +147,7 @@ algebraic_p solve(program_g eq, symbol_g name, object_g guess)
 
         // Evaluate equation
         y = algebraic::evaluate_function(eq, x);
-        record(solve, "[%u] x=%t y=%t", i, x.Safe(), y.Safe());
+        record(solve, "[%u] x=%t y=%t", i, +x, +y);
         if (!y)
         {
             // Error on last function evaluation, try again
@@ -165,7 +165,7 @@ algebraic_p solve(program_g eq, symbol_g name, object_g guess)
             if (y->is_zero() || smaller_magnitude(y, eps))
             {
                 record(solve, "[%u] Solution=%t value=%t",
-                       i, x.Safe(), y.Safe());
+                       i, +x, +y);
                 return x;
             }
 
@@ -237,12 +237,12 @@ algebraic_p solve(program_g eq, symbol_g name, object_g guess)
                     if ((ly * hy)->is_negative(false))
                     {
                         record(solve, "[%u] Cross solution=%t value=%t",
-                               i, x.Safe(), y.Safe());
+                               i, +x, +y);
                     }
                     else
                     {
                         record(solve, "[%u] Minimum=%t value=%t",
-                               i, x.Safe(), y.Safe());
+                               i, +x, +y);
                         rt.no_solution_error();
                     }
                     return x;
@@ -255,13 +255,13 @@ algebraic_p solve(program_g eq, symbol_g name, object_g guess)
                 {
                     record(solve,
                            "[%u] unmoving %t between %t and %t",
-                           hy.Safe(), lx.Safe(), hx.Safe());
+                           +hy, +lx, +hx);
                     jitter = true;
                 }
                 else
                 {
                     record(solve, "[%u] Moving to %t - %t / %t",
-                           i, lx.Safe(), dy.Safe(), dx.Safe());
+                           i, +lx, +dy, +dx);
                     is_constant = false;
                     x = lx - y * dx / dy;
                 }
@@ -296,12 +296,12 @@ algebraic_p solve(program_g eq, symbol_g name, object_g guess)
                 x = x + x * dx;
             if (!x)
                 return nullptr;
-            record(solve, "Jitter x=%t", x.Safe());
+            record(solve, "Jitter x=%t", +x);
         }
     }
 
     record(solve, "Exited after too many loops, x=%t y=%t lx=%t ly=%t",
-           x.Safe(), y.Safe(), lx.Safe(), ly.Safe());
+           +x, +y, +lx, +ly);
 
     if (!is_valid)
         rt.invalid_function_error();

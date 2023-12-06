@@ -272,7 +272,7 @@ bool PlotParametersAccess::write(object_p name) const
         list_g        par =
             list::make(zmin, zmax, indep, resolution, axes, ptype, dep);
         if (par)
-            return dir->store(name, par.Safe());
+            return dir->store(name, +par);
     }
     return false;
 
@@ -285,15 +285,15 @@ bool PlotParametersAccess::check_validity() const
 // ----------------------------------------------------------------------------
 {
     // All labels must be defined
-    if (!xmin.Safe() || !xmax.Safe() || !ymin.Safe() || !ymax.Safe())
+    if (!xmin|| !xmax|| !ymin|| !ymax)
         return false;
-    if (!independent.Safe() || !dependent.Safe() || !resolution.Safe())
+    if (!independent|| !dependent|| !resolution)
         return false;
-    if (!imin.Safe() || !imax.Safe())
+    if (!imin|| !imax)
         return false;
-    if (!resolution.Safe() || !xorigin.Safe() || !yorigin.Safe())
+    if (!resolution|| !xorigin|| !yorigin)
         return false;
-    if (!xticks.Safe() || !yticks.Safe() || !xlabel.Safe() || !ylabel.Safe())
+    if (!xticks|| !yticks|| !xlabel|| !ylabel)
         return false;
 
     // Check values that must be real
@@ -346,7 +346,7 @@ coord PlotParametersAccess::pixel_adjust(object_r    obj,
 //  Convert an object to a coordinate
 // ----------------------------------------------------------------------------
 {
-    if (!obj.Safe())
+    if (!obj)
         return 0;
 
     coord       result = 0;
@@ -373,7 +373,7 @@ coord PlotParametersAccess::pixel_adjust(object_r    obj,
 #endif // CONFIG_NO_DECIMAL128
     {
         algebraic_g range  = max - min;
-        algebraic_g pos    = algebraic_p(obj.Safe());
+        algebraic_g pos    = algebraic_p(+obj);
         algebraic_g sa     = integer::make(scale);
 
         // Avoid divide by zero for bogus input
@@ -395,7 +395,7 @@ coord PlotParametersAccess::pixel_adjust(object_r    obj,
     case object::ID_bin_integer:
 #endif // CONFIG_FIXED_BASED_OBJECTS
     case object::ID_based_integer:
-        result = based_integer_p(obj.Safe())->value<ularge>();
+        result = based_integer_p(+obj)->value<ularge>();
         break;
 
 #if CONFIG_FIXED_BASED_OBJECTS
@@ -405,7 +405,7 @@ coord PlotParametersAccess::pixel_adjust(object_r    obj,
     case object::ID_bin_bignum:
 #endif // CONFIG_FIXED_BASED_OBJECTS
     case object::ID_based_bignum:
-        result = based_bignum_p(obj.Safe())->value<ularge>();
+        result = based_bignum_p(+obj)->value<ularge>();
         break;
 
     default:
@@ -457,7 +457,7 @@ coord PlotParametersAccess::pixel_x(algebraic_r x) const
 //   Adjust a position given as an algebraic value
 // ----------------------------------------------------------------------------
 {
-    object_g xo = object_p(x.Safe());
+    object_g xo = object_p(+x);
     return pixel_adjust(xo, xmin, xmax, Screen.area().width());
 }
 
@@ -467,7 +467,7 @@ coord PlotParametersAccess::pixel_y(algebraic_r y) const
 //   Adjust a position given as an algebraic value
 // ----------------------------------------------------------------------------
 {
-    object_g yo = object_p(y.Safe());
+    object_g yo = object_p(+y);
     return pixel_adjust(yo, ymax, ymin, Screen.area().height());
 }
 
@@ -508,7 +508,7 @@ COMMAND_BODY(Disp)
 
                 if (ty == ID_list || ty == ID_array)
                 {
-                    list_g args = list_p(pos.Safe());
+                    list_g args = list_p(+pos);
                     if (object_p fontid = args->at(2))
                     {
                         uint32_t i = fontid->as_uint32(settings::STACK, false);
@@ -522,7 +522,7 @@ COMMAND_BODY(Disp)
             }
             else if (pos->is_algebraic())
             {
-                algebraic_g ya = algebraic_p(pos.Safe());
+                algebraic_g ya = algebraic_p(+pos);
                 ya = ya * integer::make(LCD_H/8);
                 y = ya->as_uint32(0, false) - (LCD_H/8);
             }
@@ -832,7 +832,7 @@ COMMAND_BODY(CurrentClip)
     if (x1 && y1 && x2 && y2)
     {
         list_g obj = list::make(x1, y1, x2, y2);
-        if (obj && rt.push(obj.Safe()))
+        if (obj && rt.push(+obj))
             return OK;
     }
     return ERROR;

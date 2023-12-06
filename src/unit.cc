@@ -75,7 +75,7 @@ unit_p unit::make(algebraic_g v, algebraic_g u, id ty)
 //   Build a unit object from its components
 // ----------------------------------------------------------------------------
 {
-    if (!v.Safe() || !u.Safe())
+    if (!v || !u)
         return nullptr;
 
     while (unit_g vu = v->as<unit>())
@@ -161,7 +161,7 @@ EVAL_BODY(unit)
         }
     }
     value = unit::simple(value, uexpr);
-    return rt.push(value.Safe()) ? OK : ERROR;
+    return rt.push(+value) ? OK : ERROR;
 }
 
 
@@ -742,7 +742,7 @@ unit_p unit::lookup(symbol_p name, int *prefix_info)
                                 scale = integer::make(1024);
                             }
                             scale = pow(scale, exp);
-                            exp = u.Safe();
+                            exp = +u;
                             scale = scale * exp;
                             if (scale)
                                 if (unit_p us = scale->as<unit>())
@@ -767,7 +767,7 @@ unit_p unit::lookup(symbol_p name, int *prefix_info)
                             rt.inconsistent_units_error();
                             return nullptr;
                         }
-                        u = unit_p(uexpr.Safe());
+                        u = unit_p(+uexpr);
                         return u;
                     }
                 }
@@ -790,7 +790,7 @@ bool unit::convert(algebraic_g &x) const
 //   Convert the object to the given unit
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return false;
 
     // If we already have a unit object, perform a conversion
@@ -802,7 +802,7 @@ bool unit::convert(algebraic_g &x) const
     unit_g u = unit::make(x, one);
     if (!convert(u))
         return false;
-    x = u.Safe();
+    x = +u;
     return true;
 }
 
@@ -812,7 +812,7 @@ bool unit::convert(unit_g &x) const
 //   Convert a unit object to the current unit
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return false;
     algebraic_g u   = uexpr();
     algebraic_g o   = x->uexpr();
@@ -823,7 +823,7 @@ bool unit::convert(unit_g &x) const
         return false;
 
     // Common case where we have the exact same unit
-    if (u->is_same_as(o.Safe()))
+    if (u->is_same_as(+o))
         return true;
 
     if (!unit::mode)
@@ -999,7 +999,7 @@ unit_p unit::custom_cycle(symbol_r sym) const
             if (symbol_g found = ufile.lookup(txt, sz, false, false))
             {
                 ufile.close();          // Can't have 2 files open on DM42
-                unit_g to = unit::make(integer::make(1), found.Safe());
+                unit_g to = unit::make(integer::make(1), +found);
                 if (to->convert(from))
                     return from;
             }
@@ -1470,7 +1470,7 @@ FUNCTION_BODY(UVal)
 //   Extract value from unit object in level 1
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
     if (x->is_symbolic())
         return symbolic(ID_UVal, x);
@@ -1562,7 +1562,7 @@ COMMAND_BODY(ApplyUnit)
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
                 if (algebraic_g uobj = unit::simple(alg, uname))
-                    if (rt.top(uobj.Safe()))
+                    if (rt.top(+uobj))
                         return OK;
 
     if (!rt.error())
@@ -1592,7 +1592,7 @@ COMMAND_BODY(ApplyInverseUnit)
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
                 if (algebraic_g uobj = unit::simple(alg, inv::run(uname)))
-                    if (rt.top(uobj.Safe()))
+                    if (rt.top(+uobj))
                         return OK;
 
     if (!rt.error())
@@ -1623,7 +1623,7 @@ COMMAND_BODY(ConvertToUnit)
             if (algebraic_g alg = value->as_algebraic())
                 if (unit_g uobj = uname->as<unit>())
                     if (uobj->convert(alg))
-                        if (rt.top(alg.Safe()))
+                        if (rt.top(+alg))
                             return OK;
 
     return ERROR;
@@ -1732,7 +1732,7 @@ COMMAND_BODY(ConvertToUnitPrefix)
     }
 
     // Perform the conversion to the desired unit
-    algebraic_g x = un.Safe();
+    algebraic_g x = +un;
     if (!target->convert(x))
     {
         rt.inconsistent_units_error();

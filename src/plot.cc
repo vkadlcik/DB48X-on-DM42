@@ -48,8 +48,8 @@ void draw_axes(const PlotParametersAccess &ppar)
 {
     coord w = Screen.area().width();
     coord h = Screen.area().height();
-    coord x = ppar.pixel_adjust(ppar.xorigin.Safe(), ppar.xmin, ppar.xmax, w);
-    coord y = ppar.pixel_adjust(ppar.yorigin.Safe(), ppar.ymax, ppar.ymin, h);
+    coord x = ppar.pixel_adjust(+ppar.xorigin, ppar.xmin, ppar.xmax, w);
+    coord y = ppar.pixel_adjust(+ppar.yorigin, ppar.ymax, ppar.ymin, h);
 
     // Draw axes proper
     pattern pat = Settings.Foreground();
@@ -57,8 +57,8 @@ void draw_axes(const PlotParametersAccess &ppar)
     Screen.fill(x, 0, x, h, pat);
 
     // Draw tick marks
-    coord tx = ppar.size_adjust(ppar.xticks.Safe(), ppar.xmin, ppar.xmax, w);
-    coord ty = ppar.size_adjust(ppar.yticks.Safe(), ppar.ymin, ppar.ymax, h);
+    coord tx = ppar.size_adjust(+ppar.xticks, ppar.xmin, ppar.xmax, w);
+    coord ty = ppar.size_adjust(+ppar.yticks, ppar.ymin, ppar.ymax, h);
     if (tx > 0)
     {
         for (coord i = tx; x + i <= w; i += tx)
@@ -201,7 +201,7 @@ object::result draw_plot(object::id                  kind,
             rt.invalid_equation_error();
             return object::ERROR;
         }
-        eq = program_p(to_plot.Safe());
+        eq = program_p(+to_plot);
     }
     else if (dname == object::ID_StatsData)
     {
@@ -211,9 +211,9 @@ object::result draw_plot(object::id                  kind,
             return object::ERROR;
         }
 
-        data = array_p(to_plot.Safe());
+        data = array_p(+to_plot);
         size_t items = data->items();
-        data = array_p(to_plot.Safe());
+        data = array_p(+to_plot);
         step = (max - min) / integer::make(items);
         bar_skip = items && items < ScreenWidth() ? ScreenWidth() / items : 1;
         bar_width = bar_skip > 2 ? bar_skip - 2: bar_skip;

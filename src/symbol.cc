@@ -105,9 +105,9 @@ symbol_g operator+(symbol_r x, symbol_r y)
 //   Concatenate two texts
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return y;
-    if (!y.Safe())
+    if (!y)
         return x;
     size_t sx = 0, sy = 0;
     utf8 tx = x->value(&sx);

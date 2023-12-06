@@ -383,7 +383,7 @@ PARSE_BODY(integer)
         }
         else if (*s == '/' && p.precedence <= MULTIPLICATIVE && is_real(type))
         {
-            is_fraction = s - p.source.Safe();
+            is_fraction = s - +p.source;
             numerator   = number;
             number      = nullptr;
             type        = ID_integer;

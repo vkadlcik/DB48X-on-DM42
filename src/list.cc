@@ -216,7 +216,7 @@ object::result list::list_parse(id type,
                         rt.prefix_expected_error().source(s, length);
                         return ERROR;
                     }
-                    non_alg = s.Safe() - p.source.Safe();
+                    non_alg = +s- +p.source;
                     non_alg_len = length;
                 }
 
@@ -323,7 +323,7 @@ object::result list::list_parse(id type,
     {
         record(list_error, "Missing terminator, got %u (%c) not %u (%c) at %s",
                cp, cp, close, close, utf8(s));
-        rt.unterminated_error().source(p.source, s.Safe() - p.source.Safe());
+        rt.unterminated_error().source(p.source, +s - +p.source);
         return ERROR;
     }
 
@@ -427,7 +427,7 @@ list_p list::append(list_p a) const
 {
     text_g x = text_p(this);
     text_g y = text_p(a);
-    return list_p((x + y).Safe());
+    return list_p(+(x + y));
 }
 
 
@@ -438,7 +438,7 @@ list_p list::append(object_p o) const
 {
     text_g x = text_p(this);
     text_g y = text::make(byte_p(o), o->size());
-    return list_p((x + y).Safe());
+    return list_p(+(x + y));
 }
 
 
@@ -599,7 +599,7 @@ COMMAND_BODY(Size)
                 {
                     integer_g wo = rt.make<based_integer>(w);
                     integer_g ho = rt.make<based_integer>(h);
-                    if (wo && ho && rt.top(wo.Safe()) && rt.push(ho.Safe()))
+                    if (wo && ho && rt.top(+wo) && rt.push(+ho))
                         return OK;
                 }
             }
@@ -646,8 +646,8 @@ static object::result get(bool increment)
         {
             rt.push(item);
             object_g index = rt.stack(1);
-            bool wrap = items->next_index(&index.Safe());
-            if (index.Safe())
+            bool wrap = items->next_index(&+index);
+            if (index)
             {
                 rt.stack(1, index);
                 Settings.IndexWrapped(wrap);
@@ -708,10 +708,10 @@ static object::result put(bool increment)
             if (increment)
             {
                 object_g index = rt.stack(1);
-                bool wrap = result->next_index(&index.Safe());
-                if (index.Safe())
+                bool wrap = result->next_index(&+index);
+                if (index)
                 {
-                    rt.stack(1, index.Safe());
+                    rt.stack(1, +index);
                     Settings.IndexWrapped(wrap);
                 }
             }
@@ -943,7 +943,7 @@ static object::result pair_map(object::id cmd)
             else if (init->is_integer() && last->is_integer())
             {
                 bool      prod = cmd == object::ID_Product;
-                program_g prg  = program_p(expr.Safe());
+                program_g prg  = program_p(+expr);
                 large     a    = init->as_int64();
                 large     b    = last->as_int64();
                 expr           = sum_product(name, a, b, prg, prod);
@@ -1028,7 +1028,7 @@ list_p list::map(object_p prgobj) const
         if (oty == ID_array || oty == ID_list)
         {
             list_g sub = list_p(obj)->map(prg);
-            obj = sub.Safe();
+            obj = +sub;
         }
         else
         {
@@ -1115,8 +1115,8 @@ list_p list::filter(object_p prgobj) const
         bool keep = false;
         if (oty == ID_array || oty == ID_list)
         {
-            object_g sub = list_p(obj.Safe())->filter(prg);
-            obj = sub.Safe();
+            object_g sub = list_p(+obj)->filter(prg);
+            obj = +sub;
             keep = true;
         }
         else
@@ -1169,7 +1169,7 @@ list_p list::map(algebraic_fn fn) const
         if (oty == ID_array || oty == ID_list)
         {
             list_g sub = list_p(obj)->map(fn);
-            obj = sub.Safe();
+            obj = +sub;
         }
         else
         {
@@ -1183,7 +1183,7 @@ list_p list::map(algebraic_fn fn) const
             a = fn(a);
             if (!a)
                 return nullptr;
-            obj = a.Safe();
+            obj = +a;
         }
 
         if (!obj)
@@ -1211,7 +1211,7 @@ list_p list::map(arithmetic_fn fn, algebraic_r y) const
         if (oty == ID_array || oty == ID_list)
         {
             list_g sub = list_p(obj)->map(fn, y);
-            obj = sub.Safe();
+            obj = +sub;
         }
         else
         {
@@ -1225,7 +1225,7 @@ list_p list::map(arithmetic_fn fn, algebraic_r y) const
             a = fn(a, y);
             if (!a)
                 return nullptr;
-            obj = a.Safe();
+            obj = +a;
         }
 
         if (!obj)
@@ -1253,7 +1253,7 @@ list_p list::map(algebraic_r x, arithmetic_fn fn) const
         if (oty == ID_array || oty == ID_list)
         {
             list_g sub = list_p(obj)->map(x, fn);
-            obj = sub.Safe();
+            obj = +sub;
             if (!obj)
                 return nullptr;
         }
@@ -1269,7 +1269,7 @@ list_p list::map(algebraic_r x, arithmetic_fn fn) const
             a = fn(x, a);
             if (!a)
                 return nullptr;
-            obj = a.Safe();
+            obj = +a;
         }
 
         size_t objsz = obj->size();
@@ -1380,7 +1380,7 @@ static object::result do_sort(int (*compare)(object_p *x, object_p *y))
                 }
                 rt.drop(count);
                 items = list::make(oty, scr.scratch(), scr.growth());
-                if (items && rt.top(items.Safe()))
+                if (items && rt.top(+items))
                     return object::OK;
 
             err:

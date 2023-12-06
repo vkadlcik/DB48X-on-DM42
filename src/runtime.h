@@ -324,8 +324,11 @@ struct runtime
         operator byte  *() const                { return safe; }
         operator byte *&()                      { return safe; }
         byte *&Safe()                           { return safe; }
+        byte *&operator+()                      { return safe; }
+        byte *operator+() const                 { return safe; }
+        operator bool() const                   { return safe != nullptr; }
         operator bool()                         { return safe != nullptr; }
-        operator int()                          = delete;
+        operator int() const                    = delete;
         gcptr &operator =(const gcptr &o)       { safe = o.safe; return *this; }
         gcptr &operator++()                     { safe++; return *this; }
         gcptr &operator+=(size_t sz)            { safe += sz; return *this; }
@@ -358,6 +361,10 @@ struct runtime
         operator Obj *() const          { return (Obj *) safe; }
         operator Obj *&()               { return (Obj *&) safe; }
         const Obj *Safe() const         { return (const Obj *) safe; }
+        const Obj *operator+() const    { return (const Obj *) safe; }
+        const Obj *&operator+()         { return (const Obj * &) safe; }
+        operator bool() const           { return safe != nullptr; }
+        operator bool()                 { return safe != nullptr; }
         Obj *&Safe()                    { return (Obj *&) safe; }
         const Obj &operator *() const   { return *((Obj *) safe); }
         Obj &operator *()               { return *((Obj *) safe); }
@@ -1021,7 +1028,7 @@ const Obj *runtime::make(typename Obj::id type, const
     // Initialize the object in place (may GC and move result)
     gcbytes ptr = (byte *) result;
     new(result) Obj(type, args...);
-    result = (Obj *) ptr.Safe();
+    result = (Obj *) +ptr;
 
 #ifdef SIMULATOR
     object_validate(type, (const object *) result, size);

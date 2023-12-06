@@ -64,7 +64,7 @@ struct IfThenElse : IfThen
         object_p after = p->skip()->skip();
         byte *tgt = (byte *) after;
         size_t iffs = iff->size();
-        memcpy(tgt, iff.Safe(), iffs);
+        memcpy(tgt, +iff, iffs);
     }
 
     static size_t required_memory(id i,

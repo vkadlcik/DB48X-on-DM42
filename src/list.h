@@ -114,14 +114,14 @@ struct list : text
     static void copy(byte *p, const gcp<Arg> &arg)
     {
         size_t sz = arg->size();
-        memmove(p, arg.Safe(), sz);
+        memmove(p, +arg, sz);
     }
 
     template<typename Arg, typename ...Args>
     static void copy(byte *p, const gcp<Arg> &arg, const gcp<Args> &...args)
     {
         size_t sz = arg->size();
-        memmove(p, arg.Safe(), sz);
+        memmove(p, +arg, sz);
         p += sz;
         copy(p, args...);
     }
@@ -160,7 +160,7 @@ struct list : text
         {
             if (index < size)
             {
-                object_p obj = first.Safe() + index;
+                object_p obj = +first + index;
                 size_t objsize = obj->size();
                 index += objsize;
             }
@@ -175,10 +175,10 @@ struct list : text
         }
         bool operator==(iterator other) const
         {
-            return !first.Safe() || !other.first.Safe() ||
-                (index == other.index &&
-                 first.Safe() == other.first.Safe() &&
-                 size == other.size);
+            return !first || !other.first ||
+                   (index == other.index &&
+                    +first == +other.first &&
+                    size == other.size);
         }
         bool operator!=(iterator other) const
         {
@@ -186,7 +186,7 @@ struct list : text
         }
         value_type operator*() const
         {
-            return index < size ? first.Safe() + index : nullptr;
+            return index < size ? +first+ index : nullptr;
         }
 
     public:
@@ -328,7 +328,7 @@ inline list_g operator+(list_r x, list_r y)
 {
     text_r xt = (text_r) x;
     text_r yt = (text_r) y;
-    return list_p((xt + yt).Safe());
+    return list_p(+(xt + yt));
 }
 
 
@@ -338,7 +338,7 @@ inline list_g operator*(list_r x, uint y)
 // ----------------------------------------------------------------------------
 {
     text_r xt = (text_r) x;
-    return list_p((xt * y).Safe());
+    return list_p(+(xt * y));
 }
 
 #endif // LIST_H

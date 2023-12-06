@@ -175,13 +175,13 @@ bool directory::store(object_g name, object_g value)
     {
     case ID_local:
         // Deal with local variables
-        return rt.local(local_p(name.Safe())->index(), value);
+        return rt.local(local_p(+name)->index(), value);
 
     case ID_text:
     {
         // Deal with storing to file
         files_g disk = files::make("data");
-        return disk->store(text_p(name.Safe()), value);
+        return disk->store(text_p(+name), value);
     }
 
     default:
@@ -237,7 +237,7 @@ bool directory::store(object_g name, object_g value)
             return false;               // Out of memory
 
         // Move memory from directory up
-        object_p start = object_p(body.Safe());
+        object_p start = object_p(+body);
         if (Settings.StoreAtEnd())
             start += dirsize;
         rt.move_globals(start + requested, start);
@@ -289,7 +289,7 @@ void directory::adjust_sizes(directory_r thisdir, int delta)
     while (directory_g dir = rt.variables(depth++))
     {
         // Start modifying only if we find this directory in path
-        if (dir.Safe() == thisdir.Safe())
+        if (+dir== thisdir.Safe())
             found = true;
         if (found)
         {

@@ -81,7 +81,7 @@ EVAL_BODY(fraction)
     {
         algebraic_g x = o;
         if (algebraic::real_promotion(x))
-            if (rt.push(x.Safe()))
+            if (rt.push(+x))
                 return OK;
     }
     return rt.push(o) ? OK : ERROR;

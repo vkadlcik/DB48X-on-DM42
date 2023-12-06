@@ -660,14 +660,14 @@ object_p object::at(object_p index, object_p value) const
 
         // For a list, copy bytes before, value bytes, and bytes after
         size_t   size  = 0;
-        object_g items = list_p(ref.Safe())->objects(&size);
+        object_g items = list_p(+ref)->objects(&size);
         size_t   fsize = first->size();
-        object_g next  = first.Safe() + fsize;
-        size_t   hsize = first.Safe() - items.Safe();
-        size_t   tsize = size - (next.Safe() - items.Safe());
-        list_g   head  = rt.make<list>(ty, byte_p(items.Safe()), hsize);
-        list_g   mid   = rt.make<list>(ty, byte_p(item.Safe()), item->size());
-        list_g   tail  = rt.make<list>(ty, byte_p(next.Safe()), tsize);
+        object_g next  = +first + fsize;
+        size_t   hsize = +first - +items;
+        size_t   tsize = size - (+next - +items);
+        list_g   head  = rt.make<list>(ty, byte_p(+items), hsize);
+        list_g   mid   = rt.make<list>(ty, byte_p(+item), item->size());
+        list_g   tail  = rt.make<list>(ty, byte_p(+next), tsize);
         return head + mid + tail;
     }
 
@@ -717,17 +717,17 @@ bool object::next_index(object_p *indexp) const
         if (idxtail->length())
         {
             object_g itobj   = idxtail;
-            object_g child   = obj->at(idxhead.Safe());
-            if (child->next_index(&itobj.Safe()))
-                wrap = obj->next_index(&idxhead.Safe());
+            object_g child   = obj->at(+idxhead);
+            if (child->next_index(&+itobj))
+                wrap = obj->next_index(&+idxhead);
             idxlist = list::make(idxhead);
-            idxlist = idxlist + list_g(list_p(itobj.Safe()));
-            *indexp = idxlist.Safe();
+            idxlist = idxlist + list_g(list_p(+itobj));
+            *indexp = +idxlist;
             return wrap;
         }
-        wrap = obj->next_index(&idxhead.Safe());
+        wrap = obj->next_index(&+idxhead);
         idxlist = list::make(idxhead);
-        *indexp = idxlist.Safe();
+        *indexp = +idxlist;
         return wrap;
     }
 

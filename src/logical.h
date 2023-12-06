@@ -137,12 +137,12 @@ UNARY_LOGICAL_NUM(RL,                   rol(X));
 UNARY_LOGICAL_NUM(RR,                   ror(X));
 UNARY_LOGICAL_NUM(RLB,                  rol(X, 8));
 UNARY_LOGICAL_NUM(RRB,                  ror(X, 8));
-UNARY_LOGICAL_NUM(SL,                   X << 1);
-UNARY_LOGICAL_NUM(SR,                   X >> 1);
+UNARY_LOGICAL_NUM(SL,                   X << 1U);
+UNARY_LOGICAL_NUM(SR,                   X >> 1U);
 UNARY_LOGICAL_NUM(ASR,                  asr(X));
-UNARY_LOGICAL_NUM(SLB,                  X << 8);
-UNARY_LOGICAL_NUM(SRB,                  X >> 8);
-UNARY_LOGICAL_NUM(ASRB,                 asr(X, 8));
+UNARY_LOGICAL_NUM(SLB,                  X << 8U);
+UNARY_LOGICAL_NUM(SRB,                  X >> 8U);
+UNARY_LOGICAL_NUM(ASRB,                 asr(X, 8U));
 
 BINARY_LOGICAL_NUM(SLC,     LOGICAL,    Y << X);
 BINARY_LOGICAL_NUM(SRC,     LOGICAL,    Y >> X);

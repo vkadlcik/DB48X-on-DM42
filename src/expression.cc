@@ -776,7 +776,7 @@ expression_p expression::rewrite(expression_r from, expression_r to) const
                 if (!computed)
                     goto err;
                 algebraic_g eqa = computed->as_algebraic();
-                if (!eqa.Safe())
+                if (!eqa)
                     goto err;
                 eq = eqa->as<expression>();
                 if (!eq)
@@ -823,7 +823,7 @@ expression_p expression::rewrite_all(size_t size, const byte_p rewrites[]) const
     uint count = 0;
     expression_g last = nullptr;
     expression_g eq = this;
-    while (count++ < Settings.MaxRewrites() && eq && eq.Safe() != last.Safe())
+    while (count++ < Settings.MaxRewrites() && eq && +eq != +last)
     {
         // Check if we produced the same value
         if (last && last->is_same_as(eq))
@@ -862,7 +862,7 @@ COMMAND_BODY(Rewrite)
     eq = eq->rewrite(from, to);
     if (!eq)
         return ERROR;
-    if (!rt.drop(2) || !rt.top(eq.Safe()))
+    if (!rt.drop(2) || !rt.top(eq))
         return ERROR;
 
     return OK;
@@ -1059,7 +1059,7 @@ algebraic_p expression::factor_out(algebraic_g expr,
             scale = ys * xs;
             exponent = ye + xe;
             x = y * x;
-            if (!x.Safe() || !rt.push(x.Safe()))
+            if (!x|| !rt.push(+x))
                 return nullptr;
             break;
 
@@ -1071,7 +1071,7 @@ algebraic_p expression::factor_out(algebraic_g expr,
             scale = ys / xs;
             exponent = ye - xe;
             x = y / x;
-            if (!x.Safe() || !rt.push(x.Safe()))
+            if (!x|| !rt.push(+x))
                 return nullptr;
             break;
 
@@ -1083,7 +1083,7 @@ algebraic_p expression::factor_out(algebraic_g expr,
             scale = pow(ys, x);
             exponent = ye;
             x = pow(y, x);
-            if (!x.Safe() || !rt.push(x.Safe()))
+            if (!x|| !rt.push(+x))
                 return nullptr;
             break;
 
@@ -1093,7 +1093,7 @@ algebraic_p expression::factor_out(algebraic_g expr,
             scale = inv::run(xs);
             exponent = -xe;
             x = inv::run(x);
-            if (!x.Safe() || !rt.push(x.Safe()))
+            if (!x|| !rt.push(+x))
                 return nullptr;
             break;
 
@@ -1103,7 +1103,7 @@ algebraic_p expression::factor_out(algebraic_g expr,
             scale = xs * xs;
             exponent = xe + xe;
             x = x * x;
-            if (!x.Safe() || !rt.push(x.Safe()))
+            if (!x|| !rt.push(+x))
                 return nullptr;
             break;
 
@@ -1113,7 +1113,7 @@ algebraic_p expression::factor_out(algebraic_g expr,
             scale = xs * xs * xs;
             exponent = xe + xe + xe;
             x = x * x * x;
-            if (!x.Safe() || !rt.push(x.Safe()))
+            if (!x|| !rt.push(+x))
                 return nullptr;
             break;
 
@@ -1161,17 +1161,16 @@ algebraic_p expression::simplify_products() const
             if (symbol_g sym = obj->as<symbol>())
             {
                 algebraic_g scale, exponent;
-                algebraic_g rest = factor_out(eq.Safe(), sym.Safe(),
-                                              scale, exponent);
+                algebraic_g rest = factor_out(+eq, +sym, scale, exponent);
                 if (!rest || !scale || !exponent)
                 {
                     Settings.AutoSimplify(auto_simplify);
                     return nullptr;
                 }
                 if (exponent->is_negative(false))
-                    den = den * pow(sym.Safe(), -exponent);
+                    den = den * pow(+sym, -exponent);
                 else
-                    num = num * pow(sym.Safe(), exponent);
+                    num = num * pow(+sym, exponent);
                 rest = scale;
                 if (expression_p req = rest->as<expression>())
                 {
@@ -1192,7 +1191,7 @@ algebraic_p expression::simplify_products() const
 
         if (done && eq)
         {
-            algebraic_g rest = eq.Safe();
+            algebraic_g rest = +eq;
             num = num * rest;
         }
     }

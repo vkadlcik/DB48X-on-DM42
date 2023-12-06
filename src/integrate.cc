@@ -61,10 +61,10 @@ COMMAND_BODY(Integrate)
 
     record(integrate,
            "Integrating %t for variable %t in range %t-%t",
-           eqobj.Safe(),
-           variable.Safe(),
-           low.Safe(),
-           high.Safe());
+           +eqobj,
+           +variable,
+           +low,
+           +high);
 
     // Check that we have a variable name on stack level 1 and
     // a proram or equation on level 2
@@ -82,10 +82,10 @@ COMMAND_BODY(Integrate)
     rt.drop(4);
 
     // Actual integration
-    program_g  eq = program_p(eqobj.Safe());
+    program_g  eq = program_p(+eqobj);
     algebraic_g intg =
-        integrate(eq, name, algebraic_p(low.Safe()), algebraic_p(high.Safe()));
-    if (intg.Safe() && rt.push(intg.Safe()))
+        integrate(eq, name, algebraic_p(+low), algebraic_p(+high));
+    if (intg&& rt.push(+intg))
         return OK;
 
     return ERROR;
@@ -111,7 +111,7 @@ algebraic_p integrate(program_g   eq,
     algebraic_g two  = integer::make(2);
     algebraic_g four = integer::make(4);
     algebraic_g pow4;
-    record(integrate, "Initial range %t-%t", lx.Safe(), hx.Safe());
+    record(integrate, "Initial range %t-%t", +lx, +hx);
 
     // Set independent variable
     save<symbol_g *> iref(expression::independent, &name);
@@ -138,7 +138,7 @@ algebraic_p integrate(program_g   eq,
 
     // Depth of the original stack, to return to after computation
     size_t depth = rt.depth();
-    if (!rt.push(sy.Safe()))
+    if (!rt.push(+sy))
         goto error;
 
     for (uint d = 0; d <= max && !program::interrupted(); d++)
@@ -162,13 +162,7 @@ algebraic_p integrate(program_g   eq,
             sy = sy + y;
             if (!algebraic::to_decimal_if_big(sy))
                 goto error;
-            record(integrate,
-                   "[%u:%u] x=%t y=%t sum=%t",
-                   d,
-                   i,
-                   x.Safe(),
-                   y.Safe(),
-                   sy.Safe());
+            record(integrate, "[%u:%u] x=%t y=%t sum=%t", d, i, +x, +y, +sy);
             x = x + dx;
             if (!sy || !x)
                 goto error;
@@ -181,7 +175,7 @@ algebraic_p integrate(program_g   eq,
         sy2 = dx2 * sy + y / two;
         if (!algebraic::to_decimal_if_big(sy2))
             goto error;
-        if (!sy2 || !rt.push(sy2.Safe()))
+        if (!sy2 || !rt.push(+sy2))
             goto error;
 
         // Prepare 4^i for i=0
@@ -203,7 +197,7 @@ algebraic_p integrate(program_g   eq,
             pow4 = pow4 * four;
 
             // Save C[i]
-            if (!y || !pow4 || !rt.push(y.Safe()))
+            if (!y || !pow4 || !rt.push(+y))
                 goto error;
         }
 

@@ -4368,7 +4368,7 @@ bool user_interface::editor_replace()
 //   Perform a search replacement
 // ----------------------------------------------------------------------------
 {
-    if (~searching && ~select && cursor != select && clipboard.Safe())
+    if (~searching && ~select && cursor != select && clipboard)
     {
         uint start = cursor;
         uint end = select;

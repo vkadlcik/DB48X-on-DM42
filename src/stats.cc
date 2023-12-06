@@ -269,7 +269,7 @@ bool StatsData::Access::write(object_p name) const
 //   Write statistical data to variable or disk
 // ----------------------------------------------------------------------------
 {
-    if (data.Safe() && data.Safe() != original_data.Safe())
+    if (data && +data != +original_data)
     {
         if (directory *dir = rt.variables(0))
         {
@@ -279,7 +279,7 @@ bool StatsData::Access::write(object_p name) const
                 if (nty == object::ID_text || nty == object::ID_symbol)
                     name = existing;
             }
-            return dir->store(name, data.Safe());
+            return dir->store(name, +data);
         }
     }
     return false;
@@ -748,7 +748,7 @@ algebraic_p StatsAccess::total(sum_fn op) const
                         x = op(x, y);
                         arow = arow->append(x);
                     }
-                    row = arow.Safe();
+                    row = +arow;
                 }
                 else
                 {
@@ -802,7 +802,7 @@ algebraic_p StatsAccess::total(sxy_fn op, algebraic_r arg) const
             if (!arow)
                 return nullptr;
             array::iterator argi =
-                arg_is_array ? array_p(arg.Safe())->begin() : ra->begin();
+                arg_is_array ? array_p(+arg)->begin() : ra->begin();
             array_p ares = result ? result->as<array>() : nullptr;
             array::iterator ai = ares ? ares->begin() : ra->begin();
             for (object_p cobj : *ra)
@@ -814,7 +814,7 @@ algebraic_p StatsAccess::total(sxy_fn op, algebraic_r arg) const
                 y = cobj->as_algebraic();
                 if (!x || !y)
                     return nullptr;
-                a = arg_is_array ? algebraic_p(*argi++) : arg.Safe();
+                a = arg_is_array ? algebraic_p(*argi++) : +arg;
                 x = op(x, y, a);
                 if (!x)
                     return nullptr;
@@ -822,7 +822,7 @@ algebraic_p StatsAccess::total(sxy_fn op, algebraic_r arg) const
                 if (!arow)
                     return nullptr;
             }
-            row = arow.Safe();
+            row = +arow;
         }
         else
         {
@@ -1112,7 +1112,7 @@ object::result StatsAccess::evaluate(eval_fn op, bool two_columns)
         stats.model = object::ID_LinearFit;
     value = (stats.*op)();
     stats.model = fit;
-    return value && rt.push(value.Safe()) ? object::OK : object::ERROR;
+    return value && rt.push(+value) ? object::OK : object::ERROR;
 }
 
 
@@ -1413,11 +1413,11 @@ COMMAND_BODY(LinearRegression)
         return ERROR;
     stats.intercept = intercept;
     stats.slope = slope;
-    tag_g itag = tag::make("Intercept", intercept.Safe());
-    tag_g stag = tag::make("Slope", slope.Safe());
+    tag_g itag = tag::make("Intercept", +intercept);
+    tag_g stag = tag::make("Slope", +slope);
     if (!itag || !stag)
         return ERROR;
-    if (!rt.push(itag.Safe()) || !rt.push(stag.Safe()))
+    if (!rt.push(+itag) || !rt.push(+stag))
         return ERROR;
     return OK;
 }

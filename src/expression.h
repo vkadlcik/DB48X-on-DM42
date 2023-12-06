@@ -63,14 +63,14 @@ struct expression : program
 
     static expression_p make(algebraic_r x, id type = ID_expression)
     {
-        if (!x.Safe())
+        if (!x)
             return nullptr;
         return rt.make<expression>(type, x);
     }
 
     static expression_p make(id op, algebraic_r x, id type = ID_expression)
     {
-        if (!x.Safe())
+        if (!x)
             return nullptr;
         return rt.make<expression>(type, op, x);
     }
@@ -78,7 +78,7 @@ struct expression : program
     static expression_p make(id op, algebraic_r x, algebraic_r y,
                            id type = ID_expression)
     {
-        if (!x.Safe() || !y.Safe())
+        if (!x || !y)
             return nullptr;
         return rt.make<expression>(type, op, x, y);
     }

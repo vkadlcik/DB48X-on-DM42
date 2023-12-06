@@ -138,7 +138,7 @@ complex_p complex::make(id type, algebraic_r x, algebraic_r y, angle_unit aunit)
 //   Build a complex of the right type
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x|| !y)
         return nullptr;
     if (type == ID_polar)
         return polar::make(x, y, aunit);
@@ -184,7 +184,7 @@ algebraic_g complex::convert_angle(algebraic_g a,
             algebraic_g pi = algebraic::pi();
             if (a->is_fraction())
             {
-                fraction_g f = fraction_p(a.Safe());
+                fraction_g f = fraction_p(+a);
                 algebraic_g n = algebraic_p(f->numerator());
                 algebraic_g d = algebraic_p(f->denominator());
                 a = n / pi / d;
@@ -225,7 +225,7 @@ algebraic_g complex::convert_angle(algebraic_g a,
             algebraic_g pi = algebraic::pi();
             if (a->is_fraction())
             {
-                fraction_g f = fraction_p(a.Safe());
+                fraction_g f = fraction_p(+a);
                 algebraic_g n = algebraic_p(f->numerator());
                 algebraic_g d = algebraic_p(f->denominator());
                 a = pi * n / d;
@@ -250,7 +250,7 @@ complex_g operator-(complex_r x)
 //  Unary minus
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
     if (x->type() == object::ID_polar)
     {
@@ -267,7 +267,7 @@ complex_g operator+(complex_r x, complex_r y)
 //   Complex addition - In rectangular form, unless polar args are aligned
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x|| !y)
         return nullptr;
     if (x->type() == object::ID_polar &&
         y->type() == object::ID_polar)
@@ -288,7 +288,7 @@ complex_g operator-(complex_r x, complex_r y)
 //   Complex subtraction - In rectangular form, unless polar args are aligned
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x|| !y)
         return nullptr;
     if (x->is_zero())
         return -y;
@@ -313,7 +313,7 @@ complex_g operator*(complex_r x, complex_r y)
 //   If both are in rectangular form, rectangular, otherwise polar
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x|| !y)
         return nullptr;
     object::id xt = x->type();
     object::id yt = y->type();
@@ -337,7 +337,7 @@ complex_g operator/(complex_r x, complex_r y)
 //   Like for multiplication, it's slighly cheaper in polar form
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x|| !y)
         return nullptr;
     object::id xt = x->type();
     object::id yt = y->type();
@@ -685,7 +685,7 @@ algebraic_g rectangular::pifrac() const
 {
     algebraic_g r = re();
     algebraic_g i = im();
-    if (!r.Safe() || !i.Safe())
+    if (!r|| !i)
         return nullptr;
 
     angle_unit mode = Settings.AngleMode();
@@ -789,7 +789,7 @@ polar_p polar::make(algebraic_r mr, algebraic_r ar, angle_unit unit)
 //   Build a normalized polar from given modulus and argument
 // ----------------------------------------------------------------------------
 {
-    if (!mr.Safe() || !ar.Safe())
+    if (!mr|| !ar)
         return nullptr;
     algebraic_g m = mr;
     algebraic_g a = ar;
@@ -797,7 +797,7 @@ polar_p polar::make(algebraic_r mr, algebraic_r ar, angle_unit unit)
     a = convert_angle(a, unit, object::ID_PiRadians, negmod);
     if (negmod)
         m = neg::run(m);
-    if (!a.Safe() || !m.Safe())
+    if (!a|| !m)
         return nullptr;
     return rt.make<polar>(m, a);
 }
@@ -884,9 +884,9 @@ COMMAND_BODY(RealToComplex)
         rt.type_error();
         return ERROR;
     }
-    complex_g z = rectangular::make(algebraic_p(re.Safe()),
-                                    algebraic_p(im.Safe()));
-    if (!z.Safe() || !rt.drop())
+    complex_g z = rectangular::make(algebraic_p(+re),
+                                    algebraic_p(+im));
+    if (!z|| !rt.drop())
         return ERROR;
     if (!rt.top(z))
         return ERROR;
@@ -909,9 +909,9 @@ COMMAND_BODY(ComplexToReal)
         rt.type_error();
         return ERROR;
     }
-    if (!rt.top(complex_p(z.Safe())->re()))
+    if (!rt.top(complex_p(+z)->re()))
         return ERROR;
-    if (!rt.push(object_p(complex_p(z.Safe())->im())))
+    if (!rt.push(object_p(complex_p(+z)->im())))
         return ERROR;
     return OK;
 }
@@ -934,8 +934,8 @@ COMMAND_BODY(ToRectangular)
     }
     if (polar_p zp = x->as<polar>())
     {
-        x = zp->as_rectangular().Safe();
-        if (!x.Safe() || !rt.top(x))
+        x = +zp->as_rectangular();
+        if (!x|| !rt.top(x))
             return ERROR;
     }
     return OK;
@@ -959,8 +959,8 @@ COMMAND_BODY(ToPolar)
     }
     if (rectangular_p zr = x->as<rectangular>())
     {
-        x = zr->as_polar().Safe();
-        if (!x.Safe() || !rt.top(x))
+        x = +zr->as_polar();
+        if (!x|| !rt.top(x))
             return ERROR;
     }
     return OK;
@@ -1011,7 +1011,7 @@ COMPLEX_BODY(cbrt)
 // ----------------------------------------------------------------------------
 {
     polar_g p = z->as_polar();
-    if (!p.Safe())
+    if (!p)
         return nullptr;
     algebraic_g mod = p->mod();
     algebraic_g arg = p->pifrac();   // Want it in original form

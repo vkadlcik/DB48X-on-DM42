@@ -470,7 +470,7 @@ list_p files::recall_list(text_p name, bool as_array) const
             item = object::parse(txt, len);
             if (!item)
                 break;
-            byte_p b  = byte_p(item.Safe());
+            byte_p b  = byte_p(+item);
             size_t sz = item->size();
             list_g li = rt.make<list>(ty, b, sz);
 
@@ -517,7 +517,7 @@ list_p files::recall_list(text_p name, bool as_array) const
                 }
                 if (row)
                 {
-                    b = byte_p(row.Safe());
+                    b = byte_p(+row);
                     sz = row->size();
                     li = rt.make<list>(ty, b, sz);
                 }

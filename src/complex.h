@@ -169,7 +169,7 @@ struct rectangular : complex
 
     static rectangular_p make(algebraic_r r, algebraic_r i)
     {
-        if (!r.Safe() || !i.Safe())
+        if (!r|| !i)
             return nullptr;
         return rt.make<rectangular>(r, i);
     }

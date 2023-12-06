@@ -417,7 +417,7 @@ bignum_g bignum::add_sub(bignum_r y, bignum_r x, bool issub)
 //   Add the two bignum values
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x|| !y)
         return nullptr;
 
     id       yt    = y->type();
@@ -569,7 +569,7 @@ bignum_g operator*(bignum_r y, bignum_r x)
 //   Multiplication of bignums
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x || !y)
         return nullptr;
     object::id xt = x->type();
     object::id yt = y->type();
@@ -697,7 +697,7 @@ bignum_g operator/(bignum_r y, bignum_r x)
 //   Perform long division of y by x
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x || !y)
         return nullptr;
     object::id yt = y->type();
     object::id xt = x->type();
@@ -714,7 +714,7 @@ bignum_g operator%(bignum_r y, bignum_r x)
 //  Perform long-remainder of y by x
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x || !y)
         return nullptr;
     object::id yt = y->type();
     bignum_g r = nullptr;
@@ -729,7 +729,7 @@ bignum_g bignum::pow(bignum_r yr, bignum_r xr)
 // ----------------------------------------------------------------------------
 //   Note that the case where x is negative should be filtered by caller
 {
-    if (!xr.Safe() || !yr.Safe())
+    if (!xr || !yr)
         return nullptr;
     bignum_g r  = bignum::make(1);
     size_t   xs = 0;
@@ -812,8 +812,8 @@ bignum_p bignum::shift(bignum_r xg, int bits, bool rotate, bool arith)
 //   Bits is signed like a memory offset, so bits>0 shifts left
 {
     if (bits == 0)
-        return xg.Safe();
-    if (!xg.Safe())
+        return +xg;
+    if (!xg)
         return nullptr;
     size_t   xs     = 0;
     byte_p   x      = xg->value(&xs);
@@ -921,7 +921,7 @@ bignum_g operator<<(bignum_r y, bignum_r x)
 //   Shift left
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x || !y)
         return nullptr;
     uint shift = x->as_uint32(0, true);
     if (rt.error())
@@ -935,7 +935,7 @@ bignum_g operator>>(bignum_r y, bignum_r x)
 //  Shift right (as an unsigned)
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x || !y)
         return nullptr;
     uint shift = x->as_uint32(0, true);
     if (rt.error())
@@ -949,7 +949,7 @@ bignum_g operator<<(bignum_r y, uint x)
 //   Shift left
 // ----------------------------------------------------------------------------
 {
-    if (!y.Safe())
+    if (!y)
         return nullptr;
     return bignum::shift(y, int(x), false, false);
 }
@@ -960,7 +960,7 @@ bignum_g operator>>(bignum_r y, uint x)
 //  Shift right (as an unsigned)
 // ----------------------------------------------------------------------------
 {
-    if (!y.Safe())
+    if (!y)
         return nullptr;
     return bignum::shift(y, -int(x), false, false);
 }

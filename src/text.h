@@ -153,9 +153,9 @@ struct text : algebraic
         {
             if (index < size)
             {
-                utf8 p = first.Safe() + index;
+                utf8 p = +first + index;
                 p = utf8_next(p);
-                index = p - first.Safe();
+                index = p - +first;
             }
 
             return *this;
@@ -168,10 +168,9 @@ struct text : algebraic
         }
         bool operator==(iterator other) const
         {
-            return
-                index == other.index &&
-                first.Safe() == other.first.Safe() &&
-                size == other.size;
+            return index == other.index &&
+                   +first == +other.first &&
+                   size == other.size;
         }
         bool operator!=(iterator other) const
         {
@@ -179,14 +178,14 @@ struct text : algebraic
         }
         value_type operator*() const
         {
-            return index < size ? utf8_codepoint(first.Safe() + index) : 0;
+            return index < size ? utf8_codepoint(+first + index) : 0;
         }
 
         text_g as_text() const
         {
             if (index < size)
             {
-                utf8 p = first.Safe() + index;
+                utf8 p = +first+ index;
                 utf8 n = utf8_next(p);
                 return text::make(p, n - p);
             }

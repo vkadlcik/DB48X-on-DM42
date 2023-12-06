@@ -225,11 +225,11 @@ EVAL_BODY(IfErrThen)
     result   r    = OK;
 
     // Evaluate the condition
-    r = program::run(cond.Safe());
+    r = program::run(+cond);
     if (r != OK || rt.error())
     {
         rt.clear_error();
-        r = program::run(body.Safe());
+        r = program::run(+body);
     }
 
     return r;
@@ -273,15 +273,15 @@ EVAL_BODY(IfErrThenElse)
     result   r    = OK;
 
     // Evaluate the condition
-    r = program::run(cond.Safe());
+    r = program::run(+cond);
     if (r != OK || rt.error())
     {
         rt.clear_error();
-        r = program::run(ift.Safe());
+        r = program::run(+ift);
     }
     else
     {
-        r = program::run(iff.Safe());
+        r = program::run(+iff);
     }
     return r;
 }
@@ -329,7 +329,7 @@ PARSE_BODY(CaseStatement)
     bool     had_end  = false;
 
     // Quick exit if we are not parsing a "case"
-    if (!match(cstring(src.Safe()), "case", 4, max))
+    if (!match(cstring(+src), "case", 4, max))
         return SKIP;
     src += size_t(4);
 
@@ -357,7 +357,7 @@ PARSE_BODY(CaseStatement)
 
                 // Check if we have 'end'
                 size_t  remaining = max - size_t(utf8(src) - utf8(p.source));
-                cstring s         = cstring(src.Safe());
+                cstring s         = cstring(+src);
                 if (match(s, "end", 3, remaining))
                 {
                     src += size_t(3);
@@ -430,7 +430,7 @@ PARSE_BODY(CaseStatement)
             byte *objcopy = rt.allocate(objsize);
             if (!objcopy)
                 return ERROR;
-            memmove(objcopy, (byte *) obj1.Safe(), objsize);
+            memmove(objcopy, (byte *) +obj1, objsize);
             obj1 = nullptr;
         }
     }
@@ -495,7 +495,7 @@ RENDER_BODY(CaseStatement)
     r.put(format, utf8("case"));
     r.indent();
     conds->render(r);
-    if (block_p block = block_p(rest.Safe()))
+    if (block_p block = block_p(+rest))
         if (block->length())
             block->render(r);
     r.unindent();

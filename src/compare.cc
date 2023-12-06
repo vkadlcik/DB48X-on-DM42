@@ -63,7 +63,7 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 {
     // Check if we had some error earlier, if so propagate
-    if (!x.Safe() || !y.Safe())
+    if (!x || !y)
         return false;
     id xt = x->type();
     id yt = y->type();
@@ -76,14 +76,14 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
         // Check if this is a bignum comparison
         if (is_bignum(xt) || is_bignum(yt))
         {
-            algebraic_g xa = algebraic_p(x.Safe());
-            algebraic_g ya = algebraic_p(y.Safe());
+            algebraic_g xa = algebraic_p(+x);
+            algebraic_g ya = algebraic_p(+y);
             if (!is_bignum(xt))
                 xt = bignum_promotion(xa);
             if (!is_bignum(yt))
                 yt = bignum_promotion(ya);
-            bignum_g xb = bignum_p(xa.Safe());
-            bignum_g yb = bignum_p(ya.Safe());
+            bignum_g xb = bignum_p(+xa);
+            bignum_g yb = bignum_p(+ya);
             int cmpval = bignum::compare(xb, yb);
             *cmp = cmpval < 0 ? -1 : cmpval > 0 ? 1 : 0;
             return true;
@@ -108,8 +108,8 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
     }
 
     /* Real data types */
-    algebraic_g xa = algebraic_p(x.Safe());
-    algebraic_g ya = algebraic_p(y.Safe());
+    algebraic_g xa = algebraic_p(+x);
+    algebraic_g ya = algebraic_p(+y);
     if (!ok && real_promotion(xa, ya))
     {
         /* Here, x and y have the same type, a decimal type */
@@ -170,8 +170,8 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
         // Lexical comparison
         size_t xl = 0;
         size_t yl = 0;
-        utf8 xs = text_p(object_p(x.Safe()))->value(&xl);
-        utf8 ys = text_p(object_p(y.Safe()))->value(&yl);
+        utf8 xs = text_p(object_p(+x))->value(&xl);
+        utf8 ys = text_p(object_p(+y))->value(&yl);
         size_t l = xl < yl ? xl : yl;
 
         // REVISIT: Unicode sorting?
@@ -191,8 +191,8 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
     if (!ok && ((xt == ID_list && yt == ID_list) ||
                 (xt == ID_array && yt == ID_array)))
     {
-        list_p xl = list_p(x.Safe());
-        list_p yl = list_p(y.Safe());
+        list_p xl = list_p(+x);
+        list_p yl = list_p(+y);
         list::iterator xi = xl->begin();
         list::iterator xe = xl->end();
         list::iterator yi = yl->begin();
@@ -250,7 +250,7 @@ object::result comparison::compare(comparison_fn comparator, id op)
 
     if (ra)
         if (rt.drop(2))
-            if (rt.push(ra.Safe()))
+            if (rt.push(+ra))
                 return OK;
 
     return ERROR;

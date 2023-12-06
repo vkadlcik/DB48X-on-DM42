@@ -535,12 +535,12 @@ algebraic_g array::determinant() const
                         goto err;
                     mjka = aa * mjka - ba * tka;
                     record(matrix, "  m[%u,%u] is now %t", j, k, mjk);
-                    rt.stack(px + ~ixjk, mjka.Safe());
+                    rt.stack(px + ~ixjk, +mjka);
                 }
 
                 // Compute total
                 tot = tot ? tot * aa : aa;
-                record(matrix, " tot[%u]=%t", j, tot.Safe());
+                record(matrix, " tot[%u]=%t", j, +tot);
             }
 
 #if SIMULATOR
@@ -569,7 +569,7 @@ algebraic_g array::determinant() const
             if (!diaga)
                 goto err;
             det = det ? det * diaga : diaga;
-            record(matrix, "Diag %u det=%t", i, det.Safe());
+            record(matrix, "Diag %u det=%t", i, +det);
             if (!det)
                 goto err;
         }
@@ -579,7 +579,7 @@ algebraic_g array::determinant() const
         det = det / tot;
         if (neg)
             det = -det;
-        record(matrix, "Result det=%t", det.Safe());
+        record(matrix, "Result det=%t", +det);
         return det;
     }
     else
@@ -718,7 +718,7 @@ array_g array::invert() const
         // Create an identity matrix of the right size
         for (size_t i = 0; i < n; i++)
             for (size_t j = 0; j < n; j++)
-                if (!rt.push(i == j ? one.Safe() : zero.Safe()))
+                if (!rt.push(i == j ? +one: +zero))
                     goto err;
 
         dump_matrix("Inverse of %u x %u matrix", n, n);
@@ -832,9 +832,9 @@ array_g array::invert() const
                         if (!mjka || !mika)
                             goto err;
                         mjka = aa * mjka - ca * mika;
-                        rt.stack(p + ~ojk, mjka.Safe());
+                        rt.stack(p + ~ojk, +mjka);
                         record(matrix, "%+s[%u,%u] is now %t",
-                               mat ? "t" : "m", j, k, mjka.Safe());
+                               mat ? "t" : "m", j, k, +mjka);
                     }
                     record(matrix, "Matrix %+s row %u done", mat?"t":"m", j);
                 }
@@ -856,7 +856,7 @@ array_g array::invert() const
                     if (!mika)
                         goto err;
                     mika = mika / aa;
-                    rt.stack(p + ~oik, mika.Safe());
+                    rt.stack(p + ~oik, +mika);
                 }
             }
             dump_matrix("After making diagonal of row %u unity", i);
@@ -889,7 +889,7 @@ array_g array::invert() const
                         if (!mika || !mjka)
                             goto err;
                         mjka = mjka  - za * mika;
-                        rt.stack(p + ~ojk, mjka.Safe());
+                        rt.stack(p + ~ojk, +mjka);
                     }
                 }
             }
@@ -1072,7 +1072,7 @@ array_g array::do_matrix(array_r x, array_r y,
         for (size_t c = 0; c < cx; c++)
         {
             algebraic_g e = vec(c, cx, cy);
-            if (!e || !rt.append(e->size(), byte_p(e.Safe())))
+            if (!e || !rt.append(e->size(), byte_p(+e)))
                 goto err;
         }
 
@@ -1125,12 +1125,12 @@ array_g array::do_matrix(array_r x, array_r y,
                 for (size_t c = 0; c < cr; c++)
                 {
                     algebraic_g e = mat(r, c, rx, cx, ry, cy);
-                    if (!e || !rt.append(e->size(), byte_p(e.Safe())))
+                    if (!e || !rt.append(e->size(), byte_p(+e)))
                         goto err;
                 }
                 row = object_p(list::make(ty, sr.scratch(), sr.growth()));
             }
-            if (!row || !rt.append(row->size(), byte_p(row.Safe())))
+            if (!row || !rt.append(row->size(), byte_p(+row)))
                 goto err;
         }
 

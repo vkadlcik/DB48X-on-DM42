@@ -48,7 +48,7 @@ struct tag : object
         while (len--)
             *p++ = *s++;
         len = obj->size();
-        memmove(p, obj.Safe(), len);
+        memmove(p, +obj, len);
     }
 
     static size_t required_memory(id i, gcutf8 UNUSED label, size_t len, object_g obj)

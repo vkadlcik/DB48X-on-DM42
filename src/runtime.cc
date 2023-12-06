@@ -691,7 +691,7 @@ byte *runtime::append(size_t sz, gcbytes bytes)
 {
     byte *ptr = allocate(sz);
     if (ptr)
-        memcpy(ptr, bytes.Safe(), sz);
+        memcpy(ptr, +bytes, sz);
     return ptr;
 }
 
@@ -1282,9 +1282,9 @@ bool runtime::run_conditionals(object_p truecase, object_p falsecase, bool xeq)
     {
         // For IFT / IFTE, we want to execute programs, not put them on stack
         if (tc && tc->is_program())
-            tc = program_p(tc.Safe())->objects();
+            tc = program_p(+tc)->objects();
         if (fc && fc->is_program())
-            fc = program_p(fc.Safe())->objects();
+            fc = program_p(+fc)->objects();
     }
 
     return run_push(tc, tce) && run_push(fc, fce);

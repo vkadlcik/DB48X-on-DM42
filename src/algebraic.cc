@@ -65,7 +65,7 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
 //   Promote the value x to the given type
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return false;
 
     id xt = x->type();
@@ -85,17 +85,17 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
 #ifndef CONFIG_NO_DECIMAL32
         case ID_decimal32:
             x = rt.make<decimal32>(ID_decimal32, ival);
-            return x.Safe();
+            return +x;
 #endif // CONFIG_NO_DECIMAL32
 #ifndef CONFIG_NO_DECIMAL64
         case ID_decimal64:
             x = rt.make<decimal64>(ID_decimal64, ival);
-            return x.Safe();
+            return +x;
 #endif // CONFIG_NO_DECIMAL64
 #ifndef CONFIG_NO_DECIMAL128
         case ID_decimal128:
             x = rt.make<decimal128>(ID_decimal128, ival);
-            return x.Safe();
+            return +x;
 #endif // CONFIG_NO_DECIMAL128
         default:
             break;
@@ -114,17 +114,17 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
 #ifndef CONFIG_NO_DECIMAL32
         case ID_decimal32:
             x = rt.make<decimal32>(ID_decimal32, ival, true);
-            return x.Safe();
+            return +x;
 #endif // CONFIG_NO_DECIMAL32
 #ifndef CONFIG_NO_DECIMAL64
         case ID_decimal64:
             x = rt.make<decimal64>(ID_decimal64, ival, true);
-            return x.Safe();
+            return +x;
 #endif // CONFIG_NO_DECIMAL64
 #ifndef CONFIG_NO_DECIMAL128
         case ID_decimal128:
             x = rt.make<decimal128>(ID_decimal128, ival, true);
-            return x.Safe();
+            return +x;
 #endif // CONFIG_NO_DECIMAL128
         default:
             break;
@@ -143,25 +143,25 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         {
 #ifndef CONFIG_NO_DECIMAL32
         case ID_decimal32:
-            x = rt.make<decimal32>(ID_decimal32, i);
-            return x.Safe();
+            x = rt.make<decimal32>(ID_decimal32, +i);
+            return +x;
 #endif // CONFIG_NO_DECIMAL32
 #ifndef CONFIG_NO_DECIMAL64
         case ID_decimal64:
-            x = rt.make<decimal64>(ID_decimal64, i);
-            return x.Safe();
+            x = rt.make<decimal64>(ID_decimal64, +i);
+            return +x;
 #endif // CONFIG_NO_DECIMAL64
 #ifndef CONFIG_NO_DECIMAL128
         case ID_decimal128:
-            x = rt.make<decimal128>(ID_decimal128, i);
-            return x.Safe();
+            x = rt.make<decimal128>(ID_decimal128, +i);
+            return +x;
 #endif // CONFIG_NO_DECIMAL128
         default:
             break;
         }
         record(algebraic_error,
                "Cannot promote bignum %p from %+s to %+s",
-               i.Safe(), object::name(xt), object::name(type));
+               +i, object::name(xt), object::name(type));
         break;
     }
 
@@ -175,25 +175,25 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         {
 #ifndef CONFIG_NO_DECIMAL32
         case ID_decimal32:
-            x = rt.make<decimal32>(ID_decimal32, f);
-            return x.Safe();
+            x = rt.make<decimal32>(ID_decimal32, +f);
+            return +x;
 #endif // CONFIG_NO_DECIMAL32
 #ifndef CONFIG_NO_DECIMAL64
         case ID_decimal64:
-            x = rt.make<decimal64>(ID_decimal64, f);
-            return x.Safe();
+            x = rt.make<decimal64>(ID_decimal64, +f);
+            return +x;
 #endif // CONFIG_NO_DECIMAL64
 #ifndef CONFIG_NO_DECIMAL128
         case ID_decimal128:
-            x = rt.make<decimal128>(ID_decimal128, f);
-            return x.Safe();
+            x = rt.make<decimal128>(ID_decimal128, +f);
+            return +x;
 #endif // CONFIG_NO_DECIMAL128
         default:
             break;
         }
         record(algebraic_error,
                "Cannot promote fraction %p from %+s to %+s",
-               f.Safe(), object::name(xt), object::name(type));
+               +f, object::name(xt), object::name(type));
         break;
     }
 
@@ -209,12 +209,12 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
 #ifndef CONFIG_NO_DECIMAL64
         case ID_decimal64:
             x = rt.make<decimal64>(ID_decimal64, dval);
-            return x.Safe();
+            return +x;
 #endif // CONFIG_NO_DECIMAL64
 #ifndef CONFIG_NO_DECIMAL128
         case ID_decimal128:
             x = rt.make<decimal128>(ID_decimal128, dval);
-            return x.Safe();
+            return +x;
 #endif // CONFIG_NO_DECIMAL128
         default:
             break;
@@ -241,7 +241,7 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
 #ifndef CONFIG_NO_DECIMAL128
         case ID_decimal128:
             x = rt.make<decimal128>(ID_decimal128, dval);
-            return x.Safe();
+            return +x;
 #endif // CONFIG_NO_DECIMAL64
         default:
             break;
@@ -265,13 +265,13 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         case ID_decimal64:
 #endif // CONFIG_NO_DECIMAL64
         case ID_decimal128:
-            return x.Safe();
+            return +x;
         default:
             break;
         }
         record(algebraic_error,
                "Cannot promote decimal128 %p from %+s to %+s",
-               x.Safe(), object::name(xt), object::name(type));
+               +x, object::name(xt), object::name(type));
         break;
     }
 #endif // CONFIG_NO_DECIMAL128
@@ -332,14 +332,14 @@ bool algebraic::complex_promotion(algebraic_g &x, object::id type)
         // Convert from polar to rectangular
         polar_g z = polar_p(algebraic_p(x));
         x = rectangular_p(z->as_rectangular());
-        return x.Safe();
+        return +x;
     }
     else if (xt == ID_rectangular)
     {
         // Convert from rectangular to polar
         rectangular_g z = rectangular_p(algebraic_p(x));
         x = polar_p(z->as_polar());
-        return x.Safe();
+        return +x;
     }
     else if (is_symbolic(xt))
     {
@@ -354,7 +354,7 @@ bool algebraic::complex_promotion(algebraic_g &x, object::id type)
             x = polar::make(x, zero, object::ID_PiRadians);
         else
             x = rectangular::make(x, zero);
-        return x.Safe();
+        return +x;
     }
 
     return false;
@@ -405,7 +405,7 @@ object::id algebraic::based_promotion(algebraic_g &x)
     case ID_neg_integer:
         if (Settings.WordSize() < 64)
         {
-            ularge value = integer_p(x.Safe())->value<ularge>();
+            ularge value = integer_p(+x)->value<ularge>();
             if (xt == ID_neg_integer)
                 value = -value;
             x = rt.make<based_integer>(value);
@@ -414,23 +414,23 @@ object::id algebraic::based_promotion(algebraic_g &x)
         else
         {
             xt = xt == ID_neg_integer ? ID_neg_bignum : ID_bignum;
-            integer_g xi = integer_p(x.Safe());
+            integer_g xi = integer_p(+x);
             bignum_g  xb = rt.make<bignum>(xt, xi);
-            x = xb.Safe();
+            x = +xb;
         }
 
     case ID_bignum:
     case ID_neg_bignum:
     {
         size_t   sz   = 0;
-        gcbytes  data = bignum_p(x.Safe())->value(&sz);
+        gcbytes  data = bignum_p(+x)->value(&sz);
         bignum_g xb   = rt.make<bignum>(ID_based_bignum, data, sz);
         if (xt == ID_neg_bignum)
         {
             bignum_g zero = rt.make<based_bignum>(0);
             xb = zero - xb;
         }
-        x = xb.Safe();
+        x = +xb;
         return ID_based_bignum;
     }
 
@@ -459,7 +459,7 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
         if (!real_promotion(x, ID_decimal128))
             return false;
     case ID_decimal128:
-        x = decimal128_p(x.Safe())->to_fraction();
+        x = decimal128_p(+x)->to_fraction();
         return true;
 #endif // CONFIG_NO_DECIMAL128
     case ID_fraction:
@@ -470,7 +470,7 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
 
     case ID_rectangular:
     {
-        rectangular_p z = rectangular_p(x.Safe());
+        rectangular_p z = rectangular_p(+x);
         algebraic_g re = z->re();
         algebraic_g im = z->im();
         if (!decimal_to_fraction(re) || !decimal_to_fraction(im))
@@ -480,7 +480,7 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
     }
     case ID_polar:
     {
-        polar_p z = polar_p(x.Safe());
+        polar_p z = polar_p(+x);
         algebraic_g mod = z->mod();
         algebraic_g arg = z->pifrac();
         if (!decimal_to_fraction(mod) || !decimal_to_fraction(arg))
@@ -490,7 +490,7 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
     }
     case ID_unit:
     {
-        unit_p ux = unit_p(x.Safe());
+        unit_p ux = unit_p(+x);
         algebraic_g v = ux->value();
         algebraic_g u = ux->uexpr();
         if (decimal_to_fraction(v))
@@ -518,7 +518,7 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
     {
     case ID_rectangular:
     {
-        rectangular_p z = rectangular_p(x.Safe());
+        rectangular_p z = rectangular_p(+x);
         algebraic_g re = z->re();
         algebraic_g im = z->im();
         if (to_decimal(re, weak) && to_decimal(im, weak))
@@ -530,7 +530,7 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
     }
     case ID_polar:
     {
-        polar_p z = polar_p(x.Safe());
+        polar_p z = polar_p(+x);
         algebraic_g mod = z->mod();
         algebraic_g arg = z->pifrac();
         if (to_decimal(mod, weak) &&
@@ -543,7 +543,7 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
     }
     case ID_unit:
     {
-        unit_p ux = unit_p(x.Safe());
+        unit_p ux = unit_p(+x);
         algebraic_g v = ux->value();
         algebraic_g u = ux->uexpr();
         if (to_decimal(v, weak))
@@ -582,7 +582,7 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
     case ID_expression:
         if (!unit::mode)
         {
-            expression_p eq = expression_p(x.Safe());
+            expression_p eq = expression_p(+x);
             bool save = Settings.NumericalResults();
             Settings.NumericalResults(true);
             result r = eq->run();
@@ -631,7 +631,7 @@ algebraic_p algebraic::evaluate_function(program_r eq, algebraic_r x)
 //   - Something that evaluates using the indep and returns it on the stack,
 //     for example 'X + 1' (assuming X is the independent variable)
 {
-    if (!rt.push(x.Safe()))
+    if (!rt.push(+x))
         return nullptr;
     save<object_g *> ival(expression::independent_value, (object_g *) &x);
     size_t   depth  = rt.depth();
@@ -642,7 +642,7 @@ algebraic_p algebraic::evaluate_function(program_r eq, algebraic_r x)
     {
         object_p indep = rt.pop();
         dnow--;
-        if (indep != x.Safe())
+        if (indep != +x)
         {
             rt.invalid_function_error();
             err = ERROR;

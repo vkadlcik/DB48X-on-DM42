@@ -122,9 +122,9 @@ text_g operator+(text_r x, text_r y)
 //   Concatenate two texts or lists
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return y;
-    if (!y.Safe())
+    if (!y)
         return x;
     object::id type = x->type();
     size_t sx = 0, sy = 0;
@@ -206,7 +206,7 @@ text_p text::import() const
         for (uint r = 0; r < rcount && !replaced; r += 2)
         {
             size_t olen = strlen(conversions[r]);
-            if (!strncmp(conversions[r], cstring(txt.Safe()) + o, olen))
+            if (!strncmp(conversions[r], cstring(+txt) + o, olen))
             {
                 size_t rlen = strlen(conversions[r+1]);
                 if (!replace)
@@ -214,7 +214,7 @@ text_p text::import() const
                     replace = rt.allocate(o);
                     if (!replace)
                         return result;
-                    memmove((byte *) replace.Safe(), txt.Safe(), o);
+                    memmove((byte *) +replace, +txt, o);
                 }
                 byte *cp = rt.allocate(rlen);
                 if (!cp)
@@ -235,7 +235,7 @@ text_p text::import() const
     }
 
     if (replace)
-        if (text_p ok = make(replace.Safe(), scr.growth()))
+        if (text_p ok = make(+replace, scr.growth()))
             result = ok;
 
     return result;
@@ -322,7 +322,7 @@ static bool to_unicode_list(text_r tobj)
         if (!result)
             return false;
     }
-    return result && rt.top(result.Safe());
+    return result && rt.top(+result);
 }
 
 

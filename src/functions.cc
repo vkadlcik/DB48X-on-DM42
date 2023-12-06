@@ -56,7 +56,7 @@ algebraic_p function::symbolic(id op, algebraic_r x)
 //    Check if we should process this function symbolically
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
     return expression::make(op, x);
 }
@@ -134,12 +134,12 @@ bool function::exact_trig(id op, algebraic_g &x)
         case 270:       x = integer::make(-1); return true;
         case 90:        x = integer::make(1);  return true;
         case 30:
-        case 150:       x = fraction::make(integer::make(1),
-                                           integer::make(2)).Safe();
+        case 150:       x = +fraction::make(integer::make(1),
+                                            integer::make(2));
                         return true;
         case 210:
-        case 330:       x = fraction::make(integer::make(-1),
-                                           integer::make(2)).Safe();
+        case 330:       x = +fraction::make(integer::make(-1),
+                                            integer::make(2));
                         return true;
         }
         return false;
@@ -171,7 +171,7 @@ algebraic_p function::evaluate(algebraic_r xr,
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------
 {
-    if (!xr.Safe())
+    if (!xr)
         return nullptr;
 
     algebraic_g x = xr;
@@ -190,7 +190,7 @@ algebraic_p function::evaluate(algebraic_r xr,
         return symbolic(op, x);
 
     if (is_complex(xt))
-        return algebraic_p(zop(complex_g(complex_p(x.Safe()))));
+        return algebraic_p(zop(complex_g(complex_p(+x))));
 
     // Check if need to promote integer values to decimal
     if (is_integer(xt))
@@ -257,7 +257,7 @@ object::result function::evaluate(algebraic_fn op, bool mat)
         {
             algebraic_g x = algebraic_p(top);
             x = op(x);
-            top = x.Safe();
+            top = +x;
         }
         if (top && rt.top(top))
             return OK;
@@ -273,7 +273,7 @@ FUNCTION_BODY(abs)
 // ----------------------------------------------------------------------------
 //   Special case where we don't need to promote argument to decimal128
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
 
     id xt = x->type();
@@ -320,7 +320,7 @@ FUNCTION_BODY(arg)
 //   Implementation of the complex argument (0 for non-complex values)
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
 
     id xt = x->type();
@@ -340,7 +340,7 @@ FUNCTION_BODY(re)
 //   Extract the real part of a number
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
 
     id xt = x->type();
@@ -359,7 +359,7 @@ FUNCTION_BODY(im)
 //   Extract the imaginary part of a number (0 for real values)
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
 
     id xt = x->type();
@@ -378,7 +378,7 @@ FUNCTION_BODY(conj)
 //   Compute the conjugate of input
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
 
     id xt = x->type();
@@ -397,7 +397,7 @@ FUNCTION_BODY(sign)
 //   Implementation of 'sign'
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
 
     id xt = x->type();
@@ -433,7 +433,7 @@ FUNCTION_BODY(IntPart)
 //   Implementation of 'IP'
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
 
     id xt = x->type();
@@ -456,7 +456,7 @@ FUNCTION_BODY(FracPart)
 //   Implementation of 'FP'
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
 
     id xt = x->type();
@@ -478,7 +478,7 @@ FUNCTION_BODY(ceil)
 //   The `ceil` command returns the integer, or the integer immediately above
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
 
     id xt = x->type();
@@ -501,7 +501,7 @@ FUNCTION_BODY(floor)
 //   The `floor` command returns the integer imediately below
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
 
     id xt = x->type();
@@ -524,12 +524,12 @@ FUNCTION_BODY(inv)
 //   Invert is implemented as 1/x
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
     if (x->is_symbolic())
         return symbolic(ID_inv, x);
     else if (x->type() == ID_array)
-        return array_p(x.Safe())->invert();
+        return array_p(+x)->invert();
 
     algebraic_g one = rt.make<integer>(ID_integer, 1);
     return one / x;
@@ -551,7 +551,7 @@ FUNCTION_BODY(neg)
 //   Negate is implemented as 0-x
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
     if (unit_p uobj = x->as<unit>())
     {
@@ -572,7 +572,7 @@ FUNCTION_BODY(sq)
 //   Square is implemented using a multiplication
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!+x)
         return nullptr;
     if (x->is_symbolic())
         if (!Settings.AutoSimplify() || x->type() != ID_ImaginaryUnit)
@@ -596,7 +596,7 @@ FUNCTION_BODY(cubed)
 //   Cubed is implemented as two multiplications
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
     if (x->is_symbolic())
         if (!Settings.AutoSimplify() || x->type() != ID_ImaginaryUnit)
@@ -625,7 +625,7 @@ COMMAND_BODY(xroot)
                 else
                 {
                     xa = pow(ya, integer::make(1) / xa);
-                    if (xa.Safe() && rt.top(xa))
+                    if (+xa && rt.top(xa))
                         return OK;
                 }
             }
@@ -650,7 +650,7 @@ FUNCTION_BODY(fact)
 //   Perform factorial for integer values, fallback to gamma otherwise
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
 
     if (x->is_symbolic())
@@ -672,7 +672,7 @@ FUNCTION_BODY(fact)
     }
 
     if (x->is_real() || x->is_complex())
-        return tgamma::run(x + integer::make(1));
+        return tgamma::run(x + algebraic_g(integer::make(1)));
 
     rt.type_error();
     return nullptr;
@@ -694,7 +694,7 @@ FUNCTION_BODY(Expand)
 //   Expand equations
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
     if (expression_p eq = x->as<expression>())
         return algebraic_p(eq->expand());
@@ -710,7 +710,7 @@ FUNCTION_BODY(Collect)
 //   Collect equations
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
     if (expression_p eq = x->as<expression>())
         return algebraic_p(eq->collect());
@@ -726,7 +726,7 @@ FUNCTION_BODY(Simplify)
 //   Simplify equations
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
     if (expression_p eq = x->as<expression>())
         return algebraic_p(eq->simplify());
@@ -742,11 +742,11 @@ FUNCTION_BODY(ToDecimal)
 //   Convert numbers to a decimal value
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
     algebraic_g xg = x;
     if (algebraic::to_decimal(xg, false))
-        return xg.Safe();
+        return +xg;
     return nullptr;
 }
 
@@ -756,7 +756,7 @@ FUNCTION_BODY(ToFraction)
 //   Convert numbers to fractions
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe())
+    if (!x)
         return nullptr;
     algebraic_g xg = x;
     if (arithmetic::decimal_to_fraction(xg))

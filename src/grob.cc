@@ -155,7 +155,7 @@ PARSE_BODY(grob)
         bitflip(d0, w, h, true);
 
     p.end = s - cstring(src);
-    p.out = g.Safe();
+    p.out = +g;
 
     return OK;
 }

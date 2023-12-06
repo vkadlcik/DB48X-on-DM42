@@ -191,8 +191,8 @@ RENDER_BODY(locals)
 // ----------------------------------------------------------------------------
 {
     // Skip object size
-    gcbytes p = o->payload();
-    size_t  objsize = leb128<size_t>(p.Safe());
+    gcbytes p       = o->payload();
+    size_t  objsize = leb128<size_t>(+p);
     (void) objsize;
 
     // Create a local frame for rendering local names
@@ -202,17 +202,17 @@ RENDER_BODY(locals)
     r.put("→ ");
 
     // Loop on names
-    size_t names = leb128<size_t>(p.Safe());
+    size_t names = leb128<size_t>(+p);
     for (size_t n = 0; n < names; n++)
     {
-        size_t len = leb128<size_t>(p.Safe());
-        r.put(p.Safe(), len);
+        size_t len = leb128<size_t>(+p);
+        r.put(+p, len);
         r.put(n + 1 < names ? ' ' : '\n');
         p += len;
     }
 
     // Render object (which should be a program, an equation or a list)
-    object_p obj = object_p(p.Safe());
+    object_p obj = object_p(+p);
     return obj->render(r);
 }
 
@@ -223,11 +223,11 @@ EVAL_BODY(locals)
 // ----------------------------------------------------------------------------
 {
     object_g p   = object_p(o->payload());
-    size_t   len = leb128<size_t>(p.Safe());
+    size_t   len = leb128<size_t>(+p);
     object_p end = p + len;
 
     // Copy local values from stack
-    size_t names   = leb128<size_t>(p.Safe());
+    size_t names   = leb128<size_t>(+p);
     if (!rt.locals(names))
         return ERROR;
     if (!rt.run_push(nullptr, object_p(names)))
@@ -239,7 +239,7 @@ EVAL_BODY(locals)
     // Skip names to get to program
     for (uint n = 0; n < names; n++)
     {
-        size_t nlen = leb128<size_t>(p.Safe());
+        size_t nlen = leb128<size_t>(+p);
         p += nlen;
     }
 
@@ -299,12 +299,12 @@ PARSE_BODY(local)
         if (gcbytes names = f->names())
         {
             // Check if name is found in local frame
-            size_t count = leb128<size_t>(names.Safe());
+            size_t count = leb128<size_t>(+names);
             for (size_t n = 0; n < count; n++)
             {
-                size_t nlen = leb128<size_t>(names.Safe());
+                size_t nlen = leb128<size_t>(+names);
                 if (nlen == len &&
-                    strncasecmp(cstring(names.Safe()), cstring(source), nlen) == 0)
+                    strncasecmp(cstring(+names), cstring(source), nlen) == 0)
                 {
                     // Found a local name, return it
                     gcutf8 text   = source;
@@ -329,14 +329,14 @@ RENDER_BODY(local)
 // ----------------------------------------------------------------------------
 {
     gcbytes p = o->payload();
-    uint index = leb128<uint>(p.Safe());
+    uint index = leb128<uint>(+p);
 
     for (locals_stack *f = locals_stack::current(); f; f = f->enclosing())
     {
         gcbytes names = f->names();
 
         // Check if name is found in local frame
-        size_t count = leb128<size_t>(names.Safe());
+        size_t count = leb128<size_t>(+names);
         if (index >= count)
         {
             // Name is beyond current frame, skip to next one
@@ -347,13 +347,13 @@ RENDER_BODY(local)
         // Skip earlier names in index
         for (size_t n = 0; n < index; n++)
         {
-            size_t len = leb128<size_t>(names.Safe());
+            size_t len = leb128<size_t>(+names);
             names += len;
         }
 
         // Emit name and exit
-        size_t len = leb128<size_t>(names.Safe());
-        r.put(names.Safe(), len);
+        size_t len = leb128<size_t>(+names);
+        r.put(+names, len);
         return r.size();
     }
 

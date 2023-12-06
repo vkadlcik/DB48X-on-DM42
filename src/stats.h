@@ -62,7 +62,7 @@ struct StatsParameters : command
 
         bool            write(object_p n = name()) const;
 
-        operator bool() const   { return intercept.Safe() && slope.Safe(); }
+        operator bool() const   { return intercept && slope; }
     };
 };
 
@@ -91,7 +91,7 @@ struct StatsData : command
 
         bool            write(object_p n = name()) const;
 
-        operator bool() const   { return data.Safe(); }
+        operator bool() const   { return data; }
     };
 };
 
@@ -140,7 +140,7 @@ struct StatsAccess : StatsParameters::Access, StatsData::Access
 
     operator bool() const
     {
-        if (data.Safe() && intercept.Safe() && slope.Safe())
+        if (data && intercept && slope)
             return true;
         rt.invalid_stats_data_error();
         return false;

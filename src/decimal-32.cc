@@ -753,13 +753,13 @@ algebraic_p decimal32::to_fraction(uint count, uint decimals) const
     bid32_to_uint64_floor(&denominator, &v1den);
     algebraic_g result;
     if (denominator != 1)
-        result = fraction::make(integer::make(numerator),
-                                integer::make(denominator)).Safe();
+        result = +fraction::make(integer::make(numerator),
+                                 integer::make(denominator));
     else
         result = integer::make(numerator);
     if (neg)
         result = -result;
-    return result.Safe();
+    return +result;
     }
 
 

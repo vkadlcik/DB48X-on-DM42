@@ -286,7 +286,7 @@ bignum_p logical::rol(bignum_r x, bignum_r y)
 //   Rotate left by the given amount
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x || !y)
         return nullptr;
     uint shift = y->as_uint32(0, true);
     if (rt.error())
@@ -318,7 +318,7 @@ bignum_p logical::ror(bignum_r x, bignum_r y)
 //   Rotate right
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x || !y)
         return nullptr;
     uint shift = y->as_uint32(0, true);
     if (rt.error())
@@ -355,7 +355,7 @@ bignum_p logical::asr(bignum_r x, bignum_r y)
 //   Arithmetic shift right
 // ----------------------------------------------------------------------------
 {
-    if (!x.Safe() || !y.Safe())
+    if (!x|| !y)
         return nullptr;
     uint shift = y->as_uint32(0, true);
     if (rt.error())

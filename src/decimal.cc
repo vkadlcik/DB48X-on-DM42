@@ -771,3 +771,255 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
         result = -result;
     return +result;
 }
+
+
+
+// ============================================================================
+//
+//    Basic arithmetic operations
+//
+// ============================================================================
+
+static inline object::id negtype(object::id type)
+// ----------------------------------------------------------------------------
+//   Return the opposite type
+// ----------------------------------------------------------------------------
+{
+    return type == object::ID_decimal ? object::ID_neg_decimal
+                                      : object::ID_decimal;
+}
+
+
+decimal_p decimal::neg(decimal_r x)
+// ----------------------------------------------------------------------------
+//   Negation
+// ----------------------------------------------------------------------------
+{
+    object::id type  = x->type();
+    object::id ntype = negtype(type);
+    gcbytes data = x->payload();
+    size_t len = x->size() - leb128size(type);
+    return rt.make<decimal>(ntype, len, data);
+}
+
+
+decimal_p decimal::add(decimal_r x, decimal_r y)
+// ----------------------------------------------------------------------------
+//   Addition of two numbers with the same sign
+// ----------------------------------------------------------------------------
+{
+    // Read information from both numbers
+    info xi = x->shape();
+    info yi = y->shape();
+    int  xe = xi.exponent;
+    int  ye = yi.exponent;
+    id   ty = x->type();
+
+    // Put the smallest exponent in y
+    bool lt = xe < ye;
+    if (lt)
+    {
+        std::swap(xe, ye);
+        std::swap(xi, yi);
+    }
+
+    // Check dimensions
+    size_t   xs     = xi.nkigits;
+    size_t   ys     = yi.nkigits;
+    gcbytes  xb     = xi.base;
+    gcbytes  yb     = yi.base;
+    size_t   yshift = xe - ye;
+    size_t   kshift = yshift / 3;
+    kint     mod3   = yshift % 3;
+
+    // Size of result - y can be wider than x
+    size_t   ps     = (Settings.Precision() + 2) / 3;
+    size_t   rs     = std::min(ps, std::max(xs, ys + (yshift + 2) / 3));
+
+    // Check if y is negligible relative to x
+    if (rs < kshift)
+        return lt ? y : x;
+
+    // Allocate the mantissa
+    scribble scr;
+    kint    *rb = (kint *) rt.allocate(rs * sizeof(kint));
+    if (!rb)
+        return nullptr;
+
+    // Addition loop
+    kint   hmul  = mod3 == 2 ? 100 : mod3 == 1 ? 10 : 1;
+    kint   lmul  = 1000 / hmul;
+    kint   carry = 0;
+    size_t ko    = rs;
+    while (ko-- > 0)
+    {
+        kint xk = ko < xs ? kigit(+xb, ko) : 0;
+        if (ko >= kshift)
+        {
+            size_t yo = ko - kshift;
+            kint   yk = yo < ys ? kigit(+yb, yo) : 0;
+            xk += yk / hmul;
+            if (mod3 && ko > kshift && yo - 1 < ys)
+            {
+                yo--;
+                yk = kigit(+yb, yo);
+                xk += (yk % hmul) * lmul;
+            }
+        }
+        xk += carry;
+        rb[ko] = xk % 1000;
+        carry = xk / 1000;
+    }
+
+    // Check if a carry remains above top
+    if (carry)
+    {
+        uint expincr = 1;
+        hmul = 10;
+        while (carry >= hmul)
+        {
+            hmul *= 10;
+            expincr++;
+        }
+        xe += expincr;
+
+        ko = rs;
+        lmul = 1000 / hmul;
+        while (ko --> 0)
+        {
+            kint above = ko ? rb[ko-1] : carry;
+            rb[ko] = rb[ko] / hmul + (above % hmul) * lmul;
+        }
+    }
+
+    // Strip trailing zeroes
+    while (rs && rb[rs-1] == 0)
+        rs--;
+
+    // Build the result
+    gcp<kint> kigits = rb;
+    decimal_p result = rt.make<decimal>(ty, xe, rs, kigits);
+    return result;
+}
+
+
+decimal_p decimal::sub(decimal_r x, decimal_r y)
+// ----------------------------------------------------------------------------
+//   Subtraction of two numbers with the same sign
+// ----------------------------------------------------------------------------
+{
+    // Read information from both numbers
+    info xi  = x->shape();
+    info yi  = y->shape();
+    int  xe  = xi.exponent;
+    int  ye  = yi.exponent;
+    id   ty  = x->type();
+    bool lt  = xe < ye;
+
+    // Put the smallest exponent in y
+    if (lt)
+    {
+        std::swap(xe, ye);
+        std::swap(xi, yi);
+    }
+
+    // Check dimensions
+    size_t   xs     = xi.nkigits;
+    size_t   ys     = yi.nkigits;
+    gcbytes  xb     = xi.base;
+    gcbytes  yb     = yi.base;
+    size_t   yshift = xe - ye;
+    size_t   kshift = yshift / 3;
+    kint     mod3   = yshift % 3;
+
+    // Size of result - y can be wider than x
+    size_t   ps     = (Settings.Precision() + 2) / 3;
+    size_t   rs     = std::min(ps, std::max(xs, ys + (yshift + 2) / 3));
+
+    // Check if y is negligible relative to x
+    if (rs < kshift)
+        return lt ? neg(y) : decimal_p(x);
+
+    // Allocate the mantissa
+    scribble scr;
+    kint    *rb = (kint *) rt.allocate(rs * sizeof(kint));
+    if (!rb)
+        return nullptr;
+
+    // Subtraction loop
+    kint   hmul  = mod3 == 2 ? 100 : mod3 == 1 ? 10 : 1;
+    kint   lmul  = 1000 / hmul;
+    kint   carry = 0;
+    size_t ko    = rs;
+    while (ko-- > 0)
+    {
+        kint xk = ko < xs ? kigit(+xb, ko) : 0;
+        kint yk = carry;
+        if (ko >= kshift)
+        {
+            size_t yo = ko - kshift;
+            if (yo < ys)
+            {
+                yk += kigit(+yb, yo) / hmul;
+                if (mod3 && ko > kshift && --yo < ys)
+                    yk += kigit(+yb, yo) % hmul * lmul;
+            }
+        }
+        carry = xk < yk;
+        if (carry)
+            xk += 1000;
+        xk = xk - yk;
+        rb[ko] = xk;
+    }
+
+    // Check if a carry remains above top, e.g. 0.5 - 0.6 = -0.1
+    if (carry)
+    {
+        ko = rs;
+        uint rev = 1000;
+        while (ko --> 0)
+        {
+            rb[ko] = rev - rb[ko];
+            rev = 999;
+        }
+        lt = !lt;
+    }
+
+    // Strip leading zeroes three by three
+    while (rs && *rb == 0)
+    {
+        xe -= 3;
+        rb++;
+        rs--;
+    }
+
+    // Strip up to two individual leading zeroes
+    if (rs && *rb < 100)
+    {
+        xe -= 1 + (*rb < 10);
+        hmul = *rb < 10 ? 100 : 10;
+        lmul = 1000 / hmul;
+        for (ko = 0; ko < rs; ko++)
+        {
+            kint next = ko + 1 < rs ? rb[ko + 1] : 0;
+            rb[ko] = (rb[ko] * hmul + next / lmul) % 1000;
+        }
+        xe -= 1 + *rb < 10;
+    }
+    if (!rs)
+        xe = 0;
+
+
+    // Check if we need to change the sign
+    if (lt)
+        ty = negtype(ty);
+
+    // Strip trailing zeroes
+    while (rs && rb[rs-1] == 0)
+        rs--;
+
+    // Build the result
+    gcp<kint> kigits = rb;
+    decimal_p result = rt.make<decimal>(ty, xe, rs, kigits);
+    return result;
+}

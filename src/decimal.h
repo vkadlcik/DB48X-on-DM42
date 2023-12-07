@@ -376,9 +376,22 @@ struct decimal : algebraic
     // ------------------------------------------------------------------------
 
 
-
     algebraic_p to_fraction(uint count = Settings.FractionIterations(),
                             uint decimals = Settings.FractionDigits()) const;
+    // ------------------------------------------------------------------------
+    //   Convert decimal number to fraction
+    // ------------------------------------------------------------------------
+
+
+    static decimal_p neg(decimal_r x);
+    static decimal_p add(decimal_r x, decimal_r y);
+    static decimal_p sub(decimal_r x, decimal_r y);
+    static decimal_p mul(decimal_r x, decimal_r y);
+    static decimal_p div(decimal_r x, decimal_r y);
+    // ------------------------------------------------------------------------
+    //   Basic arithmetic (assume input was null-checked)
+    // ------------------------------------------------------------------------
+
 
     static decimal_p   pi();
     static void        adjust_from_angle(bid128 &x);
@@ -408,9 +421,6 @@ struct neg_decimal : decimal
     OBJECT_DECL(neg_decimal);
 };
 
-// Utlity common to all formats to format a number for display
-size_t decimal_format(char *buf, size_t len, bool editing, bool raw);
-
 
 
 // ============================================================================
@@ -424,6 +434,65 @@ decimal_g operator+(decimal_g x, decimal_g y);
 decimal_g operator-(decimal_g x, decimal_g y);
 decimal_g operator*(decimal_g x, decimal_g y);
 decimal_g operator/(decimal_g x, decimal_g y);
+
+inline decimal_g operator-(decimal_g x)
+// ----------------------------------------------------------------------------
+//  Negate number
+// ----------------------------------------------------------------------------
+{
+    if (!x)
+        return nullptr;
+    return decimal::neg(x);
+}
+
+
+inline decimal_g operator+(decimal_g x, decimal_g y)
+// ----------------------------------------------------------------------------
+//   Addition
+// ----------------------------------------------------------------------------
+{
+    if (!x || !y)
+        return nullptr;
+    if (x->type() != y->type())
+        return x - -y;
+    return decimal::add(x, y);
+}
+
+
+inline decimal_g operator-(decimal_g x, decimal_g y)
+// ----------------------------------------------------------------------------
+//  Subtraction
+// ----------------------------------------------------------------------------
+{
+    if (!x || !y)
+        return nullptr;
+    if (x->type() != y->type())
+        return x + -y;
+    return decimal::sub(x, y);
+}
+
+
+inline decimal_g operator*(decimal_g x, decimal_g y)
+// ----------------------------------------------------------------------------
+//   Multiplication
+// ----------------------------------------------------------------------------
+{
+    if (!x || !y)
+        return nullptr;
+    return decimal::mul(x, y);
+}
+
+
+inline decimal_g operator/(decimal_g x, decimal_g y)
+// ----------------------------------------------------------------------------
+//   Division
+// ----------------------------------------------------------------------------
+{
+    if (!x || !y)
+        return nullptr;
+    return decimal::div(x, y);
+}
+
 
 inline bool operator==(decimal_g x, decimal_g y)
 // ----------------------------------------------------------------------------

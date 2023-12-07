@@ -1073,3 +1073,117 @@ decimal_p decimal::sub(decimal_r x, decimal_r y)
     decimal_p result = rt.make<decimal>(ty, xe, rs, kigits);
     return result;
 }
+
+
+decimal_p decimal::mul(decimal_r x, decimal_r y)
+// ----------------------------------------------------------------------------
+//   Multiplication of two decimal numbers
+// ----------------------------------------------------------------------------
+//  (a0+a1/1000) * (b0+b1/1000) = a0*b0 + (a0*b1+a1*b0) / 1000 + epsilon
+//  Exponent is the sum of the two exponents
+{
+    // Read information from both numbers
+    info     xi  = x->shape();
+    info     yi  = y->shape();
+    int      xe  = xi.exponent;
+    int      ye  = yi.exponent;
+    id       xty = x->type();
+    id       yty = y->type();
+    id       ty  = xty == yty ? ID_decimal : ID_neg_decimal;
+
+    // Check dimensions
+    size_t   xs  = xi.nkigits;
+    size_t   ys  = yi.nkigits;
+    gcbytes  xb  = xi.base;
+    gcbytes  yb  = yi.base;
+    int      re  = xe + ye - 3;
+
+    // Size of result
+    size_t   ps  = (Settings.Precision() + 2) / 3;
+    size_t   rs  = std::min(ps, xs + ys + 1);
+
+    // Allocate the mantissa
+    scribble scr;
+    kint    *rb = (kint *) rt.allocate(rs * sizeof(kint));
+    if (!rb)
+        return nullptr;
+
+    // Zero the result before doing sums on it
+    for (size_t ri = 0; ri < rs; ri++)
+        rb[ri] = 0;
+
+    // Sum on all digits
+    uint carry = 0;
+    for (size_t xi = 0; xi < xs; xi++)
+    {
+        kint xk = kigit(xb, xi);
+        for (size_t yi = 0; yi < ys; yi++)
+        {
+            size_t ri = xi + yi;
+            if (ri >= rs)
+                break;
+            kint yk = kigit(yb, yi);
+            uint rk = xk * yk;
+            while (rk)
+            {
+                rk += rb[ri];
+                rb[ri] = rk % 1000;
+                rk /= 1000;
+                if (ri-- == 0)
+                    break;
+            }
+            carry += rk;
+        }
+    }
+
+    // Check if a carry remains above top
+    while (carry)
+    {
+        // Round things up
+        size_t ri = rs - 1;
+        bool overflow = rb[ri] >= 500;
+        while (overflow && ri --> 0)
+        {
+            overflow = ++rb[ri] >= 1000;
+            if (overflow)
+                rb[ri] %= 1000;
+        }
+        if (overflow)
+            carry++;
+
+        memmove(rb + 1, rb, sizeof(kint) * (rs - 1));
+        *rb = carry % 1000;
+        re += 3;
+        carry = carry / 1000;
+    }
+
+    // Strip leading zeroes three by three
+    while (rs && *rb == 0)
+    {
+        re -= 3;
+        rb++;
+        rs--;
+    }
+
+    // Strip up to two individual leading zeroes
+    if (rs && *rb < 100)
+    {
+        re -= 1 + (*rb < 10);
+        uint hmul = *rb < 10 ? 100 : 10;
+        uint lmul = 1000 / hmul;
+        for (size_t ko = 0; ko < rs; ko++)
+        {
+            kint next = ko + 1 < rs ? rb[ko + 1] : 0;
+            rb[ko] = (rb[ko] * hmul + next / lmul) % 1000;
+        }
+    }
+
+    // Strip trailing zeroes
+    while (rs && rb[rs-1] == 0)
+        rs--;
+
+    // Build the result
+    gcp<kint> kigits = rb;
+    decimal_p result = rt.make<decimal>(ty, re, rs, kigits);
+    return result;
+}

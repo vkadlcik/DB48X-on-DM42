@@ -38,8 +38,9 @@
 #include "utf8.h"
 
 
-
 RECORDER(decimal, 32, "Variable-precision decimal data type");
+RECORDER(decimal_error, 32, "Variable-precision decimal data type");
+
 
 
 SIZE_BODY(decimal)
@@ -672,7 +673,7 @@ bool decimal::is_negative_or_zero() const
 
 
 
-decimal_g decimal::round_to_zero(int to_exp) const
+decimal_g decimal::round(int to_exp) const
 // ----------------------------------------------------------------------------
 //   Round a given decimal number to zero
 // ----------------------------------------------------------------------------
@@ -724,7 +725,7 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
     bool      neg = num->is_negative();
     if (neg)
         num = -num;
-    whole_part = num->round_to_zero();
+    whole_part = num->round();
     decimal_part = num - whole_part;
     one = rt.make<decimal>(1);
     v1num = whole_part;
@@ -746,7 +747,7 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
             break;
 
         next = one / decimal_part;
-        whole_part = next->round_to_zero();
+        whole_part = next->round();
 
         s = v1num;
         v1num = whole_part * v1num + v2num;
@@ -829,6 +830,42 @@ int decimal::compare(decimal_r x, decimal_r y)
 //    Basic arithmetic operations
 //
 // ============================================================================
+
+static void normalize(decimal::kint *&rb, size_t &rs, int &re)
+// ----------------------------------------------------------------------------
+//   Normalize a result to have no leading or trailing zero
+// ----------------------------------------------------------------------------
+{
+    // Strip leading zeroes three by three
+    while (rs && *rb == 0)
+    {
+        re -= 3;
+        rb++;
+        rs--;
+    }
+
+    // Strip up to two individual leading zeroes
+    if (rs && *rb < 100)
+    {
+        re -= 1 + (*rb < 10);
+        uint hmul = *rb < 10 ? 100 : 10;
+        uint lmul = 1000 / hmul;
+        for (size_t ko = 0; ko < rs; ko++)
+        {
+            decimal::kint next = ko + 1 < rs ? rb[ko + 1] : 0;
+            rb[ko] = (rb[ko] * hmul + next / lmul) % 1000;
+        }
+    }
+
+    // Strip trailing zeroes
+    while (rs && rb[rs-1] == 0)
+        rs--;
+
+    // If result is zero, set exponent to 0
+    if (!rs)
+        re = 0;
+}
+
 
 static inline object::id negtype(object::id type)
 // ----------------------------------------------------------------------------
@@ -1186,4 +1223,201 @@ decimal_p decimal::mul(decimal_r x, decimal_r y)
     gcp<kint> kigits = rb;
     decimal_p result = rt.make<decimal>(ty, re, rs, kigits);
     return result;
+}
+
+
+decimal_p decimal::div(decimal_r x, decimal_r y)
+// ----------------------------------------------------------------------------
+//   Division of two decimal numbers
+// ----------------------------------------------------------------------------
+//
+//   This uses the traditional algorithm, but with digits between 0 and 999
+//
+//      Q = 0
+//      R = 0
+//      for i in digits(X)
+//          R = R * 1000 + X[i]
+//          Q[i] = R[0] / D[0]
+//          R = R - Y * Q[i]
+{
+    // Check if we divide by zero
+    if (y->is_zero())
+    {
+        rt.zero_divide_error();
+        return nullptr;
+    }
+
+    // Read information from both numbers
+    info     xi  = x->shape();
+    info     yi  = y->shape();
+    int      xe  = xi.exponent;
+    int      ye  = yi.exponent;
+    id       xty = x->type();
+    id       yty = y->type();
+    id       ty  = xty == yty ? ID_decimal : ID_neg_decimal;
+
+    // Size of result
+    size_t   rs  = (Settings.Precision() + 2) / 3 + 1;
+    size_t   qs  = rs;
+
+    // Check dimensions
+    size_t   xs  = std::min(xi.nkigits, rs);
+    size_t   ys  = std::min(yi.nkigits, rs);
+    gcbytes  xb  = xi.base;
+    gcbytes  yb  = yi.base;
+    int      re  = xe - ye;
+
+    // Allocate memory for the result
+    scribble scr;
+    kint    *rp = (kint *) rt.allocate((rs + qs + xs + ys) * sizeof(kint));
+    if (!rp)
+        return nullptr;
+
+    // Read the kigits from both inputs
+    kint    *qp = rp + rs;
+    kint    *xp = qp + qs;
+    kint    *yp = xp + xs;
+    for (size_t xi = 0; xi < xs; xi++)
+        xp[xi] = kigit(+xb, xi);
+    for (size_t yi = 0; yi < ys; yi++)
+        yp[yi] = kigit(+yb, yi);
+
+    // Initialize remainder and quotient with 0
+    size_t rqs = rs + qs;
+    for (size_t xi = 0; xi < xs; xi++)
+        rp[xi] = xp[xi];
+    for (size_t rqi = xs; rqi < rqs; rqi++)
+        rp[rqi] = 0;
+
+
+    // Only the first kigit can overflow, e.g. 300 / 100.
+    // After that, these are remainders, so always smaller than Y[0]
+    uint yv = yp[0] + (ys > 0);
+
+    // Loop on the numerator
+    size_t qi = 0;
+    while (qi < qs)
+    {
+        // R = R * 1000
+        uint rv = rp[0];
+        bool forward = rv < yv;
+        if (forward)
+            rv *= 1000;
+
+        // Q[i] = R[0] / Y[0]
+        uint q = rv / yv;
+        if (q)
+        {
+            size_t qdi = qi - !forward;
+            if (qdi + 1)
+            {
+                qp[qdi] += q;
+                if (qp[qdi] >= 1000)
+                {
+                    size_t ci = qdi;
+                    while (ci)
+                    {
+                        qp[ci] -= 1000;
+                        ci--;
+                        if (++qp[ci] < 1000)
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                // Special case of overflow on first iteration
+                qdi++;
+                qp[qdi] += 1000 * q;
+            }
+
+            // R = R - Y * q;
+            uint mulcarry = 0;
+            uint subcarry = 0;
+            for (size_t yi = ys; yi --> 0; )
+            {
+                size_t ri = yi + forward;
+                uint yk = q * yp[yi] + mulcarry;
+                uint rk = ri < rs ? rp[ri] : 0;
+                rk = 1000 + rp[ri] - yk % 1000 - subcarry;
+                subcarry = 1 - rk / 1000;
+                mulcarry = yk / 1000;
+                if (ri < rs)
+                    rp[ri] = rk % 1000;
+            }
+
+            // Check if we overflowed during subtraction. If so, adjust
+            uint wanted = rv / 1000;
+            uint achieved = mulcarry + subcarry;
+            int diff = wanted - achieved;
+            if (forward)
+                rp[0] -= achieved;
+            if (diff)
+                forward = false;
+        }
+
+        if (forward)
+        {
+            qi++;
+            memmove(rp, rp + 1, sizeof(kint) * (rs - 1));
+        }
+    }
+
+    // Round up last digits
+    if (qp[qi-1] > 500)
+    {
+        while (qi > 0)
+        {
+            --qi;
+            qp[qi]++;
+            if (!qi || qp[qi] < 1000)
+                break;
+            qp[qi] -= 1000;
+        }
+    }
+
+    // Case where we started with an overflow, e.g. 300/100
+    while(qp[0] >= 1000)
+    {
+        re++;
+        for (size_t qi = rs; qi > 0; --qi)
+            qp[qi] = qp[qi] / 10 + qp[qi-1] % 10 * 100;
+        *qp = *qp / 10;
+    }
+
+    // Normalize result
+    normalize(qp, qs, re);
+
+    if (qs >= rs)
+        qs = rs - 1;
+
+    // Build the result
+    gcp<kint> kigits = qp;
+    decimal_p result = rt.make<decimal>(ty, re, rs, kigits);
+    return result;
+}
+
+
+decimal_p decimal::rem(decimal_r x, decimal_r y)
+// ----------------------------------------------------------------------------
+//   Remainder
+// ----------------------------------------------------------------------------
+{
+    decimal_g q = x / y;
+    if (!q)
+        return nullptr;
+    q = q->round();
+    return x - q * y;
+}
+
+
+decimal_p decimal::mod(decimal_r x, decimal_r y)
+// ----------------------------------------------------------------------------
+//   Modulo
+// ----------------------------------------------------------------------------
+{
+    decimal_g r = rem(x, y);
+    if (x->is_negative() && !r->is_zero())
+        r = y->is_negative() ? r - y : r + y;
+    return r;
 }

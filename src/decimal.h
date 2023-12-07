@@ -375,7 +375,7 @@ struct decimal : algebraic
     // ------------------------------------------------------------------------
 
 
-    decimal_g round_to_zero(int exp = 0) const;
+    decimal_g round(int exp = 0) const;
     // ------------------------------------------------------------------------
     //   Round a decimal value to the given number of decimals
     // ------------------------------------------------------------------------
@@ -393,6 +393,8 @@ struct decimal : algebraic
     static decimal_p sub(decimal_r x, decimal_r y);
     static decimal_p mul(decimal_r x, decimal_r y);
     static decimal_p div(decimal_r x, decimal_r y);
+    static decimal_p mod(decimal_r x, decimal_r y);
+    static decimal_p rem(decimal_r x, decimal_r y);
     // ------------------------------------------------------------------------
     //   Basic arithmetic (assume input was null-checked)
     // ------------------------------------------------------------------------
@@ -496,6 +498,17 @@ inline decimal_g operator/(decimal_g x, decimal_g y)
     if (!x || !y)
         return nullptr;
     return decimal::div(x, y);
+}
+
+
+inline decimal_g operator%(decimal_g x, decimal_g y)
+// ----------------------------------------------------------------------------
+//   Remainder
+// ----------------------------------------------------------------------------
+{
+    if (!x || !y)
+        return nullptr;
+    return decimal::rem(x, y);
 }
 
 

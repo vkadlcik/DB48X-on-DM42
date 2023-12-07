@@ -360,6 +360,11 @@ struct decimal : algebraic
     //   Return the floating-point class for the decimal number
     // ------------------------------------------------------------------------
 
+    static int compare(decimal_r x, decimal_r y);
+    // ------------------------------------------------------------------------
+    //   Return a comparision between the two values
+    // ------------------------------------------------------------------------
+
 
     bool is_zero() const;
     bool is_one() const;
@@ -499,7 +504,7 @@ inline bool operator==(decimal_g x, decimal_g y)
 //   Equality between two decimal values
 // ----------------------------------------------------------------------------
 {
-    return (x-y)->is_zero();
+    return decimal::compare(x, y) == 0;
 }
 
 
@@ -508,7 +513,7 @@ inline bool operator!=(decimal_g x, decimal_g y)
 //   Inequality between two decimal values
 // ----------------------------------------------------------------------------
 {
-    return !(x == y);
+    return decimal::compare(x, y) != 0;
 }
 
 
@@ -517,7 +522,7 @@ inline bool operator<(decimal_g x, decimal_g y)
 //   Less-than comparison between decimal values
 // ----------------------------------------------------------------------------
 {
-    return !(x - y)->is_negative();
+    return decimal::compare(x, y) < 0;
 }
 
 
@@ -526,7 +531,7 @@ inline bool operator<=(decimal_g x, decimal_g y)
 //   Less-than-or-equal between decimal values
 // ----------------------------------------------------------------------------
 {
-    return !(x - y)->is_negative_or_zero();
+    return decimal::compare(x, y) <= 0;
 }
 
 
@@ -535,7 +540,7 @@ inline bool operator>(decimal_g x, decimal_g y)
 //   Greater-than comparison between decimal values
 // ----------------------------------------------------------------------------
 {
-    return !(y - x)->is_negative();
+    return decimal::compare(x, y) > 0;
 }
 
 
@@ -544,7 +549,7 @@ inline bool operator>=(decimal_g x, decimal_g y)
 //   Greater-than-or-equal comparison between decimal values
 // ----------------------------------------------------------------------------
 {
-    return !(y - x)->is_negative_or_zero();
+    return decimal::compare(x, y) >= 0;
 }
 
 #endif // DECIMAL_H

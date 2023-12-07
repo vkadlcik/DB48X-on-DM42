@@ -773,6 +773,56 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
 }
 
 
+int decimal::compare(decimal_r x, decimal_r y)
+// ----------------------------------------------------------------------------
+//   Return -1, 0 or 1 for comparison
+// ----------------------------------------------------------------------------
+{
+    // Quick exit if identical pointers
+    if (+x == +y)
+        return 0;
+
+    // Check if input is nullptr - If so, nullptr is smaller than value
+    if (!x || !y)
+        return !!x - !!y;
+
+    id   xty = x->type();
+    id   yty = y->type();
+
+    // Check negative vs. positive
+    if (xty != yty)
+        return (xty == ID_decimal) - (yty == ID_decimal);
+
+    // Read information from both numbers
+    int  sign = xty == ID_neg_decimal ? -1 : 1;
+    info xi   = x->shape();
+    info yi   = y->shape();
+
+    // Number with largest exponent is larger
+    int  xe   = xi.exponent;
+    int  ye   = yi.exponent;
+    if (xe != ye)
+        return sign * (xe - ye);
+
+    // If same exponent, compare mantissa digits starting with highest one
+    size_t xs = xi.nkigits;
+    size_t ys = yi.nkigits;
+    byte_p xb = xi.base;
+    byte_p yb = yi.base;
+    size_t s  = std::min(xs, ys);
+    for (size_t i = 0; i < s; i++)
+        if (int diff = kigit(xb, i) - kigit(yb, i))
+            return sign * diff;
+
+    // If all kigits were the same, longest number is larger
+    if (xs != ys)
+        return sign * int(xs - ys);
+
+    // Otherwise, numbers are identical
+    return 0;
+}
+
+
 
 // ============================================================================
 //

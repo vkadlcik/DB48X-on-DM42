@@ -32,6 +32,7 @@
 #include "algebraic.h"
 #include "array.h"
 #include "complex.h"
+#include "decimal.h"
 #include "list.h"
 #include "runtime.h"
 
@@ -48,6 +49,7 @@ public:
     typedef complex_g (*complex_fn)(complex_r x);
 
     static result evaluate(id op,
+                           decimal_fn decop,
 #ifndef CONFIG_NO_DECIMAL128
                            bid128_fn op128,
 #endif // CONFIG_NO_DECIMAL128
@@ -57,6 +59,7 @@ public:
     // ------------------------------------------------------------------------
 
     static algebraic_p evaluate(algebraic_r x, id op,
+                                decimal_fn decop,
 #ifndef CONFIG_NO_DECIMAL128
                                 bid128_fn op128,
 #endif // CONFIG_NO_DECIMAL128
@@ -86,10 +89,10 @@ public:
 };
 
 #ifndef CONFIG_NO_DECIMAL128
-#define FUNCTION_EVALUATE(a,b,c,d)      evaluate(a,b,c,d)
+#define FUNCTION_EVALUATE(x,i,d,b,z)    evaluate(x,i,d,b,z)
 #define FUNCTION_BIDOP(op)              static constexpr auto bid128_op = bid128_##op
 #else // CONFIG_NO_DECIMAL128
-#define FUNCTION_EVALUATE(a,b,c,d)      evaluate(a,b,d)
+#define FUNCTION_EVALUATE(x,i,d,b,z)    evaluate(x,i,d,z)
 #define FUNCTION_BIDOP(op)
 #endif // CONFIG_NO_DECIMAL128
 
@@ -103,6 +106,7 @@ struct derived : function                                               \
 {                                                                       \
     derived(id i = ID_##derived) : function(i) {}                       \
                                                                         \
+    static constexpr decimal_fn decop = decimal::derived;               \
     FUNCTION_BIDOP(derived);                                            \
     static constexpr complex_fn zop = complex::derived;                 \
                                                                         \
@@ -123,7 +127,7 @@ public:                                                                 \
     static algebraic_p evaluate(algebraic_r x)                          \
     {                                                                   \
         return function::FUNCTION_EVALUATE(x, ID_##derived,             \
-                                           bid128_op, zop);             \
+                                           decop, bid128_op, zop);      \
     }                                                                   \
 }
 

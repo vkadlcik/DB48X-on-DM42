@@ -34,6 +34,7 @@
 #include "complex.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
+#include "decimal.h"
 #include "decimal128.h"
 #include "fraction.h"
 #include "runtime.h"
@@ -78,6 +79,7 @@ protected:
     typedef bool (*complex_fn)(complex_g &x, complex_g &y);
 
     // Function pointers used by generic evaluation code
+    typedef decimal_p (*decimal_fn)(decimal_r x, decimal_r y);
 #ifndef CONFIG_NO_DECIMAL128
     typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x, BID_UINT128 *y);
 #endif // CONFIG_NO_DECIMAL128
@@ -91,6 +93,7 @@ protected:
     // Structure holding the function pointers called by generic code
     struct ops
     {
+        decimal_fn      decop;
 #ifndef CONFIG_NO_DECIMAL128
         bid128_fn      op128;
 #endif // CONFIG_NO_DECIMAL128
@@ -143,39 +146,42 @@ protected:
 };
 
 
-#define ARITHMETIC_DECLARE(derived, Precedence)                         \
-/* ----------------------------------------------------------------- */ \
-/*  Macro to define an arithmetic command                            */ \
-/* ----------------------------------------------------------------- */ \
-struct derived : arithmetic                                             \
-{                                                                       \
-    derived(id i = ID_##derived) : arithmetic(i) {}                     \
-                                                                        \
-    static bool integer_ok(id &xt, id &yt, ularge &xv, ularge &yv);     \
-    static bool bignum_ok(bignum_g &x, bignum_g &y);                    \
-    static bool fraction_ok(fraction_g &x, fraction_g &y);              \
-    static bool complex_ok(complex_g &x, complex_g &y);                 \
-    D32(static constexpr auto bid32_op = bid32_##derived);              \
-    D64(static constexpr auto bid64_op = bid64_##derived);              \
-    D128(static constexpr auto bid128_op = bid128_##derived);           \
-                                                                        \
-    OBJECT_DECL(derived)                                                \
-    ARITY_DECL(2);                                                      \
-    PREC_DECL(Precedence);                                              \
-    EVAL_DECL(derived)                                                  \
-    {                                                                   \
-        rt.command(o);                                                  \
-        return arithmetic::evaluate<derived>();                         \
-    }                                                                   \
-    static algebraic_g run(algebraic_r x, algebraic_r y)                \
-    {                                                                   \
-        return evaluate(x, y);                                          \
-    }                                                                   \
-    static algebraic_p evaluate(algebraic_r x, algebraic_r y)           \
-    {                                                                   \
-        return arithmetic::evaluate<derived>(x,y);                      \
-    }                                                                   \
-}
+#define ARITHMETIC_DECLARE(derived, Precedence)                             \
+    /* ----------------------------------------------------------------- */ \
+    /*  Macro to define an arithmetic command                            */ \
+    /* ----------------------------------------------------------------- */ \
+    struct derived : arithmetic                                             \
+    {                                                                       \
+        derived(id i = ID_##derived) : arithmetic(i)                        \
+        {                                                                   \
+        }                                                                   \
+                                                                            \
+        static bool integer_ok(id &xt, id &yt, ularge &xv, ularge &yv);     \
+        static bool bignum_ok(bignum_g &x, bignum_g &y);                    \
+        static bool fraction_ok(fraction_g &x, fraction_g &y);              \
+        static bool complex_ok(complex_g &x, complex_g &y);                 \
+        static constexpr auto decop = decimal::derived;                     \
+        D32(static constexpr auto bid32_op = bid32_##derived);              \
+        D64(static constexpr auto bid64_op = bid64_##derived);              \
+        D128(static constexpr auto bid128_op = bid128_##derived);           \
+                                                                            \
+        OBJECT_DECL(derived)                                                \
+        ARITY_DECL(2);                                                      \
+        PREC_DECL(Precedence);                                              \
+        EVAL_DECL(derived)                                                  \
+        {                                                                   \
+            rt.command(o);                                                  \
+            return arithmetic::evaluate<derived>();                         \
+        }                                                                   \
+        static algebraic_g run(algebraic_r x, algebraic_r y)                \
+        {                                                                   \
+            return evaluate(x, y);                                          \
+        }                                                                   \
+        static algebraic_p evaluate(algebraic_r x, algebraic_r y)           \
+        {                                                                   \
+            return arithmetic::evaluate<derived>(x, y);                     \
+        }                                                                   \
+    }
 
 
 ARITHMETIC_DECLARE(add,                 ADDITIVE);

@@ -32,6 +32,7 @@
 #include "array.h"
 #include "bignum.h"
 #include "compare.h"
+#include "decimal.h"
 #include "decimal-32.h"
 #include "decimal-64.h"
 #include "decimal128.h"
@@ -71,7 +72,7 @@ bool arithmetic::real_promotion(algebraic_g &x, algebraic_g &y)
         return false;
 
     uint16_t prec  = Settings.Precision(); (void) prec;
-    id       minty = ID_object;
+    id       minty = ID_decimal;
 #ifndef CONFIG_NO_DECIMAL128
     if (prec <= BID128_MAXDIGITS)
         minty = ID_decimal128;
@@ -1290,6 +1291,15 @@ algebraic_p arithmetic::evaluate(id          op,
         xt = x->type();
         switch(xt)
         {
+        case ID_decimal:
+        case ID_neg_decimal:
+        {
+            decimal_g xv = decimal_p(+x);
+            decimal_g yv = decimal_p(+y);
+            x = ops.decop(xv, yv);
+            break;
+        }
+
 #ifndef CONFIG_NO_DECIMAL32
         case ID_decimal32:
         {
@@ -1542,6 +1552,7 @@ arithmetic::ops_t arithmetic::Ops()
 {
     static const ops result =
     {
+        Op::decop,
 #ifndef CONFIG_NO_DECIMAL128
         Op::bid128_op,
 #endif // CONFIG_NO_DECIMAL128

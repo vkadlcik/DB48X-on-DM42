@@ -33,6 +33,7 @@
 #include "array.h"
 #include "bignum.h"
 #include "complex.h"
+#include "decimal.h"
 #include "expression.h"
 #include "functions.h"
 #include "integer.h"
@@ -82,6 +83,10 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         ularge    ival = i->value<ularge>();
         switch (type)
         {
+        case ID_decimal:
+        case ID_neg_decimal:
+            x = decimal::from_integer(i);
+            return +x;
 #ifndef CONFIG_NO_DECIMAL32
         case ID_decimal32:
             x = rt.make<decimal32>(ID_decimal32, ival);
@@ -111,6 +116,10 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         ularge    ival = i->value<ularge>();
         switch (type)
         {
+        case ID_decimal:
+        case ID_neg_decimal:
+            x = decimal::from_integer(i);
+            return +x;
 #ifndef CONFIG_NO_DECIMAL32
         case ID_decimal32:
             x = rt.make<decimal32>(ID_decimal32, ival, true);
@@ -141,6 +150,10 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         bignum_g i = bignum_p(object_p(x));
         switch (type)
         {
+        case ID_decimal:
+        case ID_neg_decimal:
+            x = decimal::from_bignum(i);
+            return +x;
 #ifndef CONFIG_NO_DECIMAL32
         case ID_decimal32:
             x = rt.make<decimal32>(ID_decimal32, +i);
@@ -173,6 +186,11 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         fraction_g f = fraction_p(object_p(x));
         switch (type)
         {
+        case ID_decimal:
+        case ID_neg_decimal:
+            x = decimal::from_fraction(f);
+            return +x;
+
 #ifndef CONFIG_NO_DECIMAL32
         case ID_decimal32:
             x = rt.make<decimal32>(ID_decimal32, +f);
@@ -195,6 +213,12 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
                "Cannot promote fraction %p from %+s to %+s",
                +f, object::name(xt), object::name(type));
         break;
+    }
+
+    case ID_decimal:
+    case ID_neg_decimal:
+    {
+        return +x;
     }
 
 #ifndef CONFIG_NO_DECIMAL32
@@ -291,7 +315,8 @@ object::id algebraic::real_promotion(algebraic_g &x)
 {
     // Auto-selection of type
     uint16_t prec = Settings.Precision(); (void) prec;
-    id       type = ID_object;
+    id       type = ID_decimal;
+
 #ifndef CONFIG_NO_DECIMAL128
     if (prec <= BID128_MAXDIGITS)
         type = ID_decimal128;
@@ -449,6 +474,11 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
     id ty = x->type();
     switch(ty)
     {
+    case ID_decimal:
+    case ID_neg_decimal:
+        x = decimal_p(+x)->to_fraction();
+        return true;
+
 #ifndef CONFIG_NO_DECIMAL32
     case ID_decimal32:
 #endif // CONFIG_NO_DECIMAL32
@@ -563,6 +593,8 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
     case ID_neg_fraction:
     case ID_big_fraction:
     case ID_neg_big_fraction:
+    case ID_decimal:
+    case ID_neg_decimal:
 #ifndef CONFIG_NO_DECIMAL32
     case ID_decimal32:
 #endif // CONFIG_NO_DECIMAL32

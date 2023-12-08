@@ -41,6 +41,7 @@
 
 GCP(algebraic);
 GCP(program);
+GCP(decimal);
 
 struct algebraic : command
 // ----------------------------------------------------------------------------
@@ -89,6 +90,7 @@ struct algebraic : command
     algebraic_p evaluate() const;
 
     // Function pointers used by generic evaluation code
+    typedef decimal_p (*decimal_fn)(decimal_r x);
 #ifndef CONFIG_NO_DECIMAL128
     typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x);
 #endif // CONFIG_NO_DECIMAL128

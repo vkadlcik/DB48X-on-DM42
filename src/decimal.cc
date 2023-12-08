@@ -42,6 +42,11 @@ RECORDER(decimal, 32, "Variable-precision decimal data type");
 RECORDER(decimal_error, 32, "Variable-precision decimal data type");
 
 
+// ============================================================================
+//
+//   Object interface
+//
+// ============================================================================
 
 SIZE_BODY(decimal)
 // ----------------------------------------------------------------------------
@@ -603,6 +608,76 @@ large decimal::as_integer() const
 }
 
 
+decimal_p decimal::from_integer(integer_p value)
+// ----------------------------------------------------------------------------
+//   Create a decimal value from an integer
+// ----------------------------------------------------------------------------
+{
+    if (!value)
+        return nullptr;
+    id itype = value->type();
+    id type = itype == ID_neg_integer ? ID_neg_decimal : ID_decimal;
+    ularge magnitude = value->value<ularge>();
+    return rt.make<decimal>(type, magnitude);
+}
+
+
+decimal_p decimal::from_bignum(bignum_p value)
+// ----------------------------------------------------------------------------
+//    Create a decimal number from a bignum
+// ----------------------------------------------------------------------------
+{
+    if (!value)
+        return nullptr;
+    id        itype  = value->type();
+    id        type   = itype == ID_neg_bignum ? ID_neg_decimal : ID_decimal;
+    size_t    sz     = 0;
+    gcbytes   bytes  = value->value(&sz);
+    decimal_g result = rt.make<decimal>(type, 0);
+    decimal_g mul    = rt.make<decimal>(type, 1);
+    decimal_g scale  = rt.make<decimal>(1ULL<<32);
+    ularge    digit  = 0;
+    for (size_t i = 0; i < sz; i++)
+    {
+        digit |= (+bytes)[i] << ((i % 4) * 8);
+        if ((i % 4) == 3 || i == sz - 1)
+        {
+            decimal_g d = rt.make<decimal>(digit);
+            result = result + d * mul;
+            mul = mul * scale;
+            digit = 0;
+        }
+    }
+    return result;
+}
+
+
+decimal_p decimal::from_fraction(fraction_p value)
+// ----------------------------------------------------------------------------
+//   Build a decimal number from a fraction
+// ----------------------------------------------------------------------------
+{
+    id type = value->type();
+    if (type == ID_big_fraction || type == ID_neg_big_fraction)
+        return from_big_fraction(big_fraction_p(value));
+    decimal_g num = decimal::from_integer(value->numerator(1));
+    decimal_g den = decimal::from_integer(value->denominator(1));
+    return num / den;
+}
+
+
+
+decimal_p decimal::from_big_fraction(big_fraction_p value)
+// ------------------------------------------------------------------------
+//   Build a decimal number from a big fraction
+// ------------------------------------------------------------------------
+{
+    decimal_g num = decimal::from_bignum(value->numerator());
+    decimal_g den = decimal::from_bignum(value->denominator());
+    return num / den;
+}
+
+
 decimal::class_type decimal::fpclass() const
 // ----------------------------------------------------------------------------
 //   Return the floating-point class for the decimal number
@@ -623,6 +698,21 @@ decimal::class_type decimal::fpclass() const
     if (d < 100)
         return neg ? negativeSubnormal : positiveSubnormal;
     return neg ? negativeNormal : positiveNormal;
+}
+
+
+bool decimal::is_normal() const
+// ----------------------------------------------------------------------------
+//   Return true if the number is normal (not NaN, not infinity)
+// ----------------------------------------------------------------------------
+{
+    info   s       = shape();
+    size_t nkigits = s.nkigits;
+    byte_p bp      = s.base;
+    if (nkigits == 0)
+        return true;
+    kint d = kigit(bp, 0);
+    return d < 1000;
 }
 
 
@@ -882,6 +972,8 @@ decimal_p decimal::neg(decimal_r x)
 //   Negation
 // ----------------------------------------------------------------------------
 {
+    if (!x)
+        return nullptr;
     object::id type  = x->type();
     object::id ntype = negtype(type);
     gcbytes data = x->payload();
@@ -895,6 +987,11 @@ decimal_p decimal::add(decimal_r x, decimal_r y)
 //   Addition of two numbers with the same sign
 // ----------------------------------------------------------------------------
 {
+    if (!x || !y)
+        return nullptr;
+    if (x->type() != y->type())
+        return sub(x, decimal_g(neg(y)));
+
     // Read information from both numbers
     info xi = x->shape();
     info yi = y->shape();
@@ -995,6 +1092,11 @@ decimal_p decimal::sub(decimal_r x, decimal_r y)
 //   Subtraction of two numbers with the same sign
 // ----------------------------------------------------------------------------
 {
+    if (!x || !y)
+        return nullptr;
+    if (x->type() != y->type())
+        return add(x, decimal_g(neg(y)));
+
     // Read information from both numbers
     info xi  = x->shape();
     info yi  = y->shape();
@@ -1119,6 +1221,9 @@ decimal_p decimal::mul(decimal_r x, decimal_r y)
 //  (a0+a1/1000) * (b0+b1/1000) = a0*b0 + (a0*b1+a1*b0) / 1000 + epsilon
 //  Exponent is the sum of the two exponents
 {
+    if (!x || !y)
+        return nullptr;
+
     // Read information from both numbers
     info     xi  = x->shape();
     info     yi  = y->shape();
@@ -1240,6 +1345,9 @@ decimal_p decimal::div(decimal_r x, decimal_r y)
 //          Q[i] = R[0] / D[0]
 //          R = R - Y * Q[i]
 {
+    if (!x || !y)
+        return nullptr;
+
     // Check if we divide by zero
     if (y->is_zero())
     {
@@ -1420,4 +1528,525 @@ decimal_p decimal::mod(decimal_r x, decimal_r y)
     if (x->is_negative() && !r->is_zero())
         r = y->is_negative() ? r - y : r + y;
     return r;
+}
+
+
+decimal_p decimal::pow(decimal_r x, decimal_r y)
+// ----------------------------------------------------------------------------
+//   Power
+// ----------------------------------------------------------------------------
+{
+    return exp(y * log(x));
+}
+
+
+decimal_p decimal::hypot(decimal_r x, decimal_r y)
+// ----------------------------------------------------------------------------
+//   Hypothenuse
+// ----------------------------------------------------------------------------
+{
+    return sqrt(x*x + y*y);
+}
+
+
+decimal_p decimal::atan2(decimal_r x, decimal_r y)
+// ----------------------------------------------------------------------------
+//   Arc-tangent with two arguments (arctan(x/y))
+// ----------------------------------------------------------------------------
+{
+    if (y->is_zero())
+    {
+        if (x->is_zero())
+            return y->is_negative() ? decimal_p(pi()) : +x;
+        decimal_g two = rt.make<decimal>(2);
+        decimal_g result = pi() / two;
+        if (x->is_negative())
+            result = -result;
+        return result;
+    }
+
+    return atan(x/y);
+}
+
+
+decimal_p decimal::Min(decimal_r x, decimal_r y)
+// ----------------------------------------------------------------------------
+//   Min of two decimal values
+// ----------------------------------------------------------------------------
+{
+    return x < y ? x : y;
+}
+
+
+decimal_p decimal::Max(decimal_r x, decimal_r y)
+// ----------------------------------------------------------------------------
+//   Max of two decimal values
+// ----------------------------------------------------------------------------
+{
+    return x > y ? x : y;
+}
+
+
+
+// ============================================================================
+//
+//   Math functions
+//
+// ============================================================================
+
+decimal_p decimal::sqrt(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::cbrt(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+
+decimal_p decimal::sin(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::cos(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::tan(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::asin(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::acos(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::atan(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+
+decimal_p decimal::sinh(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::cosh(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::tanh(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::asinh(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::acosh(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::atanh(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+
+decimal_p decimal::log1p(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::expm1(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::log(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::log10(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::log2(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::exp(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::exp10(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::exp2(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::erf(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::erfc(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::tgamma(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::lgamma(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+
+decimal_p decimal::abs(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::sign(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::IntPart(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::FracPart(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::ceil(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::floor(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::inv(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::sq(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::cubed(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::xroot(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+decimal_p decimal::fact(decimal_r x)
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+{
+    rt.unimplemented_error();
+    return x;
+}
+
+
+
+// ============================================================================
+//
+//   Support math functions
+//
+// ============================================================================
+
+void decimal::init_constants()
+// ----------------------------------------------------------------------------
+//   Initialize the constants used for adjustments
+// ----------------------------------------------------------------------------
+{
+}
+
+
+
+decimal_p decimal::pi()
+// ----------------------------------------------------------------------------
+//   Return a representation of pi as a decimal
+// ----------------------------------------------------------------------------
+{
+    return nullptr;
+}
+
+
+decimal_p decimal::adjust_from_angle() const
+// ----------------------------------------------------------------------------
+//   Adjust an angle value for sin/cos/tan
+// ----------------------------------------------------------------------------
+{
+    uint half_circle = 1;
+    switch(Settings.AngleMode())
+    {
+    case object::ID_Deg:                half_circle = 180; break;
+    case object::ID_Grad:               half_circle = 200; break;
+    case object::ID_PiRadians:          half_circle =   1; break;
+    default:
+    case object::ID_Rad:                return this;
+    }
+
+    decimal_g x = this;
+    decimal_g ratio = rt.make<decimal>(half_circle);
+    ratio = ratio / decimal_g(pi());
+    return x * ratio;
+}
+
+
+decimal_p decimal::adjust_to_angle() const
+// ----------------------------------------------------------------------------
+//   Adjust an angle value for asin/acos/atan
+// ----------------------------------------------------------------------------
+{
+    uint half_circle = 1;
+    switch(Settings.AngleMode())
+    {
+    case object::ID_Deg:                half_circle = 180; break;
+    case object::ID_Grad:               half_circle = 200; break;
+    case object::ID_PiRadians:          half_circle =   1; break;
+    default:
+    case object::ID_Rad:                return this;
+    }
+
+    decimal_g x = this;
+    decimal_g ratio = rt.make<decimal>(half_circle);
+    ratio = ratio / decimal_g(pi());
+    return x / ratio;
+}
+
+
+bool decimal::adjust_to_angle(algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   Adjust an angle value for asin/acos/atan
+// ----------------------------------------------------------------------------
+{
+    id type = x->type();
+    if (type == ID_decimal || type == ID_neg_decimal)
+    {
+        x = decimal_p(+x)->adjust_to_angle();
+        return true;
+    }
+    return false;
 }

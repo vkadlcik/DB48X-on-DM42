@@ -58,6 +58,7 @@
 GCP(integer);
 GCP(bignum);
 GCP(fraction);
+GCP(big_fraction);
 GCP(decimal);
 
 struct decimal : algebraic
@@ -157,14 +158,12 @@ struct decimal : algebraic
     }
 
 
-    decimal(id type, integer_p value);
-    decimal(id type, bignum_p value);
-    decimal(id type, fraction_p value);
-    static size_t required_memory(id type, integer_p);
-    static size_t required_memory(id type, bignum_p);
-    static size_t required_memory(id type, fraction_p);
+    static decimal_p from_integer(integer_p value);
+    static decimal_p from_bignum(bignum_p value);
+    static decimal_p from_fraction(fraction_p value);
+    static decimal_p from_big_fraction(big_fraction_p value);
     // ------------------------------------------------------------------------
-    //   Constructor from other data types
+    //   Build from other data types
     // ------------------------------------------------------------------------
 
 
@@ -326,8 +325,8 @@ struct decimal : algebraic
     iterator end() const        { return iterator(this, ~0U); }
 
 
-    ularge as_unsigned(bool magnitude = false) const;
-    large  as_integer()  const;
+    ularge   as_unsigned(bool magnitude = false) const;
+    large    as_integer() const;
     // ------------------------------------------------------------------------
     //   Conversion to machine values
     // ------------------------------------------------------------------------
@@ -355,38 +354,45 @@ struct decimal : algebraic
         infinity
     };
 
-    class_type fpclass() const;
+    class_type       fpclass() const;
+    bool             is_normal() const;
     // ------------------------------------------------------------------------
     //   Return the floating-point class for the decimal number
     // ------------------------------------------------------------------------
 
-    static int compare(decimal_r x, decimal_r y);
+    static int       compare(decimal_r x, decimal_r y);
     // ------------------------------------------------------------------------
     //   Return a comparision between the two values
     // ------------------------------------------------------------------------
 
 
-    bool is_zero() const;
-    bool is_one() const;
-    bool is_negative() const;
-    bool is_negative_or_zero() const;
+    bool             is_zero() const;
+    bool             is_one() const;
+    bool             is_negative() const;
+    bool             is_negative_or_zero() const;
     // ------------------------------------------------------------------------
     //   Tests about the value of a given decimal number
     // ------------------------------------------------------------------------
 
 
-    decimal_g round(int exp = 0) const;
+    decimal_g        round(int exp = 0) const;
     // ------------------------------------------------------------------------
     //   Round a decimal value to the given number of decimals
     // ------------------------------------------------------------------------
 
 
-    algebraic_p to_fraction(uint count = Settings.FractionIterations(),
-                            uint decimals = Settings.FractionDigits()) const;
+    algebraic_p      to_fraction(uint count = Settings.FractionIterations(),
+                                 uint prec  = Settings.FractionDigits()) const;
     // ------------------------------------------------------------------------
     //   Convert decimal number to fraction
     // ------------------------------------------------------------------------
 
+
+    // ========================================================================
+    //
+    //    Arithmetic
+    //
+    // ========================================================================
 
     static decimal_p neg(decimal_r x);
     static decimal_p add(decimal_r x, decimal_r y);
@@ -395,21 +401,75 @@ struct decimal : algebraic
     static decimal_p div(decimal_r x, decimal_r y);
     static decimal_p mod(decimal_r x, decimal_r y);
     static decimal_p rem(decimal_r x, decimal_r y);
-    // ------------------------------------------------------------------------
-    //   Basic arithmetic (assume input was null-checked)
-    // ------------------------------------------------------------------------
+    static decimal_p pow(decimal_r x, decimal_r y);
+
+    static decimal_p hypot(decimal_r x, decimal_r y);
+    static decimal_p atan2(decimal_r x, decimal_r y);
+    static decimal_p Min(decimal_r x, decimal_r y);
+    static decimal_p Max(decimal_r x, decimal_r y);
 
 
-    static decimal_p   pi();
-    static void        adjust_from_angle(bid128 &x);
-    static void        adjust_to_angle(bid128 &x);
-    static bool        adjust_to_angle(algebraic_g &x);
-    static void        init_constants();
 
-protected:
-    static bid128      from_deg;
-    static bid128      from_grad;
-    static bid128      from_ratio;
+    // ========================================================================
+    //
+    //    Math functions
+    //
+    // ========================================================================
+
+    static decimal_p sqrt(decimal_r x);
+    static decimal_p cbrt(decimal_r x);
+
+    static decimal_p sin(decimal_r x);
+    static decimal_p cos(decimal_r x);
+    static decimal_p tan(decimal_r x);
+    static decimal_p asin(decimal_r x);
+    static decimal_p acos(decimal_r x);
+    static decimal_p atan(decimal_r x);
+
+    static decimal_p sinh(decimal_r x);
+    static decimal_p cosh(decimal_r x);
+    static decimal_p tanh(decimal_r x);
+    static decimal_p asinh(decimal_r x);
+    static decimal_p acosh(decimal_r x);
+    static decimal_p atanh(decimal_r x);
+
+    static decimal_p log1p(decimal_r x);
+    static decimal_p expm1(decimal_r x);
+    static decimal_p log(decimal_r x);
+    static decimal_p log10(decimal_r x);
+    static decimal_p log2(decimal_r x);
+    static decimal_p exp(decimal_r x);
+    static decimal_p exp10(decimal_r x);
+    static decimal_p exp2(decimal_r x);
+    static decimal_p erf(decimal_r x);
+    static decimal_p erfc(decimal_r x);
+    static decimal_p tgamma(decimal_r x);
+    static decimal_p lgamma(decimal_r x);
+
+    static decimal_p abs(decimal_r x);
+    static decimal_p sign(decimal_r x);
+    static decimal_p IntPart(decimal_r x);
+    static decimal_p FracPart(decimal_r x);
+    static decimal_p ceil(decimal_r x);
+    static decimal_p floor(decimal_r x);
+    static decimal_p inv(decimal_r x);
+    static decimal_p sq(decimal_r x);
+    static decimal_p cubed(decimal_r x);
+    static decimal_p xroot(decimal_r x);
+    static decimal_p fact(decimal_r x);
+
+
+    // ========================================================================
+    //
+    //    Support for math functions
+    //
+    // ========================================================================
+
+    static decimal_p pi();
+    decimal_p        adjust_from_angle() const;
+    decimal_p        adjust_to_angle() const;
+    static bool      adjust_to_angle(algebraic_g &x);
+    static void      init_constants();
 
 public:
     OBJECT_DECL(decimal);
@@ -447,8 +507,6 @@ inline decimal_g operator-(decimal_g x)
 //  Negate number
 // ----------------------------------------------------------------------------
 {
-    if (!x)
-        return nullptr;
     return decimal::neg(x);
 }
 
@@ -458,10 +516,6 @@ inline decimal_g operator+(decimal_g x, decimal_g y)
 //   Addition
 // ----------------------------------------------------------------------------
 {
-    if (!x || !y)
-        return nullptr;
-    if (x->type() != y->type())
-        return x - -y;
     return decimal::add(x, y);
 }
 
@@ -471,10 +525,6 @@ inline decimal_g operator-(decimal_g x, decimal_g y)
 //  Subtraction
 // ----------------------------------------------------------------------------
 {
-    if (!x || !y)
-        return nullptr;
-    if (x->type() != y->type())
-        return x + -y;
     return decimal::sub(x, y);
 }
 
@@ -484,8 +534,6 @@ inline decimal_g operator*(decimal_g x, decimal_g y)
 //   Multiplication
 // ----------------------------------------------------------------------------
 {
-    if (!x || !y)
-        return nullptr;
     return decimal::mul(x, y);
 }
 
@@ -495,8 +543,6 @@ inline decimal_g operator/(decimal_g x, decimal_g y)
 //   Division
 // ----------------------------------------------------------------------------
 {
-    if (!x || !y)
-        return nullptr;
     return decimal::div(x, y);
 }
 
@@ -506,8 +552,6 @@ inline decimal_g operator%(decimal_g x, decimal_g y)
 //   Remainder
 // ----------------------------------------------------------------------------
 {
-    if (!x || !y)
-        return nullptr;
     return decimal::rem(x, y);
 }
 

@@ -337,8 +337,9 @@ EVAL_BODY(value_setting)
 
     if (ty >= ID_Fix && ty <= ID_Sig)
     {
-        uint digits = Settings.DisplayDigits();
-        if (!validate(ty, digits, 0U, DB48X_MAXDIGITS))
+        using type = typeof(Settings.DisplayDigits());
+        type digits = Settings.DisplayDigits();
+        if (!validate(ty, digits, type(0), type(DB48X_MAXDIGITS)))
             return ERROR;
         Settings.DisplayDigits(digits);
     }

@@ -311,8 +311,9 @@ struct Name : setting                                                   \
     OBJECT_DECL(Name);                                                  \
     EVAL_DECL(Name)                                                     \
     {                                                                   \
-        auto value = Settings.Name();                                   \
-        if (!validate(ID_##Name, value, Low, High))                     \
+        using type = typeof(Settings.Name());                           \
+        type value = Settings.Name();                                   \
+        if (!validate(ID_##Name, value, type(Low), type(High)))         \
             return ERROR;                                               \
         Settings.Name(value);                                           \
         update(ID_##Name);                                              \

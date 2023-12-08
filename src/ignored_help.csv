@@ -255,9 +255,8 @@ fraction
 neg_fraction
 big_fraction
 neg_big_fraction
-decimal32
-decimal64
-decimal128
+decimal
+neg_decimal
 Dup
 Dup2
 DupN

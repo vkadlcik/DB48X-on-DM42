@@ -219,36 +219,6 @@ void program_init()
     byte *memory = (byte *) malloc(size);
     rt.memory(memory, size);
 
-#ifndef CONFIG_NO_DECIMAL128
-    // The following is just to link the same set of functions as DM42
-    if (memory == (byte *) program_init)
-    {
-        double      d = *memory;
-        BID_UINT64  a;
-        BID_UINT128 res;
-        binary64_to_bid64(&a, &d);
-        bid64_to_bid128(&res, &a);
-        num_add(&res, &res, &res);
-        num_sub(&res, &res, &res);
-        num_mul(&res, &res, &res);
-        num_div(&res, &res, &res);
-        num_div(&res, &res, &res);
-        num_sqrt(&res, &res);
-        num_log10(&res, &res);
-        num_log(&res, &res);
-        num_pow(&res, &res, &res);
-        num_mul(&res, &res, &res);
-        num_exp10(&res, &res);
-        num_exp(&res, &res);
-        num_sin(&res, &res);
-        num_cos(&res, &res);
-        num_tan(&res, &res);
-        num_asin(&res, &res);
-        num_acos(&res, &res);
-        num_atan(&res, &res);
-    }
-#endif // CONFIG_NO_DECIMAL128
-
     // Check if we have a state file to load
     load_system_state();
 }

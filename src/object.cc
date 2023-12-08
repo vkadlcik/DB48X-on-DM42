@@ -38,10 +38,7 @@
 #include "compare.h"
 #include "complex.h"
 #include "conditionals.h"
-#include "decimal-32.h"
-#include "decimal-64.h"
 #include "decimal.h"
-#include "decimal128.h"
 #include "expression.h"
 #include "font.h"
 #include "fraction.h"
@@ -353,18 +350,9 @@ uint32_t object::as_uint32(uint32_t def, bool err) const
         if (err)
             rt.value_error();
         return def;
-#ifndef CONFIG_NO_DECIMAL128
-    case ID_decimal128:
-        return decimal128_p(this)->as_unsigned();
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-    case ID_decimal64:
-        return decimal64_p(this)->as_unsigned();
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-    case ID_decimal32:
-        return decimal32_p(this)->as_unsigned();
-#endif // CONFIG_NO_DECIMAL32
+    case ID_decimal:
+    case ID_neg_decimal:
+        return decimal_p(this)->as_unsigned();
 
     case ID_fraction:
         return fraction_p(this)->as_unsigned();
@@ -410,18 +398,9 @@ int32_t object::as_int32 (int32_t  def, bool err)  const
     case ID_neg_bignum:
         return -bignum_p(this)->value<uint32_t>();
 
-#ifndef CONFIG_NO_DECIMAL128
-    case ID_decimal128:
-        return decimal128_p(this)->as_integer();
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-    case ID_decimal64:
-        return decimal64_p(this)->as_integer();
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-    case ID_decimal32:
-        return decimal32_p(this)->as_integer();
-#endif // CONFIG_NO_DECIMAL32
+    case ID_decimal:
+    case ID_neg_decimal:
+        return decimal_p(this)->as_integer();
 
     case ID_fraction:
         return fraction_p(this)->as_unsigned();
@@ -476,18 +455,9 @@ uint64_t object::as_uint64(uint64_t def, bool err) const
         if (err)
             rt.value_error();
         return def;
-#ifndef CONFIG_NO_DECIMAL128
-    case ID_decimal128:
-        return decimal128_p(this)->as_unsigned();
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-    case ID_decimal64:
-        return decimal64_p(this)->as_unsigned();
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-    case ID_decimal32:
-        return decimal32_p(this)->as_unsigned();
-#endif // CONFIG_NO_DECIMAL32
+    case ID_decimal:
+    case ID_neg_decimal:
+        return decimal_p(this)->as_unsigned();
 
     case ID_fraction:
         return fraction_p(this)->as_unsigned();
@@ -533,18 +503,9 @@ int64_t object::as_int64 (int64_t  def, bool err)  const
     case ID_neg_bignum:
         return -bignum_p(this)->value<uint64_t>();
 
-#ifndef CONFIG_NO_DECIMAL128
-    case ID_decimal128:
-        return decimal128_p(this)->as_integer();
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-    case ID_decimal64:
-        return decimal64_p(this)->as_integer();
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-    case ID_decimal32:
-        return decimal32_p(this)->as_integer();
-#endif // CONFIG_NO_DECIMAL32
+    case ID_decimal:
+    case ID_neg_decimal:
+        return decimal_p(this)->as_integer();
 
     case ID_fraction:
         return fraction_p(this)->as_unsigned();
@@ -958,15 +919,8 @@ int object::as_truth(bool error) const
     case ID_neg_fraction:
     case ID_big_fraction:
     case ID_neg_big_fraction:
-#ifndef CONFIG_NO_DECIMAL128
-    case ID_decimal128:
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-    case ID_decimal64:
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-    case ID_decimal32:
-#endif // CONFIG_NO_DECIMAL32
+    case ID_decimal:
+    case ID_neg_decimal:
     case ID_polar:
     case ID_rectangular:
         return !is_zero(error);
@@ -1016,18 +970,9 @@ bool object::is_zero(bool error) const
     case ID_big_fraction:
     case ID_neg_big_fraction:
         return big_fraction_p(this)->numerator()->is_zero();
-#ifndef CONFIG_NO_DECIMAL128
-    case ID_decimal128:
-        return decimal128_p(this)->is_zero();
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-    case ID_decimal64:
-        return decimal64_p(this)->is_zero();
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-    case ID_decimal32:
-        return decimal32_p(this)->is_zero();
-#endif // CONFIG_NO_DECIMAL32
+    case ID_decimal:
+    case ID_neg_decimal:
+        return decimal_p(this)->is_zero();
     case ID_polar:
         return polar_p(this)->is_zero();
     case ID_rectangular:
@@ -1068,18 +1013,9 @@ bool object::is_one(bool error) const
         return bignum_p(this)->is_one();
     case ID_fraction:
         return fraction_p(this)->is_one();
-#ifndef CONFIG_NO_DECIMAL128
-    case ID_decimal128:
-        return decimal128_p(this)->is_one();
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-    case ID_decimal64:
-        return decimal64_p(this)->is_one();
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-    case ID_decimal32:
-        return decimal32_p(this)->is_one();
-#endif // CONFIG_NO_DECIMAL32
+    case ID_decimal:
+    case ID_neg_decimal:
+        return decimal_p(this)->is_one();
     case ID_polar:
         return polar_p(this)->is_one();
     case ID_rectangular:
@@ -1128,18 +1064,9 @@ bool object::is_negative(bool error) const
     case ID_neg_fraction:
     case ID_neg_big_fraction:
         return !fraction_p(this)->is_zero();
-#ifndef CONFIG_NO_DECIMAL128
-    case ID_decimal128:
-        return decimal128_p(this)->is_negative();
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-    case ID_decimal64:
-        return decimal64_p(this)->is_negative();
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-    case ID_decimal32:
-        return decimal32_p(this)->is_negative();
-#endif // CONFIG_NO_DECIMAL32
+    case ID_decimal:
+    case ID_neg_decimal:
+        return decimal_p(this)->is_negative();
 
     default:
         if (error)

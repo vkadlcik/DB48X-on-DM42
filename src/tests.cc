@@ -1174,62 +1174,62 @@ void tests::decimal_display_formats()
 
     step("Small number");
     test(CLEAR, "1.03", ENTER)
-        .type(object::ID_decimal32)
+        .type(object::ID_decimal)
         .expect("1.03");
 
     step("Zero");
     test(CLEAR, ".", ENTER)
-        .type(object::ID_decimal32)
+        .type(object::ID_decimal)
         .expect("0.");
 
     step("Negative");
     test(CLEAR, "0.3", CHS, ENTER)
-        .type(object::ID_decimal32)
+        .type(object::ID_decimal)
         .expect("-0.3");
 
     step("Scientific entry");
     test(CLEAR, "1", EEX, "2", ENTER)
-        .type(object::ID_decimal32)
+        .type(object::ID_decimal)
         .expect("100.");
 
     step("Scientific entry with negative exponent");
     test(CLEAR, "1", EEX, "2", CHS, ENTER)
-        .type(object::ID_decimal32)
+        .type(object::ID_decimal)
         .expect("0.01");
 
     step("Negative entry with negative exponent");
     test(CLEAR, "1", CHS, EEX, "2", CHS, ENTER)
-        .type(object::ID_decimal32)
+        .type(object::ID_decimal)
         .expect("-0.01");
 
     step("Non-scientific display");
     test(CLEAR, "0.245", ENTER)
-        .type(object::ID_decimal32)
+        .type(object::ID_decimal)
         .expect("0.245");
     test(CLEAR, "0.0003", CHS, ENTER)
-        .type(object::ID_decimal32)
+        .type(object::ID_decimal)
         .expect("-0.0003");
     test(CLEAR, "123.456", ENTER)
-        .type(object::ID_decimal32)
+        .type(object::ID_decimal)
         .expect("123.456");
 
     step("Selection of decimal64");
     test(CLEAR, "1.2345678", ENTER)
-        .type(object::ID_decimal64)
+        .type(object::ID_decimal)
         .expect("1.23456 78");
 
     step("Selection of decimal64 based on exponent");
     test(CLEAR, "1.23", EEX, 100, ENTER)
-        .type(object::ID_decimal64)
+        .type(object::ID_decimal)
         .expect("1.23⁳¹⁰⁰");
 
     step("Selection of decimal128");
     test(CLEAR, "1.2345678901234567890123", ENTER)
-        .type(object::ID_decimal128)
+        .type(object::ID_decimal)
         .expect("1.23456 78901 23456 789");
     step("Selection of decimal128 based on exponent");
     test(CLEAR, "1.23", EEX, 400, ENTER)
-        .type(object::ID_decimal128)
+        .type(object::ID_decimal)
         .expect("1.23⁳⁴⁰⁰");
 
     step("Automatic switching to scientific display");

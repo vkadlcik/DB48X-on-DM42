@@ -32,10 +32,7 @@
 #include "algebraic.h"
 #include "bignum.h"
 #include "complex.h"
-#include "decimal-32.h"
-#include "decimal-64.h"
 #include "decimal.h"
-#include "decimal128.h"
 #include "fraction.h"
 #include "runtime.h"
 
@@ -52,11 +49,7 @@ struct arithmetic : algebraic
     //   Promote x or y to the largest of both types, return true if successful
     // -------------------------------------------------------------------------
 
-    static bool real_promotion(algebraic_g &x, object::id type)
-    {
-        return algebraic::real_promotion(x, type);
-    }
-    static id   real_promotion(algebraic_g &x)
+    static bool real_promotion(algebraic_g &x)
     {
         return algebraic::real_promotion(x);
     }
@@ -80,33 +73,15 @@ protected:
 
     // Function pointers used by generic evaluation code
     typedef decimal_p (*decimal_fn)(decimal_r x, decimal_r y);
-#ifndef CONFIG_NO_DECIMAL128
-    typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x, BID_UINT128 *y);
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-    typedef void (*bid64_fn) (BID_UINT64  *res, BID_UINT64  *x, BID_UINT64  *y);
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-    typedef void (*bid32_fn) (BID_UINT32  *res, BID_UINT32  *x, BID_UINT32  *y);
-#endif // CONFIG_NO_DECIMAL32
 
     // Structure holding the function pointers called by generic code
     struct ops
     {
-        decimal_fn      decop;
-#ifndef CONFIG_NO_DECIMAL128
-        bid128_fn      op128;
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-        bid64_fn       op64;
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-        bid32_fn       op32;
-#endif // CONFIG_NO_DECIMAL32
-        integer_fn     integer_ok;
-        bignum_fn      bignum_ok;
-        fraction_fn    fraction_ok;
-        complex_fn     complex_ok;
+        decimal_fn    decop;
+        integer_fn    integer_ok;
+        bignum_fn     bignum_ok;
+        fraction_fn   fraction_ok;
+        complex_fn    complex_ok;
         arithmetic_fn non_numeric;
     };
     typedef const ops &ops_t;
@@ -135,14 +110,6 @@ protected:
     {
         return nullptr;
     }
-
-    // Min and Max implementations
-    static void bid128_Min(BID_UINT128 *res, BID_UINT128 *x, BID_UINT128 *y);
-    static void bid64_Min (BID_UINT64  *res, BID_UINT64  *x, BID_UINT64  *y);
-    static void bid32_Min (BID_UINT32  *res, BID_UINT32  *x, BID_UINT32  *y);
-    static void bid128_Max(BID_UINT128 *res, BID_UINT128 *x, BID_UINT128 *y);
-    static void bid64_Max (BID_UINT64  *res, BID_UINT64  *x, BID_UINT64  *y);
-    static void bid32_Max (BID_UINT32  *res, BID_UINT32  *x, BID_UINT32  *y);
 };
 
 
@@ -161,9 +128,6 @@ protected:
         static bool fraction_ok(fraction_g &x, fraction_g &y);              \
         static bool complex_ok(complex_g &x, complex_g &y);                 \
         static constexpr auto decop = decimal::derived;                     \
-        D32(static constexpr auto bid32_op = bid32_##derived);              \
-        D64(static constexpr auto bid64_op = bid64_##derived);              \
-        D128(static constexpr auto bid128_op = bid128_##derived);           \
                                                                             \
         OBJECT_DECL(derived)                                                \
         ARITY_DECL(2);                                                      \
@@ -195,14 +159,6 @@ ARITHMETIC_DECLARE(hypot,               POWER);
 ARITHMETIC_DECLARE(atan2,               POWER);
 ARITHMETIC_DECLARE(Min,                 FUNCTION);
 ARITHMETIC_DECLARE(Max,                 FUNCTION);
-
-
-void bid64_hypot(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
-void bid32_hypot(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
-void bid64_atan2(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
-void bid32_atan2(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
-void bid64_pow(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py);
-void bid32_pow(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py);
 
 
 struct Percent : arithmetic

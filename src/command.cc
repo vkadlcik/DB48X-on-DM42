@@ -31,9 +31,7 @@
 
 #include "arithmetic.h"
 #include "bignum.h"
-#include "decimal-32.h"
-#include "decimal-64.h"
-#include "decimal128.h"
+#include "decimal.h"
 #include "dmcp.h"
 #include "fraction.h"
 #include "integer.h"
@@ -566,15 +564,7 @@ static integer_p type_value(object_p obj)
     {
         switch (type)
         {
-#ifndef CONFIG_NO_DECIMAL32
-        case object::ID_decimal32:              type = 0; break;
-#endif // CONFIG_NO_DECIMAL32
-#ifndef CONFIG_NO_DECIMAL64
-        case object::ID_decimal64:              type = 0; break;
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL128
-        case object::ID_decimal128:             type = 21; break;
-#endif // CONFIG_NO_DECIMAL128
+        case object::ID_decimal:                type = 0; break; // Or 21
         case object::ID_rectangular:
         case object::ID_polar:                  type = 1; break;
         case object::ID_text:                   type = 2; break;
@@ -820,15 +810,7 @@ COMMAND_BODY(Cycle)
         id     ttype = top->type();
         switch(ttype)
         {
-#ifndef CONFIG_NO_DECIMAL128
-        case ID_decimal128:             cmd = ID_ToFraction;    break;
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-        case ID_decimal64:              cmd = ID_ToFraction;    break;
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-        case ID_decimal32:              cmd = ID_ToFraction;    break;
-#endif // CONFIG_NO_DECIMAL32
+        case ID_decimal:                cmd = ID_ToFraction; break;
         case ID_integer:
         case ID_bignum:
         case ID_neg_integer:

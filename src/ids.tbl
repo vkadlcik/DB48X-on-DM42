@@ -101,13 +101,8 @@ ID_RANGE(is_based,         based_integer,  based_integer, based_bignum, based_bi
 ID_RANGE(is_bignum,        based_bignum,   neg_bignum)
 #endif // CONFIG_FIXED_BASED_OBJECTS
 ID_RANGE(is_fraction,      fraction,       neg_big_fraction)
-#ifndef CONFIG_NO_DECIMAL128
-ID_RANGE(is_decimal,       decimal32,      decimal128)
-ID_RANGE(is_real,          bignum,         decimal128)
-#else
-ID_RANGE(is_decimal,       decimal,        decimal)
-ID_RANGE(is_real,          bignum,         neg_big_fraction)
-#endif // CONFIG_NO_DECIMAL128
+ID_RANGE(is_decimal,       decimal,        neg_decimal)
+ID_RANGE(is_real,          bignum,         neg_decimal)
 ID_RANGE(is_complex,       rectangular,    polar)
 ID_RANGE(is_command,       Drop,           ToFraction,    ToList, Unimplemented)
 ID_RANGE(is_symbolic,      expression,     symbol,        pi, ImaginaryUnit)
@@ -175,16 +170,6 @@ ID(neg_big_fraction)
 
 ID(decimal)
 ID(neg_decimal)
-
-#ifndef CONFIG_NO_DECIMAL32
-ID(decimal32)
-#endif // CONFIG_NO_DECIMAL32
-#ifndef CONFIG_NO_DECIMAL64
-ID(decimal64)
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL128
-ID(decimal128)
-#endif // CONFIG_NO_DECIMAL128
 
 ID(comment)
 ID(grob)
@@ -751,8 +736,8 @@ SETTING_BITS(FractionDigits,  6,1U, DB48X_MAXDIGITS, 12U)
 ALIAS(FractionDigits,           "→QDigits")
 SETTING(SolverIterations,       1U, 10000U,             256U)
 SETTING_BITS(SolverPrecision, 6,1U, DB48X_MAXDIGITS-2,  24U)
-SETTING(IntegrateIterations,    1U, 10000U,             10U)
-SETTING_BITS(IntegratePrecision, 6,0U, DB48X_MAXDIGITS, DB48X_MAXDIGITS)
+SETTING(IntegrateIterations,    1U, 10000U,             100U)
+SETTING(IntegratePrecision,     0U, DB48X_MAXDIGITS,    12U)
 
 
 SETTING_ENUM(SingleRowMenus,    nullptr,        MenuAppearance)

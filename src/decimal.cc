@@ -228,7 +228,7 @@ RENDER_BODY(decimal)
     if (raw)
     {
         mode = object::ID_Std;
-        digits = BID128_MAXDIGITS;
+        digits = 3 * nkigits;
         std_exp = 9;
         showdec = true;
         space = 0;

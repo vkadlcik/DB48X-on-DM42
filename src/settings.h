@@ -39,7 +39,7 @@
 
 struct renderer;
 
-#define DB48X_MAXDIGITS uint(BID128_MAXDIGITS)
+#define DB48X_MAXDIGITS 9999U
 
 struct settings
 // ----------------------------------------------------------------------------

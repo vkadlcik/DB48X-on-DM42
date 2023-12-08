@@ -52,7 +52,7 @@
 
 
 #include "algebraic.h"
-#include "decimal128.h"
+#include "decimal.h"
 #include "integer.h"
 #include "object.h"
 #include "runtime.h"

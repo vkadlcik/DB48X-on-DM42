@@ -33,9 +33,6 @@
 #include "bignum.h"
 #include "compare.h"
 #include "decimal.h"
-#include "decimal-32.h"
-#include "decimal-64.h"
-#include "decimal128.h"
 #include "expression.h"
 #include "fraction.h"
 #include "functions.h"
@@ -71,27 +68,7 @@ bool arithmetic::real_promotion(algebraic_g &x, algebraic_g &y)
     if (!is_real(xt) || !is_real(yt))
         return false;
 
-    uint16_t prec  = Settings.Precision(); (void) prec;
-    id       minty = ID_decimal;
-#ifndef CONFIG_NO_DECIMAL128
-    if (prec <= BID128_MAXDIGITS)
-        minty = ID_decimal128;
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-    if (prec <= BID64_MAXDIGITS)
-        minty = ID_decimal64;
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-    if (prec <= BID32_MAXDIGITS)
-        minty = ID_decimal32;
-#endif // CONFIG_NO_DECIMAL32
-    if (is_decimal(xt) && xt > minty)
-        minty = xt;
-    if (is_decimal(yt) && yt > minty)
-        minty = yt;
-
-    return (xt == minty || real_promotion(x, minty))
-        && (yt == minty || real_promotion(y, minty));
+    return real_promotion(x) && real_promotion(y);
 }
 
 
@@ -1288,79 +1265,9 @@ algebraic_p arithmetic::evaluate(id          op,
     if (real_promotion(x, y))
     {
         // Here, x and y have the same type, a decimal type
-        xt = x->type();
-        switch(xt)
-        {
-        case ID_decimal:
-        case ID_neg_decimal:
-        {
-            decimal_g xv = decimal_p(+x);
-            decimal_g yv = decimal_p(+y);
-            x = ops.decop(xv, yv);
-            break;
-        }
-
-#ifndef CONFIG_NO_DECIMAL32
-        case ID_decimal32:
-        {
-            bid32 xv = x->as<decimal32>()->value();
-            bid32 yv = y->as<decimal32>()->value();
-            bid32 res;
-            ops.op32(&res.value, &xv.value, &yv.value);
-            int finite = false;
-            bid32_isFinite(&finite, &res.value);
-            if (!finite)
-            {
-                rt.domain_error();
-                return nullptr;
-            }
-            x = rt.make<decimal32>(ID_decimal32, res);
-            break;
-        }
-#endif // CONFIG_NO_DECIMAL32
-#ifndef CONFIG_NO_DECIMAL64
-        case ID_decimal64:
-        {
-            bid64 xv = x->as<decimal64>()->value();
-            bid64 yv = y->as<decimal64>()->value();
-            bid64 res;
-            ops.op64(&res.value, &xv.value, &yv.value);
-            int finite = false;
-            bid64_isFinite(&finite, &res.value);
-            if (!finite)
-            {
-                rt.domain_error();
-                return nullptr;
-            }
-            x = rt.make<decimal64>(ID_decimal64, res);
-            break;
-        }
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL128
-        case ID_decimal128:
-        {
-            bid128 xv = x->as<decimal128>()->value();
-            bid128 yv = y->as<decimal128>()->value();
-            bid128 res;
-            ops.op128(&res.value, &xv.value, &yv.value);
-            int finite = false;
-            bid128_isFinite(&finite, &res.value);
-            if (!finite)
-            {
-                rt.domain_error();
-                return nullptr;
-            }
-            x = rt.make<decimal128>(ID_decimal128, res);
-            break;
-        }
-#endif // CONFIG_NO_DECIMAL128
-        default:
-            break;
-        }
-#ifndef CONFIG_NO_DECIMAL128
-        if (op == ID_atan2)
-            decimal128::adjust_to_angle(x);
-#endif // CONFIG_NO_DECIMAL128
+        decimal_g xv = decimal_p(+x);
+        decimal_g yv = decimal_p(+y);
+        x = ops.decop(xv, yv);
         return x;
     }
 
@@ -1428,100 +1335,6 @@ object::result arithmetic::evaluate(id op, ops_t ops)
 
 // ============================================================================
 //
-//   128-bit stubs
-//
-// ============================================================================
-//   The non-trivial functions like sqrt or exp are not present in the QSPI
-//   on the DM42. Calling them causes a discrepancy with the QSPI content,
-//   and increases the size of the in-flash image above what is allowed
-//   So we need to stub out some bid64 and bid42 functions and compute them
-//   using bid128
-
-#ifndef CONFIG_NO_DECIMAL64
-void bid64_pow(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py)
-// ----------------------------------------------------------------------------
-//   Perform the computation with bid128 code
-// ----------------------------------------------------------------------------
-{
-    BID_UINT128 x128, y128, res128;
-    bid64_to_bid128(&x128, px);
-    bid64_to_bid128(&y128, py);
-    bid128_pow(&res128, &x128, &y128);
-    bid128_to_bid64(pres, &res128);
-}
-
-
-void bid64_hypot(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py)
-// ----------------------------------------------------------------------------
-//   Perform the computation with bid128 code
-// ----------------------------------------------------------------------------
-{
-    BID_UINT128 x128, y128, res128;
-    bid64_to_bid128(&x128, px);
-    bid64_to_bid128(&y128, py);
-    bid128_hypot(&res128, &x128, &y128);
-    bid128_to_bid64(pres, &res128);
-}
-
-
-void bid64_atan2(BID_UINT64 *pres, BID_UINT64 *px, BID_UINT64 *py)
-// ----------------------------------------------------------------------------
-//   Perform the computation with bid128 code
-// ----------------------------------------------------------------------------
-{
-    BID_UINT128 x128, y128, res128;
-    bid64_to_bid128(&x128, px);
-    bid64_to_bid128(&y128, py);
-    bid128_atan2(&res128, &x128, &y128);
-    bid128_to_bid64(pres, &res128);
-}
-#endif // CONFIG_NO_DECIMAL64
-
-
-#ifndef CONFIG_NO_DECIMAL32
-void bid32_pow(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py)
-// ----------------------------------------------------------------------------
-//   Perform the computation with bid128 code
-// ----------------------------------------------------------------------------
-{
-    BID_UINT128 x128, y128, res128;
-    bid32_to_bid128(&x128, px);
-    bid32_to_bid128(&y128, py);
-    bid128_pow(&res128, &x128, &y128);
-    bid128_to_bid32(pres, &res128);
-}
-
-
-void bid32_hypot(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py)
-// ----------------------------------------------------------------------------
-//   Perform the computation with bid128 code
-// ----------------------------------------------------------------------------
-{
-    BID_UINT128 x128, y128, res128;
-    bid32_to_bid128(&x128, px);
-    bid32_to_bid128(&y128, py);
-    bid128_hypot(&res128, &x128, &y128);
-    bid128_to_bid32(pres, &res128);
-}
-
-
-void bid32_atan2(BID_UINT32 *pres, BID_UINT32 *px, BID_UINT32 *py)
-// ----------------------------------------------------------------------------
-//   Perform the computation with bid128 code
-// ----------------------------------------------------------------------------
-{
-    BID_UINT128 x128, y128, res128;
-    bid32_to_bid128(&x128, px);
-    bid32_to_bid128(&y128, py);
-    bid128_atan2(&res128, &x128, &y128);
-    bid128_to_bid32(pres, &res128);
-}
-#endif // CONFIG_NO_DECIMAL32
-
-
-
-// ============================================================================
-//
 //   Instantiations
 //
 // ============================================================================
@@ -1553,15 +1366,6 @@ arithmetic::ops_t arithmetic::Ops()
     static const ops result =
     {
         Op::decop,
-#ifndef CONFIG_NO_DECIMAL128
-        Op::bid128_op,
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-        Op::bid64_op,
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-        Op::bid32_op,
-#endif // CONFIG_NO_DECIMAL32
         Op::integer_ok,
         Op::bignum_ok,
         Op::fraction_ok,
@@ -1725,15 +1529,6 @@ EVAL_BODY(Percent)
 //   Min and Max operations
 //
 // ============================================================================
-
-// Min and Max implementations are just stubs, never called
-void arithmetic::bid128_Min(BID_UINT128 *, BID_UINT128 *, BID_UINT128 *) {}
-void arithmetic::bid64_Min (BID_UINT64  *, BID_UINT64  *, BID_UINT64  *) {}
-void arithmetic::bid32_Min (BID_UINT32  *, BID_UINT32  *, BID_UINT32  *) {}
-void arithmetic::bid128_Max(BID_UINT128 *, BID_UINT128 *, BID_UINT128 *) {}
-void arithmetic::bid64_Max (BID_UINT64  *, BID_UINT64  *, BID_UINT64  *) {}
-void arithmetic::bid32_Max (BID_UINT32  *, BID_UINT32  *, BID_UINT32  *) {}
-
 
 bool Min::integer_ok(id &, id &, ularge &, ularge &)    { return false; }
 bool Max::integer_ok(id &, id &, ularge &, ularge &)    { return false; }

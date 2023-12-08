@@ -51,8 +51,7 @@ struct algebraic : command
     algebraic(id i): command(i) {}
 
     // Promotion of integer / fractions to real
-    static bool real_promotion(algebraic_g &x, id type);
-    static id   real_promotion(algebraic_g &x);
+    static bool real_promotion(algebraic_g &x);
 
     // Promotion of integer, real or fraction to complex
     static bool complex_promotion(algebraic_g &x, id type = ID_rectangular);
@@ -91,15 +90,6 @@ struct algebraic : command
 
     // Function pointers used by generic evaluation code
     typedef decimal_p (*decimal_fn)(decimal_r x);
-#ifndef CONFIG_NO_DECIMAL128
-    typedef void (*bid128_fn)(BID_UINT128 *res, BID_UINT128 *x);
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-    typedef void (*bid64_fn) (BID_UINT64  *res, BID_UINT64  *x);
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-    typedef void (*bid32_fn) (BID_UINT32  *res, BID_UINT32  *x);
-#endif // CONFIG_NO_DECIMAL32
 
     INSERT_DECL(algebraic);
 };

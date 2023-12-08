@@ -31,8 +31,6 @@
 
 #include <cstdint>
 #include <cstddef>
-#include <bid_conf.h>
-#include <bid_functions.h>
 
 
 // ============================================================================
@@ -52,11 +50,6 @@ typedef unsigned           unicode;
 
 // Indicate that an argument may be unused
 #define UNUSED          __attribute__((unused))
-
-// Why, oh why does the library represent FP types as integers?
-struct bid128  { BID_UINT128 value; };
-struct bid64   { BID_UINT64  value; };
-struct bid32   { BID_UINT32  value; };
 
 #define COMPILE_TIME_ASSERT(x)   extern int CompileTimeAssert(int[!!(x)-1])
 

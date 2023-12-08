@@ -32,7 +32,7 @@
 #include "arithmetic.h"
 #include "bignum.h"
 #include "command.h"
-#include "decimal128.h"
+#include "decimal.h"
 #include "font.h"
 #include "functions.h"
 #include "integer.h"

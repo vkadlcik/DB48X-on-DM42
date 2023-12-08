@@ -29,9 +29,7 @@
 
 #include "compare.h"
 
-#include "decimal-32.h"
-#include "decimal-64.h"
-#include "decimal128.h"
+#include "decimal.h"
 #include "expression.h"
 #include "integer.h"
 #include "locals.h"
@@ -112,55 +110,10 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
     algebraic_g ya = algebraic_p(+y);
     if (!ok && real_promotion(xa, ya))
     {
-        /* Here, x and y have the same type, a decimal type */
-        int rlt = 0;
-        int rgt = 0;
-        xt = xa->type();
-        switch(xt)
-        {
-#ifndef CONFIG_NO_DECIMAL32
-        case ID_decimal32:
-        {
-            bid32 xv = decimal32_p(object_p(xa))->value();
-            bid32 yv = decimal32_p(object_p(ya))->value();
-            bid32_quiet_unordered(&rlt, &xv.value, &yv.value);
-            if (rlt)
-                return false;
-            bid32_quiet_less(&rlt, &xv.value, &yv.value);
-            bid32_quiet_greater(&rgt, &xv.value, &yv.value);
-            break;
-        }
-#endif // CONFIG_NO_DECIMAL32
-#ifndef CONFIG_NO_DECIMAL64
-        case ID_decimal64:
-        {
-            bid64 xv = decimal64_p(object_p(xa))->value();
-            bid64 yv = decimal64_p(object_p(ya))->value();
-            bid64_quiet_unordered(&rlt, &xv.value, &yv.value);
-            if (rlt)
-                return false;
-            bid64_quiet_less(&rlt, &xv.value, &yv.value);
-            bid64_quiet_greater(&rgt, &xv.value, &yv.value);
-            break;
-        }
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL128
-        case ID_decimal128:
-        {
-            bid128 xv = decimal128_p(object_p(xa))->value();
-            bid128 yv = decimal128_p(object_p(ya))->value();
-            bid128_quiet_unordered(&rlt, &xv.value, &yv.value);
-            if (rlt)
-                return false;
-            bid128_quiet_less(&rlt, &xv.value, &yv.value);
-            bid128_quiet_greater(&rgt, &xv.value, &yv.value);
-            break;
-        }
-#endif // CONFIG_NO_DECIMAL128
-        default:
-            return false;
-        }
-        *cmp = rgt - rlt;
+        /* Here, x and y have a decimal type */
+        decimal_g xd = decimal_p(+xa);
+        decimal_g yd = decimal_p(+ya);
+        *cmp = decimal::compare(xd, yd);
         return true;
     }
 

@@ -33,7 +33,6 @@
 #include "array.h"
 #include "bignum.h"
 #include "decimal.h"
-#include "decimal128.h"
 #include "expression.h"
 #include "fraction.h"
 #include "integer.h"
@@ -63,12 +62,7 @@ algebraic_p function::symbolic(id op, algebraic_r x)
 }
 
 
-object::result function::evaluate(id op,
-                                  decimal_fn decop,
-#ifndef CONFIG_NO_DECIMAL128
-                                  bid128_fn op128,
-#endif // CONFIG_NO_DECIMAL128
-                                  complex_fn zop)
+object::result function::evaluate(id op, decimal_fn decop, complex_fn zop)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------
@@ -76,12 +70,7 @@ object::result function::evaluate(id op,
     algebraic_g x = algebraic_p(rt.top());
     if (!x)
         return ERROR;
-
-#ifndef CONFIG_NO_DECIMAL128
-    x = evaluate(x, op, decop, op128, zop);
-#else // CONFIG_NO_DECIMAL128
     x = evaluate(x, op, decop, zop);
-#endif // CONFIG_NO_DECIMAL128
     if (x && rt.top(x))
         return OK;
     return ERROR;
@@ -166,9 +155,6 @@ bool function::exact_trig(id op, algebraic_g &x)
 algebraic_p function::evaluate(algebraic_r xr,
                                id          op,
                                decimal_fn  decop,
-#ifndef CONFIG_NO_DECIMAL128
-                               bid128_fn   op128,
-#endif // CONFIG_NO_DECIMAL128
                                complex_fn  zop)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
@@ -209,8 +195,7 @@ algebraic_p function::evaluate(algebraic_r xr,
     // Call the right function
     // We need to only call the bid128 functions here, because the 32 and 64
     // variants are not in the DM42's QSPI, and take too much space here
-    id rty = real_promotion(x);
-    if (rty == ID_decimal)
+    if (real_promotion(x))
     {
         decimal_g xv = decimal_p(+x);
         if (op == ID_sin || op == ID_cos || op == ID_tan)
@@ -225,28 +210,6 @@ algebraic_p function::evaluate(algebraic_r xr,
             xv = xv->adjust_to_angle();
         return xv;
     }
-
-#ifndef CONFIG_NO_DECIMAL128
-    if (rty == ID_decimal128)
-    {
-        bid128 xv = decimal128_p(algebraic_p(x))->value();
-        bid128 res;
-        if (op == ID_sin || op == ID_cos || op == ID_tan)
-            decimal128::adjust_from_angle(xv);
-        op128(&res.value, &xv.value);
-        int finite = false;
-        bid128_isFinite(&finite, &res.value);
-        if (!finite)
-        {
-            rt.domain_error();
-            return nullptr;
-        }
-        if (op == ID_asin || op == ID_acos || op == ID_atan)
-            decimal128::adjust_to_angle(res);
-        x = rt.make<decimal128>(ID_decimal128, res);
-        return x;
-    }
-#endif // CONFIG_NO_DECIMAL128
 
     // All other cases: report an error
     rt.type_error();
@@ -291,7 +254,7 @@ FUNCTION_BODY(abs)
 // ----------------------------------------------------------------------------
 //   Implementation of 'abs'
 // ----------------------------------------------------------------------------
-//   Special case where we don't need to promote argument to decimal128
+//   Special case where we don't need to promote argument to decimal
 {
     if (!x)
         return nullptr;
@@ -327,11 +290,7 @@ FUNCTION_BODY(abs)
     }
 
     // Fall-back to floating-point abs
-#ifndef CONFIG_NO_DECIMAL128
-    return function::evaluate(x, ID_abs, decimal::abs, bid128_abs, nullptr);
-#else
     return function::evaluate(x, ID_abs, decimal::abs, nullptr);
-#endif // CONFIG_NO_DECIMAL128
 }
 
 

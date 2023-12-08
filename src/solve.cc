@@ -130,13 +130,7 @@ algebraic_p solve(program_g eq, symbol_g name, object_g guess)
     // Set independent variable
     save<symbol_g *> iref(expression::independent, &name);
     int              prec = -Settings.SolverPrecision();
-    algebraic_g      eps;
-#ifndef CONFIG_NO_DECIMAL128
-    eps = rt.make<decimal128>(object::ID_decimal128, prec, true);
-#else
-    algebraic_g ten = integer::make(10);
-    eps = pow(ten, integer::make(prec));
-#endif // CONFIG_NO_DECIMAL128
+    algebraic_g      eps = rt.make<decimal>(1, -int(prec));
 
     bool is_constant = true;
     bool is_valid = false;

@@ -61,7 +61,7 @@ INSERT_BODY(algebraic)
 }
 
 
-bool algebraic::real_promotion(algebraic_g &x, object::id type)
+bool algebraic::real_promotion(algebraic_g &x)
 // ----------------------------------------------------------------------------
 //   Promote the value x to the given type
 // ----------------------------------------------------------------------------
@@ -70,266 +70,48 @@ bool algebraic::real_promotion(algebraic_g &x, object::id type)
         return false;
 
     id xt = x->type();
-    if (xt == type)
-        return true;
+    record(algebraic,
+           "Real promotion of %p from %+s to decimal",
+           (object_p) x, object::name(xt));
 
-    record(algebraic, "Real promotion of %p from %+s to %+s",
-           (object_p) x, object::name(xt), object::name(type));
     switch(xt)
     {
+    case ID_decimal:
+    case ID_neg_decimal:
+        return true;
+
     case ID_integer:
-    {
-        integer_p i    = x->as<integer>();
-        ularge    ival = i->value<ularge>();
-        switch (type)
-        {
-        case ID_decimal:
-        case ID_neg_decimal:
-            x = decimal::from_integer(i);
-            return +x;
-#ifndef CONFIG_NO_DECIMAL32
-        case ID_decimal32:
-            x = rt.make<decimal32>(ID_decimal32, ival);
-            return +x;
-#endif // CONFIG_NO_DECIMAL32
-#ifndef CONFIG_NO_DECIMAL64
-        case ID_decimal64:
-            x = rt.make<decimal64>(ID_decimal64, ival);
-            return +x;
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL128
-        case ID_decimal128:
-            x = rt.make<decimal128>(ID_decimal128, ival);
-            return +x;
-#endif // CONFIG_NO_DECIMAL128
-        default:
-            break;
-        }
-        record(algebraic_error,
-               "Cannot promote integer %p (%llu) from %+s to %+s",
-               i, ival, object::name(xt), object::name(type));
-        break;
-    }
     case ID_neg_integer:
     {
-        integer_p i    = x->as<neg_integer>();
-        ularge    ival = i->value<ularge>();
-        switch (type)
-        {
-        case ID_decimal:
-        case ID_neg_decimal:
-            x = decimal::from_integer(i);
-            return +x;
-#ifndef CONFIG_NO_DECIMAL32
-        case ID_decimal32:
-            x = rt.make<decimal32>(ID_decimal32, ival, true);
-            return +x;
-#endif // CONFIG_NO_DECIMAL32
-#ifndef CONFIG_NO_DECIMAL64
-        case ID_decimal64:
-            x = rt.make<decimal64>(ID_decimal64, ival, true);
-            return +x;
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL128
-        case ID_decimal128:
-            x = rt.make<decimal128>(ID_decimal128, ival, true);
-            return +x;
-#endif // CONFIG_NO_DECIMAL128
-        default:
-            break;
-        }
-        record(algebraic_error,
-               "Cannot promote neg_integer %p (%lld) from %+s to %+s",
-               i, ival, object::name(xt), object::name(type));
-        break;
+        integer_p i = integer_p(+x);
+        x = decimal::from_integer(i);
+        return true;
     }
-
     case ID_bignum:
     case ID_neg_bignum:
     {
-        bignum_g i = bignum_p(object_p(x));
-        switch (type)
-        {
-        case ID_decimal:
-        case ID_neg_decimal:
-            x = decimal::from_bignum(i);
-            return +x;
-#ifndef CONFIG_NO_DECIMAL32
-        case ID_decimal32:
-            x = rt.make<decimal32>(ID_decimal32, +i);
-            return +x;
-#endif // CONFIG_NO_DECIMAL32
-#ifndef CONFIG_NO_DECIMAL64
-        case ID_decimal64:
-            x = rt.make<decimal64>(ID_decimal64, +i);
-            return +x;
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL128
-        case ID_decimal128:
-            x = rt.make<decimal128>(ID_decimal128, +i);
-            return +x;
-#endif // CONFIG_NO_DECIMAL128
-        default:
-            break;
-        }
-        record(algebraic_error,
-               "Cannot promote bignum %p from %+s to %+s",
-               +i, object::name(xt), object::name(type));
-        break;
+        bignum_p i = bignum_p(+x);
+        x = decimal::from_bignum(i);
+        return true;
     }
 
     case ID_fraction:
     case ID_neg_fraction:
+    {
+        fraction_p f = fraction_p(+x);
+        x = decimal::from_fraction(f);
+        return true;
+    }
     case ID_big_fraction:
     case ID_neg_big_fraction:
     {
-        fraction_g f = fraction_p(object_p(x));
-        switch (type)
-        {
-        case ID_decimal:
-        case ID_neg_decimal:
-            x = decimal::from_fraction(f);
-            return +x;
-
-#ifndef CONFIG_NO_DECIMAL32
-        case ID_decimal32:
-            x = rt.make<decimal32>(ID_decimal32, +f);
-            return +x;
-#endif // CONFIG_NO_DECIMAL32
-#ifndef CONFIG_NO_DECIMAL64
-        case ID_decimal64:
-            x = rt.make<decimal64>(ID_decimal64, +f);
-            return +x;
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL128
-        case ID_decimal128:
-            x = rt.make<decimal128>(ID_decimal128, +f);
-            return +x;
-#endif // CONFIG_NO_DECIMAL128
-        default:
-            break;
-        }
-        record(algebraic_error,
-               "Cannot promote fraction %p from %+s to %+s",
-               +f, object::name(xt), object::name(type));
-        break;
+        big_fraction_p f = big_fraction_p(+x);
+        x = decimal::from_big_fraction(f);
+        return true;
     }
-
-    case ID_decimal:
-    case ID_neg_decimal:
-    {
-        return +x;
-    }
-
-#ifndef CONFIG_NO_DECIMAL32
-    case ID_decimal32:
-    {
-        decimal32_p d = x->as<decimal32>();
-        bid32       dval = d->value();
-        switch (type)
-        {
-        case ID_decimal32:
-            return true;
-#ifndef CONFIG_NO_DECIMAL64
-        case ID_decimal64:
-            x = rt.make<decimal64>(ID_decimal64, dval);
-            return +x;
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL128
-        case ID_decimal128:
-            x = rt.make<decimal128>(ID_decimal128, dval);
-            return +x;
-#endif // CONFIG_NO_DECIMAL128
-        default:
-            break;
-        }
-        record(algebraic_error,
-               "Cannot promote decimal32 %p from %+s to %+s",
-               d, object::name(xt), object::name(type));
-        break;
-    }
-#endif // CONFIG_NO_DECIMAL32
-
-#ifndef CONFIG_NO_DECIMAL64
-    case ID_decimal64:
-    {
-        decimal64_p d = x->as<decimal64>();
-        bid64       dval = d->value();
-        switch (type)
-        {
-#ifndef CONFIG_NO_DECIMAL32
-        case ID_decimal32:
-#endif // CONFIG_NO_DECIMAL32
-        case ID_decimal64:
-            return true;
-#ifndef CONFIG_NO_DECIMAL128
-        case ID_decimal128:
-            x = rt.make<decimal128>(ID_decimal128, dval);
-            return +x;
-#endif // CONFIG_NO_DECIMAL64
-        default:
-            break;
-        }
-        record(algebraic_error,
-               "Cannot promote decimal64 %p from %+s to %+s",
-               d, object::name(xt), object::name(type));
-        break;
-    }
-#endif // CONFIG_NO_DECIMAL64
-
-#ifndef CONFIG_NO_DECIMAL128
-    case ID_decimal128:
-    {
-        switch(type)
-        {
-#ifndef CONFIG_NO_DECIMAL32
-        case ID_decimal32:
-#endif // CONFIG_NO_DECIMAL32
-#ifndef CONFIG_NO_DECIMAL64
-        case ID_decimal64:
-#endif // CONFIG_NO_DECIMAL64
-        case ID_decimal128:
-            return +x;
-        default:
-            break;
-        }
-        record(algebraic_error,
-               "Cannot promote decimal128 %p from %+s to %+s",
-               +x, object::name(xt), object::name(type));
-        break;
-    }
-#endif // CONFIG_NO_DECIMAL128
-
     default:
-        break;
+        return false;
     }
-
-    return false;
-}
-
-
-object::id algebraic::real_promotion(algebraic_g &x)
-// ----------------------------------------------------------------------------
-//   Promote the value x to a type selected based on preferences
-// ----------------------------------------------------------------------------
-{
-    // Auto-selection of type
-    uint16_t prec = Settings.Precision(); (void) prec;
-    id       type = ID_decimal;
-
-#ifndef CONFIG_NO_DECIMAL128
-    if (prec <= BID128_MAXDIGITS)
-        type = ID_decimal128;
-#endif // CONFIG_NO_DECIMAL128
-#ifndef CONFIG_NO_DECIMAL64
-    if (prec <= BID64_MAXDIGITS)
-        type = ID_decimal64;
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL32
-    if (prec <= BID32_MAXDIGITS)
-        type = ID_decimal32;
-#endif // CONFIG_NO_DECIMAL32
-    return real_promotion(x, type) ? type : ID_object;
 }
 
 
@@ -479,19 +261,6 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
         x = decimal_p(+x)->to_fraction();
         return true;
 
-#ifndef CONFIG_NO_DECIMAL32
-    case ID_decimal32:
-#endif // CONFIG_NO_DECIMAL32
-#ifndef CONFIG_NO_DECIMAL64
-    case ID_decimal64:
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL128
-        if (!real_promotion(x, ID_decimal128))
-            return false;
-    case ID_decimal128:
-        x = decimal128_p(+x)->to_fraction();
-        return true;
-#endif // CONFIG_NO_DECIMAL128
     case ID_fraction:
     case ID_neg_fraction:
     case ID_big_fraction:
@@ -595,15 +364,6 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
     case ID_neg_big_fraction:
     case ID_decimal:
     case ID_neg_decimal:
-#ifndef CONFIG_NO_DECIMAL32
-    case ID_decimal32:
-#endif // CONFIG_NO_DECIMAL32
-#ifndef CONFIG_NO_DECIMAL64
-    case ID_decimal64:
-#endif // CONFIG_NO_DECIMAL64
-#ifndef CONFIG_NO_DECIMAL128
-    case ID_decimal128:
-#endif // CONFIG_NO_DECIMAL128
         return real_promotion(x);
     case ID_pi:
         x = pi();
@@ -638,18 +398,7 @@ algebraic_g algebraic::pi()
 //   Return the value of pi
 // ----------------------------------------------------------------------------
 {
-#ifndef CONFIG_NO_DECIMAL128
-    return decimal128::pi();
-#else
-#  ifndef CONFIG_NO_DECIMAL64
-    return decimal64::pi();
-#  else
-#    ifndef CONFIG_NO_DECIMAL32
-    return decimal32::pi();
-#    endif // CONFIG_NO_DECIMAL32
-#  endif   // CONFIG_NO_DECIMAL64
-#endif     // CONFIG_NO_DECIMAL128
-    return integer::make(3);
+    return decimal::pi();
 }
 
 

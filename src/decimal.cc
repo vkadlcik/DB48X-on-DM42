@@ -1076,9 +1076,8 @@ decimal_p decimal::add(decimal_r x, decimal_r y)
         }
     }
 
-    // Strip trailing zeroes
-    while (rs && rb[rs-1] == 0)
-        rs--;
+    // Normalize result
+    normalize(rb, rs, xe);
 
     // Build the result
     gcp<kint> kigits = rb;
@@ -1174,38 +1173,12 @@ decimal_p decimal::sub(decimal_r x, decimal_r y)
         lt = !lt;
     }
 
-    // Strip leading zeroes three by three
-    while (rs && *rb == 0)
-    {
-        xe -= 3;
-        rb++;
-        rs--;
-    }
-
-    // Strip up to two individual leading zeroes
-    if (rs && *rb < 100)
-    {
-        xe -= 1 + (*rb < 10);
-        hmul = *rb < 10 ? 100 : 10;
-        lmul = 1000 / hmul;
-        for (ko = 0; ko < rs; ko++)
-        {
-            kint next = ko + 1 < rs ? rb[ko + 1] : 0;
-            rb[ko] = (rb[ko] * hmul + next / lmul) % 1000;
-        }
-        xe -= 1 + *rb < 10;
-    }
-    if (!rs)
-        xe = 0;
-
+    // Normalize result
+    normalize(rb, rs, xe);
 
     // Check if we need to change the sign
     if (lt)
         ty = negtype(ty);
-
-    // Strip trailing zeroes
-    while (rs && rb[rs-1] == 0)
-        rs--;
 
     // Build the result
     gcp<kint> kigits = rb;
@@ -1320,9 +1293,8 @@ decimal_p decimal::mul(decimal_r x, decimal_r y)
         }
     }
 
-    // Strip trailing zeroes
-    while (rs && rb[rs-1] == 0)
-        rs--;
+    // Normalize result
+    normalize(rb, rs, re);
 
     // Build the result
     gcp<kint> kigits = rb;
@@ -1501,7 +1473,7 @@ decimal_p decimal::div(decimal_r x, decimal_r y)
 
     // Build the result
     gcp<kint> kigits = qp;
-    decimal_p result = rt.make<decimal>(ty, re, rs, kigits);
+    decimal_p result = rt.make<decimal>(ty, re, qs, kigits);
     return result;
 }
 

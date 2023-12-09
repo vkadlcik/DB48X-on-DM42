@@ -864,10 +864,11 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
 }
 
 
-int decimal::compare(decimal_r x, decimal_r y)
+int decimal::compare(decimal_r x, decimal_r y, uint epsilon)
 // ----------------------------------------------------------------------------
 //   Return -1, 0 or 1 for comparison
 // ----------------------------------------------------------------------------
+//   epsilon indicates how many digits we are ready to ignore
 {
     // Quick exit if identical pointers
     if (+x == +y)
@@ -900,14 +901,40 @@ int decimal::compare(decimal_r x, decimal_r y)
     size_t ys = yi.nkigits;
     byte_p xb = xi.base;
     byte_p yb = yi.base;
-    size_t s  = std::min(xs, ys);
-    for (size_t i = 0; i < s; i++)
-        if (int diff = kigit(xb, i) - kigit(yb, i))
-            return sign * diff;
 
-    // If all kigits were the same, longest number is larger
-    if (xs != ys)
-        return sign * int(xs - ys);
+    // Compare up to the given
+    if (epsilon)
+    {
+        // epsilon = 1 -> s = 1, m = 100
+        // epsilon = 2 -> s = 1, m = 10
+        size_t s = (epsilon + 2) / 3;
+        size_t l = epsilon / 3;
+        size_t m = epsilon % 3;
+        size_t d = m == 1 ? 100 : m == 2 ? 10 : 1;
+        for (size_t i = 0; i + 1 < s; i++)
+        {
+            uint xk = i < xs ? kigit(xb, i) : 0;
+            uint yk = i < ys ? kigit(yb, i) : 0;
+            if (i+1 == l)
+            {
+                xk /= d;
+                yk /= d;
+            }
+            if (int diff = xk - yk)
+                return sign * diff;
+        }
+    }
+    else
+    {
+        size_t s  = std::min(xs, ys);
+        for (size_t i = 0; i < s; i++)
+            if (int diff = kigit(xb, i) - kigit(yb, i))
+                return sign * diff;
+
+        // If all kigits were the same, longest number is larger
+        if (xs != ys)
+            return sign * int(xs - ys);
+    }
 
     // Otherwise, numbers are identical
     return 0;
@@ -1568,23 +1595,58 @@ decimal_p decimal::Max(decimal_r x, decimal_r y)
 
 decimal_p decimal::sqrt(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Square root using Newton's method
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    if (x->is_negative())
+    {
+        rt.domain_error();
+        return nullptr;
+    }
+
+    large     exponent = x->exponent();
+    decimal_g half     = rt.make<decimal>(5, -1);
+    decimal_g next     = rt.make<decimal>(5, -exponent / 2);
+    decimal_g current  = x * next;
+    if (current && !current->is_zero())
+    {
+        size_t max = Settings.Precision();
+        size_t precision = max - 1;
+        for (uint i = 0; i < max; i++)
+        {
+            next = (current + x / current) * half;
+            if (!next || compare(next, current, precision) == 0)
+                break;
+            current = next;
+        }
+    }
+    return current;
 }
 
 
 decimal_p decimal::cbrt(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Cube root
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    large     exponent = x->exponent();
+    decimal_g three    = rt.make<decimal>(3);
+    decimal_g next     = rt.make<decimal>(1, -2 * exponent / 3);
+    decimal_g current  = x * next;
+    if (current && !current->is_zero())
+    {
+        size_t max = Settings.Precision();
+        size_t precision = max - 1;
+        for (uint i = 0; i < max; i++)
+        {
+            next = ((current + current) + x / (current * current)) / three;
+            if (!next || compare(next, current, precision) == 0)
+                break;
+            current = next;
+        }
+    }
+    return current;
 }
-
 
 
 decimal_p decimal::sin(decimal_r x)

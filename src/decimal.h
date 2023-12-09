@@ -360,7 +360,7 @@ struct decimal : algebraic
     //   Return the floating-point class for the decimal number
     // ------------------------------------------------------------------------
 
-    static int       compare(decimal_r x, decimal_r y);
+    static int       compare(decimal_r x, decimal_r y, uint epsilon = 0);
     // ------------------------------------------------------------------------
     //   Return a comparision between the two values
     // ------------------------------------------------------------------------

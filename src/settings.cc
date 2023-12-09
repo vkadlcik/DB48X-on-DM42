@@ -307,6 +307,15 @@ int setting_value<int>(object_p obj, int init)
     return int(obj->as_int32(init, true));
 }
 
+template <>
+int16_t setting_value<int16_t>(object_p obj, int16_t init)
+// ----------------------------------------------------------------------------
+//   Specialization for signed integer values
+// ----------------------------------------------------------------------------
+{
+    return int16_t(obj->as_int32(init, true));
+}
+
 template<>
 object::id setting_value<object::id>(object_p obj, object::id UNUSED init)
 // ----------------------------------------------------------------------------

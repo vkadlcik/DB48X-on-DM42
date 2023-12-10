@@ -1191,21 +1191,22 @@ static flag_conversion flag_conversions[] =
 //   Conversion between HP and DB48X values
 // ----------------------------------------------------------------------------
 {
-    {  -1,        object::ID_PrincipalSolution  },
-    {  -2,        object::ID_NumericalConstants },
-    {  -3,        object::ID_NumericalResults   },
-    {  -4,        object::ID_CarefulEvaluation  },
-    { -29,        object::ID_NoPlotAxes         },
-    { -31,        object::ID_NoCurveFilling     },
-    { -40,        object::ID_ShowTime           },
-    { -41,        object::ID_Time24H            },
-    { -42,        object::ID_DayBeforeMonth     },
-    { -51,        object::ID_DecimalComma       },
-    { -52,        object::ID_MultiLineResult    },
-    { -55,        object::ID_NoLastArguments    },
-    { -56,        object::ID_BeepOff            },
-    { -64,        object::ID_IndexWrapped       },
-    { -65,        object::ID_MultiLineStack     },
+    {   -1,     object::ID_PrincipalSolution    },
+    {   -2,     object::ID_NumericalConstants   },
+    {   -3,     object::ID_NumericalResults     },
+    {   -4,     object::ID_CarefulEvaluation    },
+    {  -29,     object::ID_NoPlotAxes           },
+    {  -31,     object::ID_NoCurveFilling       },
+    {  -40,     object::ID_ShowTime             },
+    {  -41,     object::ID_Time24H              },
+    {  -42,     object::ID_DayBeforeMonth       },
+    {  -51,     object::ID_DecimalComma         },
+    {  -52,     object::ID_MultiLineResult      },
+    {  -55,     object::ID_NoLastArguments      },
+    {  -56,     object::ID_BeepOff              },
+    {  -64,     object::ID_IndexWrapped         },
+    {  -65,     object::ID_MultiLineStack       },
+    { -103,     object::ID_ComplexResults       },
 };
 
 

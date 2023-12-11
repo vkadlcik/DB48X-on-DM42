@@ -18,7 +18,7 @@ like the ARM-based
 [HP50 and related machines (HP49, HP48Gii, etc)](https://en.wikipedia.org/wiki/HP_49/50_series),
 and the [HP Prime](https://en.wikipedia.org/wiki/HP_Prime)
 (at least the G1, since the G2 seems a bit more locked down), maybe others.
-The basis for that work can be found in the [DB48X](../db48x) project.
+The basis for that work can be found in the [DB48X](https://github.com/c3d/db48x) project.
 
 This project was presented at [FOSDEM 2023][fosdem]
 

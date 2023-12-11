@@ -763,28 +763,32 @@ bool decimal::is_negative_or_zero() const
 
 
 
-decimal_g decimal::round(int to_exp) const
+decimal_p decimal::truncate(int to_exp) const
 // ----------------------------------------------------------------------------
-//   Round a given decimal number to zero
+//   Truncate a given decimal number (round towards zero)
 // ----------------------------------------------------------------------------
 {
-    info     s       = shape();
-    int      exp     = s.exponent;
-    size_t   nkigits = s.nkigits;
+    info s   = shape();
+
+    // If we have 1E-3 and round at 0, return zero
+    int  exp = s.exponent;
+    if (exp < to_exp)
+        return rt.make<decimal>(0);
+
+    // If rounding 10000 (10^4) to 0, we can copy 1 kigit as is
+    size_t copy    = (exp - to_exp) / 3;
+    size_t nkigits = s.nkigits;
+    if (copy >= nkigits)
+        return this;            // We copy everything
+
     gcbytes  bp      = s.base;
     id       ty      = type();
     scribble scr;
 
-    if (exp < to_exp)
-        return rt.make<decimal>(0);
-    size_t zeroed = (exp - to_exp) / 3;
-    if (zeroed > nkigits)
-        return rt.make<decimal>(0);
-    nkigits -= zeroed;
-    for (size_t i = 0; i < nkigits; i++)
+    for (size_t i = 0; i <= copy; i++)
     {
         kint k = kigit(+bp, i);
-        if (i == nkigits - 1)
+        if (i == copy)
         {
             size_t rm = (exp - to_exp) % 3;
             if (rm == 0)
@@ -800,7 +804,7 @@ decimal_g decimal::round(int to_exp) const
         *kp = k;
     }
     gcp<kint> buf = (kint *) scr.scratch();
-    return rt.make<decimal>(ty, exp, nkigits, buf);
+    return rt.make<decimal>(ty, exp, copy + 1, buf);
 }
 
 
@@ -815,7 +819,7 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
     bool      neg = num->is_negative();
     if (neg)
         num = -num;
-    whole_part = num->round();
+    whole_part = num->truncate();
     decimal_part = num - whole_part;
     one = rt.make<decimal>(1);
     v1num = whole_part;
@@ -837,7 +841,7 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
             break;
 
         next = one / decimal_part;
-        whole_part = next->round();
+        whole_part = next->truncate();
 
         s = v1num;
         v1num = whole_part * v1num + v2num;
@@ -1513,7 +1517,7 @@ decimal_p decimal::rem(decimal_r x, decimal_r y)
     decimal_g q = x / y;
     if (!q)
         return nullptr;
-    q = q->round();
+    q = q->truncate();
     return x - q * y;
 }
 

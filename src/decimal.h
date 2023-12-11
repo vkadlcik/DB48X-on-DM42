@@ -375,7 +375,7 @@ struct decimal : algebraic
     // ------------------------------------------------------------------------
 
 
-    decimal_g        round(int exp = 0) const;
+    decimal_p        truncate(int exp = 0) const;
     // ------------------------------------------------------------------------
     //   Round a decimal value to the given number of decimals
     // ------------------------------------------------------------------------

@@ -1297,6 +1297,13 @@ algebraic_p arithmetic::evaluate(id          op,
             bid32 yv = y->as<decimal32>()->value();
             bid32 res;
             ops.op32(&res.value, &xv.value, &yv.value);
+            int finite = false;
+            bid32_isFinite(&finite, &res.value);
+            if (!finite)
+            {
+                rt.domain_error();
+                return nullptr;
+            }
             x = rt.make<decimal32>(ID_decimal32, res);
             break;
         }
@@ -1308,6 +1315,13 @@ algebraic_p arithmetic::evaluate(id          op,
             bid64 yv = y->as<decimal64>()->value();
             bid64 res;
             ops.op64(&res.value, &xv.value, &yv.value);
+            int finite = false;
+            bid64_isFinite(&finite, &res.value);
+            if (!finite)
+            {
+                rt.domain_error();
+                return nullptr;
+            }
             x = rt.make<decimal64>(ID_decimal64, res);
             break;
         }
@@ -1319,6 +1333,13 @@ algebraic_p arithmetic::evaluate(id          op,
             bid128 yv = y->as<decimal128>()->value();
             bid128 res;
             ops.op128(&res.value, &xv.value, &yv.value);
+            int finite = false;
+            bid128_isFinite(&finite, &res.value);
+            if (!finite)
+            {
+                rt.domain_error();
+                return nullptr;
+            }
             x = rt.make<decimal128>(ID_decimal128, res);
             break;
         }

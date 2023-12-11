@@ -1,5 +1,5 @@
 #######################################
-# target
+# Target
 ######################################
 TARGET = db48x
 PLATFORM = dmcp
@@ -8,7 +8,7 @@ SDK = dmcp/dmcp
 PGM = pgm
 
 ######################################
-# building variables
+# Building variables
 ######################################
 OPT=release
 # Alternatives (on the command line)
@@ -28,7 +28,7 @@ PRODUCT_MACHINE=$(shell echo $(VARIANT) | tr "[:lower:]" "[:upper:]")
 
 
 #######################################
-# pathes
+# Pathes
 #######################################
 # Build path
 BUILD = build/$(VARIANT)/$(OPT)
@@ -39,6 +39,9 @@ TOOLS = tools
 
 # CRC adjustment
 CRCFIX = $(TOOLS)/forcecrc32/forcecrc32
+
+# Decimal mantissa encoding
+DECIMIZE = $(TOOLS)/decimize/decimize
 
 FLASH=$(BUILD)/$(TARGET)_flash.bin
 QSPI =$(BUILD)/$(TARGET)_qspi.bin
@@ -400,6 +403,8 @@ $(BUILD)/.exists:
 
 $(CRCFIX): $(CRCFIX).c $(dir $(CRCFIX))/Makefile
 	cd $(dir $(CRCFIX)); $(MAKE)
+$(DECIMIZE): $(DECIMIZE).cpp $(dir $(DECIMIZE))/Makefile
+	cd $(dir $(DECIMIZE)); $(MAKE)
 
 
 #######################################

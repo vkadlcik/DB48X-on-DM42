@@ -1268,6 +1268,11 @@ algebraic_p arithmetic::evaluate(id          op,
         decimal_g xv = decimal_p(+x);
         decimal_g yv = decimal_p(+y);
         x = ops.decop(xv, yv);
+        if (xv && !xv->is_normal())
+        {
+            rt.domain_error();
+            return nullptr;
+        }
         return x;
     }
 

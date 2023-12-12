@@ -1924,21 +1924,50 @@ decimal_p decimal::tan(decimal_r x)
 
 decimal_p decimal::asin(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Arc-sine, use asin(x) = atan(x/ sqrt(1-x^2))
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    decimal_g tmp = rt.make<decimal>(1);
+    tmp = tmp - x * x;
+    if (tmp && tmp->is_zero())
+    {
+        tmp = pi();
+        if (x->is_negative())
+            tmp = -tmp;
+    }
+    else
+    {
+        tmp = x / sqrt(tmp);
+        tmp = atan(tmp);
+    }
+    return tmp;
 }
 
 
 decimal_p decimal::acos(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Arc-sine, use acos(x) = atan(sqrt(1-x^2) / x)
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+
+    decimal_g tmp;
+    if (!x->is_zero())
+    {
+        tmp = rt.make<decimal>(1);
+        tmp = tmp - x * x;
+        tmp = sqrt(tmp) / x;
+        tmp = atan(tmp);
+
+        if (x->is_negative())
+            tmp = tmp + decimal_g(pi()->adjust_to_angle());
+    }
+    else
+    {
+        tmp = pi()->adjust_to_angle() * decimal_g(rt.make<decimal>(5,-1));
+    }
+    return tmp;
 }
 
 
@@ -2007,7 +2036,7 @@ decimal_p decimal::atan(decimal_r x)
             return nullptr;
 
         // If what we add no longer has an impact, we can exit
-        if (tmp->exponent() + large(prec) < sum->exponent())
+        if (tmp->exponent() + int(prec) < sum->exponent())
             break;
 
         if ((i/2) & 1)
@@ -2407,22 +2436,7 @@ decimal_p decimal::adjust_to_angle() const
 
     decimal_g x = this;
     decimal_g ratio = rt.make<decimal>(half_circle);
-    x = x / ratio;
-    x = x * pi();
+    x = x * ratio;
+    x = x / pi();
     return x;
-}
-
-
-bool decimal::adjust_to_angle(algebraic_g &x)
-// ----------------------------------------------------------------------------
-//   Adjust an angle value for asin/acos/atan
-// ----------------------------------------------------------------------------
-{
-    id type = x->type();
-    if (type == ID_decimal || type == ID_neg_decimal)
-    {
-        x = decimal_p(+x)->adjust_to_angle();
-        return true;
-    }
-    return false;
 }

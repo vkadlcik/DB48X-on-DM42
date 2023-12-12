@@ -126,9 +126,10 @@ struct decimal : algebraic
         Int copy = value;
         Int mul = 1000;
         Int div = 1;
+        int iexp = 0;
         while (copy)
         {
-            exp++;
+            iexp++;
             copy /= 10;
             if (mul > 1)
                 mul /= 10;
@@ -136,8 +137,9 @@ struct decimal : algebraic
                 div *= 10;
         }
         byte *p = (byte *) payload(this);
+        uint nkigits = (iexp + 2) / 3;
+        exp += iexp;
         p = leb128(p, exp);
-        uint nkigits = (exp + 2) / 3;
         p = leb128(p, nkigits);
         for (uint i = 0; i < nkigits; i++)
         {
@@ -490,7 +492,6 @@ struct decimal : algebraic
     static decimal_p pi()       { return constants().pi; }
     bool             adjust_from_angle(uint &qturns, decimal_g &fp) const;
     decimal_p        adjust_to_angle() const;
-    static bool      adjust_to_angle(algebraic_g &x);
 
 public:
     OBJECT_DECL(decimal);

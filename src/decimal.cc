@@ -2014,6 +2014,7 @@ decimal_p decimal::fact(decimal_r x)
 // ============================================================================
 
 #include "decimal-pi.h"
+#include "decimal-e.h"
 
 decimal::ccache &decimal::constants()
 // ----------------------------------------------------------------------------
@@ -2032,6 +2033,7 @@ decimal::ccache &decimal::constants()
     {
         size_t nkigs = (precision + 2) / 3;
         cst->pi = rt.make<decimal>(1, nkigs, gcbytes(decimal_pi));
+        cst->e = rt.make<decimal>(1, nkigs, gcbytes(decimal_e));
         cst->precision = precision;
     }
     return *cst;

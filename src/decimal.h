@@ -476,6 +476,7 @@ struct decimal : algebraic
 
         size_t  precision;
         decimal_g pi;
+        decimal_g e;
     };
 
     static ccache   &constants();

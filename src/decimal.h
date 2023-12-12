@@ -90,6 +90,7 @@ struct decimal : algebraic
     {
         byte *p = (byte *) payload(this);
         p = leb128(p, exp);
+        p = leb128(p, nkig);
         memcpy(p, kig.Safe(), (nkig * 10 + 7) / 8);
     }
     static size_t required_memory(id type, int exp, size_t n, gcbytes UNUSED)
@@ -459,17 +460,31 @@ struct decimal : algebraic
     static decimal_p fact(decimal_r x);
 
 
+
     // ========================================================================
     //
     //    Support for math functions
     //
     // ========================================================================
 
-    static decimal_p pi();
+    struct ccache
+    // ------------------------------------------------------------------------
+    //  Constants are re-created whenever precision changes
+    // ------------------------------------------------------------------------
+    {
+        ccache(): precision() {}
+
+        size_t  precision;
+        decimal_g pi;
+    };
+
+    static ccache   &constants();
+
+
+    static decimal_p pi()       { return constants().pi; }
     decimal_p        adjust_from_angle() const;
     decimal_p        adjust_to_angle() const;
     static bool      adjust_to_angle(algebraic_g &x);
-    static void      init_constants();
 
 public:
     OBJECT_DECL(decimal);

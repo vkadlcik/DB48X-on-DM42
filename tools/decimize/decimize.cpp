@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 
     printf("%zu digits, %zu kigits, %zu bytes\n", digits, kigits, bytes);
     printf("\n");
-    printf("unsigned char %s[%zu] =\n{", name, bytes);
+    printf("static const byte %s[%zu] =\n{", name, bytes);
     for (size_t b = 0; b < bytes; b++)
         printf("%s0x%02X%s",
                b % 16 ? " " : "\n    ",

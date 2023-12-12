@@ -2013,21 +2013,28 @@ decimal_p decimal::fact(decimal_r x)
 //
 // ============================================================================
 
-void decimal::init_constants()
+#include "decimal-pi.h"
+
+decimal::ccache &decimal::constants()
 // ----------------------------------------------------------------------------
 //   Initialize the constants used for adjustments
 // ----------------------------------------------------------------------------
 {
-}
-
-
-
-decimal_p decimal::pi()
-// ----------------------------------------------------------------------------
-//   Return a representation of pi as a decimal
-// ----------------------------------------------------------------------------
-{
-    return nullptr;
+    static ccache *cst = nullptr;
+    if (!cst)
+    {
+        // operator new support purposefully not linked in embedded versions
+        cst = (ccache *) malloc(sizeof(ccache));
+        new(cst) ccache;
+    }
+    size_t precision = Settings.Precision();
+    if (cst->precision != precision)
+    {
+        size_t nkigs = (precision + 2) / 3;
+        cst->pi = rt.make<decimal>(1, nkigs, gcbytes(decimal_pi));
+        cst->precision = precision;
+    }
+    return *cst;
 }
 
 
@@ -2048,8 +2055,9 @@ decimal_p decimal::adjust_from_angle() const
 
     decimal_g x = this;
     decimal_g ratio = rt.make<decimal>(half_circle);
-    ratio = ratio / decimal_g(pi());
-    return x * ratio;
+    x = x * ratio;
+    x = x / pi();
+    return x;
 }
 
 
@@ -2070,8 +2078,9 @@ decimal_p decimal::adjust_to_angle() const
 
     decimal_g x = this;
     decimal_g ratio = rt.make<decimal>(half_circle);
-    ratio = ratio / decimal_g(pi());
-    return x / ratio;
+    x = x / ratio;
+    x = x * pi();
+    return x;
 }
 
 

@@ -387,7 +387,13 @@ $(TARGET).$(PGM): $(BUILD)/$(TARGET).elf Makefile $(CRCFIX)
 	$(SIZE) $<
 	wc -c $@
 
+DECIMAL_CONSTANTS=pi
+DECIMAL_SOURCES=$(DECIMAL_CONSTANTS:%=src/decimal-%.h)
+src/decimal-%.h: src/decimal-%.txt $(DECIMIZE)
+	$(DECIMIZE) < $< > $@ decimal_$*
+
 $(OBJECTS): $(DECIMAL_SOURCES) $(VERSION_H)
+
 sim: $(DECIMAL_SOURCES)
 
 $(BUILD)/%.hex: $(BUILD)/%.elf | $(BUILD)

@@ -762,6 +762,23 @@ bool decimal::is_negative_or_zero() const
 }
 
 
+bool decimal::is_magnitude_less_than_half() const
+// ----------------------------------------------------------------------------
+//   Check if number is smaller than 0.5 in magnitude
+// ----------------------------------------------------------------------------
+{
+    info   s       = shape();
+    int    exp     = s.exponent;
+    size_t nkigits = s.nkigits;
+    byte_p bp      = s.base;
+    if (exp)
+        return exp < 0;
+
+    return nkigits == 0 || kigit(bp, 0) < 500;
+}
+
+
+static void normalize(decimal::kint *&rb, size_t &rs, int &re);
 
 decimal_p decimal::truncate(int to_exp) const
 // ----------------------------------------------------------------------------
@@ -803,8 +820,89 @@ decimal_p decimal::truncate(int to_exp) const
             return nullptr;
         *kp = k;
     }
-    gcp<kint> buf = (kint *) scr.scratch();
-    return rt.make<decimal>(ty, exp, copy + 1, buf);
+
+    kint  *rp = (kint *) scr.scratch();
+    size_t rs = copy + 1;
+    normalize(rp, rs, exp);
+    return rt.make<decimal>(ty, exp, rs, gcp<kint>(rp));
+}
+
+
+bool decimal::split(decimal_g &ip, decimal_g &fp, int to_exp) const
+// ----------------------------------------------------------------------------
+//   Split a mumber between integral and decimal part
+// ----------------------------------------------------------------------------
+{
+    info s   = shape();
+
+    // If we have 1E-3 and round at 0, return zero
+    int  exp = s.exponent;
+    if (exp < to_exp)
+    {
+        fp = this;
+        ip = rt.make<decimal>(0);
+        return ip && fp;;
+    }
+
+    // If rounding 10000 (10^4) to 0, we can copoy 1 kigit as is
+    size_t copy    = (exp - to_exp) / 3;
+    size_t nkigits = s.nkigits;
+    if (copy >= nkigits)
+    {
+        ip = this;
+        fp = rt.make<decimal>(0);
+        return fp && ip;
+    }
+
+    // Copy integral and decimal parts
+    gcbytes  bp      = s.base;
+    id       ty      = type();
+    scribble scr;
+
+    kint     rest = 0;
+    int      fexp = exp - copy * 3;
+    for (size_t i = 0; i <= copy; i++)
+    {
+        kint k = kigit(+bp, i);
+        if (i == copy)
+        {
+            size_t rm = (exp - to_exp) % 3;
+            switch(rm)
+            {
+            default:
+            case 0:     rest = k;       break;
+            case 1:     rest = k % 100; break;
+            case 2:     rest = k % 10;  break;
+            }
+            k -= rest;
+        }
+        kint *kp = (kint *) rt.allocate(sizeof(kint));
+        if (!kp)
+            return false;
+        *kp = k;
+    }
+
+    for (size_t i = copy; i < nkigits; i++)
+    {
+        kint k = i == copy ? rest : kigit(+bp, i);
+        kint *kp = (kint *) rt.allocate(sizeof(kint));
+        if (!kp)
+            return false;
+        *kp = k;
+    }
+
+    kint     *irp   = (kint *) scr.scratch();
+    size_t    irs   = copy + 1;
+    kint     *frp   = irp + irs;
+    size_t    frs   = nkigits - copy;
+    normalize(irp, irs, exp);
+    normalize(frp, frs, fexp);
+
+    gcp<kint> ibuf = irp;
+    gcp<kint> fbuf = frp;
+    ip = rt.make<decimal>(ty, exp, irs, ibuf);
+    fp = rt.make<decimal>(ty, fexp, frs, fbuf);
+    return ip && fp;
 }
 
 
@@ -1655,31 +1753,172 @@ decimal_p decimal::cbrt(decimal_r x)
 
 decimal_p decimal::sin(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Sine function
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    uint qturns;
+    decimal_g fp;
+    if (!x->adjust_from_angle(qturns, fp))
+        return nullptr;
+    return sin_fracpi(qturns, fp);
 }
 
 
 decimal_p decimal::cos(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Cosine function
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    uint qturns;
+    decimal_g fp;
+    if (!x->adjust_from_angle(qturns, fp))
+        return nullptr;
+    return cos_fracpi(qturns, fp);
+}
+
+
+decimal_p decimal::sin_fracpi(uint qturns, decimal_r fp)
+// ----------------------------------------------------------------------------
+//   Compute the sine of input expressed as fraction of pi
+// ----------------------------------------------------------------------------
+//   'qturns` is the number of quarter turns (pi/2), between -3 and 3
+//   The 'fp' input determines ratio of the quarter turn
+{
+    bool small = fp->is_magnitude_less_than_half();
+    if (!small)
+    {
+        // sin(pi/2 - x) = cos(x)
+        id fty = fp->type();
+        decimal_g x = rt.make<decimal>(fty, 1);
+        x = x - fp;
+        if (fty == ID_neg_decimal)
+            qturns += 2;
+        return cos_fracpi(-qturns, x);
+    }
+    qturns %= 4;
+    if (qturns % 2)
+        // sin(x+pi/2) = cos x
+        return cos_fracpi((qturns - 1U) % 4, fp);
+
+    // Scale by pi / 2, sum is between 0 and pi/4
+    decimal_g sum = fp;
+    decimal_g fact = rt.make<decimal>(2);
+    decimal_g tmp;
+    sum = sum / fact;
+    sum = sum * pi();
+    fact = rt.make<decimal>(6); // 3!
+
+    // Prepare power factor and square that we multiply by every time
+    decimal_g power = sum;
+    decimal_g square = sum * sum;
+
+    uint prec = Settings.Precision();
+    for (uint i = 3; i < prec; i += 2)
+    {
+        power = power * square; // First iteration is x^3
+        tmp = power / fact;     // x^3 / 3!
+
+        // Check if we ran out of memory
+        if (!sum || !tmp)
+            return nullptr;
+
+        // If what we add no longer has an impact, we can exit
+        if (tmp->exponent() + int(prec) < sum->exponent())
+            break;
+
+        if ((i / 2) & 1)
+            sum = sum - tmp;
+        else
+            sum = sum + tmp;
+
+        tmp = rt.make<decimal>((i+1) * (i+2)); // First iteration: 4 * 5
+        fact = fact * tmp;
+    }
+
+    // sin(x+pi) = -si(x)
+    if (qturns != 0)
+        sum = -sum;
+    return sum;
+}
+
+
+decimal_p decimal::cos_fracpi(uint qturns, decimal_r fp)
+// ----------------------------------------------------------------------------
+//   Compute the cosine of input expressed as fraction of pi
+// ----------------------------------------------------------------------------
+{
+    bool small = fp->is_magnitude_less_than_half();
+    if (!small)
+    {
+        // cos(pi/2 - x) = sin(x)
+        id fty = fp->type();
+        decimal_g x = rt.make<decimal>(fty, 1);
+        x = x - fp;
+        if (fty == ID_neg_decimal)
+            qturns += 2;
+        return sin_fracpi(-qturns, x);
+    }
+    qturns %= 4;
+    if (qturns % 2)
+        // cos(x+3*pi/2) = sin x
+        return sin_fracpi((qturns - 3U) % 4, fp);
+
+    // Scale by pi / 2, sum is between 0 and pi/4
+    decimal_g sum = fp;
+    decimal_g fact = rt.make<decimal>(2); // Also 2!
+    decimal_g tmp;
+    sum = sum / fact;
+    sum = sum * pi();
+
+    // Prepare power factor and square that we multiply by every time
+    decimal_g square = sum * sum;
+    decimal_g power = square;
+
+    // For cosine, the sum starts at 1
+    sum = rt.make<decimal>(1);
+
+    uint prec = Settings.Precision();
+    for (uint i = 2; i < prec; i += 2)
+    {
+        tmp = power / fact;     // x^2 / 2!
+
+        // Check if we ran out of memory
+        if (!sum || !tmp)
+            return nullptr;
+
+        // If what we add no longer has an impact, we can exit
+        if (tmp->exponent() + int(prec) < sum->exponent())
+            break;
+
+        if ((i / 2) & 1)
+            sum = sum - tmp;
+        else
+            sum = sum + tmp;
+
+        power = power * square; // Next iteration is x^4
+        tmp = rt.make<decimal>((i+1) * (i+2)); // First iteration: 4 * 5
+        fact = fact * tmp;
+    }
+
+    // sin(x+pi) = -si(x)
+    if (qturns != 0)
+        sum = -sum;
+    return sum;
 }
 
 
 decimal_p decimal::tan(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Compute the tangent as ratio of sin/cos
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    uint qturns;
+    decimal_g fp;
+    if (!x->adjust_from_angle(qturns, fp))
+        return nullptr;
+    decimal_g s = sin_fracpi(qturns, fp);
+    decimal_g c = cos_fracpi(qturns, fp);
+    return s / c;
 }
 
 
@@ -1705,11 +1944,83 @@ decimal_p decimal::acos(decimal_r x)
 
 decimal_p decimal::atan(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Implementation of arctan
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+
+    // Special case of 0
+    if (x->is_zero())
+        return x;
+
+    // Reduce negative values to simplify equalities below and converge better
+    if (x->is_negative())
+    {
+        decimal_g tmp = atan(-x);
+        return -tmp;
+    }
+
+    // Check if we have a value of x above 1, if so reduce for convergence
+    if (x->exponent() >= 1)
+    {
+        // Check if above 0.5
+        if (!x->is_magnitude_less_than_half())
+        {
+            // atan(x) = pi/4 + atan((x - 1) / (1 + x))
+            decimal_g one = rt.make<decimal>(1);
+            decimal_g nx = (x - one) / (x + one);
+            nx = atan(nx);
+            decimal_g fourth = rt.make<decimal>(25,-2);
+            fourth = fourth * pi();
+            fourth = fourth->adjust_to_angle();
+            nx = fourth + nx;
+            return nx;
+        }
+
+        // atan(1/x) = pi/2 - arctan(x) when x > 0
+        decimal_g i = rt.make<decimal>(1);
+        i = i / x;
+        i = atan(i);
+        decimal_g half = rt.make<decimal>(5, -1);
+        half = half * pi();
+        half = half->adjust_to_angle();
+        i = half - i;
+        return i;
+    }
+
+    // Prepare power factor and square that we multiply by every time
+    decimal_g tmp;
+    decimal_g sum = x;
+    decimal_g square = x * x;
+    decimal_g power = x;
+
+    uint prec = Settings.Precision();
+    for (uint i = 3; i < prec; i += 2)
+    {
+        power = power * square;
+        tmp = rt.make<decimal>(i);
+        tmp = power / tmp;     // x^2 / 2
+
+        // Check if we ran out of memory
+        if (!sum || !tmp)
+            return nullptr;
+
+        // If what we add no longer has an impact, we can exit
+        if (tmp->exponent() + large(prec) < sum->exponent())
+            break;
+
+        if ((i/2) & 1)
+            sum = sum - tmp;
+        else
+            sum = sum + tmp;
+
+    }
+
+    // Convert to current angle mode
+    sum = sum->adjust_to_angle();
+
+    return sum;
 }
 
 
@@ -2040,26 +2351,42 @@ decimal::ccache &decimal::constants()
 }
 
 
-decimal_p decimal::adjust_from_angle() const
+bool decimal::adjust_from_angle(uint &qturns, decimal_g &fp) const
 // ----------------------------------------------------------------------------
-//   Adjust an angle value for sin/cos/tan
+//   Adjust an angle value for sin/cos/tan, qturns is number of quarter turns
 // ----------------------------------------------------------------------------
 {
-    uint half_circle = 1;
+    decimal_g x = this;
     switch(Settings.AngleMode())
     {
-    case object::ID_Deg:                half_circle = 180; break;
-    case object::ID_Grad:               half_circle = 200; break;
-    case object::ID_PiRadians:          half_circle =   1; break;
+    case object::ID_Deg:       x = x / decimal_g(rt.make<decimal>(90)); break;
+    case object::ID_Grad:      x = x * decimal_g(rt.make<decimal>(1,-2)); break;
+    case object::ID_PiRadians: x = x + x; break;
     default:
-    case object::ID_Rad:                return this;
+    case object::ID_Rad:       x = x / pi(); x = x + x; break;
     }
 
-    decimal_g x = this;
-    decimal_g ratio = rt.make<decimal>(half_circle);
-    x = x * ratio;
-    x = x / pi();
-    return x;
+    decimal_g ip;
+    if (!x->split(ip, fp))
+        return false;
+
+    // Bring the integral part in 0-9 so that we can convert to int
+    int iexp = ip->exponent();
+    if (iexp > 1)
+    {
+        if (iexp > 4 && Settings.ReportPrecisionLoss())
+        {
+            rt.precision_loss_error();
+            return false;
+        }
+        decimal_g turn = rt.make<decimal>(4);
+        ip = rem(ip, turn);
+        if (!ip)
+            return false;
+    }
+    large q = ip->as_integer();
+    qturns = uint(q);
+    return ip;
 }
 
 

@@ -371,12 +371,14 @@ struct decimal : algebraic
     bool             is_one() const;
     bool             is_negative() const;
     bool             is_negative_or_zero() const;
+    bool             is_magnitude_less_than_half() const;
     // ------------------------------------------------------------------------
     //   Tests about the value of a given decimal number
     // ------------------------------------------------------------------------
 
 
     decimal_p        truncate(int exp = 0) const;
+    bool             split(decimal_g &ip, decimal_g &fp, int exp = 0) const;
     // ------------------------------------------------------------------------
     //   Round a decimal value to the given number of decimals
     // ------------------------------------------------------------------------
@@ -426,6 +428,9 @@ struct decimal : algebraic
     static decimal_p asin(decimal_r x);
     static decimal_p acos(decimal_r x);
     static decimal_p atan(decimal_r x);
+
+    static decimal_p sin_fracpi(uint qturns, decimal_r fp);
+    static decimal_p cos_fracpi(uint qturns, decimal_r fp);
 
     static decimal_p sinh(decimal_r x);
     static decimal_p cosh(decimal_r x);
@@ -483,7 +488,7 @@ struct decimal : algebraic
 
 
     static decimal_p pi()       { return constants().pi; }
-    decimal_p        adjust_from_angle() const;
+    bool             adjust_from_angle(uint &qturns, decimal_g &fp) const;
     decimal_p        adjust_to_angle() const;
     static bool      adjust_to_angle(algebraic_g &x);
 

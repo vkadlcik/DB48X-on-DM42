@@ -83,6 +83,7 @@ ERROR(malformed_local_program,  "Malformed local program")
 ERROR(invalid_setting,          "Invalid setting command")
 ERROR(screenshot_capture,       "Screenshot capture failed")
 ERROR(unsupported_flag,         "Unsupported system flag")
+ERROR(precision_loss,           "Numerical precision lost")
 
 // Filesystem errors
 #ifndef FRROR

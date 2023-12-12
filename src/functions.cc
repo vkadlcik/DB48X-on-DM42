@@ -198,16 +198,12 @@ algebraic_p function::evaluate(algebraic_r xr,
     if (real_promotion(x))
     {
         decimal_g xv = decimal_p(+x);
-        if (op == ID_sin || op == ID_cos || op == ID_tan)
-            xv = xv->adjust_from_angle();
         xv = decop(xv);
-        if (!xv->is_normal())
+        if (xv && !xv->is_normal())
         {
             rt.domain_error();
             return nullptr;
         }
-        if (op == ID_asin || op == ID_acos || op == ID_atan)
-            xv = xv->adjust_to_angle();
         return xv;
     }
 

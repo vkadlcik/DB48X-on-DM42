@@ -83,7 +83,7 @@ struct decimal : algebraic
     }
 
 
-    decimal(id type, int exp, size_t nkig, gcbytes kig): algebraic(type)
+    decimal(id type, large exp, size_t nkig, gcbytes kig): algebraic(type)
     // ------------------------------------------------------------------------
     //   Constructor from exponent and mantissa data
     // ------------------------------------------------------------------------
@@ -93,13 +93,13 @@ struct decimal : algebraic
         p = leb128(p, nkig);
         memcpy(p, kig.Safe(), (nkig * 10 + 7) / 8);
     }
-    static size_t required_memory(id type, int exp, size_t n, gcbytes UNUSED)
+    static size_t required_memory(id type, large exp, size_t n, gcbytes UNUSED)
     {
         return leb128size(type) + leb128size(exp) + leb128size(n)
             + (n * 10 + 7) / 8;
     }
 
-    decimal(id type, int exp, size_t nkigs, gcp<kint> kigs): algebraic(type)
+    decimal(id type, large exp, size_t nkigs, gcp<kint> kigs): algebraic(type)
     // ------------------------------------------------------------------------
     //   Constructor from exponent and mantissa digits
     // ------------------------------------------------------------------------
@@ -111,14 +111,14 @@ struct decimal : algebraic
         for (uint i = 0; i < nkigs; i++)
             kigit(p, i, kigsp[i]);
     }
-    static size_t required_memory(id type, int exp, size_t n, gcp<kint>)
+    static size_t required_memory(id type, large exp, size_t n, gcp<kint>)
     {
         return leb128size(type) + leb128size(exp) + leb128size(n)
             + (n * 10 + 7) / 8;
     }
 
     template <typename Int>
-    decimal(id type, Int value, int exp = 0): algebraic(type)
+    decimal(id type, Int value, large exp = 0): algebraic(type)
     // ------------------------------------------------------------------------
     //   Constructor from (unsigned) integer value
     // ------------------------------------------------------------------------
@@ -148,7 +148,7 @@ struct decimal : algebraic
         }
     }
     template<typename Int>
-    static size_t required_memory(id type, Int value, int exp = 0)
+    static size_t required_memory(id type, Int value, large exp = 0)
     {
         size_t iexp = 0;
         while (value)
@@ -170,13 +170,13 @@ struct decimal : algebraic
     // ------------------------------------------------------------------------
 
 
-    int exponent() const
+    large exponent() const
     // ------------------------------------------------------------------------
     //   Return the exponent value for the current decimal number
     // ------------------------------------------------------------------------
     {
         byte_p p = payload(this);
-        return leb128<int>(p);
+        return leb128<large>(p);
     }
 
 
@@ -186,7 +186,7 @@ struct decimal : algebraic
     // ------------------------------------------------------------------------
     {
         byte_p p = payload(this);
-        (void) leb128<int>(p);  // Exponent
+        (void) leb128<large>(p);  // Exponent
         return leb128<size_t>(p);
     }
 
@@ -196,9 +196,9 @@ struct decimal : algebraic
     //   Return information about a decimal value
     // ------------------------------------------------------------------------
     {
-        info(int exponent, size_t nkigits, byte_p base)
+        info(large exponent, size_t nkigits, byte_p base)
             : exponent(exponent), nkigits(nkigits), base(base) {}
-        int     exponent;
+        large   exponent;
         size_t  nkigits;
         byte_p  base;
     };
@@ -210,7 +210,7 @@ struct decimal : algebraic
     // ------------------------------------------------------------------------
     {
         byte_p p        = payload(this);
-        int    exponent = leb128<int>(p);
+        large  exponent = leb128<large>(p);
         size_t nkigits  = leb128<size_t>(p);
         return info(exponent, nkigits, p);
     }
@@ -379,8 +379,8 @@ struct decimal : algebraic
     // ------------------------------------------------------------------------
 
 
-    decimal_p        truncate(int exp = 0) const;
-    bool             split(decimal_g &ip, decimal_g &fp, int exp = 0) const;
+    decimal_p        truncate(large exp = 0) const;
+    bool             split(decimal_g &ip, decimal_g &fp, large exp = 0) const;
     // ------------------------------------------------------------------------
     //   Round a decimal value to the given number of decimals
     // ------------------------------------------------------------------------

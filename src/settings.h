@@ -39,7 +39,8 @@
 
 struct renderer;
 
-#define DB48X_MAXDIGITS 9999
+#define DB48X_MAXDIGITS    9999
+#define DB48X_MAXEXPONENT  (1LL<<60)
 
 struct settings
 // ----------------------------------------------------------------------------

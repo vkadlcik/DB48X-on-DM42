@@ -54,7 +54,7 @@ SIZE_BODY(decimal)
 // ----------------------------------------------------------------------------
 {
     byte_p p       = o->payload();
-    int    exp     = leb128<int>(p); (void) exp;
+    large  exp     = leb128<large>(p); (void) exp;
     size_t nkigits = leb128<size_t>(p);
     p += (nkigits * 10 + 7) / 8;
     return ptrdiff(p, o);
@@ -98,7 +98,7 @@ PARSE_BODY(decimal)
     // Scan digits and decimal dot
     kint   kigit      = 0;
     uint   kigc       = 0;
-    int    exponent   = 0;
+    large  exponent   = 0;
     int    decimalDot = -1;
     size_t digits     = 0;
     bool   zeroes     = true;
@@ -180,7 +180,7 @@ PARSE_BODY(decimal)
             return ERROR;
         }
 
-        int expval =  atoi(cstring(expsrc));
+        large expval =  atoll(cstring(expsrc));
         exponent += expval;
         record(decimal, "Exponent value is %d for %d", expval, exponent);
     }
@@ -202,7 +202,7 @@ RENDER_BODY(decimal)
 {
     // Read information about the number
     info      sh       = o->shape();
-    int       exponent = sh.exponent;
+    large     exponent = sh.exponent;
     size_t    nkigits  = sh.nkigits;
     gcbytes   base     = sh.base;
     decimal_g d        = o;
@@ -261,8 +261,8 @@ RENDER_BODY(decimal)
         int decpos = 1;
 
         // Mantissa is between 0 and 1
-        int    realexp  = exponent - 1;
-        int    mexp     = nkigits * 3;
+        large  realexp  = exponent - 1;
+        large  mexp     = nkigits * 3;
 
         // Check if we need to switch to scientific notation in normal mode
         // On the negative exponents, we switch when digits would be lost on
@@ -353,7 +353,7 @@ RENDER_BODY(decimal)
         }
 
         // Adjust exponent being displayed for engineering mode
-        int dispexp = realexp;
+        large dispexp = realexp;
         bool engmode = mode == object::ID_Eng;
         if (engmode)
         {
@@ -529,8 +529,8 @@ RENDER_BODY(decimal)
             r.put(ds.ExponentSeparator());
             if (fancy)
             {
-                char expbuf[8];
-                size_t written = snprintf(expbuf, 8, "%d", dispexp);
+                char expbuf[32];
+                size_t written = snprintf(expbuf, 32, "%lld", dispexp);
                 for (uint e = 0; e < written; e++)
                 {
                     char c = expbuf[e];
@@ -563,16 +563,16 @@ ularge decimal::as_unsigned(bool magnitude) const
 //   When magnitude is set, we return magnitude for negative values
 {
     info   s       = shape();
-    int    exp     = s.exponent;
+    large  exp     = s.exponent;
     size_t nkigits = s.nkigits;
     byte_p bp      = s.base;
     if (exp < 0 || (!magnitude && type() == ID_neg_decimal))
         return 0;
 
-    uint xp = exp;
+    ularge xp  = exp;
     ularge pow = 1;
     ularge mul = 10;
-    while (xp)
+    while (xp && pow)
     {
         if (xp & 1)
             pow *= mul;
@@ -733,7 +733,7 @@ bool decimal::is_one() const
     if (type() == ID_neg_decimal)
         return false;
     info   s       = shape();
-    int    exp     = s.exponent;
+    large  exp     = s.exponent;
     size_t nkigits = s.nkigits;
     byte_p bp      = s.base;
     return exp == 1 && nkigits == 1 && kigit(bp, 0) == 100;
@@ -768,7 +768,7 @@ bool decimal::is_magnitude_less_than_half() const
 // ----------------------------------------------------------------------------
 {
     info   s       = shape();
-    int    exp     = s.exponent;
+    large  exp     = s.exponent;
     size_t nkigits = s.nkigits;
     byte_p bp      = s.base;
     if (exp)
@@ -778,9 +778,9 @@ bool decimal::is_magnitude_less_than_half() const
 }
 
 
-static void normalize(decimal::kint *&rb, size_t &rs, int &re);
+static void normalize(decimal::kint *&rb, size_t &rs, large &re);
 
-decimal_p decimal::truncate(int to_exp) const
+decimal_p decimal::truncate(large to_exp) const
 // ----------------------------------------------------------------------------
 //   Truncate a given decimal number (round towards zero)
 // ----------------------------------------------------------------------------
@@ -788,7 +788,7 @@ decimal_p decimal::truncate(int to_exp) const
     info s   = shape();
 
     // If we have 1E-3 and round at 0, return zero
-    int  exp = s.exponent;
+    large exp = s.exponent;
     if (exp < to_exp)
         return rt.make<decimal>(0);
 
@@ -828,15 +828,15 @@ decimal_p decimal::truncate(int to_exp) const
 }
 
 
-bool decimal::split(decimal_g &ip, decimal_g &fp, int to_exp) const
+bool decimal::split(decimal_g &ip, decimal_g &fp, large to_exp) const
 // ----------------------------------------------------------------------------
 //   Split a mumber between integral and decimal part
 // ----------------------------------------------------------------------------
 {
-    info s   = shape();
+    info  s   = shape();
 
     // If we have 1E-3 and round at 0, return zero
-    int  exp = s.exponent;
+    large exp = s.exponent;
     if (exp < to_exp)
     {
         fp = this;
@@ -860,7 +860,7 @@ bool decimal::split(decimal_g &ip, decimal_g &fp, int to_exp) const
     scribble scr;
 
     kint     rest = 0;
-    int      fexp = exp - copy * 3;
+    large    fexp = exp - copy * 3;
     for (size_t i = 0; i <= copy; i++)
     {
         kint k = kigit(+bp, i);
@@ -934,8 +934,8 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
         // Check if the decimal part is small enough
         if (decimal_part->is_zero())
             break;
-        int exp = decimal_part->exponent();
-        if (-exp > int(decimals))
+        large exp = decimal_part->exponent();
+        if (-exp > large(decimals))
             break;
 
         next = one / decimal_part;
@@ -993,10 +993,10 @@ int decimal::compare(decimal_r x, decimal_r y, uint epsilon)
     info yi   = y->shape();
 
     // Number with largest exponent is larger
-    int  xe   = xi.exponent;
-    int  ye   = yi.exponent;
+    large xe   = xi.exponent;
+    large ye   = yi.exponent;
     if (xe != ye)
-        return sign * (xe - ye);
+        return sign * (xe > ye ? 1 : -1);
 
     // If same exponent, compare mantissa digits starting with highest one
     size_t xs = xi.nkigits;
@@ -1050,7 +1050,7 @@ int decimal::compare(decimal_r x, decimal_r y, uint epsilon)
 //
 // ============================================================================
 
-static void normalize(decimal::kint *&rb, size_t &rs, int &re)
+static void normalize(decimal::kint *&rb, size_t &rs, large &re)
 // ----------------------------------------------------------------------------
 //   Normalize a result to have no leading or trailing zero
 // ----------------------------------------------------------------------------
@@ -1122,11 +1122,11 @@ decimal_p decimal::add(decimal_r x, decimal_r y)
         return sub(x, decimal_g(neg(y)));
 
     // Read information from both numbers
-    info xi = x->shape();
-    info yi = y->shape();
-    int  xe = xi.exponent;
-    int  ye = yi.exponent;
-    id   ty = x->type();
+    info  xi = x->shape();
+    info  yi = y->shape();
+    large xe = xi.exponent;
+    large ye = yi.exponent;
+    id    ty = x->type();
 
     // Put the smallest exponent in y
     bool lt = xe < ye;
@@ -1226,12 +1226,12 @@ decimal_p decimal::sub(decimal_r x, decimal_r y)
         return add(x, decimal_g(neg(y)));
 
     // Read information from both numbers
-    info xi  = x->shape();
-    info yi  = y->shape();
-    int  xe  = xi.exponent;
-    int  ye  = yi.exponent;
-    id   ty  = x->type();
-    bool lt  = xe < ye;
+    info  xi = x->shape();
+    info  yi = y->shape();
+    large xe = xi.exponent;
+    large ye = yi.exponent;
+    id    ty = x->type();
+    bool  lt = xe < ye;
 
     // Put the smallest exponent in y
     if (lt)
@@ -1329,8 +1329,8 @@ decimal_p decimal::mul(decimal_r x, decimal_r y)
     // Read information from both numbers
     info     xi  = x->shape();
     info     yi  = y->shape();
-    int      xe  = xi.exponent;
-    int      ye  = yi.exponent;
+    large    xe  = xi.exponent;
+    large    ye  = yi.exponent;
     id       xty = x->type();
     id       yty = y->type();
     id       ty  = xty == yty ? ID_decimal : ID_neg_decimal;
@@ -1340,7 +1340,12 @@ decimal_p decimal::mul(decimal_r x, decimal_r y)
     size_t   ys  = yi.nkigits;
     gcbytes  xb  = xi.base;
     gcbytes  yb  = yi.base;
-    int      re  = xe + ye - 3;
+    large    re  = xe + ye - 3;
+    if (re > DB48X_MAXEXPONENT || re < -DB48X_MAXEXPONENT)
+    {
+        rt.exponent_range_error();
+        return nullptr;
+    }
 
     // Size of result
     size_t   ps  = (Settings.Precision() + 2) / 3;
@@ -1459,8 +1464,8 @@ decimal_p decimal::div(decimal_r x, decimal_r y)
     // Read information from both numbers
     info     xi  = x->shape();
     info     yi  = y->shape();
-    int      xe  = xi.exponent;
-    int      ye  = yi.exponent;
+    large    xe  = xi.exponent;
+    large    ye  = yi.exponent;
     id       xty = x->type();
     id       yty = y->type();
     id       ty  = xty == yty ? ID_decimal : ID_neg_decimal;
@@ -1474,7 +1479,7 @@ decimal_p decimal::div(decimal_r x, decimal_r y)
     size_t   ys  = std::min(yi.nkigits, rs);
     gcbytes  xb  = xi.base;
     gcbytes  yb  = yi.base;
-    int      re  = xe - ye;
+    large    re  = xe - ye;
 
     // Allocate memory for the result
     scribble scr;
@@ -1823,7 +1828,7 @@ decimal_p decimal::sin_fracpi(uint qturns, decimal_r fp)
             return nullptr;
 
         // If what we add no longer has an impact, we can exit
-        if (tmp->exponent() + int(prec) < sum->exponent())
+        if (tmp->exponent() + large(prec) < sum->exponent())
             break;
 
         if ((i / 2) & 1)
@@ -1887,7 +1892,7 @@ decimal_p decimal::cos_fracpi(uint qturns, decimal_r fp)
             return nullptr;
 
         // If what we add no longer has an impact, we can exit
-        if (tmp->exponent() + int(prec) < sum->exponent())
+        if (tmp->exponent() + large(prec) < sum->exponent())
             break;
 
         if ((i / 2) & 1)
@@ -2036,7 +2041,7 @@ decimal_p decimal::atan(decimal_r x)
             return nullptr;
 
         // If what we add no longer has an impact, we can exit
-        if (tmp->exponent() + int(prec) < sum->exponent())
+        if (tmp->exponent() + large(prec) < sum->exponent())
             break;
 
         if ((i/2) & 1)
@@ -2400,7 +2405,7 @@ bool decimal::adjust_from_angle(uint &qturns, decimal_g &fp) const
         return false;
 
     // Bring the integral part in 0-9 so that we can convert to int
-    int iexp = ip->exponent();
+    large iexp = ip->exponent();
     if (iexp > 1)
     {
         if (iexp > 4 && Settings.ReportPrecisionLoss())

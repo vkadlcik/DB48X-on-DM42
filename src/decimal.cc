@@ -906,6 +906,19 @@ bool decimal::split(decimal_g &ip, decimal_g &fp, large to_exp) const
 }
 
 
+bool decimal::split(large &ip, decimal_g &fp, large to_exp) const
+// ----------------------------------------------------------------------------
+//   Split integral and fractional part, convert integral part to large
+// ----------------------------------------------------------------------------
+{
+    decimal_g dip;
+    if (!split(dip, fp, to_exp))
+        return false;
+    ip = dip->as_integer();
+    return true;
+}
+
+
 algebraic_p decimal::to_fraction(uint count, uint decimals) const
 // ----------------------------------------------------------------------------
 //   Convert a decimal value to a fraction
@@ -2061,31 +2074,36 @@ decimal_p decimal::atan(decimal_r x)
 
 decimal_p decimal::sinh(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//    Hyperbolic sine
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    decimal_g half = rt.make<decimal>(5,-1);
+    decimal_g ep = exp(x);
+    decimal_g em = exp(-x);
+    return (ep - em) * half;
 }
 
 
 decimal_p decimal::cosh(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Hyperbolic cosine
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    decimal_g half = rt.make<decimal>(5,-1);
+    decimal_g ep = exp(x);
+    decimal_g em = exp(-x);
+    return (ep + em) * half;
 }
 
 
 decimal_p decimal::tanh(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Hyperbolic tangent
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    decimal_g hs = sinh(x);
+    decimal_g hc = cosh(x);
+    return hs / hc;
 }
 
 
@@ -2132,11 +2150,60 @@ decimal_p decimal::log1p(decimal_r x)
 
 decimal_p decimal::expm1(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Exponential minus one
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+
+    large ip = 0;
+    decimal_g fp;
+    if (!x->split(ip, fp))
+        return nullptr;
+
+    // Prepare power factor and square that we multiply by every time
+    decimal_g one =  rt.make<decimal>(1);
+    decimal_g sum = fp;
+    decimal_g fact = one;
+    decimal_g power = fp;
+    decimal_g tmp;
+
+    uint prec = Settings.Precision();
+    for (uint i = 2; i < prec; i++)
+    {
+        power = power * fp;
+        tmp = rt.make<decimal>(i);
+        fact = fact * tmp;
+
+        tmp = power / fact;     // x^2 / 2!
+
+        // Check if we ran out of memory
+        if (!sum || !tmp)
+            return nullptr;
+
+        // If what we add no longer has an impact, we can exit
+        if (tmp->exponent() + large(prec) < sum->exponent())
+            break;
+
+        sum = sum + tmp;
+    }
+
+    if (ip)
+    {
+        fact = one;
+        power = constants().e;
+        while (ip)
+        {
+            if (ip & 1)
+                fact = fact * power;
+            ip >>= 1;
+            if (ip)
+                power = power * power;
+        }
+        sum = (sum + one) * fact - one;
+    }
+
+    return sum;
 }
 
 
@@ -2172,11 +2239,44 @@ decimal_p decimal::log2(decimal_r x)
 
 decimal_p decimal::exp(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Exponential
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+
+    large ip = 0;
+    decimal_g fp;
+    if (!x->split(ip, fp))
+        return nullptr;
+
+    // Compute exponential for integral part
+    decimal_g one = rt.make<decimal>(1);
+    decimal_g result = expm1(fp);
+    result = (one + result);
+
+    if (ip)
+    {
+        bool neg = ip < 0;
+        if (neg)
+            ip = - ip;
+        decimal_g scale = one;
+        decimal_g power = constants().e;
+        while (ip)
+        {
+            if (ip & 1)
+                scale = scale * power;
+            ip >>= 1;
+            if (ip)
+                power = power * power;
+        }
+        if (neg)
+            result = result / scale;
+        else
+            result = result * scale;
+    }
+
+    return result;
 }
 
 

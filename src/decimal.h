@@ -381,6 +381,7 @@ struct decimal : algebraic
 
     decimal_p        truncate(large exp = 0) const;
     bool             split(decimal_g &ip, decimal_g &fp, large exp = 0) const;
+    bool             split(large &ip, decimal_g &fp, large exp = 0) const;
     // ------------------------------------------------------------------------
     //   Round a decimal value to the given number of decimals
     // ------------------------------------------------------------------------

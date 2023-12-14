@@ -3212,6 +3212,16 @@ Timing on 0.4.10 are:
 | Version | DM32 ms | DM32 ms |
 |---------|---------|---------|
 | 0.5.2   | 215421  |  143412 |
+
+## Drawing `sin X` with `FunctionPlot`
+
+DM32 Intel Decimal: 2332 - 5140
+DM32 variable precision (6): 2423 -
+DM32 variable precision (24): 3863 - 6005
+DM32 variable precision (36): 6567 - 10186
+DM32 variable precision (48): 8377 - 10259
+
+Crash at precision 3
 # Menus
 
 Menus display at the bottom of the screen, and can be activated using the keys

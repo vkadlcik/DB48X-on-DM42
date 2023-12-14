@@ -1025,7 +1025,7 @@ int decimal::compare(decimal_r x, decimal_r y, uint epsilon)
         size_t s = (epsilon + 2) / 3;
         size_t l = epsilon / 3;
         size_t m = epsilon % 3;
-        size_t d = m == 1 ? 100 : m == 2 ? 10 : 1;
+       size_t d = m == 1 ? 100 : m == 2 ? 10 : 1;
         for (size_t i = 0; i + 1 < s; i++)
         {
             uint xk = i < xs ? kigit(xb, i) : 0;
@@ -2140,11 +2140,77 @@ decimal_p decimal::atanh(decimal_r x)
 
 decimal_p decimal::log1p(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   ln(1+x)
 // ----------------------------------------------------------------------------
+//   To reduce relatively efficiently to something that converges quickly.
+//   we use the relation 10^2/e^3 ≈ 0.5, so that we can take the exponent,
+//   divide by 3, multiply by 7, and that gives us a reasonable idea of
+//   a power of e we can use as a divisor
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+    if (x->is_zero())
+        return x;
+
+    decimal_g one = rt.make<decimal>(1);
+    decimal_g scaled = x + one;
+    if (scaled->is_negative() || scaled->is_zero())
+    {
+        rt.domain_error();
+        return nullptr;
+    }
+
+    large     texp  = x->exponent();
+    large     eexp  = texp * 3 / 2;
+    large     ipart = 0;
+    decimal_g power, scale;
+
+    scaled = x;
+    while (eexp > 0)
+    {
+        power = constants().e;
+        scale = one;
+        ipart += eexp;
+
+        while (eexp)
+        {
+            if (eexp & 1)
+                scale = scale * power;
+            power = power * power;
+            eexp >>= 1;
+        }
+
+        scaled = (one + scaled) / scale - one;
+
+        texp = scaled->exponent();
+        eexp = texp * 3 / 2;
+    }
+
+    // Taylor's serie
+    decimal_g sum = scaled;
+    uint prec = Settings.Precision();
+    power = scaled;
+    for (uint i = 2; i < prec; i++)
+    {
+        power = power * scaled;
+        scale = rt.make<decimal>(i);
+        scale = power / scale;
+
+        if (!sum || !scale)
+            return nullptr;
+
+        // If what we add no longer has an impact, we can exit
+        if (scale->exponent() + large(prec) < sum->exponent())
+            break;
+
+        if (i & 1)
+            sum = sum + scale;
+        else
+            sum = sum - scale;
+    }
+
+    scale = rt.make<decimal>(ipart);
+    return scale + sum;
 }
 
 
@@ -2209,11 +2275,47 @@ decimal_p decimal::expm1(decimal_r x)
 
 decimal_p decimal::log(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Compute natural logarithm of x
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+    if (x->is_zero() || x->is_negative())
+    {
+        rt.domain_error();
+        return nullptr;
+    }
+
+    decimal_g one    = rt.make<decimal>(1);
+    decimal_g scaled = x - one;
+    decimal_g power, scale;
+    large     texp   = scaled->exponent();
+    large     eexp   = texp * 3 / 2;
+    large     ipart  = 0;
+
+    while (eexp > 0)
+    {
+        power = constants().e;
+        scale = one;
+        ipart += eexp;
+
+        while (eexp)
+        {
+            if (eexp & 1)
+                scale = scale * power;
+            power = power * power;
+            eexp >>= 1;
+        }
+
+        scaled = (scaled + one) / scale - one;
+        texp = scaled->exponent();
+        eexp = texp * 3 / 2;
+    }
+
+    scaled = log1p(scaled);
+    scale = rt.make<decimal>(ipart);
+    scaled = scale + scaled;
+    return scaled;
 }
 
 

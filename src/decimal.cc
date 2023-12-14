@@ -2109,31 +2109,32 @@ decimal_p decimal::tanh(decimal_r x)
 
 decimal_p decimal::asinh(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Inverse hyperbolic sine
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    decimal_g one = rt.make<decimal>(1);
+    return log(x + decimal_g(sqrt(x*x + one)));
 }
 
 
 decimal_p decimal::acosh(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Inverse hyperbolic cosine
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    decimal_g one = rt.make<decimal>(1);
+    return log(x + decimal_g(sqrt(x*x - one)));
 }
 
 
 decimal_p decimal::atanh(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Inverse hyperbolic tangent
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    decimal_g one = rt.make<decimal>(1);
+    decimal_g half = rt.make<decimal>(5, -1);
+    return half * log((one + x) / (one - x));
 }
 
 

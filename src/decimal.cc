@@ -762,19 +762,19 @@ bool decimal::is_negative_or_zero() const
 }
 
 
-bool decimal::is_magnitude_less_than_half() const
+bool decimal::is_magnitude_less_than(uint kig, large exponent) const
 // ----------------------------------------------------------------------------
-//   Check if number is smaller than 0.5 in magnitude
+//   Check if a given number is less than specified number in magnitude
 // ----------------------------------------------------------------------------
 {
     info   s       = shape();
     large  exp     = s.exponent;
     size_t nkigits = s.nkigits;
     byte_p bp      = s.base;
-    if (exp)
-        return exp < 0;
+    if (exp != exponent)
+        return exp < exponent;
 
-    return nkigits == 0 || kigit(bp, 0) < 500;
+    return nkigits == 0 || kigit(bp, 0) <= kig;
 }
 
 
@@ -2411,6 +2411,9 @@ decimal_p decimal::exp10(decimal_r x)
 //  Exponential in base 10
 // ----------------------------------------------------------------------------
 {
+    if (!x)
+        return nullptr;
+
     large ip = 0;
     decimal_g fp;
     if (!x->split(ip, fp))
@@ -2437,21 +2440,115 @@ decimal_p decimal::exp2(decimal_r x)
 
 decimal_p decimal::erf(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Error function
 // ----------------------------------------------------------------------------
+//   See http://www.mhtlab.uwaterloo.ca/courses/me755/web_chap2.pdf
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+
+    if (x->is_negative())
+        return -decimal_g(erf(-x));
+
+    if (!x->is_magnitude_less_than(300, 1))
+    {
+        // Use asymptotic expansion
+        decimal_g one = rt.make<decimal>(1);
+        decimal_g rest = erfc(x);
+        return one - rest;
+    }
+
+    // Taylor's serie
+    decimal_g sum    = x;
+    decimal_g square = x * x;
+    decimal_g power  = sum;
+    decimal_g fact = rt.make<decimal>(1);
+    decimal_g tmp;
+
+    uint prec = Settings.Precision();
+    for (uint i = 1; i < 2 * prec; i++)
+    {
+        // First term is x^3 / (3 * 1!), second is x^5 / (5 * 2!)
+        power = power * square;         // x^3
+        tmp = rt.make<decimal>(i);      // 1
+        fact = fact * tmp;              // 1!
+        tmp = rt.make<decimal>(2*i+1);  // 3
+        tmp = fact * tmp;               // 1! * 3
+        tmp = power / tmp;              // x^3 / (1! * 3)
+
+        if (!sum || !tmp)
+            return nullptr;
+
+        // If what we add no longer has an impact, we can exit
+        if (tmp->exponent() + large(prec) < sum->exponent())
+            break;
+
+        if (i & 1)
+            sum = sum - tmp;
+        else
+            sum = sum + tmp;
+    }
+
+    // Multiply result by 2 / sqrt(pi)
+    sum = sum * constants().two_over_sqrt_pi();
+    return sum;
 }
 
 
 decimal_p decimal::erfc(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Compute the complementary error function
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+
+    // Use erf() for values below 2
+    if (x->is_negative() || x->is_magnitude_less_than(300, 1))
+    {
+        // Use asymptotic expansion
+        decimal_g one = rt.make<decimal>(1);
+        decimal_g rest = erf(x);
+        return one - rest;
+    }
+
+    // 1 - 1 / (2x^2) + (1*3) / (2x^2)^2 - (1*3*5) / (2x^2)^3 + ...
+    decimal_g one    = rt.make<decimal>(1);
+    decimal_g sum    = one;
+    decimal_g square = x * x;
+    decimal_g power  = one;
+    decimal_g scale = rt.make<decimal>(1);
+    decimal_g tmp;
+    square = square + square;           // 2x^2
+
+    uint prec = Settings.Precision();
+    for (uint i = 1; i < prec; i++)
+    {
+        // First term is x^3 / (3 * 1!), second is x^5 / (5 * 2!)
+        power = power * square;         // (2x^3)^1
+        tmp = rt.make<decimal>(2*i-1);  // 1, 3, 5, ...
+        scale = scale * tmp;            // 1 * 1 * 3 * 5 ...
+        tmp = scale / power;            // (1*3*5) / (2x^2)^3
+
+        if (!sum || !tmp)
+            return nullptr;
+
+        // If what we add no longer has an impact, we can exit
+        if (tmp->exponent() + large(prec) < sum->exponent())
+            break;
+
+        if (i & 1)
+            sum = sum - tmp;
+        else
+            sum = sum + tmp;
+    }
+
+    // Divide result by sqrt(pi) * x * exp(x^2)
+    sum = sum * constants().one_over_sqrt_pi();
+    sum = sum / x;
+    tmp = exp(-(x * x));
+    sum = sum * tmp;
+    return sum;
 }
 
 
@@ -2611,11 +2708,12 @@ decimal::ccache &decimal::constants()
     size_t precision = Settings.Precision();
     if (cst->precision != precision)
     {
-        size_t nkigs = (precision + 2) / 3;
-        cst->pi = rt.make<decimal>(1, nkigs, gcbytes(decimal_pi));
-        cst->e = rt.make<decimal>(1, nkigs, gcbytes(decimal_e));
-        cst->log10 = nullptr;
-        cst->log2 = nullptr;
+        size_t nkigs   = (precision + 2) / 3;
+        cst->pi        = rt.make<decimal>(1, nkigs, gcbytes(decimal_pi));
+        cst->e         = rt.make<decimal>(1, nkigs, gcbytes(decimal_e));
+        cst->log10     = nullptr;
+        cst->log2      = nullptr;
+        cst->oosqpi    = nullptr;
         cst->precision = precision;
     }
     return *cst;
@@ -2647,6 +2745,31 @@ decimal_r decimal::ccache::ln2()
         log2 = log(two);
     }
     return log2;
+}
+
+
+decimal_r decimal::ccache::one_over_sqrt_pi()
+// ----------------------------------------------------------------------------
+//   Compute and cache 1/sqrt(pi)
+// ----------------------------------------------------------------------------
+{
+    if (!oosqpi)
+    {
+        decimal_g one = rt.make<decimal>(1);
+        decimal_g sqpi = sqrt(pi);
+        oosqpi = one / sqpi;
+    }
+    return oosqpi;
+}
+
+
+decimal_g decimal::ccache::two_over_sqrt_pi()
+// ----------------------------------------------------------------------------
+//   Compute and cache 2/sqrt(pi)
+// ----------------------------------------------------------------------------
+{
+    decimal_g oosqpi = one_over_sqrt_pi();
+    return oosqpi + oosqpi;
 }
 
 

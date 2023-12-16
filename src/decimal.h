@@ -373,6 +373,7 @@ struct decimal : algebraic
     bool             is_one() const;
     bool             is_negative() const;
     bool             is_negative_or_zero() const;
+    bool             is_magnitude_less_than(uint kigit, large exp) const;
     bool             is_magnitude_less_than_half() const;
     // ------------------------------------------------------------------------
     //   Tests about the value of a given decimal number
@@ -487,9 +488,12 @@ struct decimal : algebraic
         decimal_g e;
         decimal_g log10;
         decimal_g log2;
+        decimal_g oosqpi;
 
         decimal_r ln10();
         decimal_r ln2();
+        decimal_r one_over_sqrt_pi();
+        decimal_g two_over_sqrt_pi();
     };
 
     static ccache   &constants();
@@ -638,6 +642,15 @@ inline bool operator>=(decimal_g x, decimal_g y)
 // ----------------------------------------------------------------------------
 {
     return decimal::compare(x, y) >= 0;
+}
+
+
+inline bool decimal::is_magnitude_less_than_half() const
+// ----------------------------------------------------------------------------
+//  Check if magnitude is less than 0.5
+// ----------------------------------------------------------------------------
+{
+    return is_magnitude_less_than(500, 0);
 }
 
 #endif // DECIMAL_H

@@ -2575,41 +2575,52 @@ decimal_p decimal::lgamma(decimal_r x)
 
 decimal_p decimal::abs(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Absolute value
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+    return x->is_negative() ? neg(x) : +x;
 }
 
 
 decimal_p decimal::sign(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Sign of the operand
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+    int r = x->is_negative() ? -1 : x->is_zero() ? 0 : 1;
+    return rt.make<decimal>(r);
 }
 
 
 decimal_p decimal::IntPart(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Return integer part
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+    decimal_g ip, fp;
+    if (!x->split(ip, fp))
+        return nullptr;
+    return ip;
 }
 
 
 decimal_p decimal::FracPart(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Return fractional part
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+    decimal_g ip, fp;
+    if (!x->split(ip, fp))
+        return nullptr;
+    return fp;
 }
 
 

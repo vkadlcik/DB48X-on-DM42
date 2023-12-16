@@ -415,8 +415,11 @@ FUNCTION_BODY(IntPart)
     if (should_be_symbolic(xt))
         return symbolic(ID_IntPart, x);
 
+    if (is_decimal(xt))
+        return decimal::IntPart(decimal_p(+x));
     if (is_real(xt))
     {
+        // This code works for integer, fraction and decimal types
         algebraic_g one = integer::make(1);
         algebraic_g r = rem::evaluate(x, one);
         return x - r;
@@ -438,6 +441,8 @@ FUNCTION_BODY(FracPart)
     if (should_be_symbolic(xt))
         return symbolic(ID_FracPart, x);
 
+    if (is_decimal(xt))
+        return decimal::FracPart(decimal_p(+x));
     if (is_real(xt))
     {
         algebraic_g one = integer::make(1);

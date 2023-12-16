@@ -2322,21 +2322,44 @@ decimal_p decimal::log(decimal_r x)
 
 decimal_p decimal::log10(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Logarithm in base 10
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+    if (x->is_zero() || x->is_negative())
+    {
+        rt.domain_error();
+        return nullptr;
+    }
+
+    large exp10 = x->exponent() - 1;
+    decimal_g fp = x;
+    if (exp10)
+    {
+        fp = rt.make<decimal>(1, -exp10);
+        fp = fp * x;
+    }
+    decimal_g lnx = log(fp);
+    decimal_g ln10 = constants().ln10();
+    ln10 = lnx / ln10;
+    if (exp10)
+    {
+        fp = rt.make<decimal>(exp10);
+        ln10 = ln10 + fp;
+    }
+    return ln10;
 }
 
 
 decimal_p decimal::log2(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Logarithm in base 2
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    decimal_g lnx = log(x);
+    decimal_g ln2 = constants().ln2();
+    return lnx / ln2;
 }
 
 
@@ -2385,21 +2408,30 @@ decimal_p decimal::exp(decimal_r x)
 
 decimal_p decimal::exp10(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Exponential in base 10
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    large ip = 0;
+    decimal_g fp;
+    if (!x->split(ip, fp))
+        return nullptr;
+    fp = constants().ln10() * fp;
+    fp = exp(fp);
+    if (ip)
+    {
+        decimal_g scale = rt.make<decimal>(1, ip);
+        fp = scale * fp;
+    }
+    return fp;
 }
 
 
 decimal_p decimal::exp2(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Exponential in base 2
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    return exp(constants().ln2() * x);
 }
 
 
@@ -2582,9 +2614,39 @@ decimal::ccache &decimal::constants()
         size_t nkigs = (precision + 2) / 3;
         cst->pi = rt.make<decimal>(1, nkigs, gcbytes(decimal_pi));
         cst->e = rt.make<decimal>(1, nkigs, gcbytes(decimal_e));
+        cst->log10 = nullptr;
+        cst->log2 = nullptr;
         cst->precision = precision;
     }
     return *cst;
+}
+
+
+decimal_r decimal::ccache::ln10()
+// ----------------------------------------------------------------------------
+//   Compute and cache the natural logarithm of 10
+// ----------------------------------------------------------------------------
+{
+    if (!log10)
+    {
+        decimal_g ten = rt.make<decimal>(10);
+        log10 = log(ten);
+    }
+    return log10;
+}
+
+
+decimal_r decimal::ccache::ln2()
+// ----------------------------------------------------------------------------
+//   Compute and cache the natural logarithm of 2
+// ----------------------------------------------------------------------------
+{
+    if (!log2)
+    {
+        decimal_g two = rt.make<decimal>(2);
+        log2 = log(two);
+    }
+    return log2;
 }
 
 

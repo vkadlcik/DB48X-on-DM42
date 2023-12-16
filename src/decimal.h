@@ -485,12 +485,20 @@ struct decimal : algebraic
         size_t  precision;
         decimal_g pi;
         decimal_g e;
+        decimal_g log10;
+        decimal_g log2;
+
+        decimal_r ln10();
+        decimal_r ln2();
     };
 
     static ccache   &constants();
 
 
     static decimal_p pi()       { return constants().pi; }
+    static decimal_p e()        { return constants().e; }
+    static decimal_p ln10()     { return constants().ln10(); }
+    static decimal_p ln2()      { return constants().ln2(); }
     bool             adjust_from_angle(uint &qturns, decimal_g &fp) const;
     decimal_p        adjust_to_angle() const;
 

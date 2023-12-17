@@ -109,7 +109,7 @@ ID_RANGE(is_decimal,       object,         object)
 ID_RANGE(is_real,          bignum,         neg_big_fraction)
 #endif // CONFIG_NO_DECIMAL128
 ID_RANGE(is_complex,       rectangular,    polar)
-ID_RANGE(is_command,       Drop,           Unimplemented)
+ID_RANGE(is_command,       Drop,           ToFraction,    ToList, Unimplemented)
 ID_RANGE(is_symbolic,      expression,     symbol,        pi, ImaginaryUnit)
 ID_RANGE(is_algebraic_fn,  add,            ToFraction,    asinh, det)
 ID_RANGE(is_immediate,     MainMenu,       SelfInsert)

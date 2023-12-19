@@ -90,6 +90,10 @@ PARSE_BODY(command)
                     continue;
             }
 
+            // No function names like `min` while parsing units
+            if (unit::mode && is_valid_as_name_initial(utf8(cmd)))
+                continue;
+
             len = strlen(cmd);
             if (len <= maxlen
                 && strncasecmp(ref, cmd, len) == 0

@@ -61,6 +61,7 @@ algebraic_p unit::parse_uexpr(gcutf8 source, size_t len)
 //  Parse a uexpr as an expression without quotes
 // ----------------------------------------------------------------------------
 {
+    save<bool> save(unit::mode, true);
     parser p(source, len, MULTIPLICATIVE);
     object::result result = list::list_parse(ID_expression, p, 0, 0);
     if (result == object::OK)

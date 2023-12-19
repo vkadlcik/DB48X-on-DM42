@@ -717,8 +717,8 @@ void user_interface::update_mode()
                 }
 
                 isnum = ((code >= '0' && code <= '9')
-                         || (code >= 'A' && code <= 'Z')
-                         || (code >= 'a' && code <= 'z')
+                         || (hnum && ((code >= 'A' && code <= 'Z')
+                                      || (code >= 'a' && code <= 'z')))
                          || code == '+'
                          || code == '-'
                          || code == '#'

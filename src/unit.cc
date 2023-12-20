@@ -1694,17 +1694,25 @@ COMMAND_BODY(ConvertToUnitPrefix)
         rt.type_error();
         return ERROR;
     }
+    size_t syml = 0;
+    gcutf8 symt = sym->value(&syml);
 
     // Lookup the name to get the underlying unit, e.g. 1_km -> 1000_m
-    unit_p   base = unit::lookup(sym);
-    symbol_g bsym = unit_name(base);
-    if (!bsym)
+    int    pfxi = 0;
+    unit_p base = unit::lookup(sym, &pfxi);
+    if (!base)
     {
         rt.inconsistent_units_error();
         return ERROR;
     }
+    bool kibi = pfxi < 0;
+    if (kibi)
+        pfxi = -pfxi;
+    const si_prefix *pfxp = &si_prefixes[pfxi];
+    cstring          pfxt = pfxp->prefix;
+    size_t           pfxl = strlen(pfxt) + kibi;
 
-    // Build a unit with the prefix and the base
+    // Find the prefix given in the label
     gcutf8 ptxt = utf8(prefix);
     size_t plen = strlen(prefix);
     if (cstring space = strchr(prefix, ' '))
@@ -1714,12 +1722,12 @@ COMMAND_BODY(ConvertToUnitPrefix)
             plen = offset;
     }
 
+
     // Render 1_cm if the prefix is c
     renderer r;
     r.put("1_");
     r.put(ptxt, plen);
-    ptxt = bsym->value(&plen);
-    r.put(ptxt, plen);
+    r.put(symt + pfxl, syml - pfxl);
 
     plen = r.size();
     object_p scaled = object::parse(r.text(), plen);

@@ -1269,7 +1269,7 @@ MENU_BODY(unit_menu)
             {
                 if (found)
                 {
-                    last = u - 2;
+                    last = u;
                     break;
                 }
                 if (menu == type)

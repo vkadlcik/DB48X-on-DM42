@@ -2626,71 +2626,119 @@ decimal_p decimal::FracPart(decimal_r x)
 
 decimal_p decimal::ceil(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Find the lowest integer just above this value
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    decimal_g ip, fp;
+    if (!x->split(ip, fp))
+        return nullptr;
+    if (fp->is_zero() || x->is_negative())
+        return ip;
+    fp = rt.make<decimal>(1);
+    ip = ip + fp;
+    return ip;
 }
 
 
 decimal_p decimal::floor(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Return the highest integer just below this value
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    decimal_g ip, fp;
+    if (!x->split(ip, fp))
+        return nullptr;
+    if (fp->is_zero() || !x->is_negative())
+        return ip;
+    fp = rt.make<decimal>(1);
+    ip = ip - fp;
+    return ip;
 }
 
 
 decimal_p decimal::inv(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Compute the inverse
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    decimal_p one = rt.make<decimal>(1);
+    return one / x;
 }
 
 
 decimal_p decimal::sq(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Implement square
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    return x * x;
 }
 
 
 decimal_p decimal::cubed(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Implement cubed value
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    return x * x * x;
 }
 
 
-decimal_p decimal::xroot(decimal_r x)
+decimal_p decimal::xroot(decimal_r y, decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Find the n-th root of a value
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    large iip;
+    decimal_g xfp;
+    if (!x->split(iip, xfp))
+        return nullptr;
+
+    bool is_neg = false;
+    bool is_int = xfp->is_zero();
+    if (is_int)
+    {
+        is_neg = y->is_negative();
+        if (is_neg && ((iip & 1) == 0))
+        {
+            // Root of a negative number
+            rt.domain_error();
+            return nullptr;
+        }
+    }
+
+    xfp = inv(x);
+    if (is_neg)
+        xfp = neg(pow(neg(y), xfp));
+    else
+        xfp = pow(y, xfp);
+    return xfp;
 }
 
 
 decimal_p decimal::fact(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Compute the factorial of a number
 // ----------------------------------------------------------------------------
 {
-    rt.unimplemented_error();
-    return x;
+    large ip;
+    decimal_g fp;
+    if (!x->split(ip, fp))
+        return nullptr;
+    if (!fp->is_zero() || x->is_negative())
+    {
+        fp = rt.make<decimal>(1);
+        fp = x + fp;
+        return tgamma(fp);
+    }
+
+    decimal_g r = rt.make<decimal>(1);
+    for (large i = 2; i <= ip; i++)
+    {
+        fp = rt.make<decimal>(i);
+        r = r * fp;
+    }
+    return r;
 }
 
 

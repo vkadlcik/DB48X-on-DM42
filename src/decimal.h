@@ -465,7 +465,7 @@ struct decimal : algebraic
     static decimal_p inv(decimal_r x);
     static decimal_p sq(decimal_r x);
     static decimal_p cubed(decimal_r x);
-    static decimal_p xroot(decimal_r x);
+    static decimal_p xroot(decimal_r y, decimal_r x);
     static decimal_p fact(decimal_r x);
 
 

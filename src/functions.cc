@@ -465,6 +465,8 @@ FUNCTION_BODY(ceil)
     if (should_be_symbolic(xt))
         return symbolic(ID_ceil, x);
 
+    if (is_decimal(xt))
+        return decimal::ceil(decimal_p(+x));
     if (is_real(xt))
     {
         algebraic_g one = integer::make(1);
@@ -488,6 +490,8 @@ FUNCTION_BODY(floor)
     if (should_be_symbolic(xt))
         return symbolic(ID_floor, x);
 
+    if (is_decimal(xt))
+        return decimal::floor(decimal_p(+x));
     if (is_real(xt))
     {
         algebraic_g one = integer::make(1);
@@ -511,6 +515,8 @@ FUNCTION_BODY(inv)
     else if (x->type() == ID_array)
         return array_p(+x)->invert();
 
+    if (x->is_decimal())
+        return decimal::inv(decimal_p(+x));
     algebraic_g one = rt.make<integer>(ID_integer, 1);
     return one / x;
 }
@@ -592,9 +598,9 @@ COMMAND_BODY(xroot)
 {
     if (rt.args(2))
     {
-        if (object_p x = rt.pop())
+        if (object_p x = rt.stack(0))
         {
-            if (object_p y = rt.top())
+            if (object_p y = rt.stack(1))
             {
                 algebraic_g xa = x->as_algebraic();
                 algebraic_g ya = y->as_algebraic();
@@ -602,10 +608,40 @@ COMMAND_BODY(xroot)
                 {
                     rt.type_error();
                 }
+                else if (xa->is_zero())
+                {
+                    rt.domain_error();
+                }
                 else
                 {
-                    xa = pow(ya, integer::make(1) / xa);
-                    if (+xa && rt.top(xa))
+                    bool is_int = xa->is_integer();
+                    bool is_neg = false;
+                    if (!is_int && xa->is_decimal())
+                    {
+                        decimal_g ip, fp;
+                        decimal_p xd = decimal_p(+xa);
+                        if (!xd->split(ip, fp))
+                            return ERROR;
+                        if (fp->is_zero())
+                            is_int = true;
+                    }
+                    if (is_int)
+                    {
+                        bool is_odd = xa->as_int32(0, false) & 1;
+                        is_neg = ya->is_negative();
+                        if (is_neg && !is_odd)
+                        {
+                            // Root of a negative number
+                            rt.domain_error();
+                            return ERROR;
+                        }
+                    }
+
+                    if (is_neg)
+                        xa = -pow(-ya, integer::make(1) / xa);
+                    else
+                        xa = pow(ya, integer::make(1) / xa);
+                    if (+xa && rt.drop() && rt.top(xa))
                         return OK;
                 }
             }
@@ -649,6 +685,13 @@ FUNCTION_BODY(fact)
         for (uint i = 2; i <= max; i++)
             result = result * integer::make(i);
         return result;
+    }
+
+    if (x->is_decimal())
+    {
+        decimal_g xd = decimal_p(+x);
+        xd = decimal::fact(xd);
+        return xd;
     }
 
     if (x->is_real() || x->is_complex())

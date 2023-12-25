@@ -1820,10 +1820,29 @@ have up to 9999 digits, and a decimal exponent that can be up to 2^60
 
 ### New features
 
+Variable precision decimal floating point implementation for arithmetic,
+trigonometrics, logs, exponential and integer factorial. Other functions may
+still return "unimplemented error".
+
 ### Bug fixes
+
+None. If anything, this release introduces bugs in computations and performance
+regressions. However, it frees *a lot* of space for further DM42 development.
 
 ### Improvements
 
+The `Precision` setting now sets the number of digits with a granularity of one,
+between 3 and 9999. Ideal use of memory is with multiples of 12 digits, e.g. 12,
+24 or 36 digits, where decimal packing does not cause lost bits.
+
+Performance on the DM42 is somewhat improved, since it is now possible to return
+to a higher level of optimization.
+
+### Regressions
+
+In addition to lower performance and unimplemented functions, this version no
+longer builds a compatible QSPI. This means that returning to the DM42 requires
+flashing *both* the QSPI and the PGM file.
 
 
 ## Release 0.5.2 "Christmas Eve": Reaching hard limits on the DM42

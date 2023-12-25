@@ -1794,6 +1794,155 @@ the corresponding unit in the units file, for example:
 ```
 # Release notes
 
+## Release 0.6.0 "Christmas": Introducing variable precision
+
+This release was a bit longer in coming than earlier ones, because we are about
+to reach the limits of what can fit on a DM42. This release uses 711228 bytes
+out of the 716800 (99.2%).
+
+Without the Intel Decimal Library code, we use only 282980 bytes. This means
+that the Intel Decimal Library code uses 60.2% of the total code space. Being
+able to move further requires a rather radical rethinking of the project, where
+we replace the Intel Decimal Library with size-optimized decimal code.
+
+As a result, release 0.6.0 introduces a new table-free and variable-precision
+implementation of decimal computations. In this release, most operations are
+implemented, but some features are still missing (e.g. Gamma function). This
+release will be simultaneous with 0.5.2, which is functionally equivalent but
+still uses the Intel Decimal library. The new implementation is much more
+compact, allowing us to return to normal optimizations for the DM42 and regain
+some of the lost performance. On the other hand, having to switch to a table
+free implementation means that it's significantly slower than the Intel Decimal
+Library. The upside of course is that you can compute with decimal numbers that
+have up to 9999 digits, and a decimal exponent that can be up to 2^60
+(1 152 921 504 606 846 976).
+
+
+### New features
+
+### Bug fixes
+
+### Improvements
+
+
+
+## Release 0.5.2 "Christmas Eve": Reaching hard limits on the DM42
+
+This release was a bit longer in coming than earlier ones, because we are about
+to reach the limits of what can fit on a DM42. This release uses 711228 bytes
+out of the 716800 (99.2%).
+
+Without the Intel Decimal Library code, we use only 282980 bytes. This means
+that the Intel Decimal Library code uses 60.2% of the total code space. Being
+able to move further requires a rather radical rethinking of the project, where
+we replace the Intel Decimal Library with size-optimized decimal code.
+
+As a result, release 0.5.2 will be the last one using the Intel Decimal Library,
+and is release in parallel with 0.6.0, which switches to a table-free and
+variable-precisions implementation of decimal code that uses much less code
+space. The two releases should otherwise be functionally identical
+
+### New features
+
+* Shift and rotate instructions (#622)
+* Add `CompatibleTypes` and `DetsailedTypes` setting to control `Type` results
+* Recognize HP-compatible negative values for flags, e.g. `-64 SF` (#625)
+* Add settings to control multiline result and stack display (#634)
+
+### Bug fixes
+
+* Truncate to `WordSize` the small results of binary operations (#624)
+* Fix day-of-week shortcut in simulator
+* Avoid double-evaluation of immediate commands when there is no help
+* Generate an error when selecting base 1 (#628)
+* Avoid `Number too big` error on based nunbers
+* Correctly garbage-collect menu entries (#630)
+* Select default settings that allow solver to find solutions (#627)
+* Fix display of decimal numbers (broken by multi-line display)
+* Fix rendering of menu entries for `Fix`, `Std`, etc
+* Detect non-finite results in arithmetic, e.g. `(-8)^0.3`m (#635, #639)
+* Fix range-checking for `Dig` to allow `-1` value
+* Accept large values for `Fix`, `Sci` and `Eng` (for variable precision)
+* Restore missing last entry in built-in units menu (#638)
+* Accept `Hz` and non-primary units as input for `ConvertToUnitPrefix` (#640)
+* Fix LEB128 encoding for signed value 64 and similar (#642)
+* Do not parse `IfThenElse` as a command
+* Do not consider `E` as a digit in decimal numbers (#643)
+* Do not parse `min` as a function in units, but as minute (#644)
+
+### Improvements
+
+* Add `OnesComplement` flag for binary operation (not used yet)
+* Add `ComplexResults` (-103) flag (not used yet)
+* Accept negative values for `B→R` (according to `WordSize`)
+* Add documentation for `STO` and `RCL` accessing flash storage
+* Mention `True` and `False` in documentation
+* Rename `MaxBigNumBits` to `MaxNumberBits`
+* Return HP-compatible values from `Type` function
+* Minor optimization of flags implementation
+* Catalog auto-completion now suggests all possible spellings (#626)
+* Add aliases for `CubeRoot` and `Hypothenuse`
+* Align based number promotion rules to HP calculators (#629)
+* Expand the range of garbage collector integrity check on simulator
+* Show command according to preferences in error messages (#633)
+* Avoid crash in `debug_printf` if used before font initialization
+* Update performance data in documentation
+* Add ability to disable any reference to Intel Decimal Floating-point library
+* Simplify C++ notations for safe pointers (`+x` and `operartor bool()`)
+* Fix link to old `db48x` project in `README.md`
+
+
+## Release 0.5.1 "Talents": More RPL commands
+
+This release focuses on rounding up various useful RPL commands
+and bringing RPL a bit closer to feature-complete.
+
+### New features
+
+* Portable bit pattern generation commands, `gray` and `rgb` (#617)
+* Add support for packed bitmaps (#555)
+* Implement RPL `case` statement, extended with `case when` (#374)
+* `Beep` command (#50)
+* `List→` command (#573)
+* `Size` command (#588)
+* `Str→` command (#590)
+* `Obj→` command (#596)
+* Add flag to control if `0^0` returns `1` or undefined behaviour (#598)
+* Unicode-based `Num` and `Chr` commands, `Text→Code` and `Code→Text` (#597)
+* `IP` and `FP` commands (#601)
+* Percentage operations `%`, `%CH` and `%T` (#602)
+* `Min` and `Max` operations (#603)
+* `Floor` and `Ceil` operations (#605)
+* `Get` with a name argument (#609)
+* `Put` command (#610)
+* `Head` and `Tail` commands (#614)
+* `Map`, `Reduce` and `Filter` commands (#613)
+
+### Bug fixes
+
+* Ensure rounded rectangles stay within their boundaries (#618)
+* Prevent auto-power-off for long-running programs (#587)
+* Fix old-style RPL shortcuts for `FS?C` and the like
+* Add `FF` shortcut for `FlipFlag`
+* Fix rendering of `<`, `>`, etc in old-style RPL compatibility mode (#595)
+* Update various menus
+* Evaluate program arguments in `IFT` and `IFTE` (#592)
+* Evaluate algebraic expressions in `if`, `while` and `case` (#593)
+* Load variables from state file in correct order (#591)
+* Avoid truncation of state file when ASCII conversions occur (#589)
+* Clear debugging state more completely after `kill` (#600)
+* `Wait` no longer makes it harder to stop a program (#619)
+* `mod` no longer gives wrong result for negative fractions and bignums (#606)
+* No longer strip tags in non-numeric arithmetic operations (#607)
+
+### Improvements
+
+* Small updates to demo file
+* A long `Wait` command allows the calculator to switch off (#620)
+* Centering of variable names in `VariablesMenu` (#610)
+* Makefile `check-ids` target to check if commands are in help or menus (#615)
+
+
 ## Release 0.5.0: Statistics and flags
 
 This release provides statistics functions and flags.
@@ -2972,7 +3121,6 @@ Hewlett-Packard RPL implementation.
 
 This sections tracks some performance measurements across releases.
 
-
 ## NQueens (DM42)
 
 Performance recording for various releases on DM42 with `small` option (which is
@@ -2982,6 +3130,8 @@ all times in milliseconds, best of 5 runs, on USB power, with presumably no GC.
 
 | Version | Time    | PGM Size  | QSPI Size | Note                    |
 |---------|---------|-----------|-----------|-------------------------|
+| 0.5.2   | 1310    | 711228    | 1548076   |                         |
+| 0.5.1   |         |           |           |                         |
 | 0.4.10+ | 1205    | 651108    |           | RPL stack runloop       |
 | 0.4.10  | 1070    | 650116    |           | Focused optimizations   |
 | 0.4.9+  | 1175    |           |           | Range-based type checks |
@@ -3017,6 +3167,7 @@ is not there.
 
 | Version | Time    | PGM Size  | QSPI Size | Note                    |
 |---------|---------|-----------|-----------|-------------------------|
+| 0.5.2   | 1752    |           |           |
 | 0.5.1   | 1746    |           |           |
 | 0.5.0   | 1723    |           |           |
 | 0.4.10+ | 1804    | 761252    |           | RPL stack runloop       |
@@ -3048,6 +3199,19 @@ Timing on 0.4.10 are:
 * HP50G: 397.438s
 * DM32: 28.507s (14x faster)
 * DM42: 15.769s (25x faster)
+
+| Version | DM32 ms | DM42 ms |
+|---------|---------|---------|
+| 0.5.2   | 26733   |  15695  |
+| 0.4.10  | 28507   |  15769  |
+
+
+
+## SumTest (decimal performance)
+
+| Version | DM32 ms | DM42 ms |
+|---------|---------|---------|
+| 0.5.2   | 215421  |  143412 |
 # Menus
 
 Menus display at the bottom of the screen, and can be activated using the keys

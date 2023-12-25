@@ -2,7 +2,6 @@
 
 This sections tracks some performance measurements across releases.
 
-
 ## NQueens (DM42)
 
 Performance recording for various releases on DM42 with `small` option (which is
@@ -12,6 +11,8 @@ all times in milliseconds, best of 5 runs, on USB power, with presumably no GC.
 
 | Version | Time    | PGM Size  | QSPI Size | Note                    |
 |---------|---------|-----------|-----------|-------------------------|
+| 0.5.2   | 1310    | 711228    | 1548076   |                         |
+| 0.5.1   |         |           |           |                         |
 | 0.4.10+ | 1205    | 651108    |           | RPL stack runloop       |
 | 0.4.10  | 1070    | 650116    |           | Focused optimizations   |
 | 0.4.9+  | 1175    |           |           | Range-based type checks |
@@ -47,6 +48,7 @@ is not there.
 
 | Version | Time    | PGM Size  | QSPI Size | Note                    |
 |---------|---------|-----------|-----------|-------------------------|
+| 0.5.2   | 1752    |           |           |
 | 0.5.1   | 1746    |           |           |
 | 0.5.0   | 1723    |           |           |
 | 0.4.10+ | 1804    | 761252    |           | RPL stack runloop       |
@@ -78,3 +80,16 @@ Timing on 0.4.10 are:
 * HP50G: 397.438s
 * DM32: 28.507s (14x faster)
 * DM42: 15.769s (25x faster)
+
+| Version | DM32 ms | DM42 ms |
+|---------|---------|---------|
+| 0.5.2   | 26733   |  15695  |
+| 0.4.10  | 28507   |  15769  |
+
+
+
+## SumTest (decimal performance)
+
+| Version | DM32 ms | DM42 ms |
+|---------|---------|---------|
+| 0.5.2   | 215421  |  143412 |

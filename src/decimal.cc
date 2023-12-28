@@ -622,32 +622,32 @@ decimal_p decimal::from_integer(integer_p value)
 }
 
 
-decimal_p decimal::from_bignum(bignum_p value)
+decimal_p decimal::from_bignum(bignum_p valuep)
 // ----------------------------------------------------------------------------
 //    Create a decimal number from a bignum
 // ----------------------------------------------------------------------------
 {
-    if (!value)
+    if (!valuep)
         return nullptr;
-    id        itype  = value->type();
+    id        itype  = valuep->type();
     id        type   = itype == ID_neg_bignum ? ID_neg_decimal : ID_decimal;
-    size_t    sz     = 0;
-    gcbytes   bytes  = value->value(&sz);
     decimal_g result = rt.make<decimal>(type, 0);
-    decimal_g mul    = rt.make<decimal>(type, 1);
-    decimal_g scale  = rt.make<decimal>(1ULL<<32);
-    ularge    digit  = 0;
-    for (size_t i = 0; i < sz; i++)
+    decimal_g digits;
+    large     exp    = 0;
+    bignum_g  value  = valuep;
+    bignum_g  div    = bignum::make(1000000000000UL);
+    bignum_g  kigit;
+
+    while (!value->is_zero())
     {
-        digit |= (+bytes)[i] << ((i % 4) * 8);
-        if ((i % 4) == 3 || i == sz - 1)
-        {
-            decimal_g d = rt.make<decimal>(digit);
-            result = result + d * mul;
-            mul = mul * scale;
-            digit = 0;
-        }
+        if (!bignum::quorem(value, div, itype, &value, &kigit))
+            return nullptr;
+        ularge kigval = kigit->value<ularge>();
+        digits = rt.make<decimal>(type, kigval, exp);
+        result = result + digits;
+        exp += 12;
     }
+
     return result;
 }
 
@@ -919,6 +919,84 @@ bool decimal::split(large &ip, decimal_g &fp, large to_exp) const
 }
 
 
+algebraic_p decimal::to_integer() const
+// ----------------------------------------------------------------------------
+//   Convert a decimal to an integer or bignum
+// ----------------------------------------------------------------------------
+{
+    decimal_g x      = this;
+    info      xi     = x->shape();
+    size_t    xs     = xi.nkigits;
+    large     xe     = xi.exponent;
+    gcbytes   xb     = xi.base;
+    bool      neg    = x->type() == ID_neg_decimal;
+
+    // The standard integer type can hold 18 digits,
+    // but kigit scaling below tops out at 16 digits, then may overflow
+    if (xe <= 16)
+    {
+        large  xl    = xe - 3 * xs;
+        ularge scale = 1;
+        ularge mul   = 10;
+        if (xl >= 0)
+        {
+            large p = xl;
+            while (p)
+            {
+                if (p & 1)
+                    scale *= mul;
+                p >>= 1;
+                mul *= mul;
+            }
+        }
+
+        ularge res = 0;
+        for (size_t xd = xs; xd --> 0; )
+        {
+            kint xk = kigit(xb, xd);
+            res += xk * scale;
+            scale *= 1000;
+        }
+        if (xl == -1)
+            res = res / 10;
+        else if (xl == -2)
+            res = res / 100;
+
+        id ty = neg ? ID_neg_integer : ID_integer;
+        return rt.make<integer>(ty, res);
+    }
+
+    bignum_g scale = bignum::make(1);
+    bignum_g mul   = bignum::make(10);
+    bignum_g tmp;
+
+    large    p = xe;
+    while (p)
+    {
+        if (p & 1)
+            scale = scale * mul;
+        p >>= 1;
+        mul = mul * mul;
+    }
+
+    id ty = neg ? ID_neg_bignum : ID_bignum;
+    bignum_g res = rt.make<bignum>(ty, 0);
+    mul = bignum::make(1000);
+    for (size_t xd = 0; xd < xs; xd++)
+    {
+        kint xk = kigit(xb, xd);
+        tmp = rt.make<bignum>(ty, xk);
+        res = res + tmp * scale;
+        scale = scale / mul;
+    }
+
+    mul = bignum::make(1000);
+    res = res / mul;
+    return res;
+}
+
+
+
 algebraic_p decimal::to_fraction(uint count, uint decimals) const
 // ----------------------------------------------------------------------------
 //   Convert a decimal value to a fraction
@@ -928,10 +1006,16 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
     decimal_g next, whole_part, decimal_part, one;
     decimal_g v1num, v1den, v2num, v2den, s;
     bool      neg = num->is_negative();
+    if (!num->split(whole_part, decimal_part))
+        return nullptr;
+    if (decimal_part->is_zero())
+        return whole_part->to_integer();
+
     if (neg)
-        num = -num;
-    whole_part = num->truncate();
-    decimal_part = num - whole_part;
+    {
+        whole_part = decimal::neg(whole_part);
+        decimal_part = decimal::neg(decimal_part);
+    }
     one = rt.make<decimal>(1);
     v1num = whole_part;
     v1den = one;
@@ -1025,7 +1109,7 @@ int decimal::compare(decimal_r x, decimal_r y, uint epsilon)
         size_t s = (epsilon + 2) / 3;
         size_t l = epsilon / 3;
         size_t m = epsilon % 3;
-       size_t d = m == 1 ? 100 : m == 2 ? 10 : 1;
+        size_t d = m == 1 ? 100 : m == 2 ? 10 : 1;
         for (size_t i = 0; i + 1 < s; i++)
         {
             uint xk = i < xs ? kigit(xb, i) : 0;

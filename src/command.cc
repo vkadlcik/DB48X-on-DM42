@@ -810,7 +810,8 @@ COMMAND_BODY(Cycle)
         id     ttype = top->type();
         switch(ttype)
         {
-        case ID_decimal:                cmd = ID_ToFraction; break;
+        case ID_decimal:
+        case ID_neg_decimal:            cmd = ID_ToFraction; break;
         case ID_integer:
         case ID_bignum:
         case ID_neg_integer:

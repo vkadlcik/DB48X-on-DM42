@@ -144,7 +144,10 @@ struct decimal : algebraic
         for (uint i = 0; i < nkigits; i++)
         {
             kigit(p, i, (value * mul / div) % 1000);
-            div = div / 1000;
+            if (div > 1000)
+                div /= 1000;
+            else
+                mul *= 1000;
         }
     }
     template<typename Int>
@@ -388,6 +391,7 @@ struct decimal : algebraic
     // ------------------------------------------------------------------------
 
 
+    algebraic_p      to_integer() const;
     algebraic_p      to_fraction(uint count = Settings.FractionIterations(),
                                  uint prec  = Settings.FractionDigits()) const;
     // ------------------------------------------------------------------------

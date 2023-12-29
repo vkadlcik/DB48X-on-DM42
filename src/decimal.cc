@@ -254,7 +254,7 @@ RENDER_BODY(decimal)
     }
 
     // Loop checking for overflow
-    bool   overflow = false;
+    bool overflow = false;
     do
     {
         // Position where we will emit the decimal dot when there is an exponent
@@ -276,7 +276,7 @@ RENDER_BODY(decimal)
         // on HP50s as 0.00001, and is shown here as 1.23457E-5, which I believe
         // is more useful. This behaviour is enabled by setting min_fix_digits
         // to a non-zero value. If the value is zero, FIX works like on HP.
-        // Also, since DB48X can compute on 34 digits, and counting zeroes
+        // Also, since DB48X can compute on many digits, and counting zeroes
         // can be annoying, there is a separate setting for when to switch
         // to scientific notation.
         bool hasexp = mode == object::ID_Sci || mode == object::ID_Eng;
@@ -300,7 +300,7 @@ RENDER_BODY(decimal)
                     {
                         if (minfix > mexp + 1)
                             minfix = mexp + 1;
-                        hasexp = shown < minfix;
+                        hasexp = shown >= 0 && shown < minfix;
                     }
                 }
                 else
@@ -338,7 +338,8 @@ RENDER_BODY(decimal)
             decpos--;               // Don't emit the decimal separator twice
 
             // Emit decimal dot and leading zeros on fractional part
-            r.put(decimal);
+            if (showdec || realexp + 1 < 0)
+                r.put(decimal);
             sep = frac_spc-1;
             for (int zeroes = realexp + 1; zeroes < 0; zeroes++)
             {
@@ -418,7 +419,7 @@ RENDER_BODY(decimal)
             if (decpos == 0 && (more || showdec))
             {
                 r.put(decimal);
-                lastnz = r.size();
+                lastnz = r.size() - !showdec;
                 sep = frac_spc - 1;
             }
 
@@ -461,6 +462,8 @@ RENDER_BODY(decimal)
                 else if (*rptr == decimal)
                 {
                     stripzeros = false;
+                    if (!showdec)
+                        r.unwrite(1);
                 }
                 else if (stripzeros) // Inserted separator
                 {
@@ -489,7 +492,7 @@ RENDER_BODY(decimal)
         }
 
         // Return to position of last inserted zero
-        else if (mode == object::ID_Sig && r.size() > lastnz)
+        else if ((!decpos || mode == object::ID_Sig) && r.size() > lastnz)
         {
             r.reset_to(lastnz);
         }

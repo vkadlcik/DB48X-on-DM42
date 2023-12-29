@@ -157,3 +157,16 @@ bool symbol::is_same_as(symbol_p other) const
         return false;
     return strncasecmp(cstring(txt), cstring(otxt), sz) == 0;
 }
+
+
+bool symbol::matches(utf8 otxt, size_t osz) const
+// ----------------------------------------------------------------------------
+//   Check if the symbol matches the
+// ----------------------------------------------------------------------------
+{
+    size_t sz;
+    utf8 txt = value(&sz);
+    if (sz != osz)
+        return false;
+    return strncmp(cstring(txt), cstring(otxt), sz) == 0;
+}

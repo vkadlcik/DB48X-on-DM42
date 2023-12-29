@@ -171,6 +171,10 @@ public:
     {
         return DecimalComma() ? ',' : '.';
     }
+    cstring DecimalSeparatorString() const
+    {
+        return DecimalComma() ? "," : ".";
+    }
     unicode ExponentSeparator() const
     {
         return FancyExponent() ? L'⁳' : 'E';

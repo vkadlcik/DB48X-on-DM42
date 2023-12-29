@@ -393,8 +393,11 @@ RENDER_BODY(decimal)
             decade--;
 
             d =  decade == 2 ? md / 100 : (decade == 1 ? (md / 10) : md) % 10;
-            if (decimals <= 0)
+            if (decpos <= 0 && decimals <= 0)
+            {
+                decade++;       // Enable rounding of last digit
                 break;
+            }
 
             r.put(char('0' + d));
             decpos--;

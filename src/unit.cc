@@ -120,6 +120,74 @@ algebraic_p unit::simple(algebraic_g v, algebraic_g u, id ty)
 }
 
 
+static size_t render_dms(renderer &r, algebraic_g x,
+                         cstring deg, cstring min, cstring sec)
+// ----------------------------------------------------------------------------
+//   Render a number as "degrees / minutes / seconds"
+// ----------------------------------------------------------------------------
+{
+    if (!algebraic::real_promotion(x))
+        return 0;
+    if (!x->is_decimal())
+        return 0;
+
+    decimal_g value = decimal_p(+x);
+    decimal_g ip, fp;
+    bool neg = value->is_negative();
+    if (neg)
+        value = decimal::neg(value);
+    if (value->exponent() > 8)
+        return 0;
+    if (!value->split(ip, fp))
+        return 0;
+
+    if (neg)
+        r.put('-');
+    ularge v = ip->as_unsigned();
+    r.printf("%d", int(v));
+    r.put(deg);
+
+    value = rt.make<decimal>(60);
+    value = value * fp;
+    if (!value->split(ip, fp))
+        return 0;
+    v = ip->as_unsigned();
+    r.printf("%02d", int(v));
+    r.put(min);
+
+    value = rt.make<decimal>(60);
+    value = value * fp;
+    if (value->exponent() < 2)
+        r.put('0');
+    save<settings> save(Settings, Settings);
+    Settings.NoTrailingDecimal(true);
+    Settings.StandardExponent(999);
+    value->render(r);
+    r.put(sec);
+
+    return r.size();
+}
+
+
+static size_t render_date(renderer &r, algebraic_g x)
+// ----------------------------------------------------------------------------
+//   Render a number as "degrees / minutes / seconds"
+// ----------------------------------------------------------------------------
+{
+    if (!algebraic::real_promotion(x))
+        return 0;
+    if (x->is_decimal())
+        return 0;
+
+    decimal_g value = decimal_p(+x);
+    decimal_g ip, fp;
+    if (!value->split(ip, fp))
+        return 0;
+
+    return 0;
+}
+
+
 RENDER_BODY(unit)
 // ----------------------------------------------------------------------------
 //   Do not emit quotes around unit objects
@@ -127,6 +195,22 @@ RENDER_BODY(unit)
 {
     algebraic_g value = o->value();
     algebraic_g uexpr = o->uexpr();
+    if (!r.editing())
+    {
+        if (symbol_p sym = uexpr->as_quoted<symbol>())
+        {
+            if (sym->matches("dms"))
+                if (size_t sz = render_dms(r, value, "°", "′", "″"))
+                    return sz;
+            if (sym->matches("hms"))
+                if (size_t sz = render_dms(r, value, ":", ":", ""))
+                    return sz;
+            if (sym->matches("date"))
+                if (size_t sz = render_date(r, value))
+                    return sz;
+
+        }
+    }
     value->render(r);
     r.put(r.editing() ? unicode('_') : unicode(settings::SPACE_UNIT));
     save<bool> m(mode, true);

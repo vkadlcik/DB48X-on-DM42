@@ -75,6 +75,12 @@ struct symbol : text
     bool     store(object_g obj) const;
     bool     is_same_as(symbol_p other) const;
 
+    bool     matches(cstring name) const
+    {
+        return matches(utf8(name), strlen(name));
+    }
+    bool     matches(utf8 name, size_t len) const;
+
 public:
     OBJECT_DECL(symbol);
     PARSE_DECL(symbol);

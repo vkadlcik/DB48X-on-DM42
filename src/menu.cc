@@ -418,10 +418,10 @@ MENU(AnglesMenu,
      "→Polar",  ID_Unimplemented,
      "→Rect",   ID_Unimplemented,
 
-     "→DMS",    ID_Unimplemented,
-     "DMS→",    ID_Unimplemented,
-     "DMS+",    ID_Unimplemented,
-     "DMS-",    ID_Unimplemented,
+     "→DMS",    ID_ToDMS,
+     "DMS→",    ID_FromDMS,
+     "DMS+",    ID_DMSAdd,
+     "DMS-",    ID_DMSSub,
      "Math",    ID_MathModesMenu,
      "Modes",   ID_ModesMenu);
 
@@ -1221,8 +1221,10 @@ MENU(FractionsMenu,
      "1/3",     ID_BigFractions,
      "¹/₃",     ID_SmallFractions,
 
-     "→HMS",    ID_Unimplemented,
-     "HMS→",    ID_Unimplemented,
+     "→DMS",    ID_ToDMS,
+     "DMS→",    ID_FromDMS,
+     "→HMS",    ID_ToHMS,
+     "HMS→",    ID_FromHMS,
      FractionIterations::label,         ID_FractionIterations,
      FractionDigits::label,             ID_FractionDigits
 );
@@ -1488,10 +1490,10 @@ MENU(TimeMenu,
      "TmBench", ID_Unimplemented,
 
      "Date+",   ID_Unimplemented,
-     "→HMS",    ID_Unimplemented,
-     "HMS→",    ID_Unimplemented,
-     "HMS+",    ID_Unimplemented,
-     "HMS-",    ID_Unimplemented,
+     "→HMS",    ID_ToHMS,
+     "HMS→",    ID_FromHMS,
+     "HMS+",    ID_HMSAdd,
+     "HMS-",    ID_HMSSub,
 
      "Alarm",   ID_Unimplemented,
      "Ack",     ID_Unimplemented,

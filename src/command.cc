@@ -996,6 +996,215 @@ COMMAND_BODY(RealToBinary)
 }
 
 
+// ============================================================================
+//
+//   HMS and DMS commands
+//
+// ============================================================================
+
+static algebraic_p to_hms_dms(algebraic_r x, cstring name)
+// ----------------------------------------------------------------------------
+//   Convert an algebraic value to HMS or DMS value
+// ----------------------------------------------------------------------------
+{
+    if (unit_p u = x->as<unit>())
+    {
+        algebraic_g uexpr = u->uexpr();
+        if (symbol_p sym = uexpr->as_quoted<symbol>())
+        {
+            if (sym->matches(name))
+                return u->value();
+        }
+        rt.inconsistent_units_error();
+        return nullptr;
+    }
+    if (!x->is_real())
+    {
+        rt.type_error();
+        return nullptr;
+    }
+    return x;
+}
+
+
+static object::result to_hms_dms(cstring name)
+// ----------------------------------------------------------------------------
+//   Convert the top of stack to HMS or DMS unit
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return object::ERROR;
+    algebraic_g x = algebraic_p(rt.top());
+    algebraic_g xc = to_hms_dms(x, name);
+    if (!xc)
+        return object::ERROR;
+    if (+xc != x)
+        return object::OK;      // No-op if already a unit
+
+    algebraic_g sym = +symbol::make(name);
+    unit_g unit = unit::make(x, sym);
+    if (!rt.top(unit))
+        return object::ERROR;
+    return object::OK;
+}
+
+
+static object::result from_hms_dms(cstring name)
+// ----------------------------------------------------------------------------
+//   Convert the top of stack from HMS or DMS unit
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return object::ERROR;
+    algebraic_g x = algebraic_p(rt.top());
+
+    if (x->is_real())
+    {
+        // Compatibility mode (including behaviour for 1.60->2.00)
+        algebraic_g hours = IntPart::run(x);
+        algebraic_g fp = FracPart::run(x);
+        algebraic_g hundred = integer::make(100);
+        algebraic_g min = hundred * fp;
+        algebraic_g sec = hundred * FracPart::run(min);
+        min = IntPart::run(min);
+        algebraic_g ratio = +fraction::make(integer::make(100),
+                                            integer::make(6000));
+        sec = sec * ratio;
+        min = (min + sec) * ratio;
+        hours = hours + min;
+        if (hours && rt.top(hours))
+            return object::OK;
+    }
+    else if (unit_g u = x->as<unit>())
+    {
+        algebraic_g uexpr = u->uexpr();
+        if (symbol_p sym = uexpr->as_quoted<symbol>())
+        {
+            if (sym->matches(name))
+            {
+                uexpr = u->value();
+                if (rt.top(uexpr))
+                    return object::OK;
+            }
+        }
+        rt.inconsistent_units_error();
+    }
+    else
+    {
+        rt.type_error();
+    }
+    return object::ERROR;
+}
+
+
+COMMAND_BODY(ToHMS)
+// ----------------------------------------------------------------------------
+//   Convert value to HMS format
+// ----------------------------------------------------------------------------
+{
+    return to_hms_dms("hms");
+}
+
+
+COMMAND_BODY(ToDMS)
+// ----------------------------------------------------------------------------
+//   Convert value to DMS format
+// ----------------------------------------------------------------------------
+{
+    return to_hms_dms("dms");
+}
+
+
+COMMAND_BODY(FromHMS)
+// ----------------------------------------------------------------------------
+//   Convert value from HMS format
+// ----------------------------------------------------------------------------
+{
+    return from_hms_dms("hms");
+}
+
+
+COMMAND_BODY(FromDMS)
+// ----------------------------------------------------------------------------
+//   Convert value from DMS format
+// ----------------------------------------------------------------------------
+{
+    return from_hms_dms("dms");
+}
+
+
+static object::result hms_dms_add_sub(cstring name, bool sub)
+// ----------------------------------------------------------------------------
+//   Addition or subtraction of DMS/HMS values
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(2))
+        return object::ERROR;
+
+    algebraic_g x = algebraic_p(rt.stack(0));
+    algebraic_g y = algebraic_p(rt.stack(1));
+
+    // Convert both arguments to DMS
+    x = to_hms_dms(x, name);
+    y = to_hms_dms(x, name);
+    if (!x || !y)
+        return object::ERROR;
+
+    // Add or subtract
+    x = sub ? y - x : y + x;
+
+    // Build result
+    algebraic_g sym = +symbol::make(name);
+    unit_g unit = unit::make(x, sym);
+    if (!rt.drop() || !rt.top(unit))
+        return object::ERROR;
+    return object::OK;
+}
+
+
+COMMAND_BODY(DMSAdd)
+// ----------------------------------------------------------------------------
+//   Addition of DMS values
+// ----------------------------------------------------------------------------
+{
+    return hms_dms_add_sub("dms", false);
+}
+
+
+COMMAND_BODY(DMSSub)
+// ----------------------------------------------------------------------------
+//   Subtraction of DMS values
+// ----------------------------------------------------------------------------
+{
+    return hms_dms_add_sub("dms", true);
+}
+
+
+COMMAND_BODY(HMSAdd)
+// ----------------------------------------------------------------------------
+//   Addition of HMS values
+// ----------------------------------------------------------------------------
+{
+    return hms_dms_add_sub("hms", false);
+}
+
+
+COMMAND_BODY(HMSSub)
+// ----------------------------------------------------------------------------
+//   Subtraction of HMS values
+// ----------------------------------------------------------------------------
+{
+    return hms_dms_add_sub("hms", true);
+}
+
+
+
+// ============================================================================
+//
+//   History and undo
+//
+// ============================================================================
+
 COMMAND_BODY(LastArg)
 // ----------------------------------------------------------------------------
 //   Return the last arguments
@@ -1022,6 +1231,13 @@ COMMAND_BODY(Undo)
     return rt.undo() ? OK : ERROR;
 }
 
+
+
+// ============================================================================
+//
+//   Editor commands
+//
+// ============================================================================
 
 COMMAND_BODY(EditorSelect)
 // ----------------------------------------------------------------------------

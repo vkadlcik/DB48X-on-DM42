@@ -104,7 +104,7 @@ ID_RANGE(is_fraction,      fraction,       neg_big_fraction)
 ID_RANGE(is_decimal,       decimal,        neg_decimal)
 ID_RANGE(is_real,          bignum,         neg_decimal)
 ID_RANGE(is_complex,       rectangular,    polar)
-ID_RANGE(is_command,       Drop,           ToFraction,    ToList, Unimplemented)
+ID_RANGE(is_command,       Drop,           Unimplemented)
 ID_RANGE(is_symbolic,      expression,     symbol,        pi, ImaginaryUnit)
 ID_RANGE(is_algebraic_fn,  add,            ToFraction,    asinh, det)
 ID_RANGE(is_immediate,     MainMenu,       SelfInsert)
@@ -573,8 +573,21 @@ CMD(Continue)
 ALIAS(Continue, "cont")
 CMD(Kill)
 
+// Unit conversions
+CMD(Convert)
+NAMED(UBase, "BaseUnits")
+NAMED(UVal,  "UnitValue")
+NAMED(UFact,  "FactorUnit")
+NAMED(ToUnit,  "→Unit")
+CMD(ApplyUnit)
+CMD(ConvertToUnit)
+CMD(ApplyInverseUnit)
+CMD(ConvertToUnitPrefix)
+
+// Last things
 NAMED(LastArg, "LastArguments")
 CMD(LastX)
+CMD(LastMenu)
 
 
 // ============================================================================
@@ -764,12 +777,26 @@ SETTING_ENUM(DateTick,          nullptr,        DateSeparatorCommand)
 SETTING_BITS(DateSeparatorCommand, 2, ID_DateSlash, ID_DateTick, ID_DateSlash)
 
 
+// ============================================================================
+//
+//   Special commands
+//
+// ============================================================================
+
+NAMED(Off, "PowerOff")
+CMD(SaveState)
+CMD(SystemSetup)
+
+CMD(Unimplemented)              // Last command in catalog
+
+
 
 // ============================================================================
 //
 //   Menus
 //
 // ============================================================================
+
 
 MENU(MainMenu)
 
@@ -836,7 +863,12 @@ MENU(MemMenu)
 MENU(LibsMenu)
 MENU(TextMenu)
 
+// Special menus
 MENU(EditMenu)
+CMD(VariablesMenu)
+CMD(ToolsMenu)
+CMD(Catalog)
+
 
 
 // ============================================================================
@@ -844,17 +876,6 @@ MENU(EditMenu)
 //  Unit menus
 //
 // ============================================================================
-
-CMD(Convert)
-NAMED(UBase, "BaseUnits")
-NAMED(UVal,  "UnitValue")
-NAMED(UFact,  "FactorUnit")
-NAMED(ToUnit,  "→Unit")
-CMD(ApplyUnit)
-CMD(ConvertToUnit)
-CMD(ApplyInverseUnit)
-
-CMD(ConvertToUnitPrefix)
 
 #define UNIT_MENUS(Base)                        \
     UNIT_MENU(Base##0)                          \
@@ -880,23 +901,11 @@ UNIT_MENUS(UnitMenu8)
 UNIT_MENUS(UnitMenu9)
 
 
-
 // ============================================================================
 //
-//   Special menus and menu commands
+//   Editor commands
 //
 // ============================================================================
-
-CMD(VariablesMenu)
-CMD(ToolsMenu)
-CMD(Catalog)
-CMD(LastMenu)
-
-NAMED(Off, "PowerOff")
-CMD(SaveState)
-CMD(SystemSetup)
-
-CMD(Unimplemented)              // Last command in catalog
 
 CMD(EditorSelect)
 CMD(EditorWordLeft)
@@ -925,7 +934,7 @@ CMD(VariablesMenuExecute)
 CMD(VariablesMenuRecall)
 CMD(VariablesMenuStore)
 
-CMD(Undo)                       // Do not save stack before Undo
+CMD(Undo)                       // Immediate: do not save stack before Undo
 
 CMD(SelfInsert)                 // Last immediate command
 

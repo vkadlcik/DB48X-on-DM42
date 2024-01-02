@@ -1794,6 +1794,30 @@ the corresponding unit in the units file, for example:
 ```
 # Release notes
 
+## Release 0.6.1 "Happy New Year": Quick bug fixes
+
+A few quick bug fixes that make DB48X a bit more usable.
+
+### New features
+
+* Setting to display `2+i3` instead of `2+3i` (#660)
+* HMS and DMS operations (#654)
+* Special `1_dms` and `1_hms` units rendering in DMS / HMS (#650)
+
+### Bug fixes
+
+* Improve behavior of `+/-` key while editing (#658)
+* Do not accept base 37 (#656)
+* Insert `for` statement in program instead of executing it (#655)
+* Hide trailing decimal separator for decimals with integer values (#653)
+* Fix display of `19.8` with `0 FIX` (#652)
+* Implement true decimal to integer conversion (#648)
+
+### Improvements
+
+* doc: Record performance data for 0.6.0
+* doc: Udpate status file
+
 ## Release 0.6.0 "Christmas": Introducing variable precision
 
 This release was a bit longer in coming than earlier ones, because we are about

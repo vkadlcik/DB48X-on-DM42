@@ -3316,11 +3316,11 @@ bool user_interface::handle_editing(int key)
             }
             else
             {
-                utf8 ed              = rt.editor();
+                utf8 ed = rt.editor();
                 if (shift && cursor < editing)
                 {
                     // Shift + Backspace = Delete to right of cursor
-                    uint after           = utf8_next(ed, cursor, editing);
+                    uint after = utf8_next(ed, cursor, editing);
                     if (utf8_codepoint(ed + cursor) == '\n')
                         edRows = 0;
                     remove(cursor, after - cursor);
@@ -3643,28 +3643,38 @@ bool user_interface::handle_digits(int key)
             // Special case for change of sign
             byte   *ed          = rt.editor();
             byte   *p           = ed + cursor;
+            utf8    found       = nullptr;
             unicode c           = utf8_codepoint(p);
             unicode dm          = Settings.DecimalSeparator();
             unicode ns          = Settings.NumberSeparator();
             unicode hs          = Settings.BasedSeparator();
             bool    had_complex = false;
-            while (p > ed)
+            while (p > ed && !found)
             {
                 p = (byte *) utf8_previous(p);
                 c = utf8_codepoint(p);
                 if (c == complex::I_MARK || c == complex::ANGLE_MARK)
                 {
                     had_complex = true;
-                    if (c == complex::I_MARK)
+                    if (c == complex::ANGLE_MARK)
+                    {
+                        found = utf8_next(p);
+                    }
+                    else
+                    {
+                        found = p;
                         p = (byte *) utf8_previous(p);
-                    c = utf8_codepoint(p);
-                    break;
+                        c = utf8_codepoint(p);
+                    }
                 }
                 else if ((c < '0' || c > '9') && c != dm && c != ns && c != hs)
-                    break;
+                {
+                    found = utf8_next(p);
+                }
             }
 
-            utf8 i = (p > ed || had_complex) ? utf8_next(p) : p;
+            if (!found)
+                found = ed;
             if (c == 'e' || c == 'E' || c == Settings.ExponentSeparator())
                 c  = utf8_codepoint(p);
 
@@ -3673,7 +3683,7 @@ bool user_interface::handle_digits(int key)
                 if (c == '+' || c == '-')
                     *p = '+' + '-' - c;
                 else
-                    cursor += rt.insert(i - ed, '-');
+                    cursor += rt.insert(found - ed, '-');
             }
             else if (c == '-')
             {
@@ -3681,7 +3691,7 @@ bool user_interface::handle_digits(int key)
             }
             else
             {
-                cursor += rt.insert(i - ed, '-');
+                cursor += rt.insert(found - ed, '-');
             }
             last = 0;
             dirtyEditor = true;

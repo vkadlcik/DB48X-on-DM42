@@ -88,13 +88,6 @@ bool renderer::put(char c)
 //   Write a single character
 // ----------------------------------------------------------------------------
 {
-    if (sign)
-    {
-        sign = false;
-        if (c != '-' && c != '+')
-            put('+');
-    }
-
     if (written >= length)
         return false;
 

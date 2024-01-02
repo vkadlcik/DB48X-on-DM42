@@ -721,10 +721,17 @@ RENDER_BODY(rectangular)
 {
     algebraic_g re = o->re();
     algebraic_g im = o->im();
+    bool ifirst = r.editing() || Settings.ComplexIBeforeImaginary();
+    bool neg  = im->is_negative();
+    if (neg)
+        im = -im;
     re->render(r);
-    r.need_sign();
+    r.put(neg ? '-' : '+');
+    if (ifirst)
+        r.put(unicode(I_MARK));
     im->render(r);
-    r.put(unicode(I_MARK));
+    if (!ifirst)
+        r.put(unicode(I_MARK));
     return r.size();
 }
 

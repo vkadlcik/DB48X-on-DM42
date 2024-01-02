@@ -444,6 +444,8 @@ MENU(ComplexMenu,
      ID_abs,
      ID_arg,
 
+     "2+i3",    ID_ComplexIBeforeImaginary,
+     "2+3i",    ID_ComplexIAfterImaginary,
      "Auto ℂ",  ID_Unimplemented,
      "Rect",    ID_Unimplemented,
      "Polar",   ID_Unimplemented);

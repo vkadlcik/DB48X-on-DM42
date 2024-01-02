@@ -46,19 +46,17 @@ struct renderer
         : target(buf), length(len), written(0), saving(), tabs(0),
           edit(!stk && buf == nullptr),
           eq(false), stk(stk), mlstk(ml),
-          space(false), sign(false),
-          cr(false), txt(false), nl(false) {}
+          space(false), cr(false), txt(false), nl(false) {}
     renderer(bool equation, bool edit = false, bool stk = false, bool ml = false)
         : target(nullptr), length(~0U), written(0), saving(), tabs(0),
           edit(edit),
-          eq(equation), stk(stk), mlstk(ml), space(false), sign(false),
+          eq(equation), stk(stk), mlstk(ml), space(false),
           cr(false), txt(false), nl(false) {}
     renderer(file *f)
         : target(), length(~0U), written(0), saving(f), tabs(0),
           edit(true),
           eq(false), stk(false), mlstk(false),
-          space(false), sign(false),
-          cr(false), txt(false), nl(false) {}
+          space(false), cr(false), txt(false), nl(false) {}
     ~renderer();
 
     bool   put(char c);
@@ -74,9 +72,8 @@ struct renderer
     bool   stack() const                { return stk; }
     bool   multiline_stack() const      { return mlstk; }
     file * file_save() const            { return saving; }
-    size_t size() const                 { return written + sign; }
+    size_t size() const                 { return written; }
     void   clear()                      { written = 0; }
-    void   need_sign()                  { sign = true; }
     utf8   text() const;
 
     size_t printf(const char *format, ...);
@@ -133,7 +130,6 @@ protected:
     bool        stk   : 1;      // Format for stack rendering
     bool        mlstk : 1;      // Format for multi-line stack rendering
     bool        space : 1;      // Had a space
-    bool        sign  : 1;      // Need to insert '+' if next char is not '-'
     bool        cr    : 1;      // Just emitted a CR
     bool        txt   : 1;      // Inside text
     bool        nl    : 1;      // Pending CR

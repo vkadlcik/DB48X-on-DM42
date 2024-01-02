@@ -689,6 +689,7 @@ FLAG(IndexWrapped,              IndexDidNotWrap)
 FLAG(SingleLineResult,          MultiLineResult)
 FLAG(MultiLineStack,            SingleLineStack)
 FLAG(TooManyDigitsErrors,       NoErrorForTooManyDigits)
+FLAG(ComplexIBeforeImaginary,   ComplexIAfterImaginary)
 
 SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
 SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)

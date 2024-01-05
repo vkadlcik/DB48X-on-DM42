@@ -488,18 +488,6 @@ bool user_interface::key(int key, bool repeating, bool talpha)
            "Key %d shifts %d longpress", key, shift_plane(), longpress);
     repeat = false;
 
-#if SIMULATOR
-    // Special keu to clear calculator state
-    if (key == tests::CLEAR)
-    {
-        clear_editor();
-        while (rt.depth())
-            rt.pop();
-        rt.clear_error();
-        return true;
-    }
-#endif // SIMULATOR
-
     if (rt.error())
     {
         if (key == KEY_EXIT || key == KEY_ENTER || key == KEY_BSP)

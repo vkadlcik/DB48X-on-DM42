@@ -101,7 +101,6 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    tagged_objects();
 }
 
 
@@ -327,7 +326,8 @@ void tests::data_types()
         .type(object::ID_expression)
         .expect("'X⁻¹+(Y²+Z³)'");
     step("Equation fancy parsing from editor");
-    test(DOWN, "   ", SHIFT, SHIFT, DOWN, " 1 +", ENTER)
+    test(DOWN, SPACE, SPACE, SPACE,
+         SHIFT, SHIFT, DOWN, SHIFT, F3, " 1 +", ENTER)
         .type(object::ID_expression).expect("'X⁻¹+(Y²+Z³)+1'");
 
     step("Fractions");

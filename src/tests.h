@@ -54,7 +54,7 @@ struct tests
     void current();
 
     // Individual test categories
-    void reset_settings(bool fast);
+    void reset_settings();
     void shift_logic();
     void keyboard_entry();
     void data_types();
@@ -82,6 +82,8 @@ struct tests
     void rewrite_engine();
     void expand_collect_simplify();
     void tagged_objects();
+    void flags_by_name();
+    void settings_by_name();
     void regression_checks();
 
     enum key

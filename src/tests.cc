@@ -60,7 +60,7 @@ void tests::run(bool onlyCurrent)
     RECORDER_TRACE(errors) = false;
 
     // Reset to known settings stateg
-    reset_settings(onlyCurrent);
+    reset_settings();
 
     current();
     if (!onlyCurrent)
@@ -86,6 +86,8 @@ void tests::run(bool onlyCurrent)
         rewrite_engine();
         expand_collect_simplify();
         tagged_objects();
+        flags_by_name();
+        settings_by_name();
         regression_checks();
     }
     summary();
@@ -99,46 +101,27 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
+    flags_by_name();
+    settings_by_name();
     tagged_objects();
 }
 
 
-void tests::reset_settings(bool fast)
+void tests::reset_settings()
 // ----------------------------------------------------------------------------
 //   Use settings that make the results predictable on screen
 // ----------------------------------------------------------------------------
 {
     // Reset to default test settings
+    begin("Reset to default settings");
     Settings = settings();
 
-    // Do it the fast way if we only run current tests
-    if (fast)
-    {
-        begin("Fast-track settings reset");
-        return;
-    }
-
-    // Otherwise exercise settings routines
-    begin("Reset settings");
-
-#define ID(id)
-#define FLAG(Enable, Disable)                   \
-    step("Setting flag " #Enable)               \
-        .test(#Enable, ENTER)                   \
-        .noerr();                               \
-    step("Clearing flag " #Disable)             \
-        .test(#Disable, ENTER)                  \
-        .noerr();
-#define SETTING(Name, Low, High, Init)          \
-    step("Setting " #Name " to default " #Init) \
-        .noerr();
-#include "ids.tbl"
+    // Check that we have actually reset the settings
     step("Select Modes menu")
         .test("ModesMenu", ENTER)               .noerr();
     step("Checking output modes")
         .test("Modes", ENTER)
         .expect("« ModesMenu »");
-
 }
 
 
@@ -2499,6 +2482,50 @@ void tests::tagged_objects()
     step("DeleteTag");
     test(CLEAR, ":Hello:123 DeleteTag", ENTER)
         .expect("123");
+}
+
+
+void tests::flags_by_name()
+// ----------------------------------------------------------------------------
+//   Set and clear all flags by name
+// ----------------------------------------------------------------------------
+{
+    // Otherwise exercise settings routines
+    begin("Set and clear all flags by name");
+
+#define ID(id)
+#define FLAG(Enable, Disable)                   \
+    step("Setting flag " #Enable)               \
+        .test(#Enable, ENTER)                   \
+        .noerr();                               \
+    step("Clearing flag " #Disable)             \
+        .test(#Disable, ENTER)                  \
+        .noerr();
+#define SETTING(Name, Low, High, Init)          \
+    step("Setting " #Name " to default " #Init) \
+        .noerr();
+#include "ids.tbl"
+}
+
+
+void tests::settings_by_name()
+// ----------------------------------------------------------------------------
+//   Set and clear all settings by name
+// ----------------------------------------------------------------------------
+{
+    // Otherwise exercise settings routines
+    begin("Adjust all settings by name");
+
+#define ID(id)
+#define FLAG(Enable, Disable)
+#define SETTING(Name, Low, High, Init)                  \
+    step("Getting " #Name " current value")             \
+        .test("'" #Name "' RCL", ENTER)                 \
+        .noerr();                                       \
+    step("Setting " #Name " to its current value")      \
+        .test("" #Name "", ENTER)                       \
+        .noerr();
+#include "ids.tbl"
 }
 
 

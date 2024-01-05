@@ -375,11 +375,11 @@ void tests::data_types()
     step("Type command (direct mode)");
     test(CLEAR, "DetailedTypes", ENTER).noerr();
     test(CLEAR, "12 type", ENTER)
-        .type(object::ID_integer)
-        .expect(object::ID_integer);
+        .type(object::ID_neg_integer)
+        .expect(~int(object::ID_integer));
     test(CLEAR, "'ABC*3' type", ENTER)
-        .type(object::ID_integer)
-        .expect(object::ID_expression);
+        .type(object::ID_neg_integer)
+        .expect(~int(object::ID_expression));
 
     step("Type command (compatible mode)");
     test(CLEAR, "CompatibleTypes", ENTER).noerr();
@@ -396,7 +396,7 @@ void tests::data_types()
         .expect("\"integer\"");
     test(CLEAR, "'ABC*3' typename", ENTER)
         .type(object::ID_text)
-        .expect("\"equation\"");
+        .expect("\"expression\"");
 }
 
 

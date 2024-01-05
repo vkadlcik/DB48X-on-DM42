@@ -3531,7 +3531,7 @@ bool user_interface::handle_alpha(int key)
     // Allow "alpha" mode for keys A-F in based number mode
     // xshift-ENTER inserts quotes, xshift-BSP inserts \n
     bool editing = rt.editing();
-    bool hex = editing && mode == BASED && key >= KB_A && key <= KB_F;
+    bool hex = editing && !alpha && mode == BASED && key >= KB_A && key <= KB_F;
     bool special = xshift && (key == KEY_ENTER || (key == KEY_BSP && editing));
     if (!alpha && !hex && !special)
         return false;

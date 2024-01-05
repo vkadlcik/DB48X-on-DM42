@@ -254,26 +254,26 @@ void tests::data_types()
     test(CLEAR, "#10010101b", ENTER)
         .type(object::ID_bin_integer)
         .expect("#1001 0101₂");
-    test(CLEAR, "#101B", ENTER).type(object::ID_bin_integer).expect("#101₂");
+    test(CLEAR, "#101b", ENTER).type(object::ID_bin_integer).expect("#101₂");
 
     step("Decimal based integer");
     test(CLEAR, "#12345d", ENTER)
         .type(object::ID_dec_integer)
         .expect("#1 2345₁₀");
-    test(CLEAR, "#123D", ENTER).type(object::ID_dec_integer).expect("#123₁₀");
+    test(CLEAR, "#123d", ENTER).type(object::ID_dec_integer).expect("#123₁₀");
 
     step("Octal based integer");
     test(CLEAR, "#12345o", ENTER)
         .type(object::ID_oct_integer)
         .expect("#1 2345₈");
-    test(CLEAR, "#123O", ENTER).type(object::ID_oct_integer).expect("#123₈");
+    test(CLEAR, "#123o", ENTER).type(object::ID_oct_integer).expect("#123₈");
 
     step("Hexadecimal based integer");
-    test(CLEAR, "#1234ABCDH", ENTER)
+    test(CLEAR, "#1234ABCDh", ENTER)
         .type(object::ID_hex_integer)
         .type(object::ID_hex_integer)
         .expect("#1234 ABCD₁₆");
-    test(CLEAR, "#DEADBEEFH", ENTER)
+    test(CLEAR, "#DEADBEEFh", ENTER)
         .type(object::ID_hex_integer)
         .expect("#DEAD BEEF₁₆");
 #endif // CONFIG_FIXED_BASED_OBJECTS
@@ -1098,7 +1098,7 @@ void tests::integer_display_formats()
     test(ENTER).noerr();
 
     step("Based number rendering");
-    test(CLEAR, "#1234ABCDEFH", ENTER)
+    test(CLEAR, "#1234ABCDEFh", ENTER)
 #if CONFIG_FIXED_BASED_OBJECTS
         .type(object::ID_hex_integer)
 #endif // CONFIG_FIXED_BASED_OBJECTS

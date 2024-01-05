@@ -945,6 +945,12 @@ bool unit::convert(unit_g &x) const
                 o = o * cfu;
         }
 
+        if (!o->is_real())
+        {
+            rt.inconsistent_units_error();
+            return false;
+        }
+
         algebraic_g v = x->value();
         v = v * o;
         x = unit_p(unit::simple(v, svu)); // Wrong cast, but OK above

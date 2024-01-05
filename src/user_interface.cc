@@ -3597,7 +3597,7 @@ bool user_interface::handle_alpha(int key)
     }
     else
     {
-        edit(c, TEXT);
+        edit(c, DIRECT);
         if (c == '"')
             alpha = true;
         repeat = true;

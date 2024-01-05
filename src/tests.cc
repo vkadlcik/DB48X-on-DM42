@@ -101,8 +101,6 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    flags_by_name();
-    settings_by_name();
     tagged_objects();
 }
 

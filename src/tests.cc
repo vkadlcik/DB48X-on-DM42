@@ -120,22 +120,19 @@ void tests::reset_settings(bool fast)
 
     // Otherwise exercise settings routines
     begin("Reset settings");
-    step("Numerical settings").test("StandardDisplay", ENTER).noerr();
-    step("Switching to degrees").test("Degrees", ENTER).noerr();
-    step("Using long form for commands").test("LongForm", ENTER).noerr();
-    step("Using dot as fractional mark").test("DecimalDot", ENTER).noerr();
-    step("Setting trailing decimal").test("TrailingDecimal", ENTER).noerr();
-    step("Using default 34-digit precision")
-        .test("34 Precision", ENTER)
+
+#define ID(id)
+#define FLAG(Enable, Disable)                   \
+    step("Setting flag " #Enable)               \
+        .test(#Enable, ENTER)                   \
+        .noerr();                               \
+    step("Clearing flag " #Disable)             \
+        .test(#Disable, ENTER)                  \
         .noerr();
-    step("Using fancy unicode exponent")
-        .test("FancyExponent", ENTER)
+#define SETTING(Name, Low, High, Init)          \
+    step("Setting " #Name " to default " #Init) \
         .noerr();
-    step("Using 64-bit word size").test("64 StoreWordSize", ENTER).noerr();
-    step("Disable spacing")
-        .test("3 MantissaSpacing", ENTER)       .noerr()
-        .test("5 FractionSpacing", ENTER)       .noerr()
-        .test("4 BasedSpacing", ENTER)          .noerr();
+#include "ids.tbl"
     step("Select Modes menu")
         .test("ModesMenu", ENTER)               .noerr();
     step("Checking output modes")

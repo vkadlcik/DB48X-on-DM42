@@ -331,9 +331,9 @@ void tests::data_types()
         .type(object::ID_expression).expect("'X⁻¹+(Y²+Z³)+1'");
 
     step("Fractions");
-    test(CLEAR, "1/3", ENTER).type(object::ID_fraction).expect("1/3");
-    test(CLEAR, "-80/60", ENTER).type(object::ID_neg_fraction).expect("-4/3");
-    test(CLEAR, "20/60", ENTER).type(object::ID_fraction).expect("1/3");
+    test(CLEAR, "1/3", ENTER).type(object::ID_fraction).expect("¹/₃");
+    test(CLEAR, "-80/60", ENTER).type(object::ID_neg_fraction).expect("-⁴/₃");
+    test(CLEAR, "20/60", ENTER).type(object::ID_fraction).expect("¹/₃");
 
     step("Large integers");
     cstring b = "123456789012345678901234567890123456789012345678901234567890";
@@ -350,10 +350,10 @@ void tests::data_types()
         "123456789012345678901234567890123456789012345678901234567890/"
         "123456789012345678901234567890123456789012345678901234567891";
     cstring mbf =
-        "-123 456 789 012 345 678 901 234 567 890 123 456 789"
-        " 012 345 678 901 234 567 890/"
-        "123 456 789 012 345 678 901 234 567 890 123 456 789"
-        " 012 345 678 901 234 567 891";
+        "-¹²³ ⁴⁵⁶ ⁷⁸⁹ ⁰¹² ³⁴⁵ ⁶⁷⁸ ⁹⁰¹ ²³⁴ ⁵⁶⁷ ⁸⁹⁰ ¹²³ ⁴⁵⁶ ⁷⁸⁹ ⁰¹² ³⁴⁵ "
+        "⁶⁷⁸ ⁹⁰¹ ²³⁴ ⁵⁶⁷ ⁸⁹⁰/"
+        "₁₂₃ ₄₅₆ ₇₈₉ ₀₁₂ ₃₄₅ ₆₇₈ ₉₀₁ ₂₃₄ ₅₆₇ ₈₉₀ ₁₂₃ ₄₅₆ ₇₈₉ ₀₁₂ ₃₄₅ "
+        "₆₇₈ ₉₀₁ ₂₃₄ ₅₆₇ ₈₉₁";
     test(CLEAR, bf, ENTER).type(object::ID_big_fraction).expect(mbf+1);
     test(DOWN, CHS, ENTER).type(object::ID_neg_big_fraction).expect(mbf);
     test(CHS).type(object::ID_big_fraction).expect(mbf+1);
@@ -509,8 +509,8 @@ void tests::arithmetic()
     Settings.MantissaSpacing(3);
 
     step("Division with fractional output");
-    test(CLEAR, 1, ENTER, 3, DIV).expect("1/3");
-    test(CLEAR, 2, ENTER, 5, DIV).expect("2/5");
+    test(CLEAR, 1, ENTER, 3, DIV).expect("¹/₃");
+    test(CLEAR, 2, ENTER, 5, DIV).expect("²/₅");
 
     step("Manual computation of 100!");
     test(CLEAR, 1, ENTER);
@@ -529,11 +529,11 @@ void tests::arithmetic()
     test(CLEAR, 997, ENTER);
     for (uint i = 1; i <= 100; i++)
         test(i * 997 % 101, DIV, NOKEYS, WAIT(20));
-    expect("997/"
-           "93 326 215 443 944 152 681 699 238 856 266 700 490 715 968 264 "
-           "381 621 468 592 963 895 217 599 993 229 915 608 941 463 976 156 "
-           "518 286 253 697 920 827 223 758 251 185 210 916 864 000 000 000 "
-           "000 000 000 000 000");
+    expect("⁹⁹⁷/"
+           "₉₃ ₃₂₆ ₂₁₅ ₄₄₃ ₉₄₄ ₁₅₂ ₆₈₁ ₆₉₉ ₂₃₈ ₈₅₆ ₂₆₆ ₇₀₀ ₄₉₀ ₇₁₅ ₉₆₈ "
+           "₂₆₄ ₃₈₁ ₆₂₁ ₄₆₈ ₅₉₂ ₉₆₃ ₈₉₅ ₂₁₇ ₅₉₉ ₉₉₃ ₂₂₉ ₉₁₅ ₆₀₈ ₉₄₁ ₄₆₃ "
+           "₉₇₆ ₁₅₆ ₅₁₈ ₂₈₆ ₂₅₃ ₆₉₇ ₉₂₀ ₈₂₇ ₂₂₃ ₇₅₈ ₂₅₁ ₁₈₅ ₂₁₀ ₉₁₆ ₈₆₄ "
+           "₀₀₀ ₀₀₀ ₀₀₀ ₀₀₀ ₀₀₀ ₀₀₀ ₀₀₀ ₀₀₀");
 
     step("Sign of modulo and remainder");
     test(CLEAR, " 7  3 MOD", ENTER).expect(1);
@@ -546,14 +546,14 @@ void tests::arithmetic()
     test(CLEAR, "-7 -3 REM", ENTER).expect(-1);
 
     step("Fraction modulo and remainder");
-    test(CLEAR, " 7/2  3 REM", ENTER).expect("1/2");
-    test(CLEAR, " 7/2 -3 REM", ENTER).expect("1/2");
-    test(CLEAR, "-7/2  3 REM", ENTER).expect("-1/2");
-    test(CLEAR, "-7/2 -3 REM", ENTER).expect("-1/2");
-    test(CLEAR, " 7/2  3 REM", ENTER).expect("1/2");
-    test(CLEAR, " 7/2 -3 REM", ENTER).expect("1/2");
-    test(CLEAR, "-7/2  3 REM", ENTER).expect("-1/2");
-    test(CLEAR, "-7/2 -3 REM", ENTER).expect("-1/2");
+    test(CLEAR, " 7/2  3 REM", ENTER).expect("¹/₂");
+    test(CLEAR, " 7/2 -3 REM", ENTER).expect("¹/₂");
+    test(CLEAR, "-7/2  3 REM", ENTER).expect("-¹/₂");
+    test(CLEAR, "-7/2 -3 REM", ENTER).expect("-¹/₂");
+    test(CLEAR, " 7/2  3 REM", ENTER).expect("¹/₂");
+    test(CLEAR, " 7/2 -3 REM", ENTER).expect("¹/₂");
+    test(CLEAR, "-7/2  3 REM", ENTER).expect("-¹/₂");
+    test(CLEAR, "-7/2 -3 REM", ENTER).expect("-¹/₂");
 
     step("Modulo of negative value");
     test(CLEAR, "-360 360 MOD", ENTER).expect("0");
@@ -565,8 +565,8 @@ void tests::arithmetic()
     test(CLEAR, "2 3 ^", ENTER).expect("8");
     test(CLEAR, "-2 3 ^", ENTER).expect("-8");
     step("Negative power");
-    test(CLEAR, "2 -3 ^", ENTER).expect("1/8");
-    test(CLEAR, "-2 -3 ^", ENTER).expect("-1/8");
+    test(CLEAR, "2 -3 ^", ENTER).expect("¹/₈");
+    test(CLEAR, "-2 -3 ^", ENTER).expect("-¹/₈");
 
     step("xroot");
     test(CLEAR, "8 3 xroot", ENTER).expect("2.");
@@ -673,7 +673,7 @@ void tests::local_variables()
     test(XEQ, "LocTest", ENTER, STO).noerr();
 
     step("Calling a local block with numerical values");
-    test(CLEAR, 1, ENTER, 2, ENTER, 3, ENTER, "LocTest", ENTER).expect("3/5");
+    test(CLEAR, 1, ENTER, 2, ENTER, 3, ENTER, "LocTest", ENTER).expect("³/₅");
 
     step("Calling a local block with symbolic values");
     test(CLEAR,
@@ -1364,9 +1364,9 @@ void tests::integer_numerical_functions()
         .test(CLEAR, "3 neg", ENTER).expect("-3")
         .test("negate", ENTER).expect("3");
     step("inv")
-        .test(CLEAR, "3 inv", ENTER).expect("1/3")
+        .test(CLEAR, "3 inv", ENTER).expect("¹/₃")
         .test("inv", ENTER).expect("3")
-        .test(CLEAR, "-3 inv", ENTER).expect("-1/3")
+        .test(CLEAR, "-3 inv", ENTER).expect("-¹/₃")
         .test("inv", ENTER).expect("-3");
     step("sq (square)")
         .test(CLEAR, "-3 sq", ENTER).expect("9")
@@ -1676,8 +1676,8 @@ void tests::complex_types()
     step("Polar angle conversions");
     test(CLEAR, "1∡90", ENTER).expect("1∡90°");
     test("GRAD", ENTER).expect("1∡100ℊ");
-    test("PiRadians", ENTER).expect("1∡1/2π");
-    test("RAD", ENTER).expect("1∡1.57079 63267 94896 6192ℼ");
+    test("PiRadians", ENTER).expect("1∡¹/₂π");
+    test("RAD", ENTER).expect("1∡1.57079 63267 9ℼ");
 }
 
 
@@ -1704,7 +1704,7 @@ void tests::complex_arithmetic()
     test("7+8ⅈ", DIV)
         .type(object::ID_rectangular).expect("3+8ⅈ");
     test("2+3ⅈ", DIV)
-        .type(object::ID_rectangular).expect("30/13+7/13ⅈ");
+        .type(object::ID_rectangular).expect("³⁰/₁₃+⁷/₁₃ⅈ");
     test("2+3ⅈ", MUL)
         .type(object::ID_rectangular).expect("3+8ⅈ");
     step("Power");
@@ -1813,11 +1813,11 @@ void tests::complex_functions()
 
     step("Invert");
     test(CLEAR, "3+7ⅈ", ENTER, INV)
-        .expect("3/58-7/58ⅈ");
+        .expect("³/₅₈-⁷/₅₈ⅈ");
     test("58", MUL)
         .expect("3-7ⅈ");
     test(INV)
-        .expect("3/58+7/58ⅈ");
+        .expect("³/₅₈+⁷/₅₈ⅈ");
 
     step("Symbolic sqrt");
     test(CLEAR, "aⅈb", ENTER, SQRT)

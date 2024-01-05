@@ -2438,13 +2438,15 @@ void tests::tagged_objects()
 {
     begin("Tagged objects");
 
-    step("Parsing");
+    step("Parsing tagged integer");
     test(CLEAR, ":ABC:123", ENTER)
         .type(object::ID_tag)
         .expect("ABC :123");
+    step("Parsing tagged fraction");
     test(CLEAR, ":Label:123/456", ENTER)
         .type(object::ID_tag)
-        .expect("Label :41/152");
+        .expect("Label :⁴¹/₁₅₂");
+    step("Parsing nested label");
     test(CLEAR, ":Nested::Label:123.456", ENTER)
         .type(object::ID_tag)
         .expect("Nested :Label :123.456");

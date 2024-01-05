@@ -104,7 +104,6 @@ public:
     SIZE_DECL(tag);
     HELP_DECL(tag);
     RENDER_DECL(tag);
-    EVAL_DECL(tag);
 };
 
 COMMAND_DECLARE(dtag);

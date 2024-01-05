@@ -372,13 +372,23 @@ void tests::data_types()
         .test(BSP)
         .match("#1 81....");
 
-    step("Type command");
+    step("Type command (direct mode)");
+    test(CLEAR, "DetailedTypes", ENTER).noerr();
     test(CLEAR, "12 type", ENTER)
         .type(object::ID_integer)
         .expect(object::ID_integer);
     test(CLEAR, "'ABC*3' type", ENTER)
         .type(object::ID_integer)
         .expect(object::ID_expression);
+
+    step("Type command (compatible mode)");
+    test(CLEAR, "CompatibleTypes", ENTER).noerr();
+    test(CLEAR, "12 type", ENTER)
+        .type(object::ID_integer)
+        .expect(28);
+    test(CLEAR, "'ABC*3' type", ENTER)
+        .type(object::ID_integer)
+        .expect(9);
 
     step("TypeName command");
     test(CLEAR, "12 typename", ENTER)

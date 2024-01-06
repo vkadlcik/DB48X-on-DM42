@@ -101,6 +101,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
+    test(CLEAR, "-8 3 xroot", ENTER).expect("-2.");
 }
 
 
@@ -580,6 +581,7 @@ void tests::arithmetic()
 
     step("xroot");
     test(CLEAR, "8 3 xroot", ENTER).expect("2.");
+    test(CLEAR, "-8 3 xroot", ENTER).expect("-2.");
 }
 
 

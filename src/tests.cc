@@ -3086,16 +3086,8 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
     // Must wait for the calculator to process our keys for valid state
     nokeys();
 
-    // Check that we are not displaying an error message
-    if (rt.error())
-    {
-        explain("Unexpected error message [",
-                rt.error(),
-                "] "
-                "during data entry, cleared");
-        fail();
-        rt.clear_error();
-    }
+    // Check that we have no error here
+    data_entry_noerr();
 
     // Check invalid input: can only have one shift
     if (shift && xshift)
@@ -3108,6 +3100,7 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
     // First change lowercase state as necessary, since this messes up shift
     while (lowercase != ui.lowercase || alpha != ui.alpha)
     {
+        data_entry_noerr();
         while (!ui.shift)
             itest(SHIFT, NOKEYS);
         itest(ENTER, NOKEYS);
@@ -3170,6 +3163,23 @@ tests &tests::nokeys()
 {
     while (!key_empty())
         sys_delay(delay_time);
+    return *this;
+}
+
+
+tests &tests::data_entry_noerr()
+// ----------------------------------------------------------------------------
+//  During data entry, check that no error message pops up
+// ----------------------------------------------------------------------------
+{
+    // Check that we are not displaying an error message
+    if (rt.error())
+    {
+        explain("Unexpected error message [", rt.error(), "] "
+                "during data entry, cleared");
+        fail();
+        rt.clear_error();
+    }
     return *this;
 }
 

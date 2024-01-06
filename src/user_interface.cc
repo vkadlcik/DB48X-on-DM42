@@ -492,6 +492,8 @@ bool user_interface::key(int key, bool repeating, bool talpha)
     {
         if (key == KEY_EXIT || key == KEY_ENTER || key == KEY_BSP)
             rt.clear_error();
+        else if (key == KEY_SHIFT)
+            handle_shifts(key, talpha);
         else if (key)
             beep(2200, 75);
         dirtyStack = true;

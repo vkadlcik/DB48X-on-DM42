@@ -271,6 +271,7 @@ protected:
     tests &cursor(size_t csr);
     tests &error(cstring msg);
     tests &noerr()      { return error(nullptr); }
+    tests &data_entry_noerr();
     tests &command(cstring msg);
     tests &source(cstring msg);
 

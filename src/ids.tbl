@@ -690,6 +690,7 @@ FLAG(SingleLineResult,          MultiLineResult)
 FLAG(MultiLineStack,            SingleLineStack)
 FLAG(TooManyDigitsErrors,       NoErrorForTooManyDigits)
 FLAG(ComplexIBeforeImaginary,   ComplexIAfterImaginary)
+FLAG(NumberedVariables,         NoNumberedVariables)
 
 SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
 SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)

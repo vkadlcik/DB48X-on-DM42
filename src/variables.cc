@@ -203,6 +203,10 @@ bool directory::store(object_g name, object_g value)
 #include "ids.tbl"
         return settings::store(nty, value);
 
+    case ID_integer:
+        if (Settings.NumberedVariables())
+            break;
+        // Fall-through
     default:
         rt.invalid_name_error();
         return false;
@@ -436,6 +440,10 @@ object_p directory::recall_all(object_p name, bool report_missing)
 #include "ids.tbl"
         return settings::recall(nty);
 
+    case ID_integer:
+        if (Settings.NumberedVariables())
+            break;
+        // Fall-through
     default:
         rt.invalid_name_error();
         return nullptr;
@@ -493,6 +501,10 @@ size_t directory::purge(object_p name)
 #include "ids.tbl"
         return settings::purge(nty);
 
+    case ID_integer:
+        if (Settings.NumberedVariables())
+            break;
+        // Fall-through
     default:
         rt.invalid_name_error();
         return 0;

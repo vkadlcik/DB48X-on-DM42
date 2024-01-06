@@ -101,43 +101,24 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    begin("Test store and recall to special names");
+    begin("Test store and recall to numbered variables");
 
-    step("Store and recall invalid variable object");
-    test(CLEAR, 5678, ENTER, 1234, ENTER,
-         "STO", ENTER).error("Invalid name").clear();
-    test(CLEAR, 1234, ENTER,
-         "RCL", ENTER).error("Invalid name").clear();
+    step("Numbered store and recall should fail by default");
+    test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).error("Invalid name");
+    test(CLEAR, 1234, ENTER, "RCL", ENTER).error("Invalid name");
+    test(CLEAR, 1234, ENTER, "Purge", ENTER).error("Invalid name");
 
-    step("Store and recall to EQ");
-    test(CLEAR, "'X+Y' 'eq' STO", ENTER).noerr();
-    test(CLEAR, "'EQ' RCL", ENTER).expect("'X+Y'");
-    test(CLEAR, "'equation' RCL", ENTER).expect("'X+Y'");
-    test(CLEAR, "'Equation' PURGE", ENTER).noerr();
+    step("Enable NumberedVariables");
+    test(CLEAR, "NumberedVariables", ENTER).noerr();
+    test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).noerr();
+    test(CLEAR, 1234, ENTER, "RCL", ENTER).noerr().expect("5 678");
+    test(CLEAR, 1234, ENTER, "Purge", ENTER).noerr();
 
-    step("Store and recall to StatsData");
-    test(CLEAR, "[1 2 3] 'ΣData' STO", ENTER).noerr();
-    test(CLEAR, "'ΣDat' RCL", ENTER).expect("[ 1 2 3 ]");
-    test(CLEAR, "'StatsData' RCL", ENTER).expect("[ 1 2 3 ]");
-    test(CLEAR, "'ΣData' PURGE", ENTER).noerr();
-
-    step("Store and recall to StatsParameters");
-    test(CLEAR, "{0} 'ΣParameters' STO", ENTER).noerr();
-    test(CLEAR, "'ΣPar' RCL", ENTER).expect("{ 0 }");
-    test(CLEAR, "'StatsParameters' RCL", ENTER).expect("{ 0 }");
-    test(CLEAR, "'ΣPar' purge", ENTER).noerr();
-
-    step("Store and recall to PlotParameters");
-    test(CLEAR, "{1} 'PPAR' STO", ENTER).noerr();
-    test(CLEAR, "'PlotParameters' RCL", ENTER).expect("{ 1 }");
-    test(CLEAR, "'ppar' RCL", ENTER).expect("{ 1 }");
-    test(CLEAR, "'PPAR' purge", ENTER).noerr();
-
-    step("Store and recall invalid variable object");
-    test(CLEAR, 5678, ENTER, 1234, ENTER,
-         "STO", ENTER).error("Invalid name").clear();
-    test(CLEAR, 1234, ENTER,
-         "RCL", ENTER).error("Invalid name").clear();
+    step("Disable NumberedVariables");
+    test(CLEAR, "NoNumberedVariables", ENTER).noerr();
+    test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).error("Invalid name");
+    test(CLEAR, 1234, ENTER, "RCL", ENTER).error("Invalid name");
+    test(CLEAR, 1234, ENTER, "Purge", ENTER).error("Invalid name");
 }
 
 
@@ -679,11 +660,22 @@ void tests::global_variables()
     test(CLEAR, "'ppar' RCL", ENTER).expect("{ 1 }");
     test(CLEAR, "'PPAR' purge", ENTER).noerr();
 
-    step("Store and recall invalid variable object");
-    test(CLEAR, 5678, ENTER, 1234, ENTER,
-         "STO", ENTER).error("Invalid name").clear();
-    test(CLEAR, 1234, ENTER,
-         "RCL", ENTER).error("Invalid name").clear();
+    step("Numbered store and recall should fail by default");
+    test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).error("Invalid name");
+    test(CLEAR, 1234, ENTER, "RCL", ENTER).error("Invalid name");
+    test(CLEAR, 1234, ENTER, "Purge", ENTER).error("Invalid name");
+
+    step("Enable NumberedVariables");
+    test(CLEAR, "NumberedVariables", ENTER).noerr();
+    test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).noerr();
+    test(CLEAR, 1234, ENTER, "RCL", ENTER).noerr().expect("5 678");
+    test(CLEAR, 1234, ENTER, "Purge", ENTER).noerr();
+
+    step("Disable NumberedVariables");
+    test(CLEAR, "NoNumberedVariables", ENTER).noerr();
+    test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).error("Invalid name");
+    test(CLEAR, 1234, ENTER, "RCL", ENTER).error("Invalid name");
+    test(CLEAR, 1234, ENTER, "Purge", ENTER).error("Invalid name");
 
     step("Store program in global variable");
     test(CLEAR, "« 1 + »", ENTER, XEQ, "INCR", ENTER, STO).noerr();

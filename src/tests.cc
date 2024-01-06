@@ -3046,6 +3046,9 @@ tests &tests::itest(cstring txt)
         case L'ρ': k = E;           alpha = true;  shift = true; break;
         case L'θ': k = E;           alpha = true; xshift = true; break;
         case L'π': k = I; fn = F1;  alpha = false; shift = true; break;
+        case L'Σ': k = A;           alpha = true; shift = true; break;
+        case L'∏': k = A;           alpha = true; xshift = true; break;
+        case L'∆': k = B;           alpha = true; xshift = true; break;
         }
 
         if (shift)

@@ -4082,10 +4082,51 @@ debugged.
 Variables are named storage for RPL values.
 
 ## Store (STO)
-Store an object into a global variable
+
+Store an object into a specified location. For example `2 'ABC' STO` stores the value `2` in a global variable named `ABC`.
+
+`Value` `Name` ▶
+
+The `Value` is copied in a storage location identified by `Name`. The storage location depends on the type of `Name`, which can be quoted in an expression:
+
+* Symbol or integer: The value is stored in a global variable with that name in the current directory, which is created if necessary. Whether integers can be used as variable names depends on the `NumberedVariables` setting.
+
+* Local name: The value is stored in the corresponding local variable.
+
+* Setting name: The value is used for the corresponding setting, as if the setting command had been executed. For example, `16 'Base' STO` has the same effect as `16 Base`.
+
+* Text: `Value` is stored in a named file on the [flash storage](#flash-storage).
+
 
 ## Recall (RCL)
-Recall the contents of a variable
+Recall an object from a specified location. For example `'ABC' RCL` recalls the value from a global variable named `ABC`.
+
+`Name` ▶ `Value`
+
+The `Value` is fetched from a storage location identified by `Name`. The storage location depends on the type of `Name`, which can be quoted in an expression:
+
+* Symbol or integer: The value is fetched from a global variable with that name in the current directory or any enclosing directory. Whether integers can be used as variable names depends on the `NumberedVariables` setting.
+
+* Local name: The value is fetched from the corresponding local variable.
+
+* Setting name: The value is fetched from the corresponding setting. For example, `'Base' RCL` returns the current value as set by `Base`.
+
+* Text: `Value` is fetched from a named file on the [flash storage](#flash-storage)
+
+
+## Flash storage
+
+SwissMicros calculators have built-in flash storage, that can act as a USB disk when the calculator is connected to a computer. DB48X can read and write to this flash storage using the regular `STO` and `RCL` commands, simply by giving a text containing the file name as the `Name` argument of these commands.
+
+The format of the file depends on how the name ends:
+
+* `.txt`: the value is stored as text.
+
+* `.48s`: the value is stored as source code in text format. This differs from `.txt` files for text objects, which will be quoted.
+
+* `.48b`: the value is stored in version-specific binary format. This format is only guaranteed to be readable by the same firmware version that wrote it, but it is more compact, faster and energy efficient than the source format.
+
+* `.csv`: The value is stored in comma-separated values format. This is mostly interesting for arrays and lists, which can be echanged with spreadsheets and other PC applications that can input or output CSV files.
 
 
 ## StoreAdd (STO+)
@@ -5521,6 +5562,7 @@ The calculator has a number of user-configurable settings:
 * [Precision](#precision-settings)
 * [Base](#base-settings)
 * [User interface](#user-interface)
+* [Compatibility](#compatibility)
 
 The current preferences can be retrieved and saved using the `Modes` command.
 
@@ -5911,6 +5953,18 @@ Show the levels of the stack after the first one on a single line
 This is the opposite of [MultiLineStack](#multilinestack).
 Other levels of the stack are controled by [SingleLineResult](#singlelineresult)
 
+
+# Compatibility
+
+Various settings control the compatibility of DB48X with various classes of HP calculators.
+
+## NumberedVariables
+
+This flag enables numbered variables similar to what existed on earlier RPN calculators. For example, when the setting is active, `2.5 0 STO` stores the value 2.5 in numbered register `0`.
+
+## NoNumberedVariables
+
+This flag disables numbered variables, behaving closer to the way RPL calculators work. For example, when the setting is active, `2.5 0 STO` generates an `Invalid name` error.
 
 # States
 

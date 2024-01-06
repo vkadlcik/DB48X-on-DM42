@@ -1356,7 +1356,7 @@ bool runtime::run_select_start_step(bool for_loop, bool has_step)
     if (Returns + 4 > HighMem)
     {
         record(runtime_error,
-               "select_stert_step (%+s %+s) Returns=%p HighMem=%p",
+               "select_start_step (%+s %+s) Returns=%p HighMem=%p",
                for_loop ? "for" : "start",
                has_step ? "step" : "next",
                Returns, HighMem);
@@ -1388,7 +1388,7 @@ bool runtime::run_select_start_step(bool for_loop, bool has_step)
     }
 
     // Increment and compare with last iteration
-    algebraic_g cur = Returns[0]->as_algebraic();
+    algebraic_g cur  = Returns[0]->as_algebraic();
     algebraic_g last = Returns[1]->as_algebraic();
     if (!cur || !last)
     {
@@ -1421,7 +1421,7 @@ bool runtime::run_select_start_step(bool for_loop, bool has_step)
         object::id type = object::id(object::ID_start_next_conditional
                                      + 2*for_loop
                                      + has_step);
-        return object::defer(type) && run_push(Returns[4], Returns[5]);
+        return object::defer(type) && run_push_data(Returns[4], Returns[5]);
     }
 
     return true;
@@ -1448,11 +1448,11 @@ bool runtime::run_select_case(bool condition)
     if (condition)
     {
         object_p obj = command::static_object(object::ID_case_skip_conditional);
-        ASSERT(Returns[0] == nullptr && Returns[1] == nullptr);
+        ASSERT(Returns[0] == nullptr && Returns[1] + 1 == nullptr);
         Returns[0] = Returns[2];
         Returns[1] = Returns[3];
         Returns[2] = obj;
-        Returns[3] = obj->skip();
+        Returns[3] = obj->skip() - 1;
     }
     else
     {

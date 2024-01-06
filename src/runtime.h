@@ -492,6 +492,19 @@ struct runtime
 
     enum { CALLS_BLOCK = 32 };
 
+    bool run_push_data(object_p next, object_p end)
+    // ------------------------------------------------------------------------
+    //   Push an object to call on the RPL stack
+    // ------------------------------------------------------------------------
+    {
+        if ((HighMem - Returns) % CALLS_BLOCK == 0)
+            if (!call_stack_grow(next, end))
+                return false;
+        *(--Returns) = end;
+        *(--Returns) = next;
+        return true;
+    }
+
     bool run_push(object_p next, object_p end)
     // ------------------------------------------------------------------------
     //   Push an object to call on the RPL stack
@@ -499,20 +512,8 @@ struct runtime
     {
         if (next < end || !next)    // Can be nullptr for conditionals
         {
-#if 0
-            static size_t max_depth = 0;
-            size_t depth = HighMem - Returns;
-            if (max_depth < depth)
-            {
-                max_depth = depth;
-                printf("Max call stack depth %zu\n", max_depth);
-            }
-#endif
-            if ((HighMem - Returns) % CALLS_BLOCK == 0)
-                if (!call_stack_grow(next, end))
-                    return false;
-            *(--Returns) = end;
-            *(--Returns) = next;
+            end = object_p(byte_p(end) - 1);
+            run_push_data(next, end);
         }
         return true;
     }
@@ -529,7 +530,7 @@ struct runtime
         while (Returns < high)
         {
             object_p next = Returns[0];
-            object_p end  = Returns[1];
+            object_p end  = Returns[1] + 1;
             if (next < end)
             {
                 if (next)
@@ -544,7 +545,7 @@ struct runtime
                     }
                     return next;
                 }
-                unlocals(size_t(end));
+                unlocals(size_t(end) - 1);
             }
 
             Returns += 2;

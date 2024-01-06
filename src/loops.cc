@@ -553,7 +553,7 @@ static object::result counted_loop(object::id type, object_p o)
         return object::ERROR;
 
     // Fetch loop initial and last steps
-    object_g last = rt.pop();
+    object_g last  = rt.pop();
     object_g first = rt.pop();
 
     // Check if we need a local variable
@@ -575,12 +575,12 @@ static object::result counted_loop(object::id type, object_p o)
         rt.locals(1);
 
         // Pop local after execution
-        if (!rt.run_push(nullptr, object_p(1)))
+        if (!rt.run_push_data(nullptr, object_p(1)))
             return object::ERROR;
     }
 
-    object_p body = object_p(p);
-    if (body->defer() && rt.run_push(first, last) &&
+    object_g body = object_p(p);
+    if (body->defer() && rt.run_push_data(first, last) &&
         object::defer(type) && body->defer())
         return object::OK;
 

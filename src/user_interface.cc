@@ -1489,10 +1489,9 @@ bool user_interface::draw_annunciators()
     {
         utf8 label = utf8(lowercase ? "abc" : "ABC");
         size lw = HeaderFont->width(label);
-        if (!force)
-            Screen.fill(280, 0, 280+lw, 1+lh, pattern::black);
+        Screen.fill(280, 0, 280+lw, 1+lh, pattern::black);
         if (alpha)
-            Screen.text(280, 1, label, HeaderFont, pattern::white);
+            Screen.text(280, 0, label, HeaderFont, pattern::white);
         draw_dirty(280, 0, 280+lw, 1+lh);
         alpha_drawn = alpha;
         lowerc_drawn = lowercase;
@@ -1512,7 +1511,7 @@ bool user_interface::draw_annunciators()
     }
     else if (!force)
     {
-        Screen.fill(260, ann_y, 260+ann_width, ann_y+ann_height, pattern::black);
+        Screen.fill(260, ann_y, 260+ann_width, ann_y+ann_height);
     }
     draw_dirty(260, ann_y, 260+ann_width, ann_y+ann_height);
     shift_drawn = shift;
@@ -1616,7 +1615,7 @@ bool user_interface::draw_busy(unicode glyph)
 
     size w  = 32;
     size h  = HeaderFont->height();
-    size x  = 260;
+    size x  = 279 - w;
     size y  = 0;
 
     rect r(x, y, x + w, y + h + 1);

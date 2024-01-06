@@ -299,13 +299,13 @@ struct decimal : algebraic
             ++(*this);
             return prev;
         }
-        bool operator==(iterator other) const
+        bool operator==(const iterator &other) const
         {
             return !number.Safe() || !other.number.Safe() ||
                 (index == other.index && size == other.size &&
                  number.Safe() == other.number.Safe());
         }
-        bool operator!=(iterator other) const
+        bool operator!=(const iterator &other) const
         {
             return !(*this == other);
         }

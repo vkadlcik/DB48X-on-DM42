@@ -173,14 +173,14 @@ struct list : text
             ++(*this);
             return prev;
         }
-        bool operator==(iterator other) const
+        bool operator==(const iterator &other) const
         {
             return !first || !other.first ||
                    (index == other.index &&
                     +first == +other.first &&
                     size == other.size);
         }
-        bool operator!=(iterator other) const
+        bool operator!=(const iterator &other) const
         {
             return !(*this == other);
         }

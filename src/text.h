@@ -166,13 +166,13 @@ struct text : algebraic
             ++(*this);
             return prev;
         }
-        bool operator==(iterator other) const
+        bool operator==(const iterator &other) const
         {
             return index == other.index &&
                    +first == +other.first &&
                    size == other.size;
         }
-        bool operator!=(iterator other) const
+        bool operator!=(const iterator &other) const
         {
             return !(*this == other);
         }

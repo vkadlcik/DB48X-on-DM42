@@ -47,7 +47,7 @@ EVAL_BODY(symbol)
 //   Evaluate a symbol by looking it up
 // ----------------------------------------------------------------------------
 {
-    if (object_p found = directory::recall_all(o))
+    if (object_p found = directory::recall_all(o, false))
         return program::run_program(found);
     if (unit::mode)
         if (unit_p u = unit::lookup(o))

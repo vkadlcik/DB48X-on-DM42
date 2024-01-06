@@ -175,7 +175,7 @@ object::result draw_plot(object::id                  kind,
 
     if (!to_plot)
     {
-        to_plot = directory::recall_all(command::static_object(dname));
+        to_plot = directory::recall_all(command::static_object(dname), false);
         if (!to_plot)
         {
             if (dname == object::ID_Equation)

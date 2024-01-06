@@ -629,12 +629,9 @@ static object::result get(bool increment)
     {
         if (symbol_p name = items->as_quoted<symbol>())
         {
-            items = directory::recall_all(name);
+            items = directory::recall_all(name, true);
             if (!items)
-            {
-                rt.undefined_name_error();
                 return object::ERROR;
-            }
         }
 
         object_p item = items->at(rt.stack(0));
@@ -695,12 +692,9 @@ static object::result put(bool increment)
         symbol_p name = items->as_quoted<symbol>();
         if (name)
         {
-            items = directory::recall_all(name);
+            items = directory::recall_all(name, true);
             if (!items)
-            {
-                rt.undefined_name_error();
                 return object::ERROR;
-            }
         }
 
         if (object_g result = items->at(rt.stack(1), rt.top()))

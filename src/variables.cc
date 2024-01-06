@@ -184,7 +184,13 @@ bool directory::store(object_g name, object_g value)
         return disk->store(text_p(+name), value);
     }
 
-    default:
+    // Special names that are allowed as variable names
+    case ID_StatsData:
+    case ID_StatsParameters:
+    case ID_Equation:
+    case ID_PlotParameters:
+        break;
+
     case ID_symbol:
         break;
 
@@ -196,6 +202,10 @@ bool directory::store(object_g name, object_g value)
     case ID_##Disable:
 #include "ids.tbl"
         return settings::store(nty, value);
+
+    default:
+        rt.invalid_name_error();
+        return false;
     }
 
     // Normal case
@@ -375,7 +385,7 @@ object_p directory::recall(object_p ref) const
 }
 
 
-object_p directory::recall_all(object_p name)
+object_p directory::recall_all(object_p name, bool report_missing)
 // ----------------------------------------------------------------------------
 //   If the referenced object exists in directory, return associated value
 // ----------------------------------------------------------------------------
@@ -399,7 +409,13 @@ object_p directory::recall_all(object_p name)
         return disk->recall(text_p(name));
     }
 
-    default:
+    // Special names that are allowed as variable names
+    case ID_StatsData:
+    case ID_StatsParameters:
+    case ID_Equation:
+    case ID_PlotParameters:
+        break;
+
     case ID_symbol:
     {
         // Check independent / dependent values for plotting
@@ -419,12 +435,18 @@ object_p directory::recall_all(object_p name)
     case ID_##Disable:
 #include "ids.tbl"
         return settings::recall(nty);
+
+    default:
+        rt.invalid_name_error();
+        return nullptr;
     }
 
     directory *dir = nullptr;
     for (uint depth = 0; (dir = rt.variables(depth)); depth++)
         if (object_p value = dir->recall(name))
             return value;
+    if (report_missing)
+        rt.undefined_name_error();
     return nullptr;
 }
 
@@ -452,7 +474,13 @@ size_t directory::purge(object_p name)
         return disk->purge(text_p(name));
     }
 
-    default:
+    // Special names that are allowed as variable names
+    case ID_StatsData:
+    case ID_StatsParameters:
+    case ID_Equation:
+    case ID_PlotParameters:
+        break;
+
     case ID_symbol:
         break;
 
@@ -464,6 +492,10 @@ size_t directory::purge(object_p name)
     case ID_##Disable:
 #include "ids.tbl"
         return settings::purge(nty);
+
+    default:
+        rt.invalid_name_error();
+        return 0;
     }
 
     name = lookup(name);
@@ -535,7 +567,8 @@ size_t directory::enumerate(enumeration_fn callback, void *arg) const
         if (ns + vs > size)
         {
             record(directory_error,
-                   "Malformed directory during enumeration (ns=%u vs=%u size=%u)",
+                   "Malformed directory during enumeration "
+                   "(ns=%u vs=%u size=%u)",
                    ns, vs, size);
             return 0;     // Malformed directory, quick exit
         }
@@ -666,11 +699,10 @@ COMMAND_BODY(Rcl)
         return ERROR;
 
     // Lookup all directorys, starting with innermost one
-    if (object_p value = directory::recall_all(name))
+    if (object_p value = directory::recall_all(name, true))
         return rt.top(value) ? OK : ERROR;
 
     // Otherwise, return an error
-    rt.undefined_name_error();
     return ERROR;
 }
 

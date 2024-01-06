@@ -98,17 +98,17 @@ struct directory : list
 
     object_p recall(object_p name) const;
     // ------------------------------------------------------------------------
-    //    Check if a name exists in the directory, return value pointer if it does
+    //    Check if a name exists in the directory, return value ptr if it does
     // ------------------------------------------------------------------------
 
-    static object_p recall_all(object_p name);
+    static object_p recall_all(object_p name, bool report_missing);
     // ------------------------------------------------------------------------
-    //    Check if a name exists in the directory, return value pointer if it does
+    //    Check if a name exists in the directory, return value ptr if it does
     // ------------------------------------------------------------------------
 
     object_p lookup(object_p name) const;
     // ------------------------------------------------------------------------
-    //    Check if a name exists in the directory, return name pointer if it does
+    //    Check if a name exists in the directory, return name ptr if it does
     // ------------------------------------------------------------------------
 
     size_t purge(object_p name);
@@ -166,6 +166,10 @@ struct directory : list
     //   Enter a directory
     // ------------------------------------------------------------------------
 
+    bool is_valid_name(object_p obj) const;
+    // ------------------------------------------------------------------------
+    //   Check if something is a valid symbol
+    // ------------------------------------------------------------------------
 
 public:
     OBJECT_DECL(directory);

@@ -487,7 +487,7 @@ RENDER_BODY(decimal)
             }
 
             // Check if we need to reinsert the last separator
-            if (sep-- == 0 && decimals > 1)
+            if (sep-- == 0 && decpos > 0 && decimals > 1)
             {
                 r.put(space);
                 sep = (decpos > 0 ? mant_spc : frac_spc) - 1;

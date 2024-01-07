@@ -4056,12 +4056,12 @@ bool user_interface::current_word(utf8 &start, size_t &size)
         byte *ed = rt.editor();
         uint  c  = cursor;
         c = utf8_previous(ed, c);
-        while (c > 0 && !command::is_separator_or_digit(ed + c))
+        while (c > 0 && !is_separator_or_digit(ed + c))
             c = utf8_previous(ed, c);
-        if (command::is_separator_or_digit(ed + c))
+        if (is_separator_or_digit(ed + c))
             c = utf8_next(ed, c, sz);
         uint spos = c;
-        while (c < sz && !command::is_separator(ed + c))
+        while (c < sz && !is_separator(ed + c))
             c = utf8_next(ed, c, sz);
         uint end = c;
         if (end > spos)

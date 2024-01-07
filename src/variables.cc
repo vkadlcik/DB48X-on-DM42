@@ -57,7 +57,7 @@ PARSE_BODY(directory)
     size_t len = strlen(label);
     if (len <= maxlen
         && strncasecmp(ref, label, len) == 0
-        && command::is_separator(utf8(ref + len)))
+        && is_separator(utf8(ref + len)))
     {
         gcutf8 body = utf8(ref + len);
         maxlen -= len;

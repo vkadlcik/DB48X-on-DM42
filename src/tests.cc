@@ -101,24 +101,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    begin("Test store and recall to numbered variables");
-
-    step("Numbered store and recall should fail by default");
-    test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).error("Invalid name");
-    test(CLEAR, 1234, ENTER, "RCL", ENTER).error("Invalid name");
-    test(CLEAR, 1234, ENTER, "Purge", ENTER).error("Invalid name");
-
-    step("Enable NumberedVariables");
-    test(CLEAR, "NumberedVariables", ENTER).noerr();
-    test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).noerr();
-    test(CLEAR, 1234, ENTER, "RCL", ENTER).noerr().expect("5 678");
-    test(CLEAR, 1234, ENTER, "Purge", ENTER).noerr();
-
-    step("Disable NumberedVariables");
-    test(CLEAR, "NoNumberedVariables", ENTER).noerr();
-    test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).error("Invalid name");
-    test(CLEAR, 1234, ENTER, "RCL", ENTER).error("Invalid name");
-    test(CLEAR, 1234, ENTER, "Purge", ENTER).error("Invalid name");
+    regression_checks();
 }
 
 
@@ -2649,7 +2632,23 @@ void tests::regression_checks()
 
     step("Bug 279: 0/0 should error out");
     test(CLEAR, "0 0 /", ENTER).error("Divide by zero");
+
+    step("Bug 695: Putting program separators in names");
+    test(CLEAR).shifts(false, false, false, false);
+    test(SHIFT, RUNSTOP,
+         SHIFT, ENTER, SHIFT, SHIFT, G,
+         N,
+         SHIFT, RUNSTOP,
+         UP, BSP, DOWN, DOWN, UP,
+         N,
+         ENTER)
+        .noerr().type(object::ID_program)
+        .test(RUNSTOP)
+        .noerr().type(object::ID_program).expect("« N »")
+        .test(BSP)
+        .noerr().type(object::ID_expression).expect("'→N'");
 }
+
 
 
 // ============================================================================

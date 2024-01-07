@@ -184,7 +184,7 @@ object::result loop::object_parser(parser  &p,
             if (len <= length
                 && strncasecmp(cstring(utf8(src)), sep, len) == 0
                 && (len >= length ||
-                    command::is_separator(utf8(src) + len)))
+                    is_separator(utf8(src) + len)))
             {
                 if (loopvar && sep != open)
                 {
@@ -207,7 +207,7 @@ object::result loop::object_parser(parser  &p,
                 if (len2 <= length
                     && strncasecmp(cstring(utf8(src)), close2, len2) == 0
                     && (len2 >= length ||
-                        command::is_separator(utf8(src) + len2)))
+                        is_separator(utf8(src) + len2)))
                 {
                     if (loopvar && sep != open)
                     {

@@ -62,12 +62,6 @@ struct command : object
     // Get a static command pointer for a given command
     static object_p static_object(id i);
 
-    // Check if a code point or text is a separator
-    static bool is_separator(unicode code);
-    static bool is_separator(utf8 str);
-    static bool is_separator_or_digit(unicode code);
-    static bool is_separator_or_digit(utf8 str);
-
     // Get the top of the stack as an integer
     static uint32_t uint32_arg(uint level = 0);
     static int32_t  int32_arg (uint level = 0);

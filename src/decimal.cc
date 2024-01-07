@@ -209,32 +209,63 @@ RENDER_BODY(decimal)
     bool      negative = o->type() == ID_neg_decimal;
 
     // Read formatting information from the renderer
-    bool      editing  = !r.stack();
+    bool      editing  = r.editing();
     bool      raw      = r.file_save();
     size_t    rsize    = r.size();
 
     // Read settings
     settings &ds       = Settings;
-    id        mode     = editing ? object::ID_Std : ds.DisplayMode();
-    int       digits   = editing ? 3 * nkigits : ds.DisplayDigits();
+    id        mode     = ds.DisplayMode();
+    int       dispdigs = ds.DisplayDigits();
+    int       digits   = dispdigs;
     int       std_exp  = ds.StandardExponent();
     bool      showdec  = ds.TrailingDecimal();
     unicode   space    = ds.NumberSeparator();
     uint      mant_spc = ds.MantissaSpacing();
     uint      frac_spc = ds.FractionSpacing();
-    bool      fancy    = !editing && ds.FancyExponent();
+    bool      fancy    = ds.FancyExponent();
     char      decimal  = ds.DecimalSeparator(); // Can be '.' or ','
 
-    if (raw)
+    // Compute mantissa exponent, i.e. count of non-zero digits
+    large     mexp     = nkigits * 3;
+    int       rmdigit  = 0;
+    while (mexp > 0)
+    {
+        kint k = kigit(+base, mexp / 3 - 1);
+        if (k == 0)
+        {
+            mexp -= 3;
+            continue;
+        }
+        rmdigit = k % 10;
+        if (rmdigit == 0)
+        {
+            mexp--;
+            k /= 10;
+            rmdigit = k % 10;
+            if (rmdigit == 0)
+            {
+                mexp--;
+                k /= 10;
+                rmdigit = k;
+            }
+        }
+        break;
+    }
+
+    if (raw || editing)
     {
         mode = object::ID_Std;
-        digits = 3 * nkigits;
+        digits += mexp;
+        fancy = false;
+    }
+    if (raw)
+    {
         std_exp = 9;
         showdec = true;
         space = 0;
         mant_spc = 0;
         frac_spc = 0;
-        fancy = false;
         decimal = '.';
     }
     if (mode == object::ID_Std)
@@ -262,7 +293,6 @@ RENDER_BODY(decimal)
 
         // Mantissa is between 0 and 1
         large  realexp  = exponent - 1;
-        large  mexp     = nkigits * 3;
 
         // Check if we need to switch to scientific notation in normal mode
         // On the negative exponents, we switch when digits would be lost on
@@ -274,11 +304,11 @@ RENDER_BODY(decimal)
         // Note that the behaviour here is purposely different than HP's
         // when in FIX mode. In FIX 5, for example, 1.2345678E-5 is shown
         // on HP50s as 0.00001, and is shown here as 1.23457E-5, which I believe
-        // is more useful. This behaviour is enabled by setting min_fix_digits
-        // to a non-zero value. If the value is zero, FIX works like on HP.
-        // Also, since DB48X can compute on many digits, and counting zeroes
-        // can be annoying, there is a separate setting for when to switch
-        // to scientific notation.
+        // is more useful. This behaviour is enabled by setting
+        // MinimumSignificantDigits to a non-zero value. If the value is zero,
+        // FIX works like on HP.  Also, since DB48X can compute on many digits,
+        // and counting zeroes can be annoying, there is a separate setting,
+        // StandardExponent, for when to switch to scientific notation.
         bool hasexp = mode == object::ID_Sci || mode == object::ID_Eng;
         if (!hasexp)
         {
@@ -287,8 +317,7 @@ RENDER_BODY(decimal)
                 if (mode <= object::ID_Fix)
                 {
                     // Need to round up if last digit is above 5
-                    bool roundup = nkigits &&
-                        (kigit(+base, nkigits-1) % 10) >= 5;
+                    bool roundup = rmdigit >= 5;
                     int shown = digits + realexp + roundup;
                     int minfix = ds.MinimumSignificantDigits();
                     if (minfix < 0)
@@ -300,12 +329,12 @@ RENDER_BODY(decimal)
                     {
                         if (minfix > mexp + 1)
                             minfix = mexp + 1;
-                        hasexp = shown >= 0 && shown < minfix;
+                        hasexp = shown < minfix;
                     }
                 }
                 else
                 {
-                    int minexp = digits < std_exp ? digits : std_exp;
+                    int minexp = dispdigs < std_exp ? dispdigs : std_exp;
                     hasexp = mexp - realexp - 1 >= minexp;
                 }
             }

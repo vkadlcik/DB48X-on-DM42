@@ -38,7 +38,7 @@
 #include <regex.h>
 #include <stdio.h>
 
-
+extern bool run_tests;
 extern volatile int lcd_needsupdate;
 volatile uint keysync_sent = 0;
 volatile uint keysync_done = 0;
@@ -93,6 +93,9 @@ void tests::run(bool onlyCurrent)
     summary();
 
     RECORDER_TRACE(errors) = tracing;
+
+    if (run_tests)
+        exit(failures.size() ? 1 : 0);
 }
 
 
@@ -2621,9 +2624,9 @@ void tests::regression_checks()
     test(CLEAR, "'X×X↑(N-1)'", ENTER).expect("'X×X↑(N-1)'");
 
     step("Bug 253: Complex cos outside domain");
-    test(CLEAR, "0+30000.ⅈ sin", ENTER).expect("1");
-    test(CLEAR, "0+30000.ⅈ cos", ENTER).expect("2");
-    test(CLEAR, "0+30000.ⅈ tan", ENTER).expect("3");
+    test(CLEAR, "0+30000.ⅈ sin", ENTER).expect("3.41528 61889 6⁳¹³⁰²⁸∡90°");
+    test(CLEAR, "0+30000.ⅈ cos", ENTER).expect("3.41528 61889 6⁳¹³⁰²⁸∡0°");
+    test(CLEAR, "0+30000.ⅈ tan", ENTER).expect("1.∡90°");
 
     step("Bug 272: Type error on logical operations");
     test(CLEAR, "'x' #2134AF AND", ENTER).error("Bad argument type");

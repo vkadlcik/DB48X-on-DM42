@@ -162,6 +162,7 @@ struct list : text
             {
                 object_p obj = +first + index;
                 size_t objsize = obj->size();
+                ASSERT(index + objsize <= size);
                 index += objsize;
             }
 

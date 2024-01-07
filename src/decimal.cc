@@ -2061,7 +2061,7 @@ decimal_p decimal::tan(decimal_r x)
 
 decimal_p decimal::asin(decimal_r x)
 // ----------------------------------------------------------------------------
-//   Arc-sine, use asin(x) = atan(x/ sqrt(1-x^2))
+//   Arc-sine, use asin(x) = atan(x / sqrt(1-x^2))
 // ----------------------------------------------------------------------------
 {
     decimal_g tmp = rt.make<decimal>(1);
@@ -2161,13 +2161,19 @@ decimal_p decimal::atan(decimal_r x)
     decimal_g square = x * x;
     decimal_g power = x;
 
+    record(decimal, "atan of %t", +x);
+    record(decimal, "sum=   %t", +sum);
+    record(decimal, "power= %t", +power);
+    record(decimal, "square=%t", +square);
+
     uint prec = Settings.Precision();
-    for (uint i = 3; i < prec; i += 2)
+    for (uint i = 3; i < 3 * prec; i += 2)
     {
         power = power * square;
+        record(decimal, "%u: power= %t", i, +power);
         tmp = rt.make<decimal>(i);
         tmp = power / tmp;     // x^2 / 2
-
+        record(decimal, "%u: factor=%t exponent %lld", i, +tmp, tmp->exponent());
         // Check if we ran out of memory
         if (!sum || !tmp)
             return nullptr;
@@ -2180,7 +2186,7 @@ decimal_p decimal::atan(decimal_r x)
             sum = sum - tmp;
         else
             sum = sum + tmp;
-
+        record(decimal, "%u: sum=   %t exponent %lld", i, +sum, sum->exponent());
     }
 
     // Convert to current angle mode
@@ -2188,7 +2194,6 @@ decimal_p decimal::atan(decimal_r x)
 
     return sum;
 }
-
 
 
 decimal_p decimal::sinh(decimal_r x)
@@ -2255,7 +2260,6 @@ decimal_p decimal::atanh(decimal_r x)
     decimal_g half = rt.make<decimal>(5, -1);
     return half * log((one + x) / (one - x));
 }
-
 
 
 decimal_p decimal::log1p(decimal_r x)

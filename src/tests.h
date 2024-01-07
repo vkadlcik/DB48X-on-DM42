@@ -252,6 +252,7 @@ protected:
     tests &ready();
     tests &shifts(bool shift, bool xshift, bool alpha, bool lowercase);
     tests &wait(uint ms);
+    tests &want(cstring output);
     tests &expect(cstring output);
     tests &expect(int output);
     tests &expect(unsigned int output);

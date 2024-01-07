@@ -693,7 +693,7 @@ void tests::global_variables()
     step("Enter directory again");
     test(CLEAR, "DirTest path", ENTER).expect("{ HomeDirectory DirTest }");
     step("Current directory content");
-    test(CLEAR, "CurrentDirectory", ENTER).expect("Directory { }");
+    test(CLEAR, "CurrentDirectory", ENTER).want("Directory { }");
     step("Store in subdirectory");
     test(CLEAR, "242 'Foo' STO", ENTER).noerr();
     step("Recall from subdirectory");
@@ -726,7 +726,7 @@ void tests::local_variables()
 
     step("Creating a local block");
     cstring source = "« → A B C « A B + A B - × B C + B C - × ÷ » »";
-    test(CLEAR, source, ENTER).type(object::ID_program).expect(source);
+    test(CLEAR, source, ENTER).type(object::ID_program).want(source);
     test(XEQ, "LocTest", ENTER, STO).noerr();
 
     step("Calling a local block with numerical values");
@@ -755,25 +755,25 @@ void tests::for_loops()
     step("Simple 1..10");
     cstring pgm  = "« 0 1 10 FOR i i SQ + NEXT »";
     cstring pgmo = "« 0 1 10 for i i x² + next »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
     test(RUNSTOP).noerr().type(object::ID_integer).expect(385);
 
     step("Algebraic 1..10");
     pgm  = "« 'X' 1 5 FOR i i SQ + NEXT »";
     pgmo = "« 'X' 1 5 for i i x² + next »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
     test(RUNSTOP).noerr().type(object::ID_expression).expect("'X+1+4+9+16+25'");
 
     step("Stepping by 2");
     pgm  = "« 0 1 10 FOR i i SQ + 2 STEP »";
     pgmo = "« 0 1 10 for i i x² + 2 step »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
     test(RUNSTOP).noerr().type(object::ID_integer).expect(165);
 
     step("Stepping by i");
     pgm  = "« 'X' 1 100 FOR i i SQ + i step »";
     pgmo = "« 'X' 1 100 for i i x² + i step »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
     test(RUNSTOP)
         .noerr()
         .type(object::ID_expression)
@@ -782,13 +782,13 @@ void tests::for_loops()
     step("Negative stepping");
     pgm  = "« 0 10 1 FOR i i SQ + -1 STEP »";
     pgmo = "« 0 10 1 for i i x² + -1 step »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
     test(RUNSTOP).noerr().type(object::ID_integer).expect(385);
 
     step("Negative stepping algebraic");
     pgm  = "« 'X' 10 1 FOR i i SQ + -1 step »";
     pgmo = "« 'X' 10 1 for i i x² + -1 step »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
     test(RUNSTOP)
         .noerr()
         .type(object::ID_expression)
@@ -797,7 +797,7 @@ void tests::for_loops()
     step("Fractional");
     pgm  = "« 'X' 0.1 0.9 FOR i i SQ + 0.1 step »";
     pgmo = "« 'X' 0.1 0.9 for i i x² + 0.1 step »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
     test(RUNSTOP)
         .noerr()
         .type(object::ID_expression)
@@ -806,7 +806,7 @@ void tests::for_loops()
     step("Fractional down");
     pgm  = "« 'X' 0.9 0.1 FOR i i SQ + -0.1 step »";
     pgmo = "« 'X' 0.9 0.1 for i i x² + -0.1 step »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
     test(RUNSTOP)
         .noerr()
         .type(object::ID_expression)
@@ -815,7 +815,7 @@ void tests::for_loops()
     step("Execute at least once");
     pgm  = "« 'X' 10 1 FOR i i SQ + NEXT »";
     pgmo = "« 'X' 10 1 for i i x² + next »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).expect(pgmo);
+    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
     test(RUNSTOP).noerr().type(object::ID_expression).expect("'X+100'");
 }
 
@@ -1030,31 +1030,31 @@ void tests::command_display_formats()
     test(CLEAR, prgm, ENTER).noerr();
     step("Lower case");
     test("lowercase", ENTER)
-        .expect("« 1 1. + - × ÷ ↑ sin cos tan asin acos atan "
-                "lowercase purgeall precision "
-                "start  step next start  step for i  next for i  step "
-                "while  repeat  end do  until  end »");
+        .want("« 1 1. + - × ÷ ↑ sin cos tan asin acos atan "
+              "lowercase purgeall precision "
+              "start  step next start  step for i  next for i  step "
+              "while  repeat  end do  until  end »");
 
     step("Upper case");
     test("UPPERCASE", ENTER)
-        .expect("« 1 1. + - × ÷ ↑ SIN COS TAN ASIN ACOS ATAN "
-                "LOWERCASE PURGEALL PRECISION "
-                "START  STEP next START  STEP FOR i  NEXT FOR i  STEP "
-                "WHILE  REPEAT  END DO  UNTIL  END »");
+        .want("« 1 1. + - × ÷ ↑ SIN COS TAN ASIN ACOS ATAN "
+              "LOWERCASE PURGEALL PRECISION "
+              "START  STEP next START  STEP FOR i  NEXT FOR i  STEP "
+              "WHILE  REPEAT  END DO  UNTIL  END »");
 
     step("Capitalized");
     test("Capitalized", ENTER)
-        .expect("« 1 1. + - × ÷ ↑ Sin Cos Tan Asin Acos Atan "
-                "Lowercase Purgeall Precision "
-                "Start  Step next Start  Step For i  Next For i  Step "
-                "While  Repeat  End Do  Until  End »");
+        .want("« 1 1. + - × ÷ ↑ Sin Cos Tan Asin Acos Atan "
+              "Lowercase Purgeall Precision "
+              "Start  Step next Start  Step For i  Next For i  Step "
+              "While  Repeat  End Do  Until  End »");
 
     step("Long form");
     test("LongForm", ENTER)
-        .expect("« 1 1. + - × ÷ ↑ sin cos tan sin⁻¹ cos⁻¹ tan⁻¹ "
-                "LowerCase PurgeAll Precision "
-                "start  step next start  step for i  next for i  step "
-                "while  repeat  end do  until  end »");
+        .want("« 1 1. + - × ÷ ↑ sin cos tan sin⁻¹ cos⁻¹ tan⁻¹ "
+              "LowerCase PurgeAll Precision "
+              "start  step next start  step for i  next for i  step "
+              "while  repeat  end do  until  end »");
 }
 
 
@@ -3305,6 +3305,64 @@ tests &tests::wait(uint ms)
     record(tests, "Waiting %u ms", ms);
     sys_delay(ms);
     return *this;
+}
+
+
+tests &tests::want(cstring ref)
+// ----------------------------------------------------------------------------
+//   We want something that looks like this (ignore spacing)
+// ----------------------------------------------------------------------------
+{
+    record(tests, "Expect [%+s] ignoring spacing", ref);
+    ready();
+    cindex++;
+    if (rt.error())
+    {
+        explain("Expected output [",
+                ref,
+                "], got error [",
+                rt.error(),
+                "] instead");
+        return fail();
+    }
+    if (cstring out = cstring(Stack.recorded()))
+    {
+        record(tests, "Comparing [%s] to [%+s] ignoring spaces", out, ref);
+        cstring iout = out;
+        cstring iref = ref;
+        while (true)
+        {
+            if (*out == 0 && *ref == 0)
+                return *this;   // Successful match
+
+            if (isspace(*ref))
+            {
+                while (*ref && isspace(*ref))
+                    ref++;
+                if (!isspace(*out))
+                    break;
+                while (*out && isspace(*out))
+                    out++;
+            }
+            else
+            {
+                if (*out != *ref)
+                    break;
+                out++;
+                ref++;
+            }
+        }
+
+        if (strcmp(ref, cstring(out)) == 0)
+            return *this;
+        explain("Expected output matching [", iref, "], "
+                "got [", iout, "] instead, "
+                "[", ref, "] differs from [", out, "]");
+        return fail();
+    }
+    record(tests, "No output");
+    explain("Expected output [", ref, "] but got no stack change");
+    return fail();
 }
 
 

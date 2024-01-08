@@ -1216,9 +1216,8 @@ void tests::decimal_display_formats()
         .expect("1.03");
 
     step("Zero");
-    test(CLEAR, ".", ENTER)
-        .type(object::ID_decimal)
-        .expect("0.");
+    test(CLEAR, ".", ENTER).error("Syntax error");
+    test(CLEAR, "0.", ENTER).type(object::ID_decimal).expect("0.");
 
     step("Negative");
     test(CLEAR, "0.3", CHS, ENTER)

@@ -464,8 +464,9 @@ RENDER_BODY(decimal)
         // Check if we need some rounding on what is being displayed
         if ((midx < nkigits || decade) && d >= 5)
         {
-            char *rptr = (char *) rt.scratchpad();
-            char *start = rptr - (r.size() - rsize);
+            size_t rsz = r.size();
+            char *start = (char *) r.text() + rsize;
+            char *rptr = start + rsz - rsize;
             bool rounding = true;
             bool stripzeros = mode == object::ID_Sig;
             while (rounding && --rptr >= start)

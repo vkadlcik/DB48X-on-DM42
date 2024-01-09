@@ -448,6 +448,18 @@ PARSE_BODY(complex)
                 xlen = last - first;
         }
 
+        // Check if we have equations in our complex
+        else if (cp == '\'')
+        {
+            if (p.precedence)
+                break;
+            ineq = !ineq;
+        }
+        else if (ineq)
+        {
+            // Skip the content of the equations
+        }
+
         // Check if we found the ⅈ sign
         else if (cp == I_MARK)
         {
@@ -527,18 +539,6 @@ PARSE_BODY(complex)
         else if (cp == '"' || cp == '{' || cp == '[' || cp == L'«')
         {
             return SKIP;
-        }
-
-        // Check if we have equations in our complex
-        else if (cp == '\'')
-        {
-            if (p.precedence)
-                break;
-            ineq = !ineq;
-        }
-        else if (ineq)
-        {
-            // Skip the content of the equations
         }
 
         // Check if we have two parentheses

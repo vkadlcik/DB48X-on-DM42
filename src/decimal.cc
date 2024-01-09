@@ -1409,11 +1409,9 @@ decimal_p decimal::sub(decimal_r x, decimal_r y)
         {
             size_t yo = ko - kshift;
             if (yo < ys)
-            {
                 yk += kigit(+yb, yo) / hmul;
-                if (mod3 && ko > kshift && --yo < ys)
-                    yk += kigit(+yb, yo) % hmul * lmul;
-            }
+            if (mod3 && ko > kshift && --yo < ys)
+                yk += kigit(+yb, yo) % hmul * lmul;
         }
         carry = xk < yk;
         if (carry)

@@ -722,7 +722,7 @@ RENDER_BODY(rectangular)
     algebraic_g re = o->re();
     algebraic_g im = o->im();
     bool ifirst = r.editing() || Settings.ComplexIBeforeImaginary();
-    bool neg  = im->is_negative();
+    bool neg  = im->is_negative(false);
     if (neg)
         im = -im;
     re->render(r);

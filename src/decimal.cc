@@ -1846,7 +1846,7 @@ decimal_p decimal::sqrt(decimal_r x)
 
     large     exponent = x->exponent();
     decimal_g half     = rt.make<decimal>(5, -1);
-    decimal_g next     = rt.make<decimal>(5, -exponent / 2);
+    decimal_g next     = rt.make<decimal>(5, (-exponent - 1) / 2);
     decimal_g current  = x * next;
     if (current && !current->is_zero())
     {

@@ -654,7 +654,7 @@ decimal_p decimal::from_integer(integer_p value)
     id itype = value->type();
     id type = itype == ID_neg_integer ? ID_neg_decimal : ID_decimal;
     ularge magnitude = value->value<ularge>();
-    return rt.make<decimal>(type, magnitude);
+    return make(type, magnitude);
 }
 
 
@@ -667,7 +667,7 @@ decimal_p decimal::from_bignum(bignum_p valuep)
         return nullptr;
     id        itype  = valuep->type();
     id        type   = itype == ID_neg_bignum ? ID_neg_decimal : ID_decimal;
-    decimal_g result = rt.make<decimal>(type, 0);
+    decimal_g result = make(type, 0);
     decimal_g digits;
     large     exp    = 0;
     bignum_g  value  = valuep;
@@ -679,7 +679,7 @@ decimal_p decimal::from_bignum(bignum_p valuep)
         if (!bignum::quorem(value, div, itype, &value, &kigit))
             return nullptr;
         ularge kigval = kigit->value<ularge>();
-        digits = rt.make<decimal>(type, kigval, exp);
+        digits = make(type, kigval, exp);
         result = result + digits;
         exp += 12;
     }
@@ -826,7 +826,7 @@ decimal_p decimal::truncate(large to_exp) const
     // If we have 1E-3 and round at 0, return zero
     large exp = s.exponent;
     if (exp < to_exp)
-        return rt.make<decimal>(0);
+        return make(0);
 
     // If rounding 10000 (10^4) to 0, we can copy 1 kigit as is
     size_t copy    = (exp - to_exp) / 3;
@@ -876,7 +876,7 @@ bool decimal::split(decimal_g &ip, decimal_g &fp, large to_exp) const
     if (exp < to_exp)
     {
         fp = this;
-        ip = rt.make<decimal>(0);
+        ip = make(0);
         return ip && fp;;
     }
 
@@ -886,7 +886,7 @@ bool decimal::split(decimal_g &ip, decimal_g &fp, large to_exp) const
     if (copy >= nkigits)
     {
         ip = this;
-        fp = rt.make<decimal>(0);
+        fp = make(0);
         return fp && ip;
     }
 
@@ -1052,11 +1052,11 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
         whole_part = decimal::neg(whole_part);
         decimal_part = decimal::neg(decimal_part);
     }
-    one = rt.make<decimal>(1);
+    one = make(1);
     v1num = whole_part;
     v1den = one;
     v2num = one;
-    v2den = rt.make<decimal>(0);
+    v2den = make(0);
 
     uint maxdec = Settings.Precision() - 3;
     if (decimals > maxdec)
@@ -1795,7 +1795,7 @@ decimal_p decimal::atan2(decimal_r x, decimal_r y)
     {
         if (x->is_zero())
             return y->is_negative() ? decimal_p(pi()) : +x;
-        decimal_g two = rt.make<decimal>(2);
+        decimal_g two = make(2);
         decimal_g result = pi() / two;
         if (x->is_negative())
             result = -result;
@@ -1843,8 +1843,8 @@ decimal_p decimal::sqrt(decimal_r x)
     }
 
     large     exponent = x->exponent();
-    decimal_g half     = rt.make<decimal>(5, -1);
-    decimal_g next     = rt.make<decimal>(5, (-exponent - 1) / 2);
+    decimal_g half     = make(5, -1);
+    decimal_g next     = make(5, (-exponent - 1) / 2);
     decimal_g current  = x * next;
     if (current && !current->is_zero())
     {
@@ -1868,8 +1868,8 @@ decimal_p decimal::cbrt(decimal_r x)
 // ----------------------------------------------------------------------------
 {
     large     exponent = x->exponent();
-    decimal_g three    = rt.make<decimal>(3);
-    decimal_g next     = rt.make<decimal>(1, -2 * exponent / 3);
+    decimal_g three    = make(3);
+    decimal_g next     = make(1, -2 * exponent / 3);
     decimal_g current  = x * next;
     if (current && !current->is_zero())
     {
@@ -1925,7 +1925,7 @@ decimal_p decimal::sin_fracpi(uint qturns, decimal_r fp)
     {
         // sin(pi/2 - x) = cos(x)
         id fty = fp->type();
-        decimal_g x = rt.make<decimal>(fty, 1);
+        decimal_g x = make(fty, 1);
         x = x - fp;
         if (fty == ID_neg_decimal)
             qturns += 2;
@@ -1938,11 +1938,11 @@ decimal_p decimal::sin_fracpi(uint qturns, decimal_r fp)
 
     // Scale by pi / 2, sum is between 0 and pi/4
     decimal_g sum = fp;
-    decimal_g fact = rt.make<decimal>(2);
+    decimal_g fact = make(2);
     decimal_g tmp;
     sum = sum / fact;
     sum = sum * pi();
-    fact = rt.make<decimal>(6); // 3!
+    fact = make(6); // 3!
 
     // Prepare power factor and square that we multiply by every time
     decimal_g power = sum;
@@ -1967,7 +1967,7 @@ decimal_p decimal::sin_fracpi(uint qturns, decimal_r fp)
         else
             sum = sum + tmp;
 
-        tmp = rt.make<decimal>((i+1) * (i+2)); // First iteration: 4 * 5
+        tmp = make((i+1) * (i+2)); // First iteration: 4 * 5
         fact = fact * tmp;
     }
 
@@ -1988,7 +1988,7 @@ decimal_p decimal::cos_fracpi(uint qturns, decimal_r fp)
     {
         // cos(pi/2 - x) = sin(x)
         id fty = fp->type();
-        decimal_g x = rt.make<decimal>(fty, 1);
+        decimal_g x = make(fty, 1);
         x = x - fp;
         if (fty == ID_neg_decimal)
             qturns += 2;
@@ -2001,7 +2001,7 @@ decimal_p decimal::cos_fracpi(uint qturns, decimal_r fp)
 
     // Scale by pi / 2, sum is between 0 and pi/4
     decimal_g sum = fp;
-    decimal_g fact = rt.make<decimal>(2); // Also 2!
+    decimal_g fact = make(2); // Also 2!
     decimal_g tmp;
     sum = sum / fact;
     sum = sum * pi();
@@ -2011,7 +2011,7 @@ decimal_p decimal::cos_fracpi(uint qturns, decimal_r fp)
     decimal_g power = square;
 
     // For cosine, the sum starts at 1
-    sum = rt.make<decimal>(1);
+    sum = make(1);
 
     uint prec = Settings.Precision();
     for (uint i = 2; i < prec; i += 2)
@@ -2032,7 +2032,7 @@ decimal_p decimal::cos_fracpi(uint qturns, decimal_r fp)
             sum = sum + tmp;
 
         power = power * square; // Next iteration is x^4
-        tmp = rt.make<decimal>((i+1) * (i+2)); // First iteration: 4 * 5
+        tmp = make((i+1) * (i+2)); // First iteration: 4 * 5
         fact = fact * tmp;
     }
 
@@ -2063,7 +2063,7 @@ decimal_p decimal::asin(decimal_r x)
 //   Arc-sine, use asin(x) = atan(x / sqrt(1-x^2))
 // ----------------------------------------------------------------------------
 {
-    decimal_g tmp = rt.make<decimal>(1);
+    decimal_g tmp = make(1);
     tmp = tmp - x * x;
     if (tmp && tmp->is_zero())
     {
@@ -2091,7 +2091,7 @@ decimal_p decimal::acos(decimal_r x)
     decimal_g tmp;
     if (!x->is_zero())
     {
-        tmp = rt.make<decimal>(1);
+        tmp = make(1);
         tmp = tmp - x * x;
         tmp = sqrt(tmp) / x;
         tmp = atan(tmp);
@@ -2101,7 +2101,7 @@ decimal_p decimal::acos(decimal_r x)
     }
     else
     {
-        tmp = pi()->adjust_to_angle() * decimal_g(rt.make<decimal>(5,-1));
+        tmp = pi()->adjust_to_angle() * decimal_g(make(5,-1));
     }
     return tmp;
 }
@@ -2133,10 +2133,10 @@ decimal_p decimal::atan(decimal_r x)
         if (!x->is_magnitude_less_than_half())
         {
             // atan(x) = pi/4 + atan((x - 1) / (1 + x))
-            decimal_g one = rt.make<decimal>(1);
+            decimal_g one = make(1);
             decimal_g nx = (x - one) / (x + one);
             nx = atan(nx);
-            decimal_g fourth = rt.make<decimal>(25,-2);
+            decimal_g fourth = make(25,-2);
             fourth = fourth * pi();
             fourth = fourth->adjust_to_angle();
             nx = fourth + nx;
@@ -2144,10 +2144,10 @@ decimal_p decimal::atan(decimal_r x)
         }
 
         // atan(1/x) = pi/2 - arctan(x) when x > 0
-        decimal_g i = rt.make<decimal>(1);
+        decimal_g i = make(1);
         i = i / x;
         i = atan(i);
-        decimal_g half = rt.make<decimal>(5, -1);
+        decimal_g half = make(5, -1);
         half = half * pi();
         half = half->adjust_to_angle();
         i = half - i;
@@ -2170,7 +2170,7 @@ decimal_p decimal::atan(decimal_r x)
     {
         power = power * square;
         record(decimal, "%u: power= %t", i, +power);
-        tmp = rt.make<decimal>(i);
+        tmp = make(i);
         tmp = power / tmp;     // x^2 / 2
         record(decimal, "%u: factor=%t exponent %lld", i, +tmp, tmp->exponent());
         // Check if we ran out of memory
@@ -2200,7 +2200,7 @@ decimal_p decimal::sinh(decimal_r x)
 //    Hyperbolic sine
 // ----------------------------------------------------------------------------
 {
-    decimal_g half = rt.make<decimal>(5,-1);
+    decimal_g half = make(5,-1);
     decimal_g ep = exp(x);
     decimal_g em = exp(-x);
     return (ep - em) * half;
@@ -2212,7 +2212,7 @@ decimal_p decimal::cosh(decimal_r x)
 //  Hyperbolic cosine
 // ----------------------------------------------------------------------------
 {
-    decimal_g half = rt.make<decimal>(5,-1);
+    decimal_g half = make(5,-1);
     decimal_g ep = exp(x);
     decimal_g em = exp(-x);
     return (ep + em) * half;
@@ -2235,7 +2235,7 @@ decimal_p decimal::asinh(decimal_r x)
 //  Inverse hyperbolic sine
 // ----------------------------------------------------------------------------
 {
-    decimal_g one = rt.make<decimal>(1);
+    decimal_g one = make(1);
     return log(x + decimal_g(sqrt(x*x + one)));
 }
 
@@ -2245,7 +2245,7 @@ decimal_p decimal::acosh(decimal_r x)
 //  Inverse hyperbolic cosine
 // ----------------------------------------------------------------------------
 {
-    decimal_g one = rt.make<decimal>(1);
+    decimal_g one = make(1);
     return log(x + decimal_g(sqrt(x*x - one)));
 }
 
@@ -2255,8 +2255,8 @@ decimal_p decimal::atanh(decimal_r x)
 //   Inverse hyperbolic tangent
 // ----------------------------------------------------------------------------
 {
-    decimal_g one = rt.make<decimal>(1);
-    decimal_g half = rt.make<decimal>(5, -1);
+    decimal_g one = make(1);
+    decimal_g half = make(5, -1);
     return half * log((one + x) / (one - x));
 }
 
@@ -2275,7 +2275,7 @@ decimal_p decimal::log1p(decimal_r x)
     if (x->is_zero())
         return x;
 
-    decimal_g one = rt.make<decimal>(1);
+    decimal_g one = make(1);
     decimal_g scaled = x + one;
     if (scaled->is_negative() || scaled->is_zero())
     {
@@ -2342,7 +2342,7 @@ decimal_p decimal::log1p(decimal_r x)
     for (uint i = 2; i < 3*prec; i++)
     {
         power = power * scaled;
-        scale = rt.make<decimal>(i);
+        scale = make(i);
         scale = power / scale;
 
         if (!sum || !scale)
@@ -2365,10 +2365,7 @@ decimal_p decimal::log1p(decimal_r x)
 
     if (ipart)
     {
-        if (ipart > 0)
-            scale = rt.make<decimal>(ipart);
-        else
-            scale = rt.make<decimal>(ID_neg_decimal, -ipart);
+        scale = make(ipart);
         sum = sum + scale;
     }
     return sum;
@@ -2389,7 +2386,7 @@ decimal_p decimal::expm1(decimal_r x)
         return nullptr;
 
     // Prepare power factor and square that we multiply by every time
-    decimal_g one =  rt.make<decimal>(1);
+    decimal_g one =  make(1);
     decimal_g sum = fp;
     decimal_g fact = one;
     decimal_g power = fp;
@@ -2399,7 +2396,7 @@ decimal_p decimal::expm1(decimal_r x)
     for (uint i = 2; i < prec; i++)
     {
         power = power * fp;
-        tmp = rt.make<decimal>(i);
+        tmp = make(i);
         fact = fact * tmp;
 
         tmp = power / fact;     // x^2 / 2!
@@ -2447,7 +2444,7 @@ decimal_p decimal::log(decimal_r x)
         return nullptr;
     }
 
-    decimal_g one    = rt.make<decimal>(1);
+    decimal_g one    = make(1);
     decimal_g scaled = x - one;
     scaled = log1p(scaled);
     return scaled;
@@ -2471,7 +2468,7 @@ decimal_p decimal::log10(decimal_r x)
     decimal_g fp = x;
     if (exp10)
     {
-        fp = rt.make<decimal>(1, -exp10);
+        fp = make(1, -exp10);
         fp = fp * x;
     }
     decimal_g lnx = log(fp);
@@ -2479,10 +2476,7 @@ decimal_p decimal::log10(decimal_r x)
     ln10 = lnx / ln10;
     if (exp10)
     {
-        if (exp10 > 0)
-            fp = rt.make<decimal>(exp10);
-        else
-            fp = rt.make<decimal>(ID_neg_decimal, -exp10);
+        fp = make(exp10);
         ln10 = ln10 + fp;
     }
     return ln10;
@@ -2514,7 +2508,7 @@ decimal_p decimal::exp(decimal_r x)
         return nullptr;
 
     // Compute exponential for integral part
-    decimal_g one = rt.make<decimal>(1);
+    decimal_g one = make(1);
     decimal_g result = expm1(fp);
     result = (one + result);
 
@@ -2559,7 +2553,7 @@ decimal_p decimal::exp10(decimal_r x)
     fp = exp(fp);
     if (ip)
     {
-        decimal_g scale = rt.make<decimal>(1, ip);
+        decimal_g scale = make(1, ip);
         fp = scale * fp;
     }
     return fp;
@@ -2590,7 +2584,7 @@ decimal_p decimal::erf(decimal_r x)
     if (!x->is_magnitude_less_than(300, 1))
     {
         // Use asymptotic expansion
-        decimal_g one = rt.make<decimal>(1);
+        decimal_g one = make(1);
         decimal_g rest = erfc(x);
         return one - rest;
     }
@@ -2599,7 +2593,7 @@ decimal_p decimal::erf(decimal_r x)
     decimal_g sum    = x;
     decimal_g square = x * x;
     decimal_g power  = sum;
-    decimal_g fact = rt.make<decimal>(1);
+    decimal_g fact = make(1);
     decimal_g tmp;
 
     uint prec = Settings.Precision();
@@ -2607,9 +2601,9 @@ decimal_p decimal::erf(decimal_r x)
     {
         // First term is x^3 / (3 * 1!), second is x^5 / (5 * 2!)
         power = power * square;         // x^3
-        tmp = rt.make<decimal>(i);      // 1
+        tmp = make(i);                  // 1
         fact = fact * tmp;              // 1!
-        tmp = rt.make<decimal>(2*i+1);  // 3
+        tmp = make(2*i+1);              // 3
         tmp = fact * tmp;               // 1! * 3
         tmp = power / tmp;              // x^3 / (1! * 3)
 
@@ -2644,17 +2638,17 @@ decimal_p decimal::erfc(decimal_r x)
     if (x->is_negative() || x->is_magnitude_less_than(300, 1))
     {
         // Use asymptotic expansion
-        decimal_g one = rt.make<decimal>(1);
+        decimal_g one = make(1);
         decimal_g rest = erf(x);
         return one - rest;
     }
 
     // 1 - 1 / (2x^2) + (1*3) / (2x^2)^2 - (1*3*5) / (2x^2)^3 + ...
-    decimal_g one    = rt.make<decimal>(1);
+    decimal_g one    = make(1);
     decimal_g sum    = one;
     decimal_g square = x * x;
     decimal_g power  = one;
-    decimal_g scale = rt.make<decimal>(1);
+    decimal_g scale = make(1);
     decimal_g tmp;
     square = square + square;           // 2x^2
 
@@ -2663,7 +2657,7 @@ decimal_p decimal::erfc(decimal_r x)
     {
         // First term is x^3 / (3 * 1!), second is x^5 / (5 * 2!)
         power = power * square;         // (2x^3)^1
-        tmp = rt.make<decimal>(2*i-1);  // 1, 3, 5, ...
+        tmp = make(2*i-1);              // 1, 3, 5, ...
         scale = scale * tmp;            // 1 * 1 * 3 * 5 ...
         tmp = scale / power;            // (1*3*5) / (2x^2)^3
 
@@ -2729,7 +2723,7 @@ decimal_p decimal::sign(decimal_r x)
     if (!x)
         return nullptr;
     int r = x->is_negative() ? -1 : x->is_zero() ? 0 : 1;
-    return rt.make<decimal>(r);
+    return make(r);
 }
 
 
@@ -2771,7 +2765,7 @@ decimal_p decimal::ceil(decimal_r x)
         return nullptr;
     if (fp->is_zero() || x->is_negative())
         return ip;
-    fp = rt.make<decimal>(1);
+    fp = make(1);
     ip = ip + fp;
     return ip;
 }
@@ -2787,7 +2781,7 @@ decimal_p decimal::floor(decimal_r x)
         return nullptr;
     if (fp->is_zero() || !x->is_negative())
         return ip;
-    fp = rt.make<decimal>(1);
+    fp = make(1);
     ip = ip - fp;
     return ip;
 }
@@ -2798,7 +2792,7 @@ decimal_p decimal::inv(decimal_r x)
 //  Compute the inverse
 // ----------------------------------------------------------------------------
 {
-    decimal_p one = rt.make<decimal>(1);
+    decimal_p one = make(1);
     return one / x;
 }
 
@@ -2864,15 +2858,15 @@ decimal_p decimal::fact(decimal_r x)
         return nullptr;
     if (!fp->is_zero() || x->is_negative())
     {
-        fp = rt.make<decimal>(1);
+        fp = make(1);
         fp = x + fp;
         return tgamma(fp);
     }
 
-    decimal_g r = rt.make<decimal>(1);
+    decimal_g r = make(1);
     for (large i = 2; i <= ip; i++)
     {
-        fp = rt.make<decimal>(i);
+        fp = make(i);
         r = r * fp;
     }
     return r;
@@ -2923,7 +2917,7 @@ decimal_r decimal::ccache::ln10()
 {
     if (!log10)
     {
-        decimal_g ten = rt.make<decimal>(10);
+        decimal_g ten = make(10);
         log10 = log(ten);
     }
     return log10;
@@ -2937,7 +2931,7 @@ decimal_r decimal::ccache::ln2()
 {
     if (!log2)
     {
-        decimal_g two = rt.make<decimal>(2);
+        decimal_g two = make(2);
         log2 = log(two);
     }
     return log2;
@@ -2951,7 +2945,7 @@ decimal_r decimal::ccache::one_over_sqrt_pi()
 {
     if (!oosqpi)
     {
-        decimal_g one = rt.make<decimal>(1);
+        decimal_g one = make(1);
         decimal_g sqpi = sqrt(pi);
         oosqpi = one / sqpi;
     }
@@ -2977,8 +2971,8 @@ bool decimal::adjust_from_angle(uint &qturns, decimal_g &fp) const
     decimal_g x = this;
     switch(Settings.AngleMode())
     {
-    case object::ID_Deg:       x = x / decimal_g(rt.make<decimal>(90)); break;
-    case object::ID_Grad:      x = x * decimal_g(rt.make<decimal>(1,-2)); break;
+    case object::ID_Deg:       x = x / decimal_g(make(90)); break;
+    case object::ID_Grad:      x = x * decimal_g(make(1,-2)); break;
     case object::ID_PiRadians: x = x + x; break;
     default:
     case object::ID_Rad:       x = x / pi(); x = x + x; break;
@@ -2997,7 +2991,7 @@ bool decimal::adjust_from_angle(uint &qturns, decimal_g &fp) const
             rt.precision_loss_error();
             return false;
         }
-        decimal_g turn = rt.make<decimal>(4);
+        decimal_g turn = make(4);
         ip = rem(ip, turn);
         if (!ip)
             return false;
@@ -3024,7 +3018,7 @@ decimal_p decimal::adjust_to_angle() const
     }
 
     decimal_g x = this;
-    decimal_g ratio = rt.make<decimal>(half_circle);
+    decimal_g ratio = make(half_circle);
     x = x * ratio;
     x = x / pi();
     return x;

@@ -147,7 +147,7 @@ static size_t render_dms(renderer &r, algebraic_g x,
     r.printf("%d", int(v));
     r.put(deg);
 
-    value = rt.make<decimal>(60);
+    value = decimal::make(60);
     value = value * fp;
     if (!value->split(ip, fp))
         return 0;
@@ -155,7 +155,7 @@ static size_t render_dms(renderer &r, algebraic_g x,
     r.printf("%02d", int(v));
     r.put(min);
 
-    value = rt.make<decimal>(60);
+    value = decimal::make(60);
     value = value * fp;
     if (value->exponent() < 2)
         r.put('0');

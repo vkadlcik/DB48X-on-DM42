@@ -123,10 +123,10 @@ struct decimal : algebraic
     //   Constructor from (unsigned) integer value
     // ------------------------------------------------------------------------
     {
-        Int copy = value;
-        Int mul = 1000;
-        Int div = 1;
-        int iexp = 0;
+        Int  copy = value;
+        Int  mul  = 1000;
+        Int  div  = 1;
+        int  iexp = 0;
         while (copy)
         {
             iexp++;
@@ -161,6 +161,33 @@ struct decimal : algebraic
         }
         exp += iexp;
         return required_memory(type, exp, size_t((iexp+2)/3), gcp<kint>());
+    }
+
+
+    template<typename Int>
+    static decimal_p make(Int x, large exp = 0)
+    // ------------------------------------------------------------------------
+    //   Build a decimal from a signed integer
+    // ------------------------------------------------------------------------
+    {
+        if (x < 0)
+            return rt.make<decimal>(ID_neg_decimal, -x, exp);
+        return rt.make<decimal>(x, exp);
+    }
+
+
+    template<typename Int>
+    static decimal_p make(id type, Int x, large exp = 0)
+    // ------------------------------------------------------------------------
+    //   Build a decimal from a signed integer
+    // ------------------------------------------------------------------------
+    {
+        if (x < 0)
+        {
+            type = type == ID_decimal ? ID_neg_decimal : ID_decimal;
+            return rt.make<decimal>(type, -x, exp);
+        }
+        return rt.make<decimal>(type, x, exp);
     }
 
 

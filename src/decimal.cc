@@ -1802,7 +1802,30 @@ decimal_p decimal::atan2(decimal_r x, decimal_r y)
         return result;
     }
 
-    return atan(x/y);
+    decimal_g result = atan(x/y);
+    if (y->is_negative())
+    {
+        uint half_circle = 0;
+        switch(Settings.AngleMode())
+        {
+        case object::ID_Deg:                half_circle = 180; break;
+        case object::ID_Grad:               half_circle = 200; break;
+        case object::ID_PiRadians:          half_circle =   1; break;
+        default:
+        case object::ID_Rad:
+            if (x->is_negative())
+                result = result - constants().pi;
+            else
+                result = result + constants().pi;
+            return result;
+        }
+        decimal_g hc = make(half_circle);
+        if (x->is_negative())
+            result = result - hc;
+        else
+            result = result + hc;
+    }
+    return result;
 }
 
 

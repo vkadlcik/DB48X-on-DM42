@@ -105,6 +105,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     begin("Current tests");
+    decimal_numerical_functions();
     complex_functions();
 }
 
@@ -1517,6 +1518,19 @@ void tests::decimal_numerical_functions()
     step("hypot")
         .test(CLEAR, "3.21 1.23 hypot", ENTER)
         .expect("3.43758 63625 51492 32");
+
+    step("atan2 pos / pos quadrant")
+        .test(CLEAR, "3.21 1.23 atan2", ENTER)
+        .expect("1.20487 56251 52809 234");
+    step("atan2 pos / neg quadrant")
+        .test(CLEAR, "3.21 -1.23 atan2", ENTER)
+        .expect("1.93671 70284 36984 0045");
+    step("atan2 neg / pos quadrant")
+        .test(CLEAR, "-3.21 1.23 atan2", ENTER)
+        .expect("-1.20487 56251 52809 234");
+    step("atan2 neg / neg quadrant")
+        .test(CLEAR, "-3.21 -1.23 atan2", ENTER)
+        .expect("-1.93671 70284 36984 0045");
 
     step("Restore default 24-digit precision");
     test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerr();

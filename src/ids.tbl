@@ -584,7 +584,6 @@ CMD(ConvertToUnitPrefix)
 // Last things and stack
 NAMED(LastArg, "LastArguments")
 CMD(LastX)
-CMD(LastMenu)
 OP(ClearStack, "Clear")
 
 
@@ -935,6 +934,7 @@ CMD(VariablesMenuRecall)
 CMD(VariablesMenuStore)
 
 CMD(Undo)                       // Immediate: do not save stack before Undo
+CMD(LastMenu)                   // Immediate: do not insert in programs
 
 CMD(SelfInsert)                 // Last immediate command
 

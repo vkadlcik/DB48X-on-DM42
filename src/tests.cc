@@ -104,8 +104,8 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    begin("Decimal numerical functions");
-    decimal_numerical_functions();
+    begin("Current tests");
+    complex_functions();
 }
 
 
@@ -1518,10 +1518,8 @@ void tests::decimal_numerical_functions()
         .test(CLEAR, "3.21 1.23 hypot", ENTER)
         .expect("3.43758 63625 51492 32");
 
-
     step("Restore default 24-digit precision");
     test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerr();
-
 }
 
 
@@ -1860,36 +1858,42 @@ void tests::complex_functions()
 {
     begin("Complex functions");
 
+    step("Select 34-digit precision to match Intel Decimal 128");
+    test(CLEAR, "34 PRECISION 20 SIG", ENTER).noerr();
+
     step("Using radians");
     test(CLEAR, "RAD", ENTER).noerr();
 
-    step("Square root");
-    test(CLEAR, "-1ⅈ0", ENTER, SQRT)
-        .expect("0.+1.ⅈ");
+    step("Square root (optimized negative case)");
+    test(CLEAR, "-1ⅈ0", ENTER, SQRT).expect("0+1.ⅈ");
+    test(CLEAR, "-4ⅈ0", ENTER, SQRT).expect("0+2.ⅈ");
 
-    step("Square and square root");
-    test(CLEAR, "1+2ⅈ", ENTER, SHIFT, SQRT)
-        .expect("-3+4ⅈ");
-    test(SQRT)
-        .expect("1.+2.ⅈ");
+    step("Square root (optimized positive case)");
+    test(CLEAR, "1ⅈ0", ENTER, SQRT).expect("1.+0ⅈ");
+    test(CLEAR, "4ⅈ0", ENTER, SQRT).expect("2.+0ⅈ");
+
+    step("Square root (disable optimization for symbols)");
+    test(CLEAR, "aⅈ0", ENTER, SQRT).expect("'√((a⊿0+a)÷2)'+'√((a⊿0-a)÷2)'ⅈ");
+
+    step("Square");
+    test(CLEAR, "1+2ⅈ", ENTER, SHIFT, SQRT).expect("-3+4ⅈ");
+
+    step("Square root");
+    test(SQRT).expect("1.+2.ⅈ");
 
     step("Negate");
-    test(CLEAR, "1+2ⅈ", ENTER, CHS)
-        .expect("-1-2ⅈ");
-    test(CHS)
-        .expect("1+2ⅈ");
+    test(CLEAR, "1+2ⅈ", ENTER, CHS).expect("-1-2ⅈ");
+    test(CHS).expect("1+2ⅈ");
 
     step("Invert");
-    test(CLEAR, "3+7ⅈ", ENTER, INV)
-        .expect("³/₅₈-⁷/₅₈ⅈ");
-    test("58", MUL)
-        .expect("3-7ⅈ");
-    test(INV)
-        .expect("³/₅₈+⁷/₅₈ⅈ");
+    test(CLEAR, "3+7ⅈ", ENTER, INV).expect("³/₅₈-⁷/₅₈ⅈ");
+    test("58", MUL).expect("3-7ⅈ");
+    test(INV).expect("³/₅₈+⁷/₅₈ⅈ");
 
     step("Symbolic sqrt");
     test(CLEAR, "aⅈb", ENTER, SQRT)
         .expect("'√((a⊿b+a)÷2)'+'sign (√((a⊿b-a)÷2))×√((a⊿b-a)÷2)'ⅈ");
+
     step("Symbolic sqrt in polar form");
     test(CLEAR, "a∡b", ENTER, SQRT)
         .expect("'√ a'∡'b÷2'");
@@ -1963,46 +1967,66 @@ void tests::complex_functions()
     step("Real to complex");
     test(CLEAR, "1 2 R→C", ENTER)
         .type(object::ID_rectangular).expect("1+2ⅈ");
+    step("Symbolic real to complex");
     test(CLEAR, "a b R→C", ENTER)
         .type(object::ID_rectangular).expect("'a'+'b'ⅈ");
 
     step("Complex to real");
     test(CLEAR, "1+2ⅈ C→R", ENTER)
         .expect("2").test(BSP).expect("1");
+    step("Symbolic complex to real");
     test(CLEAR, "a+bⅈ C→R", ENTER)
         .expect("b").test(BSP).expect("a");
 
     step("Re function");
     test(CLEAR, "33+22ⅈ Re", ENTER).expect("33");
+    step("Symbolic Re function");
     test(CLEAR, "a+bⅈ Re", ENTER).expect("a");
+    step("Re function on integers");
     test(CLEAR, "31 Re", ENTER).expect("31");
+    step("Re function on decimal");
     test(CLEAR, "31.234 Re", ENTER).expect("31.234");
 
     step("Im function");
     test(CLEAR, "33+22ⅈ Im", ENTER).expect("22");
+    step("Symbolic Im function");
     test(CLEAR, "a+bⅈ Im", ENTER).expect("b");
+    step("Im function on integers");
     test(CLEAR, "31 Im", ENTER).expect("0");
+    step("Im function on decimal");
     test(CLEAR, "31.234 Im", ENTER).expect("0");
 
     step("Complex modulus");
     test(CLEAR, "3+4ⅈ abs", ENTER).expect("5.");
+    step("Symbolic complex modulus");
     test(CLEAR, "a+bⅈ abs", ENTER).expect("'a⊿b'");
+    step("Norm alias");
     test(CLEAR, "3+4ⅈ norm", ENTER).expect("5.");
     test(CLEAR, "a+bⅈ norm", ENTER).expect("'a⊿b'");
+    step("Modulus alias");
     test(CLEAR, "3+4ⅈ modulus", ENTER).expect("5.");
     test(CLEAR, "a+bⅈ modulus", ENTER).expect("'a⊿b'");
 
     step("Complex argument");
     test(CLEAR, "1+1ⅈ arg", ENTER).expect("7.85398 16339 74483 0962⁳⁻¹");
+    step("Symbolic complex argument");
     test(CLEAR, "a+bⅈ arg", ENTER).expect("'b∠a'");
+    step("Complex argument on integers");
     test(CLEAR, "31 arg", ENTER).expect("0");
+    step("Complex argument on decimals");
     test(CLEAR, "31.234 arg", ENTER).expect("0");
 
     step("Complex conjugate");
     test(CLEAR, "3+4ⅈ conj", ENTER).expect("3-4ⅈ");
+    step("Symbolic complex conjugate");
     test(CLEAR, "a+bⅈ conj", ENTER).expect("a+'-b'ⅈ");
+    step("Complex conjugate on integers");
     test(CLEAR, "31 conj", ENTER).expect("31");
+    step("Complex conjugate on decimals");
     test(CLEAR, "31.234 conj", ENTER).expect("31.234");
+
+    step("Restore default 24-digit precision");
+    test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerr();
 }
 
 
@@ -2624,7 +2648,7 @@ void tests::regression_checks()
     step("Bug 253: Complex cos outside domain");
     test(CLEAR, "0+30000.ⅈ sin", ENTER).expect("3.41528 61889 6⁳¹³⁰²⁸∡90°");
     test(CLEAR, "0+30000.ⅈ cos", ENTER).expect("3.41528 61889 6⁳¹³⁰²⁸∡0°");
-    test(CLEAR, "0+30000.ⅈ tan", ENTER).expect("1.∡90°");
+    test(CLEAR, "0+30000.ⅈ tan", ENTER).expect("1∡90°");
 
     step("Bug 272: Type error on logical operations");
     test(CLEAR, "'x' #2134AF AND", ENTER).error("Bad argument type");

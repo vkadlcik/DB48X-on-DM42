@@ -1000,6 +1000,23 @@ COMPLEX_BODY(sqrt)
     rectangular_r r = (rectangular_r) z;
     algebraic_g a = r->re();
     algebraic_g b = r->im();
+    if (b->is_zero(false))
+    {
+        if (!a->is_symbolic())
+        {
+            if (a->is_negative(false))
+            {
+                a = sqrt::run(-a);
+                return rectangular::make(b, a);
+            }
+            else
+            {
+                a = sqrt::run(a);
+                return rectangular::make(a, b);
+            }
+        }
+    }
+
     algebraic_g znorm = abs::run(algebraic_p(z));
     algebraic_g two = algebraic_p(integer::make(2));
     algebraic_g re = sqrt::run((znorm + a) / two);

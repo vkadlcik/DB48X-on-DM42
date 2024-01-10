@@ -3704,8 +3704,6 @@ Mapped to the _ R/S _ key
 
 `X` ▶ Result of `X` evaluation
 
-## Drop
-
 ## Negate (NEG)
 
 Negate the value in level 1.
@@ -5995,7 +5993,8 @@ Root seeking (bisection method)
 
 # Stack manipulation
 
-## Clear
+## ClearStack (CLEAR)
+
 Remove all objects from the stack
 
 
@@ -6005,6 +6004,8 @@ Get the current stack depth
 
 ## Drop
 Remove an object from the stack
+
+`X` ▶
 
 
 ## Drop2

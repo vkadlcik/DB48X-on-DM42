@@ -581,10 +581,11 @@ CMD(ConvertToUnit)
 CMD(ApplyInverseUnit)
 CMD(ConvertToUnitPrefix)
 
-// Last things
+// Last things and stack
 NAMED(LastArg, "LastArguments")
 CMD(LastX)
 CMD(LastMenu)
+OP(ClearStack, "Clear")
 
 
 // ============================================================================

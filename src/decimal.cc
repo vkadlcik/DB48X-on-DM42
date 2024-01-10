@@ -2289,12 +2289,14 @@ decimal_p decimal::log1p(decimal_r x)
     decimal_g power, scale;
 
     scaled = x;
+    record(decimal, "Start with %t exp=%ld eexp=%ld", +scaled, texp, eexp);
     while (eexp > 0)
     {
         power = constants().e;
         scale = one;
         ipart += eexp;
 
+        record(decimal, "Exponent of e eexp=%ld", eexp);
         while (eexp)
         {
             if (eexp & 1)
@@ -2303,17 +2305,41 @@ decimal_p decimal::log1p(decimal_r x)
             eexp >>= 1;
         }
 
+        record(decimal, "Scale is %t", +scale);
         scaled = (one + scaled) / scale - one;
 
         texp = scaled->exponent();
         eexp = texp * 3 / 2;
+        record(decimal, "Scaled is %t, exp=%ld eexp=%ld", +scaled, texp, eexp);
     }
+
+    // If we end up with 0.999, convergence will be super slow
+    if (!scaled->is_magnitude_less_than_half())
+    {
+        record(decimal, "Rescaling, %t, exp=%ld eexp=%ld ipart=%ld",
+               +scaled, texp, eexp, ipart);
+
+        scale = constants().e;
+        if (scaled->is_negative())
+        {
+            scaled = (one + scaled) * scale - one;
+            ipart -= 1;
+        }
+        else
+        {
+            scaled = (one + scaled) / scale - one;
+            ipart += 1;
+        }
+    }
+
+    record(decimal, "Taylor series with %t exp=%ld eexp=%ld ipart=%ld",
+           +scaled, texp, eexp, ipart);
 
     // Taylor's serie
     decimal_g sum = scaled;
     uint prec = Settings.Precision();
     power = scaled;
-    for (uint i = 2; i < prec; i++)
+    for (uint i = 2; i < 3*prec; i++)
     {
         power = power * scaled;
         scale = rt.make<decimal>(i);
@@ -2324,16 +2350,28 @@ decimal_p decimal::log1p(decimal_r x)
 
         // If what we add no longer has an impact, we can exit
         if (scale->exponent() + large(prec) < sum->exponent())
+        {
+            record(decimal, "Taylor exits at %u exp=%ld", i, scale->exponent());
             break;
+        }
 
         if (i & 1)
             sum = sum + scale;
         else
             sum = sum - scale;
     }
+    record(decimal, "Power at exit %t exponent %ld", +power, power->exponent());
+    record(decimal, "Sum   at exit %t exponent %ld", +sum, sum->exponent());
 
-    scale = rt.make<decimal>(ipart);
-    return scale + sum;
+    if (ipart)
+    {
+        if (ipart > 0)
+            scale = rt.make<decimal>(ipart);
+        else
+            scale = rt.make<decimal>(ID_neg_decimal, -ipart);
+        sum = sum + scale;
+    }
+    return sum;
 }
 
 
@@ -2411,33 +2449,7 @@ decimal_p decimal::log(decimal_r x)
 
     decimal_g one    = rt.make<decimal>(1);
     decimal_g scaled = x - one;
-    decimal_g power, scale;
-    large     texp   = scaled->exponent();
-    large     eexp   = texp * 3 / 2;
-    large     ipart  = 0;
-
-    while (eexp > 0)
-    {
-        power = constants().e;
-        scale = one;
-        ipart += eexp;
-
-        while (eexp)
-        {
-            if (eexp & 1)
-                scale = scale * power;
-            power = power * power;
-            eexp >>= 1;
-        }
-
-        scaled = (scaled + one) / scale - one;
-        texp = scaled->exponent();
-        eexp = texp * 3 / 2;
-    }
-
     scaled = log1p(scaled);
-    scale = rt.make<decimal>(ipart);
-    scaled = scale + scaled;
     return scaled;
 }
 
@@ -2467,7 +2479,10 @@ decimal_p decimal::log10(decimal_r x)
     ln10 = lnx / ln10;
     if (exp10)
     {
-        fp = rt.make<decimal>(exp10);
+        if (exp10 > 0)
+            fp = rt.make<decimal>(exp10);
+        else
+            fp = rt.make<decimal>(ID_neg_decimal, -exp10);
         ln10 = ln10 + fp;
     }
     return ln10;

@@ -2605,11 +2605,9 @@ void tests::regression_checks()
     Settings = settings();
 
     begin("Regression checks");
-#if 0 // Gamma not implemented yet for variable-precision decimal
     step("Bug 116: Rounding of gamma(7) and gamma(8)");
     test(CLEAR, "7 gamma", ENTER).expect("720.");
     test(CLEAR, "8 gamma", ENTER).expect("5 040.");
-#endif
 
     step("Bug 168: pi no longer parses correctly");
     test(CLEAR, "pi", ENTER).expect("π");

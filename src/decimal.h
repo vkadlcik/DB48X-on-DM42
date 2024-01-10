@@ -519,10 +519,14 @@ struct decimal : algebraic
         decimal_g e;
         decimal_g log10;
         decimal_g log2;
+        decimal_g sq2pi;
         decimal_g oosqpi;
+        decimal_g lpi;
 
         decimal_r ln10();
         decimal_r ln2();
+        decimal_r lnpi();
+        decimal_r sqrt_2pi();
         decimal_r one_over_sqrt_pi();
         decimal_g two_over_sqrt_pi();
     };
@@ -534,6 +538,7 @@ struct decimal : algebraic
     static decimal_p e()        { return constants().e; }
     static decimal_p ln10()     { return constants().ln10(); }
     static decimal_p ln2()      { return constants().ln2(); }
+    static decimal_p lnpi()     { return constants().lnpi(); }
     bool             adjust_from_angle(uint &qturns, decimal_g &fp) const;
     decimal_p        adjust_to_angle() const;
 

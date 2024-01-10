@@ -1850,7 +1850,7 @@ decimal_p decimal::sqrt(decimal_r x)
     {
         size_t max = Settings.Precision();
         size_t precision = max - 1;
-        for (uint i = 0; i < max; i++)
+        for (uint i = 0; i < 2 * max; i++)
         {
             next = (current + x / current) * half;
             if (!next || compare(next, current, precision) == 0)
@@ -2685,21 +2685,142 @@ decimal_p decimal::erfc(decimal_r x)
 
 decimal_p decimal::tgamma(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Implementation of the gamma function
 // ----------------------------------------------------------------------------
+//   Largely inspired from https://deamentiaemundi.wordpress.com/2013/06/29
+//      /the-gamma-function-with-spouges-approximation/comment-page-1/
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+
+    decimal_g ip, fp;
+    if (!x->split(ip, fp))
+        return nullptr;
+    if (fp->is_zero())
+    {
+        if (x->is_negative() || x->is_zero())
+        {
+            rt.domain_error();
+            return nullptr;
+        }
+        fp = make(1);
+        ip = ip - fp;
+        return fact(ip);
+    }
+
+    if (x->is_negative())
+    {
+        // gamma(x) = pi/(sin(pi*x) * gamma(1-x))
+        ip = constants().pi;
+        ip = x * ip;
+        ip = sin(ip);
+        fp = make(1);
+        fp = exp(lgamma(fp - x));
+        fp = fp * ip;
+        ip = constants().pi;
+        fp = ip / fp;
+        return fp;
+    }
+
+    return exp(lgamma(x));
 }
 
 
 decimal_p decimal::lgamma(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Implementation of the log of the gamma function
 // ----------------------------------------------------------------------------
+//   Largely inspired from https://deamentiaemundi.wordpress.com/2013/06/29
+//      /the-gamma-function-with-spouges-approximation/comment-page-1/
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+
+    decimal_g ip, fp;
+    if (!x->split(ip, fp))
+        return nullptr;
+    if (fp->is_zero())
+    {
+        if (x->is_negative() || x->is_zero())
+        {
+            rt.domain_error();
+            return nullptr;
+        }
+        // Above 50, might as well use Stirling's approximation
+        if (ip->exponent() < 50)
+        {
+            fp = make(1);
+            ip = ip - fp;
+            ip = fact(ip);
+            return log(ip);
+        }
+    }
+
+    if (x->is_negative())
+    {
+        // gamma(x) = pi/(asin(pi*x) * gamma(1-x))
+        ip = constants().pi;
+        ip = x * ip;
+        ip = log(sin(ip));
+        fp = make(1);
+        fp = lgamma(fp - x);
+        fp = fp + ip;
+        ip = constants().lnpi();
+        fp = ip - fp;
+        return fp;
+    }
+
+    // Spouge's approximation uses a factor `a` - Compute it here
+    uint prec = Settings.Precision();
+    decimal_g tmp = make(prec + 4);
+    decimal_g a = make(125285, -5);
+    a = ceil(a * tmp);
+    uint na = a->as_unsigned();
+
+    // Loop for terms except first one
+    decimal_g factorial = make(1);
+    decimal_g sum       = constants().sqrt_2pi();
+    decimal_g one       = make(1);
+    decimal_g z         = x;
+    decimal_g ck, power, scale;
+    for (uint i = 1; i < na; i++)
+    {
+        z   = z + one;
+
+        uint t  = na - i;
+        uint xp = i - 1;
+        tmp     = make(t);
+        power   = tmp;
+        scale   = exp(tmp);
+        while (xp)
+        {
+            if (xp & 1)
+                scale = scale * power;
+            xp >>= 1;
+            if (xp)
+                power = power * power;
+        }
+        tmp = sqrt(tmp);
+        tmp = tmp * scale / factorial;
+        if (i & 1)
+            sum = sum + tmp / z;
+        else
+            sum = sum - tmp / z;
+        tmp = make(i);
+        factorial = factorial * tmp;
+    }
+
+    sum = log(sum);
+
+    // Add first term
+    tmp = x + a;
+    z = make(5, -1);
+    z = x + z;
+    a = log(x);
+    tmp = log(tmp) * z - tmp - a;
+    sum = sum + tmp;
+
+    return sum;
 }
 
 
@@ -2903,7 +3024,9 @@ decimal::ccache &decimal::constants()
         cst->e         = rt.make<decimal>(1, nkigs, gcbytes(decimal_e));
         cst->log10     = nullptr;
         cst->log2      = nullptr;
+        cst->sq2pi     = nullptr;
         cst->oosqpi    = nullptr;
+        cst->lpi       = nullptr;
         cst->precision = precision;
     }
     return *cst;
@@ -2935,6 +3058,28 @@ decimal_r decimal::ccache::ln2()
         log2 = log(two);
     }
     return log2;
+}
+
+
+decimal_r decimal::ccache::lnpi()
+// ----------------------------------------------------------------------------
+//   Compute and cache the natural logarithm of pi
+// ----------------------------------------------------------------------------
+{
+    if (!lpi)
+        lpi = log(pi);
+    return lpi;
+}
+
+
+decimal_r decimal::ccache::sqrt_2pi()
+// ----------------------------------------------------------------------------
+//   Compute and cache sqrt(pi)
+// ----------------------------------------------------------------------------
+{
+    if (!sq2pi)
+        sq2pi = sqrt(pi + pi);
+    return sq2pi;
 }
 
 

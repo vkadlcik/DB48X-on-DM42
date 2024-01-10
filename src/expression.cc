@@ -560,7 +560,7 @@ static size_t check_match(size_t eq, size_t eqsz,
                     // At this point, if we have an integer, it was
                     // wrapped in an equation by grab_arguments.
                     size_t depth = rt.depth();
-                    if (ftop->evaluate() != object::OK)
+                    if (program::run(ftop) != object::OK)
                         return 0;
                     if (rt.depth() != depth + 1)
                     {
@@ -1118,7 +1118,7 @@ algebraic_p expression::factor_out(algebraic_g expr,
             break;
 
         default:
-            if (obj->evaluate() != OK)
+            if (program::run(obj) != OK)
                 return nullptr;
         }
     }

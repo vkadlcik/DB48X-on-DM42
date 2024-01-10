@@ -104,7 +104,13 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    regression_checks();
+    begin("Expand and collect");
+
+    step("Expand and collect a power");
+    test(CLEAR, "'(A+B)^3' expand ", ENTER)
+        .expect("'A×A×A+A×A×B+A×A×B+A×B×B+A×A×B+A×B×B+A×B×B+B×B×B'");
+    test("collect ", ENTER)
+        .expect("'2×(B↑2×A)+(A↑3+A↑2×(2×B)+B↑2×A+A↑2×B)+B↑3'");
 }
 
 
@@ -2491,9 +2497,9 @@ void tests::expand_collect_simplify()
 
     step("Expand and collect a power");
     test(CLEAR, "'(A+B)^3' expand ", ENTER)
-        .expect("'A×A×A+A×B×A+A×A×B+A×B×B+B×A×A+B×B×A+B×A×B+B×B×B'");
+        .expect("'A×A×A+A×A×B+A×A×B+A×B×B+A×A×B+A×B×B+A×B×B+B×B×B'");
     test("collect ", ENTER)
-        .expect("'2×(B↑2×A)+(2×(A↑2×B)+A↑3+B↑2×A+A↑2×B)+B↑3'");
+        .expect("'2×(B↑2×A)+(A↑3+A↑2×(2×B)+B↑2×A+A↑2×B)+B↑3'");
     // .expect("'(A+B)³'");
 }
 

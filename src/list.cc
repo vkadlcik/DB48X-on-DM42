@@ -637,7 +637,8 @@ static object::result get(bool increment)
         object_p item = items->at(rt.stack(0));
         if (!item)
         {
-            rt.index_error();
+            if (!rt.error())
+                rt.index_error();
         }
         else if (increment)
         {

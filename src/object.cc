@@ -554,8 +554,10 @@ object_p object::at(object_p index) const
 //  Index an object, either from a list or a numerical value
 // ----------------------------------------------------------------------------
 {
-    if (list_p idxlist = index->as<list>())
+    id ity = index->type();
+    if (ity == ID_list || ity == ID_array)
     {
+        list_p idxlist = list_p(index);
         object_p result = this;
         for (object_p idxobj : *idxlist)
         {

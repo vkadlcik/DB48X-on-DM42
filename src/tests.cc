@@ -105,8 +105,12 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     begin("Current tests");
-    decimal_numerical_functions();
-    complex_functions();
+    step("Array indexing");
+    test(CLEAR, "[ A [ D E [ 1 2 \"Hello World\" ] F ] 2 3 ]", ENTER,\
+         "[ 2 3 3 5 ] GET", ENTER)
+        .expect("\"o\"");
+
+    list_functions();
 }
 
 

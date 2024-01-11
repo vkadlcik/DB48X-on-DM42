@@ -414,8 +414,36 @@ struct decimal : algebraic
     bool             split(decimal_g &ip, decimal_g &fp, large exp = 0) const;
     bool             split(large &ip, decimal_g &fp, large exp = 0) const;
     // ------------------------------------------------------------------------
-    //   Round a decimal value to the given number of decimals
+    //   Truncate / round / split a decimal value to the given place
     // ------------------------------------------------------------------------
+
+
+    decimal_p        round(large exp = 0) const;
+    decimal_p        precision(size_t prec) const
+    // ------------------------------------------------------------------------
+    //   Round a number to the given precision
+    // ------------------------------------------------------------------------
+    {
+        return round(exponent() - large(prec));
+    }
+
+
+    struct precision_adjust
+    // ------------------------------------------------------------------------
+    //   Helper to adjust precision during a computation
+    // ------------------------------------------------------------------------
+    {
+        precision_adjust(uint extra): saved(Settings.Precision())
+        {
+            Settings.Precision((saved + extra + 2) / 3 * 3);
+        }
+        ~precision_adjust()
+        {
+            Settings.Precision(saved);
+        }
+        operator uint()         { return saved; }
+        uint saved;
+    };
 
 
     algebraic_p      to_integer() const;

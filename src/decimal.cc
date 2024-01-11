@@ -814,7 +814,41 @@ bool decimal::is_magnitude_less_than(uint kig, large exponent) const
 }
 
 
-static void normalize(decimal::kint *&rb, size_t &rs, large &re);
+static void normalize(decimal::kint *&rb, size_t &rs, large &re)
+// ----------------------------------------------------------------------------
+//   Normalize a result to have no leading or trailing zero
+// ----------------------------------------------------------------------------
+{
+    // Strip leading zeroes three by three
+    while (rs && *rb == 0)
+    {
+        re -= 3;
+        rb++;
+        rs--;
+    }
+
+    // Strip up to two individual leading zeroes
+    if (rs && *rb < 100)
+    {
+        re -= 1 + (*rb < 10);
+        uint hmul = *rb < 10 ? 100 : 10;
+        uint lmul = 1000 / hmul;
+        for (size_t ko = 0; ko < rs; ko++)
+        {
+            decimal::kint next = ko + 1 < rs ? rb[ko + 1] : 0;
+            rb[ko] = (rb[ko] * hmul + next / lmul) % 1000;
+        }
+    }
+
+    // Strip trailing zeroes
+    while (rs && rb[rs-1] == 0)
+        rs--;
+
+    // If result is zero, set exponent to 0
+    if (!rs)
+        re = 0;
+}
+
 
 decimal_p decimal::truncate(large to_exp) const
 // ----------------------------------------------------------------------------
@@ -834,8 +868,8 @@ decimal_p decimal::truncate(large to_exp) const
     if (copy >= nkigits)
         return this;            // We copy everything
 
-    gcbytes  bp      = s.base;
-    id       ty      = type();
+    gcbytes  bp = s.base;
+    id       ty = type();
     scribble scr;
 
     for (size_t i = 0; i <= copy; i++)
@@ -859,6 +893,98 @@ decimal_p decimal::truncate(large to_exp) const
 
     kint  *rp = (kint *) scr.scratch();
     size_t rs = copy + 1;
+    normalize(rp, rs, exp);
+    return rt.make<decimal>(ty, exp, rs, gcp<kint>(rp));
+}
+
+
+decimal_p decimal::round(large to_exp) const
+// ----------------------------------------------------------------------------
+//   Round a given decimal number (round to nearest)
+// ----------------------------------------------------------------------------
+{
+    info s   = shape();
+
+    // If we have 1E-3 and round at 0, return zero
+    large exp = s.exponent;
+    if (exp < to_exp)
+        return make(0);
+
+    // If rounding 10000 (10^4) to 0, we can copy 1 kigit as is
+    size_t copy    = (exp - to_exp) / 3;
+    size_t nkigits = s.nkigits;
+    if (copy >= nkigits)
+        return this;            // We copy everything
+
+    gcbytes  bp = s.base;
+    id       ty = type();
+    kint     ld = 0;
+    size_t   rm = (exp - to_exp) % 3;
+    scribble scr;
+
+    for (size_t i = 0; i <= copy; i++)
+    {
+        kint k = kigit(+bp, i);
+        if (i == copy)
+        {
+            if (rm == 0)
+            {
+                ld = kigit(+bp, i+1);
+                ld /= 100;
+                k = ld >= 5 ? 1 : 0;
+                ld = 0;
+            }
+            else if (rm == 1)
+            {
+                ld = k % 100;
+                k -= ld;
+                ld = ld >= 50;
+                if (ld)
+                {
+                    k += 100;
+                    ld = k >= 1000;
+                    if (ld)
+                        k = 0;
+                }
+            }
+            else if (rm == 2)
+            {
+                ld = k % 10;
+                k -= ld;
+                ld = ld >= 5;
+                if (ld)
+                {
+                    k += 10;
+                    ld = k >= 1000;
+                    if (ld)
+                        k = 0;
+                }
+            }
+        }
+        kint *kp = (kint *) rt.allocate(sizeof(kint));
+        if (!kp)
+            return nullptr;
+        *kp = k;
+    }
+
+    // Check if rounding is needed
+    kint  *rp = (kint *) scr.scratch();
+    size_t rs = copy + 1;
+    while (ld && copy --> 0)
+    {
+        ld = ++rp[copy];
+        ld = ld >= 1000;
+        if (ld)
+            rp[copy] = 0;
+    }
+    if (ld)
+    {
+        exp++;
+        for (size_t i = rs; i > 0; --i)
+            rp[i] = rp[i] / 10 + rp[i-1] % 10 * 100;
+        *rp /= 10;
+    }
+
     normalize(rp, rs, exp);
     return rt.make<decimal>(ty, exp, rs, gcp<kint>(rp));
 }
@@ -1182,42 +1308,6 @@ int decimal::compare(decimal_r x, decimal_r y, uint epsilon)
 //    Basic arithmetic operations
 //
 // ============================================================================
-
-static void normalize(decimal::kint *&rb, size_t &rs, large &re)
-// ----------------------------------------------------------------------------
-//   Normalize a result to have no leading or trailing zero
-// ----------------------------------------------------------------------------
-{
-    // Strip leading zeroes three by three
-    while (rs && *rb == 0)
-    {
-        re -= 3;
-        rb++;
-        rs--;
-    }
-
-    // Strip up to two individual leading zeroes
-    if (rs && *rb < 100)
-    {
-        re -= 1 + (*rb < 10);
-        uint hmul = *rb < 10 ? 100 : 10;
-        uint lmul = 1000 / hmul;
-        for (size_t ko = 0; ko < rs; ko++)
-        {
-            decimal::kint next = ko + 1 < rs ? rb[ko + 1] : 0;
-            rb[ko] = (rb[ko] * hmul + next / lmul) % 1000;
-        }
-    }
-
-    // Strip trailing zeroes
-    while (rs && rb[rs-1] == 0)
-        rs--;
-
-    // If result is zero, set exponent to 0
-    if (!rs)
-        re = 0;
-}
-
 
 static inline object::id negtype(object::id type)
 // ----------------------------------------------------------------------------
@@ -1871,15 +1961,15 @@ decimal_p decimal::sqrt(decimal_r x)
     decimal_g current  = x * next;
     if (current && !current->is_zero())
     {
-        size_t max = Settings.Precision();
-        size_t precision = max - 1;
-        for (uint i = 0; i < 2 * max; i++)
+        precision_adjust prec(3);
+        for (uint i = 0; i < 2 * prec; i++)
         {
             next = (current + x / current) * half;
-            if (!next || compare(next, current, precision) == 0)
+            if (!next || compare(next, current, prec) == 0)
                 break;
             current = next;
         }
+        current = current->precision(prec);
     }
     return current;
 }
@@ -1891,20 +1981,20 @@ decimal_p decimal::cbrt(decimal_r x)
 // ----------------------------------------------------------------------------
 {
     large     exponent = x->exponent();
-    decimal_g three    = make(3);
+    decimal_g third    = inv(make(3));
     decimal_g next     = make(1, -2 * exponent / 3);
     decimal_g current  = x * next;
     if (current && !current->is_zero())
     {
-        size_t max = Settings.Precision();
-        size_t precision = max - 1;
-        for (uint i = 0; i < max; i++)
+        precision_adjust prec(3);
+        for (uint i = 0; i < 2 * prec; i++)
         {
-            next = ((current + current) + x / (current * current)) / three;
-            if (!next || compare(next, current, precision) == 0)
+            next = ((current + current) + x / (current * current)) * third;
+            if (!next || compare(next, current, prec) == 0)
                 break;
             current = next;
         }
+        current = current->precision(prec);
     }
     return current;
 }

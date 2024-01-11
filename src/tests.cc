@@ -1452,6 +1452,27 @@ void tests::decimal_numerical_functions()
     begin("Decimal functions");
 
     step("Select 34-digit precision to match Intel Decimal 128");
+    test(CLEAR, "34 PRECISION 64 SIG", ENTER).noerr();
+    step("Square root of 2")
+        .test(CLEAR, "2 sqrt", ENTER)
+        .expect("1.41421 35623 73095 04880 16887 24209 698");
+    step("Square root of 3")
+        .test(CLEAR, "3 sqrt", ENTER)
+        .expect("1.73205 08075 68877 29352 74463 41505 872");
+    step("Square root of 4")
+        .test(CLEAR, "4 sqrt", ENTER)
+        .expect("2.");
+    step("Cube root of 2")
+        .test(CLEAR, "2 cbrt", ENTER)
+        .expect("1.25992 10498 94873 16476 72106 07278 228");
+    step("Cube root of 3")
+        .test(CLEAR, "3 cbrt", ENTER)
+        .expect("1.44224 95703 07408 38232 16383 10780 11");
+    step("Cube root of 27")
+        .test(CLEAR, "27 cbrt", ENTER)
+        .expect("3.");
+
+    step("Select 34-digit precision to match Intel Decimal 128");
     test(CLEAR, "34 PRECISION 20 SIG", ENTER).noerr();
 
     step("neg")

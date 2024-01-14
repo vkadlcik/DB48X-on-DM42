@@ -2835,7 +2835,10 @@ decimal_p decimal::tgamma(decimal_r x)
         return fp;
     }
 
-    return exp(lgamma(x));
+    precision_adjust prec(3);
+    fp = exp(lgamma(x));
+    fp = fp->precision(prec);
+    return fp;
 }
 
 
@@ -2884,7 +2887,7 @@ decimal_p decimal::lgamma(decimal_r x)
     }
 
     // Spouge's approximation uses a factor `a` - Compute it here
-    uint prec = Settings.Precision();
+    precision_adjust prec(6);
     decimal_g tmp = make(prec + 4);
     decimal_g a = make(125285, -5);
     a = ceil(a * tmp);
@@ -2932,6 +2935,7 @@ decimal_p decimal::lgamma(decimal_r x)
     a = log(x);
     tmp = log(tmp) * z - tmp - a;
     sum = sum + tmp;
+    sum = sum->precision(prec);
 
     return sum;
 }

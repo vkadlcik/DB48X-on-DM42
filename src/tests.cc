@@ -105,12 +105,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     begin("Current tests");
-    step("Array indexing");
-    test(CLEAR, "[ A [ D E [ 1 2 \"Hello World\" ] F ] 2 3 ]", ENTER,\
-         "[ 2 3 3 5 ] GET", ENTER)
-        .expect("\"o\"");
-
-    list_functions();
+    decimal_numerical_functions();
 }
 
 
@@ -1476,21 +1471,19 @@ void tests::decimal_numerical_functions()
         .test(CLEAR, "27 cbrt", ENTER)
         .expect("3.");
 
-    step("Select 34-digit precision to match Intel Decimal 128");
-    test(CLEAR, "34 PRECISION 20 SIG", ENTER).noerr();
-
     step("neg")
         .test(CLEAR, "3.21 neg", ENTER).expect("-3.21")
         .test("negate", ENTER).expect("3.21");
     step("inv")
-        .test(CLEAR, "3.21 inv", ENTER).expect("3.11526 47975 07788 162⁳⁻¹")
+        .test(CLEAR, "3.21 inv", ENTER)
+        .expect("3.11526 47975 07788 16199 37694 70404 98442⁳⁻¹")
         .test("inv", ENTER).expect("3.21");
     step("sq (square)")
         .test(CLEAR, "-3.21 sq", ENTER).expect("10.3041")
         .test("sq", ENTER).expect("106.17447 681");
     step("cubed")
         .test(CLEAR, "3.21 cubed", ENTER).expect("33.07616 1")
-        .test("cubed", ENTER).expect("36 186.39267 80659 01161")
+        .test("cubed", ENTER).expect("36 186.39267 80659 01161 281")
         .test(CLEAR, "-3 cubed", ENTER).expect("-27")
         .test("cubed", ENTER).expect("-19 683");
     step("abs")
@@ -1504,58 +1497,58 @@ void tests::decimal_numerical_functions()
     step(#name).test(CLEAR, #arg " " #name, ENTER).expect(result);
 #define TFN(name, result)  TFNA(name, 0.321, result)
 
-    TFN(sqrt, "5.66568 61896 86117 7993⁳⁻¹");
-    TFN(sin, "3.15515 63859 27271 1131⁳⁻¹");
-    TFN(cos, "9.48920 37695 65830 1754⁳⁻¹");
-    TFN(tan, "3.32499 59243 64718 7511⁳⁻¹");
-    TFN(asin, "3.26785 17653 14954 6327⁳⁻¹");
-    TFN(acos, "1.24401 11502 63401 156");
-    TFN(atan, "3.10609 79281 38899 1761⁳⁻¹");
-    TFN(sinh, "3.26541 16495 18063 5701⁳⁻¹");
-    TFN(cosh, "1.05196 44159 41947 5384");
-    TFN(tanh, "3.10410 84660 58860 2149⁳⁻¹");
-    TFN(asinh, "3.15728 26582 93796 1791⁳⁻¹");
-    TFNA(acosh, 1.321, "7.81230 20519 62526 1474⁳⁻¹");
-    TFN(atanh, "3.32761 58848 18145 958⁳⁻¹");
-    TFN(log1p, "2.78389 02554 01882 6677⁳⁻¹");
-    TFN(lnp1, "2.78389 02554 01882 6677⁳⁻¹");
-    TFN(expm1, "3.78505 58089 37538 9545⁳⁻¹");
-    TFN(log, "-1.13631 41558 52121 1874");
-    TFN(log10, "-4.93494 96759 51279 2187⁳⁻¹");
-    TFN(exp, "1.37850 55808 93753 8954");
-    TFN(exp10, "2.09411 24558 50892 6705");
-    TFN(exp2, "1.24919 61256 53376 7005");
-    TFN(erf, "3.50144 22082 00238 2355⁳⁻¹");
-    TFN(erfc, "6.49855 77917 99761 7645⁳⁻¹");
-    TFN(tgamma, "2.78663 45408 45472 368");
-    TFN(lgamma, "1.02483 46099 57313 1987");
-    TFN(gamma, "2.78663 45408 45472 368");
-    TFN(cbrt, "6.84702 12775 72241 6184⁳⁻¹");
+    TFN(sqrt, "5.66568 61896 86117 79925 47340 46967 69⁳⁻¹");
+    TFN(sin, "3.15515 63859 27271 11306 59311 11434 63699⁳⁻¹");
+    TFN(cos, "9.48920 37695 65830 17543 94513 28269 25533⁳⁻¹");
+    TFN(tan, "3.32499 59243 64718 75108 70873 01027 37935⁳⁻¹");
+    TFN(asin, "3.26785 17653 14954 63269 19976 45195 98267⁳⁻¹");
+    TFN(acos, "1.24401 11502 63401 15596 21219 27120 15339");
+    TFN(atan, "3.10609 79281 38899 17606 70005 14468 36027⁳⁻¹");
+    TFN(sinh, "3.26541 16495 18063 57012 20656 38857 3434⁳⁻¹");
+    TFN(cosh, "1.05196 44159 41947 53843 52241 43605 67798");
+    TFN(tanh, "3.10410 84660 58860 21485 05020 93830 95885⁳⁻¹");
+    TFN(asinh, "3.15728 26582 93796 17910 89454 71020 69687⁳⁻¹");
+    TFNA(acosh, 1.321, "7.81230 20519 62526 14742 21716 16034 3493⁳⁻¹");
+    TFN(atanh, "3.32761 58848 18145 95801 76417 05087 51085⁳⁻¹");
+    TFN(log1p, "2.78389 02554 01882 66771 62834 21115 50952⁳⁻¹");
+    TFN(lnp1, "2.78389 02554 01882 66771 62834 21115 50952⁳⁻¹");
+    TFN(expm1, "3.78505 58089 37538 95447 43070 74914 12321⁳⁻¹");
+    TFN(log, "-1.13631 41558 52121 18735 43303 10107 28989");
+    TFN(log10, "-4.93494 96759 51279 21870 43085 72834 4906⁳⁻¹");
+    TFN(exp, "1.37850 55808 93753 89544 74307 07491 41232");
+    TFN(exp10, "2.09411 24558 50892 67051 98819 85846 25421");
+    TFN(exp2, "1.24919 61256 53376 70052 14667 82085 80659");
+    TFN(erf, "3.50144 22082 00238 23551 60324 50502 3913⁳⁻¹");
+    TFN(erfc, "6.49855 77917 99761 76448 39675 49497 6087⁳⁻¹");
+    TFN(tgamma, "2.78663 45408 45472 36795 07642 12781 773");
+    TFN(lgamma, "1.02483 46099 57313 19869 10927 53834 887");
+    TFN(gamma, "2.78663 45408 45472 36795 07642 12781 773");
+    TFN(cbrt, "6.84702 12775 72241 61840 92773 26468 15⁳⁻¹");
     TFN(norm, "0.321");
 #undef TFN
 
     step("pow")
         ,test(CLEAR, "3.21 1.23 pow", ENTER)
-        .expect("4.19760 13402 69557 0313")
+        .expect("4.19760 13402 69557 03133 41557 04388 7116")
         .test(CLEAR, "1.23 2.31").shifts(true,false,false,false).test(B)
-        .expect("1.61317 24907 55543 8443");
+        .expect("1.61317 24907 55543 84434 14148 92337 98556");
 
     step("hypot")
         .test(CLEAR, "3.21 1.23 hypot", ENTER)
-        .expect("3.43758 63625 51492 32");
+        .expect("3.43758 63625 51492 31996 16557 32945 235");
 
     step("atan2 pos / pos quadrant")
         .test(CLEAR, "3.21 1.23 atan2", ENTER)
-        .expect("1.20487 56251 52809 234");
+        .expect("1.20487 56251 52809 23400 86691 05495 30674");
     step("atan2 pos / neg quadrant")
         .test(CLEAR, "3.21 -1.23 atan2", ENTER)
-        .expect("1.93671 70284 36984 0045");
+        .expect("1.93671 70284 36984 00445 39742 77784 19614");
     step("atan2 neg / pos quadrant")
         .test(CLEAR, "-3.21 1.23 atan2", ENTER)
-        .expect("-1.20487 56251 52809 234");
+        .expect("-1.20487 56251 52809 23400 86691 05495 30674");
     step("atan2 neg / neg quadrant")
         .test(CLEAR, "-3.21 -1.23 atan2", ENTER)
-        .expect("-1.93671 70284 36984 0045");
+        .expect("-1.93671 70284 36984 00445 39742 77784 19614");
 
     step("Restore default 24-digit precision");
     test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerr();

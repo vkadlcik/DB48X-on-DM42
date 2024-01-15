@@ -92,6 +92,7 @@ void tests::run(bool onlyCurrent)
         rewrite_engine();
         expand_collect_simplify();
         tagged_objects();
+        plotting();
         flags_by_name();
         settings_by_name();
         parsing_commands_by_name();
@@ -112,7 +113,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     begin("Current tests");
-    parsing_commands_by_name();
+    plotting();
 }
 
 
@@ -2793,6 +2794,76 @@ void tests::regression_checks()
         .noerr().type(object::ID_program).expect("« N »")
         .test(BSP)
         .noerr().type(object::ID_expression).expect("'→N'");
+}
+
+
+void tests::plotting()
+// ----------------------------------------------------------------------------
+//   Test the plotting functions
+// ----------------------------------------------------------------------------
+{
+    begin("Plotting");
+
+    step("Select radians");
+    test(CLEAR, "RAD", ENTER).noerr();
+
+    step("Function plot: Sine wave");
+    test(CLEAR, "'sin(x)' FunctionPlot", ENTER).noerr();
+    step("Function plot: Equation");
+    test(CLEAR,
+         SHIFT, ENTER, X, ENTER, ENTER, J, 3, MUL, M, 21, MUL, COS, 2, MUL, ADD,
+         SHIFT, SHIFT, O, F1).noerr();
+    step("Function plot: Program");
+    test(CLEAR, SHIFT, RUNSTOP,
+         I, SHIFT, F1, L, M, 41, MUL, J, MUL, ENTER, ENTER,
+         SHIFT, SHIFT, O, F1).noerr();
+
+    step("Polar plot: Program");
+    test(CLEAR, SHIFT, RUNSTOP,
+         61, MUL, L, SHIFT, C, 2, ADD, ENTER,
+         SHIFT, SHIFT, O, F2).noerr().wait(500);
+    step("Polar plot: Equation");
+    test(CLEAR, F, J, 611, MUL, SHIFT, ENTER, X, SHIFT, ENTER, SHIFT, ENTER,
+         DOWN, MUL, K, 271, MUL, SHIFT, ENTER, X, LONGPRESS, SHIFT, DOWN,
+         ADD, KEY2, DOT, KEY5, ENTER,
+         SHIFT, SHIFT, O,
+         ENTER, F2).noerr().wait(500);
+    step("Polar plot: Zoom in X and Y");
+    test(EXIT, "0.5 XSCALE 0.5 YSCALE", ENTER).noerr()
+        .test(ENTER, F2).noerr().wait(500);
+    step("Polar plot: Zoom out Y");
+    test(EXIT, "2 YSCALE", ENTER).noerr()
+        .test(ENTER, F2).noerr().wait(500);
+    step("Polar plot: Zoom out X");
+    test(EXIT, "2 XSCALE", ENTER).noerr()
+        .test(ENTER, F2).noerr().wait(500);
+
+    step("Parametric plot: Program");
+    test(CLEAR, SHIFT, RUNSTOP,
+         "'9.5*sin(31.27*X)' eval '5.5*cos(42.42*X)' eval RealToComplex",
+         ENTER, ENTER, F3)
+        .noerr().wait(500);
+    step("Parametric plot: Degrees");
+    test("DEG 2 LINEWIDTH", ENTER, F3).noerr().wait(500);
+    step("Parametric plot: Equation");
+    test(CLEAR,
+         "3 LINEWIDTH 0.25 GRAY FOREGROUND "
+         "'exp((0.17ⅈ5.27)*x+(1.5ⅈ8))' ParametricPlot", ENTER).noerr().wait(500);
+
+    step("Bar plot");
+    test(CLEAR,
+         "[[ 1 -1 ][2 -2][3 -3][4 -4][5 -6][7 -8][9 -10]]", ENTER,
+         33, MUL, K, 2, MUL,
+         SHIFT, SHIFT, O, F5).noerr().wait(500);
+
+    step("Scatter plot");
+    test(CLEAR,
+         "[[ -5 -5][ -3 0][ -5 5][ 0 3][ 5 5][ 3 0][ 5 -5][ 0 -3][-5 -5]]",
+         ENTER,
+         "4 LineWidth ScatterPlot", ENTER).noerr().wait(500);
+
+     step("Reset drawing parameters");
+     test(CLEAR, "1 LineWidth 0 GRAY Foreground", ENTER).noerr();
 }
 
 

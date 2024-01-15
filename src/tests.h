@@ -85,6 +85,7 @@ struct tests
     void flags_by_name();
     void settings_by_name();
     void parsing_commands_by_name();
+    void plotting();
     void regression_checks();
 
     enum key

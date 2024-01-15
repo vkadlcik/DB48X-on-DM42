@@ -47,6 +47,12 @@ RECORDER_DECLARE(errors);
 
 uint wait_time  = 200;
 uint delay_time = 2;
+uint long_tests = 0;
+
+RECORDER_TWEAK_DEFINE(est_flags,        0, "Test every RPL flag");
+RECORDER_TWEAK_DEFINE(est_settings,     0, "Test every RPL setting");
+RECORDER_TWEAK_DEFINE(est_commands,     0, "Test every RPL command");
+
 
 void tests::run(bool onlyCurrent)
 // ----------------------------------------------------------------------------
@@ -88,6 +94,7 @@ void tests::run(bool onlyCurrent)
         tagged_objects();
         flags_by_name();
         settings_by_name();
+        parsing_commands_by_name();
         regression_checks();
     }
     summary();
@@ -105,7 +112,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     begin("Current tests");
-    decimal_numerical_functions();
+    parsing_commands_by_name();
 }
 
 
@@ -2614,6 +2621,12 @@ void tests::flags_by_name()
 //   Set and clear all flags by name
 // ----------------------------------------------------------------------------
 {
+    if (RECORDER_TWEAK(est_flags) == 0)
+    {
+        begin("Skipping flag checks");
+        return;
+    }
+
     // Otherwise exercise settings routines
     begin("Set and clear all flags by name");
 
@@ -2637,6 +2650,12 @@ void tests::settings_by_name()
 //   Set and clear all settings by name
 // ----------------------------------------------------------------------------
 {
+    if (RECORDER_TWEAK(est_settings) == 0)
+    {
+        begin("Skipping settings check");
+        return;
+    }
+
     // Otherwise exercise settings routines
     begin("Adjust all settings by name");
 
@@ -2650,6 +2669,66 @@ void tests::settings_by_name()
         .test("" #Name "", ENTER)                       \
         .noerr();
 #include "ids.tbl"
+}
+
+
+void tests::parsing_commands_by_name()
+// ----------------------------------------------------------------------------
+//   Set and clear all settings by name
+// ----------------------------------------------------------------------------
+{
+    if (RECORDER_TWEAK(est_commands) == 0)
+    {
+        begin("Skipping command-line spelling");
+        return;
+    }
+
+    // Otherwise exercise settings routines
+    begin("Parsing every single command spelling");
+
+#define SPECIAL(ty, ref, name, rname)                                   \
+    (object::ID_##ty == object::ID_##ref && strcmp(name, rname) == 0)
+
+#define ALIAS(ty, name)                                                 \
+    if (object::is_command(object::ID_##ty))                            \
+    {                                                                   \
+        if (name)                                                       \
+        {                                                               \
+            step("Parsing " #name " for " #ty);                         \
+            if (SPECIAL(ty, inv,                name, "x⁻¹")    ||      \
+                SPECIAL(ty, sq,                 name, "x²")     ||      \
+                SPECIAL(ty, cubed,              name, "x³")     ||      \
+                SPECIAL(ty, cbrt,               name, "∛")      ||      \
+                SPECIAL(ty, hypot,              name, "⊿")      ||      \
+                SPECIAL(ty, atan2,              name, "∠")      ||      \
+                SPECIAL(ty, asin,               name, "sin⁻¹")  ||      \
+                SPECIAL(ty, acos,               name, "cos⁻¹")  ||      \
+                SPECIAL(ty, atan,               name, "tan⁻¹")  ||      \
+                SPECIAL(ty, asinh,              name, "sinh⁻¹") ||      \
+                SPECIAL(ty, acosh,              name, "cosh⁻¹") ||      \
+                SPECIAL(ty, atanh,              name, "tanh⁻¹") ||      \
+                SPECIAL(ty, RealToComplex,      name, "ℝ→ℂ")    ||      \
+                SPECIAL(ty, ComplexToReal,      name, "ℂ→ℝ")    ||      \
+                SPECIAL(ty, SumOfXSquares,      name, "ΣX²")    ||      \
+                SPECIAL(ty, SumOfYSquares,      name, "ΣY²")    ||      \
+                false)                                                  \
+                                                                        \
+            {                                                           \
+                test(CLEAR, "{ " #ty " }", ENTER, DOWN,                 \
+                     ENTER, "1 GET", ENTER)                             \
+                    .type(object::ID_##ty);                             \
+            }                                                           \
+            else                                                        \
+            {                                                           \
+                test(CLEAR, "{ ", (cstring) name, " } 1 GET", ENTER)    \
+                    .type(object::ID_##ty);                             \
+            }                                                           \
+        }                                                               \
+    }
+#define ID(ty)                  ALIAS(ty, #ty)
+#define NAMED(ty, name)         ALIAS(ty, name) ALIAS(ty, #ty)
+#include "ids.tbl"
+
 }
 
 
@@ -3169,14 +3248,19 @@ tests &tests::itest(cstring txt)
         case L'×': k = MUL;         alpha = true;  shift = true; break;
         case L'÷': k = DIV;         alpha = true;  shift = true; break;
         case L'↑': k = C;           alpha = true; xshift = true; break;
-        case L'ⅈ': k = G; fn = F1;  alpha = false;  shift = true; break;
+        case L'ⅈ': k = G; fn = F1;  alpha = false; shift = true; break;
         case L'∡': k = G; fn = F2;  alpha = false; shift = true; break;
         case L'ρ': k = E;           alpha = true;  shift = true; break;
         case L'θ': k = E;           alpha = true; xshift = true; break;
-        case L'π': k = I; fn = F1;  alpha = false; shift = true; break;
-        case L'Σ': k = A;           alpha = true; shift = true; break;
+        case L'π': k = I;           alpha = true;  shift = true; break;
+        case L'Σ': k = A;           alpha = true;  shift = true; break;
         case L'∏': k = A;           alpha = true; xshift = true; break;
         case L'∆': k = B;           alpha = true; xshift = true; break;
+        case L'≤': k = J;           alpha = true; xshift = true; break;
+        case L'≠': k = K;           alpha = true; xshift = true; break;
+        case L'≥': k = L;           alpha = true; xshift = true; break;
+        case L'√': k = C;           alpha = true;  shift = true; break;
+        case L'∫': k = KEY8;        alpha = true; xshift = true; break;
         }
 
         if (shift)

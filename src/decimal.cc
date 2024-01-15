@@ -1390,21 +1390,20 @@ decimal_p decimal::add(decimal_r x, decimal_r y)
     while (ko-- > 0)
     {
         kint xk = ko < xs ? kigit(+xb, ko) : 0;
+        kint yk = carry;
         if (ko >= kshift)
         {
             size_t yo = ko - kshift;
-            kint   yk = yo < ys ? kigit(+yb, yo) : 0;
-            xk += yk / hmul;
-            if (mod3 && ko > kshift && yo - 1 < ys)
-            {
-                yo--;
-                yk = kigit(+yb, yo);
-                xk += (yk % hmul) * lmul;
-            }
+            if (yo < ys)
+                yk += kigit(+yb, yo) / hmul;
+            if (mod3 && ko > kshift && --yo < ys)
+                yk += kigit(+yb, yo) % hmul * lmul;
         }
-        xk += carry;
-        rb[ko] = xk % 1000;
-        carry = xk / 1000;
+        xk += yk;
+        carry = xk >= 1000;
+        if (carry)
+            xk -= 1000;
+        rb[ko] = xk;
     }
 
     // Check if a carry remains above top
@@ -1418,6 +1417,14 @@ decimal_p decimal::add(decimal_r x, decimal_r y)
             expincr++;
         }
         xe += expincr;
+        if (rs < ps)
+        {
+            rb = (kint *) rt.allocate(sizeof(kint)) - rs;
+            if (!rb)
+                return nullptr;
+            rb[rs] = 0;
+            rs++;
+        }
 
         ko = rs;
         lmul = 1000 / hmul;

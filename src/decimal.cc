@@ -2831,11 +2831,12 @@ decimal_p decimal::tgamma(decimal_r x)
     if (x->is_negative())
     {
         // gamma(x) = pi/(sin(pi*x) * gamma(1-x))
-        ip = constants().pi;
-        ip = x * ip;
-        ip = sin(ip);
+        ip = x + x;
+        ip = sin_fracpi(0, ip);
         fp = make(1);
-        fp = exp(lgamma(fp - x));
+        fp = fp - x;
+        fp = lgamma(fp);
+        fp = exp(fp);
         fp = fp * ip;
         ip = constants().pi;
         fp = ip / fp;
@@ -2882,14 +2883,16 @@ decimal_p decimal::lgamma(decimal_r x)
     if (x->is_negative())
     {
         // gamma(x) = pi/(asin(pi*x) * gamma(1-x))
-        ip = constants().pi;
-        ip = x * ip;
-        ip = log(sin(ip));
+        precision_adjust prec(3);
+        ip = x + x;
+        ip = sin_fracpi(0, ip);
+        ip = log(ip);
         fp = make(1);
         fp = lgamma(fp - x);
         fp = fp + ip;
         ip = constants().lnpi();
         fp = ip - fp;
+        fp = prec(fp);
         return fp;
     }
 

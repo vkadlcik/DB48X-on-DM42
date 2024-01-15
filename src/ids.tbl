@@ -104,7 +104,7 @@ ID_RANGE(is_fraction,      fraction,       neg_big_fraction)
 ID_RANGE(is_decimal,       decimal,        neg_decimal)
 ID_RANGE(is_real,          bignum,         neg_decimal)
 ID_RANGE(is_complex,       rectangular,    polar)
-ID_RANGE(is_command,       Drop,           SelfInsert)
+ID_RANGE(is_command,       Drop,           ToFraction,    ToList, LastMenu)
 ID_RANGE(is_symbolic,      expression,     symbol,        pi, ImaginaryUnit)
 ID_RANGE(is_algebraic_fn,  add,            ToFraction,    asinh, det)
 ID_RANGE(is_immediate,     MainMenu,       SelfInsert)
@@ -465,8 +465,6 @@ ALIAS(ToRectangular, "→Rect")
 NAMED(ToPolar, "→Polar")
 
 // Rare tests
-CMD(IfErrThen)
-CMD(IfErrThenElse)
 NAMED(errm, "ErrorMessage")
 NAMED(errn, "ErrorNumber")
 NAMED(err0, "ClearError")
@@ -935,6 +933,16 @@ CMD(VariablesMenuStore)
 
 CMD(Undo)                       // Immediate: do not save stack before Undo
 CMD(LastMenu)                   // Immediate: do not insert in programs
+
+
+// ============================================================================
+//
+//    Commands that won't parse
+//
+// ============================================================================
+
+CMD(IfErrThen)                  // Special tests
+CMD(IfErrThenElse)
 
 CMD(SelfInsert)                 // Last immediate command
 

@@ -1969,7 +1969,7 @@ decimal_p decimal::sqrt(decimal_r x)
                 break;
             current = next;
         }
-        current = current->precision(prec);
+        current = prec(current);
     }
     return current;
 }
@@ -1994,7 +1994,7 @@ decimal_p decimal::cbrt(decimal_r x)
                 break;
             current = next;
         }
-        current = current->precision(prec);
+        current = prec(current);
     }
     return current;
 }
@@ -2837,7 +2837,7 @@ decimal_p decimal::tgamma(decimal_r x)
 
     precision_adjust prec(3);
     fp = exp(lgamma(x));
-    fp = fp->precision(prec);
+    fp = prec(fp);
     return fp;
 }
 
@@ -2935,7 +2935,7 @@ decimal_p decimal::lgamma(decimal_r x)
     a = log(x);
     tmp = log(tmp) * z - tmp - a;
     sum = sum + tmp;
-    sum = sum->precision(prec);
+    sum = prec(sum);
 
     return sum;
 }

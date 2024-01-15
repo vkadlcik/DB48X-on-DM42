@@ -427,7 +427,6 @@ struct decimal : algebraic
         return round(exponent() - large(prec));
     }
 
-
     struct precision_adjust
     // ------------------------------------------------------------------------
     //   Helper to adjust precision during a computation
@@ -442,6 +441,13 @@ struct decimal : algebraic
             Settings.Precision(saved);
         }
         operator uint()         { return saved; }
+        decimal_p operator()(decimal_p dec)
+        {
+            return dec ? dec->precision(saved) : nullptr;
+        }
+
+
+
         uint saved;
     };
 

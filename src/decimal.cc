@@ -76,8 +76,6 @@ PARSE_BODY(decimal)
 // ----------------------------------------------------------------------------
 //    Note that this does not try to parse named constants like "inf" or "NaN"
 {
-    record(decimal, "Parsing [%s]", (utf8) p.source);
-
     gcutf8   source = p.source;
     gcutf8   s      = source;
     gcutf8   last   = source + p.length;
@@ -155,7 +153,6 @@ PARSE_BODY(decimal)
 
     // Check how many digits were given
     const size_t maxdigits = Settings.Precision();
-    record(decimal, "Had %u digits, max %u", digits, maxdigits);
     if (Settings.TooManyDigitsErrors() && digits > maxdigits)
     {
         rt.mantissa_error().source(source, digits + (decimalDot >= 0));
@@ -182,7 +179,6 @@ PARSE_BODY(decimal)
 
         large expval =  atoll(cstring(expsrc));
         exponent += expval;
-        record(decimal, "Exponent value is %d for %d", expval, exponent);
     }
 
     // Success: build the resulting number
@@ -2902,6 +2898,7 @@ decimal_p decimal::lgamma(decimal_r x)
     decimal_g a = make(125285, -5);
     a = ceil(a * tmp);
     uint na = a->as_unsigned();
+    record(decimal, "a=%t na=%u", +a, na);
 
     // Loop for terms except first one
     decimal_g factorial = make(1);
@@ -2909,15 +2906,18 @@ decimal_p decimal::lgamma(decimal_r x)
     decimal_g one       = make(1);
     decimal_g z         = x;
     decimal_g ck, power, scale;
+    record(decimal, "First sum %t", +sum);
     for (uint i = 1; i < na; i++)
     {
         z   = z + one;
+        record(decimal, "%u: z=%t", i, +z);
 
         uint t  = na - i;
         uint xp = i - 1;
         tmp     = make(t);
         power   = tmp;
         scale   = exp(tmp);
+        record(decimal, "%u: exp=%t", i, +scale);
         while (xp)
         {
             if (xp & 1)
@@ -2927,13 +2927,17 @@ decimal_p decimal::lgamma(decimal_r x)
                 power = power * power;
         }
         tmp = sqrt(tmp);
+        record(decimal, "%u: sqrt=%t", i, +tmp);
         tmp = tmp * scale / factorial;
+        record(decimal, "%u: ck=%t", i, +tmp);
         if (i & 1)
             sum = sum + tmp / z;
         else
             sum = sum - tmp / z;
+        record(decimal, "%u: sum=%t", i, +sum);
         tmp = make(i);
         factorial = factorial * tmp;
+        record(decimal, "%u: factorial=%t", i, +factorial);
     }
 
     sum = log(sum);
@@ -2949,7 +2953,6 @@ decimal_p decimal::lgamma(decimal_r x)
 
     return sum;
 }
-
 
 
 decimal_p decimal::abs(decimal_r x)

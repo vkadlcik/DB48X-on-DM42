@@ -519,6 +519,17 @@ COMMAND_BODY(Disp)
                 ya = ya * integer::make(LCD_H/8);
                 y = ya->as_uint32(0, false) - (LCD_H/8);
             }
+            else if (pos->is_based())
+            {
+                algebraic_g ya = algebraic_p(+pos);
+                y = ppar.pixel_y(ya);
+            }
+            else
+            {
+                rt.type_error();
+                return ERROR;
+            }
+
 
             utf8          txt = nullptr;
             size_t        len = 0;

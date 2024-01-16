@@ -51,6 +51,8 @@ is drawn without the surrounding quotation marks.
 If the position in level 1 is an integer, fraction or real number, it is
 interpreted as a line number starting at 1 for the top of the screen. For
 example, `"Hello" 1 disp` will draw `Hello` at the top of the screen.
+If the position is a based number, it is a row number in pixels. For example,
+`"Hello" #120d disp` will show the test in the middle of the screen.
 
 If the position in level 1 is a complex number or a list, it is interpreted as
 specifying both the horizontal or vertical coordinates, in either pixel or unit

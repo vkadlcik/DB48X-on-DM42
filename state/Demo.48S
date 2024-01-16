@@ -143,7 +143,7 @@
 	@ Summation loop
 	@ See https://www.hpmuseum.org/forum/thread-9750.html
 	Ticks
-	Radians 0 1 100000
+	Radians 0 1 1000
 	for x
 		x tan⁻¹ sin exp ∛ +
 	next

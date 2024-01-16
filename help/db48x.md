@@ -3255,18 +3255,36 @@ Timing on 0.4.10 are:
 
 ## SumTest (decimal performance)
 
-| Version | DM32 ms | DM42 ms |
-|---------|---------|---------|
-| 0.6.0   | 2377390 | 1768510 |
-| 0.5.2   |  215421 |  143412 |
+VP = Variable Precision
+ID = Intel Decimal Library
+
+For 100000 loops
+
+| Version      | DM32 ms | DM42 ms |
+|--------------|---------|---------|
+| 0.6.0 (VP24) | 2377390 | 1768510 |
+| 0.5.2 (ID)   |  215421 |  143412 |
+
+
+For 1000 loops
+
+| Version      | DM32 ms | DM42 ms |
+|--------------|---------|---------|
+| 0.6.2 (VP36) |   62012 |   42269 |
+| 0.6.2 (VP24) |   34898 |   23714 |
+| 0.6.2 (VP12) |   16017 |   10782 |
+| 0.6.2 (VP6)  |    7436 |    5842 |
+| 0.6.0 (VP24) |   23773 |   17685 |
+| 0.5.2 (ID)   |    2154 |    1434 |
 
 ## Drawing `sin X` with `FunctionPlot`
 
-DM32 Intel Decimal: 2332 - 5140
-DM32 variable precision (6): 2423 -
-DM32 variable precision (24): 3863 - 6005
-DM32 variable precision (36): 6567 - 10186
-DM32 variable precision (48): 8377 - 10259
+| Configuration   | DM32 ms    | DM42 ms    |
+|-----------------|------------|------------|
+| ID              | 2332-5140  |            |
+| VP24            | 3683-6005  |            |
+| VP36            | 6567-10186 |            |
+| VP48            | 8377-10259 |            |
 
 Crash at precision 3
 # Menus

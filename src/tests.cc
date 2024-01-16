@@ -97,6 +97,7 @@ TESTS(expand,           "Expand");
 TESTS(tagged,           "Tagged objects");
 TESTS(regressions,      "Regression checks");
 TESTS(plotting,         "Plotting, graphing and charting");
+TESTS(graphics,         "Graphic commands");
 
 EXTRA(flags,            "Enable/disable every RPL flag");
 EXTRA(settings,         "Recall and activate every RPL setting");
@@ -145,6 +146,7 @@ void tests::run(bool onlyCurrent)
         expand_collect_simplify();
         tagged_objects();
         plotting();
+        graphic_commands();
         flags_by_name();
         settings_by_name();
         parsing_commands_by_name();
@@ -165,7 +167,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     BEGIN(current);
-    plotting();
+    graphic_commands();
 }
 
 
@@ -2902,6 +2904,181 @@ void tests::plotting()
 
      step("Reset drawing parameters");
      test(CLEAR, "1 LineWidth 0 GRAY Foreground", ENTER).noerr();
+}
+
+
+void tests::graphic_commands()
+// ----------------------------------------------------------------------------
+//   Graphic commands
+// ----------------------------------------------------------------------------
+{
+    BEGIN(graphics);
+
+    step("Clear LCD");
+    test(CLEAR, "ClearLCD", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Displaying text, compatibility mode");
+    test(CLEAR,
+         "\"Hello World\" 1 DISP "
+         "\"Compatibility mode\" 2 DISP", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Displaying text, fractional row");
+    test(CLEAR,
+         "\"Gutentag\" 1.5 DrawText "
+         "\"Fractional row\" 3.8 DrawText", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Displaying text, pixel row");
+    test(CLEAR,
+         "\"Bonjour tout le monde\" #5d DISP "
+         "\"Pixel row mode\" #125d DISP", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Displaying text, x-y coordinates");
+    test(CLEAR, "\"Hello\" {0 0 } DISP ", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Displaying text, x-y pixel coordinates");
+    test(CLEAR, "\"Hello\" { #20d #20d } DISP ", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Displaying text, font ID");
+    test(CLEAR, "\"Hello\" { 0 0 0 } DISP \"World\" { 0 1 2 } DISP ", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Displaying text, erase and invert");
+    test(CLEAR, "\"Inverted\" { 0 0 0 true true } DISP", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Displaying text, background and foreground");
+    test(CLEAR,
+         "0.25 Gray Foreground 0.75 Gray Background "
+         "\"Grayed\" { 0 0 } Disp", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Displaying text, restore background and foreground");
+    test(CLEAR,
+         "0 Gray Foreground 1 Gray Background "
+         "\"Grayed\" { 0 0 } Disp", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Displaying text, type check");
+    test(CLEAR, "\"Bad\" \"Hello\" DISP", ENTER)
+        .error("Bad argument type");
+
+    step("Lines");
+    test(CLEAR, "3 50 for i ⅈ i * exp i 2 + ⅈ * exp 5 * Line next", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Line width");
+    test(CLEAR,
+         "1 11 for i "
+         "{ #000 } #0 i 20 * + + "
+         "{ #400 } #0 i 20 * + + "
+         "i LineWidth Line "
+         "next "
+         "1 LineWidth", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Line width, grayed");
+    test(CLEAR,
+         "1 11 for i "
+         "{ #000 } #0 i 20 * + + "
+         "{ #400 } #0 i 20 * + + "
+         "i 12 / gray foreground "
+         "i LineWidth Line "
+         "next "
+         "1 LineWidth 0 Gray Foreground", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Circles");
+    test(CLEAR,
+         "1 11 for i "
+         "{ 0 0 } i Circle "
+         "{ 0 1 } i 0.25 * Circle "
+         "next ", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Circles, complex coordinates");
+    test(CLEAR,
+         "2 150 for i "
+         "ⅈ i 0.12 * * exp 0.75 0.05 i * + * 0.4 0.003 i * +  Circle "
+         "next ", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Circles, fill and patterns");
+    test(CLEAR,
+         "0 LineWidth "
+         "2 150 for i "
+         "i 0.0053 * gray Foreground "
+         "ⅈ i 0.12 * * exp 0.75 0.05 i * + * 0.1 0.008 i * +  Circle "
+         "next ", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Ellipses");
+    test(CLEAR,
+         "0 gray foreground 1 LineWidth "
+         "2 150 for i "
+         "i 0.12 * ⅈ * exp 0.05 i * 0.75 + * "
+         "i 0.17 * ⅈ * exp 0.05 i * 0.75 + * "
+         " Ellipse "
+         "next ", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Ellipses, fill and patterns");
+    test(CLEAR,
+         "0 LineWidth "
+         "2 150 for i "
+         "i 0.0047 * gray Foreground "
+         "0.23 ⅈ * exp 5.75 0.01 i * - * "
+         "1.27 ⅈ * exp 5.45 0.01 i * - * neg "
+         " Ellipse "
+         "next ", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Rectangles");
+    test(CLEAR,
+         "0 gray foreground 1 LineWidth "
+         "2 150 for i "
+         "i 0.12 * ⅈ * exp 0.05 i * 0.75 + * "
+         "i 0.17 * ⅈ * exp 0.05 i * 0.75 + * "
+         " Rect "
+         "next ", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Rectangles, fill and patterns");
+    test(CLEAR,
+         "0 LineWidth "
+         "2 150 for i "
+         "i 0.0047 * gray Foreground "
+         "0.23 ⅈ * exp 5.75 0.01 i * - * "
+         "1.27 ⅈ * exp 5.45 0.01 i * - * neg "
+         " Rect "
+         "next ", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Rounded rectangles");
+    test(CLEAR,
+         "0 gray foreground 1 LineWidth "
+         "2 150 for i "
+         "i 0.12 * ⅈ * exp 0.05 i * 0.75 + * "
+         "i 0.17 * ⅈ * exp 0.05 i * 0.75 + * "
+         "0.8 RRect "
+         "next ", ENTER)
+        .noerr().wait(200).test(ENTER);
+
+    step("Rounded rectangles, fill and patterns");
+    test(CLEAR,
+         "0 LineWidth "
+         "2 150 for i "
+         "i 0.0047 * gray Foreground "
+         "0.23 ⅈ * exp 5.75 0.01 i * - * "
+         "1.27 ⅈ * exp 5.45 0.01 i * - * neg "
+         "0.8 RRect "
+         "next ", ENTER)
+        .noerr().wait(200).test(ENTER);
 }
 
 

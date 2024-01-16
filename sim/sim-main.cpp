@@ -126,6 +126,22 @@ int main(int argc, char *argv[])
                 break;
             case 'T':
                 run_tests = true;
+            case 'O':
+                if (argv[a][2])
+                {
+                    static bool first = true;
+                    if (first)
+                    {
+                        recorder_trace_set("est_.*=0");
+                        first = false;
+                    }
+                    char tname[256];
+                    if (strcmp(argv[a]+2, "all") == 0)
+                        strcpy(tname, "est_.*");
+                    else
+                        snprintf(tname, sizeof(tname)-1, "est_%s", argv[a]+2);
+                    recorder_trace_set(tname);
+                }
                 break;
             case 'k':
                 db48x_keyboard = true;

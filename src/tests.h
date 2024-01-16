@@ -214,7 +214,7 @@ struct tests
         uint        cindex;
     };
 
-protected:
+public:
     struct WAIT
     {
         WAIT(uint ms): delay(ms) {}
@@ -336,10 +336,8 @@ protected:
 #define step(...)       position(__FILE__, __LINE__).istep(__VA_ARGS__)
 #define test(...)       position(__FILE__, __LINE__).itest(__VA_ARGS__)
 
-
 // Synchronization between test thread and RPL thread
 extern volatile uint keysync_sent;
 extern volatile uint keysync_done;
-
 
 #endif // TESTS_H

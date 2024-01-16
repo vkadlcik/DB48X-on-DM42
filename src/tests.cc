@@ -49,9 +49,58 @@ uint wait_time  = 200;
 uint delay_time = 2;
 uint long_tests = 0;
 
-RECORDER_TWEAK_DEFINE(est_flags,        0, "Test every RPL flag");
-RECORDER_TWEAK_DEFINE(est_settings,     0, "Test every RPL setting");
-RECORDER_TWEAK_DEFINE(est_commands,     0, "Test every RPL command");
+#define TEST_CATEGORY(name, enabled, descr)                     \
+    RECORDER_TWEAK_DEFINE(est_##name, enabled, "Test " descr);  \
+    static inline bool check_##name(tests &t)                   \
+    {                                                           \
+        bool result = RECORDER_TWEAK(est_##name);               \
+        if (!result)                                            \
+            t.begin("Skipping " #name ": " descr);              \
+        else                                                    \
+            t.begin(#name ": " descr);                          \
+        return result;                                          \
+    }
+
+#define TESTS(name, descr)      TEST_CATEGORY(name, true,  descr)
+#define EXTRA(name, descr)      TEST_CATEGORY(name, false, descr)
+
+#define BEGIN(name)     do { if (!check_##name(*this)) return; } while(0)
+
+TESTS(current,          "Current test for latest commits");
+TESTS(defaults,         "Reset settings to defaults");
+TESTS(shifts,           "Shift logic");
+TESTS(keyboard,         "Keyboard entry");
+TESTS(types,            "Data types");
+TESTS(arithmetic,       "Arithmetic operations");
+TESTS(globals,          "Global variables");
+TESTS(locals,           "Local variables");
+TESTS(for_loops,        "For loops");
+TESTS(conditionals,     "Conditionals");
+TESTS(logical,          "Logical operations");
+TESTS(styles,           "Commands display formats");
+TESTS(iformat,          "Integer display formats");
+TESTS(dformat,          "Decimal display formats");
+TESTS(ifunctions,       "Integer functions");
+TESTS(dfunctions,       "Decimal functions");
+TESTS(trigoptim,        "Special trigonometry optimzations");
+TESTS(dfrac,            "Simple conversion to decimal and back");
+TESTS(ctypes,           "Complex types");
+TESTS(carith,           "Complex arithmetic");
+TESTS(cfunctions,       "Complex functions");
+TESTS(lists,            "List operations");
+TESTS(text,             "Text operations");
+TESTS(vectors,          "Vectors");
+TESTS(matrices,         "Matrices");
+TESTS(simplify,         "Auto-simplification of expressions");
+TESTS(rewrites,         "Equation rewrite engine");
+TESTS(expand,           "Expand");
+TESTS(tagged,           "Tagged objects");
+TESTS(regressions,      "Regression checks");
+TESTS(plotting,         "Plotting, graphing and charting");
+
+EXTRA(flags,            "Enable/disable every RPL flag");
+EXTRA(settings,         "Recall and activate every RPL setting");
+EXTRA(commands,         "Parse every single RPL command");
 
 
 void tests::run(bool onlyCurrent)
@@ -68,8 +117,11 @@ void tests::run(bool onlyCurrent)
     // Reset to known settings stateg
     reset_settings();
 
-    current();
-    if (!onlyCurrent)
+    if (onlyCurrent)
+    {
+        current();
+    }
+    else
     {
         shift_logic();
         keyboard_entry();
@@ -112,7 +164,7 @@ void tests::current()
 //   Test the current thing (this is a temporary test)
 // ----------------------------------------------------------------------------
 {
-    begin("Current tests");
+    BEGIN(current);
     plotting();
 }
 
@@ -123,12 +175,12 @@ void tests::reset_settings()
 // ----------------------------------------------------------------------------
 {
     // Reset to default test settings
-    begin("Reset to default settings");
+    BEGIN(defaults);
     Settings = settings();
 
     // Check that we have actually reset the settings
     step("Select Modes menu")
-        .test("ModesMenu", ENTER)               .noerr();
+        .test("ModesMenu", ENTER).noerr();
     step("Checking output modes")
         .test("Modes", ENTER)
         .expect("« ModesMenu »");
@@ -140,7 +192,8 @@ void tests::shift_logic()
 //   Test all keys and check we have the correct output
 // ----------------------------------------------------------------------------
 {
-    begin("Shift logic");
+    BEGIN(shifts);
+
     step("Shift state must be cleared at start")
         .shift(false)
         .xshift(false)
@@ -218,7 +271,7 @@ void tests::keyboard_entry()
 //   Test all keys and check we have the correct output
 // ----------------------------------------------------------------------------
 {
-    begin("Keyboard logic");
+    BEGIN(keyboard);
 
     step("Uppercase entry");
     cstring entry = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -254,7 +307,7 @@ void tests::data_types()
 //   Check the basic data types
 // ----------------------------------------------------------------------------
 {
-    begin("Data types");
+    BEGIN(types);
 
     step("Positive integer");
     test(CLEAR, "1", ENTER).type(object::ID_integer).expect("1");
@@ -418,7 +471,7 @@ void tests::arithmetic()
 //   Tests for basic arithmetic operations
 // ----------------------------------------------------------------------------
 {
-    begin("Arithmetic");
+    BEGIN(arithmetic);
 
     step("Integer addition");
     test(CLEAR, 1, ENTER, 1, ADD).type(object::ID_integer).expect("2");
@@ -602,7 +655,7 @@ void tests::global_variables()
 //   Tests for access to global variables
 // ----------------------------------------------------------------------------
 {
-    begin("Global variables");
+    BEGIN(globals);
 
     step("Store in global variable");
     test(CLEAR, 12345, ENTER).expect("12 345");
@@ -734,7 +787,7 @@ void tests::local_variables()
 //   Tests for access to local variables
 // ----------------------------------------------------------------------------
 {
-    begin("Local variables");
+    BEGIN(locals);
 
     step("Creating a local block");
     cstring source = "« → A B C « A B + A B - × B C + B C - × ÷ » »";
@@ -762,7 +815,7 @@ void tests::for_loops()
 //   Test simple for loops
 // ----------------------------------------------------------------------------
 {
-    begin("For loops");
+    BEGIN(for_loops);
 
     step("Simple 1..10");
     cstring pgm  = "« 0 1 10 FOR i i SQ + NEXT »";
@@ -837,7 +890,8 @@ void tests::conditionals()
 //   Test conditionals
 // ----------------------------------------------------------------------------
 {
-    begin("Conditionals");
+    BEGIN(conditionals);
+
     step("If-Then (true)");
     test(CLEAR, "PASS if 0 0 > then FAIL end", ENTER)
         .expect("'PASS'");
@@ -917,7 +971,7 @@ void tests::logical_operations()
 //   Perform logical operations on small and big integers
 // ----------------------------------------------------------------------------
 {
-    begin("Logical operations");
+    BEGIN(logical);
 
 #if CONFIG_FIXED_BASED_OBJECTS
     step("Binary number");
@@ -1026,7 +1080,7 @@ void tests::command_display_formats()
 //   Check the various display formats for commands
 // ----------------------------------------------------------------------------
 {
-    begin("Commands display formats");
+    BEGIN(styles);
 
     step("Commands");
     // There is a trap in this command line
@@ -1075,7 +1129,7 @@ void tests::integer_display_formats()
 //   Check the various display formats for integer values
 // ----------------------------------------------------------------------------
 {
-    begin("Integer display formats");
+    BEGIN(iformat);
 
     step("Reset settings to defaults");
     test(CLEAR)
@@ -1214,7 +1268,7 @@ void tests::decimal_display_formats()
 //   Check the various display formats for decimal values
 // ----------------------------------------------------------------------------
 {
-    begin("Decimal display formats");
+    BEGIN(dformat);
 
     step("Standard mode");
     test(CLEAR, "STD", ENTER).noerr();
@@ -1426,7 +1480,7 @@ void tests::integer_numerical_functions()
 //   Test integer numerical functions
 // ----------------------------------------------------------------------------
 {
-    begin("Integer functions");
+    BEGIN(ifunctions);
 
     step("neg")
         .test(CLEAR, "3 neg", ENTER).expect("-3")
@@ -1456,7 +1510,7 @@ void tests::decimal_numerical_functions()
 //   Test decimal numerical functions
 // ----------------------------------------------------------------------------
 {
-    begin("Decimal functions");
+    BEGIN(dfunctions);
 
     step("Select 34-digit precision to match Intel Decimal 128");
     test(CLEAR, "34 PRECISION 64 SIG", ENTER).noerr();
@@ -1568,7 +1622,7 @@ void tests::exact_trig_cases()
 //   Special trig cases that are handled accurately for polar representation
 // ----------------------------------------------------------------------------
 {
-    begin("Special trigonometry cases");
+    BEGIN(trigoptim);
 
     cstring unit_names[] = { "Grads", "Degrees", "PiRadians" };
     int circle[] = { 400, 360, 2 };
@@ -1687,7 +1741,8 @@ void tests::fraction_decimal_conversions()
             "37/213",       "1.73708 92018 77934 2723⁳⁻¹"
         };
 
-    begin("Simple conversion to decimal and back");
+    BEGIN(dfrac);
+
     for (uint c = 0; c < sizeof(cases) / sizeof(*cases); c += 2)
     {
         step(cases[c]);
@@ -1723,7 +1778,8 @@ void tests::complex_types()
 //   Complex data types
 // ----------------------------------------------------------------------------
 {
-    begin("Complex types");
+    BEGIN(ctypes);
+
     step("Select degrees for the angle");
     test(CLEAR, "DEG", ENTER).noerr();
 
@@ -1792,7 +1848,7 @@ void tests::complex_arithmetic()
 //   Complex arithmetic operations
 // ----------------------------------------------------------------------------
 {
-    begin("Complex arithmetic");
+    BEGIN(carith);
 
     step("Use degrees");
     test("DEG", ENTER).noerr();
@@ -1896,7 +1952,7 @@ void tests::complex_functions()
 //   Complex functions
 // ----------------------------------------------------------------------------
 {
-    begin("Complex functions");
+    BEGIN(cfunctions);
 
     step("Select 34-digit precision to match Intel Decimal 128");
     test(CLEAR, "34 PRECISION 20 SIG", ENTER).noerr();
@@ -2075,7 +2131,8 @@ void tests::list_functions()
 //   Some operations on lists
 // ----------------------------------------------------------------------------
 {
-    begin("List operations");
+    BEGIN(lists);
+
     step("Integer index");
     test(CLEAR, "{ A B C }", ENTER, "2 GET", ENTER)
         .expect("B");
@@ -2143,7 +2200,8 @@ void tests::text_functions()
 //   Some operations on text
 // ----------------------------------------------------------------------------
 {
-    begin("Text operations");
+    BEGIN(text);
+
     step("Concatenation of text");
     test(CLEAR, "\"Hello \" \"World\" +", ENTER)
         .expect("\"Hello World\"");
@@ -2167,7 +2225,7 @@ void tests::vector_functions()
 //   Test operations on vectors
 // ----------------------------------------------------------------------------
 {
-    begin("Vectors");
+    BEGIN(vectors);
 
     step("Data entry in numeric form");
     test(CLEAR, "[  1  2  3  ]", ENTER)
@@ -2264,7 +2322,7 @@ void tests::matrix_functions()
 //   Test operations on vectors
 // ----------------------------------------------------------------------------
 {
-    begin("Matrices");
+    BEGIN(matrices);
 
     step("Data entry in numeric form");
     test(CLEAR, "[  [1  2  3][4 5 6]  ]", ENTER)
@@ -2398,7 +2456,7 @@ void tests::auto_simplification()
 //   Check auto-simplification rules for arithmetic
 // ----------------------------------------------------------------------------
 {
-    begin("Auto-simplification of expressions");
+    BEGIN(simplify);
 
     step("Enable auto simplification");
     test(CLEAR, "AutoSimplify", ENTER).noerr();
@@ -2483,7 +2541,7 @@ void tests::rewrite_engine()
 //   Equation rewrite engine
 // ----------------------------------------------------------------------------
 {
-    begin("Equation rewrite engine");
+    BEGIN(rewrites);
 
     step("Single replacement");
     test(CLEAR, "'A+B' 'X+Y' 'Y-sin X' rewrite", ENTER)
@@ -2530,7 +2588,7 @@ void tests::expand_collect_simplify()
 //   Equation rewrite engine
 // ----------------------------------------------------------------------------
 {
-    begin("Expand");
+    BEGIN(expand);
 
     step("Single add, right");
     test(CLEAR, "'(A+B)*C' expand ", ENTER)
@@ -2568,7 +2626,7 @@ void tests::tagged_objects()
 //   Some very basic testing of tagged objects
 // ----------------------------------------------------------------------------
 {
-    begin("Tagged objects");
+    BEGIN(tagged);
 
     step("Parsing tagged integer");
     test(CLEAR, ":ABC:123", ENTER)
@@ -2622,22 +2680,15 @@ void tests::flags_by_name()
 //   Set and clear all flags by name
 // ----------------------------------------------------------------------------
 {
-    if (RECORDER_TWEAK(est_flags) == 0)
-    {
-        begin("Skipping flag checks");
-        return;
-    }
-
-    // Otherwise exercise settings routines
-    begin("Set and clear all flags by name");
+    BEGIN(flags);
 
 #define ID(id)
-#define FLAG(Enable, Disable)                   \
-    step("Setting flag " #Enable)               \
-        .test(#Enable, ENTER)                   \
-        .noerr();                               \
-    step("Clearing flag " #Disable)             \
-        .test(#Disable, ENTER)                  \
+#define FLAG(Enable, Disable)                           \
+    step("Setting flag " #Enable)                       \
+        .test(#Enable, ENTER)                           \
+        .noerr();                                       \
+    step("Clearing flag " #Disable " (default)")        \
+        .test(#Disable, ENTER)                          \
         .noerr();
 #define SETTING(Name, Low, High, Init)          \
     step("Setting " #Name " to default " #Init) \
@@ -2651,14 +2702,7 @@ void tests::settings_by_name()
 //   Set and clear all settings by name
 // ----------------------------------------------------------------------------
 {
-    if (RECORDER_TWEAK(est_settings) == 0)
-    {
-        begin("Skipping settings check");
-        return;
-    }
-
-    // Otherwise exercise settings routines
-    begin("Adjust all settings by name");
+    BEGIN(settings);
 
 #define ID(id)
 #define FLAG(Enable, Disable)
@@ -2678,14 +2722,7 @@ void tests::parsing_commands_by_name()
 //   Set and clear all settings by name
 // ----------------------------------------------------------------------------
 {
-    if (RECORDER_TWEAK(est_commands) == 0)
-    {
-        begin("Skipping command-line spelling");
-        return;
-    }
-
-    // Otherwise exercise settings routines
-    begin("Parsing every single command spelling");
+    BEGIN(commands);
 
 #define SPECIAL(ty, ref, name, rname)                                   \
     (object::ID_##ty == object::ID_##ref && strcmp(name, rname) == 0)
@@ -2738,9 +2775,10 @@ void tests::regression_checks()
 //   Checks for specific regressions
 // ----------------------------------------------------------------------------
 {
+    BEGIN(regressions);
+
     Settings = settings();
 
-    begin("Regression checks");
     step("Bug 116: Rounding of gamma(7) and gamma(8)");
     test(CLEAR, "7 gamma", ENTER).expect("720.");
     test(CLEAR, "8 gamma", ENTER).expect("5 040.");
@@ -2802,7 +2840,7 @@ void tests::plotting()
 //   Test the plotting functions
 // ----------------------------------------------------------------------------
 {
-    begin("Plotting");
+    BEGIN(plotting);
 
     step("Select radians");
     test(CLEAR, "RAD", ENTER).noerr();

@@ -28,6 +28,7 @@
 // ****************************************************************************
 
 #include "sim-rpl.h"
+#include "tests.h"
 #include <dmcp.h>
 
 extern int key_remaining();
@@ -47,7 +48,7 @@ RPLThread::~RPLThread()
     while (!isFinished())
     {
         if (key_remaining())
-            key_push(-1);
+            key_push(tests::EXIT_PGM);
     }
 }
 

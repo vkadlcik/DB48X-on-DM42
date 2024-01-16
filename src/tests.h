@@ -179,7 +179,8 @@ struct tests
         NOKEYS     = 104,       // Wait until keys buffer is empty
         REFRESH    = 105,       // Wait until there is a screen refresh
 
-        KEYSYNC    = 106,
+        KEYSYNC    = 106,       // Wait for other side to process keys
+        EXIT_PGM   = 142,       // Exiting program
     };
 
   protected:

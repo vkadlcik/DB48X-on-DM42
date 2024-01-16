@@ -98,7 +98,7 @@ MainWindow::~MainWindow()
 //  Destroy the main window
 // ----------------------------------------------------------------------------
 {
-    key_push(-1);
+    key_push(tests::EXIT_PGM);
 }
 
 

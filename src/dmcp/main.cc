@@ -372,7 +372,7 @@ extern "C" void program_main()
             }
 
 #if SIMULATOR
-            if (key == -1)
+            if (key == tests::EXIT_PGM)
             {
                 cstring path = get_reset_state_file();
                 printf("Exit: saving state to %s\n", path);

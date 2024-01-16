@@ -209,32 +209,63 @@ RENDER_BODY(decimal)
     bool      negative = o->type() == ID_neg_decimal;
 
     // Read formatting information from the renderer
-    bool      editing  = !r.stack();
+    bool      editing  = r.editing();
     bool      raw      = r.file_save();
     size_t    rsize    = r.size();
 
     // Read settings
     settings &ds       = Settings;
-    id        mode     = editing ? object::ID_Std : ds.DisplayMode();
-    int       digits   = editing ? 3 * nkigits : ds.DisplayDigits();
+    id        mode     = ds.DisplayMode();
+    int       dispdigs = ds.DisplayDigits();
+    int       digits   = dispdigs;
     int       std_exp  = ds.StandardExponent();
     bool      showdec  = ds.TrailingDecimal();
     unicode   space    = ds.NumberSeparator();
     uint      mant_spc = ds.MantissaSpacing();
     uint      frac_spc = ds.FractionSpacing();
-    bool      fancy    = !editing && ds.FancyExponent();
+    bool      fancy    = ds.FancyExponent();
     char      decimal  = ds.DecimalSeparator(); // Can be '.' or ','
 
-    if (raw)
+    // Compute mantissa exponent, i.e. count of non-zero digits
+    large     mexp     = nkigits * 3;
+    int       rmdigit  = 0;
+    while (mexp > 0)
+    {
+        kint k = kigit(+base, mexp / 3 - 1);
+        if (k == 0)
+        {
+            mexp -= 3;
+            continue;
+        }
+        rmdigit = k % 10;
+        if (rmdigit == 0)
+        {
+            mexp--;
+            k /= 10;
+            rmdigit = k % 10;
+            if (rmdigit == 0)
+            {
+                mexp--;
+                k /= 10;
+                rmdigit = k;
+            }
+        }
+        break;
+    }
+
+    if (raw || editing)
     {
         mode = object::ID_Std;
-        digits = 3 * nkigits;
+        digits += mexp;
+        fancy = false;
+    }
+    if (raw)
+    {
         std_exp = 9;
         showdec = true;
         space = 0;
         mant_spc = 0;
         frac_spc = 0;
-        fancy = false;
         decimal = '.';
     }
     if (mode == object::ID_Std)
@@ -262,7 +293,6 @@ RENDER_BODY(decimal)
 
         // Mantissa is between 0 and 1
         large  realexp  = exponent - 1;
-        large  mexp     = nkigits * 3;
 
         // Check if we need to switch to scientific notation in normal mode
         // On the negative exponents, we switch when digits would be lost on
@@ -274,11 +304,11 @@ RENDER_BODY(decimal)
         // Note that the behaviour here is purposely different than HP's
         // when in FIX mode. In FIX 5, for example, 1.2345678E-5 is shown
         // on HP50s as 0.00001, and is shown here as 1.23457E-5, which I believe
-        // is more useful. This behaviour is enabled by setting min_fix_digits
-        // to a non-zero value. If the value is zero, FIX works like on HP.
-        // Also, since DB48X can compute on many digits, and counting zeroes
-        // can be annoying, there is a separate setting for when to switch
-        // to scientific notation.
+        // is more useful. This behaviour is enabled by setting
+        // MinimumSignificantDigits to a non-zero value. If the value is zero,
+        // FIX works like on HP.  Also, since DB48X can compute on many digits,
+        // and counting zeroes can be annoying, there is a separate setting,
+        // StandardExponent, for when to switch to scientific notation.
         bool hasexp = mode == object::ID_Sci || mode == object::ID_Eng;
         if (!hasexp)
         {
@@ -287,8 +317,7 @@ RENDER_BODY(decimal)
                 if (mode <= object::ID_Fix)
                 {
                     // Need to round up if last digit is above 5
-                    bool roundup = nkigits &&
-                        (kigit(+base, nkigits-1) % 10) >= 5;
+                    bool roundup = rmdigit >= 5;
                     int shown = digits + realexp + roundup;
                     int minfix = ds.MinimumSignificantDigits();
                     if (minfix < 0)
@@ -300,12 +329,12 @@ RENDER_BODY(decimal)
                     {
                         if (minfix > mexp + 1)
                             minfix = mexp + 1;
-                        hasexp = shown >= 0 && shown < minfix;
+                        hasexp = shown < minfix;
                     }
                 }
                 else
                 {
-                    int minexp = digits < std_exp ? digits : std_exp;
+                    int minexp = dispdigs < std_exp ? dispdigs : std_exp;
                     hasexp = mexp - realexp - 1 >= minexp;
                 }
             }
@@ -435,8 +464,9 @@ RENDER_BODY(decimal)
         // Check if we need some rounding on what is being displayed
         if ((midx < nkigits || decade) && d >= 5)
         {
-            char *rptr = (char *) rt.scratchpad();
-            char *start = rptr - (r.size() - rsize);
+            size_t rsz = r.size();
+            char *start = (char *) r.text() + rsize;
+            char *rptr = start + rsz - rsize;
             bool rounding = true;
             bool stripzeros = mode == object::ID_Sig;
             while (rounding && --rptr >= start)
@@ -487,7 +517,7 @@ RENDER_BODY(decimal)
             }
 
             // Check if we need to reinsert the last separator
-            if (sep-- == 0 && decimals > 1)
+            if (sep-- == 0 && decpos > 0 && decimals > 1)
             {
                 r.put(space);
                 sep = (decpos > 0 ? mant_spc : frac_spc) - 1;
@@ -624,7 +654,7 @@ decimal_p decimal::from_integer(integer_p value)
     id itype = value->type();
     id type = itype == ID_neg_integer ? ID_neg_decimal : ID_decimal;
     ularge magnitude = value->value<ularge>();
-    return rt.make<decimal>(type, magnitude);
+    return make(type, magnitude);
 }
 
 
@@ -637,7 +667,7 @@ decimal_p decimal::from_bignum(bignum_p valuep)
         return nullptr;
     id        itype  = valuep->type();
     id        type   = itype == ID_neg_bignum ? ID_neg_decimal : ID_decimal;
-    decimal_g result = rt.make<decimal>(type, 0);
+    decimal_g result = make(type, 0);
     decimal_g digits;
     large     exp    = 0;
     bignum_g  value  = valuep;
@@ -649,7 +679,7 @@ decimal_p decimal::from_bignum(bignum_p valuep)
         if (!bignum::quorem(value, div, itype, &value, &kigit))
             return nullptr;
         ularge kigval = kigit->value<ularge>();
-        digits = rt.make<decimal>(type, kigval, exp);
+        digits = make(type, kigval, exp);
         result = result + digits;
         exp += 12;
     }
@@ -784,7 +814,41 @@ bool decimal::is_magnitude_less_than(uint kig, large exponent) const
 }
 
 
-static void normalize(decimal::kint *&rb, size_t &rs, large &re);
+static void normalize(decimal::kint *&rb, size_t &rs, large &re)
+// ----------------------------------------------------------------------------
+//   Normalize a result to have no leading or trailing zero
+// ----------------------------------------------------------------------------
+{
+    // Strip leading zeroes three by three
+    while (rs && *rb == 0)
+    {
+        re -= 3;
+        rb++;
+        rs--;
+    }
+
+    // Strip up to two individual leading zeroes
+    if (rs && *rb < 100)
+    {
+        re -= 1 + (*rb < 10);
+        uint hmul = *rb < 10 ? 100 : 10;
+        uint lmul = 1000 / hmul;
+        for (size_t ko = 0; ko < rs; ko++)
+        {
+            decimal::kint next = ko + 1 < rs ? rb[ko + 1] : 0;
+            rb[ko] = (rb[ko] * hmul + next / lmul) % 1000;
+        }
+    }
+
+    // Strip trailing zeroes
+    while (rs && rb[rs-1] == 0)
+        rs--;
+
+    // If result is zero, set exponent to 0
+    if (!rs)
+        re = 0;
+}
+
 
 decimal_p decimal::truncate(large to_exp) const
 // ----------------------------------------------------------------------------
@@ -796,7 +860,7 @@ decimal_p decimal::truncate(large to_exp) const
     // If we have 1E-3 and round at 0, return zero
     large exp = s.exponent;
     if (exp < to_exp)
-        return rt.make<decimal>(0);
+        return make(0);
 
     // If rounding 10000 (10^4) to 0, we can copy 1 kigit as is
     size_t copy    = (exp - to_exp) / 3;
@@ -804,8 +868,8 @@ decimal_p decimal::truncate(large to_exp) const
     if (copy >= nkigits)
         return this;            // We copy everything
 
-    gcbytes  bp      = s.base;
-    id       ty      = type();
+    gcbytes  bp = s.base;
+    id       ty = type();
     scribble scr;
 
     for (size_t i = 0; i <= copy; i++)
@@ -834,6 +898,98 @@ decimal_p decimal::truncate(large to_exp) const
 }
 
 
+decimal_p decimal::round(large to_exp) const
+// ----------------------------------------------------------------------------
+//   Round a given decimal number (round to nearest)
+// ----------------------------------------------------------------------------
+{
+    info s   = shape();
+
+    // If we have 1E-3 and round at 0, return zero
+    large exp = s.exponent;
+    if (exp < to_exp)
+        return make(0);
+
+    // If rounding 10000 (10^4) to 0, we can copy 1 kigit as is
+    size_t copy    = (exp - to_exp) / 3;
+    size_t nkigits = s.nkigits;
+    if (copy >= nkigits)
+        return this;            // We copy everything
+
+    gcbytes  bp = s.base;
+    id       ty = type();
+    kint     ld = 0;
+    size_t   rm = (exp - to_exp) % 3;
+    scribble scr;
+
+    for (size_t i = 0; i <= copy; i++)
+    {
+        kint k = kigit(+bp, i);
+        if (i == copy)
+        {
+            if (rm == 0)
+            {
+                ld = kigit(+bp, i+1);
+                ld /= 100;
+                k = ld >= 5 ? 1 : 0;
+                ld = 0;
+            }
+            else if (rm == 1)
+            {
+                ld = k % 100;
+                k -= ld;
+                ld = ld >= 50;
+                if (ld)
+                {
+                    k += 100;
+                    ld = k >= 1000;
+                    if (ld)
+                        k = 0;
+                }
+            }
+            else if (rm == 2)
+            {
+                ld = k % 10;
+                k -= ld;
+                ld = ld >= 5;
+                if (ld)
+                {
+                    k += 10;
+                    ld = k >= 1000;
+                    if (ld)
+                        k = 0;
+                }
+            }
+        }
+        kint *kp = (kint *) rt.allocate(sizeof(kint));
+        if (!kp)
+            return nullptr;
+        *kp = k;
+    }
+
+    // Check if rounding is needed
+    kint  *rp = (kint *) scr.scratch();
+    size_t rs = copy + 1;
+    while (ld && copy --> 0)
+    {
+        ld = ++rp[copy];
+        ld = ld >= 1000;
+        if (ld)
+            rp[copy] = 0;
+    }
+    if (ld)
+    {
+        exp++;
+        for (size_t i = rs; i > 0; --i)
+            rp[i] = rp[i] / 10 + rp[i-1] % 10 * 100;
+        *rp /= 10;
+    }
+
+    normalize(rp, rs, exp);
+    return rt.make<decimal>(ty, exp, rs, gcp<kint>(rp));
+}
+
+
 bool decimal::split(decimal_g &ip, decimal_g &fp, large to_exp) const
 // ----------------------------------------------------------------------------
 //   Split a mumber between integral and decimal part
@@ -846,7 +1002,7 @@ bool decimal::split(decimal_g &ip, decimal_g &fp, large to_exp) const
     if (exp < to_exp)
     {
         fp = this;
-        ip = rt.make<decimal>(0);
+        ip = make(0);
         return ip && fp;;
     }
 
@@ -856,7 +1012,7 @@ bool decimal::split(decimal_g &ip, decimal_g &fp, large to_exp) const
     if (copy >= nkigits)
     {
         ip = this;
-        fp = rt.make<decimal>(0);
+        fp = make(0);
         return fp && ip;
     }
 
@@ -1022,11 +1178,11 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
         whole_part = decimal::neg(whole_part);
         decimal_part = decimal::neg(decimal_part);
     }
-    one = rt.make<decimal>(1);
+    one = make(1);
     v1num = whole_part;
     v1den = one;
     v2num = one;
-    v2den = rt.make<decimal>(0);
+    v2den = make(0);
 
     uint maxdec = Settings.Precision() - 3;
     if (decimals > maxdec)
@@ -1152,42 +1308,6 @@ int decimal::compare(decimal_r x, decimal_r y, uint epsilon)
 //    Basic arithmetic operations
 //
 // ============================================================================
-
-static void normalize(decimal::kint *&rb, size_t &rs, large &re)
-// ----------------------------------------------------------------------------
-//   Normalize a result to have no leading or trailing zero
-// ----------------------------------------------------------------------------
-{
-    // Strip leading zeroes three by three
-    while (rs && *rb == 0)
-    {
-        re -= 3;
-        rb++;
-        rs--;
-    }
-
-    // Strip up to two individual leading zeroes
-    if (rs && *rb < 100)
-    {
-        re -= 1 + (*rb < 10);
-        uint hmul = *rb < 10 ? 100 : 10;
-        uint lmul = 1000 / hmul;
-        for (size_t ko = 0; ko < rs; ko++)
-        {
-            decimal::kint next = ko + 1 < rs ? rb[ko + 1] : 0;
-            rb[ko] = (rb[ko] * hmul + next / lmul) % 1000;
-        }
-    }
-
-    // Strip trailing zeroes
-    while (rs && rb[rs-1] == 0)
-        rs--;
-
-    // If result is zero, set exponent to 0
-    if (!rs)
-        re = 0;
-}
-
 
 static inline object::id negtype(object::id type)
 // ----------------------------------------------------------------------------
@@ -1379,11 +1499,9 @@ decimal_p decimal::sub(decimal_r x, decimal_r y)
         {
             size_t yo = ko - kshift;
             if (yo < ys)
-            {
                 yk += kigit(+yb, yo) / hmul;
-                if (mod3 && ko > kshift && --yo < ys)
-                    yk += kigit(+yb, yo) % hmul * lmul;
-            }
+            if (mod3 && ko > kshift && --yo < ys)
+                yk += kigit(+yb, yo) % hmul * lmul;
         }
         carry = xk < yk;
         if (carry)
@@ -1767,14 +1885,37 @@ decimal_p decimal::atan2(decimal_r x, decimal_r y)
     {
         if (x->is_zero())
             return y->is_negative() ? decimal_p(pi()) : +x;
-        decimal_g two = rt.make<decimal>(2);
+        decimal_g two = make(2);
         decimal_g result = pi() / two;
         if (x->is_negative())
             result = -result;
         return result;
     }
 
-    return atan(x/y);
+    decimal_g result = atan(x/y);
+    if (y->is_negative())
+    {
+        uint half_circle = 0;
+        switch(Settings.AngleMode())
+        {
+        case object::ID_Deg:                half_circle = 180; break;
+        case object::ID_Grad:               half_circle = 200; break;
+        case object::ID_PiRadians:          half_circle =   1; break;
+        default:
+        case object::ID_Rad:
+            if (x->is_negative())
+                result = result - constants().pi;
+            else
+                result = result + constants().pi;
+            return result;
+        }
+        decimal_g hc = make(half_circle);
+        if (x->is_negative())
+            result = result - hc;
+        else
+            result = result + hc;
+    }
+    return result;
 }
 
 
@@ -1815,20 +1956,20 @@ decimal_p decimal::sqrt(decimal_r x)
     }
 
     large     exponent = x->exponent();
-    decimal_g half     = rt.make<decimal>(5, -1);
-    decimal_g next     = rt.make<decimal>(5, -exponent / 2);
+    decimal_g half     = make(5, -1);
+    decimal_g next     = make(5, (-exponent - 1) / 2);
     decimal_g current  = x * next;
     if (current && !current->is_zero())
     {
-        size_t max = Settings.Precision();
-        size_t precision = max - 1;
-        for (uint i = 0; i < max; i++)
+        precision_adjust prec(3);
+        for (uint i = 0; i < 2 * prec; i++)
         {
             next = (current + x / current) * half;
-            if (!next || compare(next, current, precision) == 0)
+            if (!next || compare(next, current, prec) == 0)
                 break;
             current = next;
         }
+        current = prec(current);
     }
     return current;
 }
@@ -1840,20 +1981,20 @@ decimal_p decimal::cbrt(decimal_r x)
 // ----------------------------------------------------------------------------
 {
     large     exponent = x->exponent();
-    decimal_g three    = rt.make<decimal>(3);
-    decimal_g next     = rt.make<decimal>(1, -2 * exponent / 3);
+    decimal_g third    = inv(make(3));
+    decimal_g next     = make(1, -2 * exponent / 3);
     decimal_g current  = x * next;
     if (current && !current->is_zero())
     {
-        size_t max = Settings.Precision();
-        size_t precision = max - 1;
-        for (uint i = 0; i < max; i++)
+        precision_adjust prec(3);
+        for (uint i = 0; i < 2 * prec; i++)
         {
-            next = ((current + current) + x / (current * current)) / three;
-            if (!next || compare(next, current, precision) == 0)
+            next = ((current + current) + x / (current * current)) * third;
+            if (!next || compare(next, current, prec) == 0)
                 break;
             current = next;
         }
+        current = prec(current);
     }
     return current;
 }
@@ -1897,7 +2038,7 @@ decimal_p decimal::sin_fracpi(uint qturns, decimal_r fp)
     {
         // sin(pi/2 - x) = cos(x)
         id fty = fp->type();
-        decimal_g x = rt.make<decimal>(fty, 1);
+        decimal_g x = make(fty, 1);
         x = x - fp;
         if (fty == ID_neg_decimal)
             qturns += 2;
@@ -1910,11 +2051,11 @@ decimal_p decimal::sin_fracpi(uint qturns, decimal_r fp)
 
     // Scale by pi / 2, sum is between 0 and pi/4
     decimal_g sum = fp;
-    decimal_g fact = rt.make<decimal>(2);
+    decimal_g fact = make(2);
     decimal_g tmp;
     sum = sum / fact;
     sum = sum * pi();
-    fact = rt.make<decimal>(6); // 3!
+    fact = make(6); // 3!
 
     // Prepare power factor and square that we multiply by every time
     decimal_g power = sum;
@@ -1939,7 +2080,7 @@ decimal_p decimal::sin_fracpi(uint qturns, decimal_r fp)
         else
             sum = sum + tmp;
 
-        tmp = rt.make<decimal>((i+1) * (i+2)); // First iteration: 4 * 5
+        tmp = make((i+1) * (i+2)); // First iteration: 4 * 5
         fact = fact * tmp;
     }
 
@@ -1960,7 +2101,7 @@ decimal_p decimal::cos_fracpi(uint qturns, decimal_r fp)
     {
         // cos(pi/2 - x) = sin(x)
         id fty = fp->type();
-        decimal_g x = rt.make<decimal>(fty, 1);
+        decimal_g x = make(fty, 1);
         x = x - fp;
         if (fty == ID_neg_decimal)
             qturns += 2;
@@ -1973,7 +2114,7 @@ decimal_p decimal::cos_fracpi(uint qturns, decimal_r fp)
 
     // Scale by pi / 2, sum is between 0 and pi/4
     decimal_g sum = fp;
-    decimal_g fact = rt.make<decimal>(2); // Also 2!
+    decimal_g fact = make(2); // Also 2!
     decimal_g tmp;
     sum = sum / fact;
     sum = sum * pi();
@@ -1983,7 +2124,7 @@ decimal_p decimal::cos_fracpi(uint qturns, decimal_r fp)
     decimal_g power = square;
 
     // For cosine, the sum starts at 1
-    sum = rt.make<decimal>(1);
+    sum = make(1);
 
     uint prec = Settings.Precision();
     for (uint i = 2; i < prec; i += 2)
@@ -2004,7 +2145,7 @@ decimal_p decimal::cos_fracpi(uint qturns, decimal_r fp)
             sum = sum + tmp;
 
         power = power * square; // Next iteration is x^4
-        tmp = rt.make<decimal>((i+1) * (i+2)); // First iteration: 4 * 5
+        tmp = make((i+1) * (i+2)); // First iteration: 4 * 5
         fact = fact * tmp;
     }
 
@@ -2032,10 +2173,10 @@ decimal_p decimal::tan(decimal_r x)
 
 decimal_p decimal::asin(decimal_r x)
 // ----------------------------------------------------------------------------
-//   Arc-sine, use asin(x) = atan(x/ sqrt(1-x^2))
+//   Arc-sine, use asin(x) = atan(x / sqrt(1-x^2))
 // ----------------------------------------------------------------------------
 {
-    decimal_g tmp = rt.make<decimal>(1);
+    decimal_g tmp = make(1);
     tmp = tmp - x * x;
     if (tmp && tmp->is_zero())
     {
@@ -2063,7 +2204,7 @@ decimal_p decimal::acos(decimal_r x)
     decimal_g tmp;
     if (!x->is_zero())
     {
-        tmp = rt.make<decimal>(1);
+        tmp = make(1);
         tmp = tmp - x * x;
         tmp = sqrt(tmp) / x;
         tmp = atan(tmp);
@@ -2073,7 +2214,7 @@ decimal_p decimal::acos(decimal_r x)
     }
     else
     {
-        tmp = pi()->adjust_to_angle() * decimal_g(rt.make<decimal>(5,-1));
+        tmp = pi()->adjust_to_angle() * decimal_g(make(5,-1));
     }
     return tmp;
 }
@@ -2105,10 +2246,10 @@ decimal_p decimal::atan(decimal_r x)
         if (!x->is_magnitude_less_than_half())
         {
             // atan(x) = pi/4 + atan((x - 1) / (1 + x))
-            decimal_g one = rt.make<decimal>(1);
+            decimal_g one = make(1);
             decimal_g nx = (x - one) / (x + one);
             nx = atan(nx);
-            decimal_g fourth = rt.make<decimal>(25,-2);
+            decimal_g fourth = make(25,-2);
             fourth = fourth * pi();
             fourth = fourth->adjust_to_angle();
             nx = fourth + nx;
@@ -2116,10 +2257,10 @@ decimal_p decimal::atan(decimal_r x)
         }
 
         // atan(1/x) = pi/2 - arctan(x) when x > 0
-        decimal_g i = rt.make<decimal>(1);
+        decimal_g i = make(1);
         i = i / x;
         i = atan(i);
-        decimal_g half = rt.make<decimal>(5, -1);
+        decimal_g half = make(5, -1);
         half = half * pi();
         half = half->adjust_to_angle();
         i = half - i;
@@ -2132,13 +2273,19 @@ decimal_p decimal::atan(decimal_r x)
     decimal_g square = x * x;
     decimal_g power = x;
 
+    record(decimal, "atan of %t", +x);
+    record(decimal, "sum=   %t", +sum);
+    record(decimal, "power= %t", +power);
+    record(decimal, "square=%t", +square);
+
     uint prec = Settings.Precision();
-    for (uint i = 3; i < prec; i += 2)
+    for (uint i = 3; i < 3 * prec; i += 2)
     {
         power = power * square;
-        tmp = rt.make<decimal>(i);
+        record(decimal, "%u: power= %t", i, +power);
+        tmp = make(i);
         tmp = power / tmp;     // x^2 / 2
-
+        record(decimal, "%u: factor=%t exponent %lld", i, +tmp, tmp->exponent());
         // Check if we ran out of memory
         if (!sum || !tmp)
             return nullptr;
@@ -2151,7 +2298,7 @@ decimal_p decimal::atan(decimal_r x)
             sum = sum - tmp;
         else
             sum = sum + tmp;
-
+        record(decimal, "%u: sum=   %t exponent %lld", i, +sum, sum->exponent());
     }
 
     // Convert to current angle mode
@@ -2161,13 +2308,12 @@ decimal_p decimal::atan(decimal_r x)
 }
 
 
-
 decimal_p decimal::sinh(decimal_r x)
 // ----------------------------------------------------------------------------
 //    Hyperbolic sine
 // ----------------------------------------------------------------------------
 {
-    decimal_g half = rt.make<decimal>(5,-1);
+    decimal_g half = make(5,-1);
     decimal_g ep = exp(x);
     decimal_g em = exp(-x);
     return (ep - em) * half;
@@ -2179,7 +2325,7 @@ decimal_p decimal::cosh(decimal_r x)
 //  Hyperbolic cosine
 // ----------------------------------------------------------------------------
 {
-    decimal_g half = rt.make<decimal>(5,-1);
+    decimal_g half = make(5,-1);
     decimal_g ep = exp(x);
     decimal_g em = exp(-x);
     return (ep + em) * half;
@@ -2202,7 +2348,7 @@ decimal_p decimal::asinh(decimal_r x)
 //  Inverse hyperbolic sine
 // ----------------------------------------------------------------------------
 {
-    decimal_g one = rt.make<decimal>(1);
+    decimal_g one = make(1);
     return log(x + decimal_g(sqrt(x*x + one)));
 }
 
@@ -2212,7 +2358,7 @@ decimal_p decimal::acosh(decimal_r x)
 //  Inverse hyperbolic cosine
 // ----------------------------------------------------------------------------
 {
-    decimal_g one = rt.make<decimal>(1);
+    decimal_g one = make(1);
     return log(x + decimal_g(sqrt(x*x - one)));
 }
 
@@ -2222,11 +2368,10 @@ decimal_p decimal::atanh(decimal_r x)
 //   Inverse hyperbolic tangent
 // ----------------------------------------------------------------------------
 {
-    decimal_g one = rt.make<decimal>(1);
-    decimal_g half = rt.make<decimal>(5, -1);
+    decimal_g one = make(1);
+    decimal_g half = make(5, -1);
     return half * log((one + x) / (one - x));
 }
-
 
 
 decimal_p decimal::log1p(decimal_r x)
@@ -2243,7 +2388,7 @@ decimal_p decimal::log1p(decimal_r x)
     if (x->is_zero())
         return x;
 
-    decimal_g one = rt.make<decimal>(1);
+    decimal_g one = make(1);
     decimal_g scaled = x + one;
     if (scaled->is_negative() || scaled->is_zero())
     {
@@ -2257,12 +2402,14 @@ decimal_p decimal::log1p(decimal_r x)
     decimal_g power, scale;
 
     scaled = x;
+    record(decimal, "Start with %t exp=%ld eexp=%ld", +scaled, texp, eexp);
     while (eexp > 0)
     {
         power = constants().e;
         scale = one;
         ipart += eexp;
 
+        record(decimal, "Exponent of e eexp=%ld", eexp);
         while (eexp)
         {
             if (eexp & 1)
@@ -2271,20 +2418,44 @@ decimal_p decimal::log1p(decimal_r x)
             eexp >>= 1;
         }
 
+        record(decimal, "Scale is %t", +scale);
         scaled = (one + scaled) / scale - one;
 
         texp = scaled->exponent();
         eexp = texp * 3 / 2;
+        record(decimal, "Scaled is %t, exp=%ld eexp=%ld", +scaled, texp, eexp);
     }
+
+    // If we end up with 0.999, convergence will be super slow
+    if (!scaled->is_magnitude_less_than_half())
+    {
+        record(decimal, "Rescaling, %t, exp=%ld eexp=%ld ipart=%ld",
+               +scaled, texp, eexp, ipart);
+
+        scale = constants().e;
+        if (scaled->is_negative())
+        {
+            scaled = (one + scaled) * scale - one;
+            ipart -= 1;
+        }
+        else
+        {
+            scaled = (one + scaled) / scale - one;
+            ipart += 1;
+        }
+    }
+
+    record(decimal, "Taylor series with %t exp=%ld eexp=%ld ipart=%ld",
+           +scaled, texp, eexp, ipart);
 
     // Taylor's serie
     decimal_g sum = scaled;
     uint prec = Settings.Precision();
     power = scaled;
-    for (uint i = 2; i < prec; i++)
+    for (uint i = 2; i < 3*prec; i++)
     {
         power = power * scaled;
-        scale = rt.make<decimal>(i);
+        scale = make(i);
         scale = power / scale;
 
         if (!sum || !scale)
@@ -2292,16 +2463,25 @@ decimal_p decimal::log1p(decimal_r x)
 
         // If what we add no longer has an impact, we can exit
         if (scale->exponent() + large(prec) < sum->exponent())
+        {
+            record(decimal, "Taylor exits at %u exp=%ld", i, scale->exponent());
             break;
+        }
 
         if (i & 1)
             sum = sum + scale;
         else
             sum = sum - scale;
     }
+    record(decimal, "Power at exit %t exponent %ld", +power, power->exponent());
+    record(decimal, "Sum   at exit %t exponent %ld", +sum, sum->exponent());
 
-    scale = rt.make<decimal>(ipart);
-    return scale + sum;
+    if (ipart)
+    {
+        scale = make(ipart);
+        sum = sum + scale;
+    }
+    return sum;
 }
 
 
@@ -2319,7 +2499,7 @@ decimal_p decimal::expm1(decimal_r x)
         return nullptr;
 
     // Prepare power factor and square that we multiply by every time
-    decimal_g one =  rt.make<decimal>(1);
+    decimal_g one =  make(1);
     decimal_g sum = fp;
     decimal_g fact = one;
     decimal_g power = fp;
@@ -2329,7 +2509,7 @@ decimal_p decimal::expm1(decimal_r x)
     for (uint i = 2; i < prec; i++)
     {
         power = power * fp;
-        tmp = rt.make<decimal>(i);
+        tmp = make(i);
         fact = fact * tmp;
 
         tmp = power / fact;     // x^2 / 2!
@@ -2377,35 +2557,9 @@ decimal_p decimal::log(decimal_r x)
         return nullptr;
     }
 
-    decimal_g one    = rt.make<decimal>(1);
+    decimal_g one    = make(1);
     decimal_g scaled = x - one;
-    decimal_g power, scale;
-    large     texp   = scaled->exponent();
-    large     eexp   = texp * 3 / 2;
-    large     ipart  = 0;
-
-    while (eexp > 0)
-    {
-        power = constants().e;
-        scale = one;
-        ipart += eexp;
-
-        while (eexp)
-        {
-            if (eexp & 1)
-                scale = scale * power;
-            power = power * power;
-            eexp >>= 1;
-        }
-
-        scaled = (scaled + one) / scale - one;
-        texp = scaled->exponent();
-        eexp = texp * 3 / 2;
-    }
-
     scaled = log1p(scaled);
-    scale = rt.make<decimal>(ipart);
-    scaled = scale + scaled;
     return scaled;
 }
 
@@ -2427,7 +2581,7 @@ decimal_p decimal::log10(decimal_r x)
     decimal_g fp = x;
     if (exp10)
     {
-        fp = rt.make<decimal>(1, -exp10);
+        fp = make(1, -exp10);
         fp = fp * x;
     }
     decimal_g lnx = log(fp);
@@ -2435,7 +2589,7 @@ decimal_p decimal::log10(decimal_r x)
     ln10 = lnx / ln10;
     if (exp10)
     {
-        fp = rt.make<decimal>(exp10);
+        fp = make(exp10);
         ln10 = ln10 + fp;
     }
     return ln10;
@@ -2467,7 +2621,7 @@ decimal_p decimal::exp(decimal_r x)
         return nullptr;
 
     // Compute exponential for integral part
-    decimal_g one = rt.make<decimal>(1);
+    decimal_g one = make(1);
     decimal_g result = expm1(fp);
     result = (one + result);
 
@@ -2512,7 +2666,7 @@ decimal_p decimal::exp10(decimal_r x)
     fp = exp(fp);
     if (ip)
     {
-        decimal_g scale = rt.make<decimal>(1, ip);
+        decimal_g scale = make(1, ip);
         fp = scale * fp;
     }
     return fp;
@@ -2543,7 +2697,7 @@ decimal_p decimal::erf(decimal_r x)
     if (!x->is_magnitude_less_than(300, 1))
     {
         // Use asymptotic expansion
-        decimal_g one = rt.make<decimal>(1);
+        decimal_g one = make(1);
         decimal_g rest = erfc(x);
         return one - rest;
     }
@@ -2552,7 +2706,7 @@ decimal_p decimal::erf(decimal_r x)
     decimal_g sum    = x;
     decimal_g square = x * x;
     decimal_g power  = sum;
-    decimal_g fact = rt.make<decimal>(1);
+    decimal_g fact = make(1);
     decimal_g tmp;
 
     uint prec = Settings.Precision();
@@ -2560,9 +2714,9 @@ decimal_p decimal::erf(decimal_r x)
     {
         // First term is x^3 / (3 * 1!), second is x^5 / (5 * 2!)
         power = power * square;         // x^3
-        tmp = rt.make<decimal>(i);      // 1
+        tmp = make(i);                  // 1
         fact = fact * tmp;              // 1!
-        tmp = rt.make<decimal>(2*i+1);  // 3
+        tmp = make(2*i+1);              // 3
         tmp = fact * tmp;               // 1! * 3
         tmp = power / tmp;              // x^3 / (1! * 3)
 
@@ -2597,17 +2751,17 @@ decimal_p decimal::erfc(decimal_r x)
     if (x->is_negative() || x->is_magnitude_less_than(300, 1))
     {
         // Use asymptotic expansion
-        decimal_g one = rt.make<decimal>(1);
+        decimal_g one = make(1);
         decimal_g rest = erf(x);
         return one - rest;
     }
 
     // 1 - 1 / (2x^2) + (1*3) / (2x^2)^2 - (1*3*5) / (2x^2)^3 + ...
-    decimal_g one    = rt.make<decimal>(1);
+    decimal_g one    = make(1);
     decimal_g sum    = one;
     decimal_g square = x * x;
     decimal_g power  = one;
-    decimal_g scale = rt.make<decimal>(1);
+    decimal_g scale = make(1);
     decimal_g tmp;
     square = square + square;           // 2x^2
 
@@ -2616,7 +2770,7 @@ decimal_p decimal::erfc(decimal_r x)
     {
         // First term is x^3 / (3 * 1!), second is x^5 / (5 * 2!)
         power = power * square;         // (2x^3)^1
-        tmp = rt.make<decimal>(2*i-1);  // 1, 3, 5, ...
+        tmp = make(2*i-1);              // 1, 3, 5, ...
         scale = scale * tmp;            // 1 * 1 * 3 * 5 ...
         tmp = scale / power;            // (1*3*5) / (2x^2)^3
 
@@ -2644,21 +2798,146 @@ decimal_p decimal::erfc(decimal_r x)
 
 decimal_p decimal::tgamma(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//  Implementation of the gamma function
 // ----------------------------------------------------------------------------
+//   Largely inspired from https://deamentiaemundi.wordpress.com/2013/06/29
+//      /the-gamma-function-with-spouges-approximation/comment-page-1/
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+
+    decimal_g ip, fp;
+    if (!x->split(ip, fp))
+        return nullptr;
+    if (fp->is_zero())
+    {
+        if (x->is_negative() || x->is_zero())
+        {
+            rt.domain_error();
+            return nullptr;
+        }
+        fp = make(1);
+        ip = ip - fp;
+        return fact(ip);
+    }
+
+    if (x->is_negative())
+    {
+        // gamma(x) = pi/(sin(pi*x) * gamma(1-x))
+        ip = constants().pi;
+        ip = x * ip;
+        ip = sin(ip);
+        fp = make(1);
+        fp = exp(lgamma(fp - x));
+        fp = fp * ip;
+        ip = constants().pi;
+        fp = ip / fp;
+        return fp;
+    }
+
+    precision_adjust prec(3);
+    fp = exp(lgamma(x));
+    fp = prec(fp);
+    return fp;
 }
 
 
 decimal_p decimal::lgamma(decimal_r x)
 // ----------------------------------------------------------------------------
-//
+//   Implementation of the log of the gamma function
 // ----------------------------------------------------------------------------
+//   Largely inspired from https://deamentiaemundi.wordpress.com/2013/06/29
+//      /the-gamma-function-with-spouges-approximation/comment-page-1/
 {
-    rt.unimplemented_error();
-    return x;
+    if (!x)
+        return nullptr;
+
+    decimal_g ip, fp;
+    if (!x->split(ip, fp))
+        return nullptr;
+    if (fp->is_zero())
+    {
+        if (x->is_negative() || x->is_zero())
+        {
+            rt.domain_error();
+            return nullptr;
+        }
+        // Above 50, might as well use Stirling's approximation
+        if (ip->exponent() < 50)
+        {
+            fp = make(1);
+            ip = ip - fp;
+            ip = fact(ip);
+            return log(ip);
+        }
+    }
+
+    if (x->is_negative())
+    {
+        // gamma(x) = pi/(asin(pi*x) * gamma(1-x))
+        ip = constants().pi;
+        ip = x * ip;
+        ip = log(sin(ip));
+        fp = make(1);
+        fp = lgamma(fp - x);
+        fp = fp + ip;
+        ip = constants().lnpi();
+        fp = ip - fp;
+        return fp;
+    }
+
+    // Spouge's approximation uses a factor `a` - Compute it here
+    precision_adjust prec(6);
+    decimal_g tmp = make(prec + 4);
+    decimal_g a = make(125285, -5);
+    a = ceil(a * tmp);
+    uint na = a->as_unsigned();
+
+    // Loop for terms except first one
+    decimal_g factorial = make(1);
+    decimal_g sum       = constants().sqrt_2pi();
+    decimal_g one       = make(1);
+    decimal_g z         = x;
+    decimal_g ck, power, scale;
+    for (uint i = 1; i < na; i++)
+    {
+        z   = z + one;
+
+        uint t  = na - i;
+        uint xp = i - 1;
+        tmp     = make(t);
+        power   = tmp;
+        scale   = exp(tmp);
+        while (xp)
+        {
+            if (xp & 1)
+                scale = scale * power;
+            xp >>= 1;
+            if (xp)
+                power = power * power;
+        }
+        tmp = sqrt(tmp);
+        tmp = tmp * scale / factorial;
+        if (i & 1)
+            sum = sum + tmp / z;
+        else
+            sum = sum - tmp / z;
+        tmp = make(i);
+        factorial = factorial * tmp;
+    }
+
+    sum = log(sum);
+
+    // Add first term
+    tmp = x + a;
+    z = make(5, -1);
+    z = x + z;
+    a = log(x);
+    tmp = log(tmp) * z - tmp - a;
+    sum = sum + tmp;
+    sum = prec(sum);
+
+    return sum;
 }
 
 
@@ -2682,7 +2961,7 @@ decimal_p decimal::sign(decimal_r x)
     if (!x)
         return nullptr;
     int r = x->is_negative() ? -1 : x->is_zero() ? 0 : 1;
-    return rt.make<decimal>(r);
+    return make(r);
 }
 
 
@@ -2724,7 +3003,7 @@ decimal_p decimal::ceil(decimal_r x)
         return nullptr;
     if (fp->is_zero() || x->is_negative())
         return ip;
-    fp = rt.make<decimal>(1);
+    fp = make(1);
     ip = ip + fp;
     return ip;
 }
@@ -2740,7 +3019,7 @@ decimal_p decimal::floor(decimal_r x)
         return nullptr;
     if (fp->is_zero() || !x->is_negative())
         return ip;
-    fp = rt.make<decimal>(1);
+    fp = make(1);
     ip = ip - fp;
     return ip;
 }
@@ -2751,7 +3030,7 @@ decimal_p decimal::inv(decimal_r x)
 //  Compute the inverse
 // ----------------------------------------------------------------------------
 {
-    decimal_p one = rt.make<decimal>(1);
+    decimal_p one = make(1);
     return one / x;
 }
 
@@ -2817,15 +3096,15 @@ decimal_p decimal::fact(decimal_r x)
         return nullptr;
     if (!fp->is_zero() || x->is_negative())
     {
-        fp = rt.make<decimal>(1);
+        fp = make(1);
         fp = x + fp;
         return tgamma(fp);
     }
 
-    decimal_g r = rt.make<decimal>(1);
+    decimal_g r = make(1);
     for (large i = 2; i <= ip; i++)
     {
-        fp = rt.make<decimal>(i);
+        fp = make(i);
         r = r * fp;
     }
     return r;
@@ -2862,7 +3141,9 @@ decimal::ccache &decimal::constants()
         cst->e         = rt.make<decimal>(1, nkigs, gcbytes(decimal_e));
         cst->log10     = nullptr;
         cst->log2      = nullptr;
+        cst->sq2pi     = nullptr;
         cst->oosqpi    = nullptr;
+        cst->lpi       = nullptr;
         cst->precision = precision;
     }
     return *cst;
@@ -2876,7 +3157,7 @@ decimal_r decimal::ccache::ln10()
 {
     if (!log10)
     {
-        decimal_g ten = rt.make<decimal>(10);
+        decimal_g ten = make(10);
         log10 = log(ten);
     }
     return log10;
@@ -2890,10 +3171,32 @@ decimal_r decimal::ccache::ln2()
 {
     if (!log2)
     {
-        decimal_g two = rt.make<decimal>(2);
+        decimal_g two = make(2);
         log2 = log(two);
     }
     return log2;
+}
+
+
+decimal_r decimal::ccache::lnpi()
+// ----------------------------------------------------------------------------
+//   Compute and cache the natural logarithm of pi
+// ----------------------------------------------------------------------------
+{
+    if (!lpi)
+        lpi = log(pi);
+    return lpi;
+}
+
+
+decimal_r decimal::ccache::sqrt_2pi()
+// ----------------------------------------------------------------------------
+//   Compute and cache sqrt(pi)
+// ----------------------------------------------------------------------------
+{
+    if (!sq2pi)
+        sq2pi = sqrt(pi + pi);
+    return sq2pi;
 }
 
 
@@ -2904,7 +3207,7 @@ decimal_r decimal::ccache::one_over_sqrt_pi()
 {
     if (!oosqpi)
     {
-        decimal_g one = rt.make<decimal>(1);
+        decimal_g one = make(1);
         decimal_g sqpi = sqrt(pi);
         oosqpi = one / sqpi;
     }
@@ -2930,8 +3233,8 @@ bool decimal::adjust_from_angle(uint &qturns, decimal_g &fp) const
     decimal_g x = this;
     switch(Settings.AngleMode())
     {
-    case object::ID_Deg:       x = x / decimal_g(rt.make<decimal>(90)); break;
-    case object::ID_Grad:      x = x * decimal_g(rt.make<decimal>(1,-2)); break;
+    case object::ID_Deg:       x = x / decimal_g(make(90)); break;
+    case object::ID_Grad:      x = x * decimal_g(make(1,-2)); break;
     case object::ID_PiRadians: x = x + x; break;
     default:
     case object::ID_Rad:       x = x / pi(); x = x + x; break;
@@ -2950,7 +3253,7 @@ bool decimal::adjust_from_angle(uint &qturns, decimal_g &fp) const
             rt.precision_loss_error();
             return false;
         }
-        decimal_g turn = rt.make<decimal>(4);
+        decimal_g turn = make(4);
         ip = rem(ip, turn);
         if (!ip)
             return false;
@@ -2977,7 +3280,7 @@ decimal_p decimal::adjust_to_angle() const
     }
 
     decimal_g x = this;
-    decimal_g ratio = rt.make<decimal>(half_circle);
+    decimal_g ratio = make(half_circle);
     x = x * ratio;
     x = x / pi();
     return x;

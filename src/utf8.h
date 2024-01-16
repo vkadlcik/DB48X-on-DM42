@@ -327,4 +327,101 @@ inline bool utf8_more(utf8 start, utf8 current, size_t size)
     return size_t(current - start) < size;
 }
 
+
+// ============================================================================
+//
+//   Symbol classification
+//
+// ============================================================================
+
+inline bool is_valid_as_name_initial(unicode cp)
+// ----------------------------------------------------------------------------
+//   Check if character is valid as initial of a name
+// ----------------------------------------------------------------------------
+{
+    if ((cp >= 'A' && cp <= 'Z') || (cp >= 'a' && cp <= 'z'))
+        return true;
+    if (cp < 0x80)
+        return false;
+
+    static utf8 invalid = utf8("÷×↑∂⁻¹²³«»ⅈ∡ ;,.'\"<=>≤≠≥[](){}«»\n\t");
+    for (utf8 p = invalid; *p; p = utf8_next(p))
+        if (cp == utf8_codepoint(p))
+            return false;
+    return true;
+}
+
+
+inline bool is_valid_as_name_initial(utf8 s)
+// ----------------------------------------------------------------------------
+//   Check if first character in a string is valid in a name
+// ----------------------------------------------------------------------------
+{
+    return is_valid_as_name_initial(utf8_codepoint(s));
+}
+
+
+inline bool is_valid_in_name(unicode cp)
+// ----------------------------------------------------------------------------
+//   Check if character is valid in a name after the initial character
+// ----------------------------------------------------------------------------
+{
+    return (cp >= '0' && cp <= '9') || is_valid_as_name_initial(cp);
+}
+
+
+inline bool is_valid_in_name(utf8 s)
+// ----------------------------------------------------------------------------
+//   Check if first character in a string is valid in a name
+// ----------------------------------------------------------------------------
+{
+    return is_valid_in_name(utf8_codepoint(s));
+}
+
+
+inline bool is_separator(unicode code)
+// ----------------------------------------------------------------------------
+//   Check if the code point at given string is a separator
+// ----------------------------------------------------------------------------
+{
+    static utf8 separators = utf8(" ;,.'\"<=>≤≠≥[](){}«»\n\t");
+    for (utf8 p = separators; *p; p = utf8_next(p))
+        if (code == utf8_codepoint(p))
+            return true;
+    return false;
+}
+
+
+inline bool is_separator(utf8 str)
+// ----------------------------------------------------------------------------
+//   Check if the code point at given string is a separator
+// ----------------------------------------------------------------------------
+{
+    unicode code = utf8_codepoint(str);
+    return is_separator(code);
+}
+
+
+inline bool is_separator_or_digit(unicode code)
+// ----------------------------------------------------------------------------
+//   Check if the code point at given string is a separator
+// ----------------------------------------------------------------------------
+{
+    static utf8 separators = utf8(" ;,.'\"<=>≤≠≥[](){}«»\n\t0123456789⁳");
+    for (utf8 p = separators; *p; p = utf8_next(p))
+        if (code == utf8_codepoint(p))
+            return true;
+    return false;
+}
+
+
+inline bool is_separator_or_digit(utf8 str)
+// ----------------------------------------------------------------------------
+//   Check if the code point at given string is a separator
+// ----------------------------------------------------------------------------
+{
+    unicode code = utf8_codepoint(str);
+    return is_separator(code);
+}
+
 #endif // UTF8_H

@@ -388,7 +388,12 @@ extern "C" void program_main()
                 key = 0;
                 continue;
             }
-
+            if (key == tests::CLEAR)
+            {
+                rt.clear_error();
+                ui.clear_editor();
+                rt.drop(rt.depth());
+            }
 #endif // SIMULATOR
         }
         bool repeating = sys_timer_timeout(TIMER0);

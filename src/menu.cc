@@ -628,8 +628,8 @@ MENU(ProbabilitiesMenu,
      "",        ID_Unimplemented,
      "Random",  ID_Unimplemented,
 
-     ID_tgamma,
-     ID_lgamma,
+     "Γ",        ID_tgamma,
+     "ln(Γ)",    ID_lgamma,
      ID_erf,
      ID_erfc,
      "RSeed",   ID_Unimplemented,
@@ -1036,23 +1036,23 @@ MENU(StackMenu,
 // ----------------------------------------------------------------------------
 //   Operations on the stack
 // ----------------------------------------------------------------------------
-     "Dup",     ID_Dup,
-     "Drop",    ID_Drop,
-     "Swap",    ID_Swap,
+     "Rot",     ID_Rot,
+     "Over",    ID_Over,
+     "Depth",   ID_Depth,
      "Pick",    ID_Pick,
      "Roll",    ID_Roll,
-     "Depth",   ID_Depth,
+     "RollDn",  ID_RollD,
 
+     "Dup",     ID_Dup,
+     "Drop",    ID_Drop,
      "Dup2",    ID_Dup2,
      "Drop2",   ID_Drop2,
-     "Over",    ID_Over,
-     "Rot",     ID_Rot,
-     "RoolDn",  ID_RollD,
-     "LastArg", ID_LastArg,
-
      ID_DupN,
      ID_DropN,
-     "ClearStk",ID_Unimplemented,
+
+     "Swap",    ID_Swap,
+     "LastArg", ID_LastArg,
+     "ClearStk",ID_ClearStack,
      "FillStk", ID_Unimplemented,
      "LastX",   ID_LastX,
      "LastStk", ID_Undo);
@@ -1256,7 +1256,7 @@ MENU(ClearThingsMenu,
 // ----------------------------------------------------------------------------
 //  Clearing various things
 // ----------------------------------------------------------------------------
-     "Stack",   ID_Unimplemented,
+     "Stack",   ID_ClearStack,
      "Dir",     ID_Unimplemented,
      "Stats",   ID_ClearData,
      "Mem",     ID_Unimplemented,

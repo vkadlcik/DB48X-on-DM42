@@ -310,7 +310,7 @@ static inline bool match(cstring s, cstring sep, size_t len, size_t remaining)
 {
     return (len <= remaining &&
             strncasecmp(s, sep, len) == 0 &&
-            (len >= remaining || command::is_separator(utf8(s) + len)));
+            (len >= remaining || is_separator(utf8(s) + len)));
 }
 
 

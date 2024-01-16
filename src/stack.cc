@@ -82,6 +82,7 @@ void stack::draw_stack()
     font_p idxfont    = HelpFont;
     size   lineHeight = font->height();
     size   idxHeight  = idxfont->height();
+    size   idxOffset  = (lineHeight - idxHeight) / 2 - 2;
     coord  top        = hdrfont->height() + 2;
     coord  bottom     = ui.stack_screen_bottom();
     uint   depth      = rt.depth();
@@ -102,7 +103,7 @@ void stack::draw_stack()
         Screen.fill(0, bottom, LCD_W, bottom, pattern::gray50);
     }
 
-    char buf[8];
+    char buf[16];
     coord y = bottom;
 #ifdef SIMULATOR
     extern int last_key;
@@ -146,11 +147,6 @@ void stack::draw_stack()
         coord ytop = y < top ? top : y;
         coord yb   = y + lineHeight-1;
         Screen.clip(0, ytop, LCD_W, yb);
-
-        size idxOffset = (lineHeight - idxHeight) / 2;
-        snprintf(buf, sizeof(buf), "%d", level + 1);
-        size hw = idxfont->width(utf8(buf));
-        Screen.text(hdrx - hw, y + idxOffset, utf8(buf), idxfont);
 
         if (graph)
         {
@@ -244,7 +240,8 @@ void stack::draw_stack()
                     Screen.clip(x, ytop, split, yb);
                     Screen.text(x, y, out, len, font);
                     Screen.clip(split, ytop, split + skip, yb);
-                    Screen.glyph(split + skip/8, y - offs, sep, font, pattern::gray50);
+                    Screen.glyph(split + skip/8, y - offs, sep, font,
+                                 pattern::gray50);
                     Screen.clip(split+skip, y, LCD_W, yb);
                     Screen.text(LCD_W - 2 - w, y, out, len, font);
                 }
@@ -256,6 +253,13 @@ void stack::draw_stack()
 
             font = Settings.stack_font();
         }
+
+        // Draw index
+        Screen.clip(clip);
+        snprintf(buf, sizeof(buf), "%u", level + 1);
+        size hw = idxfont->width(utf8(buf));
+        Screen.text(hdrx - hw, y + idxOffset, utf8(buf), idxfont);
+
         lineHeight = font->height();
     }
     Screen.clip(clip);

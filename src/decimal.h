@@ -123,10 +123,10 @@ struct decimal : algebraic
     //   Constructor from (unsigned) integer value
     // ------------------------------------------------------------------------
     {
-        Int copy = value;
-        Int mul = 1000;
-        Int div = 1;
-        int iexp = 0;
+        Int  copy = value;
+        Int  mul  = 1000;
+        Int  div  = 1;
+        int  iexp = 0;
         while (copy)
         {
             iexp++;
@@ -161,6 +161,33 @@ struct decimal : algebraic
         }
         exp += iexp;
         return required_memory(type, exp, size_t((iexp+2)/3), gcp<kint>());
+    }
+
+
+    template<typename Int>
+    static decimal_p make(Int x, large exp = 0)
+    // ------------------------------------------------------------------------
+    //   Build a decimal from a signed integer
+    // ------------------------------------------------------------------------
+    {
+        if (x < 0)
+            return rt.make<decimal>(ID_neg_decimal, -x, exp);
+        return rt.make<decimal>(x, exp);
+    }
+
+
+    template<typename Int>
+    static decimal_p make(id type, Int x, large exp = 0)
+    // ------------------------------------------------------------------------
+    //   Build a decimal from a signed integer
+    // ------------------------------------------------------------------------
+    {
+        if (x < 0)
+        {
+            type = type == ID_decimal ? ID_neg_decimal : ID_decimal;
+            return rt.make<decimal>(type, -x, exp);
+        }
+        return rt.make<decimal>(type, x, exp);
     }
 
 
@@ -299,13 +326,13 @@ struct decimal : algebraic
             ++(*this);
             return prev;
         }
-        bool operator==(iterator other) const
+        bool operator==(const iterator &other) const
         {
             return !number.Safe() || !other.number.Safe() ||
                 (index == other.index && size == other.size &&
                  number.Safe() == other.number.Safe());
         }
-        bool operator!=(iterator other) const
+        bool operator!=(const iterator &other) const
         {
             return !(*this == other);
         }
@@ -387,8 +414,42 @@ struct decimal : algebraic
     bool             split(decimal_g &ip, decimal_g &fp, large exp = 0) const;
     bool             split(large &ip, decimal_g &fp, large exp = 0) const;
     // ------------------------------------------------------------------------
-    //   Round a decimal value to the given number of decimals
+    //   Truncate / round / split a decimal value to the given place
     // ------------------------------------------------------------------------
+
+
+    decimal_p        round(large exp = 0) const;
+    decimal_p        precision(size_t prec) const
+    // ------------------------------------------------------------------------
+    //   Round a number to the given precision
+    // ------------------------------------------------------------------------
+    {
+        return round(exponent() - large(prec));
+    }
+
+    struct precision_adjust
+    // ------------------------------------------------------------------------
+    //   Helper to adjust precision during a computation
+    // ------------------------------------------------------------------------
+    {
+        precision_adjust(uint extra): saved(Settings.Precision())
+        {
+            Settings.Precision((saved + extra + 2) / 3 * 3);
+        }
+        ~precision_adjust()
+        {
+            Settings.Precision(saved);
+        }
+        operator uint()         { return saved; }
+        decimal_p operator()(decimal_p dec)
+        {
+            return dec ? dec->precision(saved) : nullptr;
+        }
+
+
+
+        uint saved;
+    };
 
 
     algebraic_p      to_integer() const;
@@ -492,10 +553,14 @@ struct decimal : algebraic
         decimal_g e;
         decimal_g log10;
         decimal_g log2;
+        decimal_g sq2pi;
         decimal_g oosqpi;
+        decimal_g lpi;
 
         decimal_r ln10();
         decimal_r ln2();
+        decimal_r lnpi();
+        decimal_r sqrt_2pi();
         decimal_r one_over_sqrt_pi();
         decimal_g two_over_sqrt_pi();
     };
@@ -507,6 +572,7 @@ struct decimal : algebraic
     static decimal_p e()        { return constants().e; }
     static decimal_p ln10()     { return constants().ln10(); }
     static decimal_p ln2()      { return constants().ln2(); }
+    static decimal_p lnpi()     { return constants().lnpi(); }
     bool             adjust_from_angle(uint &qturns, decimal_g &fp) const;
     decimal_p        adjust_to_angle() const;
 

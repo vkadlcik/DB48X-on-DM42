@@ -9,6 +9,7 @@ The calculator has a number of user-configurable settings:
 * [Precision](#precision-settings)
 * [Base](#base-settings)
 * [User interface](#user-interface)
+* [Compatibility](#compatibility)
 
 The current preferences can be retrieved and saved using the `Modes` command.
 
@@ -399,6 +400,18 @@ Show the levels of the stack after the first one on a single line
 This is the opposite of [MultiLineStack](#multilinestack).
 Other levels of the stack are controled by [SingleLineResult](#singlelineresult)
 
+
+# Compatibility
+
+Various settings control the compatibility of DB48X with various classes of HP calculators.
+
+## NumberedVariables
+
+This flag enables numbered variables similar to what existed on earlier RPN calculators. For example, when the setting is active, `2.5 0 STO` stores the value 2.5 in numbered register `0`.
+
+## NoNumberedVariables
+
+This flag disables numbered variables, behaving closer to the way RPL calculators work. For example, when the setting is active, `2.5 0 STO` generates an `Invalid name` error.
 
 # States
 

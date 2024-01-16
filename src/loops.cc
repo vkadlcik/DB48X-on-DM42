@@ -184,7 +184,7 @@ object::result loop::object_parser(parser  &p,
             if (len <= length
                 && strncasecmp(cstring(utf8(src)), sep, len) == 0
                 && (len >= length ||
-                    command::is_separator(utf8(src) + len)))
+                    is_separator(utf8(src) + len)))
             {
                 if (loopvar && sep != open)
                 {
@@ -207,7 +207,7 @@ object::result loop::object_parser(parser  &p,
                 if (len2 <= length
                     && strncasecmp(cstring(utf8(src)), close2, len2) == 0
                     && (len2 >= length ||
-                        command::is_separator(utf8(src) + len2)))
+                        is_separator(utf8(src) + len2)))
                 {
                     if (loopvar && sep != open)
                     {
@@ -553,7 +553,7 @@ static object::result counted_loop(object::id type, object_p o)
         return object::ERROR;
 
     // Fetch loop initial and last steps
-    object_g last = rt.pop();
+    object_g last  = rt.pop();
     object_g first = rt.pop();
 
     // Check if we need a local variable
@@ -575,12 +575,12 @@ static object::result counted_loop(object::id type, object_p o)
         rt.locals(1);
 
         // Pop local after execution
-        if (!rt.run_push(nullptr, object_p(1)))
+        if (!rt.run_push_data(nullptr, object_p(1)))
             return object::ERROR;
     }
 
-    object_p body = object_p(p);
-    if (body->defer() && rt.run_push(first, last) &&
+    object_g body = object_p(p);
+    if (body->defer() && rt.run_push_data(first, last) &&
         object::defer(type) && body->defer())
         return object::OK;
 

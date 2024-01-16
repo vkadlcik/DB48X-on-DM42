@@ -101,10 +101,6 @@ void about_dialog()
         x2 = Screen.text(x + i, y, utf8("DB48X "), font, pattern::black);
     Screen.text(x2, y, utf8("v" PROGRAM_VERSION " © C. de Dinechin"), font);
     y += 2 * h;
-    Screen.text(x, y, utf8("Intel Decimal Floating Point Lib v2.0u1"), font);
-    y += h;
-    Screen.text(x, y, utf8(" © 2007-2018, Intel Corp."), font);
-    y += 2*h;
     Screen.text(x, y, utf8("    Press EXIT key to continue..."), font);
     lcd_refresh();
 

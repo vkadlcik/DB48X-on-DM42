@@ -488,22 +488,12 @@ bool user_interface::key(int key, bool repeating, bool talpha)
            "Key %d shifts %d longpress", key, shift_plane(), longpress);
     repeat = false;
 
-#if SIMULATOR
-    // Special keu to clear calculator state
-    if (key == tests::CLEAR)
-    {
-        clear_editor();
-        while (rt.depth())
-            rt.pop();
-        rt.clear_error();
-        return true;
-    }
-#endif // SIMULATOR
-
     if (rt.error())
     {
         if (key == KEY_EXIT || key == KEY_ENTER || key == KEY_BSP)
             rt.clear_error();
+        else if (key == KEY_SHIFT)
+            handle_shifts(key, talpha);
         else if (key)
             beep(2200, 75);
         dirtyStack = true;
@@ -1499,10 +1489,9 @@ bool user_interface::draw_annunciators()
     {
         utf8 label = utf8(lowercase ? "abc" : "ABC");
         size lw = HeaderFont->width(label);
-        if (!force)
-            Screen.fill(280, 0, 280+lw, 1+lh, pattern::black);
+        Screen.fill(280, 0, 280+lw, 1+lh, pattern::black);
         if (alpha)
-            Screen.text(280, 1, label, HeaderFont, pattern::white);
+            Screen.text(280, 0, label, HeaderFont, pattern::white);
         draw_dirty(280, 0, 280+lw, 1+lh);
         alpha_drawn = alpha;
         lowerc_drawn = lowercase;
@@ -1522,7 +1511,7 @@ bool user_interface::draw_annunciators()
     }
     else if (!force)
     {
-        Screen.fill(260, ann_y, 260+ann_width, ann_y+ann_height, pattern::black);
+        Screen.fill(260, ann_y, 260+ann_width, ann_y+ann_height);
     }
     draw_dirty(260, ann_y, 260+ann_width, ann_y+ann_height);
     shift_drawn = shift;
@@ -1626,7 +1615,7 @@ bool user_interface::draw_busy(unicode glyph)
 
     size w  = 32;
     size h  = HeaderFont->height();
-    size x  = 260;
+    size x  = 279 - w;
     size y  = 0;
 
     rect r(x, y, x + w, y + h + 1);
@@ -3543,7 +3532,7 @@ bool user_interface::handle_alpha(int key)
     // Allow "alpha" mode for keys A-F in based number mode
     // xshift-ENTER inserts quotes, xshift-BSP inserts \n
     bool editing = rt.editing();
-    bool hex = editing && mode == BASED && key >= KB_A && key <= KB_F;
+    bool hex = editing && !alpha && mode == BASED && key >= KB_A && key <= KB_F;
     bool special = xshift && (key == KEY_ENTER || (key == KEY_BSP && editing));
     if (!alpha && !hex && !special)
         return false;
@@ -3609,7 +3598,7 @@ bool user_interface::handle_alpha(int key)
     }
     else
     {
-        edit(c, TEXT);
+        edit(c, DIRECT);
         if (c == '"')
             alpha = true;
         repeat = true;
@@ -4067,12 +4056,12 @@ bool user_interface::current_word(utf8 &start, size_t &size)
         byte *ed = rt.editor();
         uint  c  = cursor;
         c = utf8_previous(ed, c);
-        while (c > 0 && !command::is_separator_or_digit(ed + c))
+        while (c > 0 && !is_separator_or_digit(ed + c))
             c = utf8_previous(ed, c);
-        if (command::is_separator_or_digit(ed + c))
+        if (is_separator_or_digit(ed + c))
             c = utf8_next(ed, c, sz);
         uint spos = c;
-        while (c < sz && !command::is_separator(ed + c))
+        while (c < sz && !is_separator(ed + c))
             c = utf8_next(ed, c, sz);
         uint end = c;
         if (end > spos)

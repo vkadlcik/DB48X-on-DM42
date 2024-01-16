@@ -104,7 +104,7 @@ ID_RANGE(is_fraction,      fraction,       neg_big_fraction)
 ID_RANGE(is_decimal,       decimal,        neg_decimal)
 ID_RANGE(is_real,          bignum,         neg_decimal)
 ID_RANGE(is_complex,       rectangular,    polar)
-ID_RANGE(is_command,       Drop,           Unimplemented)
+ID_RANGE(is_command,       Drop,           SelfInsert)
 ID_RANGE(is_symbolic,      expression,     symbol,        pi, ImaginaryUnit)
 ID_RANGE(is_algebraic_fn,  add,            ToFraction,    asinh, det)
 ID_RANGE(is_immediate,     MainMenu,       SelfInsert)
@@ -204,18 +204,16 @@ NAMED(pi, "π")
 NAMED(ImaginaryUnit, "ⅈ")
 
 // Arithmetic and basic operations
-OP(add, "+")
-OP(sub, "-")
-OP(mul, "×")
-OP(div, "÷")
-ALIAS(mul, "*")
-ALIAS(div, "/")
+OP(add, "+") ALIAS(add, "+")
+OP(sub, "-") ALIAS(sub, "-")
+OP(mul, "×") ALIAS(mul, "*")
+OP(div, "÷") ALIAS(div, "/")
 CMD(mod)
 CMD(rem)
+OP(pow, "↑")                    ALIAS(pow, "Power")     ALIAS(pow, "^")
 
 NAMED(neg, "Negate")
-CMD(abs)
-ALIAS(abs, "norm")
+CMD(abs)                        ALIAS(abs, "norm") ALIAS(abs, "modulus") ALIAS(abs, "abs")
 NAMED(inv, "x⁻¹")
 NAMED(sqrt, "√")                ALIAS(sqrt, "SquareRoot")
 NAMED(sq,  "x²")                ALIAS(sq,   "Square")
@@ -346,7 +344,6 @@ OP(fact, "!")
 ALIAS(fact, "factorial")
 
 NAMED(cbrt, "∛")        ALIAS(cbrt, "CubeRoot")
-OP(pow, "↑")            ALIAS(pow, "Power")     ALIAS(pow, "^")
 OP(hypot, "⊿")          ALIAS(hypot, "Hypothenuse")
 OP(atan2, "∠")
 CMD(xroot)
@@ -584,10 +581,10 @@ CMD(ConvertToUnit)
 CMD(ApplyInverseUnit)
 CMD(ConvertToUnitPrefix)
 
-// Last things
+// Last things and stack
 NAMED(LastArg, "LastArguments")
 CMD(LastX)
-CMD(LastMenu)
+OP(ClearStack, "Clear")
 
 
 // ============================================================================
@@ -690,6 +687,7 @@ FLAG(SingleLineResult,          MultiLineResult)
 FLAG(MultiLineStack,            SingleLineStack)
 FLAG(TooManyDigitsErrors,       NoErrorForTooManyDigits)
 FLAG(ComplexIBeforeImaginary,   ComplexIAfterImaginary)
+FLAG(NumberedVariables,         NoNumberedVariables)
 
 SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
 SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)
@@ -748,7 +746,7 @@ SETTING_BITS(BasedSeparatorCommand,  2, ID_BasedSpaces,  ID_BasedUnderscore,  ID
 SETTING(WordSize,               1U, 256U * 1024U,       512U)
 ALIAS(WordSize,                 "stws")
 OP(RecallWordSize,              "rcws")
-SETTING(MaxNumberBits,          1U, 256U * 1024U,       512U)
+SETTING(MaxNumberBits,          1U, 256U * 1024U,      4096U)
 SETTING(MaxFlags,               8U, 32768U,             128U)
 SETTING(MaxRewrites,            1U, 10000U,             100U)
 SETTING(FractionIterations,     1U, 10000U,             10U)
@@ -936,6 +934,7 @@ CMD(VariablesMenuRecall)
 CMD(VariablesMenuStore)
 
 CMD(Undo)                       // Immediate: do not save stack before Undo
+CMD(LastMenu)                   // Immediate: do not insert in programs
 
 CMD(SelfInsert)                 // Last immediate command
 

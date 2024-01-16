@@ -1,6 +1,7 @@
 # Stack manipulation
 
-## Clear
+## ClearStack (CLEAR)
+
 Remove all objects from the stack
 
 
@@ -10,6 +11,8 @@ Get the current stack depth
 
 ## Drop
 Remove an object from the stack
+
+`X` ▶
 
 
 ## Drop2

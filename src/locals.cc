@@ -224,13 +224,13 @@ EVAL_BODY(locals)
 {
     object_g p   = object_p(o->payload());
     size_t   len = leb128<size_t>(+p);
-    object_p end = p + len;
+    object_g end = p + len;
 
     // Copy local values from stack
     size_t names   = leb128<size_t>(+p);
     if (!rt.locals(names))
         return ERROR;
-    if (!rt.run_push(nullptr, object_p(names)))
+    if (!rt.run_push_data(nullptr, object_p(names)))
     {
         rt.unlocals(names);
         return ERROR;

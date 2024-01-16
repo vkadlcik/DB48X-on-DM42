@@ -128,7 +128,7 @@ bool StatsParameters::Access::parse(object_p name)
 //   Parse stats parameters from a variable name
 // ----------------------------------------------------------------------------
 {
-    if (object_p obj = directory::recall_all(name))
+    if (object_p obj = directory::recall_all(name, false))
         if (list_p parms = obj->as<list>())
             return parse(parms);
     return false;
@@ -240,12 +240,12 @@ bool StatsData::Access::parse(object_p name)
 //   Parse stats data from a variable name
 // ----------------------------------------------------------------------------
 {
-    if (object_p obj = directory::recall_all(name))
+    if (object_p obj = directory::recall_all(name, false))
     {
         object::id oty = obj->type();
         if (oty == object::ID_text || oty == object::ID_symbol)
         {
-            obj = directory::recall_all(obj);
+            obj = directory::recall_all(obj, true);
             if (!obj)
                 return false;
         }
@@ -273,7 +273,7 @@ bool StatsData::Access::write(object_p name) const
     {
         if (directory *dir = rt.variables(0))
         {
-            if (object_p existing = dir->recall_all(name))
+            if (object_p existing = dir->recall_all(name, false))
             {
                 object::id nty = existing->type();
                 if (nty == object::ID_text || nty == object::ID_symbol)

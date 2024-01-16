@@ -159,6 +159,7 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
                 xv = xv + yv;
                 return unit::simple(xv, ye);
             }
+            return nullptr;
         }
         rt.inconsistent_units_error();
         return nullptr;
@@ -1173,6 +1174,8 @@ algebraic_p arithmetic::evaluate(id          op,
     {
         if (algebraic_p result = ops.non_numeric(x, y))
             return result;
+        if (rt.error())
+            return nullptr;
 
         if (xt == ID_tag)
         {

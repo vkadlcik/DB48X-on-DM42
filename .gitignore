@@ -29,3 +29,8 @@
 /db50x.pg5
 /db48x.pgm
 /src/dmcp/version.h
+/tools/decimize/.build/
+/tools/decimize/.logs/
+/tools/decimize/decimize
+/tools/ttf2font/ttf2font-db48x
+/tools/ttf2font/ttf2font-db50x

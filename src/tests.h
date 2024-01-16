@@ -54,7 +54,7 @@ struct tests
     void current();
 
     // Individual test categories
-    void reset_settings(bool fast);
+    void reset_settings();
     void shift_logic();
     void keyboard_entry();
     void data_types();
@@ -82,6 +82,8 @@ struct tests
     void rewrite_engine();
     void expand_collect_simplify();
     void tagged_objects();
+    void flags_by_name();
+    void settings_by_name();
     void regression_checks();
 
     enum key
@@ -250,6 +252,7 @@ protected:
     tests &ready();
     tests &shifts(bool shift, bool xshift, bool alpha, bool lowercase);
     tests &wait(uint ms);
+    tests &want(cstring output);
     tests &expect(cstring output);
     tests &expect(int output);
     tests &expect(unsigned int output);
@@ -269,6 +272,7 @@ protected:
     tests &cursor(size_t csr);
     tests &error(cstring msg);
     tests &noerr()      { return error(nullptr); }
+    tests &data_entry_noerr();
     tests &command(cstring msg);
     tests &source(cstring msg);
 

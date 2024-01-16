@@ -116,16 +116,6 @@ RENDER_BODY(tag)
 }
 
 
-EVAL_BODY(tag)
-// ----------------------------------------------------------------------------
-//   Execution of a tagged object executes the associated object
-// ----------------------------------------------------------------------------
-{
-    object_p obj = o->tagged_object();
-    return obj->evaluate();
-}
-
-
 COMMAND_BODY(dtag)
 // ----------------------------------------------------------------------------
 //   Remove the tag from an object

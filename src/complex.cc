@@ -448,6 +448,18 @@ PARSE_BODY(complex)
                 xlen = last - first;
         }
 
+        // Check if we have equations in our complex
+        else if (cp == '\'')
+        {
+            if (p.precedence)
+                break;
+            ineq = !ineq;
+        }
+        else if (ineq)
+        {
+            // Skip the content of the equations
+        }
+
         // Check if we found the ⅈ sign
         else if (cp == I_MARK)
         {
@@ -527,18 +539,6 @@ PARSE_BODY(complex)
         else if (cp == '"' || cp == '{' || cp == '[' || cp == L'«')
         {
             return SKIP;
-        }
-
-        // Check if we have equations in our complex
-        else if (cp == '\'')
-        {
-            if (p.precedence)
-                break;
-            ineq = !ineq;
-        }
-        else if (ineq)
-        {
-            // Skip the content of the equations
         }
 
         // Check if we have two parentheses
@@ -722,7 +722,7 @@ RENDER_BODY(rectangular)
     algebraic_g re = o->re();
     algebraic_g im = o->im();
     bool ifirst = r.editing() || Settings.ComplexIBeforeImaginary();
-    bool neg  = im->is_negative();
+    bool neg  = im->is_negative(false);
     if (neg)
         im = -im;
     re->render(r);
@@ -1000,6 +1000,23 @@ COMPLEX_BODY(sqrt)
     rectangular_r r = (rectangular_r) z;
     algebraic_g a = r->re();
     algebraic_g b = r->im();
+    if (b->is_zero(false))
+    {
+        if (!a->is_symbolic())
+        {
+            if (a->is_negative(false))
+            {
+                a = sqrt::run(-a);
+                return rectangular::make(b, a);
+            }
+            else
+            {
+                a = sqrt::run(a);
+                return rectangular::make(a, b);
+            }
+        }
+    }
+
     algebraic_g znorm = abs::run(algebraic_p(z));
     algebraic_g two = algebraic_p(integer::make(2));
     algebraic_g re = sqrt::run((znorm + a) / two);

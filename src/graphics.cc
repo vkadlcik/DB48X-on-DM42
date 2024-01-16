@@ -240,7 +240,7 @@ bool PlotParametersAccess::parse(object_p name)
 //   Parse plot parameters from a variable name
 // ----------------------------------------------------------------------------
 {
-    if (object_p obj = directory::recall_all(name))
+    if (object_p obj = directory::recall_all(name, false))
         if (list_p parms = obj->as<list>())
             return parse(parms);
     return false;

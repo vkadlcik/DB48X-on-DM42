@@ -174,52 +174,6 @@ object_p command::static_object(id i)
 }
 
 
-bool command::is_separator(utf8 str)
-// ----------------------------------------------------------------------------
-//   Check if the code point at given string is a separator
-// ----------------------------------------------------------------------------
-{
-    unicode code = utf8_codepoint(str);
-    return is_separator(code);
-}
-
-
-bool command::is_separator(unicode code)
-// ----------------------------------------------------------------------------
-//   Check if the code point at given string is a separator
-// ----------------------------------------------------------------------------
-{
-    static utf8 separators = utf8(" ;,.'\"<=>≤≠≥[](){}«»\n\t");
-    for (utf8 p = separators; *p; p = utf8_next(p))
-        if (code == utf8_codepoint(p))
-            return true;
-    return false;
-}
-
-
-bool command::is_separator_or_digit(utf8 str)
-// ----------------------------------------------------------------------------
-//   Check if the code point at given string is a separator
-// ----------------------------------------------------------------------------
-{
-    unicode code = utf8_codepoint(str);
-    return is_separator(code);
-}
-
-
-bool command::is_separator_or_digit(unicode code)
-// ----------------------------------------------------------------------------
-//   Check if the code point at given string is a separator
-// ----------------------------------------------------------------------------
-{
-    static utf8 separators = utf8(" ;,.'\"<=>≤≠≥[](){}«»0123456789⁳");
-    for (utf8 p = separators; *p; p = utf8_next(p))
-        if (code == utf8_codepoint(p))
-            return true;
-    return false;
-}
-
-
 uint32_t command::uint32_arg(uint level)
 // ----------------------------------------------------------------------------
 //   Get an unsigned value from the stack
@@ -1049,15 +1003,11 @@ static object::result to_hms_dms(cstring name)
 }
 
 
-static object::result from_hms_dms(cstring name)
+static algebraic_p from_hms_dms(algebraic_r x, cstring name)
 // ----------------------------------------------------------------------------
-//   Convert the top of stack from HMS or DMS unit
+//   Convert a value from HMS input
 // ----------------------------------------------------------------------------
 {
-    if (!rt.args(1))
-        return object::ERROR;
-    algebraic_g x = algebraic_p(rt.top());
-
     if (x->is_real())
     {
         // Compatibility mode (including behaviour for 1.60->2.00)
@@ -1072,8 +1022,7 @@ static object::result from_hms_dms(cstring name)
         sec = sec * ratio;
         min = (min + sec) * ratio;
         hours = hours + min;
-        if (hours && rt.top(hours))
-            return object::OK;
+        return hours;
     }
     else if (unit_g u = x->as<unit>())
     {
@@ -1083,8 +1032,7 @@ static object::result from_hms_dms(cstring name)
             if (sym->matches(name))
             {
                 uexpr = u->value();
-                if (rt.top(uexpr))
-                    return object::OK;
+                return uexpr;
             }
         }
         rt.inconsistent_units_error();
@@ -1093,6 +1041,21 @@ static object::result from_hms_dms(cstring name)
     {
         rt.type_error();
     }
+    return nullptr;
+}
+
+
+static object::result from_hms_dms(cstring name)
+// ----------------------------------------------------------------------------
+//   Convert the top of stack from HMS or DMS unit
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return object::ERROR;
+    algebraic_g x = algebraic_p(rt.top());
+    x = from_hms_dms(x, name);
+    if (x && rt.top(x))
+        return object::OK;
     return object::ERROR;
 }
 
@@ -1145,8 +1108,8 @@ static object::result hms_dms_add_sub(cstring name, bool sub)
     algebraic_g y = algebraic_p(rt.stack(1));
 
     // Convert both arguments to DMS
-    x = to_hms_dms(x, name);
-    y = to_hms_dms(x, name);
+    x = from_hms_dms(x, name);
+    y = from_hms_dms(y, name);
     if (!x || !y)
         return object::ERROR;
 

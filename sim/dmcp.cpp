@@ -825,12 +825,14 @@ void wait_for_key_press()
     wait_for_key_release(-1);
     while (key_empty() || !key_pop())
         sys_sleep();
+    keysync_done = keysync_sent;
 }
 void wait_for_key_release(int tout)
 {
     record(dmcp_notyet, "wait_for_key_release not implemented");
     while (!key_empty() && key_pop())
         sys_sleep();
+    keysync_done = keysync_sent;
 }
 
 int file_selection_screen(const char   *title,

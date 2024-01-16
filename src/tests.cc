@@ -2848,59 +2848,63 @@ void tests::plotting()
     test(CLEAR, "RAD", ENTER).noerr();
 
     step("Function plot: Sine wave");
-    test(CLEAR, "'sin(x)' FunctionPlot", ENTER).noerr();
+    test(CLEAR, "'sin(x)' FunctionPlot", ENTER).noerr()
+        .wait(200).image("plot-sine");
     step("Function plot: Equation");
     test(CLEAR,
          SHIFT, ENTER, X, ENTER, ENTER, J, 3, MUL, M, 21, MUL, COS, 2, MUL, ADD,
-         SHIFT, SHIFT, O, F1).noerr();
+         SHIFT, SHIFT, O, F1).noerr()
+        .wait(200).image("plot-eq");
     step("Function plot: Program");
     test(CLEAR, SHIFT, RUNSTOP,
          I, SHIFT, F1, L, M, 41, MUL, J, MUL, ENTER, ENTER,
-         SHIFT, SHIFT, O, F1).noerr();
+         SHIFT, SHIFT, O, F1).wait(200).image("plot-pgm").noerr();
 
     step("Polar plot: Program");
     test(CLEAR, SHIFT, RUNSTOP,
          61, MUL, L, SHIFT, C, 2, ADD, ENTER,
-         SHIFT, SHIFT, O, F2).noerr().wait(500);
+         SHIFT, SHIFT, O, F2).noerr().wait(200).image("polar-pgm");
     step("Polar plot: Equation");
     test(CLEAR, F, J, 611, MUL, SHIFT, ENTER, X, SHIFT, ENTER, SHIFT, ENTER,
          DOWN, MUL, K, 271, MUL, SHIFT, ENTER, X, LONGPRESS, SHIFT, DOWN,
          ADD, KEY2, DOT, KEY5, ENTER,
          SHIFT, SHIFT, O,
-         ENTER, F2).noerr().wait(500);
+         ENTER, F2).noerr().wait(200).image("polar-eq");
     step("Polar plot: Zoom in X and Y");
     test(EXIT, "0.5 XSCALE 0.5 YSCALE", ENTER).noerr()
-        .test(ENTER, F2).noerr().wait(500);
+        .test(ENTER, F2).noerr().wait(200).image("polar-zoomxy");
     step("Polar plot: Zoom out Y");
     test(EXIT, "2 YSCALE", ENTER).noerr()
-        .test(ENTER, F2).noerr().wait(500);
+        .test(ENTER, F2).noerr().wait(200).image("polar-zoomy");
     step("Polar plot: Zoom out X");
     test(EXIT, "2 XSCALE", ENTER).noerr()
-        .test(ENTER, F2).noerr().wait(500);
+        .test(ENTER, F2).noerr().wait(200).image("polar-zoomx");
 
     step("Parametric plot: Program");
     test(CLEAR, SHIFT, RUNSTOP,
          "'9.5*sin(31.27*X)' eval '5.5*cos(42.42*X)' eval RealToComplex",
          ENTER, ENTER, F3)
-        .noerr().wait(500);
+        .noerr().wait(200).image("pplot-pgm");
     step("Parametric plot: Degrees");
-    test("DEG 2 LINEWIDTH", ENTER, F3).noerr().wait(500);
+    test("DEG 2 LINEWIDTH", ENTER, F3).noerr().wait(200).image("pplot-deg");
     step("Parametric plot: Equation");
     test(CLEAR,
          "3 LINEWIDTH 0.25 GRAY FOREGROUND "
-         "'exp((0.17ⅈ5.27)*x+(1.5ⅈ8))' ParametricPlot", ENTER).noerr().wait(500);
+         "'exp((0.17ⅈ5.27)*x+(1.5ⅈ8))' ParametricPlot", ENTER)
+        .noerr().wait(200).image("pplot-eq");
 
     step("Bar plot");
     test(CLEAR,
          "[[ 1 -1 ][2 -2][3 -3][4 -4][5 -6][7 -8][9 -10]]", ENTER,
          33, MUL, K, 2, MUL,
-         SHIFT, SHIFT, O, F5).noerr().wait(500);
+         SHIFT, SHIFT, O, F5).noerr().wait(200).image("barplot");
 
     step("Scatter plot");
     test(CLEAR,
          "[[ -5 -5][ -3 0][ -5 5][ 0 3][ 5 5][ 3 0][ 5 -5][ 0 -3][-5 -5]]",
          ENTER,
-         "4 LineWidth ScatterPlot", ENTER).noerr().wait(500);
+         "4 LineWidth ScatterPlot", ENTER)
+        .noerr().wait(200).image("scatterplot");
 
      step("Reset drawing parameters");
      test(CLEAR, "1 LineWidth 0 GRAY Foreground", ENTER).noerr();
@@ -2916,53 +2920,53 @@ void tests::graphic_commands()
 
     step("Clear LCD");
     test(CLEAR, "ClearLCD", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("cllcd").test(ENTER);
 
     step("Displaying text, compatibility mode");
     test(CLEAR,
          "\"Hello World\" 1 DISP "
          "\"Compatibility mode\" 2 DISP", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("text-compat").test(ENTER);
 
     step("Displaying text, fractional row");
     test(CLEAR,
          "\"Gutentag\" 1.5 DrawText "
          "\"Fractional row\" 3.8 DrawText", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("text-frac").test(ENTER);
 
     step("Displaying text, pixel row");
     test(CLEAR,
          "\"Bonjour tout le monde\" #5d DISP "
          "\"Pixel row mode\" #125d DISP", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("text-pixrow").test(ENTER);
 
     step("Displaying text, x-y coordinates");
-    test(CLEAR, "\"Hello\" {0 0 } DISP ", ENTER)
-        .noerr().wait(200).test(ENTER);
+    test(CLEAR, "\"Hello\" { 0 0 } DISP ", ENTER)
+        .noerr().wait(200).image("text-xy").test(ENTER);
 
     step("Displaying text, x-y pixel coordinates");
     test(CLEAR, "\"Hello\" { #20d #20d } DISP ", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("text-pixxy").test(ENTER);
 
     step("Displaying text, font ID");
     test(CLEAR, "\"Hello\" { 0 0 0 } DISP \"World\" { 0 1 2 } DISP ", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("text-font").test(ENTER);
 
     step("Displaying text, erase and invert");
     test(CLEAR, "\"Inverted\" { 0 0 0 true true } DISP", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("text-invert").test(ENTER);
 
     step("Displaying text, background and foreground");
     test(CLEAR,
          "0.25 Gray Foreground 0.75 Gray Background "
          "\"Grayed\" { 0 0 } Disp", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("text-gray").test(ENTER);
 
     step("Displaying text, restore background and foreground");
     test(CLEAR,
          "0 Gray Foreground 1 Gray Background "
          "\"Grayed\" { 0 0 } Disp", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("text-normal").test(ENTER);
 
     step("Displaying text, type check");
     test(CLEAR, "\"Bad\" \"Hello\" DISP", ENTER)
@@ -2970,7 +2974,7 @@ void tests::graphic_commands()
 
     step("Lines");
     test(CLEAR, "3 50 for i ⅈ i * exp i 2 + ⅈ * exp 5 * Line next", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("lines").test(ENTER);
 
     step("Line width");
     test(CLEAR,
@@ -2980,7 +2984,7 @@ void tests::graphic_commands()
          "i LineWidth Line "
          "next "
          "1 LineWidth", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("line-width").test(ENTER);
 
     step("Line width, grayed");
     test(CLEAR,
@@ -2991,7 +2995,7 @@ void tests::graphic_commands()
          "i LineWidth Line "
          "next "
          "1 LineWidth 0 Gray Foreground", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("line-width-gray").test(ENTER);
 
     step("Circles");
     test(CLEAR,
@@ -2999,14 +3003,14 @@ void tests::graphic_commands()
          "{ 0 0 } i Circle "
          "{ 0 1 } i 0.25 * Circle "
          "next ", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("circles").test(ENTER);
 
     step("Circles, complex coordinates");
     test(CLEAR,
          "2 150 for i "
          "ⅈ i 0.12 * * exp 0.75 0.05 i * + * 0.4 0.003 i * +  Circle "
          "next ", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("circles-complex").test(ENTER);
 
     step("Circles, fill and patterns");
     test(CLEAR,
@@ -3015,7 +3019,7 @@ void tests::graphic_commands()
          "i 0.0053 * gray Foreground "
          "ⅈ i 0.12 * * exp 0.75 0.05 i * + * 0.1 0.008 i * +  Circle "
          "next ", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("circles-fill").test(ENTER);
 
     step("Ellipses");
     test(CLEAR,
@@ -3025,7 +3029,7 @@ void tests::graphic_commands()
          "i 0.17 * ⅈ * exp 0.05 i * 0.75 + * "
          " Ellipse "
          "next ", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("ellipses").test(ENTER);
 
     step("Ellipses, fill and patterns");
     test(CLEAR,
@@ -3036,7 +3040,7 @@ void tests::graphic_commands()
          "1.27 ⅈ * exp 5.45 0.01 i * - * neg "
          " Ellipse "
          "next ", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("ellipses-fill").test(ENTER);
 
     step("Rectangles");
     test(CLEAR,
@@ -3046,7 +3050,7 @@ void tests::graphic_commands()
          "i 0.17 * ⅈ * exp 0.05 i * 0.75 + * "
          " Rect "
          "next ", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("rectangles").test(ENTER);
 
     step("Rectangles, fill and patterns");
     test(CLEAR,
@@ -3057,7 +3061,7 @@ void tests::graphic_commands()
          "1.27 ⅈ * exp 5.45 0.01 i * - * neg "
          " Rect "
          "next ", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("rectangle-fill").test(ENTER);
 
     step("Rounded rectangles");
     test(CLEAR,
@@ -3067,7 +3071,7 @@ void tests::graphic_commands()
          "i 0.17 * ⅈ * exp 0.05 i * 0.75 + * "
          "0.8 RRect "
          "next ", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("rounded-rectangle").test(ENTER);
 
     step("Rounded rectangles, fill and patterns");
     test(CLEAR,
@@ -3078,7 +3082,23 @@ void tests::graphic_commands()
          "1.27 ⅈ * exp 5.45 0.01 i * - * neg "
          "0.8 RRect "
          "next ", ENTER)
-        .noerr().wait(200).test(ENTER);
+        .noerr().wait(200).image("rounded-rectangle-fill").test(ENTER);
+
+    step("Clipping");
+    test(CLEAR,
+         "0 LineWidth CLLCD { 120 135 353 175 } Clip "
+         "2 150 for i "
+         "i 0.0053 * gray Foreground "
+         "ⅈ i 0.12 * * exp 0.75 0.05 i * + * 0.1 0.008 i * +  Circle "
+         "next "
+         "{} Clip", ENTER)
+        .wait(200).noerr().image("clip-circles").test(ENTER);
+
+    step("Cleanup");
+    test(CLEAR,
+         "1 LineWidth 0 Gray Foreground 1 Gray Background "
+         "{ -1 -1 } { 3 2 } rect",
+         ENTER).noerr().wait(200).image("cleanup");
 }
 
 
@@ -3937,6 +3957,23 @@ tests &tests::match(cstring restr)
     }
     explain("Expected output matching [", restr, "] but stack not updated");
     return fail();
+}
+
+
+tests &tests::image(cstring file)
+// ----------------------------------------------------------------------------
+//   Check that the output in the screen matches what is in the file
+// ----------------------------------------------------------------------------
+{
+    ready();
+    cindex++;
+    if (!image_match(file))
+    {
+        explain("Expected screen to match [", file, "]");
+        image_match(file, true);
+        return fail();
+    }
+    return *this;
 }
 
 

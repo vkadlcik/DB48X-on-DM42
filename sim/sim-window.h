@@ -84,7 +84,9 @@ public:
     ~MainWindow();
 
     void pushKey(int key);
+    QPixmap &screen() { return ui.screen->mainPixmap; }
     static MainWindow * theMainWindow() { return mainWindow; }
+    static QPixmap &    theScreen()     { return mainWindow->screen(); }
 
 protected:
     virtual void keyPressEvent(QKeyEvent *ev);

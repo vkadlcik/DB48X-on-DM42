@@ -265,6 +265,7 @@ public:
     tests &expect(long long output);
     tests &expect(unsigned long long output);
     tests &match(cstring regexp);
+    tests &image(cstring name);
     tests &type(object::id ty);
     tests &shift(bool s);
     tests &xshift(bool x);
@@ -315,6 +316,8 @@ public:
             explain(args...);
         return check(test);
     }
+
+    bool image_match(cstring file, bool force = false);
 
 protected:
     cstring              file;

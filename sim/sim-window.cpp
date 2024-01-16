@@ -43,6 +43,7 @@
 #include "sim-rpl.h"
 #include "ui_sim-window.h"
 #include "recorder.h"
+#include "tests.h"
 
 
 RECORDER(sim_keys, 16, "Recorder keys from the simulator");
@@ -527,4 +528,25 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
     }
 
     return false;
+}
+
+
+
+bool tests::image_match(cstring file, bool force)
+// ----------------------------------------------------------------------------
+//   Check if the screen matches a given file
+// ----------------------------------------------------------------------------
+{
+    QPixmap &screen = MainWindow::theScreen();
+    QPixmap data;
+    QString name = force ? "images/bad/" : "images/";
+    name += file;
+    name += ".png";
+    QFileInfo reference(name);
+    if (force || !reference.exists() || !data.load(name, "PNG"))
+    {
+        screen.save(name, "PNG");
+        return true;
+    }
+    return data.toImage() == screen.toImage();
 }

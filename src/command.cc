@@ -97,7 +97,8 @@ PARSE_BODY(command)
                 && strncasecmp(ref, cmd, len) == 0
                 && (len >= maxlen
                     || (eq && (!is_valid_as_name_initial(utf8(cmd)) ||
-                               !is_valid_as_name_initial(utf8(ref + len))))
+                               ((ref[len] < '0' || ref[len] > '9') &&
+                                !is_valid_as_name_initial(utf8(ref + len)))))
                     || is_separator(utf8(ref + len))))
             {
                 found = type;

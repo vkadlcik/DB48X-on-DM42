@@ -71,6 +71,7 @@ TESTS(defaults,         "Reset settings to defaults");
 TESTS(shifts,           "Shift logic");
 TESTS(keyboard,         "Keyboard entry");
 TESTS(types,            "Data types");
+TESTS(editor,           "Editor operations");
 TESTS(stack,            "Stack operations");
 TESTS(arithmetic,       "Arithmetic operations");
 TESTS(globals,          "Global variables");
@@ -129,6 +130,7 @@ void tests::run(bool onlyCurrent)
         shift_logic();
         keyboard_entry();
         data_types();
+        editor_operations();
         arithmetic();
         global_variables();
         local_variables();
@@ -170,7 +172,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     BEGIN(current);
-    stack_operations();
+    editor_operations();
 }
 
 
@@ -488,6 +490,95 @@ void tests::data_types()
     test(CLEAR, "'ABC*3' typename", ENTER)
         .type(object::ID_text)
         .expect("\"expression\"");
+}
+
+
+void tests::editor_operations()
+// ----------------------------------------------------------------------------
+//   Check text editor operations
+// ----------------------------------------------------------------------------
+{
+    BEGIN(editor);
+
+    step("Edit an object")
+        .test(CLEAR, "12", ENTER).expect("12")
+        .test(DOWN).editor("12");
+    step("Inserting text")
+        .test("A").editor("A12");
+    step("Moving cursor right")
+        .test(DOWN, DOWN, "B").editor("A12B");
+    step("Moving cursor left")
+        .test(UP, UP, "C").editor("A1C2B");
+    step("Entering command line")
+        .test(ENTER).expect("'A1C2B'");
+    step("Entering another entry")
+        .test("1 2 3 4", ENTER).expect("4");
+    step("Editor history")
+        .test(SHIFT, SHIFT, UP)
+        .editor("1 2 3 4")
+        .test(SHIFT, SHIFT, UP)
+        .editor("A1C2B");
+    step("Editor menu")
+        .test(SHIFT, SHIFT, DOWN);
+    step("Selection")
+        .test(F1, DOWN, DOWN).editor("A1C2B");
+    step("Cut")
+        .test(F5).editor("C2B");
+    step("Paste")
+        .test(F6).editor("A1C2B")
+        .test(DOWN, F6).editor("A1CA12B");
+    step("Select backwards")
+        .test(F1).editor("A1CA12B");
+    step("Move cursor word left")
+        .test(F2, "X").editor("XA1CA12B");
+    step("Move cursor word right")
+        .test(F3, "Y").editor("XA1CA12BY");
+    step("Swap cursor and selection")
+        .test(SHIFT, F1, RUNSTOP, "M").editor("XA1CA1 M2BY");
+    step("Copy")
+        .test(SHIFT, F5, F2, F6).editor("XA1CA12BY M2BY");
+    step("Select to clear selection")
+        .test(F1);
+    step("Search")
+        .test(F4, A, ENTER, N).editor("XAN1CA12BY M2BY");
+    step("Search again")
+        .test(F1, F4, B, Y, F4, ENTER, SHIFT, F1, Q).editor("XAN1CA12BY M2QBY");
+    step("Replace")
+        .test(SHIFT, F5, F1, F4, A, SHIFT, F4).editor("XBYN1CA12BY M2QBY");
+#if 0
+    step("Second replace")
+        .test(SHIFT, F4).editor("XBYN1CBY12BY M2QBY");
+    step("Third replace")
+        .test(SHIFT, F4).editor("XBYN1CBY12BY M2QBY");
+    step("End of search, same editor")
+        .test(ENTER).editor("XBYN1CBY12BY M2QBY");
+    step("End of editing, empty editor")
+        .test(ENTER).editor("");
+    step("History")
+        .test(SHIFT, SHIFT, UP).editor("XBYN1CBY12BY M2QBY");
+    step("History level 2")
+        .test(SHIFT, SHIFT, UP).editor("1 2 3 4");
+    step("Exiting old history")
+        .test(EXIT).editor("");
+    step("Check 8-level history")
+        .test("A", ENTER, "B", ENTER, "C", ENTER, "D", ENTER,
+              "E", ENTER, "F", ENTER, "G", ENTER, "H", ENTER,
+              SHIFT, SHIFT, UP).editor("H")
+        .test(SHIFT, SHIFT, UP).editor("G")
+        .test(SHIFT, SHIFT, UP).editor("F")
+        .test(SHIFT, SHIFT, UP).editor("E")
+        .test(SHIFT, SHIFT, UP).editor("D")
+        .test(SHIFT, SHIFT, UP).editor("C")
+        .test(SHIFT, SHIFT, UP).editor("B")
+        .test(SHIFT, SHIFT, UP).editor("A")
+        .test(SHIFT, SHIFT, UP).editor("H");
+    step("EXIT key still saves editor contents")
+        .test(CLEAR, "ABCD").editor("ABCD")
+        .test(EXIT).editor("").noerr()
+        .test(SHIFT, SHIFT, UP).editor("ABCD");
+    step("End of editor")
+        .test(CLEAR);
+#endif
 }
 
 
@@ -4238,23 +4329,11 @@ tests &tests::type(object::id ty)
         object::id tty = Stack.type();
         if (tty == ty)
             return *this;
-        explain("Expected type ",
-                object::name(ty),
-                " (",
-                int(ty),
-                ")"
-                " but got ",
-                object::name(tty),
-                " (",
-                int(tty),
-                ")");
+        explain("Expected type ", object::name(ty), " (", int(ty), ")"
+                " but got ", object::name(tty), " (", int(tty), ")");
         return fail();
     }
-    explain("Expected type ",
-            object::name(ty),
-            " (",
-            int(ty),
-            ")"
+    explain("Expected type ", object::name(ty), " (", int(ty), ")"
             " but stack not updated");
     return fail();
 }
@@ -4336,32 +4415,18 @@ tests &tests::editor(cstring text)
     size_t sz = rt.editing();
 
     if (!ed)
-        return explain("Expected editor to contain [",
-                       text,
-                       "], "
+        return explain("Expected editor to contain [", text, "], "
                        "but it's empty")
             .fail();
     if (sz != strlen(text))
-        return explain("Expected ",
-                       strlen(text),
-                       " characters in editor"
-                       " [",
-                       text,
-                       "], "
-                       "but got ",
-                       sz,
-                       " characters "
-                       " [",
-                       std::string(cstring(ed), sz),
-                       "]")
+        return explain("Expected ", strlen(text), " characters in editor"
+                       " [", text, "], "
+                       "but got ", sz, " characters "
+                       " [", std::string(cstring(ed), sz), "]")
             .fail();
     if (memcmp(ed, text, sz))
-        return explain("Expected editor to contain [",
-                       text,
-                       "], "
-                       "but it contains [",
-                       std::string(cstring(ed), sz),
-                       "]")
+        return explain("Expected editor to contain [", text, "], "
+                       "but it contains [", std::string(cstring(ed), sz), "]")
             .fail();
 
     return *this;
@@ -4375,10 +4440,8 @@ tests &tests::cursor(size_t csr)
 {
     ready();
     return check(ui.cursor == csr,
-                 "Expected cursor to be at position ",
-                 csr,
-                 " but it's at position ",
-                 ui.cursor);
+                 "Expected cursor to be at position ", csr,
+                 " but it's at position ", ui.cursor);
 }
 
 

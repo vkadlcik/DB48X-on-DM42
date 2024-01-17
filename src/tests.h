@@ -58,6 +58,7 @@ struct tests
     void shift_logic();
     void keyboard_entry();
     void data_types();
+    void editor_operations();
     void stack_operations();
     void arithmetic();
     void global_variables();

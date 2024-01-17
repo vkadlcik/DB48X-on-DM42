@@ -93,7 +93,7 @@ struct complex : algebraic
     static rectangular_p make(int re = 0, int im = 1);
 
     // Convert to/from angle in current angle mode
-    static algebraic_g  convert_angle(algebraic_g pimul,
+    static algebraic_p  convert_angle(algebraic_r pimul,
                                       angle_unit from, angle_unit to,
                                       bool negmod = false);
 

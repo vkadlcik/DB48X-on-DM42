@@ -159,16 +159,17 @@ rectangular_p complex::make(int re, int im)
 }
 
 
-algebraic_g complex::convert_angle(algebraic_g a,
-                                   angle_unit from,
-                                   angle_unit to,
-                                   bool negmod)
+algebraic_p complex::convert_angle(algebraic_r ra,
+                                   angle_unit  from,
+                                   angle_unit  to,
+                                   bool        negmod)
 // ----------------------------------------------------------------------------
 //   Convert to angle in current angle mode.
 // ----------------------------------------------------------------------------
 //   If radians is set, input is in radians.
 //   Otherwise, input is in fractions of pi (internal format for y() in polar).
 {
+    algebraic_g a = ra;
     if (a->is_real() && (from != to || negmod))
     {
         switch (from)
@@ -184,7 +185,7 @@ algebraic_g complex::convert_angle(algebraic_g a,
             algebraic_g pi = algebraic::pi();
             if (a->is_fraction())
             {
-                fraction_g f = fraction_p(+a);
+                fraction_g  f = fraction_p(+a);
                 algebraic_g n = algebraic_p(f->numerator());
                 algebraic_g d = algebraic_p(f->denominator());
                 a = n / pi / d;
@@ -208,6 +209,8 @@ algebraic_g complex::convert_angle(algebraic_g a,
         algebraic_g one = integer::make(1);
         algebraic_g two = integer::make(2);
         a = (one - a) % two;
+        if (!a)
+            return nullptr;
         if (a->is_negative(false))
             a = a + two;
         a = one - a;
@@ -254,10 +257,10 @@ complex_g operator-(complex_r x)
         return nullptr;
     if (x->type() == object::ID_polar)
     {
-        polar_p p = polar_p(complex_p(x));
+        polar_r p = polar_r(x);
         return polar::make(-p->mod(), p->pifrac(), object::ID_PiRadians);
     }
-    rectangular_g r = rectangular_p(complex_p(x));
+    rectangular_r r = rectangular_r(x);
     return rectangular::make(-r->re(), -r->im());
 }
 
@@ -662,8 +665,9 @@ algebraic_g rectangular::mod() const
 //   Compute the modulus in rectangular form
 // ----------------------------------------------------------------------------
 {
-    algebraic_g r = re();
-    algebraic_g i = im();
+    rectangular_g o = this;
+    algebraic_g   r = o->re();
+    algebraic_g   i = o->im();
     return hypot::evaluate(r, i);
 }
 
@@ -683,9 +687,10 @@ algebraic_g rectangular::pifrac() const
 //   Compute the argument as a fraction of pi
 // ----------------------------------------------------------------------------
 {
-    algebraic_g r = re();
-    algebraic_g i = im();
-    if (!r|| !i)
+    rectangular_g o = this;
+    algebraic_g   r = o->re();
+    algebraic_g   i = o->im();
+    if (!r || !i)
         return nullptr;
 
     angle_unit mode = Settings.AngleMode();
@@ -701,7 +706,8 @@ bool rectangular::is_zero() const
 //   A complex in rectangular form is zero iff both re and im are zero
 // ----------------------------------------------------------------------------
 {
-    return re()->is_zero(false) && im()->is_zero(false);
+    rectangular_g o = this;
+    return o->re()->is_zero(false) && o->im()->is_zero(false);
 }
 
 
@@ -710,7 +716,8 @@ bool rectangular::is_one() const
 //   A complex in rectangular form is zero iff both re and im are zero
 // ----------------------------------------------------------------------------
 {
-    return re()->is_one(false) && im()->is_zero(false);
+    rectangular_g o = this;
+    return o->re()->is_one(false) && o->im()->is_zero(false);
 }
 
 
@@ -719,8 +726,11 @@ RENDER_BODY(rectangular)
 //   Render a complex number in rectangular form
 // ----------------------------------------------------------------------------
 {
-    algebraic_g re = o->re();
-    algebraic_g im = o->im();
+    rectangular_g go = o;
+    algebraic_g re = go->re();
+    algebraic_g im = go->im();
+    if (!re || !im)
+        return r.printf("Invalid rectangular");
     bool ifirst = r.editing() || Settings.ComplexIBeforeImaginary();
     bool neg  = im->is_negative(false);
     if (neg)
@@ -757,8 +767,9 @@ algebraic_g polar::re() const
 //   Compute the real part in polar form
 // ----------------------------------------------------------------------------
 {
-    algebraic_g m = mod();
-    algebraic_g a = arg(Settings.AngleMode());
+    polar_g     o = this;
+    algebraic_g m = o->mod();
+    algebraic_g a = o->arg(Settings.AngleMode());
     return m * cos::run(a);
 }
 
@@ -767,8 +778,9 @@ algebraic_g polar::im() const
 //   Compute the imaginary part in polar form
 // ----------------------------------------------------------------------------
 {
-    algebraic_g m = mod();
-    algebraic_g a = arg(Settings.AngleMode());
+    polar_g     o = this;
+    algebraic_g m = o->mod();
+    algebraic_g a = o->arg(Settings.AngleMode());
     return m * sin::run(a);
 }
 
@@ -778,7 +790,8 @@ bool polar::is_zero() const
 //   A complex in polar form is zero iff modulus is zero
 // ----------------------------------------------------------------------------
 {
-    return mod()->is_zero(false);
+    polar_g o = this;
+    return o->mod()->is_zero(false);
 }
 
 
@@ -787,7 +800,8 @@ bool polar::is_one() const
 //   A complex in rectangular form is zero iff both re and im are zero
 // ----------------------------------------------------------------------------
 {
-    return mod()->is_one(false) && pifrac()->is_zero();
+    polar_g o = this;
+    return o->mod()->is_one(false) && o->pifrac()->is_zero();
 }
 
 
@@ -845,9 +859,12 @@ RENDER_BODY(polar)
 //   Render a complex number in rectangular form
 // ----------------------------------------------------------------------------
 {
-    angle_unit unit = Settings.AngleMode();
-    algebraic_g m = o->mod();
-    algebraic_g a = o->arg(unit);
+    angle_unit  unit = Settings.AngleMode();
+    polar_g     go   = o;
+    algebraic_g m    = go->mod();
+    algebraic_g a    = go->arg(unit);
+    if (!m || !a)
+        return r.printf("Invalid polar");
     m->render(r);
     r.put(unicode(ANGLE_MARK));
     a->render(r);

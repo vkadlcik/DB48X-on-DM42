@@ -71,6 +71,7 @@ TESTS(defaults,         "Reset settings to defaults");
 TESTS(shifts,           "Shift logic");
 TESTS(keyboard,         "Keyboard entry");
 TESTS(types,            "Data types");
+TESTS(stack,            "Stack operations");
 TESTS(arithmetic,       "Arithmetic operations");
 TESTS(globals,          "Global variables");
 TESTS(locals,           "Local variables");
@@ -169,9 +170,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     BEGIN(current);
-
-    save<intptr_t> rtrace(RECORDER_TWEAK(est_plotfns), 1);
-    plotting_all_functions();
+    stack_operations();
 }
 
 
@@ -489,6 +488,131 @@ void tests::data_types()
     test(CLEAR, "'ABC*3' typename", ENTER)
         .type(object::ID_text)
         .expect("\"expression\"");
+}
+
+
+void tests::stack_operations()
+// ----------------------------------------------------------------------------
+//   Test stack operations
+// ----------------------------------------------------------------------------
+{
+    BEGIN(stack);
+
+    step("Dup with ENTER")
+        .test(CLEAR, "12", ENTER, ENTER, ADD).expect("24");
+    step("Drop with Backspace")
+        .test(CLEAR, "12 34", ENTER).noerr().expect("34")
+        .test(BSP).noerr().expect("12")
+        .test(BSP).noerr()
+        .test(BSP).error("Too few arguments");
+
+    step("Dup in program")
+        .test(CLEAR, "13 Dup +", ENTER).expect("26");
+    step("Dup2")
+        .test(CLEAR, "13 25 Dup2 * + *", ENTER).expect("4 550");
+    step("Over")
+        .test(CLEAR, "13 25 Over / +", ENTER).expect("¹⁹⁴/₁₃");
+    step("Rot")
+        .test(CLEAR, "13 17 25 Rot / +", ENTER).expect("²⁴⁶/₁₃");
+    step("Over in stack menu")
+        .test(CLEAR, I, "13 25", F2, DIV, ADD).expect("¹⁹⁴/₁₃");
+    step("Rot in stack menu")
+        .test(CLEAR, "13 17 25", F1, DIV, ADD).expect("²⁴⁶/₁₃");
+    step("Depth in stack menu")
+        .test(CLEAR, "13 17 25", F3).expect("3");
+    step("Pick in stack menu")
+        .test(CLEAR, "13 17 25 2", F4).expect("17");
+    step("Roll in stack menu")
+        .test(CLEAR, "13 17 25 42 21 372 3", F5).expect("42")
+        .test(BSP).expect("372")
+        .test(BSP).expect("21")
+        .test(BSP).expect("25")
+        .test(BSP).expect("17")
+        .test(BSP).expect("13")
+        .test(BSP).noerr()
+        .test(BSP).error("Too few arguments");
+    step("RollDn in stack menu")
+        .test(CLEAR, "13 17 25 42 21 372 4", F6).expect("21")
+        .test(BSP).expect("42")
+        .test(BSP).expect("25")
+        .test(BSP).expect("372")
+        .test(BSP).expect("17")
+        .test(BSP).expect("13")
+        .test(BSP).noerr()
+        .test(BSP).error("Too few arguments");
+    step("DropN in stack menu")
+        .test(CLEAR, "13 17 25 42 21 372 4", SHIFT, F6).expect("17")
+        .test(BSP).expect("13")
+        .test(BSP).noerr()
+        .test(BSP).error("Too few arguments");
+    step("DupN in stack menu")
+        .test(CLEAR, "13 17 25 42 21 372 4", SHIFT, F5).expect("372")
+        .test(BSP).expect("21")
+        .test(BSP).expect("42")
+        .test(BSP).expect("25")
+        .test(BSP).expect("372")
+        .test(BSP).expect("21")
+        .test(BSP).expect("42")
+        .test(BSP).expect("25")
+        .test(BSP).expect("17")
+        .test(BSP).expect("13")
+        .test(BSP).noerr()
+        .test(BSP).error("Too few arguments");
+    step("Drop2 in stack menu")
+        .test(CLEAR, "13 17 25 42 21 372 4", SHIFT, F4).expect("21")
+        .test(BSP).expect("42")
+        .test(BSP).expect("25")
+        .test(BSP).expect("17")
+        .test(BSP).expect("13")
+        .test(BSP).noerr()
+        .test(BSP).error("Too few arguments");
+    step("Dup2 in stack menu")
+        .test(CLEAR, "13 17 25 42", SHIFT, F3).expect("42")
+        .test(BSP).expect("25")
+        .test(BSP).expect("42")
+        .test(BSP).expect("25")
+        .test(BSP).expect("17")
+        .test(BSP).expect("13")
+        .test(BSP).noerr()
+        .test(BSP).error("Too few arguments");
+    step("Simple stack commands from menu")
+        .test(CLEAR, SHIFT, RUNSTOP,
+              F1, F2, F3, F4, F5, F6,
+              SHIFT, F1, SHIFT, F2, SHIFT, F3,
+              SHIFT, F4, SHIFT, F5, SHIFT, F6,
+              SHIFT, SHIFT, F1, SHIFT, SHIFT, F2, SHIFT, SHIFT, F3,
+              SHIFT, SHIFT, F5, SHIFT, SHIFT, F6,
+              ENTER)
+        .expect("« Rot Over Depth Pick Roll RollDown "
+                "Duplicate Drop Duplicate2 Drop2 DuplicateN DropN "
+                "Swap LastArguments Clear LastX »").test(BSP).noerr();
+
+    step("LastArg")
+        .test(CLEAR, "1 2").shifts(false, false, false, false)
+        .test(ADD).expect("3")
+        .test(SHIFT, M).expect("2")
+        .test(BSP).expect("1")
+        .test(BSP).expect("3")
+        .test(BSP).noerr()
+        .test(BSP).error("Too few arguments");
+    step("Undo")
+        .test(CLEAR, "1 2").shifts(false, false, false, false)
+        .test(ADD).expect("3")
+        .test(SHIFT, SHIFT, M).expect("2")
+        .test(BSP).expect("1")
+        .test(BSP).noerr()
+        .test(BSP).error("Too few arguments");
+    step("LastX")
+        .test(CLEAR, "1 2").shifts(false, false, false, false)
+        .test(ADD).expect("3")
+        .test(SHIFT, SHIFT, F5).expect("2")
+        .test(BSP).expect("3")
+        .test(BSP).noerr()
+        .test(BSP).error("Too few arguments");
+    step("ClearStk")
+        .test(CLEAR, "1 2 3 4", ENTER)
+        .test(SHIFT, SHIFT, F3).noerr()
+        .test(BSP).error("Too few arguments");
 }
 
 

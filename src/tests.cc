@@ -445,6 +445,13 @@ void tests::data_types()
     test(CHS).type(object::ID_neg_big_fraction).expect(mbf);
     test(DOWN, CHS, ENTER).type(object::ID_big_fraction).expect(mbf+1);
 
+    step("Graphic objects")
+        .test(CLEAR,
+              "GROB 9 15 "
+              "E300140015001C001400E3008000C110AA00940090004100220014102800",
+              ENTER)
+        .type(object::ID_grob);
+
     clear();
 
     step ("Bytes command");
@@ -3021,6 +3028,24 @@ void tests::graphic_commands()
     step("Clear LCD");
     test(CLEAR, "ClearLCD", ENTER)
         .noerr().wait(200).image("cllcd").test(ENTER);
+
+    step("Draw graphic objects")
+        .test(CLEAR,
+              "13 LineWidth { 0 0 } 5 Circle 1 LineWidth "
+              "GROB 9 15 "
+              "E300140015001C001400E3008000C110AA00940090004100220014102800 "
+              "2 25 for i "
+              "PICT OVER "
+              "2.321 ⅈ * i * exp 4.44 0.08 i * + * Swap "
+              "GXor "
+              "PICT OVER "
+              "1.123 ⅈ * i * exp 4.33 0.08 i * + * Swap "
+              "GAnd "
+              "PICT OVER "
+              "4.12 ⅈ * i * exp 4.22 0.08 i * + * Swap "
+              "GOr "
+              "next", ENTER)
+        .wait(200).noerr().image("walkman").test(EXIT);
 
     step("Displaying text, compatibility mode");
     test(CLEAR,

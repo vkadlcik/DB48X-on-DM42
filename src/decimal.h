@@ -520,6 +520,7 @@ struct decimal : algebraic
     static decimal_p erfc(decimal_r x);
     static decimal_p tgamma(decimal_r x);
     static decimal_p lgamma(decimal_r x);
+    static decimal_p lgamma_internal(decimal_r x);
 
     static decimal_p abs(decimal_r x);
     static decimal_p sign(decimal_r x);
@@ -546,7 +547,7 @@ struct decimal : algebraic
     //  Constants are re-created whenever precision changes
     // ------------------------------------------------------------------------
     {
-        ccache(): precision() {}
+        ccache(): precision(), gamma_na(0), gamma_ck(nullptr) {}
 
         size_t  precision;
         decimal_g pi;
@@ -557,12 +558,17 @@ struct decimal : algebraic
         decimal_g oosqpi;
         decimal_g lpi;
 
+        size_t    gamma_na;
+        decimal_g *gamma_ck;
+
         decimal_r ln10();
         decimal_r ln2();
         decimal_r lnpi();
         decimal_r sqrt_2pi();
         decimal_r one_over_sqrt_pi();
         decimal_g two_over_sqrt_pi();
+
+        decimal_g *gamma_realloc(size_t na);
     };
 
     static ccache   &constants();

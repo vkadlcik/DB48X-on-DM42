@@ -2830,6 +2830,7 @@ decimal_p decimal::tgamma(decimal_r x)
         return fact(ip);
     }
 
+    precision_adjust prec(3);
     if (x->is_negative())
     {
         // gamma(x) = pi/(sin(pi*x) * gamma(1-x))
@@ -2837,22 +2838,36 @@ decimal_p decimal::tgamma(decimal_r x)
         ip = sin_fracpi(0, ip);
         fp = make(1);
         fp = fp - x;
-        fp = lgamma(fp);
+        fp = lgamma_internal(fp);
         fp = exp(fp);
         fp = fp * ip;
         ip = constants().pi;
         fp = ip / fp;
-        return fp;
     }
-
-    precision_adjust prec(3);
-    fp = exp(lgamma(x));
+    else
+    {
+        fp = exp(lgamma_internal(x));
+    }
     fp = prec(fp);
     return fp;
 }
 
 
 decimal_p decimal::lgamma(decimal_r x)
+// ----------------------------------------------------------------------------
+//   Implementation of the log of the gamma function
+// ----------------------------------------------------------------------------
+//   Largely inspired from https://deamentiaemundi.wordpress.com/2013/06/29
+//      /the-gamma-function-with-spouges-approximation/comment-page-1/
+{
+    precision_adjust prec(3);
+    decimal_g result = lgamma_internal(x);
+    result = prec(result);
+    return result;
+}
+
+
+decimal_p decimal::lgamma_internal(decimal_r x)
 // ----------------------------------------------------------------------------
 //   Implementation of the log of the gamma function
 // ----------------------------------------------------------------------------
@@ -2885,16 +2900,14 @@ decimal_p decimal::lgamma(decimal_r x)
     if (x->is_negative())
     {
         // gamma(x) = pi/(asin(pi*x) * gamma(1-x))
-        precision_adjust prec(3);
         ip = x + x;
         ip = sin_fracpi(0, ip);
         ip = log(ip);
         fp = make(1);
-        fp = lgamma(fp - x);
+        fp = lgamma_internal(fp - x);
         fp = fp + ip;
         ip = constants().lnpi();
         fp = ip - fp;
-        fp = prec(fp);
         return fp;
     }
 
@@ -2903,8 +2916,11 @@ decimal_p decimal::lgamma(decimal_r x)
     decimal_g tmp = make(prec + 4);
     decimal_g a = make(125285, -5);
     a = ceil(a * tmp);
+
+    // Allocate number of ck elements we need
     uint na = a->as_unsigned();
     record(decimal, "a=%t na=%u", +a, na);
+    decimal_g *cks = constants().gamma_realloc(na);
 
     // Loop for terms except first one
     decimal_g factorial = make(1);
@@ -2918,32 +2934,41 @@ decimal_p decimal::lgamma(decimal_r x)
         z   = z + one;
         record(decimal, "%u: z=%t", i, +z);
 
-        uint t  = na - i;
-        uint xp = i - 1;
-        tmp     = make(t);
-        power   = tmp;
-        scale   = exp(tmp);
-        record(decimal, "%u: exp=%t", i, +scale);
-        while (xp)
+        tmp = cks[i-1];
+        if (!tmp)
         {
-            if (xp & 1)
-                scale = scale * power;
-            xp >>= 1;
-            if (xp)
-                power = power * power;
+            uint t  = na - i;
+            uint xp = i - 1;
+            tmp     = make(t);
+            power   = tmp;
+            scale   = exp(tmp);
+            record(decimal, "%u: exp=%t", i, +scale);
+            while (xp)
+            {
+                if (xp & 1)
+                    scale = scale * power;
+                xp >>= 1;
+                if (xp)
+                    power = power * power;
+            }
+            tmp = sqrt(tmp);
+            record(decimal, "%u: sqrt=%t", i, +tmp);
+            tmp = tmp * scale / factorial;
+
+            cks[i-1] = tmp;
+            if (!tmp)
+                return nullptr;
+
+            scale = make(i);
+            factorial = factorial * scale;
+            record(decimal, "%u: factorial=%t", i, +factorial);
         }
-        tmp = sqrt(tmp);
-        record(decimal, "%u: sqrt=%t", i, +tmp);
-        tmp = tmp * scale / factorial;
         record(decimal, "%u: ck=%t", i, +tmp);
         if (i & 1)
             sum = sum + tmp / z;
         else
             sum = sum - tmp / z;
         record(decimal, "%u: sum=%t", i, +sum);
-        tmp = make(i);
-        factorial = factorial * tmp;
-        record(decimal, "%u: factorial=%t", i, +factorial);
     }
 
     sum = log(sum);
@@ -2955,7 +2980,6 @@ decimal_p decimal::lgamma(decimal_r x)
     a = log(x);
     tmp = log(tmp) * z - tmp - a;
     sum = sum + tmp;
-    sum = prec(sum);
 
     return sum;
 }
@@ -3241,6 +3265,38 @@ decimal_g decimal::ccache::two_over_sqrt_pi()
 {
     decimal_g oosqpi = one_over_sqrt_pi();
     return oosqpi + oosqpi;
+}
+
+
+decimal_g *decimal::ccache::gamma_realloc(size_t na)
+// ----------------------------------------------------------------------------
+//    Reallocate the constants for gamma computation
+// ----------------------------------------------------------------------------
+{
+    if (na != gamma_na)
+    {
+        size_t rna = gamma_na - 1;
+        if (gamma_ck)
+        {
+            // No operator new[] nor operator delete[] in embedded runtime
+            for (size_t i = rna; i --> 0; )
+                (gamma_ck + i)->~decimal_g();
+            free(gamma_ck);
+            gamma_ck = nullptr;
+        }
+        if (na > 1)
+        {
+            // No operator new[] nor operator delete[] in embedded runtime
+            rna = na - 1;
+            gamma_ck = (decimal_g *) calloc(rna, sizeof(decimal_g));
+            if (!gamma_ck)
+                na = rna = 0;
+            for (size_t i = 0; i < rna; i++)
+                new(gamma_ck + i) decimal_g;
+        }
+        gamma_na = na;
+    }
+    return gamma_ck;
 }
 
 

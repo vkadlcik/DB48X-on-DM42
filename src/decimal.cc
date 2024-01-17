@@ -2530,6 +2530,9 @@ decimal_p decimal::expm1(decimal_r x)
 
     if (ip)
     {
+        bool neg = ip < 0;
+        if (neg)
+            ip = -ip;
         fact = one;
         power = constants().e;
         while (ip)
@@ -2540,7 +2543,10 @@ decimal_p decimal::expm1(decimal_r x)
             if (ip)
                 power = power * power;
         }
-        sum = (sum + one) * fact - one;
+        if (neg)
+            sum = (sum + one) / fact - one;
+        else
+            sum = (sum + one) * fact - one;
     }
 
     return sum;

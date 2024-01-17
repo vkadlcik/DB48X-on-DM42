@@ -1957,7 +1957,7 @@ bool user_interface::draw_cursor(int show, uint ncursor)
                        : mode == TEXT        ? (lowercase ? 'L' : 'C')
                        : mode == PROGRAM     ? 'P'
                        : mode == ALGEBRAIC   ? 'A'
-                       : mode == PARENTHESES ? 'P'
+                       : mode == PARENTHESES ? 'E'
                        : mode == MATRIX      ? 'M'
                        : mode == BASED       ? 'B'
                                              : 'X';

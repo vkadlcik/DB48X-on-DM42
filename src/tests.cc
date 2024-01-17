@@ -190,6 +190,19 @@ void tests::reset_settings()
     step("Checking output modes")
         .test("Modes", ENTER)
         .expect("« ModesMenu »");
+
+    // Check that we can change a setting
+    step("Selecting FIX 3")
+        .test(CLEAR, SHIFT, O, 3, F2, "1.23456", ENTER)
+        .expect("1.235");
+    step("Checking Modes for FIX")
+        .test("Modes", ENTER)
+        .expect("« 3 FixedDisplay 3 DisplayDigits DisplayModesMenu »");
+    step("Reseting with command")
+        .test("ResetModes", ENTER)
+        .noerr()
+        .test("Modes", ENTER)
+        .expect("« DisplayModesMenu »");
 }
 
 

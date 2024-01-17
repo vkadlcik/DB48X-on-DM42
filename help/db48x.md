@@ -4939,7 +4939,7 @@ Test if a flag is set
 
 ## TestFlagClear (FC?)
 
-Test if a flag is set
+Test if a flag is clear
 
 ## TestFlagClearThenClear (FC?C)
 

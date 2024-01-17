@@ -99,6 +99,7 @@ TESTS(regressions,      "Regression checks");
 TESTS(plotting,         "Plotting, graphing and charting");
 TESTS(graphics,         "Graphic commands");
 
+EXTRA(plotfns,          "Plot all functions");
 EXTRA(flags,            "Enable/disable every RPL flag");
 EXTRA(settings,         "Recall and activate every RPL setting");
 EXTRA(commands,         "Parse every single RPL command");
@@ -146,6 +147,7 @@ void tests::run(bool onlyCurrent)
         expand_collect_simplify();
         tagged_objects();
         plotting();
+        plotting_all_functions();
         graphic_commands();
         flags_by_name();
         settings_by_name();
@@ -167,7 +169,9 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     BEGIN(current);
-    graphic_commands();
+
+    save<intptr_t> rtrace(RECORDER_TWEAK(est_plotfns), 1);
+    plotting_all_functions();
 }
 
 
@@ -2908,6 +2912,89 @@ void tests::plotting()
 
      step("Reset drawing parameters");
      test(CLEAR, "1 LineWidth 0 GRAY Foreground", ENTER).noerr();
+}
+
+
+void tests::plotting_all_functions()
+// ----------------------------------------------------------------------------
+//   Plot all real functions
+// ----------------------------------------------------------------------------
+{
+    BEGIN(plotfns);
+
+    step("Select radians");
+    test(CLEAR, SHIFT, N, F2).noerr();
+
+    step("Select 24-digit precision");
+    test(CLEAR, SHIFT, O, 24, F6).noerr();
+
+    step("Select plotting menu");
+    test(CLEAR, SHIFT, SHIFT, O).noerr();
+
+    uint dur = 300;
+
+#define FUNCTION(name)                          \
+    step("Plotting " #name);                    \
+    test(CLEAR, "'" #name "(x)'", F1)           \
+        .wait(dur).noerr()                      \
+        .image("fnplot-" #name)
+
+    FUNCTION(sqrt);
+    FUNCTION(cbrt);
+
+    FUNCTION(sin);
+    FUNCTION(cos);
+    FUNCTION(tan);
+    FUNCTION(asin);
+    FUNCTION(acos);
+    FUNCTION(atan);
+
+    step("Select degrees");
+    test(CLEAR, SHIFT, N, F1).noerr();
+
+    step("Reselect plotting menu");
+    test(CLEAR, SHIFT, SHIFT, O).noerr();
+
+    FUNCTION(sinh);
+    FUNCTION(cosh);
+    FUNCTION(tanh);
+    FUNCTION(asinh);
+    FUNCTION(acosh);
+    FUNCTION(atanh);
+
+    FUNCTION(log1p);
+    FUNCTION(expm1);
+    FUNCTION(log);
+    FUNCTION(log10);
+    FUNCTION(log2);
+    FUNCTION(exp);
+    FUNCTION(exp10);
+    FUNCTION(exp2);
+    FUNCTION(erf);
+    FUNCTION(erfc);
+    FUNCTION(tgamma);
+    FUNCTION(lgamma);
+
+
+    FUNCTION(abs);
+    FUNCTION(sign);
+    FUNCTION(IntPart);
+    FUNCTION(FracPart);
+    FUNCTION(ceil);
+    FUNCTION(floor);
+    FUNCTION(inv);
+    FUNCTION(neg);
+    FUNCTION(sq);
+    FUNCTION(cubed);
+    FUNCTION(fact);
+
+    FUNCTION(re);
+    FUNCTION(im);
+    FUNCTION(arg);
+    FUNCTION(conj);
+
+    FUNCTION(ToDecimal);
+    FUNCTION(ToFraction);
 }
 
 

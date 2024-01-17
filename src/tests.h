@@ -86,6 +86,7 @@ struct tests
     void settings_by_name();
     void parsing_commands_by_name();
     void plotting();
+    void plotting_all_functions();
     void graphic_commands();
     void regression_checks();
 

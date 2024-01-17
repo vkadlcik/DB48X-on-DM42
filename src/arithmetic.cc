@@ -1155,8 +1155,9 @@ algebraic_p arithmetic::evaluate(id          op,
     if (!xr || !yr)
         return nullptr;
 
-    algebraic_g x = xr;
-    algebraic_g y = yr;
+    algebraic_g x   = xr;
+    algebraic_g y   = yr;
+    utf8        err = rt.error();
 
     // Convert arguments to numeric if necessary
     if (Settings.NumericalResults())
@@ -1174,7 +1175,7 @@ algebraic_p arithmetic::evaluate(id          op,
     {
         if (algebraic_p result = ops.non_numeric(x, y))
             return result;
-        if (rt.error())
+        if (rt.error() != err)
             return nullptr;
 
         if (xt == ID_tag)
@@ -1298,7 +1299,7 @@ algebraic_p arithmetic::evaluate(id          op,
     }
 
     // Default error is "Bad argument type", unless we got something else
-    if (!rt.error())
+    if (rt.error() == err)
         rt.type_error();
     return nullptr;
 }

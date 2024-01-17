@@ -601,6 +601,10 @@ ularge decimal::as_unsigned(bool magnitude) const
     if (exp < 0 || (!magnitude && type() == ID_neg_decimal))
         return 0;
 
+    // If we overflow in the computation, return a "maxint"
+    if (exp >= 19)
+        return ~0UL;
+
     ularge xp  = exp;
     ularge pow = 1;
     ularge mul = 10;
@@ -634,9 +638,25 @@ large decimal::as_integer() const
 // ----------------------------------------------------------------------------
 {
     large result = (large) as_unsigned(true);
+    if (result == ~0L)
+        result = 0x7FFFFFFFFFFFFFFFL;
     if (type() == ID_neg_decimal)
         result = -result;
     return result;
+}
+
+
+int32_t decimal::as_int32() const
+// ----------------------------------------------------------------------------
+//   Convert a decimal value to an int32_t
+// ----------------------------------------------------------------------------
+{
+    large result = (large) as_unsigned(true);
+    if (result == ~0L || result >= 0x80000000L)
+        result = 0x7FFFFFFF;
+    if (type() == ID_neg_decimal)
+        result = -result;
+    return (int32_t) result;
 }
 
 

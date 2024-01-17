@@ -400,7 +400,7 @@ int32_t object::as_int32 (int32_t  def, bool err)  const
 
     case ID_decimal:
     case ID_neg_decimal:
-        return decimal_p(this)->as_integer();
+        return decimal_p(this)->as_int32();
 
     case ID_fraction:
         return fraction_p(this)->as_unsigned();

@@ -172,7 +172,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     BEGIN(current);
-    decimal_display_formats();
+    editor_operations();
 }
 
 
@@ -545,7 +545,6 @@ void tests::editor_operations()
         .test(F1, F4, B, Y, F4, ENTER, SHIFT, F1, Q).editor("XAN1CA12BY M2QBY");
     step("Replace")
         .test(SHIFT, F5, F1, F4, A, SHIFT, F4).editor("XBYN1CA12BY M2QBY");
-#if 0
     step("Second replace")
         .test(SHIFT, F4).editor("XBYN1CBY12BY M2QBY");
     step("Third replace")
@@ -578,7 +577,6 @@ void tests::editor_operations()
         .test(SHIFT, SHIFT, UP).editor("ABCD");
     step("End of editor")
         .test(CLEAR);
-#endif
 }
 
 

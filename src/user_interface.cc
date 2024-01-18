@@ -4367,23 +4367,27 @@ bool user_interface::editor_replace()
 //   Perform a search replacement
 // ----------------------------------------------------------------------------
 {
+    bool result = true;
     if (~searching && ~select && cursor != select && clipboard)
     {
         uint start = cursor;
         uint end = select;
         if (start > end)
             std::swap(start, end);
-        do_search();
+        result = do_search();
         remove(start, end - start);
 
         size_t len = 0;
         utf8 ed = clipboard->value(&len);
         insert(start, ed, len);
 
+        if (!result)
+            select = ~0U;
+
         edRows = 0;
         dirtyEditor = true;
     }
-    return true;
+    return result;
 }
 
 
@@ -4426,9 +4430,10 @@ size_t user_interface::insert(size_t offset, utf8 data, size_t len)
 // ----------------------------------------------------------------------------
 {
     size_t d = rt.insert(offset, data, len);
-    if (~select && select >= cursor)
+    if (~select && select >= offset)
         select += d;
-    cursor += d;
+    if (cursor >= offset)
+        cursor += d;
     return d;
 }
 

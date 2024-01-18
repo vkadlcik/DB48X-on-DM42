@@ -172,7 +172,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     BEGIN(current);
-    editor_operations();
+    decimal_display_formats();
 }
 
 
@@ -1522,6 +1522,14 @@ void tests::decimal_display_formats()
     step("Zero");
     test(CLEAR, ".", ENTER).error("Syntax error");
     test(CLEAR, "0.", ENTER).type(object::ID_decimal).expect("0.");
+
+    // Regression test for bug #726
+    step("Showing 0.2");
+    test(CLEAR, "0.2", ENTER).type(object::ID_decimal).expect("0.2");
+    step("Showing 0.2 with NoTrailingDecimal (bug #726)");
+    test("NoTrailingDecimal", ENTER).type(object::ID_decimal).expect("0.2");
+    step("Showing 0.2 with TrailingDecimal (bug #726)");
+    test("TrailingDecimal", ENTER).type(object::ID_decimal).expect("0.2");
 
     step("Negative");
     test(CLEAR, "0.3", CHS, ENTER)

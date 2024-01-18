@@ -363,7 +363,7 @@ RENDER_BODY(decimal)
             decpos--;               // Don't emit the decimal separator twice
 
             // Emit decimal dot and leading zeros on fractional part
-            if (showdec || realexp + 1 < 0)
+            if (showdec || realexp  < 0)
                 r.put(decimal);
             sep = frac_spc-1;
             for (int zeroes = realexp + 1; zeroes < 0; zeroes++)

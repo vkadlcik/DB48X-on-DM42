@@ -386,7 +386,7 @@ static int state_load_callback(cstring path, cstring name, void *merge)
     size_t edlen = rt.editing();
     if (edlen)
     {
-        text_g edstr = rt.close_editor(true);
+        text_g edstr = rt.close_editor(true, false);
         if (edstr)
         {
             // Need to re-fetch editor length after text conversion

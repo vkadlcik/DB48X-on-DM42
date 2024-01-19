@@ -585,7 +585,7 @@ size_t runtime::remove(size_t offset, size_t len)
 }
 
 
-text_p runtime::close_editor(bool convert)
+text_p runtime::close_editor(bool convert, bool trailing_zero)
 // ----------------------------------------------------------------------------
 //   Close the editor and encapsulate its content into a string
 // ----------------------------------------------------------------------------
@@ -594,8 +594,9 @@ text_p runtime::close_editor(bool convert)
 //   overwriting the editor
 {
     // Compute the extra size we need for a string header
-    size_t hdrsize = leb128size(object::ID_text) + leb128size(Editing + 1);
-    if (available(hdrsize+1) < hdrsize+1)
+    size_t tzs = trailing_zero ? 1 : 0;
+    size_t hdrsize = leb128size(object::ID_text) + leb128size(Editing + tzs);
+    if (available(hdrsize+tzs) < hdrsize+tzs)
         return nullptr;
 
     // Move the editor data above that header
@@ -604,16 +605,17 @@ text_p runtime::close_editor(bool convert)
     memmove(str, ed, Editing);
 
     // Null-terminate that string for safe use by C code
-    str[Editing] = 0;
+    if (trailing_zero)
+        str[Editing] = 0;
     record(editor, "Closing editor size %u at %p [%s]", Editing, ed, str);
 
     // Write the string header
     text_p obj = text_p(ed);
     ed = leb128(ed, object::ID_text);
-    ed = leb128(ed, Editing + 1);
+    ed = leb128(ed, Editing + tzs);
 
     // Move Temporaries past that newly created string
-    Temporaries = (object_p) str + Editing + 1;
+    Temporaries = (object_p) str + Editing + tzs;
 
     // We are no longer editing
     Editing = 0;

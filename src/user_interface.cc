@@ -385,7 +385,7 @@ text_p user_interface::editor_save(bool rewinding)
 // ----------------------------------------------------------------------------
 {
     if (rt.editing())
-        if (text_g editor = rt.close_editor())
+        if (text_g editor = rt.close_editor(false, false))
             return editor_save(editor, rewinding);
     return nullptr;
 }

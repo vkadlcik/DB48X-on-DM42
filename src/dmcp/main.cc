@@ -364,6 +364,7 @@ extern "C" void program_main()
                     break;
                 case 1:
                     transalpha = k1 == KEY_UP || k1 == KEY_DOWN;
+                    break;
                 case 2:
                     transalpha = k1 == KEY_UP || k1 == KEY_DOWN
                         ||       k2 == KEY_UP || k2 == KEY_DOWN;

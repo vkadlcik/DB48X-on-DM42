@@ -172,7 +172,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     BEGIN(current);
-    tagged_objects();
+    keyboard_entry();
 }
 
 
@@ -307,18 +307,45 @@ void tests::keyboard_entry()
 
     step("Separators");
     cstring seps = "\"Hello [A] (B) {C} 'Test' D";
-    test(CLEAR, seps).editor(seps).wait(500);
+    test(CLEAR, seps).editor(seps);
 
     step("Separators with auto-spacing");
     cstring seps2     = "{}()[]";
     cstring seps2auto = "{ } ( ) []";
-    test(CLEAR, seps2).editor(seps2auto).wait(500);
+    test(CLEAR, seps2).editor(seps2auto);
 
     step("Key repeat");
     test(CLEAR, LONGPRESS, SHIFT, LONGPRESS, A)
         .wait(1000)
         .test(RELEASE)
         .check(ui.cursor > 4);
+
+    step("Space key during data entry inserts space")
+        .test(CLEAR, SHIFT, RUNSTOP,
+              KEY7, SPACE, SHIFT, ENTER, A, SPACE, B,
+              SHIFT, ENTER, SHIFT, ENTER, ADD, ADD)
+        .editor("«7 A B + + »");
+    step("Space key in immediate mode evaluates")
+        .test(ENTER).expect("« 7 A B + + »")
+        .test(SPACE).expect("'7+(A+B)'");
+    step("F key inserts equation")
+        .test(CLEAR, F).editor("''")
+        .test(KEY1).editor("'1'");
+    step("Space key in expresion inserts = sign")
+        .test(SPACE).editor("'1='")
+        .test(KEY2).editor("'1=2'")
+        .test(ADD).editor("'1=2+'")
+        .test(KEY3).editor("'1=2+3'");
+    step("F key in equation inserts parentheses")
+        .test(MUL).editor("'1=2+3×'")
+        .test(F).editor("'1=2+3× ()'");
+    step("Automatic insertion of parentheses after functions")
+        .test(D).editor("'1=2+3× (exp())'")
+        .test(KEY0).editor("'1=2+3× (exp(0))'");
+    step("Space key in parentheses insert semi-colon")
+        .test(SPACE).editor("'1=2+3× (exp(0;))'")
+        .test(KEY7).editor("'1=2+3× (exp(0;7))'")
+        .test(CLEAR);
 }
 
 

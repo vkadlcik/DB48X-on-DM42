@@ -330,18 +330,15 @@ CMD(sinh)
 CMD(cosh)
 CMD(tanh)
 
-CMD(log1p)
-ALIAS(log1p, "lnp1")            // HP48 compatibility
-CMD(expm1)
-ALIAS(expm1, "expm")            // HP48 compatibility
+CMD(log1p)      ALIAS(log1p, "lnp1")            // HP48 compatibility
+CMD(expm1)      ALIAS(expm1, "expm")            // HP48 compatibility
 CMD(log2)
 CMD(exp2)
 CMD(erf)
 CMD(erfc)
 NAMED(tgamma, "Gamma")
 NAMED(lgamma, "LogGamma")
-OP(fact, "!")
-ALIAS(fact, "factorial")
+NAMED(fact, "x!")               ALIAS(fact, "factorial") ALIAS(fact, "!")
 
 NAMED(cbrt, "∛")        ALIAS(cbrt, "CubeRoot")
 OP(hypot, "⊿")          ALIAS(hypot, "Hypothenuse")

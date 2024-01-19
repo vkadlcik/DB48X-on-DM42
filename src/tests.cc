@@ -323,8 +323,8 @@ void tests::keyboard_entry()
 
     step("Space key during data entry inserts space")
         .test(CLEAR, SHIFT, RUNSTOP,
-              KEY7, SPACE, SHIFT, ENTER, A, SPACE, B,
-              SHIFT, ENTER, SHIFT, ENTER, ADD, ADD)
+              KEY7, SPACE, ALPHA, A, SPACE, B,
+              NOSHIFT, ADD, ADD)
         .editor("«7 A B + + »");
     step("Space key in immediate mode evaluates")
         .test(ENTER).expect("« 7 A B + + »")
@@ -349,9 +349,8 @@ void tests::keyboard_entry()
 
     step("STO key while entering equation (bug #390)")
         .test(CLEAR, EXIT, KEY1, KEY2, F,
-              SHIFT, ENTER, A, B, C, SHIFT, ENTER, SHIFT, ENTER,
-              G).noerr()
-        .test(F, SHIFT, ENTER, A, B, C, ENTER, SPACE).expect("12")
+              ALPHA, A, B, C, NOSHIFT, G).noerr()
+        .test(F, ALPHA, A, B, C, ENTER, SPACE).expect("12")
         .test("'ABC'", ENTER, SHIFT, SHIFT, G, F6).noerr();
 }
 
@@ -2986,15 +2985,14 @@ void tests::tagged_objects()
         .test(CLEAR, ":ABC:1_kg", ENTER)
         .expect("ABC :1 kg");
     step("Tagged unit (without space)")
-        .test(CLEAR, SHIFT, ENTER, KEY0,
-              A, B, C, SHIFT, ENTER, SHIFT, ENTER, DOWN,
+        .test(CLEAR, ALPHA, KEY0, A, B, C, NOSHIFT, DOWN,
               KEY1, SHIFT, KEY5, F1,
-              SHIFT, ENTER, SHIFT, ENTER, K, G,
+              LOWERCASE, K, G,
               ENTER)
         .expect("ABC:1 kg");
     step("Tagged complex (without space)")
-        .test(CLEAR, SHIFT, ENTER, KEY0,
-              A, B, C, SHIFT, ENTER, SHIFT, ENTER, DOWN,
+        .test(CLEAR, ALPHA, KEY0,
+              A, B, C, NOSHIFT, DOWN,
               KEY1, SHIFT, G, F1, KEY2, KEY3,
               ENTER)
         .expect("ABC:1+23ⅈ")
@@ -3014,7 +3012,7 @@ void tests::catalog_test()
 
     step("Entering commands through the catalog")
         .test(CLEAR, SHIFT, SHIFT, RUNSTOP).editor("{}")
-        .test(SHIFT, ENTER, A).editor("{A}")
+        .test(ALPHA, A).editor("{A}")
         .test(ADD).editor("{A}")
         .test(F1).editor("{ %Change }");
     step("Finding functions from inside")
@@ -3262,8 +3260,8 @@ void tests::regression_checks()
     test(CLEAR, "0 0 /", ENTER).error("Divide by zero");
 
     step("Bug 695: Putting program separators in names");
-    test(CLEAR).shifts(false, false, false, false);
-    test(SHIFT, RUNSTOP,
+    test(CLEAR, NOSHIFT,
+         SHIFT, RUNSTOP,
          SHIFT, ENTER, SHIFT, SHIFT, G,
          N,
          SHIFT, RUNSTOP,
@@ -3293,7 +3291,7 @@ void tests::plotting()
         .wait(200).image("plot-sine");
     step("Function plot: Equation");
     test(CLEAR,
-         SHIFT, ENTER, X, ENTER, ENTER, J, 3, MUL, M, 21, MUL, COS, 2, MUL, ADD,
+         ALPHA, X, ENTER, ENTER, J, 3, MUL, M, 21, MUL, COS, 2, MUL, ADD,
          SHIFT, SHIFT, O, F1).noerr()
         .wait(200).image("plot-eq");
     step("Function plot: Program");
@@ -3306,8 +3304,9 @@ void tests::plotting()
          61, MUL, L, SHIFT, C, 2, ADD, ENTER,
          SHIFT, SHIFT, O, F2).noerr().wait(200).image("polar-pgm");
     step("Polar plot: Equation");
-    test(CLEAR, F, J, 611, MUL, SHIFT, ENTER, X, SHIFT, ENTER, SHIFT, ENTER,
-         DOWN, MUL, K, 271, MUL, SHIFT, ENTER, X, LONGPRESS, SHIFT, DOWN,
+    test(CLEAR, F, J, 611, MUL, ALPHA, X,
+         NOSHIFT, DOWN, MUL, K, 271, MUL,
+         ALPHA, X, NOSHIFT, DOWN,
          ADD, KEY2, DOT, KEY5, ENTER,
          SHIFT, SHIFT, O,
          ENTER, F2).noerr().wait(200).image("polar-eq");
@@ -3825,9 +3824,9 @@ tests &tests::itest(tests::key k, bool release)
     // Check for special key sequences
     switch (k)
     {
-    case ALPHA: return shifts(false, false, true, false);
-
-    case LOWERCASE: return shifts(false, false, true, true);
+    case ALPHA:         return shifts(false, false, true, false);
+    case LOWERCASE:     return shifts(false, false, true, true);
+    case NOSHIFT:       return shifts(false, false, false, false);
 
     case LONGPRESS:
         longpress = true; // Next key will be a long press

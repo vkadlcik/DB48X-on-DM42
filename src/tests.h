@@ -177,12 +177,13 @@ struct tests
         // Special stuff
         ALPHA      = 100,       // Set alpha
         LOWERCASE  = 101,       // Set lowercase
-        LONGPRESS  = 102,       // Force long press
-        CLEAR      = 103,       // Clear the calculator state
-        NOKEYS     = 104,       // Wait until keys buffer is empty
-        REFRESH    = 105,       // Wait until there is a screen refresh
+        NOSHIFT    = 102,       // Set standard input mode (no shift)
+        LONGPRESS  = 103,       // Force long press
+        CLEAR      = 104,       // Clear the calculator state
+        NOKEYS     = 105,       // Wait until keys buffer is empty
+        REFRESH    = 106,       // Wait until there is a screen refresh
 
-        KEYSYNC    = 106,       // Wait for other side to process keys
+        KEYSYNC    = 107,       // Wait for other side to process keys
         EXIT_PGM   = 142,       // Exiting program
     };
 

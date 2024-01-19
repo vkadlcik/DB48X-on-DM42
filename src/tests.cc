@@ -369,6 +369,9 @@ void tests::data_types()
         .type(object::ID_based_integer)
         .expect("#A BCDE₁₆");
 
+    step("Do not parse #7D as a decimal (#371)")
+        .test(CLEAR, "#7D", ENTER).expect("#7D₁₆");
+
     step("Symbols");
     cstring symbol = "ABC123Z";
     test(CLEAR, symbol, ENTER).type(object::ID_expression).expect("'ABC123Z'");

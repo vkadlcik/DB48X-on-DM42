@@ -76,6 +76,7 @@ struct tests
     void list_functions();
     void vector_functions();
     void matrix_functions();
+    void solver_testing();
     void text_functions();
     void auto_simplification();
     void rewrite_engine();

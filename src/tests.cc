@@ -92,6 +92,7 @@ TESTS(lists,            "List operations");
 TESTS(text,             "Text operations");
 TESTS(vectors,          "Vectors");
 TESTS(matrices,         "Matrices");
+TESTS(solver,           "Solver");
 TESTS(simplify,         "Auto-simplification of expressions");
 TESTS(rewrites,         "Equation rewrite engine");
 TESTS(expand,           "Expand");
@@ -125,7 +126,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        cycle_test();
+        solver_testing();
     }
     else
     {
@@ -153,6 +154,7 @@ void tests::run(bool onlyCurrent)
         list_functions();
         vector_functions();
         matrix_functions();
+        solver_testing();
         text_functions();
         auto_simplification();
         rewrite_engine();
@@ -2756,6 +2758,25 @@ void tests::matrix_functions()
     step("Component-wise application of functions");
     test(CLEAR, "[[a b] [c d]] SIN", ENTER)
         .want("[ [ 'sin a' 'sin b' ] [ 'sin c' 'sin d' ] ]");
+}
+
+
+void tests::solver_testing()
+// ----------------------------------------------------------------------------
+//   Test that the solver works as expected
+// ----------------------------------------------------------------------------
+{
+    BEGIN(solver);
+
+    step("Solver with expression")
+        .test(CLEAR, "'X+3' 'X' 0 ROOT", ENTER)
+        .noerr().expect("X:-3.");
+    step("Solver with equation")
+        .test(CLEAR, "'sq(x)=3' 'X' 0 ROOT", ENTER)
+        .noerr().expect("X:1.73205 08075 7");
+    step("Solver without solution")
+        .test(CLEAR, "'sq(x)+3=0' 'X' 0 ROOT", ENTER)
+        .error("No solution?");
 }
 
 

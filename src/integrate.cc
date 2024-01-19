@@ -115,8 +115,8 @@ algebraic_p integrate(program_g   eq,
 
     // Set independent variable
     save<symbol_g *> iref(expression::independent, &name);
-    int              prec = -Settings.IntegratePrecision();
-    algebraic_g      eps = decimal::make(1, -int(prec));
+    int              prec = Settings.IntegratePrecision();
+    algebraic_g      eps = decimal::make(1, -prec);
 
     // Initial integration step and first trapezoidal step
     dx              = hx - lx;

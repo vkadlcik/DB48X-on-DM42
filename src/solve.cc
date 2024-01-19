@@ -129,8 +129,8 @@ algebraic_p solve(program_g eq, symbol_g name, object_g guess)
 
     // Set independent variable
     save<symbol_g *> iref(expression::independent, &name);
-    int              prec = -Settings.SolverPrecision();
-    algebraic_g      eps = decimal::make(1, -int(prec));
+    int              prec = Settings.SolverPrecision();
+    algebraic_g      eps = decimal::make(1, -prec);
 
     bool is_constant = true;
     bool is_valid = false;

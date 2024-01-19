@@ -66,7 +66,6 @@ uint long_tests = 0;
 
 #define BEGIN(name)     do { if (!check_##name(*this)) return; } while(0)
 
-TESTS(current,          "Current test for latest commits");
 TESTS(defaults,         "Reset settings to defaults");
 TESTS(shifts,           "Shift logic");
 TESTS(keyboard,         "Keyboard entry");
@@ -97,6 +96,7 @@ TESTS(simplify,         "Auto-simplification of expressions");
 TESTS(rewrites,         "Equation rewrite engine");
 TESTS(expand,           "Expand");
 TESTS(tagged,           "Tagged objects");
+TESTS(catalog,          "Catalog of commands");
 TESTS(regressions,      "Regression checks");
 TESTS(plotting,         "Plotting, graphing and charting");
 TESTS(graphics,         "Graphic commands");
@@ -123,7 +123,8 @@ void tests::run(bool onlyCurrent)
 
     if (onlyCurrent)
     {
-        current();
+        // Test the current thing
+        catalog_test();
     }
     else
     {
@@ -149,6 +150,7 @@ void tests::run(bool onlyCurrent)
         rewrite_engine();
         expand_collect_simplify();
         tagged_objects();
+        catalog_test();
         plotting();
         plotting_all_functions();
         graphic_commands();
@@ -163,16 +165,6 @@ void tests::run(bool onlyCurrent)
 
     if (run_tests)
         exit(failures.size() ? 1 : 0);
-}
-
-
-void tests::current()
-// ----------------------------------------------------------------------------
-//   Test the current thing (this is a temporary test)
-// ----------------------------------------------------------------------------
-{
-    BEGIN(current);
-    keyboard_entry();
 }
 
 
@@ -2970,6 +2962,36 @@ void tests::tagged_objects()
         .expect("\"ABC\"")
         .test(BSP)
         .expect("1+23ⅈ");
+}
+
+
+void tests::catalog_test()
+// ----------------------------------------------------------------------------
+//   Test the catalog features
+// ----------------------------------------------------------------------------
+{
+    BEGIN(catalog);
+
+    step("Entering commands through the catalog")
+        .test(CLEAR, SHIFT, SHIFT, RUNSTOP).editor("{}")
+        .test(SHIFT, ENTER, A).editor("{A}")
+        .test(ADD).editor("{A}")
+        .test(F1).editor("{ %Change }");
+    step("Finding functions from inside")
+        .test(B).editor("{ %Change B}")
+        .test(F1).editor("{ %Change abs }");
+    step("Finding functions with middle characters")
+        .test(B, U).editor("{ %Change abs BU}")
+        .test(F1).editor("{ %Change abs Debug }");
+    step("Catalog with nothing entered")
+        .test(F6, F3).editor("{ %Change abs Debug + }");
+
+    step("Test the default menu")
+        .test(CLEAR, EXIT, A, SHIFT, SHIFT, RUNSTOP).editor("{}")
+        .test(F1).editor("{ Help }");
+    step("Test catalog as a menu")
+        .test(SHIFT, ADD, F1).editor("{ Help x! }")
+        .test(ENTER).expect("{ Help x! }");
 }
 
 

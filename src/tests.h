@@ -50,9 +50,6 @@ struct tests
     // Run all tests
     void run(bool onlyCurrent);
 
-    // Test the current thing
-    void current();
-
     // Individual test categories
     void reset_settings();
     void shift_logic();
@@ -84,6 +81,7 @@ struct tests
     void rewrite_engine();
     void expand_collect_simplify();
     void tagged_objects();
+    void catalog_test();
     void flags_by_name();
     void settings_by_name();
     void parsing_commands_by_name();

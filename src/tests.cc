@@ -133,32 +133,39 @@ void tests::run(bool onlyCurrent)
         keyboard_entry();
         data_types();
         editor_operations();
+        stack_operations();
         arithmetic();
         global_variables();
         local_variables();
         for_loops();
         conditionals();
+        logical_operations();
         command_display_formats();
         integer_display_formats();
         decimal_display_formats();
         integer_numerical_functions();
         decimal_numerical_functions();
+        exact_trig_cases();
+        fraction_decimal_conversions();
         complex_types();
         complex_arithmetic();
         complex_functions();
         list_functions();
+        vector_functions();
+        matrix_functions();
         text_functions();
+        auto_simplification();
         rewrite_engine();
         expand_collect_simplify();
         tagged_objects();
         catalog_test();
         cycle_test();
-        plotting();
-        plotting_all_functions();
-        graphic_commands();
         flags_by_name();
         settings_by_name();
         parsing_commands_by_name();
+        plotting();
+        plotting_all_functions();
+        graphic_commands();
         regression_checks();
     }
     summary();
@@ -1281,13 +1288,13 @@ void tests::logical_operations()
     test("16 base", ENTER).expect("#18 75A4₁₆");
 
     step("Range for bases");
-    test("1 base", ENTER).error("Invalid numeric base");
-    test(CLEAR, "37 base", ENTER).error("Invalid numeric base");
-    test(CLEAR, "0.3 base", ENTER).error("Bad argument type");
+    test("1 base", ENTER).error("Argument outside domain");
+    test(CLEAR, "37 base", ENTER).error("Argument outside domain");
+    test(CLEAR, "0.3 base", ENTER).error("Argument outside domain");
     test(CLEAR);
 
     step("Default word size");
-    test("WordSize", ENTER).expect("64");
+    test("RCWS", ENTER).expect("64");
     step("Set word size to 16");
     test(CLEAR, "16 STWS", ENTER).noerr();
 
@@ -1338,9 +1345,23 @@ void tests::logical_operations()
 
     step("Set word size to 128");
     test(CLEAR, "128 STWS", ENTER).noerr();
-    test(CLEAR, "#12 not", ENTER).expect("#FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFED₁₆");
+    test(CLEAR, "#12 not", ENTER)
+        .expect("#FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFED₁₆");
     test("dup not", ENTER).expect("#12₁₆");
     test("xor not", ENTER).expect("#0₁₆");
+
+    step("Set word size to 623");
+    test(CLEAR, "623 STWS", ENTER).noerr();
+    test(CLEAR, "#12 not", ENTER)
+        .expect("#7FFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF "
+                "FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF "
+                "FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF "
+                "FFFF FFFF FFED₁₆");
+    test("dup not", ENTER).expect("#12₁₆");
+    test("xor not", ENTER).expect("#0₁₆");
+
+    step("Reset word size to default")
+        .test(CLEAR, "64 WordSize", ENTER).noerr();
 }
 
 
@@ -1904,6 +1925,9 @@ void tests::exact_trig_cases()
     cstring unit_names[] = { "Grads", "Degrees", "PiRadians" };
     int circle[] = { 400, 360, 2 };
 
+    step("Switch to big fractions")
+        .test("BigFractions", ENTER).noerr();
+
     for (uint unit = 0; unit < 3; unit++)
     {
         step(unit_names[unit]);
@@ -1994,7 +2018,8 @@ void tests::exact_trig_cases()
             .expect("-1/2");
     }
 
-    test(CLEAR, "DEG", ENTER).noerr();
+    step("Cleaning up")
+        .test(CLEAR, "SmallFractions DEG", ENTER).noerr();
 }
 
 
@@ -2012,13 +2037,16 @@ void tests::fraction_decimal_conversions()
             "-5/4",         "-1.25",
 
             // More tricky fractions
-            "1/3",          "3.33333 33333 33333 3333⁳⁻¹",
-            "-1/7",         "-1.42857 14285 71428 5714⁳⁻¹",
-            "22/7",         "3.14285 71428 57142 8571",
-            "37/213",       "1.73708 92018 77934 2723⁳⁻¹"
+            "1/3",          "3.33333 33333 3⁳⁻¹",
+            "-1/7",         "-1.42857 14285 7⁳⁻¹",
+            "22/7",         "3.14285 71428 6",
+            "37/213",       "1.73708 92018 8⁳⁻¹",
         };
 
     BEGIN(dfrac);
+
+    step("Selecting big fraction mode")
+        .test(CLEAR, "BigFractions", ENTER).noerr();
 
     for (uint c = 0; c < sizeof(cases) / sizeof(*cases); c += 2)
     {
@@ -2046,7 +2074,10 @@ void tests::fraction_decimal_conversions()
 
     step("Expressions");
     test(CLEAR, "355 113 / pi -", ENTER) .expect("'355/113-π'");
-    test("→Num", ENTER).expect("2.66764 18906 24223 1237⁳⁻⁷");
+    test("→Num", ENTER).expect("2.66764 18906 2⁳⁻⁷");
+
+    step("Restoring small fraction mode")
+        .test(CLEAR, "SmallFractions", ENTER).noerr();
 }
 
 
@@ -2516,7 +2547,7 @@ void tests::vector_functions()
 
     step("Non-homogneous data types");
     test(CLEAR, "[  \"ABC\"  'X' 3/2  ]", ENTER)
-        .type(object::ID_array).expect("[ \"ABC\" 'X' 3/2 ]");
+        .type(object::ID_array).expect("[ \"ABC\" 'X' ³/₂ ]");
 
     step("Addition");
     test(CLEAR, "[1 2 3][4 5 6] +", ENTER)
@@ -2538,7 +2569,7 @@ void tests::vector_functions()
 
     step("Division (extension)");
     test(CLEAR, "[1 2  3 4 6][4 5 2 1 3] /", ENTER)
-        .expect("[ 1/4 2/5 3/2 4 2 ]");
+        .expect("[ ¹/₄ ²/₅ ³/₂ 4 2 ]");
     test(CLEAR, "[a b c][d e f] /", ENTER)
         .expect("[ 'a÷d' 'b÷e' 'c÷f' ]");
 
@@ -2580,13 +2611,13 @@ void tests::vector_functions()
 
     step("Component-wise inversion of a vector");
     test(CLEAR, "[1 2 3] INV", ENTER)
-        .expect("[ 1 1/2 1/3 ]");
+        .expect("[ 1 ¹/₂ ¹/₃ ]");
 
     step("Froebenius norm");
     test(CLEAR, "[1 2 3] ABS", ENTER)
-        .expect("3.74165 73867 73941 3856");
+        .expect("3.74165 73867 7");
     test(CLEAR, "[1 2 3] NORM", ENTER)
-        .expect("3.74165 73867 73941 3856");
+        .expect("3.74165 73867 7");
 
     step("Component-wise application of functions");
     test(CLEAR, "[a b c] SIN", ENTER)
@@ -2603,78 +2634,79 @@ void tests::matrix_functions()
 
     step("Data entry in numeric form");
     test(CLEAR, "[  [1  2  3][4 5 6]  ]", ENTER)
-        .type(object::ID_array).expect("[ [ 1 2 3 ] [ 4 5 6 ] ]");
+        .type(object::ID_array).want("[ [ 1 2 3 ] [ 4 5 6 ] ]");
 
     step("Non-rectangular matrices");
     test(CLEAR, "[  [ 1.5  2.300 ] [ 3.02 ] ]", ENTER)
-        .type(object::ID_array).expect("[ [ 1.5 2.3 ] [ 3.02 ] ]");
+        .type(object::ID_array).want("[ [ 1.5 2.3 ] [ 3.02 ] ]");
 
     step("Symbolic matrix");
     test(CLEAR, "[ [a b] [c d] ]", ENTER)
-        .expect("[ [ a b ] [ c d ] ]");
+        .want("[ [ a b ] [ c d ] ]");
 
     step("Non-homogneous data types");
     test(CLEAR, "[  [ \"ABC\"  'X' ] 3/2  [ 4 [5] [6 7] ] ]", ENTER)
         .type(object::ID_array)
-        .expect("[ [ \"ABC\" 'X' ] 3/2 [ 4 [ 5 ] [ 6 7 ] ] ]");
+        .want("[ [ \"ABC\" 'X' ] ³/₂ [ 4 [ 5 ] [ 6 7 ] ] ]");
 
     step("Addition");
     test(CLEAR, "[[1 2] [3 4]] [[5 6][7 8]] +", ENTER)
-        .expect("[ [ 6 8 ] [ 10 12 ] ]");
+        .want("[ [ 6 8 ] [ 10 12 ] ]");
     test(CLEAR, "[[a b][c d]] [[e f][g h]] +", ENTER)
-        .expect("[ [ 'a+e' 'b+f' ] [ 'c+g' 'd+h' ] ]");
+        .want("[ [ 'a+e' 'b+f' ] [ 'c+g' 'd+h' ] ]");
 
     step("Subtraction");
     test(CLEAR, "[[1 2] [3 4]] [[5 6][7 8]] -", ENTER)
-        .expect("[ [ -4 -4 ] [ -4 -4 ] ]");
+        .want("[ [ -4 -4 ] [ -4 -4 ] ]");
     test(CLEAR, "[[a b][c d]] [[e f][g h]] -", ENTER)
-        .expect("[ [ 'a-e' 'b-f' ] [ 'c-g' 'd-h' ] ]");
+        .want("[ [ 'a-e' 'b-f' ] [ 'c-g' 'd-h' ] ]");
 
     step("Multiplication (square)");
     test(CLEAR, "[[1 2] [3 4]] [[5 6][7 8]] *", ENTER)
-        .expect("[ [ 19 22 ] [ 43 50 ] ]");
+        .want("[ [ 19 22 ] [ 43 50 ] ]");
     test(CLEAR, "[[a b][c d]] [[e f][g h]] *", ENTER)
-        .expect("[ [ 'a×e+b×g' 'a×f+b×h' ] [ 'c×e+d×g' 'c×f+d×h' ] ]");
+        .want("[ [ 'a×e+b×g' 'a×f+b×h' ] [ 'c×e+d×g' 'c×f+d×h' ] ]");
 
     step("Multiplication (non-square)");
     test(CLEAR, "[[1 2 3] [4 5 6]] [[5 6][7 8][9 10]] *", ENTER)
-        .expect("[ [ 46 52 ] [ 109 124 ] ]");
+        .want("[ [ 46 52 ] [ 109 124 ] ]");
     test(CLEAR, "[[a b c d][e f g h]] [[x][y][z][t]] *", ENTER)
-        .expect("[ [ 'a×x+b×y+c×z+d×t' ] [ 'e×x+f×y+g×z+h×t' ] ]");
+        .want("[ [ 'a×x+b×y+c×z+d×t' ] [ 'e×x+f×y+g×z+h×t' ] ]");
     test(CLEAR, "[[a b c d][e f g h]] [x y z t] *", ENTER)
-        .expect("[ 'a×x+b×y+c×z+d×t' 'e×x+f×y+g×z+h×t' ]");
+        .want("[ 'a×x+b×y+c×z+d×t' 'e×x+f×y+g×z+h×t' ]");
 
     step("Division");
     test(CLEAR,
          "[[5 12 1968][17 2 1969][30 3 1993]] "
          "[[16 5 1995][21 5 1999][28 5 2009]] /", ENTER)
-        .expect("[ [ 34/11 -52/11 -43/11 ] [ 3 357/10 -13 427/10 -16 433/10 ] [ -19/22 75/22 113/22 ] ]");
+        .want("[ [ ³⁴/₁₁ -⁵²/₁₁ -⁴³/₁₁ ] [ ³ ³⁵⁷/₁₀ -¹³ ⁴²⁷/₁₀ -¹⁶ ⁴³³/₁₀ ] [ -¹⁹/₂₂ ⁷⁵/₂₂ ¹¹³/₂₂ ] ]");
+    step("Division (symbolic)");
     test(CLEAR, "[[a b][c d]][[e f][g h]] /", ENTER)
-        .expect("[ [ '(1÷e-f÷e×((e×0-g×1)÷(e×h-g×f)))×a+(0÷e-f÷e×((e×1-g×0)÷(e×h-g×f)))×c' '(1÷e-f÷e×((e×0-g×1)÷(e×h-g×f)))×b+(0÷e-f÷e×((e×1-g×0)÷(e×h-g×f)))×d' ] [ '(e×0-g×1)÷(e×h-g×f)×a+(e×1-g×0)÷(e×h-g×f)×c' '(e×0-g×1)÷(e×h-g×f)×b+(e×1-g×0)÷(e×h-g×f)×d' ] ]");
+        .want("[ [ '(e⁻¹-f÷e×((-g)÷(e×h-g×f)))×a+(-(f÷e×(e÷(e×h-g×f))))×c' '(e⁻¹-f÷e×((-g)÷(e×h-g×f)))×b+(-(f÷e×(e÷(e×h-g×f))))×d' ] [ '(-g)÷(e×h-g×f)×a+e÷(e×h-g×f)×c' '(-g)÷(e×h-g×f)×b+e÷(e×h-g×f)×d' ] ]");
 
     step("Addition of constant (extension)");
     test(CLEAR, "[[1 2] [3 4]] 3 +", ENTER)
-        .expect("[ [ 4 5 ] [ 6 7 ] ]");
+        .want("[ [ 4 5 ] [ 6 7 ] ]");
     test(CLEAR, "[[a b] [c d]] x +", ENTER)
-        .expect("[ [ 'a+x' 'b+x' ] [ 'c+x' 'd+x' ] ]");
+        .want("[ [ 'a+x' 'b+x' ] [ 'c+x' 'd+x' ] ]");
 
     step("Subtraction of constant (extension)");
     test(CLEAR, "[[1 2] [3 4]] 3 -", ENTER)
-        .expect("[ [ -2 -1 ] [ 0 1 ] ]");
+        .want("[ [ -2 -1 ] [ 0 1 ] ]");
     test(CLEAR, "[[a b] [c d]] x -", ENTER)
-        .expect("[ [ 'a-x' 'b-x' ] [ 'c-x' 'd-x' ] ]");
+        .want("[ [ 'a-x' 'b-x' ] [ 'c-x' 'd-x' ] ]");
 
     step("Multiplication by constant (extension)");
     test(CLEAR, "[[a b] [c d]] x *", ENTER)
-        .expect("[ [ 'a×x' 'b×x' ] [ 'c×x' 'd×x' ] ]");
+        .want("[ [ 'a×x' 'b×x' ] [ 'c×x' 'd×x' ] ]");
     test(CLEAR, "x [[a b] [c d]] *", ENTER)
-        .expect("[ [ 'x×a' 'x×b' ] [ 'x×c' 'x×d' ] ]");
+        .want("[ [ 'x×a' 'x×b' ] [ 'x×c' 'x×d' ] ]");
 
     step("Division by constant (extension)");
     test(CLEAR, "[[a b] [c d]] x /", ENTER)
-        .expect("[ [ 'a÷x' 'b÷x' ] [ 'c÷x' 'd÷x' ] ]");
+        .want("[ [ 'a÷x' 'b÷x' ] [ 'c÷x' 'd÷x' ] ]");
     test(CLEAR, "x [[a b] [c d]] /", ENTER)
-        .expect("[ [ 'x÷a' 'x÷b' ] [ 'x÷c' 'x÷d' ] ]");
+        .want("[ [ 'x÷a' 'x÷b' ] [ 'x÷c' 'x÷d' ] ]");
 
     step("Invalid dimension for binary operations");
     test(CLEAR, "[[1 2] [3 4]][1 2] +", ENTER)
@@ -2702,9 +2734,9 @@ void tests::matrix_functions()
 
     step("Inversion of a definite matrix");
     test(CLEAR, "[[1 2 3][4 5 6][7 8 19]] INV", ENTER)
-        .expect("[ [ -47/30 7/15 1/10 ] [ 17/15 1/15 -1/5 ] [ 1/10 -1/5 1/10 ] ]");
+        .want("[ [ -⁴⁷/₃₀ ⁷/₁₅ ¹/₁₀ ] [ ¹⁷/₁₅ ¹/₁₅ -¹/₅ ] [ ¹/₁₀ -¹/₅ ¹/₁₀ ] ]");
     test(CLEAR, "[[a b][c d]] INV", ENTER)
-        .expect("[ [ '1÷a-b÷a×((a×0-c×1)÷(a×d-c×b))' '0÷a-b÷a×((a×1-c×0)÷(a×d-c×b))' ] [ '(a×0-c×1)÷(a×d-c×b)' '(a×1-c×0)÷(a×d-c×b)' ] ]");
+        .want("[ [ 'a⁻¹-b÷a×((-c)÷(a×d-c×b))' '-(b÷a×(a÷(a×d-c×b)))' ] [ '(-c)÷(a×d-c×b)' 'a÷(a×d-c×b)' ] ]");
 
     step("Invert with zero determinant");       // HP48 gets this one wrong
     test(CLEAR, "[[1 2 3][4 5 6][7 8 9]] INV", ENTER)
@@ -2712,19 +2744,19 @@ void tests::matrix_functions()
 
     step("Determinant");                        // HP48 gets this one wrong
     test(CLEAR, "[[1 2 3][4 5 6][7 8 9]] DET", ENTER)
-        .expect("0");
+        .want("0");
     test(CLEAR, "[[1 2 3][4 5 6][7 8 19]] DET", ENTER)
-        .expect("-30");
+        .want("-30");
 
     step("Froebenius norm");
     test(CLEAR, "[[1 2] [3 4]] ABS", ENTER)
-        .expect("5.47722 55750 51661 1346");
+        .want("5.47722 55750 5");
     test(CLEAR, "[[1 2] [3 4]] NORM", ENTER)
-        .expect("5.47722 55750 51661 1346");
+        .want("5.47722 55750 5");
 
     step("Component-wise application of functions");
     test(CLEAR, "[[a b] [c d]] SIN", ENTER)
-        .expect("[ [ 'sin a' 'sin b' ] [ 'sin c' 'sin d' ] ]");
+        .want("[ [ 'sin a' 'sin b' ] [ 'sin c' 'sin d' ] ]");
 }
 
 

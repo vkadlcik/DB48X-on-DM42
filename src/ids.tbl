@@ -738,7 +738,7 @@ SETTING_ENUM(BasedTicks,        nullptr,        BasedSeparatorCommand)
 SETTING_ENUM(BasedUnderscore,   nullptr,        BasedSeparatorCommand)
 SETTING_BITS(BasedSeparatorCommand,  2, ID_BasedSpaces,  ID_BasedUnderscore,  ID_BasedSpaces)
 
-SETTING(WordSize,               1U, 256U * 1024U,       512U)
+SETTING(WordSize,               1U, 256U * 1024U,       64U)
 ALIAS(WordSize,                 "stws")
 OP(RecallWordSize,              "rcws")
 SETTING(MaxNumberBits,          1U, 256U * 1024U,      4096U)

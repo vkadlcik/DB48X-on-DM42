@@ -172,7 +172,7 @@ void tests::current()
 // ----------------------------------------------------------------------------
 {
     BEGIN(current);
-    editor_operations();
+    tagged_objects();
 }
 
 
@@ -2922,6 +2922,27 @@ void tests::tagged_objects()
     step("DeleteTag");
     test(CLEAR, ":Hello:123 DeleteTag", ENTER)
         .expect("123");
+
+    step("Tagged unit")
+        .test(CLEAR, ":ABC:1_kg", ENTER)
+        .expect("ABC :1 kg");
+    step("Tagged unit (without space)")
+        .test(CLEAR, SHIFT, ENTER, KEY0,
+              A, B, C, SHIFT, ENTER, SHIFT, ENTER, DOWN,
+              KEY1, SHIFT, KEY5, F1,
+              SHIFT, ENTER, SHIFT, ENTER, K, G,
+              ENTER)
+        .expect("ABC:1 kg");
+    step("Tagged complex (without space)")
+        .test(CLEAR, SHIFT, ENTER, KEY0,
+              A, B, C, SHIFT, ENTER, SHIFT, ENTER, DOWN,
+              KEY1, SHIFT, G, F1, KEY2, KEY3,
+              ENTER)
+        .expect("ABC:1+23ⅈ")
+        .test(SHIFT, SHIFT, N, SHIFT, SHIFT, F2) // TAG->
+        .expect("\"ABC\"")
+        .test(BSP)
+        .expect("1+23ⅈ");
 }
 
 
@@ -3877,7 +3898,7 @@ tests &tests::itest(cstring txt)
         case '!': k = ADD;          alpha = true; xshift = true; break;
         case '_': k = SUB;          alpha = true;  break;
         case '%': k = RCL;          alpha = true;  shift = true; break;
-        case ':': k = KEY0;         alpha = true;  del   = true; break;
+        case ':': k = KEY0;         alpha = true;  bsp   = true; break;
         case ';': k = KEY0;         alpha = true; xshift = true;  break;
         case '<': k = SIN;          alpha = true;  shift = true;  break;
         case '=': k = COS;          alpha = true;  shift = true;  break;

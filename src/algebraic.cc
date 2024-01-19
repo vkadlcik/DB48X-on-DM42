@@ -41,6 +41,7 @@
 #include "renderer.h"
 #include "runtime.h"
 #include "settings.h"
+#include "tag.h"
 #include "unit.h"
 #include "user_interface.h"
 
@@ -462,8 +463,13 @@ algebraic_p algebraic::evaluate() const
     }
 
     if (object_p obj = rt.pop())
+    {
+        if (tag_p tagged = obj->as<tag>())
+            obj = tagged->tagged_object();
         if (obj->is_algebraic())
             return algebraic_p(obj);
+    }
+
     rt.type_error();
     return nullptr;
 }

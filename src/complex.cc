@@ -539,7 +539,7 @@ PARSE_BODY(complex)
         }
 
         // Check if we found characters that we don't expect in a complex
-        else if (cp == '"' || cp == '{' || cp == '[' || cp == L'«')
+        else if (cp == '"' || cp == '{' || cp == '[' || cp == L'«' || cp == ':')
         {
             return SKIP;
         }

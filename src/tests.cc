@@ -338,8 +338,14 @@ void tests::keyboard_entry()
         .test(KEY0).editor("'1=2+3× (exp(0))'");
     step("Space key in parentheses insert semi-colon")
         .test(SPACE).editor("'1=2+3× (exp(0;))'")
-        .test(KEY7).editor("'1=2+3× (exp(0;7))'")
-        .test(CLEAR);
+        .test(KEY7).editor("'1=2+3× (exp(0;7))'");
+
+    step("STO key while entering equation (bug #390)")
+        .test(CLEAR, EXIT, KEY1, KEY2, F,
+              SHIFT, ENTER, A, B, C, SHIFT, ENTER, SHIFT, ENTER,
+              G).noerr()
+        .test(F, SHIFT, ENTER, A, B, C, ENTER, SPACE).expect("12")
+        .test("'ABC'", ENTER, SHIFT, SHIFT, G, F6).noerr();
 }
 
 

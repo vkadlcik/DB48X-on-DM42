@@ -97,6 +97,7 @@ TESTS(rewrites,         "Equation rewrite engine");
 TESTS(expand,           "Expand");
 TESTS(tagged,           "Tagged objects");
 TESTS(catalog,          "Catalog of commands");
+TESTS(cycle,            "Cycle command for quick conversions");
 TESTS(regressions,      "Regression checks");
 TESTS(plotting,         "Plotting, graphing and charting");
 TESTS(graphics,         "Graphic commands");
@@ -124,7 +125,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        catalog_test();
+        cycle_test();
     }
     else
     {
@@ -151,6 +152,7 @@ void tests::run(bool onlyCurrent)
         expand_collect_simplify();
         tagged_objects();
         catalog_test();
+        cycle_test();
         plotting();
         plotting_all_functions();
         graphic_commands();
@@ -2992,6 +2994,89 @@ void tests::catalog_test()
     step("Test catalog as a menu")
         .test(SHIFT, ADD, F1).editor("{ Help x! }")
         .test(ENTER).expect("{ Help x! }");
+}
+
+
+void tests::cycle_test()
+// ----------------------------------------------------------------------------
+//   Test the Cycle feature
+// ----------------------------------------------------------------------------
+{
+    BEGIN(cycle);
+
+    step("Using the EEX key to enter powers of 10")
+        .test(CLEAR, KEY1, O, KEY3, KEY2).editor("1⁳32")
+        .test(ENTER).expect("1.⁳³²");
+    step("Convert decimal to integer")
+        .test(O).expect("100 000 000 000 000 000 000 000 000 000 000");
+    step("Convert integer to decimal")
+        .test(ENTER, KEY2, KEY0, KEY0, DIV, SUB)
+        .test(O).expect("9.95⁳³¹");
+    step("Convert decimal to fraction")
+        .test(CLEAR, KEY1, DOT, KEY2, ENTER).expect("1.2")
+        .test(O).expect("⁶/₅");
+    step("Convert fraction to decimal")
+        .test(B).expect("⁵/₆")
+        .test(O).expect("8.33333 33333 3⁳⁻¹");
+    step("Convert decimal to fraction with rounding")
+        .test(O).expect("⁵/₆");
+    step("Convert decimal to fraction with multiple digits")
+        .test(CLEAR, "1.325", ENTER, O).expect("⁵³/₄₀");
+    step("Convert rectangular to polar")
+        .test(CLEAR, "DEG", ENTER,
+              "10", SHIFT, G, F1, "10", ENTER).expect("10+10ⅈ")
+        .test(O).expect("14.14213 56237∡45°");
+    step("Convert polar to rectangular")
+        .test(O).expect("10.+10.ⅈ");
+    step("Convert based integer bases")
+        .test(CLEAR, "#123", ENTER).expect("#123₁₆")
+        .test(O).expect("#123₁₆")
+        .test(O).expect("#291₁₀")
+        .test(O).expect("#443₈")
+        .test(O).expect("#1 0010 0011₂")
+        .test(O).expect("#123₁₆")
+        .test(O).expect("#123₁₆");
+    step("Convert list to array")
+        .test(CLEAR, "{ 1 2 3 }", ENTER).expect("{ 1 2 3 }")
+        .test(O).expect("[ 1 2 3 ]");
+    step("Convert array to program")
+        .test(O).expect("« 1 2 3 »");
+    step("Convert program to list")
+        .test(O).expect("{ 1 2 3 }");
+    step("Delete tag")
+        .test(CLEAR, ":ABC:1.25", ENTER).expect("ABC :1.25")
+        .test(O).expect("1.25");
+    step("Cycle unit orders of magnitude up (as fractions)")
+        .test(CLEAR, "1_kN", ENTER).expect("1 kN")
+        .test(O).expect("¹/₁ ₀₀₀ MN")
+        .test(O).expect("¹/₁ ₀₀₀ ₀₀₀ GN");
+    step("Cycle unit orders of magnitude down (as decimal)")
+        .test(O).expect("0.00000 1 GN")
+        .test(O).expect("0.001 MN")
+        .test(O).expect("1. kN")
+        .test(O).expect("10. hN")
+        .test(O).expect("100. daN")
+        .test(O).expect("1 000. N")
+        .test(O).expect("10 000. dN")
+        .test(O).expect("100 000. cN")
+        .test(O).expect("1 000 000. mN")
+        .test(O).expect("1.⁳⁹ µN");
+    step("Cycle unit orders of magnitude up (as integers)")
+        .test(O).expect("1 000 000 000 µN")
+        .test(O).expect("1 000 000 mN")
+        .test(O).expect("100 000 cN")
+        .test(O).expect("10 000 dN")
+        .test(O).expect("1 000 N")
+        .test(O).expect("100 daN")
+        .test(O).expect("10 hN")
+        .test(O).expect("1 kN");
+    step("Cycle unit orders of magnitude up (as fractions)")
+        .test(O).expect("¹/₁ ₀₀₀ MN")
+        .test(O).expect("¹/₁ ₀₀₀ ₀₀₀ GN");
+    step("Cycle unit orders of magnitude up (back to decimal)")
+        .test(O).expect("0.00000 1 GN")
+        .test(O).expect("0.001 MN")
+        .test(O).expect("1. kN");
 }
 
 

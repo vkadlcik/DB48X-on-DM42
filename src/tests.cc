@@ -979,7 +979,7 @@ void tests::global_variables()
     test(CLEAR, "'equation' RCL", ENTER).expect("'X+Y'");
     test(CLEAR, "'Equation' PURGE", ENTER).noerr();
 
-    step("Store and recall to StatsData");
+    step("Store and recall to ΣData");
     test(CLEAR, "[1 2 3] 'ΣData' STO", ENTER).noerr();
     test(CLEAR, "'ΣDat' RCL", ENTER).expect("[ 1 2 3 ]");
     test(CLEAR, "'StatsData' RCL", ENTER).expect("[ 1 2 3 ]");
@@ -3901,7 +3901,10 @@ tests &tests::istep(cstring name)
         if (!ok)
             show(failures.back());
     }
-    fprintf(stderr, "%3u:  %03u: %-60s", tindex, sindex, sname);
+    cstring blk = "                                                            ";
+    size_t  off = utf8_length(utf8(sname));
+    cstring pad = blk + off;
+    fprintf(stderr, "%3u:  %03u: %s%s", tindex, sindex, sname, pad);
     cindex = 0;
     count++;
     ok          = true;

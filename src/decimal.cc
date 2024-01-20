@@ -70,6 +70,42 @@ HELP_BODY(decimal)
 }
 
 
+static void normalize(decimal::kint *&rb, size_t &rs, large &re)
+// ----------------------------------------------------------------------------
+//   Normalize a result to have no leading or trailing zero
+// ----------------------------------------------------------------------------
+{
+    // Strip leading zeroes three by three
+    while (rs && *rb == 0)
+    {
+        re -= 3;
+        rb++;
+        rs--;
+    }
+
+    // Strip up to two individual leading zeroes
+    if (rs && *rb < 100)
+    {
+        re -= 1 + (*rb < 10);
+        uint hmul = *rb < 10 ? 100 : 10;
+        uint lmul = 1000 / hmul;
+        for (size_t ko = 0; ko < rs; ko++)
+        {
+            decimal::kint next = ko + 1 < rs ? rb[ko + 1] : 0;
+            rb[ko] = (rb[ko] * hmul + next / lmul) % 1000;
+        }
+    }
+
+    // Strip trailing zeroes
+    while (rs && rb[rs-1] == 0)
+        rs--;
+
+    // If result is zero, set exponent to 0
+    if (!rs)
+        re = 0;
+}
+
+
 PARSE_BODY(decimal)
 // ----------------------------------------------------------------------------
 //    Try to parse this as an decimal
@@ -181,9 +217,14 @@ PARSE_BODY(decimal)
         exponent += expval;
     }
 
+    // Normalize the parsed value (#762)
+    kint *rb = (kint *) scr.scratch();
+    size_t rs = scr.growth() / sizeof(kint);
+    normalize(rb, rs, exponent);
+
     // Success: build the resulting number
-    gcp<kint> kigits     = (const kint *) scr.scratch();
-    size_t    nkigs      = scr.growth() / sizeof(kint);
+    gcp<kint> kigits = rb;
+    size_t    nkigs  = rs;
     p.end = +s - +source;
     p.out = rt.make<decimal>(type, exponent, nkigs, kigits);
 
@@ -827,42 +868,6 @@ bool decimal::is_magnitude_less_than(uint kig, large exponent) const
         return exp < exponent;
 
     return nkigits == 0 || kigit(bp, 0) <= kig;
-}
-
-
-static void normalize(decimal::kint *&rb, size_t &rs, large &re)
-// ----------------------------------------------------------------------------
-//   Normalize a result to have no leading or trailing zero
-// ----------------------------------------------------------------------------
-{
-    // Strip leading zeroes three by three
-    while (rs && *rb == 0)
-    {
-        re -= 3;
-        rb++;
-        rs--;
-    }
-
-    // Strip up to two individual leading zeroes
-    if (rs && *rb < 100)
-    {
-        re -= 1 + (*rb < 10);
-        uint hmul = *rb < 10 ? 100 : 10;
-        uint lmul = 1000 / hmul;
-        for (size_t ko = 0; ko < rs; ko++)
-        {
-            decimal::kint next = ko + 1 < rs ? rb[ko + 1] : 0;
-            rb[ko] = (rb[ko] * hmul + next / lmul) % 1000;
-        }
-    }
-
-    // Strip trailing zeroes
-    while (rs && rb[rs-1] == 0)
-        rs--;
-
-    // If result is zero, set exponent to 0
-    if (!rs)
-        re = 0;
 }
 
 

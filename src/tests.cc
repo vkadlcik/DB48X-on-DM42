@@ -900,6 +900,10 @@ void tests::arithmetic()
            "₉₇₆ ₁₅₆ ₅₁₈ ₂₈₆ ₂₅₃ ₆₉₇ ₉₂₀ ₈₂₇ ₂₂₃ ₇₅₈ ₂₅₁ ₁₈₅ ₂₁₀ ₉₁₆ ₈₆₄ "
            "₀₀₀ ₀₀₀ ₀₀₀ ₀₀₀ ₀₀₀ ₀₀₀ ₀₀₀ ₀₀₀");
 
+    step("Computation of 2^256 (bug #460)")
+        .test(CLEAR, 2, ENTER, 256, SHIFT, B)
+        .expect("115 792 089 237 316 195 423 570 985 008 687 907 853 269 984 "
+                "665 640 564 039 457 584 007 913 129 639 936");
     step("Sign of modulo and remainder");
     test(CLEAR, " 7  3 MOD", ENTER).expect(1);
     test(CLEAR, " 7 -3 MOD", ENTER).expect(1);

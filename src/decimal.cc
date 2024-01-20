@@ -360,12 +360,15 @@ RENDER_BODY(decimal)
                     if (minfix < 0)
                     {
                         if (shown < 0)
+                        {
+                            nkigits = 0;
                             realexp = -digits;
+                        }
                     }
                     else
                     {
-                        if (minfix > mexp + 1)
-                            minfix = mexp + 1;
+                        if (minfix > mexp)
+                            minfix = mexp;
                         hasexp = shown < minfix;
                     }
                 }

@@ -1820,8 +1820,48 @@ void tests::decimal_display_formats()
     test(CLEAR, "0.00000000001999999", ENTER).expect("1.99999 9⁳⁻¹¹")
         .test(CHS).expect("-1.99999 9⁳⁻¹¹");
 
+    step("FIX 4 in HP48-compatible mode")
+        .test(CLEAR, "4", SHIFT, O, F2).noerr()
+        .test("0.635", ENTER).expect("0.6350")
+        .test("10", DIV).expect("0.0635")
+        .test("10", DIV).expect("0.0064")
+        .test("10", DIV).expect("0.0006")
+        .test("10", DIV).expect("0.0001")
+        .test("10", DIV).expect("6.3500⁳⁻⁶")
+        .test("10", DIV).expect("6.3500⁳⁻⁷");
+
+    step("FIX 4 showing 2 significant digits")
+        .test(CLEAR, "2", SHIFT, F5).noerr()
+        .test("0.635", ENTER).expect("0.6350")
+        .test("10", DIV).expect("0.0635")
+        .test("10", DIV).expect("0.0064")
+        .test("10", DIV).expect("6.3500⁳⁻⁴")
+        .test("10", DIV).expect("6.3500⁳⁻⁵")
+        .test("10", DIV).expect("6.3500⁳⁻⁶")
+        .test("10", DIV).expect("6.3500⁳⁻⁷");
+
+    step("FIX 4 showing 12 significant digits")
+        .test(CLEAR, "12", SHIFT, F5).noerr()
+        .test("0.635", ENTER).expect("0.6350")
+        .test("10", DIV).expect("0.0635")
+        .test("10", DIV).expect("6.3500⁳⁻³")
+        .test("10", DIV).expect("6.3500⁳⁻⁴")
+        .test("10", DIV).expect("6.3500⁳⁻⁵")
+        .test("10", DIV).expect("6.3500⁳⁻⁶")
+        .test("10", DIV).expect("6.3500⁳⁻⁷");
+
+    step("FIX 4 in old HP style (showing 0.0000)")
+        .test(CLEAR, "-1", SHIFT, F5).noerr()
+        .test("0.635", ENTER).expect("0.6350")
+        .test("10", DIV).expect("0.0635")
+        .test("10", DIV).expect("0.0064")
+        .test("10", DIV).expect("0.0006")
+        .test("10", DIV).expect("0.0001")
+        .test("10", DIV).expect("0.0000")
+        .test("10", DIV).expect("0.0000");
+
     step("Reset defaults");
-    test(CLEAR, "Std", ENTER).noerr();
+    test(CLEAR, SHIFT, O, F1, KEY0, SHIFT, F5).noerr();
 
     step("Test display of 5000.");
     test(CLEAR, "5000.", ENTER)        .expect("5 000.");

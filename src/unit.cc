@@ -951,7 +951,10 @@ bool unit::convert(unit_g &x) const
         }
 
         algebraic_g v = x->value();
-        v = v * o;
+        {
+            settings::SaveAutoSimplify sas(false);
+            v = v * o;
+        }
         x = unit_p(unit::simple(v, svu)); // Wrong cast, but OK above
         return true;
     }

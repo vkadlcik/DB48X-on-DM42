@@ -1036,42 +1036,55 @@ void tests::global_variables()
         .error("Undefined name")
         .clear();
 
-    step("Go to top-level");
-    test(CLEAR, "Home", ENTER).noerr();
-    step("Clear 'DirTest'");
-    test(CLEAR, "'DirTest' pgdir", ENTER);
-    step("Create directory");
-    test(CLEAR, "'DirTest' crdir", ENTER).noerr();
-    step("Enter directory");
-    test(CLEAR, "DirTest", ENTER).noerr();
-    step("Path function");
-    test(CLEAR, "PATH", ENTER).expect("{ HomeDirectory DirTest }");
-    step("Updir function");
-    test(CLEAR, "UpDir path", ENTER).expect("{ HomeDirectory }");
-    step("Enter directory again");
-    test(CLEAR, "DirTest path", ENTER).expect("{ HomeDirectory DirTest }");
-    step("Current directory content");
-    test(CLEAR, "CurrentDirectory", ENTER).want("Directory { }");
-    step("Store in subdirectory");
-    test(CLEAR, "242 'Foo' STO", ENTER).noerr();
-    step("Recall from subdirectory");
-    test(CLEAR, "Foo", ENTER).expect("242");
-    step("Recursive directory");
-    test(CLEAR, "'DirTest2' crdir", ENTER).noerr();
-    step("Entering sub-subdirectory");
-    test(CLEAR, "DirTest2", ENTER).noerr();
-    step("Path in sub-subdirectory");
-    test(CLEAR, "path", ENTER).expect("{ HomeDirectory DirTest DirTest2 }");
-    step("Find variable from level above");
-    test(CLEAR, "Foo", ENTER).expect("242");
-    step("Create local variable");
-    test(CLEAR, "\"Hello\" 'Foo' sto", ENTER).noerr();
-    step("Local variable hides variable above");
-    test(CLEAR, "Foo", ENTER).expect("\"Hello\"");
-    step("Updir shows shadowed variable again");
-    test(CLEAR, "Updir Foo", ENTER).expect("242");
-    step("Two independent variables with the same name");
-    test(CLEAR, "DirTest2 Foo", ENTER).expect("\"Hello\"");
+    step("Go to top-level")
+        .test(CLEAR, "Home", ENTER).noerr();
+    step("Clear 'DirTest'")
+        .test(CLEAR, "'DirTest' pgdir", ENTER);
+    step("Create directory")
+        .test(CLEAR, "'DirTest' crdir", ENTER).noerr();
+    step("Enter directory")
+        .test(CLEAR, "DirTest", ENTER).noerr();
+    step("Path function")
+        .test(CLEAR, "PATH", ENTER).expect("{ HomeDirectory DirTest }");
+    step("Updir function")
+        .test(CLEAR, "UpDir path", ENTER).expect("{ HomeDirectory }");
+    step("Enter directory again")
+        .test(CLEAR, "DirTest path", ENTER).expect("{ HomeDirectory DirTest }");
+    step("Current directory content")
+        .test(CLEAR, "CurrentDirectory", ENTER).want("Directory { }");
+    step("Store in subdirectory")
+        .test(CLEAR, "242 'Foo' STO", ENTER).noerr();
+    step("Recall from subdirectory")
+        .test(CLEAR, "Foo", ENTER).expect("242");
+    step("Recursive directory")
+        .test(CLEAR, "'DirTest2' crdir", ENTER).noerr();
+    step("Entering sub-subdirectory")
+        .test(CLEAR, "DirTest2", ENTER).noerr();
+    step("Path in sub-subdirectory")
+        .test(CLEAR, "path", ENTER).expect("{ HomeDirectory DirTest DirTest2 }");
+    step("Find variable from level above")
+        .test(CLEAR, "Foo", ENTER).expect("242");
+    step("Create local variable")
+        .test(CLEAR, "\"Hello\" 'Foo' sto", ENTER).noerr();
+    step("Local variable hides variable above")
+        .test(CLEAR, "Foo", ENTER).expect("\"Hello\"");
+    step("Updir shows shadowed variable again")
+        .test(CLEAR, "Updir Foo", ENTER).expect("242");
+    step("Two independent variables with the same name")
+        .test(CLEAR, "DirTest2 Foo", ENTER).expect("\"Hello\"");
+
+    step("Save to file as text")
+        .test(CLEAR, "1.42 \"Hello.txt\"", NOSHIFT, G).noerr();
+    step("Restore from file as text")
+        .test(CLEAR, "\"Hello.txt\" RCL", ENTER).noerr().expect("\"1.42\"");
+    step("Save to file as source")
+        .test(CLEAR, "1.42 \"Hello.48s\"", NOSHIFT, G).noerr();
+    step("Restore from file as source")
+        .test(CLEAR, "\"Hello.48s\" RCL", ENTER).noerr().expect("1.42");
+    step("Save to file as binary")
+        .test(CLEAR, "1.42 \"Hello.48b\"", NOSHIFT, G).noerr();
+    step("Restore from file as text")
+        .test(CLEAR, "\"Hello.48b\" RCL", ENTER).noerr().expect("1.42");
 }
 
 

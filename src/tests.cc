@@ -358,6 +358,11 @@ void tests::keyboard_entry()
               ALPHA, A, B, C, NOSHIFT, G).noerr()
         .test(F, ALPHA, A, B, C, ENTER, SPACE).expect("12")
         .test("'ABC'", ENTER, SHIFT, SHIFT, G, F6).noerr();
+
+    step("Inserting a colon in text editor inserts tag delimiters")
+        .test(CLEAR, ALPHA, KEY0).editor("::");
+    step("Inserting a colon in text inserts a single colon")
+        .test(CLEAR, SHIFT, SHIFT, ENTER, KEY0).editor("\":\"");
 }
 
 

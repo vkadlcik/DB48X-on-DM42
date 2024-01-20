@@ -80,6 +80,7 @@ TESTS(conditionals,     "Conditionals");
 TESTS(logical,          "Logical operations");
 TESTS(styles,           "Commands display formats");
 TESTS(iformat,          "Integer display formats");
+TESTS(fformat,          "Fraction display formats");
 TESTS(dformat,          "Decimal display formats");
 TESTS(ifunctions,       "Integer functions");
 TESTS(dfunctions,       "Decimal functions");
@@ -126,7 +127,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        solver_testing();
+        fraction_display_formats();
     }
     else
     {
@@ -143,6 +144,7 @@ void tests::run(bool onlyCurrent)
         logical_operations();
         command_display_formats();
         integer_display_formats();
+        fraction_display_formats();
         decimal_display_formats();
         integer_numerical_functions();
         decimal_numerical_functions();
@@ -1552,6 +1554,51 @@ void tests::integer_display_formats()
     test("BasedSpaces", ENTER)
         .expect("#12 34AB CDEF₁₆");
 }
+
+
+void tests::fraction_display_formats()
+// ----------------------------------------------------------------------------
+//   Check the various display formats for fraction values
+// ----------------------------------------------------------------------------
+{
+    BEGIN(fformat);
+
+    step("Default format for small fractions (1/3)")
+        .test(CLEAR, 1, ENTER, 3, DIV)
+        .type(object::ID_fraction).expect("¹/₃");
+    step("Big fraction format")
+        .test("BigFractions", ENTER).expect("1/3");
+    step("Mixed big fraction")
+        .test("MixedFractions", ENTER).expect("1/3");
+    step("Small fractions")
+        .test("SmallFractions", ENTER).expect("¹/₃");
+    step("Improper fractions")
+        .test("ImproperFractions", ENTER).expect("¹/₃");
+
+    step("Default format for medium fractions (355/113)")
+        .test(CLEAR, 355, ENTER, 113, DIV)
+        .type(object::ID_fraction).expect("³⁵⁵/₁₁₃");
+    step("Big fraction format")
+        .test("BigFractions", ENTER).expect("355/113");
+    step("Mixed big fraction")
+        .test("MixedFractions", ENTER).expect("3 16/113");
+    step("Small fractions")
+        .test("SmallFractions", ENTER).expect("3 ¹⁶/₁₁₃");
+    step("Improper fractions")
+        .test("ImproperFractions", ENTER).expect("³⁵⁵/₁₁₃");
+
+    step("Default format for large fractions (1000000000/99999999)")
+        .test(CLEAR, 1000000000, ENTER, 99999999, DIV)
+        .type(object::ID_fraction).expect("¹ ⁰⁰⁰ ⁰⁰⁰ ⁰⁰⁰/₉₉ ₉₉₉ ₉₉₉");
+    step("Big fraction format")
+        .test("BigFractions", ENTER).expect("1 000 000 000/99 999 999");
+    step("Mixed big fraction")
+        .test("MixedFractions", ENTER).expect("10 10/99 999 999");
+    step("Small fractions")
+        .test("SmallFractions", ENTER).expect("10 ¹⁰/₉₉ ₉₉₉ ₉₉₉");
+    step("Improper fractions")
+        .test("ImproperFractions", ENTER).expect("¹ ⁰⁰⁰ ⁰⁰⁰ ⁰⁰⁰/₉₉ ₉₉₉ ₉₉₉");
+    }
 
 
 void tests::decimal_display_formats()

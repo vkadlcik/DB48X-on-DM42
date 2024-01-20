@@ -65,6 +65,7 @@ struct tests
     void logical_operations();
     void command_display_formats();
     void integer_display_formats();
+    void fraction_display_formats();
     void decimal_display_formats();
     void integer_numerical_functions();
     void decimal_numerical_functions();

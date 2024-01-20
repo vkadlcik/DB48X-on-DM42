@@ -416,7 +416,7 @@ text_p files::recall_text(text_p name) const
     }
 
     // End of file: execute the command we typed
-    return rt.close_editor(true);
+    return rt.close_editor(true, false);
 }
 
 

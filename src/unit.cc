@@ -159,9 +159,8 @@ static size_t render_dms(renderer &r, algebraic_g x,
     value = value * fp;
     if (value->exponent() < 2)
         r.put('0');
-    save<settings> save(Settings, Settings);
-    Settings.NoTrailingDecimal(true);
-    Settings.StandardExponent(999);
+    settings::SaveNoTrailingDecimal saveNTD(true);
+    settings::SaveStandardExponent  saveSE(999);
     value->render(r);
     r.put(sec);
 
@@ -926,10 +925,10 @@ bool unit::convert(unit_g &x) const
             return false;
 
         // Compute conversion factor
-        bool as = Settings.AutoSimplify();
-        Settings.AutoSimplify(true);
-        o = o / u;
-        Settings.AutoSimplify(as);
+        {
+            settings::SaveAutoSimplify sas(true);
+            o = o / u;
+        }
 
         // Check if this is a unit and if so, make sure the unit is 1
         while (unit_p cf = o->as<unit>())

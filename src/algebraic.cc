@@ -376,10 +376,8 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
         if (!unit::mode)
         {
             expression_p eq = expression_p(+x);
-            bool save = Settings.NumericalResults();
-            Settings.NumericalResults(true);
+            settings::SaveNumericalResults save(true);
             result r = eq->run();
-            Settings.NumericalResults(save);
             if (r == OK)
                 if (object_p obj = rt.pop())
                     if (algebraic_p alg = obj->as_algebraic())

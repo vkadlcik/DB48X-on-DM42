@@ -200,10 +200,46 @@ public:
 
     static bool     flag(object::id name, bool value);
     static bool     flag(object::id name, bool *value);
+
+
+    // Utility classes to save the individual settings
+#define ID(id)
+#define FLAG(Enable,Disable)                    \
+    SETTING(Enable,  false, true, false)        \
+    SETTING(Disable, false, true, true)
+#define SETTING(Name, Low, High, Init)                          \
+    struct Save##Name                                           \
+    {                                                           \
+        Save##Name(typeof(Init) value);                         \
+        ~Save##Name();                                          \
+        typeof(Init) saved;                                     \
+    };
+#define SETTING_BITS(Name, Bits, Low, High, Init)       \
+    SETTING(Name, Low, High, Init)
+#include "ids.tbl"
 };
 
 
 extern settings Settings;
+
+// Utility class to save the individual settings
+#define ID(id)
+#define FLAG(Enable,Disable)                    \
+    SETTING(Enable,  false, true, false)        \
+    SETTING(Disable, false, true, true)
+#define SETTING(Name, Low, High, Init)                          \
+    inline settings::Save##Name::Save##Name(typeof(Init) value) \
+        : saved(Settings.Name())                                \
+    {                                                           \
+        Settings.Name(value);                                   \
+    }                                                           \
+    inline settings::Save##Name::~Save##Name()                  \
+    {                                                           \
+        Settings.Name(saved);                                   \
+    }
+#define SETTING_BITS(Name, Bits, Low, High, Init) SETTING(Name, Low, High, Init)
+#include "ids.tbl"
+
 
 template<typename T>
 T setting_value(object_p obj, T init)

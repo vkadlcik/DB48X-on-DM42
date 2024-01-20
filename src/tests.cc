@@ -2907,6 +2907,9 @@ void tests::auto_simplification()
     step("0.0 == 0 (but preserves types)");
     test(CLEAR, "0.0000 X * ", ENTER).expect("0.");
 
+    step("i*i == -1");
+    test(CLEAR, "ⅈ", ENTER, ENTER, MUL).expect("-1");
+
     step("Applies when building a matrix");
     test(CLEAR, "[[3 0 2][2 0 -2][ 0 1 1 ]] [x y z] *", ENTER)
         .expect("[ '3×x+2×z' '2×x+-2×z' 'y+z' ]");

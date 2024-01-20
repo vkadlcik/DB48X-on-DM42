@@ -33,6 +33,7 @@
 #include "recorder.h"
 #include "settings.h"
 #include "stack.h"
+#include "types.h"
 #include "user_interface.h"
 
 #include <regex.h>
@@ -89,6 +90,7 @@ TESTS(dfrac,            "Simple conversion to decimal and back");
 TESTS(ctypes,           "Complex types");
 TESTS(carith,           "Complex arithmetic");
 TESTS(cfunctions,       "Complex functions");
+TESTS(units,            "Units and conversions");
 TESTS(lists,            "List operations");
 TESTS(text,             "Text operations");
 TESTS(vectors,          "Vectors");
@@ -128,7 +130,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        fraction_display_formats();
+        units_and_conversions();
     }
     else
     {
@@ -154,6 +156,7 @@ void tests::run(bool onlyCurrent)
         complex_types();
         complex_arithmetic();
         complex_functions();
+        units_and_conversions();
         list_functions();
         vector_functions();
         matrix_functions();
@@ -2488,6 +2491,103 @@ void tests::complex_functions()
     test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerr();
 }
 
+
+void tests::units_and_conversions()
+// ----------------------------------------------------------------------------
+//   Unit types and data conversions
+// ----------------------------------------------------------------------------
+{
+    BEGIN(units);
+
+    step("Entering unit from command-line")
+        .test(CLEAR, "1_kg", ENTER)
+        .type(object::ID_unit)
+        .expect("1 kg");
+    step("Unit symbol from unit menu")
+        .test(CLEAR, SHIFT, KEY5, KEY1, F1, LOWERCASE, M, S, ENTER)
+        .type(object::ID_unit)
+        .expect("1 ms");
+    step("Unit symbol division from unit menu")
+        .test(CLEAR, SHIFT, KEY5, KEY1, F1, LOWERCASE, M, SHIFT, DIV, S, ENTER)
+        .type(object::ID_unit)
+        .expect("1 m/s");
+    step("Unit symbol multiplication from unit menu")
+        .test(CLEAR, SHIFT, KEY5, KEY1, F1, LOWERCASE, M, SHIFT, MUL, S, ENTER)
+        .type(object::ID_unit)
+        .expect("1 m·s");
+    step("Insert unit with soft key")
+        .test(CLEAR, SHIFT, KEY5, KEY1, F2, F1)
+        .type(object::ID_unit)
+        .expect("1 in");
+    step("Convert integer unit with soft key")
+        .test(SHIFT, F2)
+        .type(object::ID_unit)
+        .expect("¹²⁷/₅ mm");
+    step("Convert decimal unit with soft key")
+        .test(CLEAR, KEY2, DOT, F1, SHIFT, F2)
+        .type(object::ID_unit)
+        .expect("50.8 mm");
+    step("Do not apply simplifications for unit conversions")
+        .test(CLEAR, KEY1, DOT, F1, SHIFT, F2)
+        .type(object::ID_unit)
+        .expect("25.4 mm");
+    step("Multiply by unit using softkey")
+        .test(CLEAR, SHIFT, KEY5, KEY1, F2, F1, F2)
+        .type(object::ID_unit)
+        .expect("1 in·mm");
+    step("Divide by unit using softkey")
+        .test(CLEAR, SHIFT, KEY5, KEY1, F2, F1, SHIFT, SHIFT, F2)
+        .type(object::ID_unit)
+        .expect("1 in/mm");
+    step("Conversion across compound units")
+        .test(CLEAR, SHIFT, KEY5, KEY1, F2, F3)
+        .type(object::ID_unit).expect("1 km/h")
+        .test(SHIFT, F4).type(object::ID_unit).expect("¹⁵ ⁶²⁵/₂₅ ₁₄₆ mph")
+        .test(SHIFT, F3).type(object::ID_unit).expect("1 km/h");
+    step("Conversion to base units")
+        .test(ENTER, SHIFT, SHIFT, KEY5, F2)
+        .type(object::ID_unit).expect("⁵/₁₈ m/s");
+    step("Extract value from unit object")
+        .test(ENTER, F3)
+        .expect("⁵/₁₈");
+    step("Split unit object")
+        .test(BSP, SHIFT, SHIFT, N, F5).expect("'m÷s'")
+        .test(BSP).expect("⁵/₁₈");
+    step("Convert operation")
+        .test(CLEAR, KEY1, SHIFT, KEY5, F2, F3)
+        .type(object::ID_unit).expect("1 km/h")
+        .test(KEY1, F1, SHIFT, KEY5, SHIFT, F1, SHIFT, SHIFT, F2)
+        .type(object::ID_unit).expect("1 in/min")
+        .test(SHIFT, SHIFT, KEY5, F1) // Convert
+        .type(object::ID_unit).expect("²⁵⁰ ⁰⁰⁰/₃₈₁ in/min");
+    step("Convert to unit")
+        .test(CLEAR, KEY3, KEY7, ENTER).expect("37")
+        .test(SHIFT, KEY5, KEY4, KEY2, F2, F3).expect("42 km/h")
+        .test(SHIFT, SHIFT, KEY5, F5).expect("37 km/h");
+    step("Factoring out a unit")
+        .test(CLEAR, KEY3, SHIFT, KEY5, SHIFT, F6, F2).expect("3 kW")
+        .test(KEY1, SHIFT, KEY5, SHIFT, F4, F1).expect("1 N")
+        .test(SHIFT, SHIFT, KEY5, F4).expect("3 000 N·m/s");
+    step("Orders of magnitude")
+        .test(CLEAR, KEY3, SHIFT, KEY5, SHIFT, F6, F2).expect("3 kW")
+        .test(SHIFT, SHIFT, KEY5, SHIFT, F2).expect("300 000 cW")
+        .test(SHIFT, F3).expect("3 kW")
+        .test(SHIFT, F4).expect("³/₁ ₀₀₀ MW");
+    step("Unit simplification (same unit)")
+        .test(CLEAR, KEY3, SHIFT, KEY5, SHIFT, F6, F2).expect("3 kW")
+        .test(SHIFT, KEY5, SHIFT, F4, F1).expect("3 kW·N")
+        .test(SHIFT, KEY5, SHIFT, F6, SHIFT, SHIFT, F2).expect("3 N");
+    step("Arithmetic on units")
+        .test(CLEAR, KEY3, KEY7, SHIFT, KEY5, F2, F4).expect("37 mph")
+        .test(SHIFT, KEY5, KEY4, KEY2, F2, F3).expect("42 km/h")
+        .test(ADD).expect("¹ ⁵⁸⁶ ⁶⁵²/₁₅ ₆₂₅ km/h");
+    step("Arithmetic on units (decimal)")
+        .test(CLEAR, KEY3, KEY7, DOT, SHIFT, KEY5, F2, F4).expect("37. mph")
+        .test(SHIFT, KEY5, KEY4, KEY2, F2, F3).expect("42 km/h")
+        .test(ADD).expect("101.54572 8 km/h");
+    step("Unit parsing on command line")
+        .test(CLEAR, "12_km/s^2", ENTER).expect("12 km/s↑2");
+}
 
 void tests::list_functions()
 // ----------------------------------------------------------------------------

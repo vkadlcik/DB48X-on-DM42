@@ -74,6 +74,7 @@ struct tests
     void complex_types();
     void complex_arithmetic();
     void complex_functions();
+    void units_and_conversions();
     void list_functions();
     void vector_functions();
     void matrix_functions();

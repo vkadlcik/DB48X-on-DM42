@@ -347,14 +347,14 @@ void tests::keyboard_entry()
         .test(ADD).editor("'1=2+'")
         .test(KEY3).editor("'1=2+3'");
     step("F key in equation inserts parentheses")
-        .test(MUL).editor("'1=2+3×'")
-        .test(F).editor("'1=2+3× ()'");
+        .test(MUL).editor("'1=2+3·()'")
+        .test(F).editor("'1=2+3·( ())'");
     step("Automatic insertion of parentheses after functions")
-        .test(D).editor("'1=2+3× (exp())'")
-        .test(KEY0).editor("'1=2+3× (exp(0))'");
+        .test(D).editor("'1=2+3·( (exp()))'")
+        .test(KEY0).editor("'1=2+3·( (exp(0)))'");
     step("Space key in parentheses insert semi-colon")
-        .test(SPACE).editor("'1=2+3× (exp(0;))'")
-        .test(KEY7).editor("'1=2+3× (exp(0;7))'");
+        .test(SPACE).editor("'1=2+3·( (exp(0;)))'")
+        .test(KEY7).editor("'1=2+3·( (exp(0;7)))'");
 
     step("STO key while entering equation (bug #390)")
         .test(CLEAR, EXIT, KEY1, KEY2, F,
@@ -1092,7 +1092,7 @@ void tests::local_variables()
          XEQ, "Y", ENTER,
          XEQ, "Z", ENTER,
          "LocTest", ENTER)
-        .expect("'(X+Y)×(X-Y)÷((Y+Z)×(Y-Z))'");
+        .expect("'(X+Y)·(X-Y)÷((Y+Z)·(Y-Z))'");
 
     step("Cleanup");
     test(CLEAR, XEQ, "LocTest", ENTER, "PurgeAll", ENTER).noerr();
@@ -2247,10 +2247,10 @@ void tests::complex_arithmetic()
         .expect("'a-c'+'b-d'ⅈ");
     step("Symbolic multiplication");
     test(CLEAR, "a+bⅈ", ENTER, "c+dⅈ", MUL)
-        .expect("'a×c-b×d'+'a×d+b×c'ⅈ");
+        .expect("'a·c-b·d'+'a·d+b·c'ⅈ");
     step("Symbolic division");
     test(CLEAR, "a+bⅈ", ENTER, "c+dⅈ", DIV)
-        .expect("'(a×c+b×d)÷(c²+d²)'+'(b×c-a×d)÷(c²+d²)'ⅈ");
+        .expect("'(a·c+b·d)÷(c²+d²)'+'(b·c-a·d)÷(c²+d²)'ⅈ");
 
     step("Addition in aligned polar form");
     test(CLEAR, "1∡2", ENTER, "3∡2", ENTER, ADD)
@@ -2285,23 +2285,23 @@ void tests::complex_arithmetic()
         .expect("'a+c'∡b");
     step("Symbolic addition");
     test(CLEAR, "a∡b", ENTER, "c∡d", ENTER, ADD)
-        .expect("'a×cos b+c×cos d'+'a×sin b+c×sin d'ⅈ");
+        .expect("'a·cos b+c·cos d'+'a·sin b+c·sin d'ⅈ");
     step("Symbolic substraction aligned");
     test(CLEAR, "a∡b", ENTER, "c∡b", ENTER, SUB)
         .expect("'a-c'∡b");
     step("Symbolic subtraction");
     test(CLEAR, "a∡b", ENTER, "c∡d", ENTER, SUB)
-        .expect("'a×cos b-c×cos d'+'a×sin b-c×sin d'ⅈ");
+        .expect("'a·cos b-c·cos d'+'a·sin b-c·sin d'ⅈ");
     step("Symbolic multiplication");
     test(CLEAR, "a∡b", ENTER, "c∡d", ENTER, MUL)
-        .expect("'a×c'∡'b+d'");
+        .expect("'a·c'∡'b+d'");
     step("Symbolic division");
     test(CLEAR, "a∡b", ENTER, "c∡d", ENTER, DIV)
         .expect("'a÷c'∡'b-d'");
 
     step("Precedence of complex numbers during rendering");
     test(CLEAR, "'2+3ⅈ' '3∡4' *", ENTER)
-        .expect("'(2+3ⅈ)×(3∡4°)'");
+        .expect("'(2+3ⅈ)·(3∡4°)'");
     test(CLEAR, "'2+3ⅈ' '3∡4' +", ENTER)
         .expect("'(2+3ⅈ)+(3∡4°)'");
     test(CLEAR, "'2+3ⅈ' '3∡4' -", ENTER)
@@ -2354,7 +2354,7 @@ void tests::complex_functions()
 
     step("Symbolic sqrt");
     test(CLEAR, "aⅈb", ENTER, SQRT)
-        .expect("'√((a⊿b+a)÷2)'+'sign (√((a⊿b-a)÷2))×√((a⊿b-a)÷2)'ⅈ");
+        .expect("'√((a⊿b+a)÷2)'+'sign (√((a⊿b-a)÷2))·√((a⊿b-a)÷2)'ⅈ");
 
     step("Symbolic sqrt in polar form");
     test(CLEAR, "a∡b", ENTER, SQRT)
@@ -2720,7 +2720,7 @@ void tests::vector_functions()
     test(CLEAR, "[1 2  3 4 6][4 5 2 1 3] *", ENTER)
         .expect("[ 4 10 6 4 18 ]");
     test(CLEAR, "[a b c][d e f] *", ENTER)
-        .expect("[ 'a×d' 'b×e' 'c×f' ]");
+        .expect("[ 'a·d' 'b·e' 'c·f' ]");
 
     step("Division (extension)");
     test(CLEAR, "[1 2  3 4 6][4 5 2 1 3] /", ENTER)
@@ -2744,9 +2744,9 @@ void tests::vector_functions()
 
     step("Multiplication by constant (extension)");
     test(CLEAR, "[a b c] x *", ENTER)
-        .expect("[ 'a×x' 'b×x' 'c×x' ]");
+        .expect("[ 'a·x' 'b·x' 'c·x' ]");
     test(CLEAR, "x [a b c] *", ENTER)
-        .expect("[ 'x×a' 'x×b' 'x×c' ]");
+        .expect("[ 'x·a' 'x·b' 'x·c' ]");
 
     step("Division by constant (extension)");
     test(CLEAR, "[a b c] x /", ENTER)
@@ -2820,15 +2820,15 @@ void tests::matrix_functions()
     test(CLEAR, "[[1 2] [3 4]] [[5 6][7 8]] *", ENTER)
         .want("[ [ 19 22 ] [ 43 50 ] ]");
     test(CLEAR, "[[a b][c d]] [[e f][g h]] *", ENTER)
-        .want("[ [ 'a×e+b×g' 'a×f+b×h' ] [ 'c×e+d×g' 'c×f+d×h' ] ]");
+        .want("[ [ 'a·e+b·g' 'a·f+b·h' ] [ 'c·e+d·g' 'c·f+d·h' ] ]");
 
     step("Multiplication (non-square)");
     test(CLEAR, "[[1 2 3] [4 5 6]] [[5 6][7 8][9 10]] *", ENTER)
         .want("[ [ 46 52 ] [ 109 124 ] ]");
     test(CLEAR, "[[a b c d][e f g h]] [[x][y][z][t]] *", ENTER)
-        .want("[ [ 'a×x+b×y+c×z+d×t' ] [ 'e×x+f×y+g×z+h×t' ] ]");
+        .want("[ [ 'a·x+b·y+c·z+d·t' ] [ 'e·x+f·y+g·z+h·t' ] ]");
     test(CLEAR, "[[a b c d][e f g h]] [x y z t] *", ENTER)
-        .want("[ 'a×x+b×y+c×z+d×t' 'e×x+f×y+g×z+h×t' ]");
+        .want("[ 'a·x+b·y+c·z+d·t' 'e·x+f·y+g·z+h·t' ]");
 
     step("Division");
     test(CLEAR,
@@ -2837,7 +2837,7 @@ void tests::matrix_functions()
         .want("[ [ ³⁴/₁₁ -⁵²/₁₁ -⁴³/₁₁ ] [ ³ ³⁵⁷/₁₀ -¹³ ⁴²⁷/₁₀ -¹⁶ ⁴³³/₁₀ ] [ -¹⁹/₂₂ ⁷⁵/₂₂ ¹¹³/₂₂ ] ]");
     step("Division (symbolic)");
     test(CLEAR, "[[a b][c d]][[e f][g h]] /", ENTER)
-        .want("[ [ '(e⁻¹-f÷e×((-g)÷(e×h-g×f)))×a+(-(f÷e×(e÷(e×h-g×f))))×c' '(e⁻¹-f÷e×((-g)÷(e×h-g×f)))×b+(-(f÷e×(e÷(e×h-g×f))))×d' ] [ '(-g)÷(e×h-g×f)×a+e÷(e×h-g×f)×c' '(-g)÷(e×h-g×f)×b+e÷(e×h-g×f)×d' ] ]");
+        .want("[ [ '(e⁻¹-f÷e·((-g)÷(e·h-g·f)))·a+(-(f÷e·(e÷(e·h-g·f))))·c' '(e⁻¹-f÷e·((-g)÷(e·h-g·f)))·b+(-(f÷e·(e÷(e·h-g·f))))·d' ] [ '(-g)÷(e·h-g·f)·a+e÷(e·h-g·f)·c' '(-g)÷(e·h-g·f)·b+e÷(e·h-g·f)·d' ] ]");
 
     step("Addition of constant (extension)");
     test(CLEAR, "[[1 2] [3 4]] 3 +", ENTER)
@@ -2853,9 +2853,9 @@ void tests::matrix_functions()
 
     step("Multiplication by constant (extension)");
     test(CLEAR, "[[a b] [c d]] x *", ENTER)
-        .want("[ [ 'a×x' 'b×x' ] [ 'c×x' 'd×x' ] ]");
+        .want("[ [ 'a·x' 'b·x' ] [ 'c·x' 'd·x' ] ]");
     test(CLEAR, "x [[a b] [c d]] *", ENTER)
-        .want("[ [ 'x×a' 'x×b' ] [ 'x×c' 'x×d' ] ]");
+        .want("[ [ 'x·a' 'x·b' ] [ 'x·c' 'x·d' ] ]");
 
     step("Division by constant (extension)");
     test(CLEAR, "[[a b] [c d]] x /", ENTER)
@@ -2891,7 +2891,7 @@ void tests::matrix_functions()
     test(CLEAR, "[[1 2 3][4 5 6][7 8 19]] INV", ENTER)
         .want("[ [ -⁴⁷/₃₀ ⁷/₁₅ ¹/₁₀ ] [ ¹⁷/₁₅ ¹/₁₅ -¹/₅ ] [ ¹/₁₀ -¹/₅ ¹/₁₀ ] ]");
     test(CLEAR, "[[a b][c d]] INV", ENTER)
-        .want("[ [ 'a⁻¹-b÷a×((-c)÷(a×d-c×b))' '-(b÷a×(a÷(a×d-c×b)))' ] [ '(-c)÷(a×d-c×b)' 'a÷(a×d-c×b)' ] ]");
+        .want("[ [ 'a⁻¹-b÷a·((-c)÷(a·d-c·b))' '-(b÷a·(a÷(a·d-c·b)))' ] [ '(-c)÷(a·d-c·b)' 'a÷(a·d-c·b)' ] ]");
 
     step("Invert with zero determinant");       // HP48 gets this one wrong
     test(CLEAR, "[[1 2 3][4 5 6][7 8 9]] INV", ENTER)
@@ -3017,7 +3017,7 @@ void tests::auto_simplification()
 
     step("Applies when building a matrix");
     test(CLEAR, "[[3 0 2][2 0 -2][ 0 1 1 ]] [x y z] *", ENTER)
-        .expect("[ '3×x+2×z' '2×x+-2×z' 'y+z' ]");
+        .expect("[ '3·x+2·z' '2·x+-2·z' 'y+z' ]");
 
     step("Does not reduce matrices");
     test(CLEAR, "[a b c] 0 *", ENTER).expect("[ 0 0 0 ]");
@@ -3035,7 +3035,7 @@ void tests::auto_simplification()
 
     step("When disabled, get the complicated expression");
     test(CLEAR, "[[3 0 2][2 0 -2][ 0 1 1 ]] [x y z] *", ENTER)
-        .expect("[ '3×x+0×y+2×z' '2×x+0×y+-2×z' '0×x+1×y+1×z' ]");
+        .expect("[ '3·x+0·y+2·z' '2·x+0·y+-2·z' '0·x+1·y+1·z' ]");
 
     step("Re-enable auto simplification");
     test(CLEAR, "AutoSimplify", ENTER).noerr();
@@ -3055,13 +3055,13 @@ void tests::rewrite_engine()
 
     step("In-depth replacement");
     test(CLEAR, " 'A*(B+C)' 'X+Y' 'Y-sin X' rewrite", ENTER)
-        .expect("'A×(C-sin B)'");
+        .expect("'A·(C-sin B)'");
 
     step("Variable matching");
     test(CLEAR, "'A*(B+C)' 'X+X' 'X-sin X' rewrite", ENTER)
-        .expect("'A×(B+C)'");
+        .expect("'A·(B+C)'");
     test(CLEAR, "'A*(B+(B))' 'X+X' 'X-sin X' rewrite", ENTER)
-        .expect("'A×(B-sin B)'");
+        .expect("'A·(B-sin B)'");
 
     step("Constant folding");
     test(CLEAR, "'A+B+0' 'X+0' 'X' rewrite", ENTER)
@@ -3079,11 +3079,11 @@ void tests::rewrite_engine()
 
     step("Matching integers");
     test(CLEAR, "'(A+B)^3' 'X^N' 'X*X^(N-1)' rewrite", ENTER)
-        .expect("'(A+B)×(A+B)²'");
+        .expect("'(A+B)·(A+B)²'");
 
     step("Matching unique terms");
     test(CLEAR, "'(A+B+A)' 'X+U+X' '2*X+U' rewrite", ENTER)
-        .expect("'2×A+B'");
+        .expect("'2·A+B'");
     test(CLEAR, "'(A+A+A)' 'X+U+X' '2*X+U' rewrite", ENTER)
         .expect("'A+A+A'");
 }
@@ -3098,31 +3098,31 @@ void tests::expand_collect_simplify()
 
     step("Single add, right");
     test(CLEAR, "'(A+B)*C' expand ", ENTER)
-        .expect("'A×C+B×C'");
+        .expect("'A·C+B·C'");
     step("Single add, left");
     test(CLEAR, "'2*(A+B)' expand ", ENTER)
-        .expect("'2×A+2×B'");
+        .expect("'2·A+2·B'");
 
     step("Multiple adds");
     test(CLEAR, "'3*(A+B+C)' expand ", ENTER)
-        .expect("'3×A+3×B+3×C'");
+        .expect("'3·A+3·B+3·C'");
 
     step("Single sub, right");
     test(CLEAR, "'(A-B)*C' expand ", ENTER)
-        .expect("'A×C-B×C'");
+        .expect("'A·C-B·C'");
     step("Single sub, left");
     test(CLEAR, "'2*(A-B)' expand ", ENTER)
-        .expect("'2×A-2×B'");
+        .expect("'2·A-2·B'");
 
     step("Multiple subs");
     test(CLEAR, "'3*(A-B-C)' expand ", ENTER)
-        .expect("'3×A-3×B-3×C'");
+        .expect("'3·A-3·B-3·C'");
 
     step("Expand and collect a power");
     test(CLEAR, "'(A+B)^3' expand ", ENTER)
-        .expect("'A×A×A+A×A×B+A×A×B+A×B×B+A×A×B+A×B×B+A×B×B+B×B×B'");
+        .expect("'A·A·A+A·A·B+A·A·B+A·B·B+A·A·B+A·B·B+A·B·B+B·B·B'");
     test("collect ", ENTER)
-        .expect("'2×(B↑2×A)+(A↑3+A↑2×(2×B)+B↑2×A+A↑2×B)+B↑3'");
+        .expect("'2·(B↑2·A)+(A↑3+A↑2·(2·B)+B↑2·A+A↑2·B)+B↑3'");
     // .expect("'(A+B)³'");
 }
 
@@ -3432,7 +3432,7 @@ void tests::regression_checks()
 
     step("Bug 238: Parsing of power");
     test(CLEAR, "'X↑3'", ENTER).expect("'X↑3'");
-    test(CLEAR, "'X×X↑(N-1)'", ENTER).expect("'X×X↑(N-1)'");
+    test(CLEAR, "'X·X↑(N-1)'", ENTER).expect("'X·X↑(N-1)'");
 
     step("Bug 253: Complex cos outside domain");
     test(CLEAR, "0+30000.ⅈ sin", ENTER).expect("3.41528 61889 6⁳¹³⁰²⁸∡90°");
@@ -3503,8 +3503,8 @@ void tests::plotting()
          SHIFT, SHIFT, O, F2).noerr().wait(200).image("polar-pgm");
     step("Polar plot: Equation");
     test(CLEAR, F, J, 611, MUL, ALPHA, X,
-         NOSHIFT, DOWN, MUL, K, 271, MUL,
-         ALPHA, X, NOSHIFT, DOWN,
+         NOSHIFT, DOWN, DOWN, MUL, K, 271, MUL,
+         ALPHA, X, NOSHIFT, DOWN, DOWN, DOWN,
          ADD, KEY2, DOT, KEY5, ENTER,
          SHIFT, SHIFT, O,
          ENTER, F2).noerr().wait(200).image("polar-eq");
@@ -4290,6 +4290,7 @@ tests &tests::itest(cstring txt)
         case L'«': k = RUNSTOP;     alpha = false; shift = true; del = true; break;
         case L'»': k = RUNSTOP;     alpha = false; shift = true; bsp = true; break;
         case L'→': k = STO;         alpha = true; xshift = true; break;
+        case L'·': k = MUL;         alpha = true;  shift = true; break;
         case L'×': k = MUL;         alpha = true;  shift = true; break;
         case L'÷': k = DIV;         alpha = true;  shift = true; break;
         case L'↑': k = C;           alpha = true; xshift = true; break;

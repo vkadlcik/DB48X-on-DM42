@@ -853,7 +853,7 @@ INSERT_BODY(object)
 //   Default insertion is as a program object
 // ----------------------------------------------------------------------------
 {
-    return ui.edit(o->fancy(), ui.PROGRAM);
+    return ui.edit(o->name(), ui.PROGRAM);
 }
 
 

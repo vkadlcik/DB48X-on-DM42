@@ -344,7 +344,7 @@ inline bool is_valid_as_name_initial(unicode cp)
     if (cp < 0x80)
         return false;
 
-    static utf8 invalid = utf8("÷×↑∂⁻¹²³«»ⅈ∡ ;,.'\"<=>≤≠≥[](){}«»\n\t");
+    static utf8 invalid = utf8("÷×·↑∂⁻¹²³«»ⅈ∡ ;,.'\"<=>≤≠≥[](){}«»\n\t");
     for (utf8 p = invalid; *p; p = utf8_next(p))
         if (cp == utf8_codepoint(p))
             return false;

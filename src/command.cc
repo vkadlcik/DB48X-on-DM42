@@ -145,7 +145,9 @@ RENDER_BODY(command)
                 break;
             return r.size();
         }
-
+        if (ty == ID_mul && format == ID_LongForm &&
+            r.equation() && Settings.UseDotForMultiplication())
+            fname = utf8("·");
         r.put(format, fname);
     }
 

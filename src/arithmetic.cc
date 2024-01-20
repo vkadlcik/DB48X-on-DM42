@@ -1479,6 +1479,12 @@ INSERT_BODY(arithmetic)
 //   Arithmetic objects do not insert parentheses
 // ----------------------------------------------------------------------------
 {
+    if (o->type() == ID_mul && Settings.UseDotForMultiplication())
+    {
+        auto mode = ui.editing_mode();
+        if (mode == ui.ALGEBRAIC || mode == ui.PARENTHESES)
+            return ui.edit(utf8("·"), ui.ALGEBRAIC);
+    }
     return ui.edit(o->fancy(), ui.INFIX);
 }
 

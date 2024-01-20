@@ -3706,7 +3706,8 @@ bool user_interface::handle_digits(int key)
             {
             case KEY_ADD:       found = do_search('+'); break;
             case KEY_SUB:       found = do_search('-'); break;
-            case KEY_MUL:       found = do_search('*')||do_search(L'×'); break;
+            case KEY_MUL:       found = do_search('*')||do_search(L'×')
+                                                      ||do_search(L'·'); break;
             case KEY_DIV:       found = do_search('/')||do_search(L'÷'); break;
             case KEY_DOT:       found = do_search('.')||do_search(L','); break;
             case KEY_E:         found = do_search('E')||do_search(L'⁳'); break;

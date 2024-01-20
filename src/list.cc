@@ -192,7 +192,7 @@ object::result list::list_parse(id type,
             }
         }
 
-        if (!obj)
+        if (!obj && length)
         {
             obj = object::parse(s, length, precedence);
             record(list_parse,

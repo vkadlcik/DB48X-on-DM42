@@ -94,6 +94,7 @@ TESTS(text,             "Text operations");
 TESTS(vectors,          "Vectors");
 TESTS(matrices,         "Matrices");
 TESTS(solver,           "Solver");
+TESTS(integrate,        "Numerical integration");
 TESTS(simplify,         "Auto-simplification of expressions");
 TESTS(rewrites,         "Equation rewrite engine");
 TESTS(expand,           "Expand");
@@ -157,6 +158,7 @@ void tests::run(bool onlyCurrent)
         vector_functions();
         matrix_functions();
         solver_testing();
+        numerical_integration_testing();
         text_functions();
         auto_simplification();
         rewrite_engine();
@@ -2824,6 +2826,26 @@ void tests::solver_testing()
     step("Solver without solution")
         .test(CLEAR, "'sq(x)+3=0' 'X' 0 ROOT", ENTER)
         .error("No solution?");
+}
+
+
+void tests::numerical_integration_testing()
+// ----------------------------------------------------------------------------
+//   Test that the numerica integartion function works as expected
+// ----------------------------------------------------------------------------
+{
+    BEGIN(integrate);
+
+    step("Integrate with expression")
+        .test(CLEAR, "1 2 '1/X' 'X' INTEGRATE", ENTER)
+        .noerr().expect("6.93147 18056⁳⁻¹")
+        .test(KEY2, E, SUB).expect("3.00876⁳⁻¹⁹");
+    step("Integration through menu")
+        .test(CLEAR, 2, ENTER).expect("2")
+        .test(3, ENTER).expect("3")
+        .test("'sq(Z)+Z'", ENTER).expect("'Z²+Z'")
+        .test(F, ALPHA, Z, ENTER).expect("'Z'")
+        .test(SHIFT, KEY8, F2).wait(1500).expect("⁵³/₆");
 }
 
 

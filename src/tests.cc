@@ -2776,6 +2776,42 @@ void tests::text_functions()
         .expect("\"AbCAbCAbC\"");
     test(CLEAR, "3 \"AbC\" *", ENTER)
         .expect("\"AbCAbCAbC\"");
+
+    step("Character generation with CHR")
+        .test(CLEAR, "64 CHR", ENTER).type(object::ID_text).expect("\"@\"");
+    step("Codepoint generation with NUM")
+        .test(CLEAR,"\"a\" NUM", ENTER).type(object::ID_integer).expect(97);
+    step("Codepoint generation with NUM, multiple characters")
+        .test(CLEAR,"\"ba\" NUM", ENTER).type(object::ID_integer).expect(98);
+
+    step("Convert object to text")
+        .test(CLEAR, XSHIFT, KEY4, "1.42", F1)
+        .type(object::ID_text).expect("\"1.42\"");
+    step("Convert object from text")
+        .test(CLEAR, XSHIFT, KEY4, "\"1.42 2.43 +\"", F2)
+        .type(object::ID_decimal).expect("3.85");
+    step("Size of single object")
+        .test(CLEAR, "3.85", F3)
+        .type(object::ID_integer).expect("1");
+    step("Length of null text")
+        .test(ENTER, XSHIFT, ENTER, ENTER, F3)
+        .type(object::ID_integer).expect("0");
+    step("Length of text")
+        .test(CLEAR, XSHIFT, KEY4, "\"1.42 2.43 +\"", F3)
+        .type(object::ID_integer).expect("11")
+        .test(SHIFT, M, ADD, ENTER, ADD, F3)
+        .type(object::ID_integer).expect("26");
+
+    step("Conversion of text to code")
+        .test(CLEAR, XSHIFT, ENTER, "Hello", XSHIFT, KEY4, SHIFT, F1)
+        .type(object::ID_list).expect("{ 72 101 108 108 111 }");
+    step("Conversion of code to text")
+        .test(CLEAR, XSHIFT, RUNSTOP,
+              232, SPACE, 233, SPACE, 234, SPACE, 235, SPACE,
+              960, SPACE, 8730, SPACE, 8747, ENTER,
+              XSHIFT, KEY4, SHIFT, F2)
+        .type(object::ID_text).expect("\"èéêëπ√∫\"");
+
 }
 
 

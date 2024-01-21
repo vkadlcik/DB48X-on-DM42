@@ -187,8 +187,9 @@ struct tests
         CLEAR      = 104,       // Clear the calculator state
         NOKEYS     = 105,       // Wait until keys buffer is empty
         REFRESH    = 106,       // Wait until there is a screen refresh
+        XSHIFT     = 107,       // Double shift
 
-        KEYSYNC    = 107,       // Wait for other side to process keys
+        KEYSYNC    = 108,       // Wait for other side to process keys
         EXIT_PGM   = 142,       // Exiting program
     };
 

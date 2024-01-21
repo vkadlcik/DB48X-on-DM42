@@ -76,6 +76,7 @@ struct tests
     void complex_functions();
     void units_and_conversions();
     void list_functions();
+    void sorting_functions();
     void vector_functions();
     void matrix_functions();
     void solver_testing();

@@ -92,6 +92,7 @@ TESTS(carith,           "Complex arithmetic");
 TESTS(cfunctions,       "Complex functions");
 TESTS(units,            "Units and conversions");
 TESTS(lists,            "List operations");
+TESTS(sorting,          "Sorting operations");
 TESTS(text,             "Text operations");
 TESTS(vectors,          "Vectors");
 TESTS(matrices,         "Matrices");
@@ -130,7 +131,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        units_and_conversions();
+        sorting_functions();
     }
     else
     {
@@ -158,6 +159,7 @@ void tests::run(bool onlyCurrent)
         complex_functions();
         units_and_conversions();
         list_functions();
+        sorting_functions();
         vector_functions();
         matrix_functions();
         solver_testing();
@@ -2720,6 +2722,31 @@ void tests::list_functions()
     step("Applying a function to a  list");
     test(CLEAR, "{ A B C } sin", ENTER)
         .expect("{ 'sin A' 'sin B' 'sin C' }");
+}
+
+
+void tests::sorting_functions()
+// ----------------------------------------------------------------------------
+//   Sorting operations
+// ----------------------------------------------------------------------------
+{
+    BEGIN(sorting);
+
+    step("Value sort (SORT)")
+        .test(CLEAR, "{ 7 2.5 3 9.2 \"DEF\" 8.4 \"ABC\" } SORT", ENTER)
+        .expect("{ \"ABC\" \"DEF\" 2.5 3 7 8.4 9.2 }");
+    step("Reverse list (REVLIST)")
+         .test("revlist", ENTER)
+         .expect("{ 9.2 8.4 7 3 2.5 \"DEF\" \"ABC\" }");
+    step("Memory sort (QUICKSORT)")
+        .test("QUICKSORT", ENTER)
+        .expect("{ \"ABC\" \"DEF\" 3 7 2.5 8.4 9.2 }");
+    step("Reverse memory sort (ReverseQuickSort)")
+        .test("reverseQuickSort", ENTER)
+        .expect("{ 9.2 8.4 2.5 7 3 \"DEF\" \"ABC\" }");
+    step("Reverse sort (ReverseSort)")
+        .test("ReverseSort", ENTER)
+        .expect("{ 9.2 8.4 7 3 2.5 \"DEF\" \"ABC\" }");
 }
 
 

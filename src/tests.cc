@@ -427,6 +427,14 @@ void tests::data_types()
     cstring string = "\"Hello World\"";
     test(CLEAR, string, ENTER).type(object::ID_text).expect(string);
 
+    step("Text containing quotes")
+        .test(CLEAR, SHIFT, SHIFT, ENTER,
+              SHIFT, SHIFT, ENTER, DOWN,
+              ALPHA, H, LOWERCASE, E, L, L, O,
+              SHIFT, SHIFT, ENTER, DOWN, ENTER)
+        .type(object::ID_text).expect("\"\"\"Hello\"\"\"")
+        .test("1 DISP", ENTER).wait(25).image("quoted-text");
+
     step("List");
     cstring list = "{ A 1 3 }";
     test(CLEAR, list, ENTER).type(object::ID_list).expect(list);

@@ -1402,6 +1402,16 @@ void tests::logical_operations()
     test("dup not", ENTER).expect("#12₁₆");
     test("xor not", ENTER).expect("#0₁₆");
 
+    step("Check that arithmetic truncates to small word size (#624)")
+        .test("15 STWS", ENTER).noerr()
+        .test("#0 #4 -", ENTER).expect("#7FFC₁₆")
+        .test("#321 *", ENTER).expect("#737C₁₆")
+        .test("#27 /", ENTER).expect("#2F6₁₆")
+        .test("13 STWS", ENTER).noerr()
+        .test("#0 #6 -", ENTER).expect("#1FFA₁₆")
+        .test("#321 *", ENTER).expect("#D3A₁₆")
+        .test("#27 /", ENTER).expect("#56₁₆");
+
     step("Reset word size to default")
         .test(CLEAR, "64 WordSize", ENTER).noerr();
 }

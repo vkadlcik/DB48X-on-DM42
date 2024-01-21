@@ -532,12 +532,13 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
 
 
 
-bool tests::image_match(cstring file, bool force)
+bool tests::image_match(cstring file, int x, int y, int w, int h, bool force)
 // ----------------------------------------------------------------------------
 //   Check if the screen matches a given file
 // ----------------------------------------------------------------------------
 {
     QPixmap &screen = MainWindow::theScreen();
+    QPixmap img = screen.copy(x, y, w, h);
     QPixmap data;
     QString name = force ? "images/bad/" : "images/";
     name += file;
@@ -545,8 +546,8 @@ bool tests::image_match(cstring file, bool force)
     QFileInfo reference(name);
     if (force || !reference.exists() || !data.load(name, "PNG"))
     {
-        screen.save(name, "PNG");
+        img.save(name, "PNG");
         return true;
     }
-    return data.toImage() == screen.toImage();
+    return data.toImage() == img.toImage();
 }

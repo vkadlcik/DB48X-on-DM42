@@ -107,6 +107,7 @@ TESTS(cycle,            "Cycle command for quick conversions");
 TESTS(regressions,      "Regression checks");
 TESTS(plotting,         "Plotting, graphing and charting");
 TESTS(graphics,         "Graphic commands");
+TESTS(help,             "On-line help");
 
 EXTRA(plotfns,          "Plot all functions");
 EXTRA(flags,            "Enable/disable every RPL flag");
@@ -131,8 +132,8 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        sorting_functions();
-    }
+        online_help();
+   }
     else
     {
         shift_logic();
@@ -177,6 +178,7 @@ void tests::run(bool onlyCurrent)
         plotting();
         plotting_all_functions();
         graphic_commands();
+        online_help();
         regression_checks();
     }
     summary();
@@ -3541,6 +3543,87 @@ void tests::parsing_commands_by_name()
 }
 
 
+void tests::online_help()
+// ----------------------------------------------------------------------------
+//   Check the online help system
+// ----------------------------------------------------------------------------
+{
+    BEGIN(help);
+
+    step("Main menu shows help as F1")
+        .test(CLEAR, EXIT, A, F1).wait(30).noerr()
+        .image_noheader("help");
+    step("Exiting help with EXIT")
+        .test(EXIT).wait(30).noerr()
+        .image_noheader("help-exit");
+    step("Help with keyboard shortcut")
+        .test(CLEAR, XSHIFT, ADD).wait(30).noerr()
+        .image_noheader("help");
+    step("Following link with ENTER")
+        .test(ENTER).wait(30).noerr()
+        .image_noheader("help-topic");
+    step("Help with command line")
+        .test(CLEAR, "help", ENTER).wait(30).noerr()
+        .image_noheader("help");
+    step("History across invokations")
+        .test(NOSHIFT, BSP).wait(30).noerr()
+        .image_noheader("help-topic");
+    step("Help topic - Integers")
+        .test(CLEAR, EXIT, "123", XSHIFT, ADD).wait(30).noerr()
+        .image_noheader("help-integers");
+    step("Help topic - Decimal")
+        .test(CLEAR, EXIT, "123.5", XSHIFT, ADD).wait(30).noerr()
+        .image_noheader("help-decimal");
+    step("Help topic - topic")
+        .test(CLEAR, EXIT, "\"authors\"", XSHIFT, ADD, DOWN, DOWN, DOWN, DOWN)
+        .wait(30).noerr()
+        .image_noheader("help-authors");
+    step("Returning to main screen with F1")
+        .test(F1).wait(30).noerr()
+        .image_noheader("help");
+    step("Page up and down with F2 and F3")
+        .test(F3).wait(30).noerr()
+        .image_noheader("help-page2")
+        .test(F3).wait(30).noerr()
+        .image_noheader("help-page3")
+        .test(F2).wait(30).noerr()
+        .image_noheader("help-page4")
+        .test(F3).wait(30).noerr()
+        .image_noheader("help-page5");
+    step("Follow link with ENTER")
+        .test(ENTER).wait(30).noerr()
+        .image_noheader("help-design");
+    step("Back to previous topic with BSP")
+        .test(BSP).wait(30).noerr()
+        .image_noheader("help-page6");
+    step("Next link with F5")
+        .test(F2, F3, F5, ENTER).wait(30).noerr()
+        .image_noheader("help-keyboard");
+    step("Back with F6")
+        .test(F6).wait(30).noerr()
+        .image_noheader("help-page7");
+    step("Previous topic with F4")
+        .test(F4).wait(30).noerr()
+        .image_noheader("help-page8");
+    step("Select topic with ENTER")
+        .test(ENTER).wait(30).noerr()
+        .image_noheader("help-design");
+    step("Exit to normal command line")
+        .test(EXIT, CLEAR, EXIT).noerr();
+    step("Invoke help about SIN command with long press")
+        .test(LONGPRESS, J).wait(20)
+        .image_noheader("help-sin");
+    step("Invoke help about COS command with long press")
+        .test(EXIT, LONGPRESS, K)
+        .image_noheader("help-cos");
+    step("Invoke help about DEG menu command with long press")
+        .test(EXIT, SHIFT, N, LONGPRESS, F1)
+        .image_noheader("help-degrees");
+    step("Exit and cleanup")
+        .test(EXIT, CLEAR, EXIT);
+}
+
+
 void tests::regression_checks()
 // ----------------------------------------------------------------------------
 //   Checks for specific regressions
@@ -4869,12 +4952,8 @@ tests &tests::match(cstring restr)
         regfree(&re);
         if (ok)
             return *this;
-        explain("Expected output matching [",
-                restr,
-                "], "
-                "got [",
-                out,
-                "]");
+        explain("Expected output matching [", restr, "], "
+                "got [", out, "]");
         return fail();
     }
     explain("Expected output matching [", restr, "] but stack not updated");
@@ -4882,20 +4961,30 @@ tests &tests::match(cstring restr)
 }
 
 
-tests &tests::image(cstring file)
+tests &tests::image(cstring file, int x, int y, int w, int h)
 // ----------------------------------------------------------------------------
 //   Check that the output in the screen matches what is in the file
 // ----------------------------------------------------------------------------
 {
     ready();
     cindex++;
-    if (!image_match(file))
+    if (!image_match(file, x, y, w, h, false))
     {
         explain("Expected screen to match [", file, "]");
-        image_match(file, true);
+        image_match(file, x, y, w, h, true);
         return fail();
     }
     return *this;
+}
+
+
+tests &tests::image_noheader(cstring name)
+// ----------------------------------------------------------------------------
+//   Image, skipping the header area
+// ----------------------------------------------------------------------------
+{
+    const int header_h = 20;
+    return image(name, 0, header_h, LCD_W, LCD_H - header_h);
 }
 
 

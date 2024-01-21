@@ -32,6 +32,7 @@
 #include "dmcp.h"
 #include "object.h"
 #include "runtime.h"
+#include "target.h"
 
 #include <vector>
 #include <string>
@@ -94,6 +95,7 @@ struct tests
     void plotting();
     void plotting_all_functions();
     void graphic_commands();
+    void online_help();
     void regression_checks();
 
     enum key
@@ -274,7 +276,8 @@ public:
     tests &expect(long long output);
     tests &expect(unsigned long long output);
     tests &match(cstring regexp);
-    tests &image(cstring name);
+    tests &image(cstring name, int x=0, int y=0, int w=LCD_W, int h=LCD_H);
+    tests &image_noheader(cstring name);
     tests &type(object::id ty);
     tests &shift(bool s);
     tests &xshift(bool x);
@@ -326,7 +329,7 @@ public:
         return check(test);
     }
 
-    bool image_match(cstring file, bool force = false);
+    bool image_match(cstring file, int x, int y, int w, int h, bool force);
 
 protected:
     cstring              file;

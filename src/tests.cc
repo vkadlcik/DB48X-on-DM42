@@ -2223,6 +2223,10 @@ void tests::complex_types()
         .type(object::ID_rectangular).expect("1+2ⅈ");
     test(CLEAR, "3+ⅈ4", ENTER)
         .type(object::ID_rectangular).expect("3+4ⅈ");
+    test("ComplexIBeforeImaginary", ENTER)
+        .type(object::ID_rectangular).expect("3+ⅈ4");
+    test("ComplexIAfterImaginary", ENTER)
+        .type(object::ID_rectangular).expect("3+4ⅈ");
 
     step("Behaviour of CHS on command-line");
     test(CLEAR, "4+ⅈ5", CHS, ENTER)

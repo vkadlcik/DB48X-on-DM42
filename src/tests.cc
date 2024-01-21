@@ -3617,8 +3617,21 @@ void tests::plotting()
     test(CLEAR, "RAD", ENTER).noerr();
 
     step("Function plot: Sine wave");
-    test(CLEAR, "'sin(x)' FunctionPlot", ENTER).noerr()
+    test(CLEAR, "'3*sin(x)' FunctionPlot", ENTER).noerr()
         .wait(200).image("plot-sine");
+    step("Function plot: Sine wave without axes");
+    test(CLEAR, "NoPlotAxes '3*sin(x)' FunctionPlot", ENTER).noerr()
+        .wait(200).image("plot-sine-noaxes");
+    step("Function plot: Sine wave not connected no axes");
+    test(CLEAR, "NoCurveFilling '3*sin(x)' FunctionPlot", ENTER).noerr()
+        .wait(200).image("plot-sine-noaxes-nofill");
+    step("Function plot: Sine wave with axes no fill");
+    test(CLEAR, "-29 CF '3*sin(x)' FunctionPlot", ENTER).noerr()
+        .wait(200).image("plot-sine-nofill");
+    step("Function plot: Sine wave defaults");
+    test(CLEAR, "-31 CF '3*sin(x)' FunctionPlot", ENTER).noerr()
+        .wait(200).image("plot-sine");
+
     step("Function plot: Equation");
     test(CLEAR,
          ALPHA, X, ENTER, ENTER, J, 3, MUL, M, 21, MUL, COS, 2, MUL, ADD,
@@ -3628,9 +3641,25 @@ void tests::plotting()
     test(CLEAR, SHIFT, RUNSTOP,
          I, SHIFT, F1, L, M, 41, MUL, J, MUL, ENTER, ENTER,
          XSHIFT, O, F1).wait(200).image("plot-pgm").noerr();
+    step("Function plot: Disable curve filling");
+    test(CLEAR, XSHIFT, UP, ENTER, "NoCurveFilling", ENTER,
+         XSHIFT, O, F1).wait(200).image("plot-nofill").noerr();
+    step("Function plot: Disable curve filling with flag -31");
+    test(CLEAR, XSHIFT, UP, ENTER, "-31 CF", ENTER,
+         XSHIFT, O, F1).wait(200).image("plot-pgm").noerr();
 
     step("Polar plot: Program");
     test(CLEAR, SHIFT, RUNSTOP,
+         61, MUL, L, SHIFT, C, 2, ADD, ENTER,
+         XSHIFT, O, F2).noerr().wait(200).image("polar-pgm");
+    step("Polar plot: Program, no fill");
+    test(CLEAR, "NoCurveFilling", ENTER,
+         SHIFT, RUNSTOP,
+         61, MUL, L, SHIFT, C, 2, ADD, ENTER,
+         XSHIFT, O, F2).noerr().wait(200).image("polar-pgm-nofill");
+    step("Polar plot: Program, curve filling");
+    test(CLEAR, "CurveFilling", ENTER,
+         SHIFT, RUNSTOP,
          61, MUL, L, SHIFT, C, 2, ADD, ENTER,
          XSHIFT, O, F2).noerr().wait(200).image("polar-pgm");
     step("Polar plot: Equation");
@@ -3654,6 +3683,7 @@ void tests::plotting()
     step("Polar plot: Select min point with PMIN");
     test(EXIT, "-3-4ⅈ PMIN", ENTER).noerr()
         .test(ENTER, XSHIFT, O, F2).noerr().wait(200).image("polar-pmin");
+
     step("Polar plot: Select max point with PMAX");
     test(EXIT, "5+6ⅈ pmax", ENTER).noerr()
         .test(ENTER, XSHIFT, O, F2).noerr().wait(200).image("polar-pmax");

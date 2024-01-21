@@ -1794,6 +1794,162 @@ the corresponding unit in the units file, for example:
 ```
 # Release notes
 
+## Release 0.6.3 "Come and See": Repair test suite
+
+The focus of this release was to reactivate the test suite and fix the
+problems that were found activating it.
+
+### New features:
+
+* HMS and DMS operations
+* unit: Rendering of `dms` and `hms` units
+* Allow `·` as a multiplication sign in equations
+* ui: Display 'E' cursor inside parentheses
+* graphics: Accept based integers as position for `DrawText`
+* complex: Add setting to switch between `2+3i` and `2+i3`.
+
+### Bug fixes:
+
+* decimal: Fix precision loss for addition with carry
+* Base: limit range of bases to 2-36
+* files: Do not add a trailing zero when reading a text file
+* decimal: Adjust `MinimumSignificantDigits` behaviour
+* units: Do not auto-simplify `1.0` during conversion
+* decimal: Normalize parsed numbers
+* solver: Fix sign error in epsilon exponent for solve/integrate
+* parser: Accept `x!` as input
+* simulator: Avoid faulty break-through in switch statement
+* complex: Make tag higher-priority than complex
+* editor: Adjust cursor and select correctly during replace
+* decimal: Fix display of 0.2 in NoTrailingDecimal mode
+* complex: Save `this` in a GC pointer when it can move
+* arithmetic: Do not fail because of surrounding error
+* decimal: Clamp int32 conversions from decimal
+* commands: Parse `exp10` correctly in expressions
+* decimal: Avoid infinite loop computing `expm1`
+* ids: Do not allow parsing of structures
+* dmcp: Make sure the tests don't block on `wait_for_key`
+* decimal: Use correct angle unit for negative gamma values
+
+### Improvements:
+
+* settings: Add classes that save/restore a given setting
+* Add `XSHIFT` to shift to XSHIFT state directly
+* Add NOSHIFT constant to simplify test writing
+* ui: Add a variant of `close_editor` without trailing zero
+* decimal: Cache gamma_ck values (accelerate gamma and lgamma)
+* Replace magic constant `-1` with `EXIT_PGM`
+* doc: Record performance data for 1000 iterations of SumTest
+* decimal: Add tracing for gamma / lgamma function
+
+### New tests:
+
+* Add tests for arithmetic truncation on short bitsizes
+* Add tests for on-line help
+* Add test for plotting flags
+* Add test for Unicode to text conversions
+* Add test for rectangular complex display options
+* Add tests for plot scaling functions
+* Add tests for the sorting functions
+* Add test for parsing text with quotes inside
+* Add test for file-based `STO` and `RCL`
+* Add test for 2^256 computation (buf #460)
+* Fix indentation of `[PASS]` or `[FAIL]` for UTF8 characters
+* Add tests for units and conversions
+* Add a keyboard test checking the single-colon insert in text
+* Add test for i*i=-1 auto-simplification
+* Add basic test for numerical integration
+* Add test for fraction formats
+* Add solver test
+* Add missing tests
+* Add test for immediate `STO` (#390)
+* Add tests for the `Cycle` command
+* Add test for catalog feature
+* Add test for "smart" keyboard shortcuts introduced in 0.4.6
+* Add regression test for #371
+* Add tests for editor operations
+* Test stack operations
+* Add test for `GXor`, `GOr` and `GAnd`
+* Add test for `ResetModes`
+* Add plotting test for every decimal function
+* Add image checking for graphical tests
+* Add tests for graphic and text drawing commands
+* Make it possible to individually run tests.
+* Add plotting tests
+* Add test parsing the various spellings for commands
+
+## Release 0.6.2 "Kephas": Restoring the test suite
+
+The focus of this release was to complete the transition to the
+variable-precision decimal code. The full regression test suite was
+restored, with only two tests still failing (complex `asin` and
+`asinh`). The two missing functions, `Gamma` and `LogGamma`, were
+implemented. This also exposed many bugs that were fixed.
+
+### New features:
+
+* `NumberedVariables` setting to allow `0 STO` to ease RPN transcoding (#690)
+* `ClearStack` (CLEAR) command
+* Variable-precision `gamma` and `lgamma` functions (#710)
+
+### Bug fixes:
+
+* Do not leave bad expression on stack after error (#663)
+* Reject unit conversion between undefined units (#664)
+* Accept names of menus on the command line (#669)
+* tests: CLEAR clears stack and errors (#672)
+* The `:` characters now starts a tag on empty command line (#673)
+* Do not evaluate tagged objects too early (#674)
+* test: Entry and editing of equations (#677)
+* test: `type` returns negative values in "detailed" mode (#678)
+* Run loop end pointer not GC-adjusted for last allocated object (#679)
+* Do not erase alpha indicator when clearing busy cursor (#680)
+* Do not emit trailing space when rounding `1.999` to `2.` (#687)
+* Allow expression rewrites to deal with `pow` (#694)
+* Reject `«` character in symbols and commands (#695)
+* Rendering of spacing for decimal numbers (#699)
+* Improve precision of `atan` function
+* Rendering of `+` and `-` operators in compatibility modes (#700)
+* Rounding of decimal numbers no longer generates bad characters (#702)
+* No longer error out rendering symbolic complex (#703)
+* Parse complex numbers correctly inside equations (#704)
+* Ensure `sqrt(-1)` has a zero real part (#705)
+* Do not drop last digit of decimal subtraction (#706)
+* Evaluate expressions during expression pattern matching (#708)
+* `LastMenu` executes immediately while editing (#711)
+* Add back missing angle glyphs in font (#712)
+* Return correct angle quadrant for `atan2` (#715)
+* `Get` no longer rejects arrays as index values (#718)
+* `Get` returns correct error for bad argument types (#718)
+
+### Improvements:
+
+* Update `.gitignore` entry
+* Automated testing of setting flags (#657)
+* Automated testing of non-flag settings (#670)
+* Test fixed-base based numbers using HP-compatible lowercase notation (#675)
+* Test fraction rendering using fancy digits (#676)
+* Add test for "compatible" variant of `type` command (#678)
+* test: Recover from error during data entry (#681)
+* Increase default `MaxNumberBits` to 4096 (#686)
+* tests: Add test for cube root of -8 (#685)
+* tests: Data entry for `Σ`, `∏` and `∆` (#689)
+* Restrict `STO` to names, natural numbers and specific IDs (#688)
+* doc: Document flas file access for `STO` and `RCL` (#691)
+* list: Optimize iterators to avoid copies (#692)
+* tests: spacing-independent testing of structure rendering (#693)
+* tests: adjust test suite for variable-precision decimals (#696)
+* tests: Automatically exit if `-T` option is given (#697)
+* tests: Check we don't accept `.` as meaning `0.` for RPL compatibility
+* Add `modulus` alias back for `abs` (#707)
+* Improve convergence speed and accuracy for logarithms
+* Add `decimal::make` to minimize risk of sign errors
+* Display stack level at top of stack level, not bottom (#709)
+* Improve complex `sqrt` accuracy on real axis (#714)
+* tests: Test decimal functions at full 34 digits precision (#716)
+* Complex `sqrt` and `cbrt` with full precision (#717)
+* tests: Take into account additional expression simplifications
+
 ## Release 0.6.1 "Happy New Year": Quick bug fixes
 
 A few quick bug fixes that make DB50X a bit more usable.

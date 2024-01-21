@@ -3609,6 +3609,22 @@ void tests::plotting()
     step("Polar plot: Zoom out X");
     test(EXIT, "2 XSCALE", ENTER).noerr()
         .test(ENTER, F2).noerr().wait(200).image("polar-zoomx");
+    step("Saving plot parameters")
+        .test("PPAR", ENTER, NOSHIFT, M);
+    step("Polar plot: Select min point with PMIN");
+    test(EXIT, "-3-4ⅈ PMIN", ENTER).noerr()
+        .test(ENTER, SHIFT, SHIFT, O, F2).noerr().wait(200).image("polar-pmin");
+    step("Polar plot: Select max point with PMAX");
+    test(EXIT, "5+6ⅈ pmax", ENTER).noerr()
+        .test(ENTER, SHIFT, SHIFT, O, F2).noerr().wait(200).image("polar-pmax");
+    step("Polar plot: Select X range with XRNG");
+    test(EXIT, "-6 7 xrng", ENTER).noerr()
+        .test(ENTER, F2).noerr().wait(200).image("polar-xrng");
+    step("Polar plot: Select Y range with YRNG");
+    test(EXIT, "-3 2.5 yrng", ENTER).noerr()
+        .test(ENTER, F2).noerr().wait(200).image("polar-yrng");
+    step("Restoring plot parameters")
+        .test(NOSHIFT, M, "'PPAR'", NOSHIFT, G);
 
     step("Parametric plot: Program");
     test(CLEAR, SHIFT, RUNSTOP,

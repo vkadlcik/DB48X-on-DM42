@@ -108,6 +108,7 @@ TESTS(regressions,      "Regression checks");
 TESTS(plotting,         "Plotting, graphing and charting");
 TESTS(graphics,         "Graphic commands");
 TESTS(help,             "On-line help");
+TESTS(hms,              "HMS and DMS operations");
 
 EXTRA(plotfns,          "Plot all functions");
 EXTRA(flags,            "Enable/disable every RPL flag");
@@ -132,7 +133,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        online_help();
+        hms_dms_operations();
    }
     else
     {
@@ -178,6 +179,7 @@ void tests::run(bool onlyCurrent)
         plotting();
         plotting_all_functions();
         graphic_commands();
+        hms_dms_operations();
         online_help();
         regression_checks();
     }
@@ -3656,7 +3658,52 @@ void tests::parsing_commands_by_name()
 #define ID(ty)                  ALIAS(ty, #ty)
 #define NAMED(ty, name)         ALIAS(ty, name) ALIAS(ty, #ty)
 #include "ids.tbl"
+}
 
+
+void tests::hms_dms_operations()
+// ----------------------------------------------------------------------------
+//   Test HMS and DMS operations
+// ----------------------------------------------------------------------------
+{
+    BEGIN(hms);
+
+    step("HMS data type")
+        .test(CLEAR, "1.5_hms", ENTER).expect("1:30:00");
+    step("DMS data type")
+        .test(CLEAR, "1.7550_dms", ENTER).expect("1°45′18″");
+    step("Creating DMS using fractions menu")
+        .test(CLEAR, "1.2345", LSHIFT, H)
+        .test(F6).expect("⁶⁷/₄₈")
+        .test(F5).expect("1°23′45″");
+    step("Creating DMS by adding zero")
+        .test(CLEAR, "1.4241 0", LSHIFT, H)
+        .test(LSHIFT, F5).expect("1°42′41″");
+    step("Creating DMS by subtracting one")
+        .test(CLEAR, "1.4241 1", LSHIFT, H)
+        .test(LSHIFT, F6).expect("0°42′41″");
+    step("HMS addition")
+        .test(CLEAR, "1.4241 1.2333 HMS+", ENTER).expect("3:06:14");
+    step("DMS addition")
+        .test(CLEAR, "1.4241 1.2333 DMS+", ENTER).expect("3°06′14″");
+    step("DMS addition through menu")
+        .test(CLEAR, "1.4241 1.2333", LSHIFT, H, LSHIFT, F5).expect("3°06′14″");
+    step("HMS subtraction")
+        .test(CLEAR, "1.4241 1.2333 HMS-", ENTER).expect("0:19:08");
+    step("DMS subtraction")
+        .test(CLEAR, "1.4241 1.2333 DMS-", ENTER).expect("0°19′08″");
+    step("DMS subtraction through menu")
+        .test(CLEAR, "1.4241 1.2333", LSHIFT, H, LSHIFT, F6).expect("0°19′08″");
+    step("DMS multiplication")
+        .test(CLEAR, "1.2345", LSHIFT, H)
+        .test(F6).expect("⁶⁷/₄₈")
+        .test(F5).expect("1°23′45″")
+        .test(2, MUL).expect("2°47′30″");
+    step("DMS division")
+        .test(2, DIV).expect("1°23′45″")
+        .test(3, DIV).expect("0°27′55″")
+        .test(5, DIV).expect("0°05′35″")
+        .test(12, DIV).expect("0°00′27″¹¹/₁₂");
 }
 
 

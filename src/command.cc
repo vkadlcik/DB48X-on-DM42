@@ -446,6 +446,10 @@ COMMAND_BODY(Wait)
                     sys_timer_disable(TIMER1);
                     sys_timer_start(TIMER1, remains);
 
+                    // Do not switch off if on USB power
+                    if (usb_powered())
+                        reset_auto_off();
+
                     // Honor auto-off while waiting, do not erase drawn image
                     if (power_check(false))
                         continue;

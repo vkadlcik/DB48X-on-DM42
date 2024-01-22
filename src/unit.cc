@@ -126,43 +126,46 @@ static size_t render_dms(renderer &r, algebraic_g x,
 //   Render a number as "degrees / minutes / seconds"
 // ----------------------------------------------------------------------------
 {
-    if (!algebraic::real_promotion(x))
+    if (!algebraic::decimal_to_fraction(x))
         return 0;
-    if (!x->is_decimal())
+    if (!x)
+        return 0;
+    integer_g one = integer::make(1);
+    if (x->is_bignum())
+        x = +big_fraction::make(bignum_p(+x), bignum::make(1));
+    else if (x->is_integer())
+        x = +fraction::make(integer_p(+x), one);
+    if (!x->is_fraction())
         return 0;
 
-    decimal_g value = decimal_p(+x);
-    decimal_g ip, fp;
+    fraction_g value = fraction_p(+x);
     bool neg = value->is_negative();
     if (neg)
-        value = decimal::neg(value);
-    if (value->exponent() > 8)
-        return 0;
-    if (!value->split(ip, fp))
-        return 0;
-
-    if (neg)
+    {
         r.put('-');
-    ularge v = ip->as_unsigned();
-    r.printf("%d", int(v));
+        value = -value;
+    }
+    ularge v = value->as_unsigned();
+    r.printf("%llu", v);
     r.put(deg);
 
-    value = decimal::make(60);
-    value = value * fp;
-    if (!value->split(ip, fp))
-        return 0;
-    v = ip->as_unsigned();
-    r.printf("%02d", int(v));
+    fraction_g factor = fraction::make(integer::make(60), one);
+
+    value = (value * factor) % factor;
+    v = value->as_unsigned();
+    r.printf("%02llu", v);
     r.put(min);
 
-    value = decimal::make(60);
-    value = value * fp;
-    if (value->exponent() < 2)
-        r.put('0');
-    settings::SaveNoTrailingDecimal saveNTD(true);
-    settings::SaveStandardExponent  saveSE(999);
-    value->render(r);
+    value = (value * factor) % factor;
+    v = value->as_unsigned();
+    v = value->as_unsigned();
+    r.printf("%02llu", v);
     r.put(sec);
+
+    factor = fraction::make(one, one);
+    value = value % factor;
+    if (!value->is_zero())
+        value->render(r);
 
     return r.size();
 }

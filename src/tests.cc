@@ -2777,6 +2777,30 @@ void tests::sorting_functions()
     step("Reverse sort (ReverseSort)")
         .test("ReverseSort", ENTER)
         .expect("{ 9.2 8.4 7 3 2.5 \"DEF\" \"ABC\" }");
+    step("Min function (integer)")
+        .test(CLEAR, "1 2 MIN", ENTER).expect("1");
+    step("Max function (integer)")
+        .test(CLEAR, "1 2 MAX", ENTER).expect("2");
+    step("Min function (decimal)")
+        .test(CLEAR, "1.23 4.56 MIN", ENTER).expect("1.23");
+    step("Max function (decimal)")
+        .test(CLEAR, "1.23 4.56 MAX", ENTER).expect("4.56");
+    step("Min function (fraction)")
+        .test(CLEAR, "1/23 4/56 MIN", ENTER).expect("¹/₂₃");
+    step("Max function (fraction)")
+        .test(CLEAR, "1/23 4/56 MAX", ENTER).expect("¹/₁₄");
+    step("Min function (mixed numbers)")
+        .test(CLEAR, "1/23 4.56 MIN", ENTER).expect("¹/₂₃");
+    step("Max function (mixed numbers)")
+        .test(CLEAR, "1/23 4.56 MAX", ENTER).expect("4.56");
+    step("Min function (text)")
+        .test(CLEAR, "\"ABC\" \"DEF\" MIN", ENTER).expect("\"ABC\"");
+    step("Max function (text)")
+        .test(CLEAR, "\"ABC\" \"DEF\" MAX", ENTER).expect("\"DEF\"");
+    step("Min function (mixed types)")
+        .test(CLEAR, "1 \"DEF\" MAX", ENTER).error("Bad argument type");
+    step("Max function (mixed types)")
+        .test(CLEAR, "1 \"DEF\" MAX", ENTER).error("Bad argument type");
 }
 
 

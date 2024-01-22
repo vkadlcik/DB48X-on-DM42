@@ -649,6 +649,22 @@ void tests::stack_operations()
 {
     BEGIN(stack);
 
+    step("Multi-line stack rendering")
+        .test(CLEAR, "[[1 2][3 4]]", ENTER)
+        .noerr().expect("[[ 1 2 ] \n  [ 3 4 ]]")
+        .test("SingleLineResult", ENTER)
+        .noerr().expect("[[ 1 2 ] [ 3 4 ]]")
+        .test("MultiLineResult", ENTER)
+        .noerr().expect("[[ 1 2 ] \n  [ 3 4 ]]");
+    step("Multi-line stack rendering does not impact editing")
+        .test(NOSHIFT, DOWN)
+        .editor("[[ 1 2 ] \n  [ 3 4 ]]")
+        .test(ENTER, "SingleLineResult", ENTER, DOWN)
+        .editor("[[ 1 2 ] \n  [ 3 4 ]]")
+        .test(ENTER, "MultiLineResult", ENTER, DOWN)
+        .editor("[[ 1 2 ] \n  [ 3 4 ]]")
+        .test(ENTER).noerr();
+
     step("Dup with ENTER")
         .test(CLEAR, "12", ENTER, ENTER, ADD).expect("24");
     step("Drop with Backspace")

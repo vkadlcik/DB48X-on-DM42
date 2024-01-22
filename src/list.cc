@@ -357,14 +357,22 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
 // ----------------------------------------------------------------------------
 {
     // Check if we need an indent in the body
-    bool need_indent = false;
-    for (object_p obj : *this)
+    bool   need_indent = false;
+    bool   unnest      = false;
+    bool   first       = true;
+    list_g list        = this;
+    id     lty         = type();
+
+    for (object_p obj : *list)
     {
-        switch(obj->type())
+        id oty = obj->type();
+        switch (oty)
         {
         case ID_list:
         case ID_program:
         case ID_array:
+            if (first && lty == oty)
+                unnest = true;
         case ID_locals:
         case ID_comment:
         case ID_IfThen:
@@ -383,22 +391,28 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
         }
         if (need_indent)
             break;
+        first = false;
     }
 
     // Write the header, e.g. "{ "
     if (open)
     {
         r.put(open);
-        if (need_indent)
+        if (need_indent && !unnest)
             r.indent();
     }
 
     // Loop on all objects inside the list
-    for (object_p obj : *this)
+    for (object_p obj : *list)
     {
         // Add space separator (except on first object when no separator)
-        if (open && !r.hadCR())
+        if (open && !r.hadCR() && (open == 1 || !unnest))
             r.put(' ');
+        if (open == 1 && need_indent)
+        {
+            r.wantCR();
+            r.wantUnnest(unnest);
+        }
         open = 1;
 
         // Render the object in what remains (may GC)
@@ -408,13 +422,19 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
     // Add final space and closing separator
     if (close)
     {
-        if (need_indent)
-            r.unindent();
-        else if (open == 1)
-            r.put(' ');
-        r.put(close);
+        if (!unnest)
+        {
+            if (need_indent)
+                r.unindent();
+            else if (open == 1)
+                r.put(' ');
+            r.put(close);
+        }
+        else
+        {
+            r.put(close);
+        }
     }
-    r.wantCR();
 
     return r.size();
 }

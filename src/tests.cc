@@ -2058,6 +2058,11 @@ void tests::decimal_numerical_functions()
 
     step("Restore default 24-digit precision");
     test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerr();
+
+    step("→Frac should work for integers")
+        .test(CLEAR, "0 →Frac", ENTER).noerr().expect("0")
+        .test(CLEAR, "1 →Frac", ENTER).noerr().expect("1")
+        .test(CLEAR, "-123 →Frac", ENTER).noerr().expect("-123");
 }
 
 
@@ -3836,14 +3841,17 @@ void tests::plotting_all_functions()
 {
     BEGIN(plotfns);
 
-    step("Select radians");
-    test(CLEAR, SHIFT, N, F2).noerr();
+    step("Select radians")
+        .test(CLEAR, SHIFT, N, F2).noerr();
 
-    step("Select 24-digit precision");
-    test(CLEAR, SHIFT, O, 24, F6).noerr();
+    step("Select 24-digit precision")
+        .test(CLEAR, SHIFT, O, 24, F6).noerr();
 
-    step("Select plotting menu");
-    test(CLEAR, XSHIFT, O).noerr();
+    step("Purge the `PlotParameters` variable")
+        .test(CLEAR, "'PPAR' purge", ENTER).noerr();
+
+    step("Select plotting menu")
+        .test(CLEAR, XSHIFT, O).noerr();
 
     uint dur = 300;
 

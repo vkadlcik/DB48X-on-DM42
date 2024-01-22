@@ -2721,12 +2721,59 @@ void tests::list_functions()
     test(CLEAR, "\"Hello World\"", ENTER, "2 GET", ENTER)
         .expect("\"e\"");
     step("Deep nesting");
-    test(CLEAR, "{ A { D E { 1 2 \"Hello World\" } F } 2 3 }", ENTER,\
+    test(CLEAR, "{ A { D E { 1 2 \"Hello World\" } F } 2 3 }", ENTER,
          "{ 2 3 3 5 } GET", ENTER)
         .expect("\"o\"");
 
+    step("Incrementing integer index")
+        .test(CLEAR,
+              "{ A B C }", ENTER, "2 ")
+        .test("GETI", ENTER).expect("B").test(BSP)
+        .test("GETI", ENTER).expect("C").test(BSP)
+        .test("GETI", ENTER).expect("A").test(BSP);
+
+    step("Incrementing decimal index")
+        .test(CLEAR,
+              "{ A B C }", ENTER, "2.3 ")
+        .test("GETI", ENTER).expect("B").test(BSP)
+        .test("GETI", ENTER).expect("C").test(BSP)
+        .test("GETI", ENTER).expect("A").test(BSP);
+    step("Bad index type for GETI")
+        .test(CLEAR, "{ A B C }", ENTER, "\"A\" GETI", ENTER)
+        .error("Bad argument type");
+    step("Out-of-range index for GETI")
+        .test(CLEAR, "{ A B C }", ENTER, "5 GETI", ENTER)
+        .error("Index out of range");
+    step("Empty list index for GETI")
+        .test(CLEAR, "{ A B C }", ENTER, "{} GETI", ENTER)
+        .error("Bad argument value");
+    step("Single element list index for GETI")
+        .test(CLEAR, "{ A B C }", ENTER, "{2} ")
+        .test("GETI", ENTER).expect("B").test(BSP).expect("{ 3 }")
+        .test("GETI", ENTER).expect("C").test(BSP).expect("{ 1 }")
+        .test("GETI", ENTER).expect("A").test(BSP).expect("{ 2 }");
+    step("List index nested for GETI")
+        .test(CLEAR, "{ A {D E F} C }", ENTER, "{2 3} ")
+        .test("GETI", ENTER).expect("F").test(BSP).expect("{ 3 1 }")
+        .test("GETI", ENTER).error("Bad argument type");
+    step("List index, too many items for GETI")
+        .test(CLEAR, "{ A B C }", ENTER, "{2 3} GETI", ENTER)
+        .error("Bad argument type");
+    step("Character from array using GETI")
+        .test(CLEAR, "\"Hello\"", ENTER, "2 ")
+        .test("GETI", ENTER).expect("\"e\"").test(BSP).expect("3")
+        .test("GETI", ENTER).expect("\"l\"").test(BSP).expect("4")
+        .test("GETI", ENTER).expect("\"l\"").test(BSP).expect("5")
+        .test("GETI", ENTER).expect("\"o\"").test(BSP).expect("1")
+        .test("GETI", ENTER).expect("\"H\"").test(BSP).expect("2")
+        .test("GETI", ENTER).expect("\"e\"").test(BSP).expect("3");
+    step("Deep nesting for GETI");
+    test(CLEAR, "{ A { D E { 1 2 \"Hello World\" } F } 2 3 }", ENTER,
+         "{ 2 3 3 5 } GETI", ENTER)
+        .expect("\"o\"").test(BSP).expect("{ 2 3 3 6 }");
+
     step("Array indexing");
-    test(CLEAR, "[ A [ D E [ 1 2 \"Hello World\" ] F ] 2 3 ]", ENTER,\
+    test(CLEAR, "[ A [ D E [ 1 2 \"Hello World\" ] F ] 2 3 ]", ENTER,
          "[ 2 3 3 5 ] GET", ENTER)
         .expect("\"o\"");
 

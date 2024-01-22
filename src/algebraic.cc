@@ -262,6 +262,10 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
         x = decimal_p(+x)->to_fraction();
         return true;
 
+    case ID_integer:
+    case ID_neg_integer:
+    case ID_bignum:
+    case ID_neg_bignum:
     case ID_fraction:
     case ID_neg_fraction:
     case ID_big_fraction:

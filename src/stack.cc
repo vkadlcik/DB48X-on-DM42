@@ -174,7 +174,7 @@ void stack::draw_stack()
 #endif
             w = font->width(out, len);
 
-            if (w >= avail)
+            if (w >= avail || strchr(cstring(out), '\n'))
             {
                 uint availRows = (y + lineHeight - 1 - top) / lineHeight;
                 bool dots      = !ml || w >= avail * availRows;

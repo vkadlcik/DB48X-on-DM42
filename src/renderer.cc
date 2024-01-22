@@ -141,9 +141,14 @@ bool renderer::put(char c)
     {
         nl = false;
         if (!txt)
+        {
             for (uint i = 0; i < tabs; i++)
                 if (!put('\t'))
                     return false;
+            if (unnest)
+                if (!put("  "))
+                    return false;
+        }
         cr = true;
     }
     else if (!isspace(c))

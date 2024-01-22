@@ -3018,44 +3018,44 @@ void tests::matrix_functions()
 
     step("Data entry in numeric form");
     test(CLEAR, "[  [1  2  3][4 5 6]  ]", ENTER)
-        .type(object::ID_array).want("[ [ 1 2 3 ] [ 4 5 6 ] ]");
+        .type(object::ID_array).want("[[ 1 2 3 ] [ 4 5 6 ]]");
 
     step("Non-rectangular matrices");
-    test(CLEAR, "[  [ 1.5  2.300 ] [ 3.02 ] ]", ENTER)
-        .type(object::ID_array).want("[ [ 1.5 2.3 ] [ 3.02 ] ]");
+    test(CLEAR, "[  [ 1.5  2.300 ] [ 3.02 ]]", ENTER)
+        .type(object::ID_array).want("[[ 1.5 2.3 ] [ 3.02 ]]");
 
     step("Symbolic matrix");
-    test(CLEAR, "[ [a b] [c d] ]", ENTER)
-        .want("[ [ a b ] [ c d ] ]");
+    test(CLEAR, "[[a b] [c d]]", ENTER)
+        .want("[[ a b ] [ c d ]]");
 
     step("Non-homogneous data types");
-    test(CLEAR, "[  [ \"ABC\"  'X' ] 3/2  [ 4 [5] [6 7] ] ]", ENTER)
+    test(CLEAR, "[  [ \"ABC\"  'X' ] 3/2  [ 4 [5] [6 7]]]", ENTER)
         .type(object::ID_array)
-        .want("[ [ \"ABC\" 'X' ] ³/₂ [ 4 [ 5 ] [ 6 7 ] ] ]");
+        .want("[[ \"ABC\" 'X' ] ³/₂ [ 4 [ 5 ] [ 6 7 ] ]]");
 
     step("Addition");
     test(CLEAR, "[[1 2] [3 4]] [[5 6][7 8]] +", ENTER)
-        .want("[ [ 6 8 ] [ 10 12 ] ]");
+        .want("[[ 6 8 ] [ 10 12 ]]");
     test(CLEAR, "[[a b][c d]] [[e f][g h]] +", ENTER)
-        .want("[ [ 'a+e' 'b+f' ] [ 'c+g' 'd+h' ] ]");
+        .want("[[ 'a+e' 'b+f' ] [ 'c+g' 'd+h' ]]");
 
     step("Subtraction");
     test(CLEAR, "[[1 2] [3 4]] [[5 6][7 8]] -", ENTER)
-        .want("[ [ -4 -4 ] [ -4 -4 ] ]");
+        .want("[[ -4 -4 ] [ -4 -4 ]]");
     test(CLEAR, "[[a b][c d]] [[e f][g h]] -", ENTER)
-        .want("[ [ 'a-e' 'b-f' ] [ 'c-g' 'd-h' ] ]");
+        .want("[[ 'a-e' 'b-f' ] [ 'c-g' 'd-h' ]]");
 
     step("Multiplication (square)");
     test(CLEAR, "[[1 2] [3 4]] [[5 6][7 8]] *", ENTER)
-        .want("[ [ 19 22 ] [ 43 50 ] ]");
+        .want("[[ 19 22 ] [ 43 50 ]]");
     test(CLEAR, "[[a b][c d]] [[e f][g h]] *", ENTER)
-        .want("[ [ 'a·e+b·g' 'a·f+b·h' ] [ 'c·e+d·g' 'c·f+d·h' ] ]");
+        .want("[[ 'a·e+b·g' 'a·f+b·h' ] [ 'c·e+d·g' 'c·f+d·h' ]]");
 
     step("Multiplication (non-square)");
     test(CLEAR, "[[1 2 3] [4 5 6]] [[5 6][7 8][9 10]] *", ENTER)
-        .want("[ [ 46 52 ] [ 109 124 ] ]");
+        .want("[[ 46 52 ] [ 109 124 ]]");
     test(CLEAR, "[[a b c d][e f g h]] [[x][y][z][t]] *", ENTER)
-        .want("[ [ 'a·x+b·y+c·z+d·t' ] [ 'e·x+f·y+g·z+h·t' ] ]");
+        .want("[[ 'a·x+b·y+c·z+d·t' ] [ 'e·x+f·y+g·z+h·t' ]]");
     test(CLEAR, "[[a b c d][e f g h]] [x y z t] *", ENTER)
         .want("[ 'a·x+b·y+c·z+d·t' 'e·x+f·y+g·z+h·t' ]");
 
@@ -3063,34 +3063,34 @@ void tests::matrix_functions()
     test(CLEAR,
          "[[5 12 1968][17 2 1969][30 3 1993]] "
          "[[16 5 1995][21 5 1999][28 5 2009]] /", ENTER)
-        .want("[ [ ³⁴/₁₁ -⁵²/₁₁ -⁴³/₁₁ ] [ ³ ³⁵⁷/₁₀ -¹³ ⁴²⁷/₁₀ -¹⁶ ⁴³³/₁₀ ] [ -¹⁹/₂₂ ⁷⁵/₂₂ ¹¹³/₂₂ ] ]");
+        .want("[[ ³⁴/₁₁ -⁵²/₁₁ -⁴³/₁₁ ] [ ³ ³⁵⁷/₁₀ -¹³ ⁴²⁷/₁₀ -¹⁶ ⁴³³/₁₀ ] [ -¹⁹/₂₂ ⁷⁵/₂₂ ¹¹³/₂₂ ]]");
     step("Division (symbolic)");
     test(CLEAR, "[[a b][c d]][[e f][g h]] /", ENTER)
-        .want("[ [ '(e⁻¹-f÷e·((-g)÷(e·h-g·f)))·a+(-(f÷e·(e÷(e·h-g·f))))·c' '(e⁻¹-f÷e·((-g)÷(e·h-g·f)))·b+(-(f÷e·(e÷(e·h-g·f))))·d' ] [ '(-g)÷(e·h-g·f)·a+e÷(e·h-g·f)·c' '(-g)÷(e·h-g·f)·b+e÷(e·h-g·f)·d' ] ]");
+        .want("[[ '(e⁻¹-f÷e·((-g)÷(e·h-g·f)))·a+(-(f÷e·(e÷(e·h-g·f))))·c' '(e⁻¹-f÷e·((-g)÷(e·h-g·f)))·b+(-(f÷e·(e÷(e·h-g·f))))·d' ] [ '(-g)÷(e·h-g·f)·a+e÷(e·h-g·f)·c' '(-g)÷(e·h-g·f)·b+e÷(e·h-g·f)·d' ]]");
 
     step("Addition of constant (extension)");
     test(CLEAR, "[[1 2] [3 4]] 3 +", ENTER)
-        .want("[ [ 4 5 ] [ 6 7 ] ]");
+        .want("[[ 4 5 ] [ 6 7 ]]");
     test(CLEAR, "[[a b] [c d]] x +", ENTER)
-        .want("[ [ 'a+x' 'b+x' ] [ 'c+x' 'd+x' ] ]");
+        .want("[[ 'a+x' 'b+x' ] [ 'c+x' 'd+x' ]]");
 
     step("Subtraction of constant (extension)");
     test(CLEAR, "[[1 2] [3 4]] 3 -", ENTER)
-        .want("[ [ -2 -1 ] [ 0 1 ] ]");
+        .want("[[ -2 -1 ] [ 0 1 ]]");
     test(CLEAR, "[[a b] [c d]] x -", ENTER)
-        .want("[ [ 'a-x' 'b-x' ] [ 'c-x' 'd-x' ] ]");
+        .want("[[ 'a-x' 'b-x' ] [ 'c-x' 'd-x' ]]");
 
     step("Multiplication by constant (extension)");
     test(CLEAR, "[[a b] [c d]] x *", ENTER)
-        .want("[ [ 'a·x' 'b·x' ] [ 'c·x' 'd·x' ] ]");
+        .want("[[ 'a·x' 'b·x' ] [ 'c·x' 'd·x' ]]");
     test(CLEAR, "x [[a b] [c d]] *", ENTER)
-        .want("[ [ 'x·a' 'x·b' ] [ 'x·c' 'x·d' ] ]");
+        .want("[[ 'x·a' 'x·b' ] [ 'x·c' 'x·d' ]]");
 
     step("Division by constant (extension)");
     test(CLEAR, "[[a b] [c d]] x /", ENTER)
-        .want("[ [ 'a÷x' 'b÷x' ] [ 'c÷x' 'd÷x' ] ]");
+        .want("[[ 'a÷x' 'b÷x' ] [ 'c÷x' 'd÷x' ]]");
     test(CLEAR, "x [[a b] [c d]] /", ENTER)
-        .want("[ [ 'x÷a' 'x÷b' ] [ 'x÷c' 'x÷d' ] ]");
+        .want("[[ 'x÷a' 'x÷b' ] [ 'x÷c' 'x÷d' ]]");
 
     step("Invalid dimension for binary operations");
     test(CLEAR, "[[1 2] [3 4]][1 2] +", ENTER)
@@ -3118,9 +3118,9 @@ void tests::matrix_functions()
 
     step("Inversion of a definite matrix");
     test(CLEAR, "[[1 2 3][4 5 6][7 8 19]] INV", ENTER)
-        .want("[ [ -⁴⁷/₃₀ ⁷/₁₅ ¹/₁₀ ] [ ¹⁷/₁₅ ¹/₁₅ -¹/₅ ] [ ¹/₁₀ -¹/₅ ¹/₁₀ ] ]");
+        .want("[[ -⁴⁷/₃₀ ⁷/₁₅ ¹/₁₀ ] [ ¹⁷/₁₅ ¹/₁₅ -¹/₅ ] [ ¹/₁₀ -¹/₅ ¹/₁₀ ]]");
     test(CLEAR, "[[a b][c d]] INV", ENTER)
-        .want("[ [ 'a⁻¹-b÷a·((-c)÷(a·d-c·b))' '-(b÷a·(a÷(a·d-c·b)))' ] [ '(-c)÷(a·d-c·b)' 'a÷(a·d-c·b)' ] ]");
+        .want("[[ 'a⁻¹-b÷a·((-c)÷(a·d-c·b))' '-(b÷a·(a÷(a·d-c·b)))' ] [ '(-c)÷(a·d-c·b)' 'a÷(a·d-c·b)' ]]");
 
     step("Invert with zero determinant");       // HP48 gets this one wrong
     test(CLEAR, "[[1 2 3][4 5 6][7 8 9]] INV", ENTER)
@@ -3140,7 +3140,7 @@ void tests::matrix_functions()
 
     step("Component-wise application of functions");
     test(CLEAR, "[[a b] [c d]] SIN", ENTER)
-        .want("[ [ 'sin a' 'sin b' ] [ 'sin c' 'sin d' ] ]");
+        .want("[[ 'sin a' 'sin b' ] [ 'sin c' 'sin d' ]]");
 }
 
 

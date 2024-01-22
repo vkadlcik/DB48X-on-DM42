@@ -94,13 +94,18 @@ void about_dialog()
 
     font_p font = LibMonoFont10x17;
     coord x = 0;
-    coord y = LCD_H / 2 + 20;
+    coord y = LCD_H / 2 + 15;
     size  h = font->height();
     coord x2;
     for (uint i = 0; i < 2; i++)
         x2 = Screen.text(x + i, y, utf8("DB48X "), font, pattern::black);
-    Screen.text(x2, y, utf8("v" PROGRAM_VERSION " © C. de Dinechin"), font);
-    y += 2 * h;
+    Screen.text(x2, y, utf8("v" PROGRAM_VERSION " © 2024 C. de Dinechin"), font);
+    y += h;
+    Screen.text(x, y, utf8("A modern implementation of RPL, and"), font);
+    y += h;
+    Screen.text(x, y, utf8("a tribute to Bill Hewlett and Dave Packard"), font);
+
+    y += 3 * h / 2;
     Screen.text(x, y, utf8("    Press EXIT key to continue..."), font);
     lcd_refresh();
 

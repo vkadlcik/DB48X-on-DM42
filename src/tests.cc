@@ -3019,7 +3019,7 @@ void tests::vector_functions()
     test(CLEAR, "[1 2 3] INV", ENTER)
         .expect("[ 1 ¹/₂ ¹/₃ ]");
 
-    step("Froebenius norm");
+    step("Fröbenius norm");
     test(CLEAR, "[1 2 3] ABS", ENTER)
         .expect("3.74165 73867 7");
     test(CLEAR, "[1 2 3] NORM", ENTER)

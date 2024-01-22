@@ -800,7 +800,9 @@ COMMAND_BODY(Tail)
             }
             else
             {
-                rt.dimension_error();
+                // On HP50, HEAD returns an error, but TAIL returns an empty list
+                // rt.dimension_error();
+                return OK;
             }
         }
         else

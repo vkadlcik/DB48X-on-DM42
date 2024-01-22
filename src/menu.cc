@@ -1211,25 +1211,28 @@ MENU(FractionsMenu,
 // ----------------------------------------------------------------------------
 //   Operations on fractions
 // ----------------------------------------------------------------------------
+     "→Num",    ID_ToDecimal,
+     "→Frac",   ID_ToFraction,
      "%",       ID_Percent,
      "%Chg",    ID_PercentChange,
+     "→DMS",    ID_ToDMS,
+     "DMS→",    ID_FromDMS,
+
+     FractionIterations::label,         ID_FractionIterations,
+     FractionDigits::label,             ID_FractionDigits,
      "%Total",  ID_PercentTotal,
-     "→Frac",   ID_ToFraction,
      "Frac→",   ID_Explode,
-     "→Num",    ID_ToDecimal,
+     "DMS+",    ID_DMSAdd,
+     "DMS-",    ID_DMSSub,
 
      "1 1/2",   ID_MixedFractions,
      "3/2",     ID_ImproperFractions,
      "1/3",     ID_BigFractions,
      "¹/₃",     ID_SmallFractions,
-
-     "→DMS",    ID_ToDMS,
-     "DMS→",    ID_FromDMS,
      "→HMS",    ID_ToHMS,
-     "HMS→",    ID_FromHMS,
-     FractionIterations::label,         ID_FractionIterations,
-     FractionDigits::label,             ID_FractionDigits
+     "HMS→",    ID_FromHMS
 );
+
 
 MENU(PlotMenu,
 // ----------------------------------------------------------------------------

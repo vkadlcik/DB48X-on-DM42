@@ -949,6 +949,15 @@ void tests::arithmetic()
     test(CLEAR, "2 -3 ^", ENTER).expect("¹/₈");
     test(CLEAR, "-2 -3 ^", ENTER).expect("-¹/₈");
 
+    step("Special case of 0^0")
+        .test(CLEAR, "0 0 ^", ENTER).noerr().expect("1")
+        .test(CLEAR,
+              "ZeroPowerZeroIsUndefined", ENTER,
+              "0 0 ^", ENTER).error("Undefined operation")
+        .test(CLEAR,
+              "ZeroPowerZeroIsOne", ENTER,
+              "0 0 ^", ENTER).noerr().expect("1");
+
     step("xroot");
     test(CLEAR, "8 3 xroot", ENTER).expect("2.");
     test(CLEAR, "-8 3 xroot", ENTER).expect("-2.");

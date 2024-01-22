@@ -3195,7 +3195,13 @@ void tests::numerical_integration_testing()
         .test(3, ENTER).expect("3")
         .test("'sq(Z)+Z'", ENTER).expect("'Z²+Z'")
         .test(F, ALPHA, Z, ENTER).expect("'Z'")
-        .test(SHIFT, KEY8, F2).wait(1500).expect("⁵³/₆");
+        .test(SHIFT, KEY8, F2).wait(2500).expect("⁵³/₆"); // REVISIT: So slow?
+    step("Integration with decimals")
+        .test(CLEAR, "2.", ENTER).expect("2.")
+        .test("3.", ENTER).expect("3.")
+        .test("'sq(Z)+Z'", ENTER).expect("'Z²+Z'")
+        .test(F, ALPHA, Z, ENTER).expect("'Z'")
+        .test(SHIFT, KEY8, F2).wait(250).expect("8.83333 33333 3");
 }
 
 

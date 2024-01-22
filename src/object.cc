@@ -677,8 +677,15 @@ bool object::next_index(object_p *indexp) const
     {
         object_g obj     = this;
         object_g idxhead = idxlist->head();
+        if (!idxhead)
+        {
+            // Bad argument value error, like on the HP50
+            rt.value_error();
+            return false;
+        }
+
         list_p   idxtail = idxlist->tail();
-        if (idxtail->length())
+        if (idxtail && idxtail->length())
         {
             object_g itobj   = idxtail;
             object_g child   = obj->at(+idxhead);

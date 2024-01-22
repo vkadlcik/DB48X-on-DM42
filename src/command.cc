@@ -1002,6 +1002,12 @@ static object::result to_hms_dms(cstring name)
     if (+xc != x)
         return object::OK;      // No-op if already a unit
 
+    if (!arithmetic::decimal_to_fraction(x))
+    {
+        if (!rt.error())
+            rt.value_error();
+        return object::ERROR;
+    }
     algebraic_g sym = +symbol::make(name);
     unit_g unit = unit::make(x, sym);
     if (!rt.top(unit))
@@ -1010,7 +1016,7 @@ static object::result to_hms_dms(cstring name)
 }
 
 
-static algebraic_p from_hms_dms(algebraic_r x, cstring name)
+static algebraic_p from_hms_dms(algebraic_g x, cstring name)
 // ----------------------------------------------------------------------------
 //   Convert a value from HMS input
 // ----------------------------------------------------------------------------
@@ -1018,6 +1024,8 @@ static algebraic_p from_hms_dms(algebraic_r x, cstring name)
     if (x->is_real())
     {
         // Compatibility mode (including behaviour for 1.60->2.00)
+        if (!algebraic::decimal_to_fraction(x))
+            return nullptr;
         algebraic_g hours = IntPart::run(x);
         algebraic_g fp = FracPart::run(x);
         algebraic_g hundred = integer::make(100);

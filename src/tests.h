@@ -182,17 +182,26 @@ struct tests
         QUESTION   = KEY_ADD,
 
         // Special stuff
-        ALPHA      = 100,       // Set alpha
-        LOWERCASE  = 101,       // Set lowercase
-        NOSHIFT    = 102,       // Set standard input mode (no shift)
-        LONGPRESS  = 103,       // Force long press
-        CLEAR      = 104,       // Clear the calculator state
-        NOKEYS     = 105,       // Wait until keys buffer is empty
-        REFRESH    = 106,       // Wait until there is a screen refresh
-        XSHIFT     = 107,       // Double shift
+        CLEAR      = 100,       // Clear the calculator state
+        NOKEYS     = 101,       // Wait until keys buffer is empty
+        REFRESH    = 102,       // Wait until there is a screen refresh
+        KEYSYNC    = 103,       // Wait for other side to process keys
+        LONGPRESS  = 104,       // Force long press
+        EXIT_PGM   = 105,       // Exiting program
 
-        KEYSYNC    = 108,       // Wait for other side to process keys
-        EXIT_PGM   = 142,       // Exiting program
+        // Reaching a specific shift state
+        NOSHIFT    = 110,       // Clear shifts
+        LSHIFT     = 111,       // Left shift only
+        RSHIFT     = 112,       // Right shift only
+        RESERVED1  = 113,       // Left + Right shift
+        ALPHA      = 114,       // Set alpha
+        ALPHA_LS   = 115,       // Alpha + left shift
+        ALPHA_RS   = 116,       // Alpha + right shit
+        RESERVED2  = 117,       // Alpha + left shift + right shift
+        LOWERCASE  = 122,       // Lowercase
+        LOWER_LS   = 123,       // Lowercase with left shift
+        LOWER_RS   = 124,       // Lowercase with right shift
+
     };
 
   protected:
@@ -265,7 +274,7 @@ public:
     tests &nokeys();
     tests &refreshed();
     tests &ready();
-    tests &shifts(bool shift, bool xshift, bool alpha, bool lowercase);
+    tests &shifts(bool lshift, bool rshift, bool alpha, bool lowercase);
     tests &wait(uint ms);
     tests &want(cstring output);
     tests &expect(cstring output);

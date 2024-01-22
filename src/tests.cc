@@ -364,12 +364,12 @@ void tests::keyboard_entry()
         .test(CLEAR, EXIT, KEY1, KEY2, F,
               ALPHA, A, B, C, NOSHIFT, G).noerr()
         .test(F, ALPHA, A, B, C, ENTER, SPACE).expect("12")
-        .test("'ABC'", ENTER, XSHIFT, G, F6).noerr();
+        .test("'ABC'", ENTER, RSHIFT, G, F6).noerr();
 
     step("Inserting a colon in text editor inserts tag delimiters")
         .test(CLEAR, ALPHA, KEY0).editor("::");
     step("Inserting a colon in text inserts a single colon")
-        .test(CLEAR, XSHIFT, ENTER, KEY0).editor("\":\"");
+        .test(CLEAR, RSHIFT, ENTER, KEY0).editor("\":\"");
 }
 
 
@@ -432,10 +432,10 @@ void tests::data_types()
     test(CLEAR, string, ENTER).type(object::ID_text).expect(string);
 
     step("Text containing quotes")
-        .test(CLEAR, XSHIFT, ENTER,
-              XSHIFT, ENTER, DOWN,
+        .test(CLEAR, RSHIFT, ENTER,
+              SHIFT, SHIFT, ENTER, DOWN,
               ALPHA, H, LOWERCASE, E, L, L, O,
-              XSHIFT, ENTER, DOWN, ENTER)
+              SHIFT, SHIFT, ENTER, DOWN, ENTER)
         .type(object::ID_text).expect("\"\"\"Hello\"\"\"")
         .test("1 DISP", ENTER).wait(25).image("quoted-text");
 
@@ -475,7 +475,7 @@ void tests::data_types()
         .expect("'X⁻¹+(Y²+Z³)'");
     step("Equation fancy parsing from editor");
     test(DOWN, SPACE, SPACE, SPACE,
-         XSHIFT, DOWN, SHIFT, F3, " 1 +", ENTER)
+         RSHIFT, DOWN, SHIFT, F3, " 1 +", ENTER)
         .type(object::ID_expression).expect("'X⁻¹+(Y²+Z³)+1'");
 
     step("Fractions");
@@ -576,12 +576,12 @@ void tests::editor_operations()
     step("Entering another entry")
         .test("1 2 3 4", ENTER).expect("4");
     step("Editor history")
-        .test(XSHIFT, UP)
+        .test(RSHIFT, UP)
         .editor("1 2 3 4")
-        .test(XSHIFT, UP)
+        .test(RSHIFT, UP)
         .editor("A1C2B");
     step("Editor menu")
-        .test(XSHIFT, DOWN);
+        .test(RSHIFT, DOWN);
     step("Selection")
         .test(F1, DOWN, DOWN).editor("A1C2B");
     step("Cut")
@@ -616,27 +616,27 @@ void tests::editor_operations()
     step("End of editing, empty editor")
         .test(ENTER).editor("");
     step("History")
-        .test(XSHIFT, UP).editor("XBYN1CBY12BY M2QBY");
+        .test(RSHIFT, UP).editor("XBYN1CBY12BY M2QBY");
     step("History level 2")
-        .test(XSHIFT, UP).editor("1 2 3 4");
+        .test(RSHIFT, UP).editor("1 2 3 4");
     step("Exiting old history")
         .test(EXIT).editor("");
     step("Check 8-level history")
         .test("A", ENTER, "B", ENTER, "C", ENTER, "D", ENTER,
               "E", ENTER, "F", ENTER, "G", ENTER, "H", ENTER,
-              XSHIFT, UP).editor("H")
-        .test(XSHIFT, UP).editor("G")
-        .test(XSHIFT, UP).editor("F")
-        .test(XSHIFT, UP).editor("E")
-        .test(XSHIFT, UP).editor("D")
-        .test(XSHIFT, UP).editor("C")
-        .test(XSHIFT, UP).editor("B")
-        .test(XSHIFT, UP).editor("A")
-        .test(XSHIFT, UP).editor("H");
+              RSHIFT, UP).editor("H")
+        .test(RSHIFT, UP).editor("G")
+        .test(RSHIFT, UP).editor("F")
+        .test(RSHIFT, UP).editor("E")
+        .test(RSHIFT, UP).editor("D")
+        .test(RSHIFT, UP).editor("C")
+        .test(RSHIFT, UP).editor("B")
+        .test(RSHIFT, UP).editor("A")
+        .test(RSHIFT, UP).editor("H");
     step("EXIT key still saves editor contents")
         .test(CLEAR, "ABCD").editor("ABCD")
         .test(EXIT).editor("").noerr()
-        .test(XSHIFT, UP).editor("ABCD");
+        .test(RSHIFT, UP).editor("ABCD");
     step("End of editor")
         .test(CLEAR);
 }
@@ -731,8 +731,8 @@ void tests::stack_operations()
               F1, F2, F3, F4, F5, F6,
               SHIFT, F1, SHIFT, F2, SHIFT, F3,
               SHIFT, F4, SHIFT, F5, SHIFT, F6,
-              XSHIFT, F1, XSHIFT, F2, XSHIFT, F3,
-              XSHIFT, F5, XSHIFT, F6,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F5, RSHIFT, F6,
               ENTER)
         .expect("« Rot Over Depth Pick Roll RollDown "
                 "Duplicate Drop Duplicate2 Drop2 DuplicateN DropN "
@@ -749,20 +749,20 @@ void tests::stack_operations()
     step("Undo")
         .test(CLEAR, "1 2").shifts(false, false, false, false)
         .test(ADD).expect("3")
-        .test(XSHIFT, M).expect("2")
+        .test(RSHIFT, M).expect("2")
         .test(BSP).expect("1")
         .test(BSP).noerr()
         .test(BSP).error("Too few arguments");
     step("LastX")
         .test(CLEAR, "1 2").shifts(false, false, false, false)
         .test(ADD).expect("3")
-        .test(XSHIFT, F5).expect("2")
+        .test(RSHIFT, F5).expect("2")
         .test(BSP).expect("3")
         .test(BSP).noerr()
         .test(BSP).error("Too few arguments");
     step("ClearStk")
         .test(CLEAR, "1 2 3 4", ENTER)
-        .test(XSHIFT, F3).noerr()
+        .test(RSHIFT, F3).noerr()
         .test(BSP).error("Too few arguments");
 }
 
@@ -2633,7 +2633,7 @@ void tests::units_and_conversions()
         .type(object::ID_unit)
         .expect("1 in·mm");
     step("Divide by unit using softkey")
-        .test(CLEAR, SHIFT, KEY5, KEY1, F2, F1, XSHIFT, F2)
+        .test(CLEAR, SHIFT, KEY5, KEY1, F2, F1, RSHIFT, F2)
         .type(object::ID_unit)
         .expect("1 in/mm");
     step("Conversion across compound units")
@@ -2642,38 +2642,38 @@ void tests::units_and_conversions()
         .test(SHIFT, F4).type(object::ID_unit).expect("¹⁵ ⁶²⁵/₂₅ ₁₄₆ mph")
         .test(SHIFT, F3).type(object::ID_unit).expect("1 km/h");
     step("Conversion to base units")
-        .test(ENTER, XSHIFT, KEY5, F2)
+        .test(ENTER, RSHIFT, KEY5, F2)
         .type(object::ID_unit).expect("⁵/₁₈ m/s");
     step("Extract value from unit object")
         .test(ENTER, F3)
         .expect("⁵/₁₈");
     step("Split unit object")
-        .test(BSP, XSHIFT, N, F5).expect("'m÷s'")
+        .test(BSP, RSHIFT, N, F5).expect("'m÷s'")
         .test(BSP).expect("⁵/₁₈");
     step("Convert operation")
         .test(CLEAR, KEY1, SHIFT, KEY5, F2, F3)
         .type(object::ID_unit).expect("1 km/h")
-        .test(KEY1, F1, SHIFT, KEY5, SHIFT, F1, XSHIFT, F2)
+        .test(KEY1, F1, SHIFT, KEY5, SHIFT, F1, RSHIFT, F2)
         .type(object::ID_unit).expect("1 in/min")
-        .test(XSHIFT, KEY5, F1) // Convert
+        .test(RSHIFT, KEY5, F1) // Convert
         .type(object::ID_unit).expect("²⁵⁰ ⁰⁰⁰/₃₈₁ in/min");
     step("Convert to unit")
         .test(CLEAR, KEY3, KEY7, ENTER).expect("37")
         .test(SHIFT, KEY5, KEY4, KEY2, F2, F3).expect("42 km/h")
-        .test(XSHIFT, KEY5, F5).expect("37 km/h");
+        .test(RSHIFT, KEY5, F5).expect("37 km/h");
     step("Factoring out a unit")
         .test(CLEAR, KEY3, SHIFT, KEY5, SHIFT, F6, F2).expect("3 kW")
         .test(KEY1, SHIFT, KEY5, SHIFT, F4, F1).expect("1 N")
-        .test(XSHIFT, KEY5, F4).expect("3 000 N·m/s");
+        .test(RSHIFT, KEY5, F4).expect("3 000 N·m/s");
     step("Orders of magnitude")
         .test(CLEAR, KEY3, SHIFT, KEY5, SHIFT, F6, F2).expect("3 kW")
-        .test(XSHIFT, KEY5, SHIFT, F2).expect("300 000 cW")
+        .test(RSHIFT, KEY5, SHIFT, F2).expect("300 000 cW")
         .test(SHIFT, F3).expect("3 kW")
         .test(SHIFT, F4).expect("³/₁ ₀₀₀ MW");
     step("Unit simplification (same unit)")
         .test(CLEAR, KEY3, SHIFT, KEY5, SHIFT, F6, F2).expect("3 kW")
         .test(SHIFT, KEY5, SHIFT, F4, F1).expect("3 kW·N")
-        .test(SHIFT, KEY5, SHIFT, F6, XSHIFT, F2).expect("3 N");
+        .test(SHIFT, KEY5, SHIFT, F6, RSHIFT, F2).expect("3 N");
     step("Arithmetic on units")
         .test(CLEAR, KEY3, KEY7, SHIFT, KEY5, F2, F4).expect("37 mph")
         .test(SHIFT, KEY5, KEY4, KEY2, F2, F3).expect("42 km/h")
@@ -2811,31 +2811,31 @@ void tests::text_functions()
         .test(CLEAR,"\"ba\" NUM", ENTER).type(object::ID_integer).expect(98);
 
     step("Convert object to text")
-        .test(CLEAR, XSHIFT, KEY4, "1.42", F1)
+        .test(CLEAR, RSHIFT, KEY4, "1.42", F1)
         .type(object::ID_text).expect("\"1.42\"");
     step("Convert object from text")
-        .test(CLEAR, XSHIFT, KEY4, "\"1.42 2.43 +\"", F2)
+        .test(CLEAR, RSHIFT, KEY4, "\"1.42 2.43 +\"", F2)
         .type(object::ID_decimal).expect("3.85");
     step("Size of single object")
         .test(CLEAR, "3.85", F3)
         .type(object::ID_integer).expect("1");
     step("Length of null text")
-        .test(ENTER, XSHIFT, ENTER, ENTER, F3)
+        .test(ENTER, RSHIFT, ENTER, ENTER, F3)
         .type(object::ID_integer).expect("0");
     step("Length of text")
-        .test(CLEAR, XSHIFT, KEY4, "\"1.42 2.43 +\"", F3)
+        .test(CLEAR, RSHIFT, KEY4, "\"1.42 2.43 +\"", F3)
         .type(object::ID_integer).expect("11")
         .test(SHIFT, M, ADD, ENTER, ADD, F3)
         .type(object::ID_integer).expect("26");
 
     step("Conversion of text to code")
-        .test(CLEAR, XSHIFT, ENTER, "Hello", XSHIFT, KEY4, SHIFT, F1)
+        .test(CLEAR, RSHIFT, ENTER, "Hello", NOSHIFT, RSHIFT, KEY4, SHIFT, F1)
         .type(object::ID_list).expect("{ 72 101 108 108 111 }");
     step("Conversion of code to text")
-        .test(CLEAR, XSHIFT, RUNSTOP,
+        .test(CLEAR, RSHIFT, RUNSTOP,
               232, SPACE, 233, SPACE, 234, SPACE, 235, SPACE,
               960, SPACE, 8730, SPACE, 8747, ENTER,
-              XSHIFT, KEY4, SHIFT, F2)
+              RSHIFT, KEY4, SHIFT, F2)
         .type(object::ID_text).expect("\"èéêëπ√∫\"");
 
 }
@@ -3352,7 +3352,7 @@ void tests::tagged_objects()
               KEY1, SHIFT, G, F1, KEY2, KEY3,
               ENTER)
         .expect("ABC:1+23ⅈ")
-        .test(XSHIFT, N, XSHIFT, F2) // TAG->
+        .test(RSHIFT, N, RSHIFT, F2) // TAG->
         .expect("\"ABC\"")
         .test(BSP)
         .expect("1+23ⅈ");
@@ -3367,7 +3367,7 @@ void tests::catalog_test()
     BEGIN(catalog);
 
     step("Entering commands through the catalog")
-        .test(CLEAR, XSHIFT, RUNSTOP).editor("{}")
+        .test(CLEAR, RSHIFT, RUNSTOP).editor("{}")
         .test(ALPHA, A).editor("{A}")
         .test(ADD).editor("{A}")
         .test(F1).editor("{ %Change }");
@@ -3381,7 +3381,7 @@ void tests::catalog_test()
         .test(F6, F3).editor("{ %Change abs Debug + }");
 
     step("Test the default menu")
-        .test(CLEAR, EXIT, A, XSHIFT, RUNSTOP).editor("{}")
+        .test(CLEAR, EXIT, A, RSHIFT, RUNSTOP).editor("{}")
         .test(F1).editor("{ Help }");
     step("Test catalog as a menu")
         .test(SHIFT, ADD, F1).editor("{ Help x! }")
@@ -3581,7 +3581,7 @@ void tests::online_help()
         .test(EXIT).wait(30).noerr()
         .image_noheader("help-exit");
     step("Help with keyboard shortcut")
-        .test(CLEAR, XSHIFT, ADD).wait(30).noerr()
+        .test(CLEAR, RSHIFT, ADD).wait(30).noerr()
         .image_noheader("help");
     step("Following link with ENTER")
         .test(ENTER).wait(30).noerr()
@@ -3593,13 +3593,14 @@ void tests::online_help()
         .test(NOSHIFT, BSP).wait(30).noerr()
         .image_noheader("help-topic");
     step("Help topic - Integers")
-        .test(CLEAR, EXIT, "123", XSHIFT, ADD).wait(30).noerr()
+        .test(CLEAR, EXIT, "123", RSHIFT, ADD).wait(30).noerr()
         .image_noheader("help-integers");
     step("Help topic - Decimal")
-        .test(CLEAR, EXIT, "123.5", XSHIFT, ADD).wait(30).noerr()
+        .test(CLEAR, EXIT, "123.5", RSHIFT, ADD).wait(30).noerr()
         .image_noheader("help-decimal");
     step("Help topic - topic")
-        .test(CLEAR, EXIT, "\"authors\"", XSHIFT, ADD, DOWN, DOWN, DOWN, DOWN)
+        .test(CLEAR, EXIT, "\"authors\"",
+              NOSHIFT, RSHIFT, ADD, DOWN, DOWN, DOWN, DOWN)
         .wait(30).noerr()
         .image_noheader("help-authors");
     step("Returning to main screen with F1")
@@ -3697,13 +3698,13 @@ void tests::regression_checks()
     test(CLEAR, "0 0 /", ENTER).error("Divide by zero");
 
     step("Bug 695: Putting program separators in names");
-    test(CLEAR, NOSHIFT,
-         SHIFT, RUNSTOP,
-         SHIFT, ENTER, XSHIFT, G,
-         N,
-         SHIFT, RUNSTOP,
-         UP, BSP, DOWN, DOWN, UP,
-         N,
+    test(CLEAR,
+         LSHIFT, RUNSTOP,               // «»
+         ALPHA_RS, G,                   // «→»
+         N,                             // «→N»
+         SHIFT, RUNSTOP,                // «→N «»»
+         UP, BSP, DOWN, DOWN, UP,       // «→N«»»
+         N,                             // «→N«N»»
          ENTER)
         .noerr().type(object::ID_program)
         .test(RUNSTOP)
@@ -3742,39 +3743,39 @@ void tests::plotting()
     step("Function plot: Equation");
     test(CLEAR,
          ALPHA, X, ENTER, ENTER, J, 3, MUL, M, 21, MUL, COS, 2, MUL, ADD,
-         XSHIFT, O, F1).noerr()
+         RSHIFT, O, F1).noerr()
         .wait(200).image("plot-eq");
     step("Function plot: Program");
     test(CLEAR, SHIFT, RUNSTOP,
          I, SHIFT, F1, L, M, 41, MUL, J, MUL, ENTER, ENTER,
-         XSHIFT, O, F1).wait(200).image("plot-pgm").noerr();
+         RSHIFT, O, F1).wait(200).image("plot-pgm").noerr();
     step("Function plot: Disable curve filling");
-    test(CLEAR, XSHIFT, UP, ENTER, "NoCurveFilling", ENTER,
-         XSHIFT, O, F1).wait(200).image("plot-nofill").noerr();
+    test(CLEAR, RSHIFT, UP, ENTER, "NoCurveFilling", ENTER,
+         RSHIFT, O, F1).wait(200).image("plot-nofill").noerr();
     step("Function plot: Disable curve filling with flag -31");
-    test(CLEAR, XSHIFT, UP, ENTER, "-31 CF", ENTER,
-         XSHIFT, O, F1).wait(200).image("plot-pgm").noerr();
+    test(CLEAR, RSHIFT, UP, ENTER, "-31 CF", ENTER,
+         RSHIFT, O, F1).wait(200).image("plot-pgm").noerr();
 
     step("Polar plot: Program");
     test(CLEAR, SHIFT, RUNSTOP,
          61, MUL, L, SHIFT, C, 2, ADD, ENTER,
-         XSHIFT, O, F2).noerr().wait(200).image("polar-pgm");
+         RSHIFT, O, F2).noerr().wait(200).image("polar-pgm");
     step("Polar plot: Program, no fill");
     test(CLEAR, "NoCurveFilling", ENTER,
          SHIFT, RUNSTOP,
          61, MUL, L, SHIFT, C, 2, ADD, ENTER,
-         XSHIFT, O, F2).noerr().wait(200).image("polar-pgm-nofill");
+         RSHIFT, O, F2).noerr().wait(200).image("polar-pgm-nofill");
     step("Polar plot: Program, curve filling");
     test(CLEAR, "CurveFilling", ENTER,
          SHIFT, RUNSTOP,
          61, MUL, L, SHIFT, C, 2, ADD, ENTER,
-         XSHIFT, O, F2).noerr().wait(200).image("polar-pgm");
+         RSHIFT, O, F2).noerr().wait(200).image("polar-pgm");
     step("Polar plot: Equation");
     test(CLEAR, F, J, 611, MUL, ALPHA, X,
          NOSHIFT, DOWN, DOWN, MUL, K, 271, MUL,
          ALPHA, X, NOSHIFT, DOWN, DOWN, DOWN,
          ADD, KEY2, DOT, KEY5, ENTER,
-         XSHIFT, O,
+         RSHIFT, O,
          ENTER, F2).noerr().wait(200).image("polar-eq");
     step("Polar plot: Zoom in X and Y");
     test(EXIT, "0.5 XSCALE 0.5 YSCALE", ENTER).noerr()
@@ -3789,11 +3790,11 @@ void tests::plotting()
         .test("PPAR", ENTER, NOSHIFT, M);
     step("Polar plot: Select min point with PMIN");
     test(EXIT, "-3-4ⅈ PMIN", ENTER).noerr()
-        .test(ENTER, XSHIFT, O, F2).noerr().wait(200).image("polar-pmin");
+        .test(ENTER, RSHIFT, O, F2).noerr().wait(200).image("polar-pmin");
 
     step("Polar plot: Select max point with PMAX");
     test(EXIT, "5+6ⅈ pmax", ENTER).noerr()
-        .test(ENTER, XSHIFT, O, F2).noerr().wait(200).image("polar-pmax");
+        .test(ENTER, RSHIFT, O, F2).noerr().wait(200).image("polar-pmax");
     step("Polar plot: Select X range with XRNG");
     test(EXIT, "-6 7 xrng", ENTER).noerr()
         .test(ENTER, F2).noerr().wait(200).image("polar-xrng");
@@ -3820,7 +3821,7 @@ void tests::plotting()
     test(CLEAR,
          "[[ 1 -1 ][2 -2][3 -3][4 -4][5 -6][7 -8][9 -10]]", ENTER,
          33, MUL, K, 2, MUL,
-         XSHIFT, O, F5).noerr().wait(200).image("barplot");
+         RSHIFT, O, F5).noerr().wait(200).image("barplot");
 
     step("Scatter plot");
     test(CLEAR,
@@ -3851,7 +3852,7 @@ void tests::plotting_all_functions()
         .test(CLEAR, "'PPAR' purge", ENTER).noerr();
 
     step("Select plotting menu")
-        .test(CLEAR, XSHIFT, O).noerr();
+        .test(CLEAR, RSHIFT, O).noerr();
 
     uint dur = 300;
 
@@ -3875,7 +3876,7 @@ void tests::plotting_all_functions()
     test(CLEAR, SHIFT, N, F1).noerr();
 
     step("Reselect plotting menu");
-    test(CLEAR, XSHIFT, O).noerr();
+    test(CLEAR, RSHIFT, O).noerr();
 
     FUNCTION(sinh);
     FUNCTION(cosh);
@@ -4313,20 +4314,24 @@ tests &tests::itest(tests::key k, bool release)
     // Check for special key sequences
     switch (k)
     {
-    case ALPHA:         return shifts(false, false, true, false);
-    case LOWERCASE:     return shifts(false, false, true, true);
-    case NOSHIFT:       return shifts(false, false, false, false);
-    case XSHIFT:        return shifts(false, true,  false, false);
+    case NOSHIFT:
+    case LSHIFT:
+    case RSHIFT:
+    case ALPHA:
+    case ALPHA_LS:
+    case ALPHA_RS:
+    case LOWERCASE:
+    case LOWER_LS:
+    case LOWER_RS:
+        return shifts((k-NOSHIFT) & 1, (k-NOSHIFT) & 2,
+                      (k-NOSHIFT) & 4, (k-NOSHIFT) & 8);
 
-    case LONGPRESS:
-        longpress = true; // Next key will be a long press
-        return *this;
+    case CLEAR:         return clear();
+    case NOKEYS:        return nokeys();
+    case REFRESH:       return refreshed();
+    case LONGPRESS:     longpress = true; // Next key will be a long press
+                        return *this;
 
-    case CLEAR: return clear();
-
-    case NOKEYS: return nokeys();
-
-    case REFRESH: return refreshed();
 
     default: break;
     }
@@ -4384,8 +4389,7 @@ tests &tests::itest(unsigned int value)
 {
     char buffer[32];
     snprintf(buffer, sizeof(buffer), "%u", value);
-    itest(cstring(buffer));
-    return shifts(false, false, false, false);
+    return itest(NOSHIFT, cstring(buffer));
 }
 
 
@@ -4408,8 +4412,7 @@ tests &tests::itest(unsigned long value)
 {
     char buffer[32];
     snprintf(buffer, sizeof(buffer), "%lu", value);
-    itest(cstring(buffer));
-    return shifts(false, false, false, false);
+    return itest(NOSHIFT, cstring(buffer));
 }
 
 
@@ -4432,8 +4435,7 @@ tests &tests::itest(unsigned long long value)
 {
     char buffer[32];
     snprintf(buffer, sizeof(buffer), "%llu", value);
-    itest(cstring(buffer));
-    return shifts(false, false, false, false);
+    return itest(NOSHIFT, cstring(buffer));
 }
 
 
@@ -4633,7 +4635,7 @@ tests &tests::itest(cstring txt)
 }
 
 
-tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
+tests &tests::shifts(bool lshift, bool rshift, bool alpha, bool lowercase)
 // ----------------------------------------------------------------------------
 //   Reach the desired shift state from the current state
 // ----------------------------------------------------------------------------
@@ -4645,8 +4647,8 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
     data_entry_noerr();
 
     // Check invalid input: can only have one shift
-    if (shift && xshift)
-        shift = false;
+    if (lshift && rshift)
+        lshift = false;
 
     // If not alpha, disable lowercase
     if (!alpha)
@@ -4661,10 +4663,10 @@ tests &tests::shifts(bool shift, bool xshift, bool alpha, bool lowercase)
         itest(ENTER, NOKEYS);
     }
 
-    while (xshift != ui.xshift)
+    while (rshift != ui.xshift)
         itest(SHIFT, NOKEYS);
 
-    while (shift != ui.shift)
+    while (lshift != ui.shift)
         itest(SHIFT, NOKEYS);
 
     return *this;

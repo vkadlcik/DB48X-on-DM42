@@ -95,6 +95,7 @@ struct tests
     void plotting();
     void plotting_all_functions();
     void graphic_commands();
+    void hms_dms_operations();
     void online_help();
     void regression_checks();
 

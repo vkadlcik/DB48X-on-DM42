@@ -2912,7 +2912,7 @@ void tests::vector_functions()
     test(CLEAR, "[1 2 3] INV", ENTER)
         .expect("[ 1 ¹/₂ ¹/₃ ]");
 
-    step("Froebenius norm");
+    step("Fröbenius norm");
     test(CLEAR, "[1 2 3] ABS", ENTER)
         .expect("3.74165 73867 7");
     test(CLEAR, "[1 2 3] NORM", ENTER)
@@ -4174,7 +4174,7 @@ tests &tests::istep(cstring name)
     }
     cstring blk = "                                                            ";
     size_t  off = utf8_length(utf8(sname));
-    cstring pad = blk + off;
+    cstring pad = blk + (off < 60 ? off : 60);
     fprintf(stderr, "%3u:  %03u: %s%s", tindex, sindex, sname, pad);
     cindex = 0;
     count++;

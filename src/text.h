@@ -189,7 +189,7 @@ struct text : algebraic
                 utf8 n = utf8_next(p);
                 return text::make(p, n - p);
             }
-            return text::make(utf8(""), 0);
+            return nullptr;
         }
 
     public:

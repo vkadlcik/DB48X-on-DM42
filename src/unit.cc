@@ -197,29 +197,36 @@ RENDER_BODY(unit)
 {
     algebraic_g value = o->value();
     algebraic_g uexpr = o->uexpr();
-    if (!r.editing())
+    size_t      sz    = 0;
+    bool        ed    = r.editing();
+    if (symbol_p sym = uexpr->as_quoted<symbol>())
     {
-        if (symbol_p sym = uexpr->as_quoted<symbol>())
-        {
-            if (sym->matches("dms"))
-                if (size_t sz = render_dms(r, value, "°", "′", "″"))
-                    return sz;
-            if (sym->matches("hms"))
-                if (size_t sz = render_dms(r, value, ":", ":", ""))
-                    return sz;
-            if (sym->matches("date"))
-                if (size_t sz = render_date(r, value))
-                    return sz;
-
-        }
+        if (sym->matches("dms"))
+            sz = render_dms(r, value, "°", "′", "″");
+        else if (sym->matches("hms"))
+            sz = ed ? render_dms(r, value, "°", "′", "″")
+                    : render_dms(r, value, ":", ":", "");
+        else if (sym->matches("date"))
+            sz = render_date(r, value);
+        if (sz && !ed)
+            return sz;
     }
-    value->render(r);
-    r.put(r.editing() ? unicode('_') : unicode(settings::SPACE_UNIT));
+    if (sz)
+    {
+        r.put('_');
+    }
+    else
+    {
+        value->render(r);
+        r.put(ed ? unicode('_') : unicode(settings::SPACE_UNIT));
+    }
+
     save<bool> m(mode, true);
     if (expression_p ueq = uexpr->as<expression>())
         ueq->render(r, false);
     else
         uexpr->render(r);
+
     return r.size();
 }
 

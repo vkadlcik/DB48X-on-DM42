@@ -565,17 +565,25 @@ PARSE_BODY(complex)
                  cp == Settings.GRAD_SYMBOL    ||
                  cp == Settings.PI_RADIANS_SYMBOL)
         {
-            // Just parsing π should be allowed
-            if (last == first || type == ID_object)
-                return SKIP;
+            // If parsing 1°_hms, need to accept degrees but not as angle marker
+            bool deg_alone = (cp == Settings.DEGREES_SYMBOL &&
+                              last != first &&
+                              type == ID_object);
 
-            if (angle || type != ID_polar)
+            // Just parsing π should be allowed
+            if (!deg_alone)
             {
-                rt.syntax_error().source(last);
-                return WARN;
+                if (last == first || type == ID_object)
+                    return SKIP;
+
+                if (angle || type != ID_polar)
+                {
+                    rt.syntax_error().source(last);
+                    return WARN;
+                }
+                angle = cp;
+                ylen = last - ybeg;
             }
-            angle = cp;
-            ylen = last - ybeg;
         }
 
         // We can have a sign except after exponent markers

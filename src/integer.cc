@@ -29,6 +29,7 @@
 
 #include "integer.h"
 
+#include "arithmetic.h"
 #include "bignum.h"
 #include "fraction.h"
 #include "parser.h"
@@ -71,6 +72,8 @@ PARSE_BODY(integer)
     id         type        = ID_integer;
     const byte NODIGIT     = (byte) -1;
     size_t     is_fraction = 0;
+    uint       is_dms      = 0;
+    size_t     dms_end     = 0;
     object_g   number      = nullptr;
     object_g   numerator   = nullptr;
 
@@ -271,12 +274,18 @@ PARSE_BODY(integer)
         if (!digits)
         {
             if (is_fraction)
-            {
                 // Something like `2/s`, we parsed 2 successfully
                 s = p.source + is_fraction;
+            if (is_dms)
+                // Unterminated DMS number, e.g. 1°3
+                s = p.source + dms_end;
+
+            if (is_fraction || is_dms)
+            {
                 number = numerator;
                 break;
             }
+
             // Parsed no digit: try something else
             return WARN;
         }
@@ -355,13 +364,96 @@ PARSE_BODY(integer)
         if (!number)
             return ERROR;
 
+        // Check if we parse a DMS fraction
+        if (is_real(type))
+        {
+            unicode cp = utf8_codepoint(s);
+            uint want_dms = 0;
+            switch(cp)
+            {
+            case L'°':                  want_dms = 1;   break;
+            case L'′':                  want_dms = 2;   break;
+            case L'″':                  want_dms = 3;   break;
+            default:                                    break;
+            }
+            if (want_dms)
+            {
+                if (is_dms != want_dms - 1)
+                {
+                    rt.syntax_error().source(s);
+                    return ERROR;
+                }
+                s = utf8_next(s);
+                is_dms = want_dms;
+            }
+            else if (is_dms)
+            {
+                is_dms++;
+            }
+
+            if (is_dms)
+            {
+                if (is_dms == 1)
+                {
+                    numerator   = number;
+                    number      = nullptr;
+                    type        = ID_integer;
+                }
+                else
+                {
+                    dms_end = s - +p.source;
+
+                    gcutf8      gs       = s;
+                    algebraic_g existing = algebraic_p(+numerator);
+                    algebraic_g current  = algebraic_p(+number);
+                    uint        div      = is_dms == 2 ? 60 : 3600;
+                    algebraic_g scale    = +fraction::make(integer::make(1),
+                                                           integer::make(div));
+                    existing = existing + current * scale;
+
+                    // If we are at the end, check if there is a fraction
+                    if (is_dms == 3)
+                    {
+                        s = gs;
+                        last = p.source + p.length;
+                        bool hasfrac = false;
+                        for (utf8 p = s; p < last; p++)
+                        {
+                            if (*p == '/')
+                                hasfrac = true;
+                            else if (*p < '0' || *p > '9')
+                                break;
+                        }
+                        if (hasfrac)
+                        {
+                            size_t sz = last - s;
+                            object_p frac = object::parse(s, sz);
+                            if (!frac || !frac->is_fraction())
+                            {
+                                if (!rt.error())
+                                    rt.syntax_error().source(+gs);
+                                return ERROR;
+                            }
+                            current = algebraic_p(frac);
+                            existing = existing + current * scale;
+                            gs += sz;
+                        }
+                        is_dms = 0;
+                        is_fraction = 0;
+                        number = +existing;
+                    }
+                    numerator = +existing;
+                    s = gs;
+                }
+            }
+        }
+
         // Check if we parse a fraction
         if (is_fraction)
         {
-            is_fraction = false;
             if (integer_p(object_p(number))->is_zero())
             {
-                rt.zero_divide_error();
+                rt.zero_divide_error().source(p.source + (is_fraction + 1));
                 return ERROR;
             }
             else if (numerator->is_bignum() || number->is_bignum())
@@ -380,6 +472,7 @@ PARSE_BODY(integer)
                 integer_g d = (integer *) (object_p) number;
                 number      = (object_p) fraction::make(n, d);
             }
+            is_fraction = false;
         }
         else if (*s == '/' && p.precedence <= MULTIPLICATIVE && is_real(type))
         {
@@ -389,7 +482,7 @@ PARSE_BODY(integer)
             type        = ID_integer;
             s++;
         }
-    } while (is_fraction);
+    } while (is_fraction || is_dms);
 
     // Check if we finish with something indicative of a fraction or real number
     if (!endp)

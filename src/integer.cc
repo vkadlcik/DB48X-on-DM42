@@ -393,6 +393,7 @@ PARSE_BODY(integer)
 
             if (is_dms)
             {
+                dms_end = s - +p.source;
                 if (is_dms == 1)
                 {
                     numerator   = number;
@@ -401,8 +402,6 @@ PARSE_BODY(integer)
                 }
                 else
                 {
-                    dms_end = s - +p.source;
-
                     gcutf8      gs       = s;
                     algebraic_g existing = algebraic_p(+numerator);
                     algebraic_g current  = algebraic_p(+number);

@@ -173,7 +173,9 @@ struct user_interface
     bool        editor_clear();
     bool        editor_selection_flip();
     size_t      insert(size_t offset, utf8 data, size_t len);
+    size_t      insert(size_t offset, unicode c);
     size_t      insert(size_t offset, byte c) { return insert(offset, &c, 1); }
+    size_t      insert(size_t offset, char c) { return insert(offset, byte(c)); }
     size_t      remove(size_t offset, size_t len);
     result      insert_softkey(int key,
                                cstring before, cstring after,

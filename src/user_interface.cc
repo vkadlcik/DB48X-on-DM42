@@ -163,13 +163,8 @@ void user_interface::edit(unicode c, modes m, bool autoclose)
     if (rt.editing())
         m = mode;
 
-    byte utf8buf[4];
     uint savec = cursor;
-    size_t len = utf8_encode(c, utf8buf);
-    int move = rt.insert(cursor, utf8buf, len);
-    if (~select && select >= cursor)
-        select += move;
-    cursor += move;
+    insert(cursor, c);
 
     // Test delimiters
     unicode closing = 0;
@@ -189,9 +184,9 @@ void user_interface::edit(unicode c, modes m, bool autoclose)
         byte *ed = rt.editor();
         if (mode == PROGRAM || mode == DIRECT || is_algebraic(mode))
             if (savec > 0 && ed[savec] != ' ')
-                cursor += rt.insert(savec, ' ');
-        len = utf8_encode(closing, utf8buf);
-        rt.insert(cursor, utf8buf, len);
+                insert(savec, ' ');
+        size_t back = insert(cursor, closing);
+        cursor -= back;
     }
 
     mode = m;
@@ -227,18 +222,24 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
              cursor > 0 && ed[cursor-1] != ' ')
     {
         if (!skip && (!is_algebraic(mode) || (m != INFIX && m != CONSTANT)))
-            cursor += rt.insert(cursor, ' ');
+            insert(cursor, ' ');
     }
 
-    size_t added = rt.insert(cursor, text, len);
-    cursor += added;
+    size_t added = insert(cursor, text, len);
 
     if ((m == POSTFIX || m == INFIX || m == CONSTANT) && is_algebraic(mode))
-        /* nothing */;
+    {
+        /* nothing */
+    }
     else if (!is_algebraic(mode) || !is_algebraic(m))
-        cursor += rt.insert(cursor, ' ');
+    {
+        insert(cursor, ' ');
+    }
     else if (m != INFIX)
-        cursor += rt.insert(cursor, utf8("()"), 2) - 1;
+    {
+        if (insert(cursor, utf8("()"), 2) == 2)
+            cursor--;
+    }
 
     // Offset from beginning or end of inserted text
     if (offset > 0 && cursor > len)
@@ -733,10 +734,8 @@ void user_interface::update_mode()
                     frpos += sf;
                     while (frpos < end)
                     {
-                        if (!rt.insert(frpos, encoding, ulen))
+                        if (!insert(frpos, encoding, ulen))
                             break;
-                        if (cursor > frpos)
-                            cursor += ulen;
                         frpos += sf + ulen;
                         len += ulen;
                         end += ulen;
@@ -756,10 +755,8 @@ void user_interface::update_mode()
                 while (o > start + sp)
                 {
                     o -= sp;
-                    if (!rt.insert(o, encoding, ulen))
+                    if (!insert(o, encoding, ulen))
                         break;
-                    if (cursor > o)
-                        cursor += ulen;
                 }
             }
         }
@@ -3672,7 +3669,7 @@ bool user_interface::handle_digits(int key)
                 if (c == '+' || c == '-')
                     *p = '+' + '-' - c;
                 else
-                    cursor += rt.insert(found - ed, '-');
+                    insert(found - ed, '-');
             }
             else if (c == '-')
             {
@@ -3680,7 +3677,7 @@ bool user_interface::handle_digits(int key)
             }
             else
             {
-                cursor += rt.insert(found - ed, '-');
+                insert(found - ed, '-');
             }
             last = 0;
             dirtyEditor = true;
@@ -3690,7 +3687,7 @@ bool user_interface::handle_digits(int key)
         {
             byte   buf[4];
             size_t sz = utf8_encode(Settings.ExponentSeparator(), buf);
-            cursor += rt.insert(cursor, buf, sz);
+            insert(cursor, buf, sz);
             last = 0;
             dirtyEditor = true;
             return true;
@@ -4510,6 +4507,17 @@ size_t user_interface::insert(size_t offset, utf8 data, size_t len)
 }
 
 
+size_t user_interface::insert(size_t offset, unicode c)
+// ----------------------------------------------------------------------------
+//   Insert a Unicode glyph in the editor
+// ----------------------------------------------------------------------------
+{
+    byte buffer[4];
+    size_t sz = utf8_encode(c, buffer);
+    return insert(offset, buffer, sz);
+}
+
+
 object::result user_interface::insert_softkey(int     key,
                                               cstring before,
                                               cstring after,
@@ -4538,9 +4546,9 @@ object::result user_interface::insert_softkey(int     key,
                 length = strlen(text);
             }
 
-            cursor += rt.insert(cursor, utf8(before));
-            cursor += rt.insert(cursor, utf8(text), length);
-            cursor += rt.insert(cursor, utf8(after));
+            insert(cursor, utf8(before), strlen(before));
+            insert(cursor, utf8(text), length);
+            insert(cursor, utf8(after), strlen(after));
 
             cursor_position(cursor);
 

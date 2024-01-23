@@ -1339,7 +1339,10 @@ static object::result do_flag(bool read, bool test, bool write, bool set)
         byte bits = 1 << (index % 8);
         value = *fp & bits;
         if (flip)
+        {
             set = !value;
+            write = true;
+        }
         if (write)
             *fp = (*fp & ~bits) | (set ? bits : 0);
         rt.drop();
@@ -1412,7 +1415,8 @@ COMMAND_BODY(BinaryToFlags)
             memcpy(flags, data, sz);
             if (sz < maxflags / 8)
                 memset(flags + sz, 0, (maxflags + 7) / 8 - sz);
-            return OK;
+            if (rt.drop())
+                return OK;
         }
         else
         {

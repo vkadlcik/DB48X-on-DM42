@@ -104,6 +104,7 @@ TESTS(expand,           "Expand");
 TESTS(tagged,           "Tagged objects");
 TESTS(catalog,          "Catalog of commands");
 TESTS(cycle,            "Cycle command for quick conversions");
+TESTS(flags,            "User flags");
 TESTS(regressions,      "Regression checks");
 TESTS(plotting,         "Plotting, graphing and charting");
 TESTS(graphics,         "Graphic commands");
@@ -111,7 +112,7 @@ TESTS(help,             "On-line help");
 TESTS(hms,              "HMS and DMS operations");
 
 EXTRA(plotfns,          "Plot all functions");
-EXTRA(flags,            "Enable/disable every RPL flag");
+EXTRA(sysflags,         "Enable/disable every RPL flag");
 EXTRA(settings,         "Recall and activate every RPL setting");
 EXTRA(commands,         "Parse every single RPL command");
 
@@ -133,7 +134,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        hms_dms_operations();
+        flags_functions();
    }
     else
     {
@@ -173,6 +174,7 @@ void tests::run(bool onlyCurrent)
         tagged_objects();
         catalog_test();
         cycle_test();
+        flags_functions();
         flags_by_name();
         settings_by_name();
         parsing_commands_by_name();
@@ -3567,12 +3569,100 @@ void tests::cycle_test()
 }
 
 
+void tests::flags_functions()
+// ----------------------------------------------------------------------------
+//    Check the user flag functions
+// ----------------------------------------------------------------------------
+{
+    BEGIN(flags);
+
+    const uint nflags = 11;
+
+    step("Check that flags are initially clear");
+    for (uint f = 0; f < nflags; f++)
+        test(CLEAR, (f * 23) % 128, " FS?", ENTER).noerr().expect("False");
+
+    step("Setting random flags");
+    large fset = lrand48() & ((1<<nflags)-1);
+    for (uint f = 0; f < 13; f++)
+        test(CLEAR,
+             (f * 23) % 128, (fset & (1<<f)) ? " SF" : " CF", ENTER).noerr();
+
+    step("Getting flags value")
+        .test(CLEAR, LSHIFT, KEY6, LSHIFT, F1).noerr()
+        .type(object::ID_based_bignum);
+    step("Clearing flag values from menu")
+        .test("#0", LSHIFT, F2).noerr();
+    step("Check that flags are initially clear");
+    for (uint f = 0; f < nflags; f++)
+        if (fset & (1 << f))
+            test((f * 23) % 128, LSHIFT, F5).expect("False").test(BSP);
+        else
+            test((f * 23) % 128, LSHIFT, F6).expect("True").test(BSP);
+    step("Restore values of flags from binary")
+        .test(LSHIFT, KEY6, LSHIFT, F2).noerr();
+
+    step("Check that flags were set as expected");
+    for (uint f = 0; f < nflags; f++)
+        test(CLEAR, (f * 23) % 128, " FS?", ENTER)
+            .expect((fset & (1<<f)) ? "True" : "False");
+    step("Check that flags were clear as expected");
+    for (uint f = 0; f < nflags; f++)
+        test(CLEAR, (f * 23) % 128, " FC?", ENTER)
+            .expect((fset & (1<<f)) ? "False" : "True");
+    step("Check that flags were set and set them");
+    for (uint f = 0; f < nflags; f++)
+        test(CLEAR, (f * 23) % 128, " FS?C", ENTER)
+            .expect((fset & (1<<f)) ? "True" : "False");
+    step("Check that flags were set them");
+    for (uint f = 0; f < nflags; f++)
+        test(CLEAR, (f * 23) % 128, " FC?", ENTER).expect("True");
+
+    step("Setting random flags (inverse pattern) using menu")
+        .test(CLEAR, LSHIFT, KEY6);
+    for (uint f = 0; f < 13; f++)
+        test(CLEAR,
+             (f * 23) % 128, (fset & (1<<f)) ? F2 : F1).noerr();
+    step("Check that flags were clear and clear them");
+    for (uint f = 0; f < nflags; f++)
+        test(CLEAR, (f * 23) % 128, F6, ENTER)
+            .expect((fset & (1<<f)) ? "True" : "False");
+    step("Check that flags were all clear");
+    for (uint f = 0; f < nflags; f++)
+        test(CLEAR, (f * 23) % 128, " FC?", ENTER).expect("True");
+    step("Clear flags with menus");
+    for (uint f = 0; f < 13; f++)
+        test(CLEAR, (f * 23) % 128, F2).noerr();
+    step("Check that flags are still all clear");
+    for (uint f = 0; f < nflags; f++)
+        test(CLEAR, (f * 23) % 128, " FC?", ENTER).expect("True");
+
+    step("Flipping the bits to revert to original pattern using menu")
+        .test(CLEAR, LSHIFT, KEY6);
+    for (uint f = 0; f < 13; f++)
+        if (fset & (1<<f))
+            test(CLEAR, (f * 23) % 128, LSHIFT, F4).noerr();
+    step("Check that required flags were flipped using FC?");
+    for (uint f = 0; f < nflags; f++)
+        test(CLEAR, (f * 23) % 128, " FC?", ENTER)
+            .expect((fset & (1<<f)) ? "False" : "True");
+    step("Check that required flags were flipped using FS?C");
+    for (uint f = 0; f < nflags; f++)
+        test(CLEAR, (f * 23) % 128, " FS?C", ENTER)
+            .expect((fset & (1<<f)) ? "True" : "False");
+
+    step("Check that flags are all clear at end");
+    for (uint f = 0; f < nflags; f++)
+        test(CLEAR, (f * 23) % 128, " FC?", ENTER).expect("True");
+}
+
+
 void tests::flags_by_name()
 // ----------------------------------------------------------------------------
 //   Set and clear all flags by name
 // ----------------------------------------------------------------------------
 {
-    BEGIN(flags);
+    BEGIN(sysflags);
 
 #define ID(id)
 #define FLAG(Enable, Disable)                           \

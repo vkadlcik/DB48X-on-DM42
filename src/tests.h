@@ -89,6 +89,7 @@ struct tests
     void tagged_objects();
     void catalog_test();
     void cycle_test();
+    void flags_functions();
     void flags_by_name();
     void settings_by_name();
     void parsing_commands_by_name();

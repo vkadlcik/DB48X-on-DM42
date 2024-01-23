@@ -3698,7 +3698,7 @@ bool user_interface::handle_digits(int key)
     }
     if (key > KEY_CHS && key < KEY_F1)
     {
-        char c  = numbers[key-1];
+        unicode c = numbers[key - 1];
         if (~searching)
         {
             bool found = false;
@@ -3724,7 +3724,78 @@ bool user_interface::handle_digits(int key)
         if (c == '_')
             return false;
         if (c == '.')
-            c = Settings.DecimalSeparator();
+        {
+            // Check if we enter a DMS value
+            byte   *ed    = rt.editor();
+            byte   *p     = ed + cursor;
+            utf8    found = nullptr;
+            unicode dm    = Settings.DecimalSeparator();
+            unicode ns    = Settings.NumberSeparator();
+            unicode hs    = Settings.BasedSeparator();
+
+            c = char(dm);
+            while (p > ed && !found)
+            {
+                p = (byte *) utf8_previous(p);
+                unicode cp = utf8_codepoint(p);
+                if (cp == L'″')
+                {
+                    found = p;
+                    c = '/';
+                }
+                else if (cp == L'′')
+                {
+                    found = p;
+                    c = L'″';
+                }
+                else if (cp == L'°')
+                {
+                    found = p;
+                    if (uint(found - ed) == cursor - utf8_size(cp))
+                    {
+                        remove(found - ed, utf8_size(cp));
+                        c = dm;
+
+                        size_t edlen = rt.editing();
+                        ed = rt.editor();
+                        if (cursor + 4 <= edlen &&
+                            memcmp(ed + cursor, "_dms", 4) == 0)
+                            remove(cursor, 4);
+                    }
+                    else
+                    {
+                        c = L'′';
+                    }
+                }
+                else if (cp == dm)
+                {
+                    found = p;
+                    if (uint(found - ed) == cursor - utf8_size(cp))
+                    {
+                        remove (found - ed, utf8_size(cp));
+                        c = L'°';
+                    }
+                    else
+                    {
+                        remove(found - ed, utf8_size(cp));
+                        insert(found - ed, unicode(L'°'));
+                        c = L'′';
+                    }
+                    size_t edlen = rt.editing();
+                    ed = rt.editor();
+                    if (cursor + 4 > edlen ||
+                        memcmp(ed + cursor, "_dms", 4) != 0)
+                    {
+                        size_t add = insert(cursor, utf8("_dms"), 4);
+                        cursor -= add;
+                    }
+                }
+                else if ((cp < '0' || cp > '9') && cp != ns && cp != hs)
+                {
+                    break;
+                }
+            }
+        }
         edit(c, DIRECT);
         repeat = true;
         return true;

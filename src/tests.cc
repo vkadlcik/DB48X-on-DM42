@@ -3704,6 +3704,37 @@ void tests::hms_dms_operations()
         .test(3, DIV).expect("0°27′55″")
         .test(5, DIV).expect("0°05′35″")
         .test(12, DIV).expect("0°00′27″¹¹/₁₂");
+
+    step("Entering integral DMS using two dots")
+        .test(CLEAR)
+        .test(1, DOT).editor("1.")
+        .test(DOT).editor("1°_dms")
+        .test(ENTER).expect("1°00′00″");
+    step("Entering DMS degree/minutes values using two dots")
+        .test(CLEAR)
+        .test(1, DOT).editor("1.")
+        .test(2, DOT).editor("1°2′_dms")
+        .test(ENTER).expect("1°02′00″");
+    step("Entering degrees/minutes/seconds using three dots")
+        .test(CLEAR)
+        .test(1, DOT).editor("1.")
+        .test(2,DOT).editor("1°2′_dms")
+        .test(35,DOT).editor("1°2′35″_dms")
+        .test(ENTER).expect("1°02′35″");
+    step("Entering degrees/minutes/seconds/fraction using four dots")
+        .test(CLEAR)
+        .test(1, DOT).editor("1.")
+        .test(2,DOT).editor("1°2′_dms")
+        .test(35,DOT).editor("1°2′35″_dms")
+        .test(42,DOT).editor("1°2′35″42/_dms")
+        .test(100).editor("1°2′35″42/100_dms")
+        .test(ENTER).expect("1°02′35″²¹/₅₀");
+    step("Cancelling DMS with third dot")
+        .test(CLEAR)
+        .test(1, DOT).editor("1.")
+        .test(DOT).editor("1°_dms")
+        .test(DOT).editor("1.")
+        .test(ENTER).expect("1.");
 }
 
 

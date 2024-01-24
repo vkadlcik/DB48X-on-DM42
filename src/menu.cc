@@ -210,6 +210,8 @@ COMMAND_BODY(ToolsMenu)
             case ID_neg_integer:
             case ID_bignum:
             case ID_neg_bignum:
+            case ID_hwfloat:
+            case ID_hwdouble:
             case ID_decimal:
             case ID_neg_decimal:        menu = ID_RealMenu; break;
             case ID_fraction:

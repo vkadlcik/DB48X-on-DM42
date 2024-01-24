@@ -447,17 +447,22 @@ struct decimal : algebraic
             return dec ? dec->precision(saved) : nullptr;
         }
 
-
-
         uint saved;
     };
-
 
     algebraic_p      to_integer() const;
     algebraic_p      to_fraction(uint count = Settings.FractionIterations(),
                                  uint prec  = Settings.FractionDigits()) const;
     // ------------------------------------------------------------------------
     //   Convert decimal number to fraction
+    // ------------------------------------------------------------------------
+
+    float            to_float() const;
+    double           to_double() const;
+    static decimal_p from(float x)      { return from(double(x)); }
+    static decimal_p from(double x);
+    // ------------------------------------------------------------------------
+    //   Conversion to/from hardware-accelerated floating-point types
     // ------------------------------------------------------------------------
 
 

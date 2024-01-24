@@ -176,7 +176,7 @@ static size_t render_date(renderer &r, algebraic_g x)
 //   Render a number as "degrees / minutes / seconds"
 // ----------------------------------------------------------------------------
 {
-    if (!algebraic::real_promotion(x))
+    if (!algebraic::decimal_promotion(x))
         return 0;
     if (x->is_decimal())
         return 0;

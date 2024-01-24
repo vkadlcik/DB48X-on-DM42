@@ -62,7 +62,7 @@ algebraic_p function::symbolic(id op, algebraic_r x)
 }
 
 
-object::result function::evaluate(id op, decimal_fn decop, complex_fn zop)
+object::result function::evaluate(id op, ops_t ops)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------
@@ -70,7 +70,7 @@ object::result function::evaluate(id op, decimal_fn decop, complex_fn zop)
     algebraic_g x = algebraic_p(rt.top());
     if (!x)
         return ERROR;
-    x = evaluate(x, op, decop, zop);
+    x = evaluate(x, op, ops);
     if (x && rt.top(x))
         return OK;
     return ERROR;
@@ -152,10 +152,7 @@ bool function::exact_trig(id op, algebraic_g &x)
 }
 
 
-algebraic_p function::evaluate(algebraic_r xr,
-                               id          op,
-                               decimal_fn  decop,
-                               complex_fn  zop)
+algebraic_p function::evaluate(algebraic_r xr, id op, ops_t ops)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
 // ----------------------------------------------------------------------------
@@ -179,7 +176,7 @@ algebraic_p function::evaluate(algebraic_r xr,
         return symbolic(op, x);
 
     if (is_complex(xt))
-        return algebraic_p(zop(complex_g(complex_p(+x))));
+        return algebraic_p(ops.zop(complex_g(complex_p(+x))));
 
     // Check if need to promote integer values to decimal
     if (is_integer(xt))
@@ -192,13 +189,19 @@ algebraic_p function::evaluate(algebraic_r xr,
         }
     }
 
-    // Call the right function
-    // We need to only call the bid128 functions here, because the 32 and 64
-    // variants are not in the DM42's QSPI, and take too much space here
-    if (real_promotion(x))
+    // Call the right hardwaer-accelerated or decimal function
+    if (hwfp_promotion(x))
+    {
+        if (hwfloat_p fp = x->as<hwfloat>())
+            return ops.fop(fp);
+        if (hwdouble_p dp = x->as<hwdouble>())
+            return ops.dop(dp);
+    }
+
+    if (decimal_promotion(x))
     {
         decimal_g xv = decimal_p(+x);
-        xv = decop(xv);
+        xv = ops.decop(xv);
         if (xv && !xv->is_normal())
         {
             rt.domain_error();
@@ -286,7 +289,11 @@ FUNCTION_BODY(abs)
     }
 
     // Fall-back to floating-point abs
-    return function::evaluate(x, ID_abs, decimal::abs, nullptr);
+    static const ops_t optable = { decimal::abs,
+                                   hwfloat_fn(hwfloat::abs),
+                                   hwdouble_fn(hwdouble::abs),
+                                   nullptr };
+    return function::evaluate(x, ID_abs, optable);
 }
 
 

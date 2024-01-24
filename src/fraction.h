@@ -83,6 +83,8 @@ struct fraction : algebraic
     bignum_g denominator() const;
     integer_g numerator(int) const;
     integer_g denominator(int) const;
+    ularge numerator_value() const;
+    ularge denominator_value() const;
 
     bool is_zero() const { return numerator()->is_zero(); }
     bool is_one()  const { return (numerator() - denominator())->is_zero(); }

@@ -80,7 +80,7 @@ EVAL_BODY(fraction)
     if (Settings.NumericalResults())
     {
         algebraic_g x = o;
-        if (algebraic::real_promotion(x))
+        if (algebraic::decimal_promotion(x))
             if (rt.push(+x))
                 return OK;
     }
@@ -145,9 +145,7 @@ integer_g fraction::numerator(int) const
 // ----------------------------------------------------------------------------
 {
     id ty = (type() == ID_neg_fraction) ? ID_neg_integer : ID_integer;
-    byte_p p = payload();
-    ularge nv = leb128<ularge>(p);
-    return rt.make<integer>(ty, nv);
+    return rt.make<integer>(ty, numerator_value());
 }
 
 
@@ -156,10 +154,30 @@ integer_g fraction::denominator(int) const
 //   Return the denominator as an integer (always positive)
 // ----------------------------------------------------------------------------
 {
+    return rt.make<integer>(ID_integer, denominator_value());
+}
+
+
+ularge fraction::numerator_value() const
+// ----------------------------------------------------------------------------
+//   Return the numerator as a native number
+// ----------------------------------------------------------------------------
+{
     byte_p p = payload();
     ularge nv = leb128<ularge>(p);
-    ularge dv = leb128<ularge>(p) + 0 * nv;
-    return rt.make<integer>(ID_integer, dv);
+    return nv;
+}
+
+
+ularge fraction::denominator_value() const
+// ----------------------------------------------------------------------------
+//   Return the denominator as a native number
+// ----------------------------------------------------------------------------
+{
+    byte_p p = payload();
+    leb128<ularge>(p);
+    ularge dv = leb128<ularge>(p);
+    return dv;
 }
 
 

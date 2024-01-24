@@ -525,6 +525,8 @@ static integer_p type_value(object_p obj)
     {
         switch (type)
         {
+        case object::ID_hwfloat:
+        case object::ID_hwdouble:
         case object::ID_decimal:                type = 0; break; // Or 21
         case object::ID_rectangular:
         case object::ID_polar:                  type = 1; break;
@@ -771,6 +773,8 @@ COMMAND_BODY(Cycle)
         id     ttype = top->type();
         switch(ttype)
         {
+        case ID_hwfloat:
+        case ID_hwdouble:
         case ID_decimal:
         case ID_neg_decimal:            cmd = ID_ToFraction; break;
         case ID_integer:

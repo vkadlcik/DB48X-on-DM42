@@ -2,6 +2,7 @@
 
 This sections tracks some performance measurements across releases.
 
+<!--- DMNONE --->
 ## NQueens (DM42)
 
 Performance recording for various releases on DM42 with `small` option (which is
@@ -95,8 +96,11 @@ Timing on 0.4.10 are:
 
 VP = Variable Precision
 ID = Intel Decimal Library
+HW = Hardware-accelerated (`float` or `double` types)
 
-For 100000 loops
+For 100000 loops, we see that the variable-precision implementation at 24-digit
+is roughly 10 times slower than the fixed precision implementation at 34 digits
+(128 bits).
 
 | Version      | DM32 ms | DM42 ms |
 |--------------|---------|---------|
@@ -104,24 +108,37 @@ For 100000 loops
 | 0.5.2 (ID)   |  215421 |  143412 |
 
 
-For 1000 loops
+For 1000 loops, comparing variable-precision decimal with the earlier Intel decimal
 
 | Version      | DM32 ms | DM42 ms |
 |--------------|---------|---------|
-| 0.6.2 (VP36) |   62012 |   42269 |
-| 0.6.2 (VP24) |   34898 |   23714 |
-| 0.6.2 (VP12) |   16017 |   10782 |
-| 0.6.2 (VP6)  |    7436 |    5842 |
-| 0.6.0 (VP24) |   23773 |   17685 |
+| 0.6.4 (VP24) |   32346 |   23011 |
+| 0.6.4 (VP12) |   13720 |   10548 |
+| 0.6.4 (VP6)  |    6905 |    5623 |
 | 0.5.2 (ID)   |    2154 |    1434 |
+
+|              |               DM32 (ms)                    |                DM42 (ms)                   |
+|--------------|--------------------------------------------|--------------------------------------------|
+| Version      | HW7  | HW16 |  VP6 | VP12  | VP24  | VP36  |  HW7 | HW16 | VP6  | VP12  | VP24  |  VP36 |
+| 0.5.2 (ID)   | 2154 |      |      |       |       |       | 1434 |      |      |       |       |       |
+| 0.6.0 (Note) |      |      |      |       | 23773 |       |      |      |      |       | 17685 |       |
+| 0.6.2        |      |      | 7436 | 16017 | 34898 | 62012 |      |      | 5842 | 10782 | 23714 | 42269 |
+| 0.6.4        | 1414 | 1719 | 6905 | 13720 | 32346 | 60259 |  422 |  705 | 5623 | 10548 | 23811 | 42363 |
+
+Note: Results for 0.6.0 are artificially good because intermediate computations
+were not made with increased precision.
+
 
 ## Drawing `sin X` with `FunctionPlot`
 
 | Configuration   | DM32 ms    | DM42 ms    |
 |-----------------|------------|------------|
-| ID              | 2332-5140  |            |
-| VP24            | 3683-6005  |            |
-| VP36            | 6567-10186 |            |
-| VP48            | 8377-10259 |            |
+| HW7             |  1869-2000 | 1681-1744  |
+| HW16            |  1928-2067 | 1679-2060  |
+| ID              |  2332-5140 |            |
+| VP24            |  3683-6005 | 3377-3511  |
+| VP36            | 6567-10186 | 4434-4709  |
+| VP48            | 8377-10259 | 5964-6123  |
 
 Crash at precision 3
+<!--- !DMNONE --->

@@ -51,6 +51,8 @@ object::result logical::evaluate(binary_fn native, big_binary_fn big, bool num)
     {
     case ID_True:
     case ID_False:
+    case ID_hwfloat:
+    case ID_hwdouble:
     case ID_decimal:
     case ID_neg_decimal:
         if (num)
@@ -164,6 +166,8 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big, bool num)
     {
     case ID_True:
     case ID_False:
+    case ID_hwfloat:
+    case ID_hwdouble:
     case ID_decimal:
     case ID_neg_decimal:
         if (num)

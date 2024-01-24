@@ -36,6 +36,7 @@
 #include "decimal.h"
 #include "expression.h"
 #include "functions.h"
+#include "hwfp.h"
 #include "integer.h"
 #include "parser.h"
 #include "renderer.h"
@@ -45,8 +46,9 @@
 #include "unit.h"
 #include "user_interface.h"
 
-#include <ctype.h>
-#include <stdio.h>
+#include <cctype>
+#include <cstdio>
+#include <cmath>
 
 
 RECORDER(algebraic,       16, "RPL Algebraics");
@@ -62,9 +64,9 @@ INSERT_BODY(algebraic)
 }
 
 
-bool algebraic::real_promotion(algebraic_g &x)
+bool algebraic::decimal_promotion(algebraic_g &x)
 // ----------------------------------------------------------------------------
-//   Promote the value x to the given type
+//   Promote the value x to a decimal / floating-point type
 // ----------------------------------------------------------------------------
 {
     if (!x)
@@ -77,6 +79,12 @@ bool algebraic::real_promotion(algebraic_g &x)
 
     switch(xt)
     {
+    case ID_hwfloat:
+        x = decimal::from(hwfloat_p(+x)->value());
+        return x;
+    case ID_hwdouble:
+        x = decimal::from(hwdouble_p(+x)->value());
+        return x;
     case ID_decimal:
     case ID_neg_decimal:
         return true;
@@ -86,14 +94,14 @@ bool algebraic::real_promotion(algebraic_g &x)
     {
         integer_p i = integer_p(+x);
         x = decimal::from_integer(i);
-        return true;
+        return x;
     }
     case ID_bignum:
     case ID_neg_bignum:
     {
         bignum_p i = bignum_p(+x);
         x = decimal::from_bignum(i);
-        return true;
+        return x;
     }
 
     case ID_fraction:
@@ -101,20 +109,140 @@ bool algebraic::real_promotion(algebraic_g &x)
     {
         fraction_p f = fraction_p(+x);
         x = decimal::from_fraction(f);
-        return true;
+        return x;
     }
     case ID_big_fraction:
     case ID_neg_big_fraction:
     {
         big_fraction_p f = big_fraction_p(+x);
         x = decimal::from_big_fraction(f);
-        return true;
+        return x;
     }
     default:
         return false;
     }
 }
 
+template<typename value>
+algebraic_p algebraic::as_hwfp(value x)
+// ----------------------------------------------------------------------------
+//   Return a hardware floating-point value if possible
+// ----------------------------------------------------------------------------
+{
+    if (Settings.HardwareFloatingPoint())
+    {
+        uint prec = Settings.Precision();
+        if (prec <= 7)
+            return hwfloat::make(float(x));
+        if (prec <= 16)
+            return hwdouble::make(double(x));
+    }
+    return nullptr;
+}
+
+
+bool algebraic::hwfp_promotion(algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   Promote the value x to a hardware floating-point type if possible
+// ----------------------------------------------------------------------------
+{
+    if (!x)
+        return false;
+
+    if (!Settings.HardwareFloatingPoint())
+        return false;
+    uint prec = Settings.Precision();
+    if (prec > 16)
+        return false;
+    bool need_double = prec > 7;
+
+
+    id xt = x->type();
+    record(algebraic,
+           "Real promotion of %p from %+s to hwfp",
+           (object_p) x, object::name(xt));
+
+    switch(xt)
+    {
+    case ID_hwfloat:
+        if (need_double)
+        {
+            x = hwdouble::make(hwfloat_p(+x)->value());
+            if (!x)
+                return false;
+        }
+        return true;
+    case ID_hwdouble:
+        if (!need_double)
+        {
+            x = hwfloat::make(hwdouble_p(+x)->value());
+            if (!x)
+                return false;
+        }
+        return true;
+    case ID_decimal:
+    case ID_neg_decimal:
+        if (need_double)
+            x = hwdouble::make(decimal_p(+x)->to_double());
+        else
+            x = hwfloat::make(decimal_p(+x)->to_float());
+        return x;
+
+    case ID_integer:
+        if (need_double)
+            x = as_hwfp(double(integer_p(+x)->value<ularge>()));
+        else
+            x = as_hwfp(float(integer_p(+x)->value<ularge>()));
+        return x;
+    case ID_neg_integer:
+        if (need_double)
+            x = as_hwfp(-double(integer_p(+x)->value<ularge>()));
+        else
+            x = as_hwfp(-float(integer_p(+x)->value<ularge>()));
+        return x;
+    case ID_bignum:
+    case ID_neg_bignum:
+        x = decimal::from_bignum(bignum_p(+x));
+        if (x && x->is_decimal())
+        {
+            if (need_double)
+                x = as_hwfp(decimal_p(+x)->to_double());
+            else
+                x = as_hwfp(decimal_p(+x)->to_float());
+        }
+        return x;
+
+    case ID_fraction:
+        if (need_double)
+            x = as_hwfp(double(fraction_p(+x)->numerator_value()) /
+                        double(fraction_p(+x)->denominator_value()));
+        else
+            x = as_hwfp(float(fraction_p(+x)->numerator_value()) /
+                        float(fraction_p(+x)->denominator_value()));
+        return x;
+    case ID_neg_fraction:
+        if (need_double)
+            x = as_hwfp(- double(fraction_p(+x)->numerator_value()) /
+                        double(fraction_p(+x)->denominator_value()));
+        else
+            x = as_hwfp(- float(fraction_p(+x)->numerator_value()) /
+                        float(fraction_p(+x)->denominator_value()));
+        return x;
+    case ID_big_fraction:
+    case ID_neg_big_fraction:
+        x = decimal::from_big_fraction(big_fraction_p(+x));
+        if (x && x->is_decimal())
+        {
+            if (need_double)
+                x = as_hwfp(decimal_p(+x)->to_double());
+            else
+                x = as_hwfp(decimal_p(+x)->to_float());
+        }
+        return x;
+    default:
+        return false;
+    }
+}
 
 bool algebraic::complex_promotion(algebraic_g &x, object::id type)
 // ----------------------------------------------------------------------------
@@ -257,6 +385,12 @@ bool algebraic::decimal_to_fraction(algebraic_g &x)
     id ty = x->type();
     switch(ty)
     {
+    case ID_hwfloat:
+        x = hwfloat_p(+x)->to_fraction();
+        return true;
+    case ID_hwdouble:
+        x = hwdouble_p(+x)->to_fraction();
+        return true;
     case ID_decimal:
     case ID_neg_decimal:
         x = decimal_p(+x)->to_fraction();
@@ -367,9 +501,11 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
     case ID_neg_fraction:
     case ID_big_fraction:
     case ID_neg_big_fraction:
+    case ID_hwfloat:
+    case ID_hwdouble:
     case ID_decimal:
     case ID_neg_decimal:
-        return real_promotion(x);
+        return decimal_promotion(x);
     case ID_pi:
         x = pi();
         return true;
@@ -401,6 +537,8 @@ algebraic_g algebraic::pi()
 //   Return the value of pi
 // ----------------------------------------------------------------------------
 {
+    if (algebraic_p result = as_hwfp(M_PI))
+        return result;
     return decimal::pi();
 }
 

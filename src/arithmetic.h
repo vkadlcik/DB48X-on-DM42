@@ -34,6 +34,7 @@
 #include "complex.h"
 #include "decimal.h"
 #include "fraction.h"
+#include "hwfp.h"
 #include "runtime.h"
 
 
@@ -44,14 +45,42 @@ struct arithmetic : algebraic
 {
     arithmetic(id i): algebraic(i) {}
 
-    static bool real_promotion(algebraic_g &x, algebraic_g &y);
-    // -------------------------------------------------------------------------
-    //   Promote x or y to the largest of both types, return true if successful
-    // -------------------------------------------------------------------------
-
-    static bool real_promotion(algebraic_g &x)
+    static bool decimal_promotion(algebraic_g &x, algebraic_g &y)
     {
-        return algebraic::real_promotion(x);
+        if (!x || !y || !x->is_real() || !y->is_real())
+            return false;
+        return decimal_promotion(x) && decimal_promotion(y);
+    }
+
+    static bool decimal_promotion(algebraic_g &x)
+    {
+        return algebraic::decimal_promotion(x);
+    }
+
+    static bool hwfp_promotion(algebraic_g &x, algebraic_g &y)
+    {
+        if (!x || !y || !x->is_real() || !y->is_real())
+            return false;
+        if (hwfp_promotion(x) && hwfp_promotion(y))
+        {
+            // It's possible for the two to have distinct types
+            if (hwfloat_p xf = x->as<hwfloat>())
+            {
+                if (y->type() != ID_hwfloat)
+                    x = hwdouble::make(xf->value());
+            }
+            else if (hwfloat_p yf = y->as<hwfloat>())
+            {
+                y = hwdouble::make(yf->value());
+            }
+            return x->type() == y->type();
+        }
+        return false;
+    }
+
+    static bool hwfp_promotion(algebraic_g &x)
+    {
+        return algebraic::hwfp_promotion(x);
     }
 
     static bool complex_promotion(algebraic_g &x, id type = ID_rectangular)
@@ -72,12 +101,16 @@ protected:
     typedef bool (*complex_fn)(complex_g &x, complex_g &y);
 
     // Function pointers used by generic evaluation code
+    typedef hwfloat_p (*hwfloat_fn)(hwfloat_r, hwfloat_r y);
+    typedef hwdouble_p (*hwdouble_fn)(hwdouble_r, hwdouble_r y);
     typedef decimal_p (*decimal_fn)(decimal_r x, decimal_r y);
 
     // Structure holding the function pointers called by generic code
     struct ops
     {
         decimal_fn    decop;
+        hwfloat_fn    fop;
+        hwdouble_fn   dop;
         integer_fn    integer_ok;
         bignum_fn     bignum_ok;
         fraction_fn   fraction_ok;
@@ -127,7 +160,9 @@ protected:
         static bool bignum_ok(bignum_g &x, bignum_g &y);                    \
         static bool fraction_ok(fraction_g &x, fraction_g &y);              \
         static bool complex_ok(complex_g &x, complex_g &y);                 \
-        static constexpr auto decop = decimal::derived;                     \
+        static constexpr decimal_fn decop = decimal::derived;               \
+        static constexpr auto fop = hwfloat::derived;                       \
+        static constexpr auto dop = hwdouble::derived;                      \
                                                                             \
         OBJECT_DECL(derived)                                                \
         ARITY_DECL(2);                                                      \

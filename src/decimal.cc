@@ -197,8 +197,8 @@ PARSE_BODY(decimal)
 
     // Check if we were given an exponent
     utf8 expsrc = nullptr;
-    if (*s == 'e' || *s == 'E' ||
-        utf8_codepoint(s) == Settings.ExponentSeparator())
+    if (+s < +last && (*s == 'e' || *s == 'E' ||
+                       utf8_codepoint(s) == Settings.ExponentSeparator()))
     {
         s = utf8_next(s);
         expsrc = s;
@@ -756,8 +756,10 @@ decimal_p decimal::from_fraction(fraction_p value)
     id type = value->type();
     if (type == ID_big_fraction || type == ID_neg_big_fraction)
         return from_big_fraction(big_fraction_p(value));
-    decimal_g num = decimal::from_integer(value->numerator(1));
-    decimal_g den = decimal::from_integer(value->denominator(1));
+    decimal_g num = decimal::make(value->numerator_value());
+    decimal_g den = decimal::make(value->denominator_value());
+    if (type == ID_neg_fraction)
+        num = -num;
     return num / den;
 }
 
@@ -1246,6 +1248,58 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
     if (neg)
         result = -result;
     return +result;
+}
+
+
+float decimal::to_float() const
+// ----------------------------------------------------------------------------
+//   Convert decimal value to float
+// ----------------------------------------------------------------------------
+{
+    settings::SaveFancyExponent   saveFancyExponent(false);
+    settings::SaveDecimalComma    saveDecimalComma(false);
+    settings::SaveMantissaSpacing saveMantissaSpacing(0);
+    settings::SaveFractionSpacing saveFractionSpacing(0);
+    settings::SaveDisplayDigits   saveDisplayMode(ID_Std);
+    renderer                      r;
+    size_t                        sz = render(r);
+    r.put(char(0));
+    char *txt = (char *) r.text();
+    txt[sz] = 0;
+    return std::strtof(txt, nullptr);
+}
+
+
+double decimal::to_double() const
+// ----------------------------------------------------------------------------
+//   Convert decimal value to double
+// ----------------------------------------------------------------------------
+{
+    settings::SaveFancyExponent   saveFancyExponent(false);
+    settings::SaveDecimalComma    saveDecimalComma(false);
+    settings::SaveMantissaSpacing saveMantissaSpacing(0);
+    settings::SaveFractionSpacing saveFractionSpacing(0);
+    settings::SaveDisplayDigits   saveDisplayMode(ID_Std);
+    renderer                      r;
+    size_t                        sz = render(r);
+    r.put(char(0));
+    char *txt = (char *) r.text();
+    txt[sz] = 0;
+    return std::strtod(txt, nullptr);
+}
+
+
+decimal_p decimal::from(double x)
+// ----------------------------------------------------------------------------
+//   Conversion from hardware floating-point to decimal
+// ----------------------------------------------------------------------------
+{
+    renderer r;
+    r.printf("%.18g", x);
+    parser p(r.text(), r.size());
+    if (decimal::do_parse(p) == OK)
+        return decimal_p(+p.out);
+    return nullptr;
 }
 
 

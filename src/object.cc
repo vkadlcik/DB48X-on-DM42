@@ -45,6 +45,7 @@
 #include "functions.h"
 #include "graphics.h"
 #include "grob.h"
+#include "hwfp.h"
 #include "integer.h"
 #include "integrate.h"
 #include "list.h"
@@ -350,6 +351,10 @@ uint32_t object::as_uint32(uint32_t def, bool err) const
         if (err)
             rt.value_error();
         return def;
+    case ID_hwfloat:
+        return hwfloat_p(this)->as_unsigned();
+    case ID_hwdouble:
+        return hwdouble_p(this)->as_unsigned();
     case ID_decimal:
     case ID_neg_decimal:
         return decimal_p(this)->as_unsigned();
@@ -398,6 +403,10 @@ int32_t object::as_int32 (int32_t  def, bool err)  const
     case ID_neg_bignum:
         return -bignum_p(this)->value<uint32_t>();
 
+    case ID_hwfloat:
+        return hwfloat_p(this)->as_int32();
+    case ID_hwdouble:
+        return hwdouble_p(this)->as_int32();
     case ID_decimal:
     case ID_neg_decimal:
         return decimal_p(this)->as_int32();
@@ -455,6 +464,10 @@ uint64_t object::as_uint64(uint64_t def, bool err) const
         if (err)
             rt.value_error();
         return def;
+    case ID_hwfloat:
+        return hwfloat_p(this)->as_unsigned();
+    case ID_hwdouble:
+        return hwdouble_p(this)->as_unsigned();
     case ID_decimal:
     case ID_neg_decimal:
         return decimal_p(this)->as_unsigned();
@@ -503,6 +516,10 @@ int64_t object::as_int64 (int64_t  def, bool err)  const
     case ID_neg_bignum:
         return -bignum_p(this)->value<uint64_t>();
 
+    case ID_hwfloat:
+        return hwfloat_p(this)->as_integer();
+    case ID_hwdouble:
+        return hwdouble_p(this)->as_integer();
     case ID_decimal:
     case ID_neg_decimal:
         return decimal_p(this)->as_integer();
@@ -928,6 +945,8 @@ int object::as_truth(bool error) const
     case ID_neg_fraction:
     case ID_big_fraction:
     case ID_neg_big_fraction:
+    case ID_hwfloat:
+    case ID_hwdouble:
     case ID_decimal:
     case ID_neg_decimal:
     case ID_polar:
@@ -979,6 +998,10 @@ bool object::is_zero(bool error) const
     case ID_big_fraction:
     case ID_neg_big_fraction:
         return big_fraction_p(this)->numerator()->is_zero();
+    case ID_hwfloat:
+        return hwfloat_p(this)->is_zero();
+    case ID_hwdouble:
+        return hwdouble_p(this)->is_zero();
     case ID_decimal:
     case ID_neg_decimal:
         return decimal_p(this)->is_zero();
@@ -1022,6 +1045,10 @@ bool object::is_one(bool error) const
         return bignum_p(this)->is_one();
     case ID_fraction:
         return fraction_p(this)->is_one();
+    case ID_hwfloat:
+        return hwfloat_p(this)->is_one();
+    case ID_hwdouble:
+        return hwdouble_p(this)->is_one();
     case ID_decimal:
     case ID_neg_decimal:
         return decimal_p(this)->is_one();
@@ -1073,6 +1100,10 @@ bool object::is_negative(bool error) const
     case ID_neg_fraction:
     case ID_neg_big_fraction:
         return !fraction_p(this)->is_zero();
+    case ID_hwfloat:
+        return hwfloat_p(this)->is_negative();
+    case ID_hwdouble:
+        return hwdouble_p(this)->is_negative();
     case ID_decimal:
     case ID_neg_decimal:
         return decimal_p(this)->is_negative();

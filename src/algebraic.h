@@ -50,8 +50,11 @@ struct algebraic : command
 {
     algebraic(id i): command(i) {}
 
-    // Promotion of integer / fractions to real
-    static bool real_promotion(algebraic_g &x);
+    // Promotion of integer / fractions / hwfp to decimal
+    static bool decimal_promotion(algebraic_g &x);
+
+    // Promotion of integer / fractions / decimal to hwfp
+    static bool hwfp_promotion(algebraic_g &x);
 
     // Promotion of integer, real or fraction to complex
     static bool complex_promotion(algebraic_g &x, id type = ID_rectangular);
@@ -90,6 +93,12 @@ struct algebraic : command
 
     // Function pointers used by generic evaluation code
     typedef decimal_p (*decimal_fn)(decimal_r x);
+
+    template<typename value>
+    static algebraic_p as_hwfp(value x);
+    // -------------------------------------------------------------------------
+    //   Return a hardware floating-point value if possible
+    // -------------------------------------------------------------------------
 
     INSERT_DECL(algebraic);
 };

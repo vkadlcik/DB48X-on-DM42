@@ -51,6 +51,7 @@ SOURCES +=                                      \
         ../src/fraction.cc                      \
         ../src/complex.cc                       \
         ../src/decimal.cc                       \
+        ../src/hwfp.cc                          \
         ../src/runtime.cc                       \
         ../src/text.cc                          \
         ../src/comment.cc                       \

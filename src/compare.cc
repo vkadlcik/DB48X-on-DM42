@@ -31,6 +31,7 @@
 
 #include "decimal.h"
 #include "expression.h"
+#include "hwfp.h"
 #include "integer.h"
 #include "locals.h"
 
@@ -108,7 +109,33 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
     /* Real data types */
     algebraic_g xa = algebraic_p(+x);
     algebraic_g ya = algebraic_p(+y);
-    if (!ok && real_promotion(xa, ya))
+    if (!ok && hwfp_promotion(xa, ya))
+    {
+        // Here we have two identical hardware floats types
+        if (hwfloat_p xf = xa->as<hwfloat>())
+        {
+            hwfloat_p yf = hwfloat_p(+ya);
+            float xv = xf->value();
+            float yv = yf->value();
+            *cmp = (xv > yv) - (xv < yv);
+            return true;
+        }
+        else
+        {
+            hwdouble_p xd = xa->as<hwdouble>();
+            hwdouble_p yd = ya->as<hwdouble>();
+            double xv = xd->value();
+            double yv = yd->value();
+            *cmp = (xv > yv) - (xv < yv);
+            return true;
+        }
+
+        decimal_g xd = decimal_p(+xa);
+        decimal_g yd = decimal_p(+ya);
+        *cmp = decimal::compare(xd, yd);
+        return true;
+    }
+    if (!ok && decimal_promotion(xa, ya))
     {
         /* Here, x and y have a decimal type */
         decimal_g xd = decimal_p(+xa);

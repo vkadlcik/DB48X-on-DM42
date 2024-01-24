@@ -51,27 +51,6 @@
 RECORDER(arithmetic,            16, "Arithmetic");
 RECORDER(arithmetic_error,      16, "Errors from arithmetic code");
 
-bool arithmetic::real_promotion(algebraic_g &x, algebraic_g &y)
-// ----------------------------------------------------------------------------
-//   Promote x or y to the largest of both types
-// ----------------------------------------------------------------------------
-{
-    if (!x|| !y)
-        return false;
-
-    id xt = x->type();
-    id yt = y->type();
-    if (is_integer(xt) && is_integer(yt))
-        // If we got here, we failed an integer op, e.g. 2/3, promote to real
-        return real_promotion(x) && real_promotion(y);
-
-    if (!is_real(xt) || !is_real(yt))
-        return false;
-
-    return real_promotion(x) && real_promotion(y);
-}
-
-
 bool arithmetic::complex_promotion(algebraic_g &x, algebraic_g &y)
 // ----------------------------------------------------------------------------
 //   Return true if one type is complex and the other can be promoted
@@ -1223,14 +1202,16 @@ algebraic_p arithmetic::evaluate(id          op,
             }
         }
 
+        algebraic_g xb = x;
+        algebraic_g yb = y;
         if (!is_bignum(xt))
-            xt = bignum_promotion(x);
+            xt = bignum_promotion(xb);
         if (!is_bignum(yt))
-            yt = bignum_promotion(y);
+            yt = bignum_promotion(yb);
 
         // Proceed with big integers if native did not fit
-        bignum_g xg = bignum_p(+x);
-        bignum_g yg = bignum_p(+y);
+        bignum_g xg = bignum_p(+xb);
+        bignum_g yg = bignum_p(+yb);
         if (ops.bignum_ok(xg, yg))
         {
             x = +xg;
@@ -1265,8 +1246,20 @@ algebraic_p arithmetic::evaluate(id          op,
         }
     }
 
+    // Hardware-accelerated floating-point data types
+    if (hwfp_promotion(x, y))
+    {
+        if (hwfloat_g fx = x->as<hwfloat>())
+            if (hwfloat_g fy = y->as<hwfloat>())
+                return ops.fop(fx, fy);
+        if (hwdouble_g dx = x->as<hwdouble>())
+            if (hwdouble_g dy = y->as<hwdouble>())
+                return ops.dop(dx, dy);
+    }
+
+
     // Real data types
-    if (real_promotion(x, y))
+    if (decimal_promotion(x, y))
     {
         // Here, x and y have the same type, a decimal type
         decimal_g xv = decimal_p(+x);
@@ -1375,6 +1368,8 @@ arithmetic::ops_t arithmetic::Ops()
     static const ops result =
     {
         Op::decop,
+        hwfloat_fn(Op::fop),
+        hwdouble_fn(Op::dop),
         Op::integer_ok,
         Op::bignum_ok,
         Op::fraction_ok,

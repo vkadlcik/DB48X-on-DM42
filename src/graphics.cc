@@ -362,6 +362,8 @@ coord PlotParametersAccess::pixel_adjust(object_r    obj,
     case object::ID_neg_fraction:
     case object::ID_big_fraction:
     case object::ID_neg_big_fraction:
+    case object::ID_hwfloat:
+    case object::ID_hwdouble:
     case object::ID_decimal:
     case object::ID_neg_decimal:
     {

@@ -168,6 +168,8 @@ ID(neg_fraction)
 ID(big_fraction)
 ID(neg_big_fraction)
 
+ID(hwfloat)
+ID(hwdouble)
 ID(decimal)
 ID(neg_decimal)
 
@@ -684,6 +686,7 @@ FLAG(TooManyDigitsErrors,       NoErrorForTooManyDigits)
 FLAG(ComplexIBeforeImaginary,   ComplexIAfterImaginary)
 FLAG(NumberedVariables,         NoNumberedVariables)
 FLAG(UseCrossForMultiplication, UseDotForMultiplication)
+FLAG(HardwareFloatingPoint,     SoftwareFloatingPoint)
 
 SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
 SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)

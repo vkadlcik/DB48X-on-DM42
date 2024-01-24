@@ -33,6 +33,7 @@
 #include "array.h"
 #include "complex.h"
 #include "decimal.h"
+#include "hwfp.h"
 #include "list.h"
 #include "runtime.h"
 
@@ -46,18 +47,26 @@ struct function : algebraic
 
 
 public:
-    typedef complex_g (*complex_fn)(complex_r x);
+    typedef complex_g  (*complex_fn)(complex_r x);
+    typedef hwfloat_p  (*hwfloat_fn)(hwfloat_r x);
+    typedef hwdouble_p (*hwdouble_fn)(hwdouble_r x);
 
-    static result evaluate(id op,
-                           decimal_fn decop,
-                           complex_fn zop);
+    // Structure holding the function pointers called by generic code
+    struct ops
+    {
+        decimal_fn    decop;
+        hwfloat_fn    fop;
+        hwdouble_fn   dop;
+        complex_fn    zop;
+    };
+    typedef const ops &ops_t;
+
+    static result evaluate(id op, ops_t ops);
     // ------------------------------------------------------------------------
     //   Stack-based evaluation for all functions implemented in BID library
     // ------------------------------------------------------------------------
 
-    static algebraic_p evaluate(algebraic_r x, id op,
-                                decimal_fn decop,
-                                complex_fn zop);
+    static algebraic_p evaluate(algebraic_r x, id op, ops_t ops);
     // ------------------------------------------------------------------------
     //   C++ evaluation for all functions implemented in BID library
     // ------------------------------------------------------------------------
@@ -80,6 +89,7 @@ public:
     static bool exact_trig(id op, algebraic_g &x);
 
     static const bool does_matrices = false;
+
 };
 
 
@@ -91,8 +101,10 @@ struct derived : function                                               \
 {                                                                       \
     derived(id i = ID_##derived) : function(i) {}                       \
                                                                         \
-    static constexpr decimal_fn decop = decimal::derived;               \
-    static constexpr complex_fn zop = complex::derived;                 \
+    static constexpr decimal_fn  decop = decimal::derived;              \
+    static constexpr auto        fop   = hwfloat::derived;              \
+    static constexpr auto        dop   = hwdouble::derived;             \
+    static constexpr complex_fn  zop   = complex::derived;              \
                                                                         \
 public:                                                                 \
     OBJECT_DECL(derived);                                               \
@@ -110,7 +122,11 @@ public:                                                                 \
     static algebraic_g run(algebraic_r x) { return evaluate(x); }       \
     static algebraic_p evaluate(algebraic_r x)                          \
     {                                                                   \
-        return function::evaluate(x, ID_##derived, decop, zop);         \
+        static const ops optable =                                      \
+        {                                                               \
+            decop, hwfloat_fn(fop), hwdouble_fn(dop), zop               \
+        };                                                              \
+        return function::evaluate(x, ID_##derived, optable);            \
     }                                                                   \
 }
 
@@ -174,7 +190,7 @@ public:                                                                 \
 
 #define FUNCTION(derived) FUNCTION_EXT(derived, )
 
-#define FUNCTION_FANCY(derived)                         \
+#define FUNCTION_FANCY(derived)                                         \
     FUNCTION_EXT(derived, INSERT_DECL(derived);)
 #define FUNCTION_MAT(derived)                                           \
     FUNCTION_EXT(derived,                                               \

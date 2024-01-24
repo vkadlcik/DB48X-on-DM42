@@ -222,6 +222,7 @@ CXX_SOURCES +=				\
 	src/fraction.cc			\
 	src/complex.cc			\
 	src/decimal.cc			\
+	src/hwfp.cc			\
 	src/text.cc		        \
 	src/comment.cc		        \
 	src/symbol.cc			\

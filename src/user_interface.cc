@@ -4075,13 +4075,14 @@ bool user_interface::handle_functions(int key)
                 {
                     if (!end_edit())
                         return false;
+                    editing = false;
                 }
                 break;
             }
 
         }
         draw_busy();
-        if (!imm && editing)
+        if (!imm && !editing)
         {
             if (Settings.SaveStack())
                 rt.save();

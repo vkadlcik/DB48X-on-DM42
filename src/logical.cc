@@ -252,7 +252,7 @@ ularge logical::rol(ularge x, ularge y)
 // ----------------------------------------------------------------------------
 {
     ularge ws   = Settings.WordSize();
-    ularge mask = (1UL << ws) - 1UL;
+    ularge mask = ws < 64 ? ((1UL << ws) - 1UL) : ~0ULL;
     y %= ws;
     return ((x << y) | (x >> (ws - y))) & mask;
 }
@@ -319,7 +319,7 @@ ularge logical::asr(ularge x, ularge y)
 // ----------------------------------------------------------------------------
 {
     uint ws   = Settings.WordSize();
-    bool sbit = x & (1 << (ws - 1));
+    bool sbit = x & (1ULL << (ws - 1));
     x >>= y;
     if (sbit)
         x |= ((1 << y) - 1UL) << (ws - y);

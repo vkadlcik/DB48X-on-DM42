@@ -152,6 +152,8 @@ object::result logical::evaluate(unary_fn native, big_unary_fn big, bool num)
 //   Evaluation for unary logical operations
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(1))
+        return ERROR;
     algebraic_g x = algebraic_p(rt.stack(0));
     if (!x)
         return ERROR;

@@ -4081,7 +4081,7 @@ bool user_interface::handle_functions(int key)
 
         }
         draw_busy();
-        if (!imm && !rt.editing())
+        if (!imm && editing)
         {
             if (Settings.SaveStack())
                 rt.save();

@@ -70,6 +70,9 @@ struct tests
     void decimal_display_formats();
     void integer_numerical_functions();
     void decimal_numerical_functions();
+    void float_numerical_functions();
+    void double_numerical_functions();
+    void high_precision_numerical_functions();
     void exact_trig_cases();
     void fraction_decimal_conversions();
     void complex_types();

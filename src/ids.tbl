@@ -688,6 +688,11 @@ FLAG(NumberedVariables,         NoNumberedVariables)
 FLAG(UseCrossForMultiplication, UseDotForMultiplication)
 FLAG(HardwareFloatingPoint,     SoftwareFloatingPoint)
 
+ALIAS(HardwareFloatingPoint,    "HFP")
+ALIAS(HardwareFloatingPoint,    "HardFP")
+ALIAS(SoftwareFloatingPoint,    "SFP")
+ALIAS(SoftwareFloatingPoint,    "SoftFP")
+
 SETTING_ENUM(Std, "StandardDisplay",    DisplayMode)
 SETTING_ENUM(Fix, "FixedDisplay",       DisplayMode)
 SETTING_ENUM(Sci, "ScientificDisplay",  DisplayMode)

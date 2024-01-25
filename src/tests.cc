@@ -85,6 +85,9 @@ TESTS(fformat,          "Fraction display formats");
 TESTS(dformat,          "Decimal display formats");
 TESTS(ifunctions,       "Integer functions");
 TESTS(dfunctions,       "Decimal functions");
+TESTS(float,            "Hardware-accelerated 7-digit (float)")
+TESTS(double,           "Hardware-accelerated 16-digit (double)")
+TESTS(highp,            "High-precision computations (60 digits)")
 TESTS(trigoptim,        "Special trigonometry optimzations");
 TESTS(dfrac,            "Simple conversion to decimal and back");
 TESTS(ctypes,           "Complex types");
@@ -135,8 +138,11 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        shift_and_rotate();
-   }
+        decimal_numerical_functions();
+        float_numerical_functions();
+        double_numerical_functions();
+        high_precision_numerical_functions();
+    }
     else
     {
         shift_logic();
@@ -156,6 +162,9 @@ void tests::run(bool onlyCurrent)
         decimal_display_formats();
         integer_numerical_functions();
         decimal_numerical_functions();
+        float_numerical_functions();
+        double_numerical_functions();
+        high_precision_numerical_functions();
         exact_trig_cases();
         fraction_decimal_conversions();
         complex_types();
@@ -1980,6 +1989,57 @@ void tests::decimal_numerical_functions()
 
     step("Select 34-digit precision to match Intel Decimal 128");
     test(CLEAR, "34 PRECISION 64 SIG", ENTER).noerr();
+
+    step("Addition")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, ADD).expect("3.57")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, ADD).expect("-1.11")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, ADD).expect("1.11")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, ADD).expect("-3.57")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, ADD).expect("2.36153 56979 61861 56851 62100 48334 91721")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, ADD).expect("-1.34023 04189 97834 80530 72456 24377 86853")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, ADD).expect("2.31852 91517 78239 80211 40912 32514 08406")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, ADD).expect("-3.18257 93256 58929 54289 07208 91501 6509");
+    step("Subtraction")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, SUB).expect("-1.11")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, SUB).expect("3.57")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, SUB).expect("-3.57")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, SUB).expect("1.11")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, SUB).expect("-2.31846 43020 38138 43148 37899 51665 08279")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, SUB).expect("3.33976 95810 02165 19469 27543 75622 13147")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, SUB).expect("-2.36147 08482 21760 19788 59087 67485 91594")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, SUB).expect("1.49742 06743 41070 45710 92791 08498 3491");
+    step("Multiplication")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, MUL).expect("2.8782")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, MUL).expect("-2.8782")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, MUL).expect("-2.8782")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, MUL).expect("2.8782")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, MUL).expect("5.03935 33230 75607 03279 31513 10370 6295⁳⁻²")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, MUL).expect("-2.33946 08195 45066 55558 10452 38955 78766")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, MUL).expect("-5.02417 84838 91886 30530 26515 91704 3303⁳⁻²")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, MUL).expect("1.97163 56220 41895 13036 42868 86113 86312");
+    step("Division")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, DIV).expect("5.25641 02564 10256 41025 64102 56410 25641⁳⁻¹")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, DIV).expect("-5.25641 02564 10256 41025 64102 56410 25641⁳⁻¹")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, DIV).expect("-5.25641 02564 10256 41025 64102 56410 25641⁳⁻¹")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, DIV).expect("5.25641 02564 10256 41025 64102 56410 25641⁳⁻¹")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, DIV).expect("9.20328 97272 91268 59667 09608 26887 70081⁳⁻³")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, DIV).expect("-4.27251 95769 32329 89184 93776 73598 85247⁳⁻¹")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, DIV).expect("-9.17557 61631 45383 71192 68237 11929 88948⁳⁻³")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, DIV).expect("3.60076 63489 69784 37132 78670 57699 36284⁳⁻¹");
+    step("Power")
+        .test(CLEAR, "1.23 2.34", LSHIFT, B).expect("1.62322 21516 85370 76170 21776 74374 04099")
+        .test(CLEAR, "1.23 -2.34", LSHIFT, B).expect("6.16058 62078 81113 58035 09564 67249 8593⁳⁻¹")
+        .test(CLEAR, "-1.23 23", LSHIFT, B).expect("-116.90082 15014 43291 74653 48578 88750 679")
+        .test(CLEAR, "-1.23 -2.34", LSHIFT, B).error("Argument outside domain")
+        .test(CLEAR, "-1.23 23", LSHIFT, B).expect("-116.90082 15014 43291 74653 48578 88750 679")
+        .test(CLEAR, "-1.23 -2.34", LSHIFT, B).error("Argument outside domain")
+        .test(CLEAR, "1.234 SIN 2.34", LSHIFT, B).expect("1.25866 38704 00850 98748 62959 37171 23784⁳⁻⁴")
+        .test(CLEAR, "1.23 COS -2.34", LSHIFT, B).expect("1.00053 93880 00606 36152 22273 75863 57849")
+        .test(CLEAR, "-1.23 TAN 23", LSHIFT, B).expect("-4.29073 45139 05064 31475 52781 67797 518⁳⁻³⁹")
+        .test(CLEAR, "-1.23 TAN 2.34", LSHIFT, B).error("Argument outside domain")
+        .test(CLEAR, "-1.23 TAN -23", LSHIFT, B).expect("-2.33060 32959 14210 32416 06485 39037 41948⁳³⁸")
+        .test(CLEAR, "-1.23 TANH -2.34", LSHIFT, B).error("Argument outside domain");
+
     step("Square root of 2")
         .test(CLEAR, "2 sqrt", ENTER)
         .expect("1.41421 35623 73095 04880 16887 24209 698");
@@ -2054,6 +2114,7 @@ void tests::decimal_numerical_functions()
     TFN(cbrt, "6.84702 12775 72241 61840 92773 26468 15⁳⁻¹");
     TFN(norm, "0.321");
 #undef TFN
+#undef TFNA
 
     step("pow")
         ,test(CLEAR, "3.21 1.23 pow", ENTER)
@@ -2085,6 +2146,504 @@ void tests::decimal_numerical_functions()
         .test(CLEAR, "0 →Frac", ENTER).noerr().expect("0")
         .test(CLEAR, "1 →Frac", ENTER).noerr().expect("1")
         .test(CLEAR, "-123 →Frac", ENTER).noerr().expect("-123");
+}
+
+
+void tests::float_numerical_functions()
+// ----------------------------------------------------------------------------
+//   Test hardware-accelerated numerical functions
+// ----------------------------------------------------------------------------
+{
+    BEGIN(float);
+
+    step("Select float acceleration")
+        .test(CLEAR, "7 PRECISION 10 SIG HardFP", ENTER).noerr();
+    step("Binary representation does not align with decimal")
+        .test(CLEAR, "1.2", ENTER).noerr().expect("1.20000 0048");
+    step("Select 6-digit precision for output stability")
+        .test("6 SIG", ENTER)
+        .noerr();
+
+    step("Addition")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, ADD).expect("3.57")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, ADD).expect("-1.11")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, ADD).expect("1.11")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, ADD).expect("-3.57")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, ADD).expect("3.28382")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, ADD).expect("-2.00576")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, ADD).expect("-4.79816⁳⁻¹")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, ADD).expect("-3.18258");
+    step("Subtraction")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, SUB).expect("-1.11")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, SUB).expect("3.57")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, SUB).expect("-3.57")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, SUB).expect("1.11")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, SUB).expect("-1.39618")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, SUB).expect("2.67424")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, SUB).expect("-5.15982")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, SUB).expect("1.49742");
+    step("Multiplication")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, MUL).expect("2.8782")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, MUL).expect("-2.8782")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, MUL).expect("-2.8782")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, MUL).expect("2.8782")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, MUL).expect("2.20853")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, MUL).expect("-7.82116⁳⁻¹")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, MUL).expect("-6.59837")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, MUL).expect("1.97164");
+    step("Division")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, DIV).expect("5.25641⁳⁻¹")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, DIV).expect("-5.25641⁳⁻¹")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, DIV).expect("-5.25641⁳⁻¹")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, DIV).expect("5.25641⁳⁻¹")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, DIV).expect("4.03341⁳⁻¹")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, DIV).expect("-1.42837⁳⁻¹")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, DIV).expect("-1.20505")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, DIV).expect("3.60077⁳⁻¹");
+    step("Power")
+        .test(CLEAR, "1.23 2.34", LSHIFT, B).expect("1.62322")
+        .test(CLEAR, "1.23 -2.34", LSHIFT, B).expect("6.16059⁳⁻¹")
+        .test(CLEAR, "-1.23 23", LSHIFT, B).expect("-116.901")
+        .test(CLEAR, "-1.23 -2.34", LSHIFT, B).error("Argument outside domain")
+        .test(CLEAR, "-1.23 23", LSHIFT, B).expect("-116.901")
+        .test(CLEAR, "-1.23 -2.34", LSHIFT, B).error("Argument outside domain")
+        .test(CLEAR, "1.234 SIN 2.34", LSHIFT, B).expect("8.73451⁳⁻¹")
+        .test(CLEAR, "1.23 COS -2.34", LSHIFT, B).expect("12.993")
+        .test(CLEAR, "-1.23 TAN 23", LSHIFT, B).expect("-2.26505⁳¹⁰")
+        .test(CLEAR, "-1.23 TAN 2.34", LSHIFT, B).error("Argument outside domain")
+        .test(CLEAR, "-1.23 TAN -23", LSHIFT, B).expect("-4.41492⁳⁻¹¹")
+        .test(CLEAR, "-1.23 TANH -2.34", LSHIFT, B).error("Argument outside domain");
+
+    step("Square root of 2")
+        .test(CLEAR, "2 sqrt", ENTER)
+        .expect("1.41421");
+    step("Square root of 3")
+        .test(CLEAR, "3 sqrt", ENTER)
+        .expect("1.73205");
+    step("Square root of 4")
+        .test(CLEAR, "4 sqrt", ENTER)
+        .expect("2.");
+    step("Cube root of 2")
+        .test(CLEAR, "2 cbrt", ENTER)
+        .expect("1.25992");
+    step("Cube root of 3")
+        .test(CLEAR, "3 cbrt", ENTER)
+        .expect("1.44225");
+    step("Cube root of 27")
+        .test(CLEAR, "27 cbrt", ENTER)
+        .expect("3.");
+
+    step("neg")
+        .test(CLEAR, "3.21 neg", ENTER).expect("-3.21")
+        .test("negate", ENTER).expect("3.21");
+    step("inv")
+        .test(CLEAR, "3.21 inv", ENTER)
+        .expect("3.11526⁳⁻¹")
+        .test("inv", ENTER).expect("3.21");
+    step("sq (square)")
+        .test(CLEAR, "-3.21 sq", ENTER).expect("10.3041")
+        .test("sq", ENTER).expect("106.174");
+    step("cubed")
+        .test(CLEAR, "3.21 cubed", ENTER).expect("33.0762")
+        .test("cubed", ENTER).expect("36 186.4")
+        .test(CLEAR, "-3 cubed", ENTER).expect("-27")
+        .test("cubed", ENTER).expect("-19 683");
+    step("abs")
+        .test(CLEAR, "-3.21 abs", ENTER).expect("3.21")
+        .test("abs", ENTER, 1, ADD).expect("4.21");
+
+    step("Setting radians mode");
+    test(CLEAR, "RAD", ENTER).noerr();
+
+#define TFNA(name, arg)         step(#name).test(CLEAR, #arg " " #name, ENTER)
+#define TFN(name)               TFNA(name, 0.321)
+
+    TFN(sqrt).expect("5.66569⁳⁻¹");
+    TFN(sin).expect("3.15516⁳⁻¹");
+    TFN(cos).expect("9.4892⁳⁻¹");
+    TFN(tan).expect("3.325⁳⁻¹");
+    TFN(asin).expect("3.26785⁳⁻¹");
+    TFN(acos).expect("1.24401");
+    TFN(atan).expect("3.1061⁳⁻¹");
+    TFN(sinh).expect("3.26541⁳⁻¹");
+    TFN(cosh).expect("1.05196");
+    TFN(tanh).expect("3.10411⁳⁻¹");
+    TFN(asinh).expect("3.15728⁳⁻¹");
+    TFNA(acosh, 1.321).expect("7.8123⁳⁻¹");
+    TFN(atanh).expect("3.32762⁳⁻¹");
+    TFN(log1p).expect("2.78389⁳⁻¹");
+    TFN(lnp1).expect("2.78389⁳⁻¹");
+    TFN(expm1).expect("3.78506⁳⁻¹");
+    TFN(log).expect("-1.13631");
+    TFN(log10).expect("-4.93495⁳⁻¹");
+    TFN(exp).expect("1.37851");
+    TFN(exp10).expect("2.09411");
+    TFN(exp2).expect("1.2492");
+    TFN(erf).expect("3.50144⁳⁻¹");
+    TFN(erfc).expect("6.49856⁳⁻¹");
+    TFN(tgamma).expect("2.78663");
+    TFN(lgamma).expect("1.02483");
+    TFN(gamma).expect("2.78663");
+    TFN(cbrt).expect("6.84702⁳⁻¹");
+    TFN(norm).expect("3.21⁳⁻¹");
+#undef TFN
+#undef TFNA
+
+    step("pow")
+        ,test(CLEAR, "3.21 1.23 pow", ENTER)
+        .expect("4.1976")
+        .test(CLEAR, "1.23 2.31").shifts(true,false,false,false).test(B)
+        .expect("1.61317");
+
+    step("hypot")
+        .test(CLEAR, "3.21 1.23 hypot", ENTER)
+        .expect("3.43759");
+
+    step("atan2 pos / pos quadrant")
+        .test(CLEAR, "3.21 1.23 atan2", ENTER)
+        .expect("1.20488");
+    step("atan2 pos / neg quadrant")
+        .test(CLEAR, "3.21 -1.23 atan2", ENTER)
+        .expect("1.93672");
+    step("atan2 neg / pos quadrant")
+        .test(CLEAR, "-3.21 1.23 atan2", ENTER)
+        .expect("-1.20488");
+    step("atan2 neg / neg quadrant")
+        .test(CLEAR, "-3.21 -1.23 atan2", ENTER)
+        .expect("-1.93672");
+
+    step("Restore default 24-digit precision");
+    test(CLEAR, "24 PRECISION 12 SIG SoftFP", ENTER).noerr();
+}
+
+
+void tests::double_numerical_functions()
+// ----------------------------------------------------------------------------
+//   Test hardware-accelerated numerical functions
+// ----------------------------------------------------------------------------
+{
+    BEGIN(double);
+
+    step("Select double acceleration")
+        .test(CLEAR, "16 PRECISION 24 SIG HardFP", ENTER).noerr();
+    step("Binary representation does not align with decimal")
+        .test(CLEAR, "1.2", ENTER).noerr().expect("1.19999 99999 99999 96");
+    step("Select 15-digit precision for output stability")
+        .test("15 SIG", ENTER).noerr();
+
+    step("Addition")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, ADD).expect("3.57")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, ADD).expect("-1.11")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, ADD).expect("1.11")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, ADD).expect("-3.57")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, ADD).expect("3.28381 82093 7463")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, ADD).expect("-2.00576 22728 755")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, ADD).expect("-4.79815 73426 8152⁳⁻¹")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, ADD).expect("-3.18257 93256 5893");
+    step("Subtraction")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, SUB).expect("-1.11")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, SUB).expect("3.57")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, SUB).expect("-3.57")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, SUB).expect("1.11")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, SUB).expect("-1.39618 17906 2537")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, SUB).expect("2.67423 77271 245")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, SUB).expect("-5.15981 57342 6815")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, SUB).expect("1.49742 06743 4107");
+    step("Multiplication")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, MUL).expect("2.8782")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, MUL).expect("-2.8782")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, MUL).expect("-2.8782")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, MUL).expect("2.8782")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, MUL).expect("2.20853 46099 3664")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, MUL).expect("-7.82116 28147 1336⁳⁻¹")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, MUL).expect("-6.59836 88181 8747")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, MUL).expect("1.97163 56220 419");
+    step("Division")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, DIV).expect("5.25641 02564 1026⁳⁻¹")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, DIV).expect("-5.25641 02564 1026⁳⁻¹")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, DIV).expect("-5.25641 02564 1026⁳⁻¹")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, DIV).expect("5.25641 02564 1026⁳⁻¹")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, DIV).expect("4.03341 11511 7365⁳⁻¹")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, DIV).expect("-1.42836 63552 3292⁳⁻¹")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, DIV).expect("-1.20504 94590 8895")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, DIV).expect("3.60076 63489 6978⁳⁻¹");
+    step("Power")
+        .test(CLEAR, "1.23 2.34", LSHIFT, B).expect("1.62322 21516 8537")
+        .test(CLEAR, "1.23 -2.34", LSHIFT, B).expect("6.16058 62078 8111⁳⁻¹")
+        .test(CLEAR, "-1.23 23", LSHIFT, B).expect("-116.90082 15014 43")
+        .test(CLEAR, "-1.23 -2.34", LSHIFT, B).error("Argument outside domain")
+        .test(CLEAR, "-1.23 23", LSHIFT, B).expect("-116.90082 15014 43")
+        .test(CLEAR, "-1.23 -2.34", LSHIFT, B).error("Argument outside domain")
+        .test(CLEAR, "1.234 SIN 2.34", LSHIFT, B).expect("8.73451 39711 1437⁳⁻¹")
+        .test(CLEAR, "1.23 COS -2.34", LSHIFT, B).expect("12.99302 28339 821")
+        .test(CLEAR, "-1.23 TAN 23", LSHIFT, B).expect("-2.26504 47100 3673⁳¹⁰")
+        .test(CLEAR, "-1.23 TAN 2.34", LSHIFT, B).error("Argument outside domain")
+        .test(CLEAR, "-1.23 TAN -23", LSHIFT, B).expect("-4.41492 38890 0254⁳⁻¹¹")
+        .test(CLEAR, "-1.23 TANH -2.34", LSHIFT, B).error("Argument outside domain");
+
+    step("Square root of 2")
+        .test(CLEAR, "2 sqrt", ENTER)
+        .expect("1.41421 35623 731");
+    step("Square root of 3")
+        .test(CLEAR, "3 sqrt", ENTER)
+        .expect("1.73205 08075 6888");
+    step("Square root of 4")
+        .test(CLEAR, "4 sqrt", ENTER)
+        .expect("2.");
+    step("Cube root of 2")
+        .test(CLEAR, "2 cbrt", ENTER)
+        .expect("1.25992 10498 9487");
+    step("Cube root of 3")
+        .test(CLEAR, "3 cbrt", ENTER)
+        .expect("1.44224 95703 0741");
+    step("Cube root of 27")
+        .test(CLEAR, "27 cbrt", ENTER)
+        .expect("3.");
+
+    step("neg")
+        .test(CLEAR, "3.21 neg", ENTER).expect("-3.21")
+        .test("negate", ENTER).expect("3.21");
+    step("inv")
+        .test(CLEAR, "3.21 inv", ENTER)
+        .expect("3.11526 47975 0779⁳⁻¹")
+        .test("inv", ENTER).expect("3.21");
+    step("sq (square)")
+        .test(CLEAR, "-3.21 sq", ENTER).expect("10.3041")
+        .test("sq", ENTER).expect("106.17447 681");
+    step("cubed")
+        .test(CLEAR, "3.21 cubed", ENTER).expect("33.07616 1")
+        .test("cubed", ENTER).expect("36 186.39267 80659")
+        .test(CLEAR, "-3 cubed", ENTER).expect("-27")
+        .test("cubed", ENTER).expect("-19 683");
+    step("abs")
+        .test(CLEAR, "-3.21 abs", ENTER).expect("3.21")
+        .test("abs", ENTER, 1, ADD).expect("4.21");
+
+    step("Setting radians mode");
+    test(CLEAR, "RAD", ENTER).noerr();
+
+#define TFNA(name, arg)         step(#name).test(CLEAR, #arg " " #name, ENTER)
+#define TFN(name)               TFNA(name, 0.321)
+
+    TFN(sqrt).expect("5.66568 61896 8612⁳⁻¹");
+    TFN(sin).expect("3.15515 63859 2727⁳⁻¹");
+    TFN(cos).expect("9.48920 37695 6583⁳⁻¹");
+    TFN(tan).expect("3.32499 59243 6472⁳⁻¹");
+    TFN(asin).expect("3.26785 17653 1495⁳⁻¹");
+    TFN(acos).expect("1.24401 11502 634");
+    TFN(atan).expect("3.10609 79281 389⁳⁻¹");
+    TFN(sinh).expect("3.26541 16495 1806⁳⁻¹");
+    TFN(cosh).expect("1.05196 44159 4195");
+    TFN(tanh).expect("3.10410 84660 5886⁳⁻¹");
+    TFN(asinh).expect("3.15728 26582 938⁳⁻¹");
+    TFNA(acosh, 1.321).expect("7.81230 20519 6253⁳⁻¹");
+    TFN(atanh).expect("3.32761 58848 1815⁳⁻¹");
+    TFN(log1p).expect("2.78389 02554 0188⁳⁻¹");
+    TFN(lnp1).expect("2.78389 02554 0188⁳⁻¹");
+    TFN(expm1).expect("3.78505 58089 3754⁳⁻¹");
+    TFN(log).expect("-1.13631 41558 5212");
+    TFN(log10).expect("-4.93494 96759 5128⁳⁻¹");
+    TFN(exp).expect("1.37850 55808 9375");
+    TFN(exp10).expect("2.09411 24558 5089");
+    TFN(exp2).expect("1.24919 61256 5338");
+    TFN(erf).expect("3.50144 22082 0024⁳⁻¹");
+    TFN(erfc).expect("6.49855 77917 9976⁳⁻¹");
+    TFN(tgamma).expect("2.78663 45408 4547");
+    TFN(lgamma).expect("1.02483 46099 5731");
+    TFN(gamma).expect("2.78663 45408 4547");
+    TFN(cbrt).expect("6.84702 12775 7224⁳⁻¹");
+    TFN(norm).expect("3.21⁳⁻¹");
+#undef TFN
+#undef TFNA
+
+    step("pow")
+        ,test(CLEAR, "3.21 1.23 pow", ENTER)
+        .expect("4.19760 13402 6956")
+        .test(CLEAR, "1.23 2.31").shifts(true,false,false,false).test(B)
+        .expect("1.61317 24907 5554");
+
+    step("hypot")
+        .test(CLEAR, "3.21 1.23 hypot", ENTER)
+        .expect("3.43758 63625 5149");
+
+    step("atan2 pos / pos quadrant")
+        .test(CLEAR, "3.21 1.23 atan2", ENTER)
+        .expect("1.20487 56251 5281");
+    step("atan2 pos / neg quadrant")
+        .test(CLEAR, "3.21 -1.23 atan2", ENTER)
+        .expect("1.93671 70284 3698");
+    step("atan2 neg / pos quadrant")
+        .test(CLEAR, "-3.21 1.23 atan2", ENTER)
+        .expect("-1.20487 56251 5281");
+    step("atan2 neg / neg quadrant")
+        .test(CLEAR, "-3.21 -1.23 atan2", ENTER)
+        .expect("-1.93671 70284 3698");
+
+    step("Restore default 24-digit precision");
+    test(CLEAR, "24 PRECISION 12 SIG SoftFP", ENTER).noerr();
+}
+
+
+void tests::high_precision_numerical_functions()
+// ----------------------------------------------------------------------------
+//   Test high-precision numerical functions
+// ----------------------------------------------------------------------------
+{
+    BEGIN(highp);
+
+    step("Select 120-digit precision");
+    test(CLEAR, "120 PRECISION 119 SIG", ENTER).noerr();
+
+    step("Addition")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, ADD).expect("3.57")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, ADD).expect("-1.11")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, ADD).expect("1.11")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, ADD).expect("-3.57")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, ADD).expect("3.28381 82093 74633 70486 17510 06156 82758 95172 14272 07657 60747 22091 17818 71399 90696 80994 83012 59886 50556 27858 44350 79955 18738 767")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, ADD).expect("-2.00576 22728 75497 40176 04527 54502 33554 62422 20360 95512 16741 09716 34981 87666 27553 75383 23279 23951 11502 06776 89604 78156 26344 971")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, ADD).expect("-4.79815 73426 81519 74808 88183 49096 72676 30172 95766 38708 78477 28730 87378 62248 95021 65567 73884 52420 26854 67132 50089 15129 01808 172⁳⁻¹")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, ADD).expect("-3.18257 93256 58929 54289 07208 91501 65091 42132 21054 06082 52654 90143 67515 93012 41309 88423 04706 28583 94673 60063 58625 76729 87437 236");
+    step("Subtraction")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, SUB).expect("-1.11")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, SUB).expect("3.57")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, SUB).expect("-3.57")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, SUB).expect("1.11")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, SUB).expect("-1.39618 17906 25366 29513 82489 93843 17241 04827 85727 92342 39252 77908 82181 28600 09303 19005 16987 40113 49443 72141 55649 20044 81261 234")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, SUB).expect("2.67423 77271 24502 59823 95472 45497 66445 37577 79639 04487 83258 90283 65018 12333 72446 24616 76720 76048 88497 93223 10395 21843 73655 029")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, SUB).expect("-5.15981 57342 68151 97480 88818 34909 67267 63017 29576 63870 87847 72873 08737 86224 89502 16556 77388 45242 02685 46713 25008 91512 90180 817")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, SUB).expect("1.49742 06743 41070 45710 92791 08498 34908 57867 78945 93917 47345 09856 32484 06987 58690 11576 95293 71416 05326 39936 41374 23270 12562 764");
+    step("Multiplication")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, MUL).expect("2.8782")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, MUL).expect("-2.8782")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, MUL).expect("-2.8782")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, MUL).expect("2.8782")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, MUL).expect("2.20853 46099 36642 86937 64973 54406 97655 94702 81396 65918 80148 49693 35695 79075 78230 53527 90249 48134 42301 69188 75780 87095 13848 714")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, MUL).expect("-7.82116 28147 13360 79880 54055 44645 34821 79320 43553 65015 28258 32637 41424 08609 15242 16032 35265 79543 90851 61420 63248 11143 43527 674⁳⁻¹")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, MUL).expect("-6.59836 88181 87475 62105 27834 93688 63406 25460 47209 33457 85563 68523 02446 59766 25435 06742 85088 97866 34283 99309 00520 86140 19023 112")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, MUL).expect("1.97163 56220 41895 13036 42868 86113 86313 92589 37266 50233 11212 46936 19987 27649 04665 12909 93012 70886 43536 22548 79184 29547 90603 133");
+    step("Division")
+        .test(CLEAR, "1.23 2.34", NOSHIFT, DIV).expect("5.25641 02564 10256 41025 64102 56410 25641 02564 10256 41025 64102 56410 25641 02564 10256 41025 64102 56410 25641 02564 10256 41025 64102 564⁳⁻¹")
+        .test(CLEAR, "1.23 -2.34", NOSHIFT, DIV).expect("-5.25641 02564 10256 41025 64102 56410 25641 02564 10256 41025 64102 56410 25641 02564 10256 41025 64102 56410 25641 02564 10256 41025 64102 564⁳⁻¹")
+        .test(CLEAR, "-1.23 2.34", NOSHIFT, DIV).expect("-5.25641 02564 10256 41025 64102 56410 25641 02564 10256 41025 64102 56410 25641 02564 10256 41025 64102 56410 25641 02564 10256 41025 64102 564⁳⁻¹")
+        .test(CLEAR, "-1.23 -2.34", NOSHIFT, DIV).expect("5.25641 02564 10256 41025 64102 56410 25641 02564 10256 41025 64102 56410 25641 02564 10256 41025 64102 56410 25641 02564 10256 41025 64102 564⁳⁻¹")
+        .test(CLEAR, "1.234 SIN 2.34", NOSHIFT, DIV).expect("4.03341 11511 73648 31137 50042 99815 50251 93043 34496 05374 39090 68765 71874 84614 98704 31601 83814 52506 43402 89993 34832 47671 74097 293⁳⁻¹")
+        .test(CLEAR, "1.23 COS -2.34", NOSHIFT, DIV).expect("-1.42836 63552 32917 08649 37916 47425 91646 90503 40337 79862 53243 17451 49650 09973 18146 35114 38977 60892 67085 18047 45278 71127 07927 473⁳⁻¹")
+        .test(CLEAR, "-1.23 TAN 2.34", NOSHIFT, DIV).expect("-1.20504 94590 88953 83538 84110 40559 68917 79067 22041 29859 34977 66185 08007 63343 97223 14767 85208 74035 05421 13980 02140 56202 09478 982")
+        .test(CLEAR, "-1.23 TANH -2.34", NOSHIFT, DIV).expect("3.60076 63489 69784 37132 78670 57699 36288 12530 81427 61036 43824 36511 43230 47061 59443 94970 28659 34119 43049 57536 69340 88589 20671 95⁳⁻¹");
+    step("Power")
+        .test(CLEAR, "1.23 2.34", LSHIFT, B).expect("1.62322 21516 85370 76170 21776 74374 04103 27090 58024 62880 50736 29360 27592 07917 75146 99083 57726 38100 05735 87359 05132 61280 29729 273")
+        .test(CLEAR, "1.23 -2.34", LSHIFT, B).expect("6.16058 62078 81113 58035 09564 67249 85919 02799 96597 79584 99780 14367 89889 72097 28937 36934 82336 13091 76299 79577 82833 85598 48276 569⁳⁻¹")
+        .test(CLEAR, "-1.23 23", LSHIFT, B).expect("-116.90082 15014 43291 74653 48578 88750 68007 69541 15726 7")
+        .test(CLEAR, "-1.23 -2.34", LSHIFT, B).error("Argument outside domain")
+        .test(CLEAR, "-1.23 23", LSHIFT, B).expect("-116.90082 15014 43291 74653 48578 88750 68007 69541 15726 7")
+        .test(CLEAR, "-1.23 -2.34", LSHIFT, B).error("Argument outside domain")
+        .test(CLEAR, "1.234 SIN 2.34", LSHIFT, B).expect("8.73451 39711 14369 51550 68704 45407 01742 72918 29258 46736 08726 27754 89451 09909 41264 88134 43836 18468 84504 59977 51451 28273 42890 582⁳⁻¹")
+        .test(CLEAR, "1.23 COS -2.34", LSHIFT, B).expect("12.99302 28339 82056 39426 87501 27880 37045 92536 16587 57403 56215 08880 50350 81194 61226 34205 49843 15463 66527 28429 54768 38033 10733 33")
+        .test(CLEAR, "-1.23 TAN 23", LSHIFT, B).expect("-2.26504 47100 36734 53632 11380 88267 73995 83095 30275 90565 69960 79911 60281 89036 12608 17378 72500 95112 47589 25610 99723 61528 46412 821⁳¹⁰")
+        .test(CLEAR, "-1.23 TAN 2.34", LSHIFT, B).error("Argument outside domain")
+        .test(CLEAR, "-1.23 TAN -23", LSHIFT, B).expect("-4.41492 38890 02535 32657 39183 33114 42610 79161 90457 07890 27869 50941 95017 26203 95996 17209 38898 89303 26193 59642 46151 77992 62440 313⁳⁻¹¹")
+        .test(CLEAR, "-1.23 TANH -2.34", LSHIFT, B).error("Argument outside domain");
+
+    step("Square root of 2")
+        .test(CLEAR, "2 sqrt", ENTER)
+        .expect("1.41421 35623 73095 04880 16887 24209 69807 85696 71875 37694 80731 76679 73799 07324 78462 10703 88503 87534 32764 15727 35013 84623 09122 97");
+    step("Square root of 3")
+        .test(CLEAR, "3 sqrt", ENTER)
+        .expect("1.73205 08075 68877 29352 74463 41505 87236 69428 05253 81038 06280 55806 97945 19330 16908 80003 70811 46186 75724 85756 75626 14141 54067 03");
+    step("Square root of 4")
+        .test(CLEAR, "4 sqrt", ENTER)
+        .expect("2.");
+    step("Cube root of 2")
+        .test(CLEAR, "2 cbrt", ENTER)
+        .expect("1.25992 10498 94873 16476 72106 07278 22835 05702 51464 70150 79800 81975 11215 52996 76513 95948 37293 96562 43625 50941 54310 25603 56156 653");
+    step("Cube root of 3")
+        .test(CLEAR, "3 cbrt", ENTER)
+        .expect("1.44224 95703 07408 38232 16383 10780 10958 83918 69253 49935 05775 46416 19454 16875 96829 99733 98547 55479 70564 52566 86835 08085 44895 5");
+    step("Cube root of 27")
+        .test(CLEAR, "27 cbrt", ENTER)
+        .expect("3.");
+
+    step("neg")
+        .test(CLEAR, "3.21 neg", ENTER).expect("-3.21")
+        .test("negate", ENTER).expect("3.21");
+    step("inv")
+        .test(CLEAR, "3.21 inv", ENTER)
+        .expect("3.11526 47975 07788 16199 37694 70404 98442 36760 12461 05919 00311 52647 97507 78816 19937 69470 40498 44236 76012 46105 91900 31152 64797 508⁳⁻¹")
+        .test("inv", ENTER).expect("3.21");
+    step("sq (square)")
+        .test(CLEAR, "-3.21 sq", ENTER).expect("10.3041")
+        .test("sq", ENTER).expect("106.17447 681");
+    step("cubed")
+        .test(CLEAR, "3.21 cubed", ENTER).expect("33.07616 1")
+        .test("cubed", ENTER).expect("36 186.39267 80659 01161 281")
+        .test(CLEAR, "-3 cubed", ENTER).expect("-27")
+        .test("cubed", ENTER).expect("-19 683");
+    step("abs")
+        .test(CLEAR, "-3.21 abs", ENTER).expect("3.21")
+        .test("abs", ENTER, 1, ADD).expect("4.21");
+
+    step("Setting radians mode");
+    test(CLEAR, "RAD", ENTER).noerr();
+
+#define TFNA(name, arg)         step(#name).test(CLEAR, #arg " " #name, ENTER)
+#define TFN(name)               TFNA(name, 0.321)
+
+    TFN(sqrt).expect("5.66568 61896 86117 79925 47340 46967 69029 53919 88748 40290 24317 40150 71002 33142 58108 93882 33787 48310 90262 53229 52071 55221 33346 095⁳⁻¹");
+    TFN(sin).expect("3.15515 63859 27271 11306 59311 11434 63724 20590 28073 26160 90426 07885 73952 61134 54958 11360 05154 69169 90888 60602 68566 86775 77178 756⁳⁻¹");
+    TFN(cos).expect("9.48920 37695 65830 17543 94513 28269 25515 47630 31482 28173 88788 74251 04543 72896 66577 48276 93033 06865 27967 26220 67047 05156 85392 249⁳⁻¹");
+    TFN(tan).expect("3.32499 59243 64718 75108 70873 01027 37968 39462 39808 05038 33112 10211 24919 59742 95522 59171 58598 36411 17474 40322 37418 39948 74870 292⁳⁻¹");
+    TFN(asin).expect("3.26785 17653 14954 63269 19976 45195 98263 61825 80802 15743 96737 19039 20280 88176 94392 84098 09689 67761 78591 89321 97257 25139 50784 427⁳⁻¹");
+    TFN(acos).expect("1.24401 11502 63401 15596 21219 27120 15317 84803 26619 47180 89431 15568 37587 30264 33703 82040 12171 20636 49246 66407 71348 31811 71283 483");
+    TFN(atan).expect("3.10609 79281 38899 17606 70005 14468 36028 11250 70257 72811 45394 47766 46907 66126 88604 07313 15978 46563 18838 40217 98317 66973 41063 622⁳⁻¹");
+    TFN(sinh).expect("3.26541 16495 18063 57012 20656 38857 34345 98693 28109 86272 16254 61312 05397 06001 00832 73156 37136 61364 74612 64957 64156 06975 76762 937⁳⁻¹");
+    TFN(cosh).expect("1.05196 44159 41947 53843 52241 43605 67798 60702 39830 04737 76342 59201 97569 28172 48173 45468 64605 47110 19220 77704 23747 11369 53013 732");
+    TFN(tanh).expect("3.10410 84660 58860 21485 05020 93830 95889 76830 49362 09549 90906 41432 21940 50342 73011 03263 62390 79479 82017 41925 86275 83741 44285 902⁳⁻¹");
+    TFN(asinh).expect("3.15728 26582 93796 17910 89454 71020 63800 05262 73204 00545 99523 98506 57859 36169 59757 07538 82426 99951 90845 02839 93067 12242 36290 976⁳⁻¹");
+    TFNA(acosh, 1.321).expect("7.81230 20519 62526 14742 21716 16034 34887 70288 56127 08833 39865 31928 31391 38641 09218 30818 83025 89034 73535 36340 41698 97420 28152 861⁳⁻¹");
+    TFN(atanh).expect("3.32761 58848 18145 95801 76417 05087 51064 39741 00063 48500 16657 26976 17815 79321 44196 78125 97067 73245 02006 33070 59669 06517 42093 103⁳⁻¹");
+    TFN(log1p).expect("2.78389 02554 01882 66771 62834 21115 50949 43751 51790 51323 94948 10360 51426 62575 43375 55204 36330 42773 57363 84330 60428 35762 21396 357⁳⁻¹");
+    TFN(lnp1).expect("2.78389 02554 01882 66771 62834 21115 50949 43751 51790 51323 94948 10360 51426 62575 43375 55204 36330 42773 57363 84330 60428 35762 21396 357⁳⁻¹");
+    TFN(expm1).expect("3.78505 58089 37538 95447 43070 74914 12332 05717 26410 33649 79680 53331 81089 87725 82567 27842 83191 32466 66820 42000 01627 20671 06900 254⁳⁻¹");
+    TFN(log).expect("-1.13631 41558 52121 18735 43303 10107 28991 65926 67631 93216 19228 05172 65001 85061 66283 45581 72770 57156 95345 21563 26917 04911 30388 597");
+    TFN(log10).expect("-4.93494 96759 51279 21870 43085 72834 49044 67305 42441 75284 78318 84723 51233 99890 76077 40106 43059 91517 47812 41520 18292 29419 92215 486⁳⁻¹");
+    TFN(exp).expect("1.37850 55808 93753 89544 74307 07491 41233 20571 72641 03364 97968 05333 18108 98772 58256 72784 28319 13246 66682 04200 00162 72067 10690 025");
+    TFN(exp10).expect("2.09411 24558 50892 67051 98819 85846 25435 50121 44808 82328 80597 04327 54118 26943 97658 88916 82284 18499 99928 85620 51265 40190 16492 154");
+    TFN(exp2).expect("1.24919 61256 53376 70052 14667 82085 80659 83711 96789 11078 50872 03968 89639 54927 57400 23696 00219 70718 47302 80643 90803 89872 28867 485");
+    TFN(erf).expect("3.50144 22082 00238 23551 60324 50502 39128 31207 19242 90723 56849 04231 56766 86312 64836 77405 96189 31273 67860 62392 34680 00135 88872 181⁳⁻¹");
+    TFN(erfc).expect("6.49855 77917 99761 76448 39675 49497 60871 68792 80757 09276 43150 95768 43233 13687 35163 22594 03810 68726 32139 37607 65319 99864 11127 819⁳⁻¹");
+    TFN(tgamma).wait(500).expect("2.78663 45408 45472 36795 07642 12781 77275 03497 82995 16602 55760 07828 51424 44941 90542 89306 12905 33223 77665 62678 93736 34160 48127 165");
+    TFN(lgamma).wait(500).expect("1.02483 46099 57313 19869 10927 53834 88666 18028 66769 43209 08437 87004 46327 04911 25770 09539 00530 12325 23947 42518 21539 89107 12509 699");
+    TFN(gamma).wait(500).expect("2.78663 45408 45472 36795 07642 12781 77275 03497 82995 16602 55760 07828 51424 44941 90542 89306 12905 33223 77665 62678 93736 34160 48127 165");
+    TFN(cbrt).expect("6.84702 12775 72241 61840 92773 26468 14962 80571 47495 31394 59503 58735 29777 30093 51917 13048 43962 89327 36250 75890 22667 79547 36902 353⁳⁻¹");
+    TFN(norm).expect("0.321");
+#undef TFN
+#undef TFNA
+
+    step("pow")
+        ,test(CLEAR, "3.21 1.23 pow", ENTER)
+        .expect("4.19760 13402 69557 03133 41557 04388 71185 62403 13482 15741 54975 76397 39514 93831 64438 34447 96787 36431 56648 68643 95471 93476 15863 225")
+        .test(CLEAR, "1.23 2.31").shifts(true,false,false,false).test(B)
+        .expect("1.61317 24907 55543 84434 14148 92337 98559 17006 64245 18957 27180 28125 67872 74870 17458 75459 57723 53996 95111 93456 40634 86700 09601 018");
+
+    step("hypot")
+        .test(CLEAR, "3.21 1.23 hypot", ENTER)
+        .expect("3.43758 63625 51492 31996 16557 32945 23541 88726 55087 78271 21507 69382 98782 20308 03280 97137 37583 47164 32055 25578 11148 26146 57350 441");
+
+    step("atan2 pos / pos quadrant")
+        .test(CLEAR, "3.21 1.23 atan2", ENTER)
+        .expect("1.20487 56251 52809 23400 86691 05495 30674 32743 54426 68497 01001 78719 37086 47165 61508 05592 53255 02332 28917 23139 67613 92267 03142 769");
+    step("atan2 pos / neg quadrant")
+        .test(CLEAR, "3.21 -1.23 atan2", ENTER)
+        .expect("1.93671 70284 36984 00445 39742 77784 19614 09228 14972 69013 57207 96225 22144 30998 44778 15307 33025 32493 05294 47540 14534 16384 29680 297");
+    step("atan2 neg / pos quadrant")
+        .test(CLEAR, "-3.21 1.23 atan2", ENTER)
+        .expect("-1.20487 56251 52809 23400 86691 05495 30674 32743 54426 68497 01001 78719 37086 47165 61508 05592 53255 02332 28917 23139 67613 92267 03142 769");
+    step("atan2 neg / neg quadrant")
+        .test(CLEAR, "-3.21 -1.23 atan2", ENTER)
+        .expect("-1.93671 70284 36984 00445 39742 77784 19614 09228 14972 69013 57207 96225 22144 30998 44778 15307 33025 32493 05294 47540 14534 16384 29680 297");
+
+    step("Restore default 24-digit precision");
+    test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerr();
 }
 
 
@@ -5676,28 +6235,18 @@ tests &tests::expect(cstring output)
     cindex++;
     if (rt.error())
     {
-        explain("Expected output [",
-                output,
-                "], got error [",
-                rt.error(),
-                "] instead");
+        explain("Expected output [", output, "], "
+                "got error [", rt.error(), "] instead");
         return fail();
     }
     if (utf8 out = Stack.recorded())
     {
-        record(tests,
-               "Comparing [%s] to [%+s] %+s",
-               out,
-               output,
+        record(tests, "Comparing [%s] to [%+s] %+s", out, output,
                strcmp(output, cstring(out)) == 0 ? "OK" : "FAIL");
         if (strcmp(output, cstring(out)) == 0)
             return *this;
-        explain("Expected output [",
-                output,
-                "], "
-                "got [",
-                cstring(out),
-                "] instead");
+        explain("Expected output [", output, "], "
+                "got [", cstring(out), "] instead");
         return fail();
     }
     record(tests, "No output");

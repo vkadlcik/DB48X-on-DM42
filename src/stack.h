@@ -64,7 +64,7 @@ public:
         std::string out = std::string(cstring(stack0), len);
         ptr->key = key;
         ptr->type = type;
-        ptr->output = std::string(cstring(stack0), len);
+        ptr->output = out;
         writer++;
     }
 

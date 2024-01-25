@@ -235,7 +235,7 @@ object::result function::evaluate(algebraic_fn op, bool mat)
         {
             top = list_p(top)->map(op);
         }
-        else if (is_algebraic(topty))
+        else if (is_algebraic(topty) || (topty == ID_array && mat))
         {
             algebraic_g x = algebraic_p(top);
             x = op(x);
@@ -253,6 +253,87 @@ object::result function::evaluate(algebraic_fn op, bool mat)
 }
 
 
+FUNCTION_BODY(neg)
+// ----------------------------------------------------------------------------
+//   Implementation of 'neg'
+// ----------------------------------------------------------------------------
+//   Special case where we don't need to promote argument to decimal
+{
+    if (!x)
+        return nullptr;
+
+    id xt = x->type();
+    switch(xt)
+    {
+    case ID_expression:
+    case ID_local:
+    case ID_symbol:
+    case ID_pi:
+    case ID_ImaginaryUnit:
+        return symbolic(ID_neg, x);
+
+    case ID_integer:
+    case ID_bignum:
+    case ID_fraction:
+    case ID_big_fraction:
+    case ID_decimal:
+    {
+        // We can keep the object, just changing the type
+        id negty = id(xt + 1);
+        algebraic_p clone = algebraic_p(rt.clone(x));
+        byte *tp = (byte *) clone;
+        *tp = negty;
+        return clone;
+    }
+
+    case ID_neg_integer:
+    case ID_neg_bignum:
+    case ID_neg_fraction:
+    case ID_neg_big_fraction:
+    case ID_neg_decimal:
+    {
+        // We can keep the object, just changing the type
+        id negty = id(xt - 1);
+        algebraic_p clone = algebraic_p(rt.clone(x));
+        byte *tp = (byte *) clone;
+        *tp = negty;
+        return clone;
+    }
+
+    case ID_rectangular:
+        return rectangular::make(-rectangular_p(+x)->re(),
+                                 -rectangular_p(+x)->im());
+    case ID_polar:
+        return polar::make(-polar_p(+x)->mod(),
+                           polar_p(+x)->arg(object::ID_PiRadians),
+                           object::ID_PiRadians);
+
+    case ID_unit:
+        return unit::simple(neg::run(unit_p(+x)->value()),
+                            unit_p(+x)->uexpr());
+    case ID_tag:
+    {
+        algebraic_g tagged = tag_p(+x)->tagged_object()->as_algebraic();
+        return evaluate(tagged);
+    }
+
+    case ID_array:
+    case ID_list:
+        return list_p(+x)->map(neg::evaluate);
+
+    case ID_hwfloat:
+        return hwfloat::neg((hwfloat::hwfp_r) x);
+    case ID_hwdouble:
+        return hwdouble::neg((hwdouble::hwfp_r) x);
+
+    default:
+        break;
+    }
+
+    rt.type_error();
+    return nullptr;
+}
+
 
 FUNCTION_BODY(abs)
 // ----------------------------------------------------------------------------
@@ -264,13 +345,27 @@ FUNCTION_BODY(abs)
         return nullptr;
 
     id xt = x->type();
-    if (should_be_symbolic(xt))
+    switch(xt)
+    {
+    case ID_expression:
+    case ID_local:
+    case ID_symbol:
+    case ID_pi:
+    case ID_ImaginaryUnit:
         return symbolic(ID_abs, x);
 
-    if (xt == ID_neg_integer  ||
-        xt == ID_neg_bignum   ||
-        xt == ID_neg_fraction ||
-        xt == ID_neg_big_fraction)
+    case ID_integer:
+    case ID_bignum:
+    case ID_fraction:
+    case ID_big_fraction:
+    case ID_decimal:
+        return x;
+
+    case ID_neg_integer:
+    case ID_neg_bignum:
+    case ID_neg_fraction:
+    case ID_neg_big_fraction:
+    case ID_neg_decimal:
     {
         // We can keep the object, just changing the type
         id absty = id(xt - 1);
@@ -279,26 +374,36 @@ FUNCTION_BODY(abs)
         *tp = absty;
         return clone;
     }
-    else if (is_integer(xt) || is_bignum(xt) || is_fraction(xt))
+
+    case ID_rectangular:
+    case ID_polar:
+        return complex_p(+x)->mod();
+
+    case ID_unit:
+        return unit::simple(abs::run(unit_p(+x)->value()),
+                            unit_p(+x)->uexpr());
+    case ID_tag:
     {
-        // No-op
-        return x;
-    }
-    else if (is_complex(xt))
-    {
-        return complex_p(algebraic_p(x))->mod();
-    }
-    else if (xt == ID_array)
-    {
-        return array_p(algebraic_p(x))->norm();
+        algebraic_g tagged = tag_p(+x)->tagged_object()->as_algebraic();
+        return evaluate(tagged);
     }
 
-    // Fall-back to floating-point abs
-    static const ops_t optable = { decimal::abs,
-                                   hwfloat_fn(hwfloat::abs),
-                                   hwdouble_fn(hwdouble::abs),
-                                   nullptr };
-    return function::evaluate(x, ID_abs, optable);
+    case ID_array:
+        return array_p(+x)->norm();
+    case ID_list:
+        return list_p(+x)->map(abs::evaluate);
+
+    case ID_hwfloat:
+        return hwfloat::abs((hwfloat::hwfp_r) x);
+    case ID_hwdouble:
+        return hwdouble::abs((hwdouble::hwfp_r) x);
+
+    default:
+        break;
+    }
+
+    rt.type_error();
+    return nullptr;
 }
 
 
@@ -541,27 +646,6 @@ INSERT_BODY(inv)
 {
     return ui.edit(o->fancy(), ui.POSTFIX);
 
-}
-
-
-FUNCTION_BODY(neg)
-// ----------------------------------------------------------------------------
-//   Negate is implemented as 0-x
-// ----------------------------------------------------------------------------
-{
-    if (!x)
-        return nullptr;
-    if (unit_p uobj = x->as<unit>())
-    {
-        algebraic_g v = uobj->value();
-        algebraic_g u = uobj->uexpr();
-        v = neg::run(v);
-        return unit::simple(v, u);
-    }
-    if (x->is_symbolic())
-        return symbolic(ID_neg, x);
-    algebraic_g zero = rt.make<integer>(ID_integer, 0);
-    return zero - x;
 }
 
 

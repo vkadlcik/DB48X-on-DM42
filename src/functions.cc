@@ -235,11 +235,16 @@ object::result function::evaluate(algebraic_fn op, bool mat)
         {
             top = list_p(top)->map(op);
         }
-        else
+        else if (is_algebraic(topty))
         {
             algebraic_g x = algebraic_p(top);
             x = op(x);
             top = +x;
+        }
+        else
+        {
+            rt.type_error();
+            return ERROR;
         }
         if (top && rt.top(top))
             return OK;

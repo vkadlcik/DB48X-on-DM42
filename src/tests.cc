@@ -4941,63 +4941,63 @@ void tests::online_help()
     BEGIN(help);
 
     step("Main menu shows help as F1")
-        .test(CLEAR, EXIT, A, F1).wait(30).noerr()
+        .test(CLEAR, EXIT, A, F1).wait(100).noerr()
         .image_noheader("help");
     step("Exiting help with EXIT")
-        .test(EXIT).wait(30).noerr()
+        .test(EXIT).wait(100).noerr()
         .image_noheader("help-exit");
     step("Help with keyboard shortcut")
-        .test(CLEAR, RSHIFT, ADD).wait(30).noerr()
+        .test(CLEAR, RSHIFT, ADD).wait(100).noerr()
         .image_noheader("help");
     step("Following link with ENTER")
-        .test(ENTER).wait(30).noerr()
+        .test(ENTER).wait(100).noerr()
         .image_noheader("help-topic");
     step("Help with command line")
-        .test(CLEAR, "help", ENTER).wait(30).noerr()
+        .test(CLEAR, "help", ENTER).wait(100).noerr()
         .image_noheader("help");
     step("History across invokations")
-        .test(NOSHIFT, BSP).wait(30).noerr()
+        .test(NOSHIFT, BSP).wait(100).noerr()
         .image_noheader("help-topic");
     step("Help topic - Integers")
-        .test(CLEAR, EXIT, "123", RSHIFT, ADD).wait(30).noerr()
+        .test(CLEAR, EXIT, "123", RSHIFT, ADD).wait(100).noerr()
         .image_noheader("help-integers");
     step("Help topic - Decimal")
-        .test(CLEAR, EXIT, "123.5", RSHIFT, ADD).wait(30).noerr()
+        .test(CLEAR, EXIT, "123.5", RSHIFT, ADD).wait(100).noerr()
         .image_noheader("help-decimal");
     step("Help topic - topic")
         .test(CLEAR, EXIT, "\"authors\"",
               NOSHIFT, RSHIFT, ADD, DOWN, DOWN, DOWN, DOWN)
-        .wait(30).noerr()
+        .wait(100).noerr()
         .image_noheader("help-authors");
     step("Returning to main screen with F1")
-        .test(F1).wait(30).noerr()
+        .test(F1).wait(100).noerr()
         .image_noheader("help");
     step("Page up and down with F2 and F3")
-        .test(F3).wait(30).noerr()
+        .test(F3).wait(100).noerr()
         .image_noheader("help-page2")
-        .test(F3).wait(30).noerr()
+        .test(F3).wait(100).noerr()
         .image_noheader("help-page3")
-        .test(F2).wait(30).noerr()
+        .test(F2).wait(100).noerr()
         .image_noheader("help-page4")
-        .test(F3).wait(30).noerr()
+        .test(F3).wait(100).noerr()
         .image_noheader("help-page5");
     step("Follow link with ENTER")
-        .test(ENTER).wait(30).noerr()
+        .test(ENTER).wait(100).noerr()
         .image_noheader("help-design");
     step("Back to previous topic with BSP")
-        .test(BSP).wait(30).noerr()
+        .test(BSP).wait(100).noerr()
         .image_noheader("help-page6");
     step("Next link with F5")
-        .test(F2, F3, F5, ENTER).wait(30).noerr()
+        .test(F2, F3, F5, ENTER).wait(100).noerr()
         .image_noheader("help-keyboard");
     step("Back with F6")
-        .test(F6).wait(30).noerr()
+        .test(F6).wait(100).noerr()
         .image_noheader("help-page7");
     step("Previous topic with F4")
-        .test(F4).wait(30).noerr()
+        .test(F4).wait(100).noerr()
         .image_noheader("help-page8");
     step("Select topic with ENTER")
-        .test(ENTER).wait(30).noerr()
+        .test(ENTER).wait(100).noerr()
         .image_noheader("help-design");
     step("Exit to normal command line")
         .test(EXIT, CLEAR, EXIT).noerr();

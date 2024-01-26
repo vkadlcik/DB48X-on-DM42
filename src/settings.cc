@@ -577,9 +577,9 @@ cstring setting::label(object::id ty)
     case ID_WordSize:
         return printf("%u bits", s.WordSize());
     case ID_FractionIterations:
-        return printf("→QIter %u", s.FractionIterations());
+        return printf("→QIt %u", s.FractionIterations());
     case ID_FractionDigits:
-        return printf("→QPrec %u", s.FractionDigits());
+        return printf("→QPr %u", s.FractionDigits());
     case ID_Precision:
         return printf("Prec %u", s.Precision());
     case ID_MantissaSpacing:

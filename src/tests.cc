@@ -4873,22 +4873,22 @@ void tests::hms_dms_operations()
         .test(F5).expect("1°23′45″");
     step("Creating DMS by adding zero")
         .test(CLEAR, "1.4241 0", LSHIFT, H)
-        .test(LSHIFT, F5).expect("1°42′41″");
+        .test(LSHIFT, F3).expect("1°42′41″");
     step("Creating DMS by subtracting one")
         .test(CLEAR, "1.4241 1", LSHIFT, H)
-        .test(LSHIFT, F6).expect("0°42′41″");
+        .test(LSHIFT, F4).expect("0°42′41″");
     step("HMS addition")
         .test(CLEAR, "1.4241 1.2333 HMS+", ENTER).expect("3:06:14");
     step("DMS addition")
         .test(CLEAR, "1.4241 1.2333 DMS+", ENTER).expect("3°06′14″");
     step("DMS addition through menu")
-        .test(CLEAR, "1.4241 1.2333", LSHIFT, H, LSHIFT, F5).expect("3°06′14″");
+        .test(CLEAR, "1.4241 1.2333", LSHIFT, H, LSHIFT, F3).expect("3°06′14″");
     step("HMS subtraction")
         .test(CLEAR, "1.4241 1.2333 HMS-", ENTER).expect("0:19:08");
     step("DMS subtraction")
         .test(CLEAR, "1.4241 1.2333 DMS-", ENTER).expect("0°19′08″");
     step("DMS subtraction through menu")
-        .test(CLEAR, "1.4241 1.2333", LSHIFT, H, LSHIFT, F6).expect("0°19′08″");
+        .test(CLEAR, "1.4241 1.2333", LSHIFT, H, LSHIFT, F4).expect("0°19′08″");
     step("DMS multiplication")
         .test(CLEAR, "1.2345", LSHIFT, H)
         .test(F6).expect("⁶⁷/₄₈")

@@ -311,13 +311,6 @@ object::result draw_plot(object::id                  kind,
                 bar_x += bar_skip;
             }
             ui.draw_dirty(lx, ly, rx, ry);
-            uint now = sys_current_ms();
-            if (now - then > 500)
-            {
-                then = now;
-                refresh_dirty();
-                ui.draw_clean();
-            }
             lx = rx;
             ly = ry;
         }
@@ -328,11 +321,10 @@ object::result draw_plot(object::id                  kind,
             Screen.text(0, 0, rt.error(), ErrorFont,
                         pattern::white, pattern::black);
             ui.draw_dirty(0, 0, LCD_W, ErrorFont->height());
-            refresh_dirty();
-            ui.draw_clean();
             lx = ly = -1;
             rt.clear_error();
         }
+
 
         if (kind != object::ID_Scatter)
         {
@@ -346,11 +338,19 @@ object::result draw_plot(object::id                  kind,
                     break;
             }
         }
+        uint now = sys_current_ms();
+        if (now - then >= Settings.PlotRefreshRate())
+        {
+            refresh_dirty();
+            ui.draw_clean();
+            then = sys_current_ms();
+        }
     }
     result = object::OK;
 
 err:
     refresh_dirty();
+    ui.draw_clean();
     return result;
 }
 

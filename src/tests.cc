@@ -138,10 +138,8 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        decimal_numerical_functions();
-        float_numerical_functions();
-        double_numerical_functions();
-        high_precision_numerical_functions();
+        plotting();
+        plotting_all_functions();
     }
     else
     {

@@ -555,6 +555,7 @@ algebraic_p algebraic::evaluate_function(program_r eq, algebraic_r x)
 {
     if (!rt.push(+x))
         return nullptr;
+    rt.clear_error();
     save<object_g *> ival(expression::independent_value, (object_g *) &x);
     size_t   depth  = rt.depth();
     result   err    = eq->run();

@@ -778,6 +778,7 @@ SETTING_ENUM(DateDash,          nullptr,        DateSeparatorCommand)
 SETTING_ENUM(DateDot,           nullptr,        DateSeparatorCommand)
 SETTING_ENUM(DateTick,          nullptr,        DateSeparatorCommand)
 SETTING_BITS(DateSeparatorCommand, 2, ID_DateSlash, ID_DateTick, ID_DateSlash)
+SETTING(PlotRefreshRate,        50U,    1000000U,       500U)
 
 
 // ============================================================================

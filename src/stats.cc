@@ -824,7 +824,7 @@ algebraic_p StatsAccess::total(sxy_fn op, algebraic_r arg) const
             }
             row = +arow;
         }
-        else
+        else if (result)
         {
             row = op(result, row, arg);
         }

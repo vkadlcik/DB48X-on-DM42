@@ -1794,6 +1794,72 @@ the corresponding unit in the units file, for example:
 ```
 # Release notes
 
+## Release 0.6.4 "Healing": Testing and fixes
+
+This release focuses on heavy testing of the new variable-precision
+decimal stack. Adding tests also means finding bugs.
+
+Another significant change is support for fixed-precision
+hardware-accelerated floating point, using 32-bit and 64-bit IEEE754
+binary floating-point representation. Since this uses a binary format,
+some decimal values do not map to decimal correctly. For example,
+displaying 1.2 with a large number of decimals will show residue,
+because 1.2 does not have an exact (zero-terminated) representation in
+binary.
+
+### New features:
+
+* plotting: Make refresh rate configurable
+* menu: Add `/` key to `FractionsMenu`
+* hwfp: Add support for hardware-accelerated floating-point
+* menus: Add hardware floating-point flag to `MathModesMenu`
+* ui: Allow multiple uses of `.` to insert DMS separators
+* HMS: Editing of HMS values in HMS format
+
+### Bug fixes:
+
+* stats: Fix crash on `variance` with single-column statistics
+* algebraic: Clear error before evaluating the function
+* functions: Correctly emit a type error for non-algebraics
+* ui: Make sure we save stack if closing the editor
+* logical: Fix mask for rotate left with 64-bit size
+* logical: Make sure we save args for single-argument logicals
+* flags: Update flags on `FlipFlag`, consume them from `BinaryToFlags`
+* stack: Show multi-line objects correctly
+* lists: Returns `Bad argument value` for index with bad arguments
+* lists: Return an empty list for tail of empty list
+* arithmetic: `→Frac` should not error on integers
+* power: Do not shut down during `WAIT` if on USB power
+
+### Improvements:
+
+* menu: Shorten the labels `→QIter` and `→QPrec` to avoid scrolling
+* stack: Avoid running same code twice on simulator
+* ids: Add aliases for hardware floating point
+* functions: Optimize abs and neg
+* ui: Replace calls to `rt.insert` with calls to `insert`
+* menu: Reorganize fractions menu
+* dms: Do the DMS conversion using fractions
+* list: Adjust multi-line rendering
+* copyright: Update copyright to 2024
+* text: Return null text when indexing past end of text
+
+### Testing:
+
+* tests: Increase the delay for help to draw
+* tests: Add tests for hardware-accelerated floating-point
+* tests: Add shifts and rotate tests
+* tests: Check flag functions
+* tests: Test DMS and HMS operations
+* tests: Add test for `integrate` using decimal values
+* tests: Test multi-line stack display
+* tests: Add tests for `GETI`
+* tests: Min and max commands
+* tests: Repair last regression test
+* tests: Check behaviour of 0^0
+* tests: Avoid string overflow in case of very long message
+
+
 ## Release 0.6.3 "Come and See": Repair test suite
 
 The focus of this release was to reactivate the test suite and fix the

@@ -117,16 +117,24 @@ For 1000 loops, comparing variable-precision decimal with the earlier Intel deci
 | 0.6.4 (VP6)  |    6905 |    5623 |
 | 0.5.2 (ID)   |    2154 |    1434 |
 
-|              |               DM32 (ms)                    |                DM42 (ms)                   |
-|--------------|--------------------------------------------|--------------------------------------------|
-| Version      | HW7  | HW16 |  VP6 | VP12  | VP24  | VP36  |  HW7 | HW16 | VP6  | VP12  | VP24  |  VP36 |
-| 0.5.2 (ID)   | 2154 |      |      |       |       |       | 1434 |      |      |       |       |       |
-| 0.6.0 (Note) |      |      |      |       | 23773 |       |      |      |      |       | 17685 |       |
-| 0.6.2        |      |      | 7436 | 16017 | 34898 | 62012 |      |      | 5842 | 10782 | 23714 | 42269 |
-| 0.6.4        | 1414 | 1719 | 6905 | 13720 | 32346 | 60259 |  422 |  705 | 5623 | 10548 | 23811 | 42363 |
+Time in millisecond for 1000 loops:
 
-Note: Results for 0.6.0 are artificially good because intermediate computations
-were not made with increased precision.
+| DM32 Version | HW7  | HW16 |  VP6 | VP12  | VP24  | VP36  |
+|--------------|------|------|------|-------|-------|-------|
+| 0.6.4        | 1414 | 1719 | 6905 | 13720 | 32346 | 60259 |
+| 0.6.2        |      |      | 7436 | 16017 | 34898 | 62012 |
+| 0.6.0 (Note) |      |      |      |       | 23773 |       |
+| 0.5.2 (ID)   | 2154 |      |      |       |       |       |
+
+| DM42 Version |  HW7 | HW16 | VP6  | VP12  | VP24  |  VP36 |
+|--------------|------|------|------|-------|-------|-------|
+| 0.6.4        |  422 |  705 | 5623 | 10548 | 23811 | 42363 |
+| 0.6.2        |      |      | 5842 | 10782 | 23714 | 42269 |
+| 0.6.0 (Note) |      |      |      |       | 17685 |       |
+| 0.5.2 (ID)   | 1434 |      |      |       |       |       |
+
+Note: Results for 0.6.0 with variable precision are rtificially good because
+intermediate computations were not made with increased precision.
 
 
 ## Drawing `sin X` with `FunctionPlot`

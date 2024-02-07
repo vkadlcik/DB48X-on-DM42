@@ -2512,7 +2512,7 @@ decimal_p decimal::log1p(decimal_r x)
     }
 
     // If we end up with 0.999, convergence will be super slow
-    if (!scaled->is_magnitude_less_than_half())
+    while (!scaled->is_magnitude_less_than_half())
     {
         record(decimal, "Rescaling, %t, exp=%ld eexp=%ld ipart=%ld",
                +scaled, texp, eexp, ipart);

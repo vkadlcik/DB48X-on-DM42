@@ -88,9 +88,9 @@ public:
         MARK                    = L'●', // L'■'
         COMPLEX_I               = L'𝒊',
         DEGREES_SYMBOL          = L'°',
-        RADIANS_SYMBOL          = L'ℼ',
+        RADIANS_SYMBOL          = L'ʳ', // ʳʳ'
         GRAD_SYMBOL             = L'ℊ',
-        PI_RADIANS_SYMBOL       = L'π',
+        PI_RADIANS_SYMBOL       = L'ℼ',
     };
 
     enum font_id

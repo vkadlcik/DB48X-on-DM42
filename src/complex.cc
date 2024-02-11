@@ -568,8 +568,8 @@ PARSE_BODY(complex)
         {
             // If parsing 1°_hms, need to accept degrees but not as angle marker
             bool deg_alone = (cp == Settings.DEGREES_SYMBOL &&
-                              last != first &&
-                              type == ID_object);
+                              ((last != first && type == ID_object) ||
+                               (last == ybeg && type == ID_unit)));
 
             // Just parsing π should be allowed
             if (!deg_alone)

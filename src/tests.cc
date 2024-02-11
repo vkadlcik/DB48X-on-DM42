@@ -138,7 +138,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        complex_types();
+        units_and_conversions();
     }
     else
     {
@@ -3315,6 +3315,12 @@ void tests::units_and_conversions()
         .test(ADD).expect("101.54572 8 km/h");
     step("Unit parsing on command line")
         .test(CLEAR, "12_km/s^2", ENTER).expect("12 km/s↑2");
+    step("Parsing degrees as a unit")
+        .test(CLEAR, "DEG", ENTER).noerr()
+        .test("1∡90", ENTER).expect("1∡90°")
+        .test(DOWN).editor("1∡90°")
+        .test(DOWN, DOWN, BSP, DOWN, DOWN, "_").editor("190_°")
+        .test(ENTER).expect("190 °");
 }
 
 void tests::list_functions()

@@ -640,6 +640,7 @@ static const cstring basic_units[] =
     "r",        "0.1591549430918953357688837633725144_turn", // Radian
     "πr",       "1/2_turn",             // Pi radians
 
+    "dms",      "1_°",                  // Degrees shown as DMS
     "arcmin",   "1/60_°",               // Arc minute
     "arcs",     "1/60_arcmin",          // Arc second
     "sr",       "1_sr",                 // Steradian

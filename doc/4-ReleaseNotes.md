@@ -1,5 +1,23 @@
 # Release notes
 
+## Release 0.6.5 "Testimony": Small bug fixes
+
+This release does not contain much because FOSDEM took a lot of energy.
+
+## New features
+
+* menu: Connect `ceil` and `floor` functions
+* Add real to polar conversions
+* units: Add `dms` unit to angles menu
+
+## Bug fixes
+
+* decimal: Compute `ln(0.002)` correctly
+* integer: Do not parse degree sign if in a complex
+* units: Fix parsing of angle units
+* font: Add radian glyph
+
+
 ## Release 0.6.4 "Healing": Testing and fixes
 
 This release focuses on heavy testing of the new variable-precision

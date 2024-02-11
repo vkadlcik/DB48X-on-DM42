@@ -20,12 +20,14 @@ and the [HP Prime](https://en.wikipedia.org/wiki/HP_Prime)
 (at least the G1, since the G2 seems a bit more locked down), maybe others.
 The basis for that work can be found in the [DB48X](https://github.com/c3d/db48x) project.
 
-This project was presented at [FOSDEM 2023][fosdem]
+This project was presented at [FOSDEM 2023][fosdem23] and [FOSDEM 2024][fosdem24]
 
-[fosdem]: https://fosdem.org/2023/schedule/event/reversepolishlisp/
+[fosdem23]: https://fosdem.org/2023/schedule/event/reversepolishlisp/
+[fosdem24]: https://fosdem.org/2024/schedule/event/fosdem-2024-1990-how-much-math-can-you-fit-in-700k-/
 
-[![Watch the video](https://img.youtube.com/vi/ea_ybeslGpA/maxresdefault.jpg)](https://www.youtube.com/watch?v=ea_ybeslGpA&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf)
+[![Watch the video](https://img.youtube.com/vi/WU5Dg1mPkl8/maxresdefault.jpg)](https://www.youtube.com/watch?v=WU5Dg1mPkl8&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf)
 
+https://www.youtube.com/watch?v=WU5Dg1mPkl8
 
 ## Why name the project DB48X?
 

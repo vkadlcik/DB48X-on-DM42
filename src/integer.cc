@@ -365,7 +365,7 @@ PARSE_BODY(integer)
             return ERROR;
 
         // Check if we parse a DMS fraction
-        if (is_real(type))
+        if (is_real(type) && s < last)
         {
             unicode cp = utf8_codepoint(s);
             uint want_dms = 0;

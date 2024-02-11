@@ -2826,6 +2826,8 @@ void tests::complex_types()
     test(CLEAR, "1ⅈ2", ENTER)
         .type(object::ID_rectangular).expect("1+2ⅈ");
     test(CLEAR, "3+ⅈ4", ENTER)
+        .type(object::ID_rectangular).expect("3+4ⅈ")
+        .test(DOWN, ENTER)
         .type(object::ID_rectangular).expect("3+4ⅈ");
     test("ComplexIBeforeImaginary", ENTER)
         .type(object::ID_rectangular).expect("3+ⅈ4");
@@ -2844,10 +2846,16 @@ void tests::complex_types()
 
     step("Integer polar form");
     test(CLEAR, "0∡0", ENTER)
+        .type(object::ID_polar).expect("0∡0°")
+        .test(DOWN, ENTER)
         .type(object::ID_polar).expect("0∡0°");
     test(CLEAR, "1∡90", ENTER)
+        .type(object::ID_polar).expect("1∡90°")
+        .test(DOWN, ENTER)
         .type(object::ID_polar).expect("1∡90°");
     test(CLEAR, "1∡-90", ENTER)
+        .type(object::ID_polar).expect("1∡-90°")
+        .test(DOWN, ENTER)
         .type(object::ID_polar).expect("1∡-90°");
     test(CLEAR, "-1∡0", ENTER)
         .type(object::ID_polar).expect("1∡180°");

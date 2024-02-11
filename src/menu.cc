@@ -434,13 +434,13 @@ MENU(ComplexMenu,
 // ----------------------------------------------------------------------------
      "ⅈ",       ID_SelfInsert,
      "∡",       ID_SelfInsert,
-     "ℝ→ℂ",     ID_RealToComplex,
-     "ℂ→ℝ",     ID_ComplexToReal,
+     "ℝ→ℂ",     ID_RealToRectangular,
+     "ℂ→ℝ",     ID_RectangularToReal,
      ID_re,
      ID_im,
 
      "→Rect",   ID_ToRectangular,
-     ID_ToPolar,
+     "→Polar",  ID_ToPolar,
      ID_conj,
      ID_sign,
      ID_abs,
@@ -448,10 +448,10 @@ MENU(ComplexMenu,
 
      "2+i3",    ID_ComplexIBeforeImaginary,
      "2+3i",    ID_ComplexIAfterImaginary,
-     "Auto ℂ",  ID_Unimplemented,
-     "Rect",    ID_Unimplemented,
-     "Polar",   ID_Unimplemented);
-
+     "ℝ∡ℝ→ℂ",   ID_RealToPolar,
+     "ℂ→ℝ∡ℝ",   ID_PolarToReal,
+     "Auto ℂ",  ID_ComplexResults,
+     "Only ℝ",  ID_RealResults);
 
 MENU(VectorMenu,
 // ----------------------------------------------------------------------------

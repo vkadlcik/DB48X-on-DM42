@@ -36,6 +36,7 @@
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
+#include "tag.h"
 #include "unit.h"
 
 
@@ -899,9 +900,9 @@ RENDER_BODY(polar)
 }
 
 
-COMMAND_BODY(RealToComplex)
+COMMAND_BODY(RealToRectangular)
 // ----------------------------------------------------------------------------
-//   Take two values in x and y and turn them into a complex
+//   Take two values in x and y and turn them into a rectangular complex
 // ----------------------------------------------------------------------------
 {
     if (!rt.args(2))
@@ -926,7 +927,35 @@ COMMAND_BODY(RealToComplex)
 }
 
 
-COMMAND_BODY(ComplexToReal)
+COMMAND_BODY(RealToPolar)
+// ----------------------------------------------------------------------------
+//   Take two values in x and y and turn them into a polar complex
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(2))
+        return ERROR;
+    object_g mod = rt.stack(1);
+    object_g arg = rt.stack(0);
+    if (!mod || !arg)
+        return ERROR;
+    if (!(mod->is_real() || mod->is_symbolic()) ||
+        !(arg->is_real() || arg->is_symbolic()))
+    {
+        rt.type_error();
+        return ERROR;
+    }
+    complex_g z = polar::make(algebraic_p(+mod),
+                              algebraic_p(+arg),
+                              Settings.AngleMode());
+    if (!z|| !rt.drop())
+        return ERROR;
+    if (!rt.top(z))
+        return ERROR;
+    return OK;
+}
+
+
+COMMAND_BODY(RectangularToReal)
 // ----------------------------------------------------------------------------
 //   Take a complex value and convert it into two real values
 // ----------------------------------------------------------------------------
@@ -941,9 +970,42 @@ COMMAND_BODY(ComplexToReal)
         rt.type_error();
         return ERROR;
     }
-    if (!rt.top(complex_p(+z)->re()))
+    complex_g zz = complex_p(+z);
+    object_g re = +zz->re();
+    object_g im = +zz->im();
+    if (!re || !im)
         return ERROR;
-    if (!rt.push(object_p(complex_p(+z)->im())))
+    re = +tag::make("re", re);
+    im = +tag::make("im", im);
+    if (!re || !im || !rt.top(re) || !rt.push(im))
+        return ERROR;
+    return OK;
+}
+
+
+COMMAND_BODY(PolarToReal)
+// ----------------------------------------------------------------------------
+//   Take a complex value in polar form and convert it into two real values
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    object_g z = rt.top();
+    if (!z)
+        return ERROR;
+    if (!z->is_complex())
+    {
+        rt.type_error();
+        return ERROR;
+    }
+    complex_g zz = complex_p(+z);
+    object_g mod = +zz->mod();
+    object_g arg = +zz->arg(Settings.AngleMode());
+    if (!mod || !arg)
+        return ERROR;
+    mod = +tag::make("mod", mod);
+    arg = +tag::make("arg", arg);
+    if (!mod || !arg || !rt.top(mod) || !rt.push(arg))
         return ERROR;
     return OK;
 }

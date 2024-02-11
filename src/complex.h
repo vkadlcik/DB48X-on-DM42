@@ -205,8 +205,10 @@ public:
     RENDER_DECL(polar);
 };
 
-COMMAND_DECLARE(RealToComplex);
-COMMAND_DECLARE(ComplexToReal);
+COMMAND_DECLARE(RealToRectangular);
+COMMAND_DECLARE(RealToPolar);
+COMMAND_DECLARE(RectangularToReal);
+COMMAND_DECLARE(PolarToReal);
 COMMAND_DECLARE(ToRectangular);
 COMMAND_DECLARE(ToPolar);
 

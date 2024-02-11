@@ -138,8 +138,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        plotting();
-        plotting_all_functions();
+        complex_types();
     }
     else
     {
@@ -2882,6 +2881,51 @@ void tests::complex_types()
     test("GRAD", ENTER).expect("1∡100ℊ");
     test("PiRadians", ENTER).expect("1∡¹/₂π");
     test("RAD", ENTER).expect("1∡1.57079 63267 9ℼ");
+
+    step("Convert real to rectangular");
+    test(CLEAR, "1 2", LSHIFT, G, F3)
+        .type(object::ID_rectangular)
+        .expect("1+2ⅈ");
+    test(CLEAR, "1.2 3.4", LSHIFT, G, F3)
+        .type(object::ID_rectangular)
+        .expect("1.2+3.4ⅈ");
+
+    step("Convert rectangular to real");
+    test(CLEAR, "1ⅈ2", LSHIFT, G, F4)
+        .type(object::ID_tag)
+        .expect("im:2")
+        .test(NOSHIFT, BSP)
+        .type(object::ID_tag)
+        .expect("re:1");
+    test(CLEAR, "1.2ⅈ3.4", LSHIFT, G, F4)
+        .type(object::ID_tag)
+        .expect("im:3.4")
+        .test(NOSHIFT, BSP)
+        .type(object::ID_tag)
+        .expect("re:1.2");
+
+    step("Convert real to polar");
+    test(CLEAR, LSHIFT, N, F1).noerr();
+    test(CLEAR, "1 2", LSHIFT, G, RSHIFT, F3)
+        .type(object::ID_polar)
+        .expect("1∡2°");
+    test(CLEAR, "1.2 3.4", LSHIFT, G, RSHIFT, F3)
+        .type(object::ID_polar)
+        .expect("1.2∡3.4°");
+
+    step("Convert polar to real");
+    test(CLEAR, "1∡2", LSHIFT, G, RSHIFT, F4)
+        .type(object::ID_tag)
+        .expect("arg:2")
+        .test(NOSHIFT, BSP)
+        .type(object::ID_tag)
+        .expect("mod:1");
+    test(CLEAR, "1.2∡3.4", LSHIFT, G, RSHIFT, F4)
+        .type(object::ID_tag)
+        .expect("arg:3.4")
+        .test(NOSHIFT, BSP)
+        .type(object::ID_tag)
+        .expect("mod:1.2");
 }
 
 
@@ -4832,8 +4876,8 @@ void tests::parsing_commands_by_name()
                 SPECIAL(ty, asinh,              name, "sinh⁻¹") ||      \
                 SPECIAL(ty, acosh,              name, "cosh⁻¹") ||      \
                 SPECIAL(ty, atanh,              name, "tanh⁻¹") ||      \
-                SPECIAL(ty, RealToComplex,      name, "ℝ→ℂ")    ||      \
-                SPECIAL(ty, ComplexToReal,      name, "ℂ→ℝ")    ||      \
+                SPECIAL(ty, RealToRectangular,  name, "ℝ→ℂ")    ||      \
+                SPECIAL(ty, RectangularToReal,  name, "ℂ→ℝ")    ||      \
                 SPECIAL(ty, SumOfXSquares,      name, "ΣX²")    ||      \
                 SPECIAL(ty, SumOfYSquares,      name, "ΣY²")    ||      \
                 false)                                                  \

@@ -2030,7 +2030,7 @@ void tests::decimal_numerical_functions()
         .test(CLEAR, "-1.23 -2.34", LSHIFT, B).error("Argument outside domain")
         .test(CLEAR, "-1.23 23", LSHIFT, B).expect("-116.90082 15014 43291 74653 48578 88750 679")
         .test(CLEAR, "-1.23 -2.34", LSHIFT, B).error("Argument outside domain")
-        .test(CLEAR, "1.234 SIN 2.34", LSHIFT, B).expect("1.25866 38704 00850 98748 62959 37171 23784⁳⁻⁴")
+        .test(CLEAR, "1.234 SIN 2.34", LSHIFT, B).expect("1.25774 31095 65575 98166 68396 12528 8114⁳⁻⁴")
         .test(CLEAR, "1.23 COS -2.34", LSHIFT, B).expect("1.00053 93880 00606 36152 22273 75863 57849")
         .test(CLEAR, "-1.23 TAN 23", LSHIFT, B).expect("-4.29073 45139 05064 31475 52781 67797 518⁳⁻³⁹")
         .test(CLEAR, "-1.23 TAN 2.34", LSHIFT, B).error("Argument outside domain")
@@ -2887,8 +2887,8 @@ void tests::complex_types()
     step("Polar angle conversions");
     test(CLEAR, "1∡90", ENTER).expect("1∡90°");
     test("GRAD", ENTER).expect("1∡100ℊ");
-    test("PiRadians", ENTER).expect("1∡¹/₂π");
-    test("RAD", ENTER).expect("1∡1.57079 63267 9ℼ");
+    test("PiRadians", ENTER).expect("1∡¹/₂ℼ");
+    test("RAD", ENTER).expect("1∡1.57079 63267 9ʳ");
 
     step("Convert real to rectangular");
     test(CLEAR, "1 2", LSHIFT, G, F3)
@@ -3093,18 +3093,18 @@ void tests::complex_functions()
         .expect("-414-154ⅈ");
     step("Cube root");
     test("cbrt", ENTER)
-        .expect("7.61577 31058 63908 2857∡-9.28490 56188 33822 9639⁳⁻¹ℼ");
+        .expect("7.61577 31058 63908 2857∡-9.28490 56188 33822 9639⁳⁻¹ʳ");
 
     step("Logarithm");
     test(CLEAR, "12+14ⅈ", ENTER, LN)
         .expect("2.91447 28088 05103 5368+8.62170 05466 72263 4884⁳⁻¹ⅈ");
     step("Exponential");
     test("exp", ENTER)
-        .expect("18.43908 89145 85774 62∡8.62170 05466 72263 4884⁳⁻¹ℼ");
+        .expect("18.43908 89145 85774 62∡8.62170 05466 72263 4884⁳⁻¹ʳ");
 
     step("Power");
     test(CLEAR, "3+7ⅈ", ENTER, "2-3ⅈ", ENTER, SHIFT, B)
-        .expect("1 916.30979 15541 96293 8∡2.52432 98723 79583 8639ℼ");
+        .expect("1 916.30979 15541 96293 8∡2.52432 98723 79583 8639ʳ");
 
     step("Sine");
     test(CLEAR, "4+2ⅈ", ENTER, SIN)
@@ -3163,10 +3163,10 @@ void tests::complex_functions()
 
     step("Complex to real");
     test(CLEAR, "1+2ⅈ C→R", ENTER)
-        .expect("2").test(BSP).expect("1");
+        .expect("im:2").test(BSP).expect("re:1");
     step("Symbolic complex to real");
     test(CLEAR, "a+bⅈ C→R", ENTER)
-        .expect("b").test(BSP).expect("a");
+        .expect("im:b").test(BSP).expect("re:a");
 
     step("Re function");
     test(CLEAR, "33+22ⅈ Re", ENTER).expect("33");
@@ -4878,22 +4878,25 @@ void tests::parsing_commands_by_name()
         if (name)                                                       \
         {                                                               \
             step("Parsing " #name " for " #ty);                         \
-            if (SPECIAL(ty, inv,                name, "x⁻¹")    ||      \
-                SPECIAL(ty, sq,                 name, "x²")     ||      \
-                SPECIAL(ty, cubed,              name, "x³")     ||      \
-                SPECIAL(ty, cbrt,               name, "∛")      ||      \
-                SPECIAL(ty, hypot,              name, "⊿")      ||      \
-                SPECIAL(ty, atan2,              name, "∠")      ||      \
-                SPECIAL(ty, asin,               name, "sin⁻¹")  ||      \
-                SPECIAL(ty, acos,               name, "cos⁻¹")  ||      \
-                SPECIAL(ty, atan,               name, "tan⁻¹")  ||      \
-                SPECIAL(ty, asinh,              name, "sinh⁻¹") ||      \
-                SPECIAL(ty, acosh,              name, "cosh⁻¹") ||      \
-                SPECIAL(ty, atanh,              name, "tanh⁻¹") ||      \
-                SPECIAL(ty, RealToRectangular,  name, "ℝ→ℂ")    ||      \
-                SPECIAL(ty, RectangularToReal,  name, "ℂ→ℝ")    ||      \
-                SPECIAL(ty, SumOfXSquares,      name, "ΣX²")    ||      \
-                SPECIAL(ty, SumOfYSquares,      name, "ΣY²")    ||      \
+            if (SPECIAL(ty, inv,                name, "x⁻¹")      ||    \
+                SPECIAL(ty, sq,                 name, "x²")       ||    \
+                SPECIAL(ty, cubed,              name, "x³")       ||    \
+                SPECIAL(ty, cbrt,               name, "∛")        ||    \
+                SPECIAL(ty, hypot,              name, "⊿")        ||    \
+                SPECIAL(ty, atan2,              name, "∠")        ||    \
+                SPECIAL(ty, asin,               name, "sin⁻¹")    ||    \
+                SPECIAL(ty, acos,               name, "cos⁻¹")    ||    \
+                SPECIAL(ty, atan,               name, "tan⁻¹")    ||    \
+                SPECIAL(ty, asinh,              name, "sinh⁻¹")   ||    \
+                SPECIAL(ty, acosh,              name, "cosh⁻¹")   ||    \
+                SPECIAL(ty, atanh,              name, "tanh⁻¹")   ||    \
+                SPECIAL(ty, RealToRectangular,  name, "ℝ→ℂ")      ||    \
+                SPECIAL(ty, RectangularToReal,  name, "ℂ→ℝ")      ||    \
+                SPECIAL(ty, RealToPolar,        name, "ℝ→Polarℂ") ||    \
+                SPECIAL(ty, PolarToReal,        name, "Polarℂ→ℝ") ||    \
+                SPECIAL(ty, ToRectangular,      name, "→Rectℂ")   ||    \
+                SPECIAL(ty, SumOfXSquares,      name, "ΣX²")      ||    \
+                SPECIAL(ty, SumOfYSquares,      name, "ΣY²")      ||    \
                 false)                                                  \
                                                                         \
             {                                                           \

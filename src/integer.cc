@@ -365,28 +365,35 @@ PARSE_BODY(integer)
             return ERROR;
 
         // Check if we parse a DMS fraction
-        if (is_real(type) && s < last)
+        if (is_real(type) && (s < last || is_dms))
         {
-            unicode cp = utf8_codepoint(s);
-            uint want_dms = 0;
-            switch(cp)
+            if (s < last)
             {
-            case L'°':                  want_dms = 1;   break;
-            case L'′':                  want_dms = 2;   break;
-            case L'″':                  want_dms = 3;   break;
-            default:                                    break;
-            }
-            if (want_dms)
-            {
-                if (is_dms != want_dms - 1)
+                unicode cp = utf8_codepoint(s);
+                uint want_dms = 0;
+                switch(cp)
                 {
-                    rt.syntax_error().source(s);
-                    return ERROR;
+                case L'°':  want_dms = 1;           break;
+                case L'′':  want_dms = 2;           break;
+                case L'″':  want_dms = 3;           break;
+                default:                            break;
                 }
-                s = utf8_next(s);
-                is_dms = want_dms;
+                if (want_dms)
+                {
+                    if (is_dms != want_dms - 1)
+                    {
+                        rt.syntax_error().source(s);
+                        return ERROR;
+                    }
+                    s = utf8_next(s);
+                    is_dms = want_dms;
+                }
+                else if (is_dms)
+                {
+                    is_dms++;
+                }
             }
-            else if (is_dms)
+            else
             {
                 is_dms++;
             }

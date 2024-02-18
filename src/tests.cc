@@ -4971,6 +4971,12 @@ void tests::hms_dms_operations()
         .test(1, DOT).editor("1.")
         .test(2, DOT).editor("1°2′_dms")
         .test(ENTER).expect("1°02′00″");
+    step("Entering DMS degree/minutes/seconds values using two dots")
+        .test(CLEAR)
+        .test(1, DOT).editor("1.")
+        .test(2, DOT).editor("1°2′_dms")
+        .test(3).editor("1°2′3_dms")
+        .test(ENTER).expect("1°02′03″");
     step("Entering degrees/minutes/seconds using three dots")
         .test(CLEAR)
         .test(1, DOT).editor("1.")

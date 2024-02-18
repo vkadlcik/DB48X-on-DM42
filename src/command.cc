@@ -967,9 +967,9 @@ COMMAND_BODY(RealToBinary)
 //
 // ============================================================================
 
-static algebraic_p to_hms_dms(algebraic_r x, cstring name)
+static algebraic_p to_hms_dms(algebraic_r x)
 // ----------------------------------------------------------------------------
-//   Convert an algebraic value to HMS or DMS value
+//   Convert an algebraic value to HMS or DMS value (i.e. no unit)
 // ----------------------------------------------------------------------------
 {
     if (unit_p u = x->as<unit>())
@@ -977,7 +977,7 @@ static algebraic_p to_hms_dms(algebraic_r x, cstring name)
         algebraic_g uexpr = u->uexpr();
         if (symbol_p sym = uexpr->as_quoted<symbol>())
         {
-            if (sym->matches(name))
+            if (sym->matches("dms") || sym->matches("hms"))
                 return u->value();
         }
         rt.inconsistent_units_error();
@@ -1000,20 +1000,18 @@ static object::result to_hms_dms(cstring name)
     if (!rt.args(1))
         return object::ERROR;
     algebraic_g x = algebraic_p(rt.top());
-    algebraic_g xc = to_hms_dms(x, name);
+    algebraic_g xc = to_hms_dms(x);
     if (!xc)
         return object::ERROR;
-    if (+xc != x)
-        return object::OK;      // No-op if already a unit
 
-    if (!arithmetic::decimal_to_fraction(x))
+    if (!arithmetic::decimal_to_fraction(xc))
     {
         if (!rt.error())
             rt.value_error();
         return object::ERROR;
     }
     algebraic_g sym = +symbol::make(name);
-    unit_g unit = unit::make(x, sym);
+    unit_g unit = unit::make(xc, sym);
     if (!rt.top(unit))
         return object::ERROR;
     return object::OK;

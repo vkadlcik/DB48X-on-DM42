@@ -4997,6 +4997,15 @@ void tests::hms_dms_operations()
         .test(DOT).editor("1°_dms")
         .test(DOT).editor("1.")
         .test(ENTER).expect("1.");
+
+    step("Converting DMS to HMS")
+        .test(CLEAR)
+        .test(1, DOT, 2, DOT, 3, ENTER).expect("1°02′03″")
+        .test(LSHIFT, H, LSHIFT, F5).expect("1:02:03")
+        .test(F5).expect("1°02′03″")
+        .test(F5).noerr().expect("1°02′03″")
+        .test(LSHIFT, F5).noerr().expect("1:02:03")
+        .test(LSHIFT, F5).noerr().expect("1:02:03");
 }
 
 

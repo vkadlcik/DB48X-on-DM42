@@ -1232,7 +1232,7 @@ MENU(FractionsMenu,
      FractionIterations::label,         ID_FractionIterations,
      FractionDigits::label,             ID_FractionDigits,
      "1 1/2",   ID_MixedFractions,
-     "3/2",     ID_ImproperFractions
+     "¹/₃",     ID_SmallFractions
 );
 
 
@@ -1298,9 +1298,7 @@ MENU(ModesMenu,
      "UI",      ID_UserInterfaceModesMenu,
 
      "Beep",    ID_BeepOn,
-     "Silent",  ID_BeepOff,
      "Flash",   ID_SilentBeepOn,
-     "NoFlash", ID_SilentBeepOff,
      "Modes",   ID_Modes,
      "Reset",   ID_ResetModes);
 
@@ -1308,26 +1306,26 @@ MENU(DisplayModesMenu,
 // ----------------------------------------------------------------------------
 //   Mode setting for numbers
 // ----------------------------------------------------------------------------
-     "Std",             ID_Std,
-     Fix::label,        ID_Fix,
-     Sci::label,        ID_Sci,
-     Eng::label,        ID_Eng,
-     Sig::label,        ID_Sig,
-     Precision::label,  ID_Precision,
+     "Std",                             ID_Std,
+     Fix::label,                        ID_Fix,
+     Sci::label,                        ID_Sci,
+     Eng::label,                        ID_Eng,
+     Sig::label,                        ID_Sig,
+     Precision::label,                  ID_Precision,
 
-     MantissaSpacing::label, ID_MantissaSpacing,
-     FractionSpacing::label, ID_FractionSpacing,
-     BasedSpacing::label,    ID_BasedSpacing,
-     StandardExponent::label, ID_StandardExponent,
-     MinimumSignificantDigits::label, ID_MinimumSignificantDigits,
-     "Seps",            ID_SeparatorModesMenu,
+     MantissaSpacing::label,            ID_MantissaSpacing,
+     FractionSpacing::label,            ID_FractionSpacing,
+     BasedSpacing::label,               ID_BasedSpacing,
+     StandardExponent::label,           ID_StandardExponent,
+     MinimumSignificantDigits::label,   ID_MinimumSignificantDigits,
+     "Seps",                            ID_SeparatorModesMenu,
 
-     "1 1/2",           ID_MixedFractions,
-     "3/2",             ID_ImproperFractions,
-     "1/3",             ID_BigFractions,
-     "¹/₃",             ID_SmallFractions,
-     "UI",              ID_UserInterfaceModesMenu,
-     "Math",            ID_MathModesMenu);
+     "1 1/2",                           ID_MixedFractions,
+     "3/2",                             ID_ImproperFractions,
+     "1/3",                             ID_BigFractions,
+     "¹/₃",                             ID_SmallFractions,
+     "UI",                              ID_UserInterfaceModesMenu,
+     "Math",                            ID_MathModesMenu);
 
 MENU(SeparatorModesMenu,
 // ----------------------------------------------------------------------------
@@ -1356,51 +1354,50 @@ MENU(UserInterfaceModesMenu,
 // ----------------------------------------------------------------------------
 //   Mode setting for numbers
 // ----------------------------------------------------------------------------
+     "Beep",                                    ID_BeepOn,
      "GrStk",                                   ID_GraphicStackDisplay,
-     "TxtStk",                                  ID_TextStackDisplay,
      ResultFont::label,                         ID_ResultFont,
      StackFont::label,                          ID_StackFont,
      EditorFont::label,                         ID_EditorFont,
      MultilineEditorFont::label,                ID_MultilineEditorFont,
 
+     "Flash",                                   ID_SilentBeepOn,
      "3-lines",                                 ID_ThreeRowsMenus,
      "1-line",                                  ID_SingleRowMenus,
      "Flat",                                    ID_FlatMenus,
      "Round",                                   ID_RoundedMenus,
-     "Square",                                  ID_SquareMenus,
      CursorBlinkRate::label,                    ID_CursorBlinkRate,
 
      "cmd",                                     ID_LowerCase,
      "CMD",                                     ID_UpperCase,
      "Cmd",                                     ID_Capitalized,
      "Command",                                 ID_LongForm,
-     "Show Units",                              ID_ShowBuiltinUnits,
-     "Hide Units",                              ID_HideBuiltinUnits);
+     "Show Units",                              ID_ShowBuiltinUnits);
 
 MENU(MathModesMenu,
 // ----------------------------------------------------------------------------
 //   Mode setting for numbers
 // ----------------------------------------------------------------------------
-     "Num",                                     ID_NumericalResults,
      "Sym",                                     ID_SymbolicResults,
-     "Simplify",                                ID_AutoSimplify,
-     "KeepAll",                                 ID_NoAutoSimplify,
-     "iℂ",                                      ID_Unimplemented,
-     "Auto ℂ",                                  ID_Unimplemented,
-
+     "Simpl",                                   ID_AutoSimplify,
      "0^0=1",                                   ID_ZeroPowerZeroIsOne,
-     "0^0=?",                                   ID_ZeroPowerZeroIsUndefined,
+     "HwFP",                                    ID_HardwareFloatingPoint,
+     "Auto ℂ",                                  ID_ComplexResults,
+     "Princ",                                   ID_PrincipalSolution,
+
      MaxNumberBits::label,                      ID_MaxNumberBits,
      MaxRewrites::label,                        ID_MaxRewrites,
      FractionIterations::label,                 ID_FractionIterations,
      FractionDigits::label,                     ID_FractionDigits,
+     "1 1/2",                                   ID_MixedFractions,
+     "¹/₃",                                     ID_SmallFractions,
 
-     "HW flt",                                  ID_HardwareFloatingPoint,
-     "SW flt",                                  ID_SoftwareFloatingPoint,
-     "Display",                                 ID_DisplayModesMenu,
-     "Disp",                                    ID_DisplayModesMenu,
-     "UI",                                      ID_UserInterfaceModesMenu,
-     "Modes",                                   ID_ModesMenu);
+     "Lazy",                                    ID_LazyEvaluation,
+     "Lossy",                                   ID_IgnorePrecisionLoss,
+     "LinFitΣ",                                 ID_LinearFitSums,
+     "x·y",                                     ID_UseDotForMultiplication,
+     "Angles",                                  ID_SetAngleUnits,
+     "Disp",                                    ID_DisplayModesMenu);
 
 MENU(PrintingMenu,
 // ----------------------------------------------------------------------------

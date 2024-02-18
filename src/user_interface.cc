@@ -73,7 +73,8 @@ user_interface::user_interface()
 // ----------------------------------------------------------------------------
 //   Initialize the user interface
 // ----------------------------------------------------------------------------
-    : command(),
+    : evaluating(0),
+      command(),
       help(-1u),
       line(0),
       topic(0),
@@ -4026,7 +4027,7 @@ bool user_interface::handle_functions(int key)
            "Handle function for key %d (plane %d) ", key, shift_plane());
     if (object_p obj = object_for_key(key))
     {
-        evaluating = key;
+        save<int> save(evaluating, key);
         object::id ty = obj->type();
         bool imm = object::is_immediate(ty);
         bool editing = rt.editing();

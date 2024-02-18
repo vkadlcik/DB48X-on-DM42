@@ -340,8 +340,7 @@ COMMAND_BODY(SelfInsert)
 //   Find the label associated to the menu and enter it in the editor
 // ----------------------------------------------------------------------------
 {
-    int key = ui.evaluating;
-    if (key >= KEY_F1 && key <= KEY_F6)
+    if (int key = ui.evaluating_function_key())
     {
         uint plane = ui.shift_plane();
         uint menu_idx = key - KEY_F1 + plane * ui.NUM_SOFTKEYS;
@@ -370,9 +369,9 @@ EVAL_BODY(Unimplemented)
 //   Display an unimplemented error
 // ----------------------------------------------------------------------------
 {
-    int key = ui.evaluating;
+    int key = ui.evaluating_function_key();
     rt.command(o);
-    if (key >= KEY_F1 && key <= KEY_F6)
+    if (key)
     {
         uint plane = ui.shift_plane();
         uint menu_idx = key - KEY_F1 + plane * ui.NUM_SOFTKEYS;

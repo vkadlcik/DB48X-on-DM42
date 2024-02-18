@@ -152,6 +152,7 @@ struct user_interface
     void        clear_help();
     void        clear_menu();
     object_p    object_for_key(int key);
+    int         evaluating_function_key() const;
     void        edit(unicode c, modes m, bool autoclose = true);
     result      edit(utf8 s, size_t len, modes m, int off = 0);
     result      edit(utf8 s, modes m, int off = 0);
@@ -263,6 +264,15 @@ protected:
     friend struct tests;
     friend struct runtime;
 };
+
+
+inline int user_interface::evaluating_function_key() const
+// ----------------------------------------------------------------------------
+//   Returns true if we are currently evaluating a function key
+// ----------------------------------------------------------------------------
+{
+    return evaluating >= KEY_F1 && evaluating <= KEY_F6 ? evaluating : 0;
+}
 
 
 enum { TIMER0, TIMER1, TIMER2, TIMER3 };

@@ -76,16 +76,17 @@ public:
     enum
     {
         // Try hard to make source code unreadable
-        SPACE_3_PER_EM          = L' ',
-        SPACE_4_PER_EM          = L' ',
-        SPACE_6_PER_EM          = L' ',
-        SPACE_THIN              = L' ',
-        SPACE_MEDIUM_MATH       = L' ',
+        SPACE_3_PER_EM    = L' ',
+        SPACE_4_PER_EM    = L' ',
+        SPACE_6_PER_EM    = L' ',
+        SPACE_THIN        = L' ',
+        SPACE_MEDIUM_MATH = L' ',
 
-        SPACE_DEFAULT           = SPACE_MEDIUM_MATH,
-        SPACE_UNIT              = SPACE_6_PER_EM,
+        SPACE_DEFAULT     = SPACE_MEDIUM_MATH,
+        SPACE_UNIT        = SPACE_6_PER_EM,
 
-        MARK                    = L'●', // L'■'
+        MARK              = L'●', // L'■'
+        CLEAR_MARK        = L'○',
         COMPLEX_I               = L'𝒊',
         DEGREES_SYMBOL          = L'°',
         RADIANS_SYMBOL          = L'ʳ', // ʳʳ'
@@ -200,6 +201,8 @@ public:
 
     static bool     flag(object::id name, bool value);
     static bool     flag(object::id name, bool *value);
+
+    static unicode  mark(bool flag) { return flag ? MARK : CLEAR_MARK; }
 
 
     // Utility classes to save the individual settings
@@ -318,12 +321,15 @@ struct Enable : setting                                 \
     OBJECT_DECL(Enable);                                \
     EVAL_DECL(Enable)                                   \
     {                                                   \
-        Settings.Enable(true);                          \
+        if (ui.evaluating_function_key())               \
+            Settings.Enable(!Settings.Enable());        \
+        else                                            \
+            Settings.Enable(true);                      \
         return update(ID_##Enable);                     \
     }                                                   \
     MARKER_DECL(Enable)                                 \
     {                                                   \
-        return Settings.Enable();                       \
+        return Settings.mark(Settings.Enable());        \
     }                                                   \
 };                                                      \
                                                         \
@@ -333,12 +339,15 @@ struct Disable : setting                                \
     OBJECT_DECL(Disable);                               \
     EVAL_DECL(Disable)                                  \
     {                                                   \
-        Settings.Disable(true);                         \
+        if (ui.evaluating_function_key())               \
+            Settings.Disable(!Settings.Disable());      \
+        else                                            \
+            Settings.Disable(true);                     \
         return update(ID_##Disable);                    \
     }                                                   \
     MARKER_DECL(Disable)                                \
     {                                                   \
-        return Settings.Disable();                      \
+        return Settings.mark(Settings.Disable());       \
     }                                                   \
 };
 

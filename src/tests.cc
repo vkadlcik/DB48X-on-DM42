@@ -2882,7 +2882,75 @@ void tests::trig_units()
         .expect("2.⁳⁻¹")
         .test(BSP);
 
+    step ("Numerical conversion from degrees to radians")
+        .test(CLEAR, "1.2 R→D", ENTER).noerr().expect("68.75493 54157");
+    step ("Symbolic conversion from degrees to radians")
+        .test(CLEAR, "'X' R→D", ENTER).noerr().expect("'57.29577 95131·X'");
+    step ("Numerical conversion from radians to degrees")
+        .test(CLEAR, "1.2 D→R", ENTER).noerr().expect("2.09439 51023 9⁳⁻²");
+    step ("Symbolic conversion from radians to degrees")
+        .test(CLEAR, "'X' D→R", ENTER).noerr().expect("'1.74532 92519 9⁳⁻²·X'");
+
+    step("Select degrees mode")
+        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F1).noerr();
+    step("Numerical conversion to degrees in degrees mode")
+        .test("1.2", LSHIFT, F1).expect("1.2 °");
+    step("Numerical conversion to radians in degrees mode")
+        .test("1.2", LSHIFT, F2).expect("2.09439 51023 9⁳⁻² r");
+    step("Numerical conversion to grad in degrees mode")
+        .test("1.2", LSHIFT, F3).expect("1.33333 33333 3 grad");
+    step("Numerical conversion to pi-radians in degrees mode")
+        .test("1.2", LSHIFT, F4).expect("6.66666 66666 7⁳⁻³ πr");
+
+    step("Select radians mode")
+        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F2).noerr();
+    step("Numerical conversion to degrees in radians mode")
+        .test("1.2", LSHIFT, F1).expect("68.75493 54157 °");
+    step("Numerical conversion to radians in radians mode")
+        .test("1.2", LSHIFT, F2).expect("1.2 r");
+    step("Numerical conversion to grad in radians mode")
+        .test("1.2", LSHIFT, F3).expect("76.39437 26841 grad");
+    step("Numerical conversion to pi-radians in radians mode")
+        .test("1.2", LSHIFT, F4).expect("3.81971 86342 1⁳⁻¹ πr");
+
+    step("Select grads mode")
+        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F3).noerr();
+    step("Numerical conversion to degrees in grads mode")
+        .test("1.2", LSHIFT, F1).expect("1.08 °");
+    step("Numerical conversion to radians in grads mode")
+        .test("1.2", LSHIFT, F2).expect("1.88495 55921 5⁳⁻² r");
+    step("Numerical conversion to grad in grads mode")
+        .test("1.2", LSHIFT, F3).expect("1.2 grad");
+    step("Numerical conversion to pi-radians in grads mode")
+        .test("1.2", LSHIFT, F4).expect("0.006 πr");
+
+    step("Select pi-radians mode")
+        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F4).noerr();
+    step("Numerical conversion to degrees in pi-radians mode")
+        .test("1.2", LSHIFT, F1).expect("216. °");
+    step("Numerical conversion to radians in pi-radians mode")
+        .test("1.2", LSHIFT, F2).expect("3.76991 11843 1 r");
+    step("Numerical conversion to grad in pi-radians mode")
+        .test("1.2", LSHIFT, F3).expect("240. grad");
+    step("Numerical conversion to pi-radians in pi-radians mode")
+        .test("1.2", LSHIFT, F4).expect("1.2 πr");
+
+    step("Selecting degrees")
+        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F1).noerr();
+    step("Creating a degrees value")
+        .test(CLEAR, "1/2", LSHIFT, F1).expect("¹/₂ °");
+    step("Converting to grad")
+        .test(LSHIFT, F3).expect("⁵/₉ grad");
+    step("Converting to pi-radians")
+        .test(LSHIFT, F4).expect("¹/₃₆₀ πr");
+    step("Converting to degrees")
+        .test(LSHIFT, F1).expect("¹/₂ °");
+    step("Converting to radians")
+        .test(LSHIFT, F2).expect("8.72664 62599 7⁳⁻³ r");
+    step("Converting to degrees")
+        .test(LSHIFT, F1).expect("5.⁳⁻¹ °");
 }
+
 
 void tests::complex_types()
 // ----------------------------------------------------------------------------

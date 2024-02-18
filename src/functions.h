@@ -240,5 +240,7 @@ FUNCTION(Simplify);
 
 FUNCTION(ToDecimal);
 FUNCTION(ToFraction);
+FUNCTION(RadiansToDegrees);
+FUNCTION(DegreesToRadians);
 
 #endif // FUNCTIONS_H

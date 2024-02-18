@@ -1855,3 +1855,98 @@ COMMAND_BODY(ConvertToUnitPrefix)
         return ERROR;
     return OK;
 }
+
+
+static object::result toAngleUnit(cstring angleUnit)
+// ----------------------------------------------------------------------------
+//   Convert the value x to the given angle unit
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return object::ERROR;
+    object_g x = rt.top();
+    unit_g uobj = x->as<unit>();
+    if (uobj)
+    {
+        object::id amode = object::ID_object;
+        algebraic_g uexpr = uobj->uexpr();
+        if (symbol_p sym = uexpr->as_quoted<symbol>())
+        {
+            if (sym->matches("dms") || sym->matches("°"))
+                amode = object::ID_Deg;
+            else if (sym->matches("r"))
+                amode = object::ID_Rad;
+            else if (sym->matches("pir") || sym->matches("πr"))
+                amode = object::ID_PiRadians;
+            else if (sym->matches("grad"))
+                amode = object::ID_Grad;
+        }
+        if (!amode)
+        {
+            rt.inconsistent_units_error();
+            return object::ERROR;
+        }
+    }
+    else
+    {
+        if (!x->is_real())
+        {
+            rt.type_error();
+            return object::ERROR;
+        }
+
+        cstring uname;
+        switch(Settings.AngleMode())
+        {
+        case object::ID_Deg:        uname = "°";    break;
+        case object::ID_Grad:       uname = "grad"; break;
+        case object::ID_PiRadians:  uname = "πr";   break;
+        default:
+        case object::ID_Rad:        uname = "r";    break;
+        }
+
+        symbol_p uexpr = symbol::make(uname);
+        uobj = unit::make(algebraic_p(+x), uexpr);
+    }
+
+    unit_g targetUnit = unit::make(integer::make(1), +symbol::make(angleUnit));
+    if (targetUnit && targetUnit->convert(uobj) && rt.top(uobj))
+        return object::OK;
+    return object::ERROR;
+}
+
+
+COMMAND_BODY(ToDegrees)
+// ----------------------------------------------------------------------------
+//   Convert to degrees unit
+// ----------------------------------------------------------------------------
+{
+    return toAngleUnit("°");
+}
+
+
+COMMAND_BODY(ToRadians)
+// ----------------------------------------------------------------------------
+//   Convert to radians unit
+// ----------------------------------------------------------------------------
+{
+    return toAngleUnit("r");
+}
+
+
+COMMAND_BODY(ToGrads)
+// ----------------------------------------------------------------------------
+//   Convert to grads unit
+// ----------------------------------------------------------------------------
+{
+    return toAngleUnit("grad");
+}
+
+
+COMMAND_BODY(ToPiRadians)
+// ----------------------------------------------------------------------------
+//   Convert to pi-radians unit
+// ----------------------------------------------------------------------------
+{
+    return toAngleUnit("πr");
+}

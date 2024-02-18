@@ -3477,20 +3477,23 @@ It invokes a context-dependent menu adapted to the top level of the stack.
 The `LastMenu` function (🟨 _A_), returns back in the history of past visited menus. The history contains up to 8 entries.
 # Operations with Angles
 
-## TAGDEG
-Mark a number as an angle in degrees
+## ToDegrees (→Deg)
+Convert a number or angle to an angle in degrees.
+If given a number, that number is interpreted using the current angle mode.
 
 
-## TAGRAD
-Mark a number as an angle in radians
+## ToRadians (→Rad)
+Convert a number or angle to an angle in radians.
+If given a number, that number is interpreted using the current angle mode.
 
 
-## TAGGRAD
-Mark a number as an angle in grads (gons)
+## ToGrads (→Grad)
+Convert a number or angle to an angle in grads.
+If given a number, that number is interpreted using the current angle mode.
 
-
-## TAGDMS
-Mark a number as an angle in DMS (DD.MMSS)
+## ToPiRadians (→πr)
+Convert a number or angle to an angle in multiple of π radians.
+If given a number, that number is interpreted using the current angle mode.
 
 
 ## ANGTODEG
@@ -3519,7 +3522,6 @@ Convert vector or complex to polar coordinates
 
 ## TOSPHER
 Convert vector or complex to spherical coordinates
-
 # Arithmetic
 
 ## + (add)

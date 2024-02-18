@@ -954,3 +954,31 @@ FUNCTION_BODY(ToFraction)
         rt.type_error();
     return nullptr;
 }
+
+
+FUNCTION_BODY(RadiansToDegrees)
+// ----------------------------------------------------------------------------
+//   Compatibility function for R->D on HP-48
+// ----------------------------------------------------------------------------
+{
+    if (!x)
+        return nullptr;
+    algebraic_g xg = integer::make(180);
+    xg = xg / pi();
+    xg = xg * x;
+    return xg;
+}
+
+
+FUNCTION_BODY(DegreesToRadians)
+// ----------------------------------------------------------------------------
+//   Compatibility function for D->R on HP-48
+// ----------------------------------------------------------------------------
+{
+    if (!x)
+        return nullptr;
+    algebraic_g xg = integer::make(180);
+    xg = pi() / xg;
+    xg = xg * x;
+    return xg;
+}

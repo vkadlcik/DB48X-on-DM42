@@ -694,6 +694,7 @@ FLAG(ComplexIBeforeImaginary,   ComplexIAfterImaginary)
 FLAG(NumberedVariables,         NoNumberedVariables)
 FLAG(UseCrossForMultiplication, UseDotForMultiplication)
 FLAG(HardwareFloatingPoint,     SoftwareFloatingPoint)
+FLAG(NoAngleUnits,              SetAngleUnits)
 
 ALIAS(HardwareFloatingPoint,    "HFP")
 ALIAS(HardwareFloatingPoint,    "HardFP")

@@ -5824,6 +5824,23 @@ Select grads as the angular unit. A full circle is 400 grads.
 Select multiples of π as the angular unit. A full circle is 2π radians,
 shown as a multiple of π.
 
+## SetAngleUnits
+
+When this setting is active, inverse trigonometric functoins `asin`, `acos` and
+`atan` return a unit value with a unit corresponding to the current `AngleMode`.
+This makes it possible to have values on the stack that preserve the angle mode
+they were computed with. The opposite setting is `NoAngleUnits`.
+
+Note that the `sin`, `cos` and `tan` will copmute their value according to the
+unit irrespective of this setting. In other words, `30_° SIN` will always give
+`0.5`, even when computed in `Rad` or `Grad` mode,
+
+## NoAngleUnits
+
+This is the opposite setting to `SetAngleUnits`. Inverse trigonometric functions
+behave like on the original HP-48 calculator, and return a numerical value that
+depends on the current angle mode.
+
 
 # Command display
 

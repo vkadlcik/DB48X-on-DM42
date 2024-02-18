@@ -229,6 +229,7 @@ object::result draw_plot(object::id                  kind,
     algebraic_g      y;
     save<symbol_g *> iref(expression::independent,
                           (symbol_g *) &ppar.independent);
+    settings::SaveSetAngleUnits ssau(false); // For asin, acos, atan
     if (ui.draw_graphics())
         if (Settings.DrawPlotAxes())
             draw_axes(ppar);

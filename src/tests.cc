@@ -89,6 +89,7 @@ TESTS(float,            "Hardware-accelerated 7-digit (float)")
 TESTS(double,           "Hardware-accelerated 16-digit (double)")
 TESTS(highp,            "High-precision computations (60 digits)")
 TESTS(trigoptim,        "Special trigonometry optimzations");
+TESTS(trigunits,        "Trigonometric units");
 TESTS(dfrac,            "Simple conversion to decimal and back");
 TESTS(ctypes,           "Complex types");
 TESTS(carith,           "Complex arithmetic");
@@ -138,7 +139,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        units_and_conversions();
+        trig_units();
     }
     else
     {
@@ -163,6 +164,7 @@ void tests::run(bool onlyCurrent)
         double_numerical_functions();
         high_precision_numerical_functions();
         exact_trig_cases();
+        trig_units();
         fraction_decimal_conversions();
         complex_types();
         complex_arithmetic();
@@ -2810,9 +2812,81 @@ void tests::fraction_decimal_conversions()
 }
 
 
+void tests::trig_units()
+// ----------------------------------------------------------------------------
+//   Check trigonometric units
+// ----------------------------------------------------------------------------
+{
+    BEGIN(trigunits);
+
+    step("Select degrees mode")
+        .test(CLEAR, LSHIFT, N, F1).noerr();
+    step("Disable trig units mode")
+        .test("NoAngleUnits", ENTER).noerr();
+    step("Check that arc-sin produces numerical value")
+
+        .test(CLEAR, "0.2", LSHIFT, J)
+        .noerr()
+        .type(object::ID_decimal)
+        .expect("11.53695 90328");
+    step("Check that arc-sin numerical value depends on angle mode")
+        .test(CLEAR, LSHIFT, N, F2)
+        .test("0.2", LSHIFT, J)
+        .noerr()
+        .type(object::ID_decimal)
+        .expect("2.01357 92079⁳⁻¹");
+
+    step("Enable trig units mode")
+        .test("SetAngleUnits", ENTER).noerr();
+    step("Select degrees mode")
+        .test(CLEAR, LSHIFT, N, F1).noerr();
+    step("Check that arc-sin produces unit value with degrees")
+
+        .test("0.2", LSHIFT, J)
+        .noerr()
+        .type(object::ID_unit)
+        .expect("11.53695 90328 °");
+    step("Check that arc-sin produces radians unit")
+        .test(F2)
+        .test("0.2", LSHIFT, J)
+        .noerr()
+        .type(object::ID_unit)
+        .expect("2.01357 92079⁳⁻¹ r");
+    step("Check that arc-sin produces pi-radians unit")
+        .test(F3)
+        .test("0.2", LSHIFT, J)
+        .noerr()
+        .type(object::ID_unit)
+        .expect("6.40942 16849⁳⁻² πr");
+    step("Check that arc-sin produces grads unit")
+        .test(LSHIFT, F1)
+        .test("0.2", LSHIFT, J)
+        .noerr()
+        .type(object::ID_unit)
+        .expect("12.81884 33698 grad");
+
+    step("Check that grad value is respected in degrees")
+        .test(F1, J)
+        .expect("2.⁳⁻¹")
+        .test(BSP);
+    step("Check that pi-radians value is respected in grads")
+        .test(SHIFT, F1, J)
+        .expect("2.⁳⁻¹")
+        .test(BSP);
+    step("Check that radians value is respected in degrees")
+        .test(F1, J)
+        .expect("2.⁳⁻¹")
+        .test(BSP);
+    step("Check that degrees value is respected in degrees")
+        .test(F1, J)
+        .expect("2.⁳⁻¹")
+        .test(BSP);
+
+}
+
 void tests::complex_types()
 // ----------------------------------------------------------------------------
-//   Complex data types
+//   Complex data typess
 // ----------------------------------------------------------------------------
 {
     BEGIN(ctypes);

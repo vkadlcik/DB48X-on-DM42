@@ -152,6 +152,57 @@ bool function::exact_trig(id op, algebraic_g &x)
 }
 
 
+object::id function::adjust_angle(algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   If we have an angle unit, use it for the computation
+// ----------------------------------------------------------------------------
+{
+    id amode = ID_object;
+    if (unit_p uobj = x->as<unit>())
+    {
+        algebraic_g uexpr = uobj->uexpr();
+        if (symbol_p sym = uexpr->as_quoted<symbol>())
+        {
+            if (sym->matches("dms") || sym->matches("°"))
+                amode = ID_Deg;
+            else if (sym->matches("r"))
+                amode = ID_Rad;
+            else if (sym->matches("pir") || sym->matches("πr"))
+                amode = ID_PiRadians;
+            else if (sym->matches("grad"))
+                amode = ID_Grad;
+        }
+        if (amode)
+            x = uobj->value();
+    }
+    return amode;
+}
+
+
+bool function::add_angle(algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   Add an angle unit if this is required
+// ----------------------------------------------------------------------------
+{
+    cstring uname;
+
+    switch(Settings.AngleMode())
+    {
+    case object::ID_Deg:        uname = "°";    break;
+    case object::ID_Grad:       uname = "grad"; break;
+    case object::ID_PiRadians:  uname = "πr";   break;
+    case object::ID_Rad:        uname = "r";    break;
+    default:
+        return false;
+    }
+
+    symbol_p uexpr = symbol::make(uname);
+    x = unit::make(x, uexpr);
+    return true;
+}
+
+
+
 algebraic_p function::evaluate(algebraic_r xr, id op, ops_t ops)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions
@@ -164,8 +215,27 @@ algebraic_p function::evaluate(algebraic_r xr, id op, ops_t ops)
 
     // Check if we are computing exact trigonometric values
     if (op >= ID_sin && op <= ID_tan)
+    {
+        if (id amode = adjust_angle(x))
+        {
+            settings::SaveAngleMode saved(amode);
+            return evaluate(x, op, ops);
+        }
         if (exact_trig(op, x))
             return x;
+    }
+
+    // Check if we need to add units
+    if (op >= ID_asin && op <= ID_atan)
+    {
+        if (Settings.SetAngleUnits() && x->is_real())
+        {
+            settings::SaveSetAngleUnits save(false);
+            x = evaluate(x, op, ops);
+            add_angle(x);
+            return x;
+        }
+    }
 
     // Convert arguments to numeric if necessary
     if (Settings.NumericalResults())
@@ -189,7 +259,7 @@ algebraic_p function::evaluate(algebraic_r xr, id op, ops_t ops)
         }
     }
 
-    // Call the right hardwaer-accelerated or decimal function
+    // Call the right hardware-accelerated or decimal function
     if (hwfp_promotion(x))
     {
         if (hwfloat_p fp = x->as<hwfloat>())

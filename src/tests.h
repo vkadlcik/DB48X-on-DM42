@@ -74,6 +74,7 @@ struct tests
     void double_numerical_functions();
     void high_precision_numerical_functions();
     void exact_trig_cases();
+    void trig_units();
     void fraction_decimal_conversions();
     void complex_types();
     void complex_arithmetic();

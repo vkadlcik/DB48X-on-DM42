@@ -720,25 +720,6 @@ MENU(SignalProcessingMenu,
      "InvFFT",  ID_Unimplemented);
 
 
-MENU(ConstantsMenu,
-// ----------------------------------------------------------------------------
-//   Constants (to be loaded from catalog on disk)
-// ----------------------------------------------------------------------------
-     "π",       ID_pi,
-     "e",       ID_Unimplemented,
-     "i",       ID_ImaginaryUnit,
-     "Avogadro",ID_Unimplemented,
-     "Gravity", ID_Unimplemented,
-     "∞",       ID_Unimplemented,
-
-     "3.14151", ID_Unimplemented,
-     "2.71828", ID_Unimplemented,
-     "(0,1)",   ID_Unimplemented,
-     "6.022e24",ID_Unimplemented,
-     "6.67e-11",ID_Unimplemented,
-     "∞",       ID_Unimplemented);
-
-
 MENU(EquationsMenu,
 // ----------------------------------------------------------------------------
 //   Equations (to be loaded from file on disk)

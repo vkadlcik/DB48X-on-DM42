@@ -340,7 +340,7 @@ EQ_FUNCTION(conj);
 #undef EQ_FUNCTION
 
 // Pi constant
-struct eq_pi : eq<object::ID_pi> {};
+// struct eq_pi : eq<object::ID_pi> {};
 
 // Build a symbol out of a character
 template <byte c>       struct eq_symbol  : eq<object::ID_symbol,  1, c> {};

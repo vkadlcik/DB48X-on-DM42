@@ -1792,6 +1792,17 @@ the corresponding unit in the units file, for example:
 ```
 "in",   "25.4_mm"
 ```
+
+
+## Constants
+
+Constant objects represent named values like Euler's constant `e`, the ratio
+between circumference and diameter of a circle `π`, or the speed of light `c`.
+They are represented by a name, and have an associated value.
+
+Like units, there are some built-in constants, and additional constants can be
+provided by a `config/constants.csv` file, which has exactly the same format as
+for the units file.
 # Release notes
 
 ## Release 0.6.5 "Testimony": Small bug fixes

@@ -33,6 +33,7 @@
 #include "array.h"
 #include "bignum.h"
 #include "complex.h"
+#include "constants.h"
 #include "decimal.h"
 #include "expression.h"
 #include "functions.h"
@@ -47,8 +48,8 @@
 #include "user_interface.h"
 
 #include <cctype>
-#include <cstdio>
 #include <cmath>
+#include <cstdio>
 
 
 RECORDER(algebraic,       16, "RPL Algebraics");
@@ -506,11 +507,8 @@ bool algebraic::to_decimal(algebraic_g &x, bool weak)
     case ID_decimal:
     case ID_neg_decimal:
         return decimal_promotion(x);
-    case ID_pi:
-        x = pi();
-        return true;
-    case ID_ImaginaryUnit:
-        x = rectangular::make(integer::make(0),integer::make(1));
+    case ID_constant:
+        x = constant_p(+x)->value();
         return true;
     case ID_expression:
         if (!unit::mode)
@@ -613,26 +611,4 @@ algebraic_p algebraic::evaluate() const
 
     rt.type_error();
     return nullptr;
-}
-
-
-EVAL_BODY(ImaginaryUnit)
-// ----------------------------------------------------------------------------
-//   Push a unit complex number on the stack
-// ----------------------------------------------------------------------------
-{
-    if (!rt.push(o))
-        return ERROR;
-    return OK;
-}
-
-
-EVAL_BODY(pi)
-// ----------------------------------------------------------------------------
-//   Push a symbolic representation of π on the stack
-// ----------------------------------------------------------------------------
-{
-    if (!rt.push(o))
-        return ERROR;
-    return OK;
 }

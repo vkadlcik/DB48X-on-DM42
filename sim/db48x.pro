@@ -66,6 +66,7 @@ SOURCES +=                                      \
         ../src/list.cc                          \
         ../src/program.cc                       \
         ../src/expression.cc                    \
+        ../src/constants.cc                     \
         ../src/unit.cc                          \
         ../src/array.cc                         \
         ../src/loops.cc                         \

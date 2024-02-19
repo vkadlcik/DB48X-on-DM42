@@ -106,22 +106,4 @@ struct algebraic : command
 typedef algebraic_p (*algebraic_fn)(algebraic_r x);
 typedef algebraic_p (*arithmetic_fn)(algebraic_r x, algebraic_r y);
 
-
-#define CONSTANT_DECL(derived)                                          \
-struct derived : algebraic                                              \
-/* ----------------------------------------------------------------- */ \
-/* Define an algenraic constant                                      */ \
-/* ----------------------------------------------------------------- */ \
-{                                                                       \
-    derived(id type = ID_##derived): algebraic(type) {}                 \
-                                                                        \
-    OBJECT_DECL(derived);                                               \
-    EVAL_DECL(derived);                                                 \
-    PREC_DECL(NONE);                                                    \
-}
-
-
-CONSTANT_DECL(ImaginaryUnit);
-CONSTANT_DECL(pi);
-
 #endif // ALGEBRAIC_H

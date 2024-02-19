@@ -237,6 +237,7 @@ CXX_SOURCES +=				\
 	src/program.cc			\
 	src/expression.cc		\
 	src/unit.cc			\
+	src/constants.cc		\
 	src/array.cc			\
 	src/loops.cc			\
 	src/conditionals.cc		\

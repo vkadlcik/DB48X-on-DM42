@@ -338,8 +338,7 @@ FUNCTION_BODY(neg)
     case ID_expression:
     case ID_local:
     case ID_symbol:
-    case ID_pi:
-    case ID_ImaginaryUnit:
+    case ID_constant:
         return symbolic(ID_neg, x);
 
     case ID_integer:
@@ -420,8 +419,7 @@ FUNCTION_BODY(abs)
     case ID_expression:
     case ID_local:
     case ID_symbol:
-    case ID_pi:
-    case ID_ImaginaryUnit:
+    case ID_constant:
         return symbolic(ID_abs, x);
 
     case ID_integer:
@@ -727,8 +725,7 @@ FUNCTION_BODY(sq)
     if (!+x)
         return nullptr;
     if (x->is_symbolic())
-        if (!Settings.AutoSimplify() || x->type() != ID_ImaginaryUnit)
-            return expression::make(ID_sq, x);
+        return expression::make(ID_sq, x);
     return x * x;
 }
 
@@ -751,8 +748,7 @@ FUNCTION_BODY(cubed)
     if (!x)
         return nullptr;
     if (x->is_symbolic())
-        if (!Settings.AutoSimplify() || x->type() != ID_ImaginaryUnit)
-            return expression::make(ID_cubed, x);
+        return expression::make(ID_cubed, x);
     return x * x * x;
 }
 

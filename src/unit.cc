@@ -1199,7 +1199,7 @@ symbol_g unit_file::lookup(utf8 what, size_t len, bool menu, bool seek0)
         seek(0);
     while (valid())
     {
-        char c = getchar();
+        byte c = getchar();
         if (!c)
             break;
 
@@ -1698,7 +1698,12 @@ static algebraic_p key_unit(uint key, bool uexpr)
 
         if (txt)
         {
-            char buffer[16];
+            char buffer[32];
+            if (len > sizeof(buffer) - 2)
+            {
+                rt.invalid_unit_error();
+                return nullptr;
+            }
             save<bool> umode(unit::mode, true);
             buffer[0] = '1';
             buffer[1] = '_';

@@ -76,18 +76,19 @@ public:
     enum
     {
         // Try hard to make source code unreadable
-        SPACE_3_PER_EM    = L' ',
-        SPACE_4_PER_EM    = L' ',
-        SPACE_6_PER_EM    = L' ',
-        SPACE_THIN        = L' ',
-        SPACE_MEDIUM_MATH = L' ',
+        SPACE_3_PER_EM          = L' ',
+        SPACE_4_PER_EM          = L' ',
+        SPACE_6_PER_EM          = L' ',
+        SPACE_THIN              = L' ',
+        SPACE_MEDIUM_MATH       = L' ',
 
-        SPACE_DEFAULT     = SPACE_MEDIUM_MATH,
-        SPACE_UNIT        = SPACE_6_PER_EM,
+        SPACE_DEFAULT           = SPACE_MEDIUM_MATH,
+        SPACE_UNIT              = SPACE_6_PER_EM,
+        CONSTANT_MARKER         = L'₭', // SPACE_THIN, L'■',
 
-        MARK              = L'●', // L'■'
-        CLEAR_MARK        = L'○',
-        COMPLEX_I               = L'𝒊',
+        MARK                    = L'●', // L'■'
+        CLEAR_MARK              = L'○',
+        COMPLEX_I               = L'ⅈ',
         DEGREES_SYMBOL          = L'°',
         RADIANS_SYMBOL          = L'ʳ', // ʳʳ'
         GRAD_SYMBOL             = L'ℊ',

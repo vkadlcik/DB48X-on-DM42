@@ -27,7 +27,9 @@
 //   but WITHOUT ANY WARRANTY; without even the implied warranty of
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
-
+//
+// clang-format off
+//
 // Commands, e.g. "swap"
 #ifndef CMD
 #define CMD(id)                 ID(id)
@@ -54,6 +56,10 @@
 
 #ifndef UNIT_MENU
 #define UNIT_MENU(id)           ID(id)
+#endif
+
+#ifndef CONSTANT_MENU
+#define CONSTANT_MENU(id)       ID(id)
 #endif
 
 #ifndef ID_RANGE
@@ -105,7 +111,7 @@ ID_RANGE(is_decimal,       decimal,        neg_decimal)
 ID_RANGE(is_real,          bignum,         neg_decimal)
 ID_RANGE(is_complex,       rectangular,    polar)
 ID_RANGE(is_command,       Drop,           ToFraction,    ToList, LastMenu)
-ID_RANGE(is_symbolic,      expression,     symbol,        pi, ImaginaryUnit)
+ID_RANGE(is_symbolic,      expression,     constant)
 ID_RANGE(is_algebraic_fn,  add,            ToFraction,    asinh, det)
 ID_RANGE(is_immediate,     MainMenu,       SelfInsert)
 ID_RANGE(is_unit,          unit,           unit)
@@ -132,6 +138,7 @@ ID(locals)                      // Block with locals
 ID(expression)
 ID(local)
 ID(symbol)
+ID(constant)
 ID(array)
 ID(menu)
 
@@ -200,10 +207,6 @@ CMD(Purge)
 // Evaluation and rendering
 NAMED(Eval, "Evaluate")
 NAMED(ToText, "→Text") ALIAS(ToText, "ToStr")           ALIAS(ToText, "→Str")
-
-// Constants
-NAMED(pi, "π")
-NAMED(ImaginaryUnit, "ⅈ")
 
 // Arithmetic and basic operations
 OP(add, "+")                    ALIAS(add, "+")
@@ -591,6 +594,10 @@ CMD(ConvertToUnit)
 CMD(ApplyInverseUnit)
 CMD(ConvertToUnitPrefix)
 
+// Constants menu
+CMD(ConstantName)
+CMD(ConstantValue)
+
 // Last things and stack
 NAMED(LastArg, "LastArguments")
 CMD(LastX)
@@ -670,6 +677,7 @@ FLAG(BigFractions,              SmallFractions)
 FLAG(DecimalComma,              DecimalDot)
 FLAG(NoTrailingDecimal,         TrailingDecimal)
 FLAG(ShowBuiltinUnits,          HideBuiltinUnits)
+FLAG(ShowBuiltinConstants,      HideBuiltinConstants)
 FLAG(SquareMenus,               RoundedMenus)
 FLAG(GraphicStackDisplay,       TextStackDisplay)
 FLAG(StoreAtEnd,                StoreAtStart)
@@ -918,6 +926,29 @@ UNIT_MENUS(UnitMenu7)
 UNIT_MENUS(UnitMenu8)
 UNIT_MENUS(UnitMenu9)
 
+#define CONSTANT_MENUS(Base)                    \
+    CONSTANT_MENU(Base##0)                      \
+    CONSTANT_MENU(Base##1)                      \
+    CONSTANT_MENU(Base##2)                      \
+    CONSTANT_MENU(Base##3)                      \
+    CONSTANT_MENU(Base##4)                      \
+    CONSTANT_MENU(Base##5)                      \
+    CONSTANT_MENU(Base##6)                      \
+    CONSTANT_MENU(Base##7)                      \
+    CONSTANT_MENU(Base##8)                      \
+    CONSTANT_MENU(Base##9)
+
+CONSTANT_MENUS(ConstantsMenu0)
+CONSTANT_MENUS(ConstantsMenu1)
+CONSTANT_MENUS(ConstantsMenu2)
+CONSTANT_MENUS(ConstantsMenu3)
+CONSTANT_MENUS(ConstantsMenu4)
+CONSTANT_MENUS(ConstantsMenu5)
+CONSTANT_MENUS(ConstantsMenu6)
+CONSTANT_MENUS(ConstantsMenu7)
+CONSTANT_MENUS(ConstantsMenu8)
+CONSTANT_MENUS(ConstantsMenu9)
+
 
 // ============================================================================
 //
@@ -999,6 +1030,7 @@ ID(case_end_conditional)
 #undef CMD
 #undef MENU
 #undef UNIT_MENU
+#undef CONSTANT_MENU
 #undef NAMED
 #undef ALIAS
 #undef ID_RANGE

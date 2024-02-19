@@ -981,8 +981,75 @@ unit_p unit::cycle() const
 // ----------------------------------------------------------------------------
 {
     unit_g      u       = this; // GC may move this
-    algebraic_g value   = u->value();
     algebraic_g uexpr   = u->uexpr();
+
+    if (symbol_p sym = uexpr->as_quoted<symbol>())
+    {
+        cstring dunit = nullptr;
+        cstring funit = nullptr;
+        bool tofrac = false;
+        bool todec = false;
+
+        if (sym->matches("dms"))
+        {
+            tofrac = true;
+            dunit = "dms";
+            funit = "πr";
+        }
+        else if (sym->matches("pir") || sym->matches("πr"))
+        {
+            dunit = "dms";
+            funit = "°";
+        }
+        else if (sym->matches("°"))
+        {
+            dunit = "πr";
+            funit = "grad";
+        }
+        else if (sym->matches("grad"))
+        {
+            dunit = "°";
+            funit = "r";
+        }
+        else if (sym->matches("r"))
+        {
+            funit = "r";
+            dunit = "grad";
+            todec = true;
+        }
+
+        if (funit || dunit)
+        {
+            algebraic_g uval       = u->value();
+            bool        isdec      = !uval->is_fractionable();
+            cstring     tunit      = isdec ? dunit : funit;
+            symbol_g    tuexpr     = symbol::make(tunit);
+            unit_g      targetUnit = unit::make(integer::make(1), +tuexpr);
+            if (targetUnit && targetUnit->convert(u))
+            {
+                if ((tofrac && isdec) || (todec && !isdec))
+                {
+                    uval = u->value();
+                    if (isdec)
+                    {
+                        if (!arithmetic::decimal_to_fraction(uval))
+                            return nullptr;
+                    }
+                    else
+                    {
+                        if (!arithmetic::decimal_promotion(uval))
+                            return nullptr;
+                    }
+                    u = unit::make(uval, +tuexpr);
+                }
+                return u;
+            }
+            return nullptr;
+        }
+    }
+
+    // Otherwise cycle through SI prefixes
+    algebraic_g value   = u->value();
     int         max     = sizeof(si_prefixes) / sizeof(si_prefixes[0]);
     bool        decimal = value->is_decimal();
     bool        frac    = value->is_real() && !decimal;
@@ -1047,7 +1114,8 @@ unit_p unit::cycle() const
                 unit_g nunit = unit::make(integer::make(1), nuexpr);
                 if (nunit->convert(u))
                 {
-                    algebraic_g mag   = integer::make(Settings.StandardExponent());
+                    uint16_t    stdxp = Settings.StandardExponent();
+                    algebraic_g mag   = integer::make(stdxp);
                     algebraic_g range = integer::make(10);
                     algebraic_g nvalue = u->value();
                     range = pow(range, mag);

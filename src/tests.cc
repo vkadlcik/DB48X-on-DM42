@@ -139,7 +139,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        trig_units();
+        cycle_test();
     }
     else
     {
@@ -4325,6 +4325,31 @@ void tests::cycle_test()
         .test(O).expect("0.00000 1 GN")
         .test(O).expect("0.001 MN")
         .test(O).expect("1. kN");
+
+    step("Cycle angle units")
+        .test(CLEAR, "1.2.3", ENTER).expect("1°02′03″");
+    step("Cycle from DMS to fractional pi-radians")
+        .test(O).expect("¹ ²⁴¹/₂₁₆ ₀₀₀ πr");
+    step("Cycle from fractional pi-radians to fractional degrees")
+        .test(O).expect("1 ⁴¹/₁ ₂₀₀ °");
+    step("Cycle from fractional degrees to fractional grad")
+        .test(O).expect("1 ¹⁶¹/₁ ₀₈₀ grad");
+    step("Cycle from fractional grad to decimal radians")
+        .test(O).expect("1.80496 13347 7⁳⁻² r");
+    step("Cycle from decimal radians to decimal grad")
+        .test(O).expect("1.14907 40740 7 grad");
+    step("Cycle from decimal grad to decimal degrees")
+        .test(O).expect("1.03416 66666 7 °");
+    step("Cycle from decimal degrees to decimal pi-radians")
+        .test(O).expect("5.74537 03703 7⁳⁻³ πr");
+    step("Cycle to decimal DMS")
+        .test(O).expect("1°02′02″1");
+    step("Cycle back to fractional DMS")
+        .test(O).expect("1°02′03″");
+    step("Check that DMS produced the original pi-radians fraction")
+        .test(O).expect("¹ ²⁴¹/₂₁₆ ₀₀₀ πr");
+    step("Check that DMS produced the original degrees fraction")
+        .test(O).expect("1 ⁴¹/₁ ₂₀₀ °");
 }
 
 

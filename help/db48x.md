@@ -2451,11 +2451,17 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [ATANH](#atanh)
 * [ATAN](#atan)
 * [AXES](#axes)
+* [BARPLOT](#barplot)
+* [BEEP](#beep)
+* [BESTFIT](#bestfit)
 * [BIN](#bin)
 * [BYTES](#bytes)
 * [B→R](#binarytoreal)
 * [CASE](#case)
+* [CEIL](#ceil)
 * [CF](#clearflag)
+* [CHR](#codetext-chr-codechar)
+* [CLEAR](#clearstack)
 * [CLLCD](#cllcd)
 * [CLΣ](#cleardata)
 * [CONJ](#conj)
@@ -2512,6 +2518,10 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [HELP](#help) (Different meaning)
 * [HEX](#hex)
 * [HOME](#home)
+* [HMS–](#hmsadd)
+* [HMS+](#hmssub)
+* [HMS→](#fromhms)
+* [→HMS](#tohms)
 * [IFERR](#iferr)
 * [IFTE](#ifte)
 * [IFT](#ift)
@@ -2663,11 +2673,8 @@ commands.
 * AXM
 * AXQ
 * BAR
-* BARPLOT
 * BASIS
 * BAUD
-* BEEP
-* BESTFIT
 * BINS
 * BLANK
 * BOX
@@ -2676,16 +2683,13 @@ commands.
 * C2P
 * CASCFG
 * CASCMD
-* CEIL
 * CENTR
 * %CH
 * CHINREM
 * CHOLESKY
 * CHOOSE
-* CHR
 * CIRC
 * CKSM
-* CLEAR
 * CLKADJ
 * CLOSEIO
 * CLUSR
@@ -2823,10 +2827,6 @@ commands.
 * HILBERT
 * HISTOGRAM
 * HISTPLOT
-* HMS–
-* HMS+
-* HMS→
-* →HMS
 * HORNER
 * IABCUV
 * IBASIS
@@ -6889,7 +6889,7 @@ Compile and evaluate the text, as if it was typed on the command line.
 Return the Unicode codepoint of the first character in the text, or `-1` if the
 text is empty. `"Hello" NUM` returns `72`.
 
-## "Text→Code" (TextToUnicode)
+## Text→Code (TextToUnicode)
 
 Return a list of the Unicode codepoints for all codepoints in the given text.
 `"Hello" Text→Code` returns `{ 72 101 108 108 111 }`.

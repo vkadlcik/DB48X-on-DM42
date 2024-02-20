@@ -109,6 +109,30 @@ public:
         NUM_FONTS
     };
 
+
+    static font_id smaller_font(font_id f)
+    // ------------------------------------------------------------------------
+    //   Find the next smaller font
+    // ------------------------------------------------------------------------
+    {
+        switch (f)
+        {
+        default:
+        case HELP:
+        case STACK:     return HELP;
+        case EDITOR:    return STACK;
+        case LIB17:
+        case LIB18:     return LIB17;
+        case LIB20:     return LIB18;
+        case LIB22:     return LIB20;
+        case LIB25:     return LIB22;
+        case LIB28:     return LIB25;
+        case SKR18:
+        case SKR24:     return SKR18;
+        case FREE42:    return FREE42;
+        }
+    }
+
 #define ID(i)   static const object::id ID_##i = object::ID_##i;
 #include "ids.tbl"
 

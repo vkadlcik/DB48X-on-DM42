@@ -258,6 +258,7 @@ struct grapher
           background(bg),
           flat(flat)
     {}
+    grapher(const grapher &other) = default;
 
     size    maxw;
     size    maxh;

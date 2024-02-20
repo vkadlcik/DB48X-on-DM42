@@ -102,6 +102,7 @@ public:
     HELP_DECL(fraction);
     EVAL_DECL(fraction);
     RENDER_DECL(fraction);
+    GRAPH_DECL(fraction);
     PREC_DECL(MULTIPLICATIVE);
 };
 

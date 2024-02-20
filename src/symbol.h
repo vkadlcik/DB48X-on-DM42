@@ -86,6 +86,7 @@ public:
     PARSE_DECL(symbol);
     EVAL_DECL(symbol);
     RENDER_DECL(symbol);
+    GRAPH_DECL(symbol);
     PREC_DECL(SYMBOL);
 };
 

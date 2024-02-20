@@ -95,6 +95,7 @@ sim:	sim/gcc111libbid.a	\
 	help/$(TARGET).md	\
 	fonts/EditorFont.cc	\
 	fonts/StackFont.cc	\
+	fonts/ReducedFont.cc	\
 	fonts/HelpFont.cc	\
 	keyboard		\
 	.ALWAYS
@@ -143,6 +144,8 @@ fonts/EditorFont.cc: $(TTF2FONT) $(BASE_FONT)
 	$(TTF2FONT) -s 48 -S 80 -y -10 EditorFont $(BASE_FONT) $@
 fonts/StackFont.cc: $(TTF2FONT) $(BASE_FONT)
 	$(TTF2FONT) -s 32 -S 80 -y -8 StackFont $(BASE_FONT) $@
+fonts/ReducedFont.cc: $(TTF2FONT) $(BASE_FONT)
+	$(TTF2FONT) -s 24 -S 80 -y -5 ReducedFont $(BASE_FONT) $@
 fonts/HelpFont.cc: $(TTF2FONT) $(BASE_FONT)
 	$(TTF2FONT) -s 18 -S 80 -y -3 HelpFont $(BASE_FONT) $@
 help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md)
@@ -251,6 +254,7 @@ CXX_SOURCES +=				\
 	src/solve.cc			\
 	src/integrate.cc		\
 	fonts/HelpFont.cc		\
+	fonts/ReducedFont.cc		\
 	fonts/EditorFont.cc		\
 	fonts/StackFont.cc
 

@@ -32,6 +32,7 @@
 #include "algebraic.h"
 #include "command.h"
 #include "expression.h"
+#include "grob.h"
 #include "parser.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -169,4 +170,40 @@ bool symbol::matches(utf8 otxt, size_t osz) const
     if (sz != osz)
         return false;
     return strncmp(cstring(txt), cstring(otxt), sz) == 0;
+}
+
+
+GRAPH_BODY(symbol)
+// ----------------------------------------------------------------------------
+//   Render the symbol as italics
+// ----------------------------------------------------------------------------
+{
+    using pixsize = grob::pixsize;
+
+    grob_g sym = object::do_graph(o, g);
+    if (!sym)
+        return nullptr;
+
+    pixsize sw    = sym->width();
+    pixsize sh    = sym->height();
+    uint    slant = 8;
+    pixsize xw    = (sh + (slant - 1)) / slant;
+    pixsize rw    = sw + xw;
+    pixsize rh    = sh;
+    grob_g result = g.grob(rw, rh);
+    if (!result)
+        return nullptr;
+
+    surface ss = sym->pixels();
+    surface rs = result->pixels();
+
+    rs.fill(0, 0, rw, rh, g.background);
+    for (coord y = 0; y < coord(rh); y++)
+    {
+        coord x = xw - y / slant;
+        rs.copy(ss, rect(x, y, x + sw - 1, y), point(0, y));
+    }
+
+    return result;
+
 }

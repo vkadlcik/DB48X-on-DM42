@@ -6118,6 +6118,36 @@ Show the levels of the stack after the first one on a single line
 This is the opposite of [MultiLineStack](#multilinestack).
 Other levels of the stack are controled by [SingleLineResult](#singlelineresult)
 
+## GraphicResultDisplay
+
+Display the first level of the stack (result) using a graphical representations
+for objects such as expressions or matrices. Note that enabling this setting may
+increase CPU utilization and reduce battery life compared to text-only
+rendering.
+
+This is the opposite of [TextResultDisplay](#textresultdisplay)
+
+## TextResultDisplay
+
+Display the first level of the stack (result) using a text-only representations.
+
+This is the opposite of [TextResultDisplay](#textresultdisplay)
+
+## GraphicStackDisplay
+
+Display the stack levels above the first one using a graphical representations
+for objects such as expressions or matrices. Note that enabling this setting may
+increase CPU utilization and reduce battery life compared to text-only
+rendering.
+
+This is the opposite of [TextStackDisplay](#textstackdisplay)
+
+## TextStacktDisplay
+
+Display the stack levels above the first one using a text-only representations.
+
+This is the opposite of [GraphicStackDisplay](#graphicstackdisplay)
+
 
 # Compatibility
 

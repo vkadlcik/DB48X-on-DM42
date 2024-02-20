@@ -1335,8 +1335,8 @@ MENU(UserInterfaceModesMenu,
 // ----------------------------------------------------------------------------
 //   Mode setting for numbers
 // ----------------------------------------------------------------------------
+     "GrStk",                                   ID_GraphicResultDisplay,
      "Beep",                                    ID_BeepOn,
-     "GrStk",                                   ID_GraphicStackDisplay,
      ResultFont::label,                         ID_ResultFont,
      StackFont::label,                          ID_StackFont,
      EditorFont::label,                         ID_EditorFont,
@@ -1353,7 +1353,7 @@ MENU(UserInterfaceModesMenu,
      "CMD",                                     ID_UpperCase,
      "Cmd",                                     ID_Capitalized,
      "Command",                                 ID_LongForm,
-     "Show Units",                              ID_ShowBuiltinUnits);
+     "Units",                                   ID_ShowBuiltinUnits);
 
 MENU(MathModesMenu,
 // ----------------------------------------------------------------------------

@@ -118,29 +118,42 @@ void stack::draw_stack()
         grob_g   graph = nullptr;
         object_g obj   = rt.stack(level);
         size     w = 0;
-        if (Settings.GraphicStackDisplay())
+        if (level ? Settings.GraphicStackDisplay()
+                  : Settings.GraphicResultDisplay())
         {
-            auto fid = !level ? Settings.ResultFont() : Settings.StackFont();
-            grapher  g(avail - 2, bottom - top, fid,
-                       pattern::black, pattern::gray90, true);
-            graph = obj->graph(g);
-            size gh = graph->height();
-            if (level == 0 && lineHeight < gh)
-                lineHeight = gh;
-            w = graph->width();
+            auto    fid = !level ? Settings.ResultFont() : Settings.StackFont();
+            grapher g(avail - 2,
+                      bottom - top,
+                      fid,
+                      pattern::black,
+                      pattern::white,
+                      true);
+            do
+            {
+                graph = obj->graph(g);
+            } while (!graph && g.reduce_font());
+            if (graph)
+            {
+                size gh = graph->height();
+                if (lineHeight < gh)
+                    lineHeight = gh;
+                w = graph->width();
 
 #ifdef SIMULATOR
-            if (level == 0)
-            {
-                renderer r(nullptr, ~0U, true);
-                size_t   len = obj->render(r);
-                utf8     out = r.text();
-                output(last_key, obj->type(), out, len);
-                record(tests,
-                       "Key %d X-reg %+s size %u %s",
-                       last_key, object::name(obj->type()), len, out);
-            }
+                if (level == 0)
+                {
+                    bool     ml = (level ? Settings.MultiLineStack()
+                                   : Settings.MultiLineResult());
+                    renderer r(nullptr, ~0U, true, ml);
+                    size_t   len = obj->render(r);
+                    utf8     out = r.text();
+                    output(last_key, obj->type(), out, len);
+                    record(tests,
+                           "Key %d X-reg %+s size %u %s",
+                           last_key, object::name(obj->type()), len, out);
+                }
 #endif // SIMULATOR
+            }
         }
 
         y -= lineHeight;

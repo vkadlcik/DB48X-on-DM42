@@ -74,6 +74,7 @@ SOURCES +=                                      \
 	../fonts/EditorFont.cc	                \
 	../fonts/HelpFont.cc	                \
 	../fonts/StackFont.cc			\
+	../fonts/ReducedFont.cc			\
 	../src/font.cc				\
 	../src/tag.cc				\
 	../src/files.cc                         \

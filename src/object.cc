@@ -816,7 +816,7 @@ GRAPH_BODY(object)
 //  The default for rendering is to render the text using default font
 // ----------------------------------------------------------------------------
 {
-    renderer r(nullptr, ~0U, g.flat);
+    renderer r(nullptr, ~0U, g.stack, true);
     using pixsize  = blitter::size;
     size_t  sz     = o->render(r);
     gcutf8  txt    = r.text();
@@ -845,16 +845,15 @@ GRAPH_BODY(object)
     if (width < rw)
         width = rw;
 
-    if (height > g.maxh)
-        height = g.maxh;
-
-    grob_g  result = grob::make(width, height);
+    grob_g  result = g.grob(width, height);
+    if (!result)
+        return result;
     surface s      = result->pixels();
     coord   x      = 0;
     coord   y      = 0;
     s.fill(g.background);
 
-    end            = txt + sz;
+    end = txt + sz;
     for (utf8 p = txt; p < end; p = utf8_next(p))
     {
         unicode c  = utf8_codepoint(p);

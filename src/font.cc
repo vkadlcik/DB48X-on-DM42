@@ -81,6 +81,7 @@ const dmcp_font_p SkrMono18x24     = (dmcp_font_p) (dmcpFontRPL + 24);
 
 font_p EditorFont;
 font_p StackFont;
+font_p ReducedFont;
 font_p HeaderFont;
 font_p CursorFont;
 font_p ErrorFont;
@@ -104,6 +105,7 @@ void font_defaults()
 
     GENERATED_FONT(EditorFont);
     GENERATED_FONT(HelpFont);
+    GENERATED_FONT(ReducedFont);
     GENERATED_FONT(StackFont);
 
     HeaderFont       = LibMonoFont10x17;
@@ -115,7 +117,7 @@ void font_defaults()
     HelpItalicFont   = HelpFont;
     HelpCodeFont     = LibMonoFont11x18;
     HelpTitleFont    = StackFont;
-    HelpSubTitleFont = HelpFont;
+    HelpSubTitleFont = ReducedFont;
 }
 
 

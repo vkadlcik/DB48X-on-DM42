@@ -100,7 +100,7 @@ public:
     //  Selection of font size for the stack
     // ------------------------------------------------------------------------
     {
-        EDITOR, STACK, HELP,
+        EDITOR, STACK, REDUCED, HELP,
         LIB28, LIB25, LIB22, LIB20, LIB18, LIB17,
         SKR24, SKR18,
         FREE42,
@@ -119,7 +119,8 @@ public:
         {
         default:
         case HELP:
-        case STACK:     return HELP;
+        case REDUCED:   return HELP;
+        case STACK:     return REDUCED;
         case EDITOR:    return STACK;
         case LIB17:
         case LIB18:     return LIB17;

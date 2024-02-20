@@ -2033,7 +2033,7 @@ bool user_interface::draw_command()
         dirtyCommand = false;
         if (command && !rt.error())
         {
-            font_p font = StackFont;
+            font_p font = ReducedFont;
             size   w    = font->width(command);
             size   h    = font->height();
             coord  x    = 25;
@@ -2055,7 +2055,7 @@ void user_interface::draw_user_command(utf8 cmd, size_t len)
 //   Draw the current command
 // ----------------------------------------------------------------------------
 {
-    font_p font = StackFont;
+    font_p font = ReducedFont;
     size   w    = command ? font->width(command) : 0;
     size   h    = font->height();
     coord  x    = 25;

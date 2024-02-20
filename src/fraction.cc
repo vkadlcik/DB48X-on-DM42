@@ -30,6 +30,7 @@
 #include "fraction.h"
 
 #include "algebraic.h"
+#include "expression.h"
 #include "grob.h"
 
 
@@ -96,35 +97,18 @@ GRAPH_BODY(fraction)
 //   Render a fraction in graphical mode
 // ----------------------------------------------------------------------------
 {
-    fraction_g obj = o;
     // save<settings::font_id> save(g.font, settings::smaller_font(g.font));
+
+   fraction_g obj = o;
 
     // Render numerator and denominator
     bignum_g num = obj->numerator();
     bignum_g den = obj->denominator();
+    if (!num || !den)
+        return nullptr;
     grob_g numg = num->graph(g);
     grob_g deng = den->graph(g);
-
-    using pixsize = grob::pixsize;
-    pixsize nw = numg->width();
-    pixsize nh = numg->height();
-    pixsize dw = deng->width();
-    pixsize dh = deng->height();
-
-    pixsize gw = nw > dw ? nw : dw;
-    pixsize gh = nh + dh + 4;
-
-    grob_g result = grob::make(gw, gh);
-
-    surface ns = numg->pixels();
-    surface ds = deng->pixels();
-    surface rs = result->pixels();
-
-    rs.fill(0, 0, gw, gh, g.background);
-    rs.copy(ns, point((gw - nw)/2, 0));
-    rs.copy(ds, point((gw - dw)/2, nh + 4));
-    rs.fill(0, nh+1, gw, nh+2);
-    return result;
+    return expression::ratio(g, numg, deng);
 }
 
 

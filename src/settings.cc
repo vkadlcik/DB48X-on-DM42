@@ -223,6 +223,7 @@ font_p settings::font(font_id size)
     switch (size)
     {
     case EDITOR:        return ::EditorFont;
+    case REDUCED:       return ::ReducedFont;
     default:
     case STACK:         return ::StackFont;
     case HELP:          return ::HelpFont;
@@ -251,7 +252,8 @@ font_p settings::cursor_font(font_id size)
     {
     case EDITOR:        return ::StackFont;
     default:
-    case STACK:         return ::LibMonoFont14x22;
+    case STACK:         return ::ReducedFont;
+    case REDUCED:       return ::LibMonoFont14x22;
     case HELP:          return ::HelpFont;
 
     case LIB17:         return ::LibMonoFont10x17;

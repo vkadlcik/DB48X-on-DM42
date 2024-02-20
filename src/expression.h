@@ -35,6 +35,8 @@
 #include "symbol.h"
 
 GCP(expression);
+GCP(grob);
+struct grapher;
 
 struct expression : program
 // ----------------------------------------------------------------------------
@@ -125,16 +127,52 @@ struct expression : program
                                   algebraic_g &scale,
                                   algebraic_g &exponent);
 
-  protected:
-    static symbol_g render(uint depth, int &precedence, bool edit);
+protected:
+    static symbol_p render(uint depth, int &precedence, bool edit);
     static size_t   render(const expression *o, renderer &r, bool quoted);
-    static symbol_g parentheses(symbol_g what);
-    static symbol_g space(symbol_g what);
+    static symbol_p parentheses(symbol_g what);
+    static symbol_p space(symbol_g what);
+
+public:
+    static grob_p   graph(grapher &g, uint depth, int &precedence);
+    static grob_p   parentheses(grapher &g, grob_g x, uint padding = 0);
+    static grob_p   sqrt(grapher &g, grob_g x);
+    static grob_p   ratio(grapher &g, grob_g x, grob_g y);
+    static grob_p   ratio(grapher &g, cstring x, grob_g y);
+    static grob_p   infix(grapher &g,
+                          coord vx, grob_g x,
+                          coord vs, grob_g sep,
+                          coord vy, grob_g y);
+    static grob_p   infix(grapher &g,
+                          coord vx, grob_g x,
+                          coord vs, cstring sep,
+                          coord vy, grob_g y);
+    static grob_p   suscript(grapher &g,
+                             coord vx, grob_g x,
+                             coord vy, grob_g y,
+                             int dir=1);
+    static grob_p   suscript(grapher &g,
+                             coord vx, grob_g x,
+                             coord vy, cstring exp,
+                             int dir=1);
+    static grob_p   suscript(grapher &g,
+                             coord vx, cstring x,
+                             coord vy, grob_g y,
+                             int dir=1);
+    static grob_p   prefix(grapher &g,
+                           coord vx, grob_g x,
+                           coord vy, grob_g y,
+                           int dir=0);
+    static grob_p   prefix(grapher &g,
+                           coord vx, cstring pfx,
+                           coord vy, grob_g y,
+                           int dir=0);
 
 public:
     OBJECT_DECL(expression);
     PARSE_DECL(expression);
     RENDER_DECL(expression);
+    GRAPH_DECL(expression);
     HELP_DECL(expression);
 
 public:

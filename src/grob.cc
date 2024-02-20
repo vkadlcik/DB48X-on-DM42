@@ -199,20 +199,18 @@ GRAPH_BODY(grob)
  // ----------------------------------------------------------------------------
  {
      // If not rendering for the stack, just return object as is
-     if (!g.flat)
+     if (!g.stack)
          return o;
 
      using pixsize  = blitter::size;
+     grob_g gobj = o;
      pixsize width = o->width() + 4;
      pixsize height = o->height() + 4;
-     if (width > g.maxw)
-         width = g.maxw;
-     if (height > g.maxh)
-         height = g.maxh;
-
-     grob_g  result = grob::make(width, height);
+     grob_g  result = g.grob(width, height);
+     if (!result)
+         return nullptr;
      surface dst    = result->pixels();
-     surface src    = o->pixels();
+     surface src    = gobj->pixels();
      rect    inside = dst.area();
      inside.inset(2, 2);
      dst.fill(pattern::gray50);

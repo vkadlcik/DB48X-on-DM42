@@ -245,27 +245,45 @@ struct grapher
 {
     using font_id = settings::font_id;
 
-    grapher(size    w  = LCD_W,
-            size    h  = LCD_H,
-            font_id f  = settings::EDITOR,
-            pattern fg = pattern::black,
-            pattern bg = pattern::white,
-            bool flat = false)
+    grapher(size    w    = LCD_W,
+            size    h    = LCD_H,
+            font_id f    = settings::EDITOR,
+            pattern fg   = pattern::black,
+            pattern bg   = pattern::white,
+            bool    stack = false)
         : maxw(w),
           maxh(h),
+          voffset(0),
           font(f),
           foreground(fg),
           background(bg),
-          flat(flat)
+          stack(stack)
     {}
     grapher(const grapher &other) = default;
 
+    grob_p grob(size w, size h)
+    {
+        if (w < maxw && h < maxh)
+            return grob::make(w, h);
+        return nullptr;
+    }
+
+    bool reduce_font()
+    {
+        font_id next = settings::smaller_font(font);
+        if (next == font)
+            return false;
+        font = next;
+        return true;
+    }
+
     size    maxw;
     size    maxh;
+    coord   voffset;
     font_id font;
     pattern foreground;
     pattern background;
-    bool    flat;
+    bool    stack;
 };
 
 #endif // GROB_H

@@ -40,7 +40,7 @@ RECORDER(options, 32, "Information about command line options");
 
 bool run_tests = false;
 bool db48x_keyboard = true;
-uint memory_size = 40;           // Memory size in kilobytes
+uint memory_size = 70;           // Memory size in kilobytes
 extern uint wait_time;
 extern uint delay_time;
 

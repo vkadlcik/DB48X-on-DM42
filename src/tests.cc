@@ -114,6 +114,7 @@ TESTS(regressions,      "Regression checks");
 TESTS(plotting,         "Plotting, graphing and charting");
 TESTS(graphics,         "Graphic commands");
 TESTS(help,             "On-line help");
+TESTS(expr,             "Graphic equation rendering")
 TESTS(hms,              "HMS and DMS operations");
 
 EXTRA(plotfns,          "Plot all functions");
@@ -193,6 +194,7 @@ void tests::run(bool onlyCurrent)
         graphic_commands();
         hms_dms_operations();
         online_help();
+        graphic_expressions_rendering();
         regression_checks();
     }
     summary();
@@ -5252,7 +5254,7 @@ void tests::online_help()
         .test(F4).wait(100).noerr()
         .image_noheader("help-page8");
     step("Select topic with ENTER")
-        .test(ENTER).wait(100).noerr()
+        .test(ENTER).wait(200).noerr()
         .image_noheader("help-design");
     step("Exit to normal command line")
         .test(EXIT, CLEAR, EXIT).noerr();
@@ -5267,6 +5269,36 @@ void tests::online_help()
         .image_noheader("help-degrees");
     step("Exit and cleanup")
         .test(EXIT, CLEAR, EXIT);
+}
+
+
+void tests::graphic_expressions_rendering()
+// ----------------------------------------------------------------------------
+//   Check the rendering of expressions in graphic mode
+// ----------------------------------------------------------------------------
+{
+    BEGIN(expr);
+
+    step("Draw expression")
+        .test(CLEAR, EXIT, EXIT)
+        .test("1 'X' +", ENTER, B, C, E, "3 X 3", LSHIFT, B, MUL, ADD)
+        .test(ALPHA, X, NOSHIFT, J, K, L, ADD)
+        .wait(100)
+        .image_noheader("expression");
+
+    step("Two levels of stack")
+        .test(CLEAR, EXIT, EXIT)
+        .test("1 'X' +", ENTER, B, C, E, "3 X 3", LSHIFT, B, MUL, ADD)
+        .test(ALPHA, X, NOSHIFT, J, K, L)
+        .wait(100)
+        .image_noheader("two-levels");
+
+    step("Automatic reduction of size")
+        .test(CLEAR, EXIT, EXIT)
+        .test("1 'X' +", ENTER, B, C, E, "3 X 3", LSHIFT, B, MUL, ADD)
+        .test(ALPHA, X, NOSHIFT, J, K, L, ADD, C, B, C, B)
+        .wait(100)
+        .image_noheader("reduced");
 }
 
 

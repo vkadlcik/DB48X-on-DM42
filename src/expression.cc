@@ -31,6 +31,7 @@
 
 #include "arithmetic.h"
 #include "functions.h"
+#include "grob.h"
 #include "integer.h"
 #include "parser.h"
 #include "precedence.h"
@@ -80,7 +81,7 @@ HELP_BODY(expression)
 }
 
 
-symbol_g expression::parentheses(symbol_g arg)
+symbol_p expression::parentheses(symbol_g arg)
 // ----------------------------------------------------------------------------
 //   Render, putting parentheses around an argument
 // ----------------------------------------------------------------------------
@@ -91,7 +92,7 @@ symbol_g expression::parentheses(symbol_g arg)
 }
 
 
-symbol_g expression::space(symbol_g arg)
+symbol_p expression::space(symbol_g arg)
 // ----------------------------------------------------------------------------
 //   Render, putting parentheses around an argument
 // ----------------------------------------------------------------------------
@@ -100,7 +101,7 @@ symbol_g expression::space(symbol_g arg)
 }
 
 
-symbol_g expression::render(uint depth, int &precedence, bool editing)
+symbol_p expression::render(uint depth, int &precedence, bool editing)
 // ----------------------------------------------------------------------------
 //   Render an object as a symbol at a given precedence
 // ----------------------------------------------------------------------------
@@ -1220,5 +1221,525 @@ object_p expression::outermost_operator() const
     object_p result = nullptr;
     for (object_p o : *this)
         result = o;
+    return result;
+}
+
+
+
+// ============================================================================
+//
+//   Graphic rendering
+//
+// ============================================================================
+
+using pixsize  = grob::pixsize;
+
+
+grob_p expression::parentheses(grapher &g, grob_g what, uint padding)
+// ----------------------------------------------------------------------------
+//   Render parentheses around a grob
+// ----------------------------------------------------------------------------
+{
+    if (!what)
+        return nullptr;
+
+    pixsize inw    = what->width();
+    pixsize inh    = what->height();
+    pixsize prw    = inh / 8;
+    pixsize rw     = inw + 2 * prw + 2 + padding;
+    pixsize rh     = inh;
+    pixsize hh     = rh / 2;
+    pixsize hh2    = hh * hh;
+
+    grob_g result = g.grob(rw, rh);
+    if (!result)
+        return nullptr;
+
+    // Copy inner content
+    surface ws = what->pixels();
+    surface rs = result->pixels();
+    rs.fill(0, 0, rw, rh, g.background);
+    rs.copy(ws, prw + padding, 0);
+
+    // Draw the parentheses themselves
+    for (coord y = 0; y < coord(hh); y++)
+    {
+        coord x = prw * y * y / hh2;
+        pixsize pw = 1 + (prw - x) / 4;
+        if (pw > 4)
+            pw = 4;
+        coord x1 = x + padding;
+        coord x2 = x1 + pw;
+        rs.fill(x1, hh+y, x2, hh+y);
+        rs.fill(x1, hh-y, x2, hh-y);
+        x = rw - 2 - x;
+        x2 = x;
+        x1 = x2 - pw;
+        rs.fill(x1, hh+y, x2, hh+y);
+        rs.fill(x1, hh-y, x2, hh-y);
+    }
+
+    return result;
+}
+
+
+grob_p expression::sqrt(grapher &g, grob_g what)
+// ----------------------------------------------------------------------------
+//  Draw a square root around the expression
+// ----------------------------------------------------------------------------
+{
+    if (!what)
+        return nullptr;
+
+    pixsize inw    = what->width();
+    pixsize inh    = what->height();
+    pixsize prw    = inh / 4;
+    pixsize prh    = 4;
+    pixsize rw     = inw + prw + 4;
+    pixsize rh     = inh + prh;
+
+    grob_g result = g.grob(rw, rh);
+    if (!result)
+        return nullptr;
+
+    // Copy inner content
+    surface ws = what->pixels();
+    surface rs = result->pixels();
+    rs.fill(0, 0, rw, rh, g.background);
+    rs.copy(ws, prw, prh);
+
+    // Draw the square root itself
+    rs.line(0,     rh/2 + prh, prw/2, rh-4,     2, g.foreground);
+    rs.line(prw/2, rh-4,       prw-2, 0,        3, g.foreground);
+    rs.line(prw-2, 0,          rw-3,  0,        2, g.foreground);
+    rs.line(rw-3,  0,          rw-3,  prh,      2, g.foreground);
+
+    g.voffset = prh / 2;
+
+    return result;
+}
+
+
+grob_p expression::ratio(grapher &g, grob_g num, grob_g den)
+// ----------------------------------------------------------------------------
+//   Draw a ratio beween two grobs
+// ----------------------------------------------------------------------------
+{
+    if (!num || !den)
+        return nullptr;
+
+    pixsize nw = num->width();
+    pixsize nh = num->height();
+    pixsize dw = den->width();
+    pixsize dh = den->height();
+    pixsize lh = 1 + (nh + dh) / 80;
+    pixsize gw = nw > dw ? nw : dw;
+    pixsize gh = nh + dh + 2 + lh;
+
+    grob_g  result = g.grob(gw, gh);
+    if (!result)
+        return nullptr;
+
+    surface ns = num->pixels();
+    surface ds = den->pixels();
+    surface rs = result->pixels();
+
+    rs.fill(0, 0, gw, gh, g.background);
+    rs.copy(ns, (gw - nw) / 2, 0);
+    rs.copy(ds, (gw - dw) / 2, nh + 2 + lh);
+    rs.fill(0, nh, gw, nh + lh);
+
+    g.voffset = 1 + coord(nh) + coord(lh) / 2 - coord(gh) / 2;
+
+    return result;
+}
+
+
+grob_p expression::ratio(grapher &g, cstring num, grob_g den)
+// ----------------------------------------------------------------------------
+//   Ratio with a constant
+// ----------------------------------------------------------------------------
+{
+    symbol_g nobj = symbol::make(num);
+    if (!nobj)
+        return nullptr;
+    grob_g n = object::do_graph(nobj, g);
+    return ratio(g, n, den);
+}
+
+
+grob_p expression::infix(grapher &g,
+                         coord vx, grob_g x,
+                         coord vs, cstring sep,
+                         coord vy, grob_g y)
+// ----------------------------------------------------------------------------
+//   Draw an infix between two grobs, e.g. "A+B"
+// ----------------------------------------------------------------------------
+{
+    if (!x || !y)
+        return nullptr;
+
+    // Render the separator
+    symbol_g sobj = symbol::make(sep);
+    if (!sobj)
+        return nullptr;
+    grob_g s = object::do_graph(sobj, g);
+    return infix(g, vx, x, vs, s, vy, y);
+}
+
+
+grob_p expression::infix(grapher &g,
+                         coord vx, grob_g x,
+                         coord vs, grob_g s,
+                         coord vy, grob_g y)
+// ----------------------------------------------------------------------------
+//  Draw an infix between two grobs with a third one in the middle
+// ----------------------------------------------------------------------------
+{
+    if (!x || !y || !s)
+        return nullptr;
+
+    pixsize xw = x->width();
+    pixsize xh = x->height();
+    pixsize yw = y->width();
+    pixsize yh = y->height();
+    pixsize sw = s->width();
+    pixsize sh = s->height();
+    pixsize gw = xw + sw + yw;
+
+    coord   xt = -vx - xh / 2;
+    coord   yt = -vy - yh / 2;
+    coord   st = -vs - sh / 2;
+    coord   xb = -vx + xh / 2 - 1;
+    coord   yb = -vy + yh / 2 - 1;
+    coord   sb = -vs + sh / 2 - 1;
+
+    coord t = xt;
+    if (t > yt)
+        t = yt;
+    if (t > st)
+        t = st;
+
+    coord b = xb;
+    if (b < yb)
+        b = yb;
+    if (b < sb)
+        b = sb;
+
+    pixsize gh = b - t + 1;
+
+    grob_g result = g.grob(gw, gh);
+    if (!result)
+        return nullptr;
+
+    surface xs = x->pixels();
+    surface ys = y->pixels();
+    surface ss = s->pixels();
+    surface rs = result->pixels();
+
+    coord xx = 0;
+    coord sx = xx + xw;
+    coord yx = sx + sw;
+
+    rs.fill(0, 0, gw, gh, g.background);
+    rs.copy(xs, xx, xt - t);
+    rs.copy(ss, sx, st - t);
+    rs.copy(ys, yx, yt - t);
+
+    g.voffset = st - t + coord(sh)/2 - coord(gh)/2;
+
+    return result;
+}
+
+
+grob_p expression::suscript(grapher &g,
+                            coord vx, grob_g x,
+                            coord vy, grob_g y, int dir)
+// ----------------------------------------------------------------------------
+//  Position grob y on the right of x
+// ----------------------------------------------------------------------------
+//  dir can be 0 (centered), 1 (superscript) or -1 (subscript)
+{
+    if (!x || !y)
+        return nullptr;
+
+    pixsize xw     = x->width();
+    pixsize xh     = x->height();
+    pixsize yw     = y->width();
+    pixsize yh     = y->height();
+    pixsize gw     = xw + yw;
+
+    coord   voff   = (1 - dir) * xh / 2;
+    coord   xt     = -vx - xh / 2;
+    coord   yt     = -vy + xt + voff - yh / 2;
+    coord   xb     = xt + xh - 1;
+    coord   yb     = yt + yh - 1;
+    coord   t      = xt < yt ? xt : yt;
+    coord   b      = xb > yb ? xb : yb;
+
+    pixsize gh = b - t + 1;
+    grob_g result = g.grob(gw, gh);
+    if (!result)
+        return nullptr;
+
+    surface xs = x->pixels();
+    surface ys = y->pixels();
+    surface rs = result->pixels();
+
+    rs.fill(0, 0, gw, gh, g.background);
+    rs.copy(xs, 0,  xt - t);
+    rs.copy(ys, xw, yt - t);
+    g.voffset = xt - t + coord(xh)/2 - coord(gh)/2;
+
+    return result;
+}
+
+
+grob_p expression::suscript(grapher &g,
+                            coord vx, grob_g x,
+                            coord vy, cstring exp, int dir)
+// ----------------------------------------------------------------------------
+//   Position a superscript
+// ----------------------------------------------------------------------------
+{
+    symbol_g yobj = symbol::make(exp);
+    if (!yobj)
+        return nullptr;
+    settings::font_id savef = g.font;
+    g.reduce_font();
+    grob_g y = object::do_graph(yobj, g);
+    g.font = savef;
+    return suscript(g, vx, x, vy, y, dir);
+}
+
+
+grob_p expression::suscript(grapher &g,
+                            coord vx, cstring xstr,
+                            coord vy, grob_g y, int dir)
+// ----------------------------------------------------------------------------
+//   Position a superscript
+// ----------------------------------------------------------------------------
+{
+    symbol_g xobj = symbol::make(xstr);
+    if (!xobj)
+        return nullptr;
+    grob_g x = object::do_graph(xobj, g);
+    return suscript(g, vx, x, vy, y, dir);
+}
+
+
+grob_p expression::prefix(grapher &g,
+                          coord vx, grob_g x,
+                          coord vy, grob_g y, int dir)
+// ----------------------------------------------------------------------------
+//   Draw a prefix, e.g. "sin"
+// ----------------------------------------------------------------------------
+{
+    return suscript(g, vx, x, vy, y, dir);
+}
+
+
+grob_p expression::prefix(grapher &g,
+                          coord vx, cstring pfx,
+                          coord vy, grob_g y, int dir)
+// ----------------------------------------------------------------------------
+//   Draw a prefix, e.g. "-"
+// ----------------------------------------------------------------------------
+{
+    symbol_g xobj = symbol::make(pfx);
+    if (!xobj)
+        return nullptr;
+    grob_g x = object::do_graph(xobj, g);
+    return suscript(g, vx, x, vy, y, dir);
+}
+
+
+static inline cstring mulsep()
+// ----------------------------------------------------------------------------
+//   Return the separator for multiplication
+// ----------------------------------------------------------------------------
+{
+    return Settings.UseDotForMultiplication() ? "·" : "×";
+}
+
+
+grob_p expression::graph(grapher &g, uint depth, int &precedence)
+// ----------------------------------------------------------------------------
+//   Render an object as a graphical equation
+// ----------------------------------------------------------------------------
+{
+    while (rt.depth() > depth)
+    {
+        if (object_g obj = rt.pop())
+        {
+            int arity = obj->arity();
+            switch(arity)
+            {
+            case 0:
+                // Symbols and other non-algebraics, e.g. numbers
+                precedence = obj->precedence();
+                if (precedence == precedence::NONE)
+                    precedence = precedence::SYMBOL;
+                g.voffset = 0;
+                return obj->graph(g);
+
+            case 1:
+            {
+                int      argp = 0;
+                id       oid  = obj->type();
+                grob_g   arg  = graph(g, depth, argp);
+                coord    va   = g.voffset;
+                int      maxp = oid == ID_neg ? precedence::MULTIPLICATIVE
+                                              : precedence::SYMBOL;
+                if (argp < maxp &&
+                    oid != ID_sqrt && oid != ID_inv &&
+                    oid != ID_exp && oid != ID_exp10 && oid != ID_exp2)
+                    arg = parentheses(g, arg, 3);
+                precedence = precedence::FUNCTION;
+
+                switch(oid)
+                {
+                case ID_sq:
+                    precedence = precedence::FUNCTION_POWER;
+                    return suscript(g, va, arg, 0, "2");
+                case ID_cubed:
+                    precedence = precedence::FUNCTION_POWER;
+                    return suscript(g, va, arg, 0, "3");
+                case ID_exp:
+                    precedence = precedence::FUNCTION_POWER;
+                    return suscript(g, 0, "e", va, arg);
+                case ID_exp10:
+                    precedence = precedence::FUNCTION_POWER;
+                    return suscript(g, 0, "10", va, arg);
+                case ID_exp2:
+                    precedence = precedence::FUNCTION_POWER;
+                    return suscript(g, 0, "2", va, arg);
+                case ID_neg:
+                    precedence = precedence::ADDITIVE;
+                    return prefix(g, 0, "-", va, arg);
+                case ID_fact:
+                    precedence = precedence::SYMBOL;
+                    return suscript(g, va, arg, 0, "!", 0);
+                case ID_sqrt:
+                    precedence = precedence::FUNCTION_POWER;
+                    return sqrt(g, arg);
+                case ID_inv:
+                    precedence = precedence::FUNCTION_POWER;
+                    return ratio(g, "1", arg);
+                default:
+                    break;
+                }
+                g.voffset = 0;
+                grob_g fn = obj->graph(g);
+                coord  vf = g.voffset;
+                return prefix(g, vf, fn, va, arg);
+            }
+            break;
+            case 2:
+            {
+                int    lprec = 0, rprec = 0;
+                id     oid = obj->type();
+                auto   fid  = g.font;
+                if (oid == ID_pow)
+                    g.reduce_font();
+                grob_g rg   = graph(g, depth, rprec);
+                coord  rv   = g.voffset;
+                g.font      = fid;
+                grob_g lg   = graph(g, depth, lprec);
+                coord  lv   = g.voffset;
+                int    prec = obj->precedence();
+                if (prec == precedence::FUNCTION)
+                {
+                    grob_g arg = infix(g, lv, lg, 0, ";", rv, rg);
+                    coord  av  = g.voffset;
+                    arg = parentheses(g, arg);
+                    precedence = precedence::FUNCTION;
+                    g.voffset = 0;
+                    grob_g op  = obj->graph(g);
+                    coord  ov  = g.voffset;
+                    return prefix(g, ov, op, av, arg);
+                }
+
+                if (lprec < prec)
+                    lg = parentheses(g, lg);
+                if (rprec <= prec && oid != ID_pow)
+                    rg = parentheses(g, rg);
+                precedence = prec;
+                switch (oid)
+                {
+                case ID_pow: return suscript(g, lv, lg, rv, rg);
+                case ID_div: return ratio(g, lg, rg);
+                case ID_mul: return infix(g, lv, lg, 0, mulsep(), rv, rg);
+                default: break;
+                }
+                g.voffset = 0;
+                grob_g op = obj->graph(g);
+                coord ov = g.voffset;
+                return infix(g, lv, lg, ov, op, rv, rg);
+            }
+            break;
+            default:
+            {
+                grob_g args = nullptr;
+                coord argsv = 0;
+                for (int a = 0; a < arity; a++)
+                {
+                    int    prec = 0;
+                    grob_g arg  = graph(g, depth, prec);
+                    coord  argv = g.voffset;
+                    if (a)
+                        args = infix(g, argv, arg, 0, ";", argsv, args);
+                    else
+                        args = arg;
+                    argsv = g.voffset;
+                }
+                args = parentheses(g, args);
+                precedence = precedence::FUNCTION;
+                g.voffset = 0;
+                grob_g op = obj->graph(g);
+                coord ov = g.voffset;
+                return prefix(g, ov, op, argsv, args);
+            }
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+
+GRAPH_BODY(expression)
+// ----------------------------------------------------------------------------
+//   Render an expression graphically
+// ----------------------------------------------------------------------------
+{
+    expression_g expr  = o;
+    size_t       depth = rt.depth();
+    bool         ok    = true;
+
+    // First push all things so that we have the outermost operators first
+    for (object_p obj : *expr)
+    {
+        ASSERT(obj);
+        ok = rt.push(obj);
+        if (!ok)
+            break;
+    }
+
+    if (!ok)
+    {
+        // We ran out of memory pushing things
+        if (size_t remove = rt.depth() - depth)
+            rt.drop(remove);
+        return nullptr;
+    }
+
+    int precedence = 0;
+    grob_g result = graph(g, depth, precedence);
+    if (size_t remove = rt.depth() - depth)
+    {
+        record(equation_error, "Malformed equation, %u removed", remove);
+        rt.drop(remove);
+    }
     return result;
 }

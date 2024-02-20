@@ -32,6 +32,7 @@
 #include "array.h"
 #include "bignum.h"
 #include "compare.h"
+#include "constants.h"
 #include "decimal.h"
 #include "expression.h"
 #include "fraction.h"
@@ -419,7 +420,12 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
         if (y->is_one(false))                   // X * 1 = X
             return x;
         if (x->is_symbolic() && x->is_same_as(y))
+        {
+            if (constant_p cst = x->as<constant>())
+                if (cst->is_imaginary_unit())
+                    return integer::make(-1);
             return sq::run(x);                  // X * X = X²
+        }
     }
 
     // Check multiplication of unit objects
@@ -1269,7 +1275,12 @@ algebraic_p arithmetic::evaluate(id          op,
         complex_g xc = complex_p(algebraic_p(x));
         complex_g yc = complex_p(algebraic_p(y));
         if (ops.complex_ok(xc, yc))
+        {
+            if (Settings.AutoSimplify())
+                if (algebraic_p re = xc->is_real())
+                    return re;
             return xc;
+        }
     }
 
     if (!x || !y)

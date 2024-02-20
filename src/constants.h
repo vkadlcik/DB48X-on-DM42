@@ -59,6 +59,15 @@ struct constant : symbol
         return text::value(size);
     }
     algebraic_p value() const;
+    bool is_imaginary_unit() const              { return matches("i"); }
+    bool is_pi() const                          { return matches("π"); }
+    bool matches(cstring ref) const
+    {
+        size_t nlen = strlen(ref);
+        size_t len = 0;
+        utf8 txt = name(&len);
+        return len == nlen && memcmp(ref, txt, len) == 0;
+    }
 
 public:
     OBJECT_DECL(constant);

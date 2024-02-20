@@ -83,6 +83,7 @@ struct complex : algebraic
     algebraic_g         arg(angle_unit unit) const;
     algebraic_g         pifrac() const;
     complex_g           conjugate() const;
+    algebraic_p         is_real() const;
 
     polar_g             as_polar() const;
     rectangular_g       as_rectangular() const;
@@ -166,6 +167,7 @@ struct rectangular : complex
     algebraic_g pifrac() const;
     bool        is_zero() const;
     bool        is_one()  const;
+    algebraic_p is_real() const;
 
     static rectangular_p make(algebraic_r r, algebraic_r i)
     {
@@ -196,6 +198,7 @@ struct polar : complex
     algebraic_g pifrac() const  { return y(); }
     bool        is_zero() const;
     bool        is_one()  const;
+    algebraic_p is_real() const;
 
     static polar_p make(algebraic_r mod, algebraic_r arg, angle_unit unit);
 

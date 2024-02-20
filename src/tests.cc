@@ -2804,7 +2804,8 @@ void tests::fraction_decimal_conversions()
     test("→Q", ENTER).expect("[ 1/4-1/2ⅈ 3/4 ]");
 
     step("Expressions");
-    test(CLEAR, "355 113 / pi -", ENTER) .expect("'355/113-π'");
+    test(CLEAR, "355 113 /",
+         LSHIFT, I, F1, F1, "-", ENTER) .expect("'355/113-π'");
     test("→Num", ENTER).expect("2.66764 18906 2⁳⁻⁷");
 
     step("Restoring small fraction mode")
@@ -4028,6 +4029,17 @@ void tests::auto_simplification()
 
     step("i*i == -1");
     test(CLEAR, "ⅈ", ENTER, ENTER, MUL).expect("-1");
+
+    step("i*i == -1 (symbolic constant)");
+    test(CLEAR, LSHIFT, I, F1, F3, ENTER, MUL).expect("-1");
+
+    step("Simplification of rectangular real-only results");
+    test(CLEAR, "0ⅈ3 0ⅈ5", ENTER, MUL).expect("-15");
+    test(CLEAR, "0ⅈ3 0-ⅈ5", ENTER, MUL).expect("15");
+
+    step("Simplification of polar real-only results");
+    test(CLEAR, "2∡90 3∡90", ENTER, MUL).expect("-6");
+    test(CLEAR, "2∡90 3∡-90", ENTER, MUL).expect("6");
 
     step("Applies when building a matrix");
     test(CLEAR, "[[3 0 2][2 0 -2][ 0 1 1 ]] [x y z] *", ENTER)

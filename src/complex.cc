@@ -125,6 +125,17 @@ algebraic_g complex::pifrac() const
 }
 
 
+algebraic_p complex::is_real() const
+// ----------------------------------------------------------------------------
+//   Check if the complex is a purely real value
+// ----------------------------------------------------------------------------
+{
+    if (type() == ID_polar)
+        return polar_p(this)->is_real();
+    return rectangular_p(this)->is_real();
+}
+
+
 complex_g complex::conjugate() const
 // ----------------------------------------------------------------------------
 //   Return complex conjugate in a format-independent way
@@ -402,6 +413,7 @@ PARSE_BODY(complex)
 //   f. 1+3ⅈ            ⅈ as a postfix
 //   g. 1-3ⅈ
 //   h. 1∡30            ∡ as a separator
+//   i. ⅈ               Imaginary unit by itself
 //   u. 1_km            _ as a separator for unit objects
 //
 //   Cases a-g generate a rectangular form, case i generates a polar form
@@ -594,6 +606,17 @@ PARSE_BODY(complex)
         last += utf8_size(cp);
     }
 
+    // If we just have the imaginary unit
+    if (type == ID_rectangular && !xlen)
+    {
+        // Build the imaginary unit
+        rectangular_g result = rectangular::make(integer::make(0),
+                                                 integer::make(1));
+        p.out = +result;
+        p.end = last - first + 2*paren;
+        return OK;
+    }
+
     // If we did not find the necessary structure, just skip
     if (type == ID_object || !xlen || !ybeg)
         return SKIP;
@@ -730,6 +753,15 @@ bool rectangular::is_one() const
 }
 
 
+algebraic_p rectangular::is_real() const
+// ----------------------------------------------------------------------------
+//   Check if the complex is a purely real value
+// ----------------------------------------------------------------------------
+{
+    return y()->is_zero(false) ? x() : nullptr;
+}
+
+
 RENDER_BODY(rectangular)
 // ----------------------------------------------------------------------------
 //   Render a complex number in rectangular form
@@ -811,6 +843,21 @@ bool polar::is_one() const
 {
     polar_g o = this;
     return o->mod()->is_one(false) && o->pifrac()->is_zero();
+}
+
+
+algebraic_p polar::is_real() const
+// ----------------------------------------------------------------------------
+//   Check if the complex is a purely real value
+// ----------------------------------------------------------------------------
+{
+    polar_g o = this;
+    algebraic_g pifrac = o->pifrac();
+    if (pifrac->is_zero(false))
+        return o->mod();
+    if (pifrac->is_one(false))
+        return -o->mod();
+    return nullptr;
 }
 
 

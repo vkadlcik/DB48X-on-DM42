@@ -294,7 +294,7 @@ public:
     tests &expect(unsigned long long output);
     tests &match(cstring regexp);
     tests &image(cstring name, int x=0, int y=0, int w=LCD_W, int h=LCD_H);
-    tests &image_noheader(cstring name);
+    tests &image_noheader(cstring name, uint ignoremenus=0);
     tests &type(object::id ty);
     tests &shift(bool s);
     tests &xshift(bool x);

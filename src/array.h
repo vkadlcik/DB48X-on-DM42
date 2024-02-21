@@ -93,6 +93,7 @@ struct array : list
     OBJECT_DECL(array);
     PARSE_DECL(array);
     RENDER_DECL(array);
+    GRAPH_DECL(array);
     HELP_DECL(array);
 };
 

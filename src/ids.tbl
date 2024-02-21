@@ -710,6 +710,8 @@ FLAG(NumberedVariables,         NoNumberedVariables)
 FLAG(UseCrossForMultiplication, UseDotForMultiplication)
 FLAG(HardwareFloatingPoint,     SoftwareFloatingPoint)
 FLAG(NoAngleUnits,              SetAngleUnits)
+FLAG(VerticalLists,             HorizontalLists)
+FLAG(VerticalVectors,           HorizontalVectors)
 
 ALIAS(HardwareFloatingPoint,    "HFP")
 ALIAS(HardwareFloatingPoint,    "HardFP")

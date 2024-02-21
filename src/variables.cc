@@ -1250,6 +1250,8 @@ static flag_conversion flag_conversions[] =
     {  -56,     object::ID_BeepOff              },
     {  -64,     object::ID_IndexWrapped         },
     {  -65,     object::ID_MultiLineStack       },
+    {  -97,     object::ID_VerticalLists        },
+    {  -98,     object::ID_VerticalVectors      },
     { -103,     object::ID_ComplexResults       },
 };
 

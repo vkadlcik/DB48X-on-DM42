@@ -28,8 +28,10 @@
 // ****************************************************************************
 
 #include "array.h"
+
 #include "arithmetic.h"
 #include "functions.h"
+#include "grob.h"
 
 
 RECORDER(matrix, 16, "Determinant computation");
@@ -67,6 +69,181 @@ HELP_BODY(array)
 // ----------------------------------------------------------------------------
 {
     return utf8("Vectors and matrices");
+}
+
+
+using pixsize = grob::pixsize;
+
+
+static pixsize row_height(size_t r, size_t rows, size_t cols)
+// ----------------------------------------------------------------------------
+//   Compute the height of a row (max of height of all grobs)
+// ----------------------------------------------------------------------------
+{
+    size_t  nitems = rows * cols;
+    pixsize rh     = 0;
+    for (size_t c = 0; c < cols; c++)
+    {
+        size_t i       = r * cols + c;
+        grob_p colitem = grob_p(rt.stack(nitems + ~i));
+        ASSERT(colitem);
+        pixsize h = colitem->height();
+        if (rh < h)
+            rh = h;
+    }
+    return rh;
+}
+
+
+static pixsize col_width(size_t c, size_t rows, size_t cols)
+// ----------------------------------------------------------------------------
+//   Compute the height of a row (max of height of all grobs)
+// ----------------------------------------------------------------------------
+{
+    size_t  nitems = rows * cols;
+    pixsize cw     = 0;
+    for (size_t r = 0; r < rows; r++)
+    {
+        size_t  i       = r * cols + c;
+        grob_p  colitem = grob_p(rt.stack(nitems + ~i));
+        pixsize w       = colitem->width();
+        if (cw < w)
+            cw = w;
+    }
+    return cw;
+}
+
+
+GRAPH_BODY(array)
+// ----------------------------------------------------------------------------
+//   Render an array graphically
+// ----------------------------------------------------------------------------
+{
+    array_g a       = o;
+    if (!a)
+        return nullptr;
+
+    size_t rows = 0;
+    size_t cols = 0;
+    bool   mat  = false;
+    bool   vec  = false;
+    if (a->is_matrix(&rows, &cols))
+    {
+        mat = true;
+    }
+    else if (a->is_vector(&cols))
+    {
+        vec = true;
+        rows = 1;
+        if (Settings.VerticalVectors())
+        {
+            rows = cols;
+            cols = 1;
+        }
+    }
+
+    // Fallback if we don't have a proper matrix or vector, e.g. non-rect
+    if (!mat && !vec)
+        return object::do_graph(a, g);
+
+    // Convert all elements to graphical equivalent
+    size_t nitems = rows * cols;
+    for (size_t i = 0; i < nitems; i++)
+    {
+        object_p item = rt.stack(i);
+        grob_g   grob = item->graph(g);
+        if (!grob || grob->type() != ID_grob)
+        {
+            // Ran into a problem with one rendering, e.g. out of memory
+            // Fallback to rendering as text.
+            record(matrix_error, "Problem graphing %zu in %zu x %zu",
+                   i, rows, cols);
+            rt.drop(nitems);
+            return object::do_graph(a, g);
+        }
+        rt.stack(i, grob);
+    }
+
+    // Compute the width, starting with 8 pixels for borders
+    pixsize bw = mat ? 4 : 2;
+    pixsize sw  = 2;
+    pixsize gap = 12;
+    pixsize gw  = 4 * bw + (cols - 1) * gap + 2 * sw;
+    pixsize gh  = 0;
+
+    // Compute the width as the sum of the max width of all columns
+    for (size_t c = 0; c < cols; c++)
+    {
+        size_t cw = col_width(c, rows, cols);
+        gw += cw;
+        if (gw > g.maxw)
+        {
+            rt.drop(nitems);
+            return nullptr;
+        }
+    }
+
+    // Compute the height as the sum of the max height of all rows
+    for (size_t r = 0; r < rows; r++)
+    {
+        size_t rh = row_height(r, rows, cols);
+        gh += rh;
+        if (gh > g.maxh)
+        {
+            rt.drop(nitems);
+            return nullptr;
+        }
+    }
+
+    // Create the resulting graph
+    grob_g result = g.grob(gw, gh);
+    if (!result)
+    {
+        rt.drop(nitems);
+        return nullptr;
+    }
+    surface rs = result->pixels();
+    rs.fill(0, 0, gw, gh, g.background);
+
+    // Dimensions of porder and adjust
+    coord xl = 0;
+    coord xr = coord(gw)-2;
+    coord yt = 0;
+    coord yb = coord(gh)-4;
+
+    // Draw all items inside the matrix
+    coord yi = yt;
+    for (size_t r = 0; r < rows; r++)
+    {
+        pixsize rh = row_height(r, rows, cols);
+        coord   xi = xl + 2 * bw + sw;
+        for (size_t c = 0; c < cols; c++)
+        {
+            pixsize cw      = col_width(c, rows, cols);
+            size_t  i       = r * cols + c;
+            grob_p  colitem = grob_p(rt.stack(nitems + ~i));
+            surface is      = colitem->pixels();
+            pixsize iw      = is.width();
+            pixsize ih      = is.height();
+            rs.copy(is, xi + (cw - iw)/2, yi + (rh - ih)/2);
+            xi += cw + gap;
+        }
+        yi += rh;
+    }
+
+    // Add the borders
+    for (coord y = 1; y < yb; y++)
+    {
+        rs.fill(xl,    y, xl+bw,   y, g.foreground);
+        rs.fill(xr-bw, y, xr,      y, g.foreground);
+    }
+    rs.fill(xl,      yt, xl+2*bw, yt+1, g.foreground);
+    rs.fill(xr-2*bw, yt, xr,      yt+1, g.foreground);
+    rs.fill(xl,      yb, xl+2*bw, yb+1, g.foreground);
+    rs.fill(xr-2*bw, yb, xr,      yb+1, g.foreground);
+
+    rt.drop(nitems);
+    return result;
 }
 
 

@@ -373,8 +373,8 @@ struct blitter
     {
         surface(pixword *p, size w, size h, size scanline)
             : pixels(p),
-              width(w),
-              height(h),
+              w(w),
+              h(h),
               scanline(scanline),
               drawable(w, h)
         {
@@ -401,14 +401,14 @@ struct blitter
             BPP = color::BPP
         };
 
-      public:
+    public:
         void clip(const rect &r)
         // --------------------------------------------------------------------
         //    Limit drawing to the given rectangle
         // --------------------------------------------------------------------
         {
             drawable = r;
-            drawable &= rect(width, height);
+            drawable &= rect(w, h);
         }
 
         void clip(coord x1, coord y1, coord x2, coord y2)
@@ -432,7 +432,23 @@ struct blitter
         //   Return total drawing area
         // --------------------------------------------------------------------
         {
-            return rect(width, height);
+            return rect(w, h);
+        }
+
+        size width() const
+        // --------------------------------------------------------------------
+        //   Total drawing width
+        // --------------------------------------------------------------------
+        {
+            return w;
+        }
+
+        size height() const
+        // --------------------------------------------------------------------
+        //   Total drawing height
+        // --------------------------------------------------------------------
+        {
+            return h;
         }
 
         template <clipping Clip = FILL_SAFE>
@@ -526,8 +542,8 @@ struct blitter
         //   Copy a rectangular area from the source
         // --------------------------------------------------------------------
         {
-            size w = src.width;
-            size h = src.height;
+            size w = src.w;
+            size h = src.h;
             rect dest(x, y, x + w - 1, y + h - 1);
             blit<Clip>(*this, src, dest, point(), blitop_source, clr);
         }
@@ -685,8 +701,8 @@ struct blitter
     protected:
         friend struct blitter;
         pixword *pixels;   // Word-aligned address of surface buffer
-        size     width;    // Pixel width of buffer
-        size     height;   // Pixel height of buffer
+        size     w;    // Pixel width of buffer
+        size     h;   // Pixel height of buffer
         size     scanline; // Scanline for the buffer (can be > width)
         rect     drawable; // Draw area (clipping outside)
     };
@@ -1501,7 +1517,7 @@ void blitter::blit(Dst           &dst,
             }
 
             ASSERT(dp >= dst.pixels);
-            ASSERT(dp <= dst.pixels + (dst.scanline * dst.height + (BPW-1)) / BPW);
+            ASSERT(dp <= dst.pixels + (dst.scanline * dst.h + (BPW-1)) / BPW);
             pixword ddata = dp[0];
             pixword tdata = op(ddata, sdata, cdata);
             *dp           = (tdata & dmask) | (ddata & ~dmask);
@@ -1545,7 +1561,7 @@ inline void blitter::surface<blitter::MONOCHROME_REVERSE>::horizontal_adjust(
 //   On the DM42, we need horizontal adjustment for coordinates
 // ----------------------------------------------------------------------------
 {
-    size  w   = width - 1;
+    size  w   = width() - 1;
     coord ox1 = w - x2;
     x2        = w - x1;
     x1        = ox1;

@@ -5297,8 +5297,53 @@ void tests::graphic_expressions_rendering()
         .test(CLEAR, EXIT, EXIT)
         .test("1 'X' +", ENTER, B, C, E, "3 X 3", LSHIFT, B, MUL, ADD)
         .test(ALPHA, X, NOSHIFT, J, K, L, ADD, C, B, C, B)
-        .wait(100)
         .image_noheader("reduced");
+
+    step("Constants")
+        .test(CLEAR, LSHIFT, I, F1, F1, F2, F3)
+        .image_noheader("constants");
+
+    step("Vector")
+        .test(CLEAR, LSHIFT, KEY9, "1 2 3", ENTER, EXIT)
+        .wait(100)
+        .image_noheader("vector-horizontal");
+    step("Vector vertical rendering")
+        .test("VerticalVectors", ENTER)
+        .wait(100)
+        .image_noheader("vector-vertical");
+    step("Vector horizontal rendering")
+        .test("HorizontalVectors", ENTER)
+        .wait(100)
+        .image_noheader("vector-horizontal");
+
+    step("Matrix")
+        .test(CLEAR, LSHIFT, KEY9,
+              LSHIFT, KEY9, "1 2 3 4", DOWN,
+              LSHIFT, KEY9, "4 5 6 7", DOWN,
+              LSHIFT, KEY9, "8 9 10 11", DOWN,
+              LSHIFT, KEY9, "12 13 14 18", ENTER, EXIT)
+        .wait(100)
+        .image_noheader("matrix");
+    step("Matrix with smaller size")
+        .test(13, DIV, ENTER, MUL)
+        .wait(100)
+        .image_noheader("matrix-smaller");
+
+    step("Lists")
+        .test(CLEAR, RSHIFT, SPACE, "1 2 \"ABC\"", ENTER, EXIT)
+        .wait(100)
+        .image_noheader("list-horizontal");
+    step("List vertical")
+        .test("VerticalLists", ENTER)
+        .test(CLEAR, RSHIFT, SPACE, "1 2 \"ABC\"", ENTER, EXIT)
+        .wait(100)
+        .image_noheader("list-vertical");
+    step("List horizontal")
+        .test("HorizontalLists", ENTER)
+        .test(CLEAR, RSHIFT, SPACE, "1 2 \"ABC\"", ENTER, EXIT)
+        .wait(100)
+        .image_noheader("list-horizontal");
+
 }
 
 
@@ -6650,13 +6695,14 @@ tests &tests::image(cstring file, int x, int y, int w, int h)
 }
 
 
-tests &tests::image_noheader(cstring name)
+tests &tests::image_noheader(cstring name, uint ignoremenus)
 // ----------------------------------------------------------------------------
 //   Image, skipping the header area
 // ----------------------------------------------------------------------------
 {
     const int header_h = 20;
-    return image(name, 0, header_h, LCD_W, LCD_H - header_h);
+    const int menu_h = 22 * ignoremenus;
+    return image(name, 0, header_h, LCD_W, LCD_H - header_h - menu_h);
 }
 
 

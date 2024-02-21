@@ -94,6 +94,15 @@ RENDER_BODY(constant)
 }
 
 
+GRAPH_BODY(constant)
+// ----------------------------------------------------------------------------
+//   Do not italicize constants
+// ----------------------------------------------------------------------------
+{
+    return object::do_graph(o, g);
+}
+
+
 EVAL_BODY(constant)
 // ----------------------------------------------------------------------------
 //   Check if we need to convert to numeric

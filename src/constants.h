@@ -74,6 +74,7 @@ public:
     EVAL_DECL(constant);
     PARSE_DECL(constant);
     RENDER_DECL(constant);
+    GRAPH_DECL(constant);
     HELP_DECL(constant);
 };
 

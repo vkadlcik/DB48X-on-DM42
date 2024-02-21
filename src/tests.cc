@@ -453,7 +453,7 @@ void tests::data_types()
               ALPHA, H, LOWERCASE, E, L, L, O,
               SHIFT, SHIFT, ENTER, DOWN, ENTER)
         .type(object::ID_text).expect("\"\"\"Hello\"\"\"")
-        .test("1 DISP", ENTER).wait(25).image("quoted-text");
+        .test("1 DISP", ENTER).image("quoted-text");
 
     step("List");
     cstring list = "{ A 1 3 }";
@@ -5201,57 +5201,57 @@ void tests::online_help()
         .test(CLEAR, EXIT, A, F1).wait(100).noerr()
         .image_noheader("help");
     step("Exiting help with EXIT")
-        .test(EXIT).wait(100).noerr()
+        .test(EXIT).noerr()
         .image_noheader("help-exit");
     step("Help with keyboard shortcut")
-        .test(CLEAR, RSHIFT, ADD).wait(100).noerr()
+        .test(CLEAR, RSHIFT, ADD).noerr()
         .image_noheader("help");
     step("Following link with ENTER")
-        .test(ENTER).wait(100).noerr()
+        .test(ENTER).noerr()
         .image_noheader("help-topic");
     step("Help with command line")
-        .test(CLEAR, "help", ENTER).wait(100).noerr()
+        .test(CLEAR, "help", ENTER).noerr()
         .image_noheader("help");
     step("History across invokations")
-        .test(NOSHIFT, BSP).wait(100).noerr()
+        .test(NOSHIFT, BSP).noerr()
         .image_noheader("help-topic");
     step("Help topic - Integers")
-        .test(CLEAR, EXIT, "123", RSHIFT, ADD).wait(100).noerr()
+        .test(CLEAR, EXIT, "123", RSHIFT, ADD).noerr()
         .image_noheader("help-integers");
     step("Help topic - Decimal")
-        .test(CLEAR, EXIT, "123.5", RSHIFT, ADD).wait(100).noerr()
+        .test(CLEAR, EXIT, "123.5", RSHIFT, ADD).noerr()
         .image_noheader("help-decimal");
     step("Help topic - topic")
         .test(CLEAR, EXIT, "\"authors\"",
               NOSHIFT, RSHIFT, ADD, DOWN, DOWN, DOWN, DOWN)
-        .wait(100).noerr()
+        .noerr()
         .image_noheader("help-authors");
     step("Returning to main screen with F1")
-        .test(F1).wait(100).noerr()
+        .test(F1).noerr()
         .image_noheader("help");
     step("Page up and down with F2 and F3")
-        .test(F3).wait(100).noerr()
+        .test(F3).noerr()
         .image_noheader("help-page2")
-        .test(F3).wait(100).noerr()
+        .test(F3).noerr()
         .image_noheader("help-page3")
-        .test(F2).wait(100).noerr()
+        .test(F2).noerr()
         .image_noheader("help-page4")
-        .test(F3).wait(100).noerr()
+        .test(F3).noerr()
         .image_noheader("help-page5");
     step("Follow link with ENTER")
-        .test(ENTER).wait(100).noerr()
+        .test(ENTER).noerr()
         .image_noheader("help-design");
     step("Back to previous topic with BSP")
-        .test(BSP).wait(100).noerr()
+        .test(BSP).noerr()
         .image_noheader("help-page6");
     step("Next link with F5")
-        .test(F2, F3, F5, ENTER).wait(100).noerr()
+        .test(F2, F3, F5, ENTER).noerr()
         .image_noheader("help-keyboard");
     step("Back with F6")
-        .test(F6).wait(100).noerr()
+        .test(F6).noerr()
         .image_noheader("help-page7");
     step("Previous topic with F4")
-        .test(F4).wait(100).noerr()
+        .test(F4).noerr()
         .image_noheader("help-page8");
     step("Select topic with ENTER")
         .test(ENTER).wait(200).noerr()
@@ -5283,14 +5283,12 @@ void tests::graphic_expressions_rendering()
         .test(CLEAR, EXIT, EXIT)
         .test("1 'X' +", ENTER, B, C, E, "3 X 3", LSHIFT, B, MUL, ADD)
         .test(ALPHA, X, NOSHIFT, J, K, L, ADD)
-        .wait(100)
         .image_noheader("expression");
 
     step("Two levels of stack")
         .test(CLEAR, EXIT, EXIT)
         .test("1 'X' +", ENTER, B, C, E, "3 X 3", LSHIFT, B, MUL, ADD)
         .test(ALPHA, X, NOSHIFT, J, K, L)
-        .wait(100)
         .image_noheader("two-levels");
 
     step("Automatic reduction of size")
@@ -6514,40 +6512,44 @@ tests &tests::want(cstring ref)
                 "] instead");
         return fail();
     }
-    if (cstring out = cstring(Stack.recorded()))
+    for (uint i = 0; i < 10; i++)
     {
-        record(tests, "Comparing [%s] to [%+s] ignoring spaces", out, ref);
-        cstring iout = out;
-        cstring iref = ref;
-        while (true)
+        if (cstring out = cstring(Stack.recorded()))
         {
-            if (*out == 0 && *ref == 0)
-                return *this;   // Successful match
-
-            if (isspace(*ref))
+            record(tests, "Comparing [%s] to [%+s] ignoring spaces", out, ref);
+            cstring iout = out;
+            cstring iref = ref;
+            while (true)
             {
-                while (*ref && isspace(*ref))
-                    ref++;
-                if (!isspace(*out))
-                    break;
-                while (*out && isspace(*out))
+                if (*out == 0 && *ref == 0)
+                    return *this;   // Successful match
+
+                if (isspace(*ref))
+                {
+                    while (*ref && isspace(*ref))
+                        ref++;
+                    if (!isspace(*out))
+                        break;
+                    while (*out && isspace(*out))
+                        out++;
+                }
+                else
+                {
+                    if (*out != *ref)
+                        break;
                     out++;
+                    ref++;
+                }
             }
-            else
-            {
-                if (*out != *ref)
-                    break;
-                out++;
-                ref++;
-            }
-        }
 
-        if (strcmp(ref, cstring(out)) == 0)
-            return *this;
-        explain("Expected output matching [", iref, "], "
-                "got [", iout, "] instead, "
-                "[", ref, "] differs from [", out, "]");
-        return fail();
+            if (strcmp(ref, cstring(out)) == 0)
+                return *this;
+            explain("Expected output matching [", iref, "], "
+                    "got [", iout, "] instead, "
+                    "[", ref, "] differs from [", out, "]");
+            return fail();
+        }
+        wait(50);
     }
     record(tests, "No output");
     explain("Expected output [", ref, "] but got no stack change");
@@ -6569,15 +6571,19 @@ tests &tests::expect(cstring output)
                 "got error [", rt.error(), "] instead");
         return fail();
     }
-    if (utf8 out = Stack.recorded())
+    for (uint i = 0; i < 10; i++)
     {
-        record(tests, "Comparing [%s] to [%+s] %+s", out, output,
-               strcmp(output, cstring(out)) == 0 ? "OK" : "FAIL");
-        if (strcmp(output, cstring(out)) == 0)
-            return *this;
-        explain("Expected output [", output, "], "
-                "got [", cstring(out), "] instead");
-        return fail();
+        if (utf8 out = Stack.recorded())
+        {
+            record(tests, "Comparing [%s] to [%+s] %+s", out, output,
+                   strcmp(output, cstring(out)) == 0 ? "OK" : "FAIL");
+            if (strcmp(output, cstring(out)) == 0)
+                return *this;
+            explain("Expected output [", output, "], "
+                    "got [", cstring(out), "] instead");
+            return fail();
+        }
+        wait(50);
     }
     record(tests, "No output");
     explain("Expected output [", output, "] but got no stack change");
@@ -6685,13 +6691,18 @@ tests &tests::image(cstring file, int x, int y, int w, int h)
 {
     ready();
     cindex++;
-    if (!image_match(file, x, y, w, h, false))
+
+    // If it is not good, keep it on screen a bit longer
+    for (uint i = 0; i < 10; i++)
     {
-        explain("Expected screen to match [", file, "]");
-        image_match(file, x, y, w, h, true);
-        return fail();
+        wait(100);
+        if (image_match(file, x, y, w, h, false))
+            return *this;
     }
-    return *this;
+
+    explain("Expected screen to match [", file, "]");
+    image_match(file, x, y, w, h, true);
+    return fail();
 }
 
 

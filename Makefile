@@ -103,6 +103,11 @@ sim:	sim/gcc111libbid.a	\
 clangdb: sim/$(TARGET).mak .ALWAYS
 	cd sim && rm -f *.o && compiledb make -f $(TARGET).mak && mv compile_commands.json ..
 
+cmp-% compare-%:
+	compare images/$*.png images/bad/$*.png -compose src $*.png || true
+	open $*.png images/bad/$*.png images/$*.png
+
+
 keyboard: Keyboard-Layout.png Keyboard-Cutout.png sim/keyboard-db48x.png help/keyboard.png doc/keyboard.png
 Keyboard-Layout.png: DB48X-Keys/DB48X-Keys.001.png
 	cp $< $@

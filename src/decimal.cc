@@ -1114,18 +1114,18 @@ algebraic_p decimal::to_integer() const
 {
     decimal_g x      = this;
     info      xi     = x->shape();
-    size_t    xs     = xi.nkigits;
     large     xe     = xi.exponent;
-    gcbytes   xb     = xi.base;
-    bool      neg    = x->type() == ID_neg_decimal;
 
     // The standard integer type can hold 18 digits,
     // but kigit scaling below tops out at 16 digits, then may overflow
     if (xe <= 16)
     {
-        large  xl    = xe - 3 * xs;
-        ularge scale = 1;
-        ularge mul   = 10;
+        size_t  xs    = xi.nkigits;
+        gcbytes xb    = xi.base;
+        bool    neg   = x->type() == ID_neg_decimal;
+        large   xl    = xe - 3 * xs;
+        ularge  scale = 1;
+        ularge  mul   = 10;
         if (xl >= 0)
         {
             large p = xl;
@@ -1153,12 +1153,27 @@ algebraic_p decimal::to_integer() const
         id ty = neg ? ID_neg_integer : ID_integer;
         return rt.make<integer>(ty, res);
     }
+    return x->to_bignum();
+}
 
-    bignum_g scale = bignum::make(1);
-    bignum_g mul   = bignum::make(10);
-    bignum_g tmp;
 
-    large    p = xe;
+bignum_p decimal::to_bignum() const
+// ----------------------------------------------------------------------------
+//   Return the decimal value as a bignum
+// ----------------------------------------------------------------------------
+{
+    decimal_g x     = this;
+    info      xi    = x->shape();
+    size_t    xs    = xi.nkigits;
+    large     xe    = xi.exponent;
+    gcbytes   xb    = xi.base;
+    bool      neg   = x->type() == ID_neg_decimal;
+
+    bignum_g  scale = bignum::make(1);
+    bignum_g  mul   = bignum::make(10);
+    bignum_g  tmp;
+
+    large     p = xe;
     while (p)
     {
         if (p & 1)
@@ -1167,7 +1182,7 @@ algebraic_p decimal::to_integer() const
         mul = mul * mul;
     }
 
-    id ty = neg ? ID_neg_bignum : ID_bignum;
+    id       ty  = neg ? ID_neg_bignum : ID_bignum;
     bignum_g res = rt.make<bignum>(ty, 0);
     mul = bignum::make(1000);
     for (size_t xd = 0; xd < xs; xd++)
@@ -1178,11 +1193,9 @@ algebraic_p decimal::to_integer() const
         scale = scale / mul;
     }
 
-    mul = bignum::make(1000);
     res = res / mul;
     return res;
 }
-
 
 
 algebraic_p decimal::to_fraction(uint count, uint decimals) const
@@ -1190,25 +1203,25 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
 //   Convert a decimal value to a fraction
 // ----------------------------------------------------------------------------
 {
-    decimal_g num = this;
-    decimal_g next, whole_part, decimal_part, one;
-    decimal_g v1num, v1den, v2num, v2den, s;
-    bool      neg = num->is_negative();
-    if (!num->split(whole_part, decimal_part))
+    decimal_g   num = this;
+    decimal_g   next, ip, fp, one;
+    bignum_g    n1, d1, n2, d2, s, i;
+    bool        neg = num->is_negative();
+    if (!num->split(ip, fp))
         return nullptr;
-    if (decimal_part->is_zero())
-        return whole_part->to_integer();
+    if (fp->is_zero())
+        return ip->to_integer();
 
     if (neg)
     {
-        whole_part = decimal::neg(whole_part);
-        decimal_part = decimal::neg(decimal_part);
+        ip = decimal::neg(ip);
+        fp = decimal::neg(fp);
     }
     one = make(1);
-    v1num = whole_part;
-    v1den = one;
-    v2num = one;
-    v2den = make(0);
+    n1 = ip->to_bignum();
+    d1 = bignum::make(1);
+    n2 = d1;
+    d2 = bignum::make(0);
 
     uint maxdec = Settings.Precision() - 3;
     if (decimals > maxdec)
@@ -1217,34 +1230,39 @@ algebraic_p decimal::to_fraction(uint count, uint decimals) const
     while (count--)
     {
         // Check if the decimal part is small enough
-        if (decimal_part->is_zero())
+        if (fp->is_zero())
             break;
-        large exp = decimal_part->exponent();
+        large exp = fp->exponent();
         if (-exp > large(decimals))
             break;
 
-        next = one / decimal_part;
-        whole_part = next->truncate();
+        next = one / fp;
+        if (!next)
+            return nullptr;
+        ip = next->truncate();
+        if (!ip)
+            return nullptr;
+        i = ip->to_bignum();
 
-        s = v1num;
-        v1num = whole_part * v1num + v2num;
-        v2num = s;
+        s = n1;
+        n1 = i * n1 + n2;
+        n2 = s;
 
-        s = v1den;
-        v1den = whole_part * v1den + v2den;
-        v2den = s;
+        s = d1;
+        d1 = i * d1 + d2;
+        d2 = s;
 
-        decimal_part = next - whole_part;
+        fraction_g f = +big_fraction::make(n1, d1);
+        fp = num - decimal_g(decimal::from_fraction(f));
+        if (fp->is_zero())
+            break;
+
+        fp = next - ip;
     }
 
-    ularge      numerator   = v1num->as_unsigned();
-    ularge      denominator = v1den->as_unsigned();
-    algebraic_g result;
-    if (denominator == 1)
-        result = +integer::make(numerator);
-    else
-        result = +fraction::make(integer::make(numerator),
-                                 integer::make(denominator));
+    algebraic_g result = d1->is_one()
+                           ? algebraic_p(+n1)
+                           : algebraic_p(+big_fraction::make(n1, d1));
     if (neg)
         result = -result;
     return +result;

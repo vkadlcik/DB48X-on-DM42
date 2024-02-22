@@ -140,7 +140,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        hms_dms_operations();
+        regression_checks();
     }
     else
     {
@@ -5420,6 +5420,15 @@ void tests::regression_checks()
         .noerr().type(object::ID_program).expect("« N »")
         .test(BSP)
         .noerr().type(object::ID_expression).expect("'→N'");
+
+    step("Bug 822: Fraction iteration")
+        .test(CLEAR,
+              LSHIFT, H,
+              100, RSHIFT, F3,
+              20,  RSHIFT, F4)
+        .test("1968.1205", F4).expect("³ ⁹³⁶ ²⁴¹/₂ ₀₀₀")
+        .test("1968.0512", F4).expect("¹ ²³⁰ ⁰³²/₆₂₅")
+        .test(LSHIFT, N, RSHIFT, F4);
 }
 
 

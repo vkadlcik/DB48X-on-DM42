@@ -103,7 +103,7 @@ struct tests
     void graphic_commands();
     void hms_dms_operations();
     void online_help();
-    void graphic_expressions_rendering();
+    void graphic_stack_rendering();
     void regression_checks();
 
     enum key

@@ -114,7 +114,7 @@ TESTS(regressions,      "Regression checks");
 TESTS(plotting,         "Plotting, graphing and charting");
 TESTS(graphics,         "Graphic commands");
 TESTS(help,             "On-line help");
-TESTS(expr,             "Graphic equation rendering")
+TESTS(gstack,           "Graphic stack rendering")
 TESTS(hms,              "HMS and DMS operations");
 
 EXTRA(plotfns,          "Plot all functions");
@@ -140,7 +140,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        cycle_test();
+        graphic_stack_rendering();
     }
     else
     {
@@ -194,7 +194,7 @@ void tests::run(bool onlyCurrent)
         graphic_commands();
         hms_dms_operations();
         online_help();
-        graphic_expressions_rendering();
+        graphic_stack_rendering();
         regression_checks();
     }
     summary();
@@ -5272,12 +5272,12 @@ void tests::online_help()
 }
 
 
-void tests::graphic_expressions_rendering()
+void tests::graphic_stack_rendering()
 // ----------------------------------------------------------------------------
 //   Check the rendering of expressions in graphic mode
 // ----------------------------------------------------------------------------
 {
-    BEGIN(expr);
+    BEGIN(gstack);
 
     step("Draw expression")
         .test(CLEAR, EXIT, EXIT)

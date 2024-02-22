@@ -291,11 +291,13 @@ public:
     // Shared code for parsing and rendering, taking delimiters as input
     static result list_parse(id type, parser &p, unicode open, unicode close);
     intptr_t      list_render(renderer &r, unicode open, unicode close) const;
+    grob_p        graph(grapher &g, size_t rows, size_t cols, bool mat) const;
 
 public:
     OBJECT_DECL(list);
     PARSE_DECL(list);
     RENDER_DECL(list);
+    GRAPH_DECL(list);
     HELP_DECL(list);
 };
 typedef const list *list_p;

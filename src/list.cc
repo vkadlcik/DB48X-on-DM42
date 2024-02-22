@@ -482,7 +482,7 @@ bool list::expand_without_size() const
 
 bool list::expand() const
 // ----------------------------------------------------------------------------
-//   Expand items on
+//   Expand items on the stack, adding the size
 // ----------------------------------------------------------------------------
 {
     size_t depth = rt.depth();
@@ -509,6 +509,190 @@ RENDER_BODY(list)
 // ----------------------------------------------------------------------------
 {
     return o->list_render(r, '{', '}');
+}
+
+
+using pixsize = grob::pixsize;
+
+
+static pixsize row_height(size_t r, size_t rows, size_t cols)
+// ----------------------------------------------------------------------------
+//   Compute the height of a row (max of height of all grobs)
+// ----------------------------------------------------------------------------
+{
+    size_t  nitems = rows * cols;
+    pixsize rh     = 0;
+    for (size_t c = 0; c < cols; c++)
+    {
+        size_t i       = r * cols + c;
+        grob_p colitem = grob_p(rt.stack(nitems + ~i));
+        ASSERT(colitem);
+        pixsize h = colitem->height();
+        if (rh < h)
+            rh = h;
+    }
+    return rh;
+}
+
+
+static pixsize col_width(size_t c, size_t rows, size_t cols)
+// ----------------------------------------------------------------------------
+//   Compute the height of a row (max of height of all grobs)
+// ----------------------------------------------------------------------------
+{
+    size_t  nitems = rows * cols;
+    pixsize cw     = 0;
+    for (size_t r = 0; r < rows; r++)
+    {
+        size_t  i       = r * cols + c;
+        grob_p  colitem = grob_p(rt.stack(nitems + ~i));
+        pixsize w       = colitem->width();
+        if (cw < w)
+            cw = w;
+    }
+    return cw;
+}
+
+
+grob_p list::graph(grapher &g, size_t rows, size_t cols, bool mat) const
+// ----------------------------------------------------------------------------
+//   Render a list or array exploded on stack
+// ----------------------------------------------------------------------------
+{
+    list_g list = this;
+
+    // Convert all elements to graphical equivalent
+    size_t nitems = rows * cols;
+    for (size_t i = 0; i < nitems; i++)
+    {
+        object_p item = rt.stack(i);
+        grob_g   grob = item->graph(g);
+        if (!grob || grob->type() != ID_grob)
+        {
+            // Ran into a problem with one rendering, e.g. out of memory
+            // Fallback to rendering as text.
+            record(list_error, "Problem graphing %zu in %zu x %zu",
+                   i, rows, cols);
+            rt.drop(nitems);
+            return object::do_graph(list, g);
+        }
+        rt.stack(i, grob);
+    }
+
+    // Compute the width, starting with 8 pixels for borders
+    pixsize bw  = mat ? 4 : 2;
+    pixsize sw  = 2;
+    pixsize gap = 12;
+    pixsize gw  = 4 * bw + (cols - 1) * gap + 2 * sw;
+    pixsize gh  = 0;
+
+    // Compute the width as the sum of the max width of all columns
+    for (size_t c = 0; c < cols; c++)
+    {
+        size_t cw = col_width(c, rows, cols);
+        gw += cw;
+        if (gw > g.maxw)
+        {
+            rt.drop(nitems);
+            return nullptr;
+        }
+    }
+
+    // Compute the height as the sum of the max height of all rows
+    for (size_t r = 0; r < rows; r++)
+    {
+        size_t rh = row_height(r, rows, cols);
+        gh += rh;
+        if (gh > g.maxh)
+        {
+            rt.drop(nitems);
+            return nullptr;
+        }
+    }
+
+    // Create the resulting graph
+    grob_g result = g.grob(gw, gh);
+    if (!result)
+    {
+        rt.drop(nitems);
+        return nullptr;
+    }
+    surface rs = result->pixels();
+    rs.fill(0, 0, gw, gh, g.background);
+
+    // Position of items in enclosing border and adjust
+    coord xl = 0;
+    coord yt = 0;
+
+    // Draw all items inside the matrix
+    coord yi = yt;
+    for (size_t r = 0; r < rows; r++)
+    {
+        pixsize rh = row_height(r, rows, cols);
+        coord   xi = xl + 2 * bw + sw;
+        for (size_t c = 0; c < cols; c++)
+        {
+            pixsize cw      = col_width(c, rows, cols);
+            size_t  i       = r * cols + c;
+            grob_p  colitem = grob_p(rt.stack(nitems + ~i));
+            surface is      = colitem->pixels();
+            pixsize iw      = is.width();
+            pixsize ih      = is.height();
+            rs.copy(is, xi + (cw - iw)/2, yi + (rh - ih)/2);
+            xi += cw + gap;
+        }
+        yi += rh;
+    }
+
+    rt.drop(nitems);
+    return result;
+}
+
+
+GRAPH_BODY(list)
+// ----------------------------------------------------------------------------
+//  Render the list vertically if the option is given
+// ----------------------------------------------------------------------------
+{
+    if (Settings.VerticalLists() && o->type() == ID_list)
+    {
+        size_t depth = rt.depth();
+        list_g list = o;
+        if (list->expand_without_size())
+        {
+            size_t rows = rt.depth() - depth;
+            size_t cols = 1;
+            grob_g result = list->graph(g, rows, cols, true);
+            if (!result)
+                return nullptr;
+            surface rs = result->pixels();
+            pixsize gw = rs.width();
+            pixsize gh = rs.height();
+
+            // Dimensions of border and adjust
+            coord   xl = 0;
+            coord   xr = coord(gw) - 2;
+            coord   yt = 0;
+            coord   yb = coord(gh) - 4;
+            pixsize bw = 2;
+
+            // Add the borders
+            for (coord y = 1; y < yb; y++)
+            {
+                coord d = y < yb/2 - 1 || y > yb/2 + 1;
+                rs.fill(xl+d,    y, xl+d+bw,   y, g.foreground);
+                rs.fill(xr-d-bw, y, xr-d,      y, g.foreground);
+            }
+            rs.fill(xl+bw,   yt, xl+2*bw, yt+1, g.foreground);
+            rs.fill(xr-2*bw, yt, xr-bw,   yt+1, g.foreground);
+            rs.fill(xl+bw,   yb, xl+2*bw, yb+1, g.foreground);
+            rs.fill(xr-2*bw, yb, xr-bw,   yb+1, g.foreground);
+
+            return result;
+        }
+    }
+
+    return object::do_graph(o, g);
 }
 
 

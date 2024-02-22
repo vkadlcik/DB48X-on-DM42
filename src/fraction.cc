@@ -97,18 +97,40 @@ GRAPH_BODY(fraction)
 //   Render a fraction in graphical mode
 // ----------------------------------------------------------------------------
 {
-    // save<settings::font_id> save(g.font, settings::smaller_font(g.font));
+    using font_id = settings::font_id;
 
-   fraction_g obj = o;
+    font_id font = g.font;
+    if (Settings.SmallFractions())
+        font = settings::smaller_font(font);
+    save<font_id> fsave(g.font, font);
+    fraction_g obj = o;
 
     // Render numerator and denominator
     bignum_g num = obj->numerator();
     bignum_g den = obj->denominator();
     if (!num || !den)
         return nullptr;
+
+    grob_g ipart = nullptr;
+    if (Settings.MixedFractions())
+    {
+        bignum_g quo, rem;
+        if (bignum::quorem(num, den, bignum::ID_bignum, &quo, &rem))
+        {
+            if (!quo->is_zero())
+            {
+                save<font_id> isave(g.font, fsave.saved);
+                ipart = quo->graph(g);
+                num = rem;
+            }
+        }
+    }
     grob_g numg = num->graph(g);
     grob_g deng = den->graph(g);
-    return expression::ratio(g, numg, deng);
+    numg = expression::ratio(g, numg, deng);
+    if (ipart && numg)
+        numg = expression::prefix(g, 0, ipart, g.voffset, numg);
+    return numg;
 }
 
 

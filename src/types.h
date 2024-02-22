@@ -61,18 +61,16 @@ struct save
 //   Save a value and reset it to what it was on scope exit
 // ----------------------------------------------------------------------------
 {
-    save(value_type &ref, value_type value): ref(ref), value(ref)
+    save(value_type &ref, value_type value): ref(ref), saved(ref)
     {
         ref = value;
     }
     ~save()
     {
-        ref = value;
+        ref = saved;
     }
-
-private:
     value_type  &ref;
-    value_type  value;
+    value_type  saved;
 };
 
 extern void debug_printf(int row, cstring format, ...);

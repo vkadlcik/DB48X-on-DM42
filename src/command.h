@@ -154,6 +154,11 @@ COMMAND_DECLARE(HMSAdd);        // Add numbers in HMS format
 COMMAND_DECLARE(HMSSub);        // Subtract numbers in HMS format
 COMMAND_DECLARE(DMSAdd);        // Add numbers in HMS format
 COMMAND_DECLARE(DMSSub);        // Subtract numbers in HMS format
+COMMAND_DECLARE(Date);          // Return current date
+COMMAND_DECLARE(SetDate);       // Set current date
+COMMAND_DECLARE(Time);          // Return current time
+COMMAND_DECLARE(SetTime);       // Set current time
+COMMAND_DECLARE(DateTime);      // Return current date and time
 
 COMMAND_DECLARE(EditorSelect);  // Select from current cursor position
 COMMAND_DECLARE(EditorWordLeft); // Move cursor one word left

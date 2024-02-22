@@ -506,6 +506,8 @@ OP(ToDMS,       "→DMS")
 OP(FromDMS,     "DMS→")
 OP(DMSAdd,      "DMS+")
 OP(DMSSub,      "DMS-")
+
+// Angles
 OP(RadiansToDegrees, "Radians→Degrees") ALIAS(RadiansToDegrees, "R→D")
 OP(DegreesToRadians, "Degrees→Radians") ALIAS(DegreesToRadians, "D→R")
 OP(ToDegrees,   "→Degrees")             ALIAS(ToDegrees, "→Deg")
@@ -514,6 +516,11 @@ OP(ToGrads,     "→Grads")               ALIAS(ToGrads,   "→Grad")
 OP(ToPiRadians, "→PiRadians")           ALIAS(ToDegrees, "→πr")
 
 // Timing and system commands
+CMD(Date)
+OP(SetDate, "→Date")
+CMD(Time)
+OP(SetTime, "→Time")
+CMD(DateTime)
 CMD(Ticks)
 CMD(Wait)
 CMD(Bytes)

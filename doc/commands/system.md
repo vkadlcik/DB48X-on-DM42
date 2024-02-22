@@ -1,14 +1,16 @@
 # Time, Alarms and System Commands
 
-## SETDATE
-Set current system date in MM.DDYYYY
+## SetDate
+
+Set current system date. The date format is YYYY.MMDD
 
 
 ## DATEADD
 Add days to a date in MM.DDYYYY
 
 
-## SETTIME
+## SetTime
+
 Set current time as HH.MMSS
 
 

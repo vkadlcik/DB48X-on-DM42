@@ -1180,6 +1180,92 @@ COMMAND_BODY(HMSSub)
 
 // ============================================================================
 //
+//   Date and time
+//
+// ============================================================================
+
+COMMAND_BODY(DateTime)
+// ----------------------------------------------------------------------------
+//   Return current date and time
+// ----------------------------------------------------------------------------
+{
+    dt_t dt;
+    tm_t tm;
+    rtc_wakeup_delay();
+    rtc_read(&tm, &dt);
+
+    ularge tval = tm.hour * 10000 + tm.min * 100 + tm.sec;
+    ularge dval = dt.year * 10000 + (dt.month + 1) * 100 + dt.day;
+    dval = dval * 1000000ULL + tval;
+    if (decimal_g date   = decimal::make(dval, -10))
+        if (unit_g result = unit::make(+date, +symbol::make("date")))
+            if (rt.push(+result))
+                return OK;
+    return ERROR;
+}
+
+
+COMMAND_BODY(Date)
+// ----------------------------------------------------------------------------
+//   Return current date
+// ----------------------------------------------------------------------------
+{
+    dt_t dt;
+    tm_t tm;
+    rtc_wakeup_delay();
+    rtc_read(&tm, &dt);
+
+    ularge dval = dt.year * 10000 + (dt.month + 1) * 100 + dt.day;
+    if (decimal_g date   = decimal::make(dval, -4))
+        if (unit_g result = unit::make(+date, +symbol::make("date")))
+            if (rt.push(+result))
+                return OK;
+    return ERROR;
+}
+
+
+COMMAND_BODY(SetDate)
+// ----------------------------------------------------------------------------
+//   Set the current date
+// ----------------------------------------------------------------------------
+{
+    return ERROR;
+}
+
+
+COMMAND_BODY(Time)
+// ----------------------------------------------------------------------------
+//   Return the current time
+// ----------------------------------------------------------------------------
+{
+    dt_t dt;
+    tm_t tm;
+    rtc_wakeup_delay();
+    rtc_read(&tm, &dt);
+
+    ularge tval = tm.hour * 10000 + tm.min * 100 + tm.sec;
+    if (decimal_g time   = decimal::make(tval, -4))
+        if (algebraic_g sexag = from_hms_dms(+time, ""))
+            if (unit_g result = unit::make(+sexag, +symbol::make("hms")))
+                if (rt.push(+result))
+                    return OK;
+    return ERROR;
+}
+
+
+COMMAND_BODY(SetTime)
+// ----------------------------------------------------------------------------
+//   Set the current time
+// ----------------------------------------------------------------------------
+{
+    return ERROR;
+}
+
+
+
+
+// ============================================================================
+//
 //   History and undo
 //
 // ============================================================================

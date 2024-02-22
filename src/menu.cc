@@ -1463,14 +1463,14 @@ MENU(TimeMenu,
 // ----------------------------------------------------------------------------
 //   Time operations
 // ----------------------------------------------------------------------------
-     "Date",    ID_Unimplemented,
+     "Date",    ID_Date,
+     "Time",    ID_Time,
      "∆Date",   ID_Unimplemented,
-     "Time",    ID_Unimplemented,
      "∆Time",   ID_Unimplemented,
      "Ticks",   ID_Ticks,
 
-     "→Date",   ID_Unimplemented,
-     "→Time",   ID_Unimplemented,
+     "→Date",   ID_SetDate,
+     "→Time",   ID_SetTime,
      "T→Str",   ID_Unimplemented,
      "ClkAdj",  ID_Unimplemented,
      "TmBench", ID_Unimplemented,

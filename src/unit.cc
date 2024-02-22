@@ -120,73 +120,117 @@ algebraic_p unit::simple(algebraic_g v, algebraic_g u, id ty)
 }
 
 
-static size_t render_dms(renderer &r, algebraic_g x,
+static void render_time(renderer &r, algebraic_g &value,
+                        cstring hrs, cstring min, cstring sec,
+                        uint base, bool ampm)
+// ----------------------------------------------------------------------------
+//   Render a time (or an angle) as hours/minutes/seconds
+// ----------------------------------------------------------------------------
+{
+    if (!value)
+        return;
+    uint h = value->as_uint32(false);
+    r.printf("%u", h);
+    r.put(hrs);
+
+    algebraic_g one = integer::make(1);
+    algebraic_g factor = integer::make(base);
+    value = (value * factor) % factor;
+    uint m = value ? value->as_uint32(false) : 0;
+    r.printf("%02u", m);
+    r.put(min);
+
+    value = (value * factor) % factor;
+    uint s = value ? value->as_uint32() : 0;
+    r.printf("%02u", s);
+    r.put(sec);
+
+    value = value % one;
+    if (value && !value->is_zero())
+        if (algebraic::decimal_to_fraction(value))
+            value->render(r);
+
+    if (ampm)
+        r.put(h < 12 ? 'A' : 'P');
+}
+
+
+static size_t render_dms(renderer &r, algebraic_g value,
                          cstring deg, cstring min, cstring sec)
 // ----------------------------------------------------------------------------
 //   Render a number as "degrees / minutes / seconds"
 // ----------------------------------------------------------------------------
 {
-    if (!algebraic::decimal_to_fraction(x))
-        return 0;
-    if (!x)
-        return 0;
-    integer_g one = integer::make(1);
-    if (x->is_bignum())
-        x = +big_fraction::make(bignum_p(+x), bignum::make(1));
-    else if (x->is_integer())
-        x = +fraction::make(integer_p(+x), one);
-    if (!x->is_fraction())
-        return 0;
-
-    fraction_g value = fraction_p(+x);
     bool neg = value->is_negative();
     if (neg)
     {
         r.put('-');
         value = -value;
     }
-    ularge v = value->as_unsigned();
-    r.printf("%llu", v);
-    r.put(deg);
-
-    fraction_g factor = fraction::make(integer::make(60), one);
-
-    value = (value * factor) % factor;
-    v = value->as_unsigned();
-    r.printf("%02llu", v);
-    r.put(min);
-
-    value = (value * factor) % factor;
-    v = value->as_unsigned();
-    v = value->as_unsigned();
-    r.printf("%02llu", v);
-    r.put(sec);
-
-    factor = fraction::make(one, one);
-    value = value % factor;
-    if (!value->is_zero())
-        value->render(r);
-
+    render_time(r, value, deg, min, sec, 60, false);
     return r.size();
 }
 
 
-static size_t render_date(renderer &r, algebraic_g x)
+static size_t render_date(renderer &r, algebraic_g date)
 // ----------------------------------------------------------------------------
 //   Render a number as "degrees / minutes / seconds"
 // ----------------------------------------------------------------------------
 {
-    if (!algebraic::decimal_promotion(x))
+    if (!date || !date->is_real())
         return 0;
-    if (x->is_decimal())
-        return 0;
+    bool neg = date->is_negative();
+    if (neg)
+    {
+        r.put('-');
+        date = -date;
+    }
 
-    decimal_g value = decimal_p(+x);
-    decimal_g ip, fp;
-    if (!value->split(ip, fp))
-        return 0;
+    integer_g one = integer::make(1);
+    algebraic_g factor = integer::make(100);
 
-    return 0;
+    uint year = date->as_uint32(false);
+    date = (date * factor) % factor;
+    uint month = date->as_uint32(false);
+    date = (date * factor) % factor;
+    uint day = date->as_uint32();
+    date = (date * factor) % factor;
+
+    char mname[4];
+    if (Settings.ShowMonthName() && month >=1 && month <= 12)
+        snprintf(mname, 4, "%s", get_month_shortcut(month-1));
+    else
+        snprintf(mname, 4, "%u", month);
+
+    char ytext[6];
+    if (Settings.TwoDigitYear())
+        snprintf(ytext, 6, "%02u", year % 100);
+    else
+        snprintf(ytext, 6, "%u", year);
+
+    if (Settings.ShowDayOfWeek() && false)
+    {
+        uint dow = 1;
+        r.printf("%s ", get_wday_shortcut(dow));
+    }
+
+    char sep   = Settings.DateSeparator();
+    uint index = 2 * Settings.YearFirst() + Settings.MonthBeforeDay();
+    switch(index)
+    {
+    case 0: r.printf("%u%c%s%c%s", day,   sep, mname, sep, ytext); break;
+    case 1: r.printf("%s%c%u%c%s", mname, sep, day,   sep, ytext); break;
+    case 2: r.printf("%s%c%u%c%s", ytext, sep, day,   sep, mname); break;
+    case 3: r.printf("%s%c%s%c%u", ytext, sep, mname, sep, day);   break;
+    }
+
+    if (date && !date->is_zero())
+    {
+        r.put(", ");
+        render_time(r, date, ":", ":", "", 100, Settings.Time12H());
+    }
+
+    return r.size();
 }
 
 
@@ -206,7 +250,7 @@ RENDER_BODY(unit)
         else if (sym->matches("hms"))
             sz = ed ? render_dms(r, value, "°", "′", "″")
                     : render_dms(r, value, ":", ":", "");
-        else if (sym->matches("date"))
+        else if (sym->matches("date") && !ed)
             sz = render_date(r, value);
         if (sz && !ed)
             return sz;

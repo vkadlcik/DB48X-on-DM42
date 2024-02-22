@@ -210,7 +210,7 @@ public:
     char DateSeparator() const
     {
         uint index = DateSeparatorCommand() - object::ID_DateSlash;
-        static char sep[4] = { '/', '-', '.', '\'' };
+        static char sep[4] = { '/', '-', '.', ' ' };
         return sep[index];
     }
 

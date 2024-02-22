@@ -140,7 +140,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        graphic_stack_rendering();
+        hms_dms_operations();
     }
     else
     {
@@ -5187,6 +5187,19 @@ void tests::hms_dms_operations()
         .test(F5).noerr().expect("1°02′03″")
         .test(LSHIFT, F5).noerr().expect("1:02:03")
         .test(LSHIFT, F5).noerr().expect("1:02:03");
+
+    step("Displaying a date")
+        .test(CLEAR, "1968.1205_date", ENTER)
+        .expect("5/Dec/1968");
+    step("Displaying a date with a time")
+        .test(CLEAR, "1969.0217035501_date", ENTER)
+        .expect("17/Feb/1969, 3:55:01");
+    step("Displaying a date with a fractional time")
+        .test(CLEAR, "1969.021703550197_date", ENTER)
+        .expect("17/Feb/1969, 3:55:01⁹⁷/₁₀₀");
+    step("Displaying invalid date and time")
+        .test(CLEAR, "99999.999999999999_date", ENTER)
+        .expect("99/99/99999, 99:99:99⁹⁹/₁₀₀");
 }
 
 

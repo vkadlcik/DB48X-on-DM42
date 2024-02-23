@@ -32,6 +32,7 @@
 #include "algebraic.h"
 #include "arithmetic.h"
 #include "compare.h"
+#include "datetime.h"
 #include "expression.h"
 #include "file.h"
 #include "functions.h"
@@ -117,120 +118,6 @@ algebraic_p unit::simple(algebraic_g v, algebraic_g u, id ty)
         }
     }
     return uobj;
-}
-
-
-static void render_time(renderer &r, algebraic_g &value,
-                        cstring hrs, cstring min, cstring sec,
-                        uint base, bool ampm)
-// ----------------------------------------------------------------------------
-//   Render a time (or an angle) as hours/minutes/seconds
-// ----------------------------------------------------------------------------
-{
-    if (!value)
-        return;
-    uint h = value->as_uint32(false);
-    r.printf("%u", h);
-    r.put(hrs);
-
-    algebraic_g one = integer::make(1);
-    algebraic_g factor = integer::make(base);
-    value = (value * factor) % factor;
-    uint m = value ? value->as_uint32(false) : 0;
-    r.printf("%02u", m);
-    r.put(min);
-
-    value = (value * factor) % factor;
-    uint s = value ? value->as_uint32() : 0;
-    r.printf("%02u", s);
-    r.put(sec);
-
-    value = value % one;
-    if (value && !value->is_zero())
-        if (algebraic::decimal_to_fraction(value))
-            value->render(r);
-
-    if (ampm)
-        r.put(h < 12 ? 'A' : 'P');
-}
-
-
-static size_t render_dms(renderer &r, algebraic_g value,
-                         cstring deg, cstring min, cstring sec)
-// ----------------------------------------------------------------------------
-//   Render a number as "degrees / minutes / seconds"
-// ----------------------------------------------------------------------------
-{
-    bool neg = value->is_negative();
-    if (neg)
-    {
-        r.put('-');
-        value = -value;
-    }
-    render_time(r, value, deg, min, sec, 60, false);
-    return r.size();
-}
-
-
-static size_t render_date(renderer &r, algebraic_g date)
-// ----------------------------------------------------------------------------
-//   Render a number as "degrees / minutes / seconds"
-// ----------------------------------------------------------------------------
-{
-    if (!date || !date->is_real())
-        return 0;
-    bool neg = date->is_negative();
-    if (neg)
-    {
-        r.put('-');
-        date = -date;
-    }
-
-    algebraic_g factor = integer::make(100);
-    algebraic_g time = integer::make(1);
-    time = date % time;
-    uint day = date->as_uint32(false) % 100;
-    date = date / factor;
-    uint month = date->as_uint32(false) % 100;
-    date = date / factor;
-    uint year = date->as_uint32(false);
-
-    char mname[4];
-    if (Settings.ShowMonthName() && month >=1 && month <= 12)
-        snprintf(mname, 4, "%s", get_month_shortcut(month-1));
-    else
-        snprintf(mname, 4, "%u", month);
-
-    char ytext[6];
-    if (Settings.TwoDigitYear())
-        snprintf(ytext, 6, "%02u", year % 100);
-    else
-        snprintf(ytext, 6, "%u", year);
-
-    if (Settings.ShowDayOfWeek() && false)
-    {
-        uint dow = 1;
-        r.printf("%s ", get_wday_shortcut(dow));
-    }
-
-    char sep   = Settings.DateSeparator();
-    uint index = 2 * Settings.YearFirst() + Settings.MonthBeforeDay();
-    switch(index)
-    {
-    case 0: r.printf("%u%c%s%c%s", day,   sep, mname, sep, ytext); break;
-    case 1: r.printf("%s%c%u%c%s", mname, sep, day,   sep, ytext); break;
-    case 2: r.printf("%s%c%u%c%s", ytext, sep, day,   sep, mname); break;
-    case 3: r.printf("%s%c%s%c%u", ytext, sep, mname, sep, day);   break;
-    }
-
-    if (time && !time->is_zero())
-    {
-        r.put(", ");
-        time = time * factor;
-        render_time(r, time, ":", ":", "", 100, Settings.Time12H());
-    }
-
-    return r.size();
 }
 
 

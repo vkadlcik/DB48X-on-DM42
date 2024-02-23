@@ -39,6 +39,7 @@
 #include "complex.h"
 #include "conditionals.h"
 #include "constants.h"
+#include "datetime.h"
 #include "decimal.h"
 #include "expression.h"
 #include "font.h"

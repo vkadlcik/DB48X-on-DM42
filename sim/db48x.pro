@@ -33,58 +33,59 @@ SOURCES +=                                      \
 	sim-screen.cpp                          \
 	sim-rpl.cpp                             \
 	dmcp.cpp                                \
-	../src/dmcp/target.cc                   \
-        ../src/dmcp/sysmenu.cc                  \
-        ../src/dmcp/main.cc                     \
-	../src/util.cc                          \
-	../src/renderer.cc                      \
-	../src/user_interface.cc                \
-	../src/file.cc                          \
-	../src/stack.cc                         \
-	../src/settings.cc                      \
-        ../src/object.cc                        \
-        ../src/command.cc                       \
-        ../src/compare.cc                       \
-        ../src/logical.cc                       \
-        ../src/integer.cc                       \
-        ../src/bignum.cc                        \
-        ../src/fraction.cc                      \
-        ../src/complex.cc                       \
-        ../src/decimal.cc                       \
-        ../src/hwfp.cc                          \
-        ../src/runtime.cc                       \
-        ../src/text.cc                          \
-        ../src/comment.cc                       \
-        ../src/symbol.cc                        \
+        ../fonts/EditorFont.cc                  \
+        ../fonts/HelpFont.cc                    \
+        ../fonts/ReducedFont.cc                 \
+        ../fonts/StackFont.cc                   \
         ../src/algebraic.cc                     \
         ../src/arithmetic.cc                    \
-        ../src/functions.cc                     \
-        ../src/variables.cc                     \
-        ../src/locals.cc                        \
-        ../src/catalog.cc                       \
-        ../src/menu.cc                          \
-        ../src/list.cc                          \
-        ../src/program.cc                       \
-        ../src/expression.cc                    \
-        ../src/constants.cc                     \
-        ../src/unit.cc                          \
         ../src/array.cc                         \
-        ../src/loops.cc                         \
+        ../src/bignum.cc                        \
+        ../src/catalog.cc                       \
+        ../src/command.cc                       \
+        ../src/comment.cc                       \
+        ../src/compare.cc                       \
+        ../src/complex.cc                       \
         ../src/conditionals.cc                  \
-	../fonts/EditorFont.cc	                \
-	../fonts/HelpFont.cc	                \
-	../fonts/StackFont.cc			\
-	../fonts/ReducedFont.cc			\
-	../src/font.cc				\
-	../src/tag.cc				\
-	../src/files.cc                         \
-	../src/graphics.cc			\
-	../src/grob.cc                          \
-	../src/plot.cc	                        \
-	../src/stats.cc	                        \
-	../src/solve.cc	                        \
-	../src/integrate.cc                     \
-	../src/tests.cc
+        ../src/constants.cc                     \
+        ../src/datetime.cc                      \
+        ../src/decimal.cc                       \
+        ../src/dmcp/main.cc                     \
+        ../src/dmcp/sysmenu.cc                  \
+        ../src/dmcp/target.cc                   \
+        ../src/expression.cc                    \
+        ../src/file.cc                          \
+        ../src/files.cc                         \
+        ../src/font.cc                          \
+        ../src/fraction.cc                      \
+        ../src/functions.cc                     \
+        ../src/graphics.cc                      \
+        ../src/grob.cc                          \
+        ../src/hwfp.cc                          \
+        ../src/integer.cc                       \
+        ../src/integrate.cc                     \
+        ../src/list.cc                          \
+        ../src/locals.cc                        \
+        ../src/logical.cc                       \
+        ../src/loops.cc                         \
+        ../src/menu.cc                          \
+        ../src/object.cc                        \
+        ../src/plot.cc                          \
+        ../src/program.cc                       \
+        ../src/renderer.cc                      \
+        ../src/runtime.cc                       \
+        ../src/settings.cc                      \
+        ../src/solve.cc                         \
+        ../src/stack.cc                         \
+        ../src/stats.cc                         \
+        ../src/symbol.cc                        \
+        ../src/tag.cc                           \
+        ../src/tests.cc                         \
+        ../src/text.cc                          \
+        ../src/unit.cc                          \
+        ../src/user_interface.cc                \
+        ../src/util.cc                          \
+        ../src/variables.cc                     \
 
 HEADERS +=                                      \
 	sim-window.h                            \

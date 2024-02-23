@@ -35,6 +35,7 @@
 
 #include <dmcp.h>
 
+
 void invert_screen()
 // ----------------------------------------------------------------------------
 //   Invert the screen and refresh it

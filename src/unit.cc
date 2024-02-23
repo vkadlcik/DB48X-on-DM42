@@ -186,15 +186,14 @@ static size_t render_date(renderer &r, algebraic_g date)
         date = -date;
     }
 
-    integer_g one = integer::make(1);
     algebraic_g factor = integer::make(100);
-
+    algebraic_g time = integer::make(1);
+    time = date % time;
+    uint day = date->as_uint32(false) % 100;
+    date = date / factor;
+    uint month = date->as_uint32(false) % 100;
+    date = date / factor;
     uint year = date->as_uint32(false);
-    date = (date * factor) % factor;
-    uint month = date->as_uint32(false);
-    date = (date * factor) % factor;
-    uint day = date->as_uint32();
-    date = (date * factor) % factor;
 
     char mname[4];
     if (Settings.ShowMonthName() && month >=1 && month <= 12)
@@ -224,10 +223,11 @@ static size_t render_date(renderer &r, algebraic_g date)
     case 3: r.printf("%s%c%s%c%u", ytext, sep, mname, sep, day);   break;
     }
 
-    if (date && !date->is_zero())
+    if (time && !time->is_zero())
     {
         r.put(", ");
-        render_time(r, date, ":", ":", "", 100, Settings.Time12H());
+        time = time * factor;
+        render_time(r, time, ":", ":", "", 100, Settings.Time12H());
     }
 
     return r.size();

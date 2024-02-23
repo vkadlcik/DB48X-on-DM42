@@ -1008,6 +1008,13 @@ void rtc_read(tm_t * tm, dt_t *dt)
     tm->dow = utm.tm_wday;
 }
 
+void rtc_write(tm_t * tm, dt_t *dt)
+{
+    record(dmcp_error, "Writing RTC %u/%u/%u %u:%u:%u (ignored)",
+           dt->day, dt->month, dt->year,
+           tm->hour, tm->min, tm->sec);
+}
+
 
 cstring get_wday_shortcut(int day)
 {

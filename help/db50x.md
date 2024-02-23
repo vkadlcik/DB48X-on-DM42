@@ -6684,16 +6684,23 @@ Apply certain assumptions about a variable to an expression.
 
 ## SetDate
 
-Set current system date. The date format is YYYY.MMDD
+Set current system date. The date format is YYYYMMDD, with an optional
+fractional part defining the time, as in YYYYMMDD.HHMMSS. If the fractional part
+is zero, then the time is not changed.
+
+Note: the date format is intentionally differentfrom the format on the HP-48.
 
 
 ## DATEADD
+
 Add days to a date in MM.DDYYYY
 
 
 ## SetTime
 
-Set current time as HH.MMSS
+Set current time as HH.MMSS.
+
+An HMS value can also be given, as returned by the `Time` command.
 
 
 ## TOHMS
@@ -6720,8 +6727,11 @@ Return system clock in microseconds
 Perform EVAL and measure elapsed time
 
 
-## DATE
-Current system date as MM.DDYYYY
+## Date
+
+Return the current system date as a unit object in the form `YYYYMMDD_date`.
+This displays on the stack according to date format settings, in a way similar
+to what is shown in the header, e.g. `23/Feb/2024` or `2024-02-23`.
 
 
 ## DDAYS
@@ -6729,8 +6739,9 @@ Number of days between dates in MM.DDYYYY
 
 
 ## TIME
-Current time in HH.MMSS
 
+Return the current system time as a unit object in the form `HH.MMSS_hms`.
+This displays on the stack as `HH:MM:SS`.
 
 ## TSTR
 

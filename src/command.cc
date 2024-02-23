@@ -1197,7 +1197,7 @@ COMMAND_BODY(DateTime)
     ularge tval = tm.hour * 10000 + tm.min * 100 + tm.sec;
     ularge dval = dt.year * 10000 + (dt.month + 1) * 100 + dt.day;
     dval = dval * 1000000ULL + tval;
-    if (decimal_g date   = decimal::make(dval, -10))
+    if (decimal_g date   = decimal::make(dval, -6))
         if (unit_g result = unit::make(+date, +symbol::make("date")))
             if (rt.push(+result))
                 return OK;
@@ -1216,11 +1216,87 @@ COMMAND_BODY(Date)
     rtc_read(&tm, &dt);
 
     ularge dval = dt.year * 10000 + (dt.month + 1) * 100 + dt.day;
-    if (decimal_g date   = decimal::make(dval, -4))
+    if (integer_g date   = integer::make(dval))
         if (unit_g result = unit::make(+date, +symbol::make("date")))
             if (rt.push(+result))
                 return OK;
     return ERROR;
+}
+
+
+static bool setDate(object_p dobj)
+// ----------------------------------------------------------------------------
+//   Set the system date based on input
+// ----------------------------------------------------------------------------
+{
+    if (!dobj)
+        return false;
+
+    algebraic_g date;
+    if (unit_p u = dobj->as<unit>())
+        if (object_p uexpr = u->uexpr())
+            if (symbol_p sym = uexpr->as_quoted<symbol>())
+                if (sym->matches("date"))
+                    date = u->value();
+    if (!date)
+        date = dobj->as_real();
+    if (!date)
+    {
+        rt.type_error();
+        return false;
+    }
+
+    dt_t dt;
+    tm_t tm;
+    rtc_wakeup_delay();
+    rtc_read(&tm, &dt);
+
+    algebraic_g factor = integer::make(100);
+    algebraic_g time = integer::make(1);
+    time = date % time;
+    uint day = date->as_uint32(false) % 100;
+    date = date / factor;
+    uint month = date->as_uint32(false) % 100;
+    date = date / factor;
+    uint year = date->as_uint32(false);
+
+    const uint days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    bool bisext =
+        month == 2      &&
+        year % 4 == 0   &&
+        (year % 100 != 0 || year % 400 == 0);
+    if (month < 1 || month > 12 || day < 1 || day > days[month-1] + bisext)
+    {
+        rt.invalid_date_error();
+        return false;
+    }
+    dt.day   = day;
+    dt.month = month;
+    dt.year  = year;
+
+    if (time && !time->is_zero())
+    {
+        time = time * factor;
+        uint hour = time->as_uint32(false);
+        time = (time * factor) % factor;
+        uint min = time->as_uint32(false);
+        time = (time * factor) % factor;
+        uint sec = time->as_uint32(false);
+        time = (time * factor) % factor;
+        uint csec = time->as_uint32(false);
+        if (hour >= 24 || min >= 60 || sec >= 60)
+        {
+            rt.invalid_time_error();
+            return false;
+        }
+        tm.hour = hour;
+        tm.min = min;
+        tm.sec = sec;
+        tm.csec = csec;
+    }
+
+    rtc_write(&tm, &dt);
+    return true;
 }
 
 
@@ -1229,6 +1305,12 @@ COMMAND_BODY(SetDate)
 //   Set the current date
 // ----------------------------------------------------------------------------
 {
+    if (rt.args(1))
+        if (object_p d = rt.top())
+            if (setDate(d))
+                if (rt.drop())
+                    return OK;
+
     return ERROR;
 }
 
@@ -1244,12 +1326,69 @@ COMMAND_BODY(Time)
     rtc_read(&tm, &dt);
 
     ularge tval = tm.hour * 10000 + tm.min * 100 + tm.sec;
-    if (decimal_g time   = decimal::make(tval, -4))
-        if (algebraic_g sexag = from_hms_dms(+time, ""))
-            if (unit_g result = unit::make(+sexag, +symbol::make("hms")))
-                if (rt.push(+result))
-                    return OK;
+    if (integer_g itime = integer::make(tval))
+      if (integer_g ratio = integer::make(10000))
+          if (fraction_g time = fraction::make(itime, ratio))
+              if (algebraic_g sexag = from_hms_dms(+time, ""))
+                  if (unit_g result = unit::make(+sexag, +symbol::make("hms")))
+                      if (rt.push(+result))
+                          return OK;
     return ERROR;
+}
+
+
+
+static bool setTime(object_p tobj)
+// ----------------------------------------------------------------------------
+//   Set the system date based on input
+// ----------------------------------------------------------------------------
+{
+    if (!tobj)
+        return false;
+
+    algebraic_g time;
+    uint scale = 100;
+    if (unit_p u = tobj->as<unit>())
+        if (object_p uexpr = u->uexpr())
+            if (symbol_p sym = uexpr->as_quoted<symbol>())
+                if (sym->matches("hms"))
+                    time = u->value();
+    if (time)
+        scale = 60;
+    else
+        time = tobj->as_real();
+    if (!time)
+    {
+        rt.type_error();
+        return false;
+    }
+
+    dt_t dt;
+    tm_t tm;
+    rtc_wakeup_delay();
+    rtc_read(&tm, &dt);
+
+    algebraic_g factor = integer::make(scale);
+    uint hour = time->as_uint32(false);
+    time = (time * factor) % factor;
+    uint min = time->as_uint32(false);
+    time = (time * factor) % factor;
+    uint sec = time->as_uint32(false);
+    factor = integer::make(100);
+    time = (time * factor) % factor;
+    uint csec = time->as_uint32(false);
+    if (hour >= 24 || min >= 60 || sec >= 60)
+    {
+        rt.invalid_time_error();
+        return false;
+    }
+    tm.hour = hour;
+    tm.min = min;
+    tm.sec = sec;
+    tm.csec = csec;
+
+    rtc_write(&tm, &dt);
+    return true;
 }
 
 
@@ -1258,6 +1397,11 @@ COMMAND_BODY(SetTime)
 //   Set the current time
 // ----------------------------------------------------------------------------
 {
+    if (rt.args(1))
+        if (object_p t = rt.top())
+            if (setTime(t))
+                if (rt.drop())
+                    return OK;
     return ERROR;
 }
 

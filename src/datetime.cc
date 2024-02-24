@@ -330,6 +330,7 @@ void render_time(renderer &r, algebraic_g &value,
 {
     if (!value)
         return;
+    bool as_time = *hrs == ':';
     uint h = value->as_uint32(false);
     r.printf("%u", h);
     r.put(hrs);
@@ -348,9 +349,21 @@ void render_time(renderer &r, algebraic_g &value,
 
     value = value % one;
     if (value && !value->is_zero())
-        if (algebraic::decimal_to_fraction(value))
+    {
+        if (as_time && algebraic::to_decimal(value))
+        {
+            settings::SaveLeadingZero slz(false);
+            auto dm = Settings.DisplayMode();
+            if (dm == object::ID_Sci || dm == object::ID_Eng)
+                dm = object::ID_Fix;
+            settings::SaveDisplayMode sdm(dm);
             value->render(r);
-
+        }
+        else if (algebraic::decimal_to_fraction(value))
+        {
+            value->render(r);
+        }
+    }
     if (ampm)
         r.put(h < 12 ? 'A' : 'P');
 }

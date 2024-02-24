@@ -403,8 +403,9 @@ RENDER_BODY(decimal)
             // This is pure evil and inconsistent with all older HP calculators
             // (which, granted, did not have STD mode) and later ones (Prime)
             // So let's decide that 0.3 will show as 0.3 in STD mode and not .3
-            r.put('0');
-            decpos--;               // Don't emit the decimal separator twice
+            if (Settings.LeadingZero())
+                r.put('0');
+            decpos--;       // Don't emit the decimal separator twice
 
             // Emit decimal dot and leading zeros on fractional part
             if (showdec || realexp  < 0)

@@ -4047,7 +4047,7 @@ bool user_interface::handle_functions(int key)
             switch (mode)
             {
             case PROGRAM:
-                if (obj->is_command())
+                if (obj->is_program_cmd())
                 {
                     dirtyEditor = true;
                     edRows = 0;
@@ -4062,7 +4062,7 @@ bool user_interface::handle_functions(int key)
                     if (!end_edit())
                         return false;
                 }
-                else if (obj->is_algebraic() || obj->is_command())
+                else if (obj->is_algebraic() || obj->is_program_cmd())
                 {
                     dirtyEditor = true;
                     edRows = 0;

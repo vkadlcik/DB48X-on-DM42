@@ -6746,6 +6746,10 @@ This displays on the stack as `HH:MM:SS`.
 ## TSTR
 
 
+## JulianDayNumber
+
+Return the Julian day number for the given date and time
+
 ## ACK
 Acknowledge oldest alarm (dismiss)
 

@@ -692,3 +692,31 @@ COMMAND_BODY(DateSub)
     }
     return ERROR;
 }
+
+
+COMMAND_BODY(JulianDayNumber)
+// ----------------------------------------------------------------------------
+//   Return the Julian day number for current date and time
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    dt_t dt;
+    tm_t tm{};
+    if (object_p d = rt.top())
+    {
+        if (to_date(d, dt, tm))
+        {
+            ularge jdn = julian_day_number(dt);
+            ularge jf = (3600 * tm.hour + 60 * tm.min + tm.sec) * 100 + tm.csec;
+            ularge ratio = 8640000;
+            algebraic_g jdna = integer::make(jdn);
+            algebraic_g jdnf = +fraction::make(integer::make(jf),
+                                               integer::make(ratio));
+            jdna = jdna + jdnf;
+            if (jdna && rt.top(jdna))
+                return OK;
+        }
+    }
+    return ERROR;
+}

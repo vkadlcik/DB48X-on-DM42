@@ -1488,7 +1488,8 @@ MENU(TimeMenu,
      "FindAlm", ID_Unimplemented,
 
      "DelAlm",  ID_Unimplemented,
-     "AckAll",  ID_Unimplemented);
+     "AckAll",  ID_Unimplemented,
+     "JDN",     ID_JulianDayNumber);
 
 
 MENU(TextMenu,

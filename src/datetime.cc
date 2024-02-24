@@ -289,6 +289,30 @@ COMMAND_BODY(Time)
 }
 
 
+COMMAND_BODY(ChronoTime)
+// ----------------------------------------------------------------------------
+//   Return the current time with a precision of 1/100th of a second
+// ----------------------------------------------------------------------------
+{
+    dt_t dt;
+    tm_t tm;
+    rtc_wakeup_delay();
+    rtc_read(&tm, &dt);
+
+    ularge tval = tm.hour * 1000000 + tm.min * 10000 + tm.sec * 100 + tm.csec;
+    if (integer_g itime = integer::make(tval))
+      if (integer_g ratio = integer::make(1000000))
+          if (fraction_g time = fraction::make(itime, ratio))
+              if (algebraic_g sexag = from_hms_dms(+time, ""))
+                  if (unit_g result = unit::make(+sexag, +symbol::make("hms")))
+                      if (rt.push(+result))
+                          return OK;
+    return ERROR;
+}
+
+
+
+
 
 static bool setTime(object_p tobj)
 // ----------------------------------------------------------------------------

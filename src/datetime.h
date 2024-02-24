@@ -72,6 +72,7 @@ COMMAND_DECLARE(SetDate);       // Set current date
 COMMAND_DECLARE(Time);          // Return current time
 COMMAND_DECLARE(SetTime);       // Set current time
 COMMAND_DECLARE(DateTime);      // Return current date and time
+COMMAND_DECLARE(ChronoTime);    // Return current date and time
 
 // HMS and DMS operations
 COMMAND_DECLARE(ToHMS);         // Convert from decimal to H:MM:SS format

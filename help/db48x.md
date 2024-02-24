@@ -6682,45 +6682,65 @@ Create a case-list of integers in the given range.
 Apply certain assumptions about a variable to an expression.
 # Time, Alarms and System Commands
 
+## Date format
+
+The date format is `YYYYMMDD`, with an optional fractional part defining the
+time, as in `YYYYMMDD.HHMMSS`.
+
+Note: the date format is intentionally different from the format on the HP-48.
+
+## Time format
+
+The time format is `HH.MMSS` with optional hundredths of a second as
+in `HH.MMSSCC`.
+
+
 ## SetDate
 
-Set current system date. The date format is YYYYMMDD, with an optional
-fractional part defining the time, as in YYYYMMDD.HHMMSS. If the fractional part
-is zero, then the time is not changed.
+Set current system date.
 
-Note: the date format is intentionally differentfrom the format on the HP-48.
+The date format is `YYYYMMDD`, with an optional fractional part defining the
+time, as in `YYYYMMDD.HHMMSS`. If the fractional part is zero, then the time is
+not changed.
+
+Note: the date format is intentionally different from the format on the HP-48.
 
 
-## DATEADD
+## Date+
 
-Add days to a date in MM.DDYYYY
+Add days to a [date](#date). The date format is `YYYYMMDD`, with an optional fractional part defining the time, as in `YYYYMMDD.HHMMSS`, and an optional unit, as in `YYYMMDD_date`.
 
 
 ## SetTime
 
-Set current time as HH.MMSS.
+Set current time from a stack value `HH.MMSSCC`.
 
 An HMS value can also be given, as returned by the `Time` command.
 
 
-## TOHMS
-Convert decimal time to HH.MMSS
+## ToHMS
+
+Convert decimal time to `HH.MMSS` format.
 
 
-## FROMHMS
-Convert time in HH.MMSS to decimal
+## FomHMS
+
+Convert time in `HH.MMSS` format to decimal time.
 
 
-## HMSADD
-Add time in HH.MMSS format
+## HMS+
+
+Add time in `HH.MMSS` format.
 
 
-## HMSSUB
-Subtract time in HH.MMSS format
+## HMS-
+
+Subtract time in `HH.MMSS` format
 
 
-## TICKS
-Return system clock in microseconds
+## Ticks
+
+Return system clock in milliseconds
 
 
 ## TEVAL
@@ -6734,11 +6754,18 @@ This displays on the stack according to date format settings, in a way similar
 to what is shown in the header, e.g. `23/Feb/2024` or `2024-02-23`.
 
 
-## DDAYS
-Number of days between dates in MM.DDYYYY
+## DateTime
+
+Return the current system date as a unit object in the form `YYYYMMDD_date`.
+This displays on the stack according to date format settings, in a way similar
+to what is shown in the header, e.g. `23/Feb/2024` or `2024-02-23`.
+
+## DDays
+
+Number of days between dates.
 
 
-## TIME
+## Time
 
 Return the current system time as a unit object in the form `HH.MMSS_hms`.
 This displays on the stack as `HH:MM:SS`.

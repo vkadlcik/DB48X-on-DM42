@@ -1465,15 +1465,9 @@ MENU(TimeMenu,
 // ----------------------------------------------------------------------------
      "Date",    ID_Date,
      "Time",    ID_Time,
-     "∆Date",   ID_DateSub,
-     "∆Time",   ID_Unimplemented,
+     "Chrono",  ID_ChronoTime,
      "Ticks",   ID_Ticks,
-
-     "→Date",   ID_SetDate,
-     "→Time",   ID_SetTime,
-     "T→Str",   ID_Unimplemented,
-     "ClkAdj",  ID_Unimplemented,
-     "TmBench", ID_Unimplemented,
+     "JDN",     ID_JulianDayNumber,
 
      "Date+",   ID_DateAdd,
      "→HMS",    ID_ToHMS,
@@ -1481,15 +1475,22 @@ MENU(TimeMenu,
      "HMS+",    ID_HMSAdd,
      "HMS-",    ID_HMSSub,
 
+     "→Date",   ID_SetDate,
+     "→Time",   ID_SetTime,
+     "T→Str",   ID_Unimplemented,
+     "ClkAdj",  ID_Unimplemented,
+     "TmBench", ID_Unimplemented,
+
      "Alarm",   ID_Unimplemented,
      "Ack",     ID_Unimplemented,
      "→Alarm",  ID_Unimplemented,
      "Alarm→",  ID_Unimplemented,
      "FindAlm", ID_Unimplemented,
 
+     "∆Date",   ID_DateSub,
+     "∆Time",   ID_Unimplemented,
      "DelAlm",  ID_Unimplemented,
-     "AckAll",  ID_Unimplemented,
-     "JDN",     ID_JulianDayNumber);
+     "AckAll",  ID_Unimplemented);
 
 
 MENU(TextMenu,

@@ -30,21 +30,21 @@
 #include "dmcp.h"
 
 #include "dmcp_fonts.c"
+#include "recorder.h"
 #include "sim-rpl.h"
 #include "sim-screen.h"
 #include "sim-window.h"
 #include "types.h"
-#include "recorder.h"
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <sys/time.h>
-#include <target.h>
-
+#include <iostream>
 #include <QFileDialog>
 #include <QSettings>
-#include <iostream>
+#include <stdarg.h>
+#include <stdio.h>
+#include <sys/select.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <target.h>
 
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -997,14 +997,18 @@ void rtc_read(tm_t * tm, dt_t *dt)
     struct tm utm;
     localtime_r(&now, &utm);
 
+    struct timeval tv;
+    gettimeofday(&tv, nullptr);
+
     dt->year = 1900 + utm.tm_year;
     dt->month = utm.tm_mon;
     dt->day = utm.tm_mday;
 
+
     tm->hour = utm.tm_hour;
     tm->min = utm.tm_min;
     tm->sec = utm.tm_sec;
-    tm->csec = 0;
+    tm->csec = tv.tv_usec / 10000;
     tm->dow = utm.tm_wday;
 }
 

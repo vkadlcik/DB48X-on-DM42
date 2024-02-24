@@ -1465,7 +1465,7 @@ MENU(TimeMenu,
 // ----------------------------------------------------------------------------
      "Date",    ID_Date,
      "Time",    ID_Time,
-     "∆Date",   ID_Unimplemented,
+     "∆Date",   ID_DateSub,
      "∆Time",   ID_Unimplemented,
      "Ticks",   ID_Ticks,
 
@@ -1475,7 +1475,7 @@ MENU(TimeMenu,
      "ClkAdj",  ID_Unimplemented,
      "TmBench", ID_Unimplemented,
 
-     "Date+",   ID_Unimplemented,
+     "Date+",   ID_DateAdd,
      "→HMS",    ID_ToHMS,
      "HMS→",    ID_FromHMS,
      "HMS+",    ID_HMSAdd,

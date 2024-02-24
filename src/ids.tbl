@@ -506,6 +506,8 @@ OP(ToDMS,       "→DMS")
 OP(FromDMS,     "DMS→")
 OP(DMSAdd,      "DMS+")
 OP(DMSSub,      "DMS-")
+OP(DateAdd,     "Date+")
+OP(DateSub,     "DDays")
 
 // Angles
 OP(RadiansToDegrees, "Radians→Degrees") ALIAS(RadiansToDegrees, "R→D")

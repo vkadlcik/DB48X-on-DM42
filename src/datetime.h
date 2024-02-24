@@ -82,5 +82,7 @@ COMMAND_DECLARE(HMSAdd);        // Add numbers in HMS format
 COMMAND_DECLARE(HMSSub);        // Subtract numbers in HMS format
 COMMAND_DECLARE(DMSAdd);        // Add numbers in HMS format
 COMMAND_DECLARE(DMSSub);        // Subtract numbers in HMS format
+COMMAND_DECLARE(DateAdd);       // Add a date and a number of days
+COMMAND_DECLARE(DateSub);       // Count days between two dates
 
 #endif // DATETIME_H

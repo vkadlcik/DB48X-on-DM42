@@ -159,6 +159,15 @@ uint to_date(object_p dtobj, dt_t &dt, tm_t &tm)
 }
 
 
+ularge julian_day_number(const dt_t &dt)
+// ----------------------------------------------------------------------------
+//   Compute julian day number for a dt_t structure
+// ----------------------------------------------------------------------------
+{
+    return julian_day_number(dt.day, dt.month, dt.year);
+}
+
+
 ularge julian_day_number(algebraic_p dtobj)
 // ----------------------------------------------------------------------------
 //   Compute the Julian day number associate with a date value
@@ -167,7 +176,7 @@ ularge julian_day_number(algebraic_p dtobj)
     dt_t dt;
     tm_t tm;
     if (to_date(dtobj, dt, tm))
-        return julian_day_number(dt.day, dt.month, dt.year);
+        return julian_day_number(dt);
     return 0;
 }
 
@@ -642,4 +651,44 @@ COMMAND_BODY(HMSSub)
 // ----------------------------------------------------------------------------
 {
     return hms_dms_add_sub("hms", true);
+}
+
+
+COMMAND_BODY(DateAdd)
+// ----------------------------------------------------------------------------
+//   Add a date to a number of days
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(2))
+        return ERROR;
+
+    return ERROR;
+}
+
+
+COMMAND_BODY(DateSub)
+// ----------------------------------------------------------------------------
+//   Compute the number of days between two dates
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(2))
+        return ERROR;
+
+    dt_t dt1, dt2;
+    tm_t tm1, tm2;
+    if (object_p d1 = rt.stack(1))
+    {
+        if (object_p d2 = rt.stack(0))
+        {
+            if (to_date(d1, dt1, tm1) && to_date(d2, dt2, tm2))
+            {
+                ularge diff = julian_day_number(dt1) - julian_day_number(dt2);
+
+                if (integer_p d = integer::make(diff))
+                    if (rt.drop() && rt.top(d))
+                        return OK;
+            }
+        }
+    }
+    return ERROR;
 }

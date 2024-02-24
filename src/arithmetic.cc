@@ -116,15 +116,6 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
 //   - Text + object: Concatenation of text + object text
 //   - Object + text: Concatenation of object text + text
 {
-    // Deal with basic auto-simplifications rules
-    if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
-    {
-        if (x->is_zero(false))                  // 0 + X = X
-            return y;
-        if (y->is_zero(false))                  // X + 0 = X
-            return x;
-    }
-
     // Check addition of unit objects
     if (unit_p xu = x->as<unit>())
     {
@@ -148,6 +139,15 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
     {
         rt.inconsistent_units_error();
         return nullptr;
+    }
+
+    // Deal with basic auto-simplifications rules
+    if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
+    {
+        if (x->is_zero(false))                  // 0 + X = X
+            return y;
+        if (y->is_zero(false))                  // X + 0 = X
+            return x;
     }
 
     // list + ...
@@ -277,17 +277,6 @@ algebraic_p arithmetic::non_numeric<sub>(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   This deals with vector and matrix operations
 {
-    // Deal with basic auto-simplifications rules
-    if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
-    {
-        if (y->is_zero(false))                  // X - 0 = X
-            return x;
-        if (x->is_same_as(y))                   // X - X = 0
-            return integer::make(0);
-        if (x->is_zero(false) && y->is_symbolic())
-            return neg::run(y);                 // 0 - X = -X
-    }
-
     // Check subtraction of unit objects
     if (unit_p xu = x->as<unit>())
     {
@@ -310,6 +299,17 @@ algebraic_p arithmetic::non_numeric<sub>(algebraic_r x, algebraic_r y)
     {
         rt.inconsistent_units_error();
         return nullptr;
+    }
+
+    // Deal with basic auto-simplifications rules
+    if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
+    {
+        if (y->is_zero(false))                  // X - 0 = X
+            return x;
+        if (x->is_same_as(y))                   // X - X = 0
+            return integer::make(0);
+        if (x->is_zero(false) && y->is_symbolic())
+            return neg::run(y);                 // 0 - X = -X
     }
 
     // vector + vector or matrix + matrix
@@ -408,26 +408,6 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
 //   - Text * integer: Repeat the text
 //   - Integer * text: Repeat the text
 {
-    // Deal with basic auto-simplifications rules
-    if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
-    {
-        if (x->is_zero(false))                  // 0 * X = 0
-            return x;
-        if (y->is_zero(false))                  // X * 0 = Y
-            return y;
-        if (x->is_one(false))                   // 1 * X = X
-            return y;
-        if (y->is_one(false))                   // X * 1 = X
-            return x;
-        if (x->is_symbolic() && x->is_same_as(y))
-        {
-            if (constant_p cst = x->as<constant>())
-                if (cst->is_imaginary_unit())
-                    return integer::make(-1);
-            return sq::run(x);                  // X * X = X²
-        }
-    }
-
     // Check multiplication of unit objects
     if (unit_p xu = x->as<unit>())
     {
@@ -453,6 +433,26 @@ algebraic_p arithmetic::non_numeric<mul>(algebraic_r x, algebraic_r y)
         algebraic_g ye = yu->uexpr();
         yv = x * yv;
         return unit::simple(yv, ye);
+    }
+
+    // Deal with basic auto-simplifications rules
+    if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
+    {
+        if (x->is_zero(false))                  // 0 * X = 0
+            return x;
+        if (y->is_zero(false))                  // X * 0 = Y
+            return y;
+        if (x->is_one(false))                   // 1 * X = X
+            return y;
+        if (y->is_one(false))                   // X * 1 = X
+            return x;
+        if (x->is_symbolic() && x->is_same_as(y))
+        {
+            if (constant_p cst = x->as<constant>())
+                if (cst->is_imaginary_unit())
+                    return integer::make(-1);
+            return sq::run(x);                  // X * X = X²
+        }
     }
 
     // Text multiplication
@@ -553,27 +553,6 @@ algebraic_p arithmetic::non_numeric<struct div>(algebraic_r x, algebraic_r y)
 // ----------------------------------------------------------------------------
 //   This deals with vector and matrix operations
 {
-    // Deal with basic auto-simplifications rules
-    if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
-    {
-        if (x->is_zero(false))                  // 0 / X = 0
-        {
-            if (y->is_zero(false))
-            {
-                rt.zero_divide_error();
-                return nullptr;
-            }
-            return x;
-        }
-        if (y->is_one(false))                   // X / 1 = X
-            return x;
-        if (x->is_one(false) && y->is_symbolic())
-            return inv::run(y);                 // 1 / X = X⁻¹
-        if (x->is_same_as(y))
-            return integer::make(1);            // X / X = 1
-    }
-
-
     // Check division of unit objects
     if (unit_p xu = x->as<unit>())
     {
@@ -600,6 +579,26 @@ algebraic_p arithmetic::non_numeric<struct div>(algebraic_r x, algebraic_r y)
         yv = x / yv;
         ye = inv::run(ye);
         return unit::simple(yv, ye);
+    }
+
+    // Deal with basic auto-simplifications rules
+    if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
+    {
+        if (x->is_zero(false))                  // 0 / X = 0
+        {
+            if (y->is_zero(false))
+            {
+                rt.zero_divide_error();
+                return nullptr;
+            }
+            return x;
+        }
+        if (y->is_one(false))                   // X / 1 = X
+            return x;
+        if (x->is_one(false) && y->is_symbolic())
+            return inv::run(y);                 // 1 / X = X⁻¹
+        if (x->is_same_as(y))
+            return integer::make(1);            // X / X = 1
     }
 
     // vector + vector or matrix + matrix

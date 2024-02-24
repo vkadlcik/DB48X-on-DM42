@@ -140,7 +140,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        regression_checks();
+        units_and_conversions();
     }
     else
     {
@@ -3466,6 +3466,22 @@ void tests::units_and_conversions()
         .test(DOWN).editor("1∡90°")
         .test(DOWN, DOWN, BSP, DOWN, DOWN, "_").editor("190_°")
         .test(ENTER).expect("190 °");
+
+    step("No auto-simplification for unit addition")
+        .test(CLEAR, "1_s", ENTER, "0", NOSHIFT, ADD)
+        .error("Inconsistent units");
+    step("No auto-simplification for unit subtraction")
+        .test(CLEAR, "1_s", ENTER, ENTER, SUB)
+        .noerr()
+        .expect("0 s");
+    step("No auto-simplification for unit multiplication")
+        .test(CLEAR, "1_s", ENTER, "1", NOSHIFT, MUL)
+        .noerr()
+        .expect("1 s");
+    step("No auto-simplification for unit division")
+        .test(CLEAR, "1_s", ENTER, "1", NOSHIFT, DIV)
+        .noerr()
+        .expect("1 s");
 }
 
 void tests::list_functions()

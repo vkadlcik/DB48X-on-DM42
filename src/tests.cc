@@ -667,18 +667,18 @@ void tests::stack_operations()
 
     step("Multi-line stack rendering")
         .test(CLEAR, "[[1 2][3 4]]", ENTER)
-        .noerr().expect("[[ 1 2 ] \n  [ 3 4 ]]")
+        .noerr().expect("[[ 1 2 ]\n  [ 3 4 ]]")
         .test("SingleLineResult", ENTER)
-        .noerr().expect("[[ 1 2 ] [ 3 4 ]]")
+        .noerr().expect("[[ 1 2 ][ 3 4 ]]")
         .test("MultiLineResult", ENTER)
-        .noerr().expect("[[ 1 2 ] \n  [ 3 4 ]]");
+        .noerr().expect("[[ 1 2 ]\n  [ 3 4 ]]");
     step("Multi-line stack rendering does not impact editing")
         .test(NOSHIFT, DOWN)
-        .editor("[[ 1 2 ] \n  [ 3 4 ]]")
+        .editor("[[ 1 2 ]\n  [ 3 4 ]]")
         .test(ENTER, "SingleLineResult", ENTER, DOWN)
-        .editor("[[ 1 2 ] \n  [ 3 4 ]]")
+        .editor("[[ 1 2 ]\n  [ 3 4 ]]")
         .test(ENTER, "MultiLineResult", ENTER, DOWN)
-        .editor("[[ 1 2 ] \n  [ 3 4 ]]")
+        .editor("[[ 1 2 ]\n  [ 3 4 ]]")
         .test(ENTER).noerr();
 
     step("Dup with ENTER")
@@ -3829,7 +3829,7 @@ void tests::matrix_functions()
     step("Non-homogneous data types");
     test(CLEAR, "[  [ \"ABC\"  'X' ] 3/2  [ 4 [5] [6 7]]]", ENTER)
         .type(object::ID_array)
-        .want("[[ \"ABC\" 'X' ] ³/₂ [ 4 [ 5 ] [ 6 7 ] ]]");
+        .want("[[ \"ABC\" 'X' ] ³/₂ [ 4 [ 5 ] [ 6 7 ] ] ]");
 
     step("Addition");
     test(CLEAR, "[[1 2] [3 4]] [[5 6][7 8]] +", ENTER)

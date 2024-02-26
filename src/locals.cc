@@ -199,6 +199,7 @@ RENDER_BODY(locals)
     locals_stack frame(p);
 
     // Emit header
+    r.wantCR();
     r.put("→ ");
 
     // Loop on names

@@ -521,7 +521,7 @@ static size_t render_num(renderer &r,
     // revert the digits in memory before writing
     if (r.file_save())
     {
-        renderer tmp(r.equation(), r.editing(), r.stack());
+        renderer tmp(r.expression(), r.editing(), r.stack());
         size_t result = render_num(tmp, num, base, fmt, true);
         r.put(tmp.text(), result);
         return result;

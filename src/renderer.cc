@@ -91,35 +91,50 @@ bool renderer::put(char c)
     if (written >= length)
         return false;
 
+    // Check if this is a space or \n
+    bool spc = isspace(c);
+    bool cr  = c == '\n';
 
-    // Render flat for stack display: collect all spaces in one
-    if (stk && !mlstk)
+    // If not inside a text, check whitespace formatting
+    if (!txt)
     {
-        if (isspace(c))
+        // Render flat for stack display: collect all spaces in one
+        if (stk && !mlstk)
         {
-            if (space || cr)
+            if (spc)
+            {
+                if (gotSpace || gotCR)
+                    return true;
+                c = ' ';
+            }
+            gotSpace = spc;
+        }
+
+        // Check if we need ot emit a CR
+        if (needCR)
+        {
+            needCR = false;
+            if (!put('\n'))
+                return false;
+
+            // Do not emit a space right after a \n
+            if (spc)
                 return true;
-            c = ' ';
-            space = true;
         }
-        else
+
+        // Check if we need to emit a space
+        if (needSpace)
         {
-            space = false;
+            if (spc && !cr)
+                return true;
+
+            needSpace = false;
+            if (!cr && !put(' '))
+                return false;
         }
     }
-    if (c == ' ' && (cr || nl))
-    {
-        cr = false;
-        return true;
-    }
 
-    if (!isspace(c) && nl)
-    {
-        nl = false;
-        if (!put('\n'))
-            return false;
-    }
-
+    // Actually write the target character
     if (saving)
     {
         saving->put(c);
@@ -137,24 +152,20 @@ bool renderer::put(char c)
         *p = c;
         written++;
     }
-    if (c == '\n')
+
+    if (cr)
     {
-        nl = false;
+        needCR = false;
+        needSpace = false;
         if (!txt)
         {
             for (uint i = 0; i < tabs; i++)
                 if (!put('\t'))
                     return false;
-            if (unnest)
-                if (!put("  "))
-                    return false;
         }
-        cr = true;
     }
-    else if (!isspace(c))
-    {
-        cr = false;
-    }
+    gotCR = cr;
+    gotSpace = spc;
 
     if (c == '"')
         txt = !txt;

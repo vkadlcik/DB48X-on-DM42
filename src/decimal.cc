@@ -246,6 +246,7 @@ RENDER_BODY(decimal)
     bool      negative = o->type() == ID_neg_decimal;
 
     // Read formatting information from the renderer
+    r.flush();
     bool      editing  = r.editing();
     bool      raw      = r.file_save();
     size_t    rsize    = r.size();

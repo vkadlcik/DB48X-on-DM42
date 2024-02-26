@@ -213,7 +213,7 @@ RENDER_BODY(expression)
 //   Render the equation
 // ----------------------------------------------------------------------------
 {
-    return render(o, r, !r.equation());
+    return render(o, r, !r.expression());
 }
 
 

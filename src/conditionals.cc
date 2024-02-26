@@ -131,8 +131,9 @@ RENDER_BODY(IfThenElse)
     auto     format = Settings.CommandDisplayMode();
 
     // Write the header
-    r.put('\n');
+    r.wantCR();
     r.put(format, utf8(o->type() == ID_IfErrThenElse ? "iferr" : "if"));
+    r.wantSpace();
 
     // Render condition
     r.indent();
@@ -140,18 +141,23 @@ RENDER_BODY(IfThenElse)
     r.unindent();
 
     // Render 'if-true' part
+    r.wantSpace();
     r.put(format, utf8("then"));
+    r.wantSpace();
     r.indent();
     ift->render(r);
     r.unindent();
 
     // Render 'if-false' part
+    r.wantSpace();
     r.put(format, utf8("else"));
+    r.wantSpace();
     r.indent();
     iff->render(r);
     r.unindent();
 
     // Render the 'end'
+    r.wantSpace();
     r.put(format, utf8("end"));
 
     return r.size();
@@ -469,11 +475,13 @@ static size_t render_case(renderer &r, cstring first, object_p o)
     auto     format = Settings.CommandDisplayMode();
 
     cond->render(r);
-    r.put(' ');
+    r.wantSpace();
     r.put(format, utf8(first));
+    r.wantSpace();
     r.indent();
     body->render(r);
     r.unindent();
+    r.wantSpace();
     r.put(format, utf8("end"));
     r.wantCR();
     return r.size();
@@ -491,14 +499,16 @@ RENDER_BODY(CaseStatement)
     object_g rest   = conds->skip();
     auto     format = Settings.CommandDisplayMode();
 
-    r.put('\n');
+    r.wantCR();
     r.put(format, utf8("case"));
+    r.wantCR();
     r.indent();
     conds->render(r);
     if (block_p block = block_p(+rest))
         if (block->length())
             block->render(r);
     r.unindent();
+    r.wantCR();
     r.put(format, utf8("end"));
     r.wantCR();
     return r.size();

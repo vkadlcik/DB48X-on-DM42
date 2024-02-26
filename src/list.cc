@@ -368,11 +368,11 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
         id oty = obj->type();
         switch (oty)
         {
-        case ID_list:
-        case ID_program:
         case ID_array:
             if (first && lty == oty)
                 unnest = true;
+        case ID_list:
+        case ID_program:
         case ID_locals:
         case ID_comment:
         case ID_IfThen:
@@ -395,28 +395,38 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
     }
 
     // Write the header, e.g. "{ "
+    bool crpgm = need_indent && !unnest;
     if (open)
     {
         r.put(open);
-        if (need_indent && !unnest)
+        if (!unnest)
+        {
             r.indent();
+            r.wantSpace();
+        }
     }
+    if (crpgm)
+        r.wantCR();
 
     // Loop on all objects inside the list
     for (object_p obj : *list)
     {
-        // Add space separator (except on first object when no separator)
-        if (open && !r.hadCR() && (open == 1 || !unnest))
-            r.put(' ');
-        if (open == 1 && need_indent)
+        id oty = obj->type();
+        if (oty == ID_program || oty == ID_list || oty == ID_array)
         {
-            r.wantCR();
-            r.wantUnnest(unnest);
+            if (open == 1 || !unnest)
+                r.wantCR();
+            if (unnest && open == 1)
+                r.put("   ");
         }
         open = 1;
 
         // Render the object in what remains (may GC)
+        if (oty != ID_array)
+            r.wantSpace();
         obj->render(r);
+        if (!unnest && oty != ID_array)
+            r.wantSpace();
     }
 
     // Add final space and closing separator
@@ -424,17 +434,18 @@ intptr_t list::list_render(renderer &r, unicode open, unicode close) const
     {
         if (!unnest)
         {
-            if (need_indent)
-                r.unindent();
-            else if (open == 1)
-                r.put(' ');
-            r.put(close);
+            r.unindent();
+            if (lty != ID_array)
+                r.wantSpace();
         }
-        else
-        {
-            r.put(close);
-        }
+        if (crpgm)
+            r.wantCR();
+        r.put(close);
+        if (!unnest && lty != ID_array)
+            r.wantSpace();
     }
+    if (crpgm)
+        r.wantCR();
 
     return r.size();
 }

@@ -347,34 +347,40 @@ intptr_t loop::object_renderer(renderer &r,
     auto     format = Settings.CommandDisplayMode();
 
     // Write the header, e.g. "DO"
-    r.put('\n');
+    r.wantCR();
     r.put(format, utf8(open));
 
     // Render name if any
     if (name)
     {
-        r.put(' ');
+        r.wantSpace();
         r.put(name, namesz);
     }
 
     // Ident condition or first body
     r.indent();
+    r.wantSpace();
 
     // Emit the first object (e.g. condition in do-until)
     first->render(r);
+    r.wantSpace();
 
     // Emit the second object if there is one
     if (middle)
     {
         // Emit separator after condition
         r.unindent();
+        r.wantSpace();
         r.put(format, utf8(middle));
         r.indent();
+        r.wantSpace();
         second->render(r);
+        r.wantSpace();
     }
 
     // Emit closing separator
     r.unindent();
+    r.wantSpace();
     r.put(format, utf8(close));
     r.wantCR();
 

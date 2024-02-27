@@ -447,6 +447,23 @@ Display the stack levels above the first one using a text-only representations.
 
 This is the opposite of [GraphicStackDisplay](#graphicstackdisplay)
 
+## AutoScaleStack
+
+When using [graphic result display](#graphicresultdisplay), automatically scale
+down the font size in order to make stack elements fit. Enabling this setting
+may increase CPU utilization and reduce battery life compared to fixed-size
+rendering.
+
+This is the opposite of [NoStackAutoScale](#nostackautoscale).
+
+
+## NoStackAutoScale
+
+When using [graphic result display](#graphicresultdisplay), do not automatically
+scale down the font size in order to make stack elements fit.
+
+This is the opposite of [AutoScaleStack](#autoscalestack).
+
 
 # Compatibility
 

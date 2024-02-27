@@ -131,7 +131,7 @@ void stack::draw_stack()
             do
             {
                 graph = obj->graph(g);
-            } while (!graph && g.reduce_font());
+            } while (!graph && Settings.AutoScaleStack() && g.reduce_font());
             if (graph)
             {
                 size gh = graph->height();

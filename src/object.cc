@@ -72,6 +72,7 @@
 #include "variables.h"
 
 #include <stdio.h>
+#include <wctype.h>
 
 
 RECORDER(object,         16, "Operations on objects");
@@ -812,6 +813,24 @@ grob_p object::as_grob() const
 }
 
 
+static inline coord flatten_text(surface &s, coord x, coord y,
+                                 utf8 start, utf8 end,
+                                 font_p font, pattern fg, pattern bg)
+// ----------------------------------------------------------------------------
+//   Flatten a text
+// ----------------------------------------------------------------------------
+{
+    for (utf8 wp = start; wp < end; wp = utf8_next(wp))
+    {
+        unicode cp = utf8_codepoint(wp);
+        if (cp == '\t' || cp == '\n')
+            cp = ' ';
+        x = s.glyph(x, y, cp, font, fg, bg);
+    }
+    return x;
+}
+
+
 GRAPH_BODY(object)
 // ----------------------------------------------------------------------------
 //  The default for rendering is to render the text using default font
@@ -825,24 +844,92 @@ GRAPH_BODY(object)
     pixsize fh     = font->height();
     pixsize width  = 0;
     pixsize height = fh;
+    pixsize maxw   = g.maxw;
+    pixsize maxh   = g.maxh;
     utf8    end    = txt + sz;
     pixsize rw     = 0;
+    bool    flat   = false;
 
+    // Try to fit it with the original structure
     for (utf8 p = txt; p < end; p = utf8_next(p))
     {
         unicode c  = utf8_codepoint(p);
         pixsize cw = font->width(c);
         rw += cw;
-        if (rw >= g.maxw || c == '\n')
+        if (rw >= maxw)
+        {
+            flat = true;
+            break;
+        }
+        if (c == '\n')
         {
             if (width < rw - cw)
                 width = rw - cw;
             height += fh;
             rw = cw;
-            if (height > g.maxh)
+            if (height > maxh)
                 break;
         }
     }
+
+    // If it was too wide, try "flat" mode, flatten tabs and \n
+    if (flat)
+    {
+        pixsize ww   = 0;
+        utf8    word = nullptr;
+        utf8    next = nullptr;
+        rw           = 0;
+        width        = 0;
+        height       = fh;
+
+        for (utf8 p = txt; p < end; p = next)
+        {
+            unicode c = utf8_codepoint(p);
+            next = utf8_next(p);
+            if (c == '\n' || c == '\t')
+                c = ' ';
+            bool    sp = iswspace(c);
+            pixsize cw = font->width(c);
+            rw += cw;
+            if (sp)
+            {
+                ww = 0;
+                word = nullptr;
+            }
+            else
+            {
+                ww += cw;
+                if (!word)
+                    word = p;
+            }
+            if (!sp && rw > maxw)
+            {
+                if (word)
+                {
+                    rw -= ww;
+                    next = word;
+                    word = nullptr;
+                }
+                else if (cw > maxw)
+                {
+                    break;
+                }
+                else
+                {
+                    rw -= cw;
+                    next = p;
+                }
+
+                if (width < rw)
+                    width = rw;
+                height += fh;
+                if (height > maxh)
+                    break;
+                rw = 0;
+            }
+        }
+    }
+
     if (width < rw)
         width = rw;
 
@@ -854,19 +941,77 @@ GRAPH_BODY(object)
     coord   y      = 0;
     s.fill(g.background);
 
+    // Reset end pointer in case grob allocation caused a GC
     end = txt + sz;
-    for (utf8 p = txt; p < end; p = utf8_next(p))
+
+    if (flat)
     {
-        unicode c  = utf8_codepoint(p);
-        pixsize cw = font->width(c);
-        if (x + cw > width || c == '\n')
+        // Flat mode - Cut at word boundaries
+        utf8    word = nullptr;
+        utf8    next = nullptr;
+        utf8    row  = txt;
+        rw           = 0;
+
+        for (utf8 p = txt; p < end; p = next)
         {
-            y += fh;
-            if (y > coord(g.maxh))
-                break;
-            x = 0;
+            unicode c = utf8_codepoint(p);
+            next = utf8_next(p);
+            if (c == '\n' || c == '\t')
+                c = ' ';
+            bool    sp = iswspace(c);
+            pixsize cw = font->width(c);
+            rw += cw;
+            if (sp)
+                word = nullptr;
+            else if (!word)
+                word = p;
+            if (!sp && rw > width)
+            {
+                if (word)
+                {
+                    x = flatten_text(s, x, y, row, word,
+                                     font, g.foreground, g.background);
+                    next = word;
+                    row = word;
+                    word = nullptr;
+                }
+                else if (cw > width)
+                {
+                    break;
+                }
+                else
+                {
+                    x = flatten_text(s, x, y, row, p,
+                                     font, g.foreground, g.background);
+                    next = p;
+                    row = p;
+                }
+
+                y += fh;
+                if (y > coord(maxh))
+                    break;
+                x = 0;
+                rw = 0;
+            }
         }
-        x = s.glyph(x, y, c, font, g.foreground, g.background);
+        flatten_text(s, x, y, row, end, font, g.foreground, g.background);
+    }
+    else
+    {
+        // We can display it with the structure
+        for (utf8 p = txt; p < end; p = utf8_next(p))
+        {
+            unicode c  = utf8_codepoint(p);
+            pixsize cw = font->width(c);
+            if (x + cw > width || c == '\n')
+            {
+                y += fh;
+                if (y > coord(maxh))
+                    break;
+                x = 0;
+            }
+            x = s.glyph(x, y, c, font, g.foreground, g.background);
+        }
     }
 
     return result;

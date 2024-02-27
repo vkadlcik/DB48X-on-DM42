@@ -1463,34 +1463,57 @@ MENU(TimeMenu,
 // ----------------------------------------------------------------------------
 //   Time operations
 // ----------------------------------------------------------------------------
-     "Date",    ID_Date,
+     "_hms",    ID_SelfInsert,
      "Time",    ID_Time,
-     "Chrono",  ID_ChronoTime,
-     "Ticks",   ID_Ticks,
-     "JDN",     ID_JulianDayNumber,
-
-     "Date+",   ID_DateAdd,
      "→HMS",    ID_ToHMS,
      "HMS→",    ID_FromHMS,
      "HMS+",    ID_HMSAdd,
      "HMS-",    ID_HMSSub,
 
-     "→Date",   ID_SetDate,
-     "→Time",   ID_SetTime,
-     "T→Str",   ID_Unimplemented,
+     "Chrono",  ID_ChronoTime,
+     "Ticks",   ID_Ticks,
+     "Dt+Tm",   ID_DateTime,
+     "T→Str",   ID_ToText,
      "ClkAdj",  ID_Unimplemented,
      "TmBench", ID_Unimplemented,
 
+     "→Time",   ID_SetTime,
+     "→Date",   ID_SetDate,
+     "Dates",   ID_DateMenu,
+     "Alarms",  ID_AlarmMenu);
+
+
+MENU(DateMenu,
+// ----------------------------------------------------------------------------
+//   Date operations
+// ----------------------------------------------------------------------------
+     "_date",   ID_SelfInsert,
+     "Date",    ID_Date,
+     "Dt+Tm",   ID_DateTime,
+     "∆Date",   ID_DateSub,
+     "Date+",   ID_DateAdd,
+     "JDN",     ID_JulianDayNumber,
+
+     "→Time",   ID_SetTime,
+     "→Date",   ID_SetDate,
+     "Time",    ID_TimeMenu,
+     "Alarms",  ID_AlarmMenu);
+
+
+MENU(AlarmMenu,
+// ----------------------------------------------------------------------------
+//   Alarm operations
+// ----------------------------------------------------------------------------
      "Alarm",   ID_Unimplemented,
      "Ack",     ID_Unimplemented,
      "→Alarm",  ID_Unimplemented,
      "Alarm→",  ID_Unimplemented,
      "FindAlm", ID_Unimplemented,
-
-     "∆Date",   ID_DateSub,
-     "∆Time",   ID_Unimplemented,
      "DelAlm",  ID_Unimplemented,
-     "AckAll",  ID_Unimplemented);
+
+     "AckAll",  ID_Unimplemented,
+     "Time",    ID_TimeMenu,
+     "Date",    ID_DateMenu);
 
 
 MENU(TextMenu,

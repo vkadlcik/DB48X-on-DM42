@@ -721,8 +721,9 @@ COMMAND_BODY(DateSub)
             {
                 ularge diff = julian_day_number(dt1) - julian_day_number(dt2);
 
-                if (integer_p d = integer::make(diff))
-                    if (rt.drop() && rt.top(d))
+                if (integer_g d = integer::make(diff))
+                    if (unit_p dd = unit::make(+d, +symbol::make("d")))
+                        if (rt.drop() && rt.top(dd))
                         return OK;
             }
         }

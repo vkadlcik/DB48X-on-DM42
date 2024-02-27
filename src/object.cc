@@ -72,7 +72,6 @@
 #include "variables.h"
 
 #include <stdio.h>
-#include <wctype.h>
 
 
 RECORDER(object,         16, "Operations on objects");
@@ -888,7 +887,7 @@ GRAPH_BODY(object)
             next = utf8_next(p);
             if (c == '\n' || c == '\t')
                 c = ' ';
-            bool    sp = iswspace(c);
+            bool    sp = is_unicode_space(c);
             pixsize cw = font->width(c);
             rw += cw;
             if (sp)
@@ -958,7 +957,7 @@ GRAPH_BODY(object)
             next = utf8_next(p);
             if (c == '\n' || c == '\t')
                 c = ' ';
-            bool    sp = iswspace(c);
+            bool    sp = is_unicode_space(c);
             pixsize cw = font->width(c);
             rw += cw;
             if (sp)

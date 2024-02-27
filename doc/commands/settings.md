@@ -464,6 +464,14 @@ scale down the font size in order to make stack elements fit.
 
 This is the opposite of [AutoScaleStack](#autoscalestack).
 
+## MaximumShowWidth (MaxW)
+
+Maximum number of horizontal pixels used to display an object with
+[Show](#show).
+
+## MaximumShowHeight (MaxH)
+
+Maximum number of vertical pixels used to display an object with [Show](#show).
 
 # Compatibility
 

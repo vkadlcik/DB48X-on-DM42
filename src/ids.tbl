@@ -614,6 +614,7 @@ CMD(ConstantValue)
 NAMED(LastArg, "LastArguments")
 CMD(LastX)
 OP(ClearStack, "Clear")
+CMD(Show)
 
 
 // ============================================================================
@@ -818,6 +819,12 @@ SETTING_ENUM(DateDot,           nullptr,        DateSeparatorCommand)
 SETTING_ENUM(DateSpace,         nullptr,        DateSeparatorCommand)
 SETTING_BITS(DateSeparatorCommand, 2, ID_DateSlash, ID_DateSpace, ID_DateSlash)
 SETTING(PlotRefreshRate,        50U,    1000000U,       500U)
+
+SETTING(MaximumShowWidth,       LCD_W, 16384U,   uint(LCD_W))
+SETTING(MaximumShowHeight,      LCD_W, 16384U,   2048U)
+ALIAS(MaximumShowWidth,  "MaxW")
+ALIAS(MaximumShowHeight, "MaxH")
+
 
 
 // ============================================================================

@@ -40,6 +40,7 @@
 #include "sysmenu.h"
 #include "target.h"
 #include "user_interface.h"
+#include "util.h"
 #include "variables.h"
 
 typedef const based_integer *based_integer_p;
@@ -588,6 +589,147 @@ COMMAND_BODY(DispXY)
 {
     rt.unimplemented_error();
     return ERROR;
+}
+
+
+COMMAND_BODY(Show)
+// ----------------------------------------------------------------------------
+//   Show the top-level of the stack graphically, using entire screen
+// ----------------------------------------------------------------------------
+{
+    if (object_g obj = rt.top())
+    {
+        using size = grob::pixsize;
+        grob_g graph = nullptr;
+        size    width  = LCD_W;
+        size    height = LCD_H;
+        grapher g(width, height, settings::EDITOR,
+                  pattern::black, pattern::white, true);
+        while (!graph)
+        {
+            graph = obj->graph(g);
+            if (graph)
+                break;
+
+            if (g.reduce_font())
+                continue;
+            if (g.maxh < Settings.MaximumShowHeight())
+            {
+                g.maxh = Settings.MaximumShowHeight();
+                g.font = settings::EDITOR;
+                continue;
+            }
+            if (g.maxw < Settings.MaximumShowWidth())
+            {
+                g.maxw = Settings.MaximumShowWidth();
+                g.font = settings::EDITOR;
+                continue;
+            }
+
+            if (!rt.error())
+                rt.graph_does_not_fit_error();
+            return ERROR;
+        }
+
+        ui.draw_graphics();
+        width           = graph->width();
+        height          = graph->height();
+
+        coord   scrx    = width  < LCD_W ? (LCD_W - width) / 2 : 0;
+        coord   scry    = height < LCD_H ? (LCD_H - height) / 2 : 00;
+        rect    r(scrx, scry, scrx + width - 1, scry + height - 1);
+
+        coord   x       = 0;
+        coord   y       = 0;
+        surface s       = graph->pixels();
+        int     delta   = 8;
+        bool    running = true;
+        int     key     = 0;
+        while (running)
+        {
+            Screen.fill(pattern::gray50);
+            Screen.copy(s, r, point(x,y));
+            ui.draw_dirty(0, 0, LCD_W-1, LCD_H-1);
+            refresh_dirty();
+
+            bool update = false;
+            while (!update)
+            {
+                // Key repeat rate
+                int remains = 60;
+
+                // Refresh screen after the requested period
+                sys_timer_disable(TIMER1);
+                sys_timer_start(TIMER1, remains);
+
+                // Do not switch off if on USB power
+                if (usb_powered())
+                    reset_auto_off();
+
+                // Honor auto-off while waiting, do not erase drawn image
+                if (power_check(false))
+                    continue;
+
+                if (!key_empty())
+                    key = key_pop();
+                switch(key)
+                {
+                case KEY_EXIT:
+                case KEY_ENTER:
+                case KEY_BSP:
+                    running = false;
+                    update = true;
+                    break;
+                case KEY_SHIFT:
+                    delta = delta == 1 ? 8 : delta == 8 ? 32 : 1;
+                    break;
+                case KEY_DOWN:
+                case KEY_2:
+                    if (y + delta + LCD_H < coord(height))
+                        y += delta;
+                    else if (height > LCD_H)
+                        y = height - LCD_H;
+                    else
+                        y = 0;
+                    update = true;
+                    break;
+                case KEY_UP:
+                case KEY_8:
+                    if (y > delta)
+                        y -= delta;
+                    else
+                        y = 0;
+                    update = true;
+                    break;
+                case KEY_6:
+                    if (x + delta + LCD_W < coord(width))
+                        x += delta;
+                    else if (width > LCD_W)
+                        x = width - LCD_W;
+                    else
+                        x = 0;
+                    update = true;
+                    break;
+                case KEY_4:
+                    if (x > delta)
+                        x -= delta;
+                    else
+                        x = 0;
+                    update = true;
+                    break;
+                case 0:
+                    break;
+
+                default:
+                    key = 0;
+                    beep(440, 20);
+                    break;
+                }
+            }
+        }
+        redraw_lcd(true);
+    }
+    return OK;
 }
 
 

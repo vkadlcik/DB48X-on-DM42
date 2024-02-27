@@ -56,6 +56,7 @@
 #include <unistd.h>
 #include <wctype.h>
 
+
 // The primary user interface of the calculator
 user_interface ui;
 
@@ -3910,7 +3911,7 @@ static const byte defaultShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_SUB,   menu::ID_PrintingMenu),
     OP2BYTES(KEY_EXIT,  command::ID_Off),
     OP2BYTES(KEY_0,     command::ID_SystemSetup),
-    OP2BYTES(KEY_DOT,   0),
+    OP2BYTES(KEY_DOT,   command::ID_Show),
     OP2BYTES(KEY_RUN,   0),
     OP2BYTES(KEY_ADD,   menu::ID_Catalog),
 

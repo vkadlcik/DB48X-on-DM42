@@ -424,4 +424,14 @@ inline bool is_separator_or_digit(utf8 str)
     return is_separator(code);
 }
 
+
+inline bool is_unicode_space(unicode c)
+// ----------------------------------------------------------------------------
+//   The `iswspace` function is broken on the GNU arm toolchain
+// ----------------------------------------------------------------------------
+{
+    return isspace(c)
+        || c == L' ' || c == L' ' || c == L' ' || c == L' ' || c == L' ';
+}
+
 #endif // UTF8_H

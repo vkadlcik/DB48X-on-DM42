@@ -78,6 +78,17 @@ top-left corner (`#0 #0`) with the largest (editor) font (font identifier `0`),
 erasing the background (the first `true`), in reverse colors (the second
 `true`).
 
+## Show
+
+Display the first level of the stack using the entire screen, with a possible
+scroll using the 4, 8, 6 and 2 keys if the object is larger than fits on screen.
+This makes it possible to comfortably examine very large objects, like `300!`, a
+large program or a complicated equation.
+
+The maximum size of the graphic object is defined by the
+[MaximumShowWidth](#maximumshowwidth) and
+[MaximumShowHeight](#maximumshowheight) settings.
+
 ## DrawLine (line)
 
 Draw a line between two points specified by level 1 and level 2 of the stack.

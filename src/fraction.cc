@@ -130,6 +130,11 @@ GRAPH_BODY(fraction)
     numg = expression::ratio(g, numg, deng);
     if (ipart && numg)
         numg = expression::prefix(g, 0, ipart, g.voffset, numg);
+    if (obj->is_negative())
+    {
+        g.font = fsave.saved;
+        numg = expression::prefix(g, 0, "-", g.voffset, numg);
+    }
     return numg;
 }
 

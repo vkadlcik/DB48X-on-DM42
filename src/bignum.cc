@@ -758,6 +758,8 @@ static size_t fraction_render(big_fraction_p o, renderer &r, bool negative)
 {
     bignum_g n = o->numerator();
     bignum_g d = o->denominator();
+    if (negative)
+        r.put('-');
     if (r.stack() && Settings.MixedFractions())
     {
         bignum_g quo, rem;
@@ -771,9 +773,8 @@ static size_t fraction_render(big_fraction_p o, renderer &r, bool negative)
             }
         }
     }
-    render_num(r, n, 10, negative ? "^-/" : "^");
-    if (!negative)
-        r.put('/');
+    render_num(r, n, 10, "^");
+    r.put('/');
     render_num(r, d, 10, "v");
     return r.size();
 }

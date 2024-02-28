@@ -740,6 +740,8 @@ static size_t fraction_render(fraction_p o, renderer &r, bool negative)
 {
     integer_g n = o->numerator(1);
     integer_g d = o->denominator(1);
+    if (negative)
+        r.put('-');
     if (r.stack() && Settings.MixedFractions())
     {
         ularge nv = n->value<ularge>();
@@ -752,9 +754,8 @@ static size_t fraction_render(fraction_p o, renderer &r, bool negative)
             n = integer::make(nv % dv);
         }
     }
-    render_num(r, n, 10, negative ? "^-/" : "^");
-    if (!negative)
-        r.put('/');
+    render_num(r, n, 10, "^");
+    r.put('/');
     render_num(r, d, 10, "v");
     return r.size();
 }

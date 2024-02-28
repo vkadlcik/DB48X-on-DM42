@@ -376,7 +376,7 @@ COMMAND_BODY(DateTime)
     rtc_read(&tm, &dt);
 
     ularge tval = tm.hour * 10000 + tm.min * 100 + tm.sec;
-    ularge dval = dt.year * 10000 + (dt.month + 1) * 100 + dt.day;
+    ularge dval = dt.year * 10000 + dt.month * 100 + dt.day;
     dval = dval * 1000000ULL + tval;
     if (decimal_g date   = decimal::make(dval, -6))
         if (unit_g result = unit::make(+date, +symbol::make("date")))
@@ -396,7 +396,7 @@ COMMAND_BODY(Date)
     rtc_wakeup_delay();
     rtc_read(&tm, &dt);
 
-    ularge dval = dt.year * 10000 + (dt.month + 1) * 100 + dt.day;
+    ularge dval = dt.year * 10000 + dt.month * 100 + dt.day;
     if (integer_g date   = integer::make(dval))
         if (unit_g result = unit::make(+date, +symbol::make("date")))
             if (rt.push(+result))
@@ -604,7 +604,7 @@ size_t render_date(renderer &r, algebraic_g date)
 
     char mname[4];
     if (Settings.ShowMonthName() && month >=1 && month <= 12)
-        snprintf(mname, 4, "%s", get_month_shortcut(month-1));
+        snprintf(mname, 4, "%s", get_month_shortcut(month));
     else
         snprintf(mname, 4, "%u", month);
 

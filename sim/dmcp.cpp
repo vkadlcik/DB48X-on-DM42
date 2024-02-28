@@ -1001,7 +1001,7 @@ void rtc_read(tm_t * tm, dt_t *dt)
     gettimeofday(&tv, nullptr);
 
     dt->year = 1900 + utm.tm_year;
-    dt->month = utm.tm_mon;
+    dt->month = utm.tm_mon + 1;
     dt->day = utm.tm_mday;
 
 
@@ -1033,7 +1033,7 @@ cstring get_month_shortcut(int month)
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };
-    return name[month];
+    return name[month - 1];
 }
 
 

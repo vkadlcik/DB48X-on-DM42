@@ -1,5 +1,105 @@
 # Release notes
 
+## Release 0.7.0 "Temple" - Graphics Equation Rendering
+
+This release introduces a few major improvements, including graphical
+rendering of equations and matrices, the `Show` command to display
+large objects full-screen, customizable constants, and date-related
+operations.
+
+### New features
+
+* Graphical rendering of equations, fractions, matrices, vectors and
+  lists. In graphical rendering mode, variables are showin in italics.
+* Constants in the `ConstantsMenu`, split into categories, and loading
+  from an optional `config/constants.csv` file, in a way
+  similar to what existed for units.
+* Inverse trigonometric functions (`asin`, `acos` and `atan`) now
+  produce unit objects with the current angle mode as a unit. This can
+  be configured by the `SetAngleUnits` / `NoAngleUnits` flags.
+* `Cycle` (EEX key) now cycles between angle units.
+* `R→D` and `D→R` commands to convert between degree and radian in a
+  purely numerical way (no unit). This is for compatibility with HP.
+* Add `→Deg`, `→Rad`, `→Grad`, `→πr` commands, which convert a number
+  to the target unit using current angle mode, and convert an angle to
+  the target angle unit.
+* Conversion from DMS to HMS and from HMS to DMS
+* Rendering of dates: `19681205_date` renders as `Fri 5/Dec/1968`,
+  with a format configuration using the same flags as for the header.
+  Note that the date format is `YYYYMMDD`, _not_ the same as on HP
+  calculators. This allows `YYYYMMDD.hhmmss` for dates with time.
+* `Date` and `Time` command to return the current date and time.
+  Additionally, `DateTime` returns both date and time, and
+  `ChronoTime` returns the time with 1/100s precision.
+* `→Date` and `→Time` commands to set the system date and time
+* `Date+`, `DDays` and date arithmetic using `+` or `-`, using day
+  units for the results. As an extension relative to HP calculators,
+  these will accept fractional days, or other time units. For example,
+  adding `1000000_s` to `19681205_date` generates a date with time
+  result, `Tue 16/Dec/1968, 13:46:40`
+* `JulianDayNumber` and `DateFromJulianDayNumber` commands to convert
+  between dates and Julian day numbers. These commands also accept
+  fractional input.
+* `Show` command showing a full-screen graphical rendering of the
+  result on the stack. The resut is size-adjusted. For example, you
+  can display all digits in `200!`. If the result does not fit on the
+  screen, you can scroll using the _◀︎_ and _▶︎_, as well as _8_, _6_,
+  _4_ and _2_. The maximum pixel size for `Show` is set by `MaxW`
+  (default is the width of the LCD), the maximum height is set by
+  `MaxH` (default is 2048 pixels).
+* `AutoScaleStack` and `NoAutoScaleStack` settings to automatically
+  adjust the font size for the stack elements.
+* Support for system flags -20 to -26 (infinite results, overflow and
+  underflow).
+
+
+### Bug fixes
+
+* simulator: Adjust DMCP month off-by-one error
+* Repair insertion of `while` loops and similar commands on the
+  command line
+* Use stack format when drawing an object with `DrawText` (`DISP`)
+* Arithmetic on unit objects no longer auto-simplifies, e.g.
+  `1_s 1_s -` returns `0_s` and not `0`.
+* Perform computations for `→Q` using integer values, which avoids an
+  issue where increasing the number of iterations with an unachievable
+  precision could prodduce `1/1` as the fractional result.
+* Repair auto-simplification for `i*i=-1`
+* Display a negative mixed fraction as `-1 1/3` and not `1 -1/3`.
+* Do not insert `()` after a multiplication in algebraic mode
+* Accept units and tagged objects in `PolarToReal` and `RealToPolar`
+* Accept angle units as input for `→DMS`
+* Off-by-one clipping error in header, erasing the shift annunciator
+* Fix help for `FC?` (incorrectly stating that it tested for flat set)
+* Lookup units and constants in a case sensitive way
+* Fix labels for `ExpFit` and `LinFit` in `RegressionMenu`.
+
+
+### Improvements
+
+* tests: Adjust tests to match bugs fixed in v0.6.5
+* dms: Accept entering minutes without third dot, e.g. `1.2.3 ENTER`
+* menus: Split the Time, Date and Alarm menus
+* Split rendered objects at space boundaries. This notably ensures
+  that large numbers are split at digit grouping boundaries, and makes
+  it possible to display larger programs on the stack. The rendering
+  of programs and matrices/vectors/lists has also been fine-tuned.
+* The "white circle" glyph has a thicker border, makes it more
+  readable in menus.
+* doc: Update the list of unimplemented features
+* menus: Draw a white circle for disabled flags, and allow the menu
+  function to toggle the flag. This made it possible to reduce the
+  number of menu entries for flag-heavy menus.
+* Mixed fractions are now the default, as opposed to improper
+  fractions
+* doc: Improve the quickstart guide
+* doc: Improve the documentation for sin, cos and tan
+* tests: Make it possible to interrupt a running test
+* help: Skip HTML tags, e.g. <video>
+* simulator: Add screenshot capability, and reduce window height
+* menus: `ToolsMenu` selects time, date or angle menu based on units
+
+
 ## Release 0.6.5 "Testimony": Small bug fixes
 
 This release does not contain much because FOSDEM took a lot of energy.

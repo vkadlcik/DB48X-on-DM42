@@ -269,10 +269,9 @@ Here are a few of the interesting RPL-specific key mappings:
 * _I_ (_STK_, DM-42 and DM-32 _R↓_) will open the [StackMenu](#StackMenu),
   giving access to stack operations.
 
-* 🟨 _I_ (_CONST_, DM-42 _π_, DM-32 _HYP_) will show a
-  [ConstantsMenu](#ConstantsMenu) giving access to various constants. In a
-  future version of the firmware, you will be able to provide your own constants
-  in a `CONSTANTS.CSV` file on disk.
+* 🟨 _I_ (_CONST_, DM-42 _π_, DM-32 _HYP_) shows a
+  [ConstantsMenu](#ConstantsMenu) giving access to various constants. You can
+  provide your own constants in a `CONFIG/CONSTANTS.CSV` file on disk.
 
 * _M_ (_X⇆Y_) executes the RPL [Swap](#swap) function
 

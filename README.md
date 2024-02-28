@@ -25,9 +25,7 @@ This project was presented at [FOSDEM 2023][fosdem23] and [FOSDEM 2024][fosdem24
 [fosdem23]: https://fosdem.org/2023/schedule/event/reversepolishlisp/
 [fosdem24]: https://fosdem.org/2024/schedule/event/fosdem-2024-1990-how-much-math-can-you-fit-in-700k-/
 
-[![Watch the video](https://img.youtube.com/vi/WU5Dg1mPkl8/maxresdefault.jpg)](https://www.youtube.com/watch?v=WU5Dg1mPkl8&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf)
-
-https://www.youtube.com/watch?v=WU5Dg1mPkl8
+[![FOSDEM 2024 video](http://img.youtube.com/vi/WU5Dg1mPkl8/0.jpg)](https://www.youtube.com/watch?v=WU5Dg1mPkl8&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf "FOSDEM 2024 video")
 
 ## Why name the project DB48X?
 

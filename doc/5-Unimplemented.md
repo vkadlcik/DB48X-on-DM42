@@ -46,13 +46,19 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [CLEAR](#clearstack)
 * [CLLCD](#cllcd)
 * [CLΣ](#cleardata)
+* [COLΣ](#columndata)
 * [CONJ](#conj)
 * [CONT](#continue)
 * [CONVERT](#convert)
 * [COSH](#cosh)
 * [COS](#cos)
+* [COV](#covariance)
 * [CRDIR](#crdir)
 * [C→R](#complextoreal)
+* [DATE](#date)
+* [→DATE](#setdate)
+* [DATE+](#dateadd)
+* [DDAYS](#ddays)
 * [DBUG](#debug)
 * [DEC](#dec)
 * [DEG](#deg)
@@ -71,6 +77,8 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [DUP2](#dup2)
 * [DUPN](#dupn)
 * [DUP](#dup)
+* [D→R](#d-r)
+* [e](#constants)
 * [ELSE](#else)
 * [END](#end)
 * [ENG](#eng)
@@ -80,6 +88,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [EVAL](#eval)
 * [EXPAND](#expand)
 * [EXPAN](#expan)
+* [EXPFIT](#exponentialfit)
 * [EXPM](#expm)
 * [EXP](#exp)
 * [FACT](#fact)
@@ -93,10 +102,12 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [FUNCTION](#function)
 * [GAMMA](#gamma)
 * [GET](#get)
+* [GETI](#geti)
 * [GOR](#gor)
 * [GROB](#grob)
 * [GXOR](#gxor)
 * [HALT](#halt)
+* [HEAD](#head)
 * [HELP](#help) (Different meaning)
 * [HEX](#hex)
 * [HOME](#home)
@@ -114,9 +125,12 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [KILL](#kill)
 * [LASTARG](#lastarg)
 * [LINE](#line)
+* [LINFIT](#linearfit)
 * [LNP1](#lnp1)
 * [LN](#ln)
 * [LOG](#log)
+* [LOGFIT](#logarithmicfit)
+* [LR](#linearregression)
 * [MAX](#max)
 * [MAXΣ](#maxdata)
 * [MEAN](#mean)
@@ -127,6 +141,8 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [NEG](#neg)
 * [NEXT](#next)
 * [NOT](#not)
+* [NΣ](#datasize)
+* [NUM](#char-code)
 * [OBJ→](#explode)
 * [OCT](#oct)
 * [OFF](#off)
@@ -138,12 +154,21 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [PICK](#pick)
 * [PICT](#pict)
 * [POLAR](#polar)
+* [PMAX](#plotmax)
+* [PMIN](#plotmin)
 * [PURGE](#purge)
+* [PUT](#put)
+* [PUTI](#puti)
+* [PVAR](#populationvariance)
+* [PWRFIT](#powerfit)
 * [RAD](#rad)
 * [RCL](#rcl)
+* [RCLΣ](#recalldata)
 * [RCWS](#rcws)
+* [RE](#re)
 * [RECT](#rect) (Different meaning: draws a rectangle)
 * [REPEAT](#repeat)
+* [REVLIST](#reverselist)
 * [REWRITE](#rewrite) (Different meaning: performs a rewrite)
 * [RL](#rl)
 * [RLB](#rlb)
@@ -157,7 +182,11 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [RRC](#rrb)
 * [R→B](#realtobinary)
 * [R→C](#realtocomplex)
+* [R→D](#radianstodegrees)
 * [SAME](#same)
+* [SCALE](#plotscale)
+* [SCALEH](#xscale)
+* [SCALEW](#yscale)
 * [SCI](#sci)
 * [SF](#showflag)
 * [SIGN](#sign)
@@ -166,48 +195,65 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [SL](#sl)
 * [SLB](#slb)
 * [SLC](#slb)
+* [SORT](#sort)
 * [SQ](#sq)
+* [SR](#shiftright)
+* [SRB](#shiftrightbyte)
 * [SST](#stepover)
 * [SST↓](#singlestep)
+* [START](#start)
+* [STD](#standarddisplay)
 * [STEP](#step)
 * [STORE](#store) (Different meaning: long form of STO)
 * [STO](#sto)
+* [STOΣ](#storedata)
+* [STR→](#compile)
 * [STWS](#stws)
 * [SWAP](#swap)
+* [%T](#percenttotal)
+* [TAIL](#tail)
 * [TANH](#tanh)
 * [TAN](#tan)
 * [THEN](#then)
 * [TICKS](#ticks)
+* [TIME](#time)
+* [→TIME](#settime)
+* [TOT](#total)
 * [TYPE](#type)
 * [UBASE](#ubase)
 * [UFACT](#ufact)
 * [UNTIL](#until)
 * [UPDIR](#updir)
 * [UVAL](#uval)
+* [VAR](#variance)
 * [VERSION](#version)
 * [WAIT](#wait)
 * [WHILE](#while)
 * [XCOL](#independentcolumn)
 * [XOR](#xor)
+* [XRNG](#xrange)
 * [XROOT](#xroot)
+* [YRNG](#yrange)
 * [YCOL](#dependentcolumn)
+* [%](#percent)
 * [^](#pow) (Power)
 * [i](#iconstant)
 * [«»](#programs) (Program delimiters)
 * [×](#mul) (Multiply)
 * [÷](#div) (Divide)
+* [Σ+](#adddata)
 * [ΣXY](#sumofxy)
 * [ΣX](#sumofx)
 * [ΣX²](#sumofxsquares)
 * [ΣY](#sumofy)
 * [ΣY²](#sumofysquares)
+* [Σ–](#removedata)
 * [π](#pi) (Pi)
 * [–](#sub) (Subtract)
 * [→LIST](#tolist)
 * [→NUM](#todecimal)
 * [→Q](#tofraction)
 * [→STR](#totext)
-* [STR→](#compile)
 * [→TAG](#→tag)
 * [→UNIT](#→unit)
 * [→](#locals) (Create Local)
@@ -222,9 +268,8 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 
 # Unimplemented commands
 
-The following is a list of unimplemented HP50 RPL commands, which is a superset of the HP48
-
-commands.
+The following is a list of unimplemented HP50 RPL commands, which is a superset
+of the HP48 commands.
 
 * ABCUV
 * ACK
@@ -284,7 +329,6 @@ commands.
 * COL+
 * COLCT
 * COLLECT
-* COLΣ
 * COMB
 * CON
 * COND
@@ -293,7 +337,6 @@ commands.
 * CONST
 * CONSTANTS
 * CORR
-* COV
 * CR
 * CROSS
 * CSWP
@@ -302,10 +345,6 @@ commands.
 * CYLIN
 * C→PX
 * DARCY
-* DATE
-* →DATE
-* DATE+
-* DDAYS
 * DECR
 * DEDICACE
 * DEF
@@ -340,8 +379,6 @@ commands.
 * DRAW3DMATRIX
 * DROITE
 * DUPDUP
-* D→R
-* e
 * EDIT
 * EDITB
 * EGCD
@@ -359,7 +396,6 @@ commands.
 * EXP2HYP
 * EXP2POW
 * EXPANDMOD
-* EXPFIT
 * EXPLN
 * EYEPT
 * F0λ
@@ -390,7 +426,6 @@ commands.
 * GBASIS
 * GCD
 * GCDMOD
-* GETI
 * GRAD
 * GRAMSCHMIDT
 * GRAPH
@@ -401,7 +436,6 @@ commands.
 * *H
 * HADAMARD
 * HALFTAN
-* HEAD
 * HEADER→
 * →HEADER
 * HERMITE
@@ -463,7 +497,6 @@ commands.
 * LIMIT
 * LIN
 * ΣLINE
-* LINFIT
 * LININ
 * LINSOLVE
 * LIST→
@@ -473,7 +506,6 @@ commands.
 * LNAME
 * LNCOLLECT
 * LOCAL
-* LOGFIT
 * LQ
 * LR
 * LSQ
@@ -515,9 +547,7 @@ commands.
 * NEXTPRIME
 * NIP
 * NOVAL
-* NΣ
 * NSUB
-* NUM
 * NUMX
 * NUMY
 * OLDPRT
@@ -546,8 +576,6 @@ commands.
 * PKT
 * PLOT
 * PLOTADD
-* PMAX
-* PMIN
 * PMINI
 * POLYNOMIAL
 * POP
@@ -575,12 +603,8 @@ commands.
 * PTAYL
 * PTPROP
 * PUSH
-* PUT
-* PUTI
-* PVAR
 * PVARS
 * PVIEW
-* PWRFIT
 * PX→C
 * →Qπ
 * qr
@@ -601,10 +625,8 @@ commands.
 * RCLKEYS
 * RCLMENU
 * RCLVX
-* RCLΣ
 * RDM
 * RDZ
-* RE
 * RECN
 * RECV
 * REF
@@ -615,7 +637,6 @@ commands.
 * RES
 * RESTORE
 * RESULTANT
-* REVLIST
 * RISCH
 * RKF
 * RKFERR
@@ -637,12 +658,8 @@ commands.
 * RSD
 * RSWP
 * RULES
-* R→D
 * R→I
 * SBRK
-* SCALE
-* SCALEH
-* SCALEW
 * SCATRPLOT
 * SCATTER
 * SCHUR
@@ -672,15 +689,10 @@ commands.
 * SOLVEQN
 * SOLVER
 * SOLVEVX
-* SORT
 * SPHERE
-* SR
 * SRAD
-* SRB
 * SRECV
 * SREPL
-* START
-* STD
 * STEQ
 * STIME
 * STOALARM
@@ -691,7 +703,6 @@ commands.
 * STO–
 * STO*
 * STO/
-* STOΣ
 * STREAM
 * STRM
 * STURM
@@ -704,10 +715,8 @@ commands.
 * SYSEVAL
 * SYLVESTER
 * SYST2MAT
-* %T
 * TABVAL
 * TABVAR
-* TAIL
 * TAN2CS2
 * TAN2SC
 * TAN2SC2
@@ -720,13 +729,10 @@ commands.
 * TEVAL
 * TEXPAND
 * TEXT
-* TIME
-* →TIME
 * TINC
 * TLIN
 * TLINE
 * TMENU
-* TOT
 * TRACE
 * TRAN
 * TRANSIO
@@ -760,7 +766,6 @@ commands.
 * →V2
 * →V3
 * VANDERMONDE
-* VAR
 * VARS
 * VER
 * VISIT
@@ -777,12 +782,10 @@ commands.
 * XPUT
 * XQ
 * XRECV
-* XRNG
 * XSEND
 * XSERV
 * XVOL
 * XXRNG
-* YRNG
 * YSLICE
 * YVOL
 * YYRNG
@@ -793,10 +796,7 @@ commands.
 * ?
 * ∞
 * Σ
-* Σ+
-* Σ–
 * ∂
-* % (Percent)
 *  (Store)
 * ; (Semicolon)
 

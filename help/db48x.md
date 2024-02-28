@@ -221,10 +221,9 @@ Here are a few of the interesting RPL-specific key mappings:
 * _I_ (_STK_, DM-42 and DM-32 _R↓_) will open the [StackMenu](#StackMenu),
   giving access to stack operations.
 
-* 🟨 _I_ (_CONST_, DM-42 _π_, DM-32 _HYP_) will show a
-  [ConstantsMenu](#ConstantsMenu) giving access to various constants. In a
-  future version of the firmware, you will be able to provide your own constants
-  in a `CONSTANTS.CSV` file on disk.
+* 🟨 _I_ (_CONST_, DM-42 _π_, DM-32 _HYP_) shows a
+  [ConstantsMenu](#ConstantsMenu) giving access to various constants. You can
+  provide your own constants in a `CONFIG/CONSTANTS.CSV` file on disk.
 
 * _M_ (_X⇆Y_) executes the RPL [Swap](#swap) function
 
@@ -623,8 +622,9 @@ This software is (C) 2022-2023 Christophe de Dinechin and the DB48X team.
 
 Additional contributors to the project include:
 
-* Camille Wormser
-* Jeff, aka spiff72
+* Camille Wormser (complex number fixes)
+* Jeff, aka spiff72 (keyboard overlay)
+* Conrado Seibel (help file fix)
 
 The authors would like to acknowledge
 
@@ -959,6 +959,10 @@ DB48X is a RPL calculator, which means that:
 
   ![Command-line and catalog](img/command-line-and-catalog.png)
 
+
+[![Long demo of 0.7.0](http://img.youtube.com/vi/kzkjE8BZW10WU5Dg1mPkl8/0.jpg)](https://www.youtube.com/watch?v=kzkjE8BZW10WU5Dg1mPkl8&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf "Long demo of v0.7.0")
+
+
 ## Arithmetic operations
 
 Let's compute the area of a room made of a main section that is 6 meters by 8.3
@@ -1213,595 +1217,722 @@ does not have a `NXT` key unlike HP calculators. Instead, when necessary, the
 [![Demo of v0.4.8](https://img.youtube.com/vi/tT5az2CIcnk/maxresdefault.jpg)](https://www.youtube.com/watch?v=tT5az2CIcnk&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf)
 
 
-**Entering whole numbers**
+### Entering whole numbers
 
-**Arithmetic on integers**
+### Arithmetic on integers
 
-**Changing the sign of a number with +/-**
+### Changing the sign of a number with +/-
 
-**Exact division**
+### Exact division
 
-**Computing on large numbers: 2^40, 25!**
+### Computing on large numbers: 2^40, 25!
 
-**Separators to make large numbers more readable**
+### Separators to make large numbers more readable
 
-**Built-in functions: example of 1/x**
+### Built-in functions: example of 1/x
 
 
 ## Using the shift key
 
-**Primary function: 1/x**
+### Primary function: 1/x
 
-**First shifted function: y^x and square**
+### First shifted function: y^x and square
 
-**Second shifted function: Help**
+### Second shifted function: Help
 
-**The shift annunciator**
+### The shift annunciator
 
 
 ## Invoking the on-line Help
 
-**Long-press on a function key**
+### Long-press on a function key
 
-**Moving up and down**
+### Moving up and down
 
-**Following links**
+### Following links
 
-**Navigating back to a previous topic**
+### Navigating back to a previous topic
 
-**Exiting the on-line help**
+### Exiting the on-line help
 
-**Contextual help**
+### Contextual help
 
 
 ## The annunciator area
 
-**Battery level**
+### Battery level
 
-**USB vs. battery power**
+### USB vs. battery power
 
-**Showing or hiding the date and time**
+### Showing or hiding the date and time
 
-**Current state file name**
+### Current state file name
 
-**Future direction**
+### Future direction
 
 
 ## Decimal values
 
-**Entering a decimal number**
+### Entering a decimal number
 
-**Entering a number in scientific notation with EEX**
+### Entering a number in scientific notation with EEX
 
-**Arithmetic on decimal values**
+### Arithmetic on decimal values
 
-**Arithmetic on fractions**
+### Arithmetic on fractions
 
-**Using EEX to cycle between decimal and fraction**
+### Using EEX to cycle between decimal and fraction
 
-**Separators for the fractional part**
+### Separators for the fractional part
 
-**Live separators during number editing**
+### Live separators during number editing
 
 
 ## Soft keys and menus
 
-**Soft keys**
+### Soft keys
 
-**The DISP menu**
+### The DISP menu
 
-**Effect of shift state on the menu**
+### Effect of shift state on the menu
 
-**Submenus**
+### Submenus
 
-**Menu history (Last Menu)**
+### Menu history (Last Menu)
 
 
 ## Displaying decimal values
 
-**Standard display mode**
+### Standard display mode
 
-**FIX display mode**
+### FIX display mode
 
-**Switching to scientific mode**
+### Switching to scientific mode
 
-**Digits to show for small values**
+### Digits to show for small values
 
-**SCI display mode**
+### SCI display mode
 
-**ENG display mode**
+### ENG display mode
 
-**SIG display mode**
+### SIG display mode
 
-**Emulating HP48 standard display**
+### Emulating HP48 standard display
 
 
 ## Scientific functions
 
-**Square and power**
+### Square and power
 
-**Square root and xroot**
+### Square root and xroot
 
-**Exponential and Log**
+### Exponential and Log
 
-**Exponential and log in base 10**
+### Exponential and log in base 10
 
-**DM42 layout difference: EXP LN instead of LOG LN**
+### DM42 layout difference: EXP LN instead of LOG LN
 
-**Trigonometric functions and their inverse**
+### Trigonometric functions and their inverse
 
-**Functions in menus: example of hyperbolic functions**
+### Functions in menus: example of hyperbolic functions
 
 
 ## Using an infinite stack
 
-**Showing multiple stack levels**
+### Showing multiple stack levels
 
-**Result vs. other levels**
+### Result vs. other levels
 
-**When a result is too large**
+### When a result is too large
 
 
-**An example of complicated calculation - The Mach number benchmark**
+### An example of complicated calculation - The Mach number benchmark
 
-**How to proceeed with that computation**
+### How to proceeed with that computation
 
-**Correcting an error in the middle**
+### Correcting an error in the middle
 
-**Saving results for later with Duplicate**
+### Saving results for later with Duplicate
 
-**Dropping results and cleaning up with Drop**
+### Dropping results and cleaning up with Drop
 
-**LastArg to recall last arguments**
+### LastArg to recall last arguments
 
-**Undo to restore previous stack state**
+### Undo to restore previous stack state
 
 
 ## The command line
 
-**Editing an object on the stack with Right key**
+### Editing an object on the stack with Right key
 
-**Moving left and right on the command line**
+### Moving left and right on the command line
 
-**Repeating keys: Insert, left, right, delete**
+### Repeating keys: Insert, left, right, delete
 
-**Inserting characters in the middle**
+### Inserting characters in the middle
 
-**Deleting characters left and right**
+### Deleting characters left and right
 
-**Space key on R/S**
+### Space key on R/S
 
-**Command line: entering three numbers at once**
+### Command line: entering three numbers at once
 
 
 ## The editor menu
 
-**Selecting the editor menu**
+### Selecting the editor menu
 
-**Moving word by word**
+### Moving word by word
 
-**Moving to beginning and end**
+### Moving to beginning and end
 
-**Selecting text**
+### Selecting text
 
-**Cut, copy and paste**
+### Cut, copy and paste
 
-**Incremental search**
+### Incremental search
 
-**Search and replace**
+### Search and replace
 
 
 ## Command line history
 
-**Recalling a previous command line**
+### Recalling a previous command line
 
-**Optimization of command-line space**
+### Optimization of command-line space
 
-**Exiting the command line**
+### Exiting the command line
 
 ## Entering letters and symbols
 
-**Alpha mode with Shift Enter**
+### Alpha mode with Shift Enter
 
-**Alpha mode with Long Shift**
+### Alpha mode with Long Shift
 
-**Transient Alpha mode, upper and lowercase**
+### Transient Alpha mode, upper and lowercase
 
-**Shift on digits and operations while in Alpha mode**
+### Shift on digits and operations while in Alpha mode
 
-**Shifted characters**
+### Shifted characters
 
-**2nd shifted characters**
+### 2nd shifted characters
 
-**White cursor for Alpha mode**
+### White cursor for Alpha mode
 
-**C and L cursor indicators in text**
+### C and L cursor indicators in text
 
 
 ## Entering names
 
-**Executing a command by typing its name**
+### Executing a command by typing its name
 
-**Catalog with + key**
+### Catalog with + key
 
-**Auto-completion**
+### Auto-completion
 
-**Example: VERSION**
+### Example: VERSION
 
-**What happens if the name is not a command**
+### What happens if the name is not a command
 
 
 ## Multi-line text editor
 
-**Multi-line Text editor**
+### Multi-line Text editor
 
-**Up and down by shifting**
+### Up and down by shifting
 
-**Repeat up and down by holding key**
+### Repeat up and down by holding key
 
 
 ## Entering text
 
-**Entering text with 2nd shift ENTER**
+### Entering text with 2nd shift ENTER
 
-**The C and L cursors**
+### The C and L cursors
 
-**Mixed operations, e.g. adding text**
+### Mixed operations, e.g. adding text
 
-**Multiplying text by a number**
+### Multiplying text by a number
 
 
 ## Entering an algebraic expression
 
-**The `' ()` key**
+### The `' ()` key
 
-**Entering an expression**
+### Entering an expression
 
-**Evaluating an expression with `=`**
+### Evaluating an expression with `=`
 
-**Cursor in algebraic mode**
+### Cursor in algebraic mode
 
-**Comparing the `sin` key in direct and algebraic mode**
+### Comparing the `sin` key in direct and algebraic mode
 
-**Entering parentheses**
+### Entering parentheses
 
-**Automatic elimination of parentheses**
+### Automatic elimination of parentheses
 
-**Symbolic algebraic expressions**
+### Symbolic algebraic expressions
 
-**Performing RPN operations on algebraic expressions**
+### Performing RPN operations on algebraic expressions
 
-**Automatic simplification of `0+x`, `1*x`, etc.**
+### Automatic simplification of `0+x`, `1*x`, etc.
 
 
 ## The Tools menu
 
-**Tools menu on empty stack**
+### Tools menu on empty stack
 
-**Tools menu for a decimal value**
+### Tools menu for a decimal value
 
-**Tools menu for an integer**
+### Tools menu for an integer
 
-**Tools menu for a text**
+### Tools menu for a text
 
-**Tools menu for an expression**
+### Tools menu for an expression
 
 
 ## Computations on complex numbers
 
-**The complex menu**
+### The complex menu
 
-**Entering numbers in rectangular form**
+### Entering numbers in rectangular form
 
-**Entering numbers in polar form**
+### Entering numbers in polar form
 
-**Switching between polar and rectangular with EEX**
+### Switching between polar and rectangular with EEX
 
-**Arithmetic on complex numbers**
+### Arithmetic on complex numbers
 
-**Exact angles and exact computations: 2<45 * 3<90 ^ 8**
+### Exact angles and exact computations: 2<45 * 3<90 ^ 8
 
-**Functions on complex numbers, e.g. `sin` and `log`.**
+### Functions on complex numbers, e.g. `sin` and `log`.
 
-**Effect of angle mode on display in polar form**
+### Effect of angle mode on display in polar form
 
 
 ## Computations on vectors
 
-**Entering a vector**
+### Entering a vector
 
-**The M cursor**
+### The M cursor
 
-**Adding and subtracting vectors**
+### Adding and subtracting vectors
 
-**Component-wise multiplication and division**
+### Component-wise multiplication and division
 
-**Operations between vector and a constant**
+### Operations between vector and a constant
 
-**Component-wise functions: 1/x**
+### Component-wise functions: 1/x
 
-**The tools menu on vectors**
+### The tools menu on vectors
 
-**Computing the norm of a vector**
+### Computing the norm of a vector
 
-**The Matrix menu**
+### The Matrix menu
 
 
 ## Computations on matrices
 
-**Entering a matrix**
+### Entering a matrix
 
-**Adding and subtracting matrices**
+### Adding and subtracting matrices
 
-**Multiplication and division by a constant**
+### Multiplication and division by a constant
 
-**Multiplying square matrices**
+### Multiplying square matrices
 
-**Multiplying a matrix and a vector**
+### Multiplying a matrix and a vector
 
-**Computing a determinant**
+### Computing a determinant
 
-**Computing an inverse with 1/x**
+### Computing an inverse with 1/x
 
 
 ## Advanced matrix operations
 
-**Matrix of complex numbers**
+### Matrix of complex numbers
 
-**Symbolic matrix**
+### Symbolic matrix
 
-**Inverse and determinant of 2x2 symbolic matrix**
+### Inverse and determinant of 2x2 symbolic matrix
 
 
 ## Entering data in lists
 
-**Entering a list**
+### Entering a list
 
-**Adding elements to a list**
+### Adding elements to a list
 
-**Applying a function to a list**
+### Applying a function to a list
 
-**Repeating a list (multiply)**
+### Repeating a list (multiply)
 
-**Lists containing lists**
+### Lists containing lists
 
 
 ## Computations with based numbers
 
-**Entering based numbers**
+### Entering based numbers
 
-**Entering hexadecimal directly with A-F**
+### Entering hexadecimal directly with A-F
 
-**Logical operations**
+### Logical operations
 
-**Setting the word size**
+### Setting the word size
 
-**Changing to common bases (2, 8, 10, 16)**
+### Changing to common bases (2, 8, 10, 16)
 
-**Changing to an arbitray base**
+### Changing to an arbitray base
 
-**Entering number in arbitrary base**
+### Entering number in arbitrary base
 
-**The tools menu on based number**
+### The tools menu on based number
 
-**Binary operations**
+### Binary operations
 
-**Emulating a 16-bit or 256-bit CPU**
+### Emulating a 16-bit or 256-bit CPU
 
-**The Cycle key on based numbers**
+### The Cycle key on based numbers
 
-**Adding a suffix to force a base (DM32 only)**
+### Adding a suffix to force a base (DM32 only)
 
 
 ## Unit objects
 
-**Entering a value with a unit**
+### Entering a value with a unit
 
-**The units menus**
+### The units menus
 
-**Applying a unit**
+### Applying a unit
 
-**Converting to a unit**
+### Converting to a unit
 
-**Dividing by a unit**
+### Dividing by a unit
 
 
 
 ## Entering a program
 
-**Computing a VAT**
+### Computing a VAT
 
-**Evaluating a program with `Evaluate`**
+### Evaluating a program with `Evaluate`
 
-**Modifying a program with LastArg**
+### Modifying a program with LastArg
 
-**Modifying a program with Undo**
+### Modifying a program with Undo
 
-**Modifying a program with command-line history**
+### Modifying a program with command-line history
 
-**The three roles of the R/S key: Space, =, EVAL**
+### The three roles of the R/S key: Space, =, EVAL
 
 
 ## Storing values in global variables
 
-**Storing a value in a new variable 'VATRate'**
+### Storing a value in a new variable 'VATRate'
 
-**Evaluating a variable**
+### Evaluating a variable
 
-**Case insensitivity**
+### Case insensitivity
 
-**Naming a variable on the command line**
+### Naming a variable on the command line
 
-**Using quotes to avoid evaluation**
+### Using quotes to avoid evaluation
 
-**Overwriting a variable value**
+### Overwriting a variable value
 
-**Expressions containing variables**
+### Expressions containing variables
 
 
 ## Storing and modifying programs
 
-**Creating a new `VAT` command**
+### Creating a new `VAT` command
 
-**Evaluating a program by name**
+### Evaluating a program by name
 
-**Evaluting a program from variables menu**
+### Evaluting a program from variables menu
 
-**Taking input and computing output**
+### Taking input and computing output
 
 
 ## The variables menu
 
-**Showing the variables menu**
+### Showing the variables menu
 
-**Evaluating a variable with F1**
+### Evaluating a variable with F1
 
-**Recalling a variable with shift F1**
+### Recalling a variable with shift F1
 
-**Storing in an existing variable with xshift F1**
+### Storing in an existing variable with xshift F1
 
-**Rationale for the difference with HP48**
+### Rationale for the difference with HP48
 
-**Using variables menu while editing a program**
+### Using variables menu while editing a program
 
 
 ## Menus with too many entries
 
-**Adding more variables overflows**
+### Adding more variables overflows
 
-**Going from 6 to 7 entries**
+### Going from 6 to 7 entries
 
-**No next key, using F6 and shift F6 for next and previous**
+### No next key, using F6 and shift F6 for next and previous
 
 
 ## Saving your state to disk
 
-**The system menu**
+### The system menu
 
-**Saving the calculator state**
+### Saving the calculator state
 
-**Restoring another state**
+### Restoring another state
 
-**Merging states**
+### Merging states
 
-**Returning to the calculator**
+### Returning to the calculator
 
-**Saving state quickly with xshift-EXIT**
+### Saving state quickly with xshift-EXIT
 
 
 ## Plotting a function
 
-**Plotting a wave function sin(x * a) * cos(x * b)**
+### Plotting a wave function sin(x * a) * cos(x * b)
 
-**Plotting a polar function**
+### Plotting a polar function
 
-**Plotting a parameteric function**
+### Plotting a parameteric function
 
-**Drawing two functions on the same screen**
+### Drawing two functions on the same screen
 
-**Changing line width**
+### Changing line width
 
-**Changing line patterm**
+### Changing line patterm
 
 
 ## The numerical solver
 
-**Solving an equation**
+### Solving an equation
 
-**Expressions that must be zero**
+### Expressions that must be zero
 
-**Equations A=B**
+### Equations A=B
 
-**Solving for different variables**
+### Solving for different variables
 
 
 ## Numerical integration
 
-**Integrating x^2 from 0 to 1 (exact results)**
+### Integrating x^2 from 0 to 1 (exact results)
 
-**What happens with 0.0 to 1.0**
+### What happens with 0.0 to 1.0
 
-**Integration 1/x from 2 to 22**
+### Integration 1/x from 2 to 22
 
-**Comparing with LN(2) - LN(2)**
+### Comparing with LN(2) - LN(2)
 
 
 ## Symbolic expression manipulation
 
-**Collecting terms**
+### Collecting terms
 
-**Expanding terms**
+### Expanding terms
 
-**General expression rewriting facility**
+### General expression rewriting facility
 
 
 ## Local variables
 
-**Why use local variables**
+### Why use local variables
 
-**Inserting local variables in a program**
+### Inserting local variables in a program
 
-**Inserting local variables in equations**
+### Inserting local variables in equations
 
 
 ## Localized number display preferences
 
-**Changing the decimal separator**
+### Changing the decimal separator
 
-**Changing the spacing for numbers**
+### Changing the spacing for numbers
 
-**Changing the character used for spacing**
+### Changing the character used for spacing
 
 
 ## User interface preferences
 
-**Square and rounded menu styles**
+### Square and rounded menu styles
 
-**3-level, 1-level and flat menu styles**
+### 3-level, 1-level and flat menu styles
 
-**Changing result font size**
+### Changing result font size
 
-**Changing stack font size**
+### Changing stack font size
 
-**Changing editor font size**
+### Changing editor font size
 
-**Changing multi-line editor font size**
+### Changing multi-line editor font size
 
 
 
 ## Comparisons and tests
 
-**Truth: True, False, 0, 1**
+### Truth: True, False, 0, 1
 
-**Equality tests**
+### Equality tests
 
-**Differences between = and ==**
+### Differences between = and ==
 
-**Relational operators**
+### Relational operators
 
-**Logical operations (AND, OR, NOT)**
+### Logical operations (AND, OR, NOT)
 
 
 ## More sophisticated programming
 
-**Testing with IF THEN ELSE END**
+### Testing with IF THEN ELSE END
 
-**Conditional expression with IFTE**
+### Conditional expression with IFTE
 
-**Counted loop with START NEXT**
+### Counted loop with START NEXT
 
-**Stepping loop with START STEP**
+### Stepping loop with START STEP
 
-**Named loop with FOR NEXT**
+### Named loop with FOR NEXT
 
-**Named loop with FOR STEP**
+### Named loop with FOR STEP
 
-**WHILE conditional loop**
+### WHILE conditional loop
 
-**UNTIL conditional loop**
+### UNTIL conditional loop
 
 
 ## Enjoy the calculator!
+
+
+
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--   Installation guide                                                   -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+
+## Installation
+
+[![Installation process](https://img.youtube.com/vi/rVWy4N0lBOI/maxresdefault.jpg)](https://www.youtube.com/watch?v=rVWy4N0lBOI&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf)
+
+
+### Downloading the software
+
+You can download pre-built versions of the firmware from the releases page of
+the project (https://github.com/c3d/DB48X-on-DM42/releases), or alternatively,
+you can download the source code and build it yourself.
+
+The pre-built firmware for the DM-42 is split into two components, `db48x.pgm`
+and `db48x_qspi.bin`. The built-in help is stored in a file called `db48x.md`.
+
+
+In addition, a file called `Demo.48s` contains a few sample RPL programs to
+illustrate the capabilities of this new firmware, two comma-separated values
+files `units.csv` and `constants.csv`, which define the units and constants
+respectively.
+
+### Connecting the calculator to a computer
+
+The DM-42 calculator connects to your computer using a standard micro-USB cable.
+
+
+
+### System menu
+
+The `Setup` menu is displayed by using 🟨 _0_. This key combination is the same
+on the stock DM42 firmware and on the new DB48X firmware, and it contains
+similar entries. However, the setup menu entries are not necessarily in the same
+order.
+
+On the stock firmware, you need to successively select:
+
+* `System`
+
+* `Enter System Menu`
+
+* `Reset to DMCP menu`
+
+On the DB48X firmware, the required options are both directly available from the
+`Setup` menu.
+
+
+### Exposing internal storage as a USB disk
+
+The `Activate USB Disk` option enables the calculator's USB disk mode, and
+exposes 6MB of its internal storage as a regular flash disk that you can access
+from your computer as an external disk.
+
+
+### Copying DB48X installation files
+
+The files should be copied as follows:
+
+* `db48x.pgm` and `db48x_qspi.bin` in the root directory of the calculator's USB
+  disk.
+
+* `db48x.md` should be placed in a directory called `help`.
+
+
+* `units.csv` and `constants.csv` should be placed in a directory called
+  `config`. You can customize these files to add your own [units](#units) and
+  [constants](#constants).
+
+
+### Copying DM42 installation files
+
+Refer to the SwissMicros installation instructions to install or reinstall the
+original calculator firmware.
+
+
+### Installing the DB48X QSPI file
+
+To install the QSPI file, [select the system menu](#system-menu) and then select
+the `Load QSPI from FAT` menu entry.
+
+The `QSPI` in the menu label refers to the file ending with `_qspi.bin`. When
+upgrading, you should load the new QSPI file first, and only then load the
+program file.
+
+
+### Installing the DB48X program file
+
+To install the program file file, [select the system menu](#system-menu) and
+then select the `Load program` menu entry.
+
+After loading the DB48X program, the firmware loaded asks you to press a key,
+and the new firmware automatically runs.
+
+
+## Switching between DM42 and DB48X
+
+Early releases of the DB48X firmware produced a QSPI image file that was capable
+of running the stock DM42 program file. Unfortunately, this is no longer the
+case due to space constraints.
+
+Unfortunately, the installation procedure for the QSPI file erases the file
+from the flash storage. This makes it relatively inconvenient to switch back and
+forth between DB48X and original firmware, since that requires copying the
+`_qspi.bin` file from your computer every time.
+
+
+### Saving and restoring DB48X state
+
+The DB48X `Setup` menu is displayed by using 🟨 _0_. It contains a `State` menu
+entry to manage the DB48X state, which includes variables, programs and
+preferences.
+
+The `State` submenu includes the following options:
+
+* `Load state`
+* `Save state`
+* `Clear state`
+* `Merge state`
+* `Activate USB Disk`
+* `Show Disk Info`
 # Types
 
 DB48X, [like HP RPL](#rich-data-types), supports a wide variety of data types.
@@ -2116,6 +2247,106 @@ result.
 If the `UndefinedValue` flag is is clear, which corresponds to `UndefinedError`
 being set, such operations will generate an `Undefined operation` error.
 # Release notes
+
+## Release 0.7.0 "Temple" - Graphics Equation Rendering
+
+This release introduces a few major improvements, including graphical
+rendering of equations and matrices, the `Show` command to display
+large objects full-screen, customizable constants, and date-related
+operations.
+
+### New features
+
+* Graphical rendering of equations, fractions, matrices, vectors and
+  lists. In graphical rendering mode, variables are showin in italics.
+* Constants in the `ConstantsMenu`, split into categories, and loading
+  from an optional `config/constants.csv` file, in a way
+  similar to what existed for units.
+* Inverse trigonometric functions (`asin`, `acos` and `atan`) now
+  produce unit objects with the current angle mode as a unit. This can
+  be configured by the `SetAngleUnits` / `NoAngleUnits` flags.
+* `Cycle` (EEX key) now cycles between angle units.
+* `R→D` and `D→R` commands to convert between degree and radian in a
+  purely numerical way (no unit). This is for compatibility with HP.
+* Add `→Deg`, `→Rad`, `→Grad`, `→πr` commands, which convert a number
+  to the target unit using current angle mode, and convert an angle to
+  the target angle unit.
+* Conversion from DMS to HMS and from HMS to DMS
+* Rendering of dates: `19681205_date` renders as `Fri 5/Dec/1968`,
+  with a format configuration using the same flags as for the header.
+  Note that the date format is `YYYYMMDD`, _not_ the same as on HP
+  calculators. This allows `YYYYMMDD.hhmmss` for dates with time.
+* `Date` and `Time` command to return the current date and time.
+  Additionally, `DateTime` returns both date and time, and
+  `ChronoTime` returns the time with 1/100s precision.
+* `→Date` and `→Time` commands to set the system date and time
+* `Date+`, `DDays` and date arithmetic using `+` or `-`, using day
+  units for the results. As an extension relative to HP calculators,
+  these will accept fractional days, or other time units. For example,
+  adding `1000000_s` to `19681205_date` generates a date with time
+  result, `Tue 16/Dec/1968, 13:46:40`
+* `JulianDayNumber` and `DateFromJulianDayNumber` commands to convert
+  between dates and Julian day numbers. These commands also accept
+  fractional input.
+* `Show` command showing a full-screen graphical rendering of the
+  result on the stack. The resut is size-adjusted. For example, you
+  can display all digits in `200!`. If the result does not fit on the
+  screen, you can scroll using the _◀︎_ and _▶︎_, as well as _8_, _6_,
+  _4_ and _2_. The maximum pixel size for `Show` is set by `MaxW`
+  (default is the width of the LCD), the maximum height is set by
+  `MaxH` (default is 2048 pixels).
+* `AutoScaleStack` and `NoAutoScaleStack` settings to automatically
+  adjust the font size for the stack elements.
+* Support for system flags -20 to -26 (infinite results, overflow and
+  underflow).
+
+
+### Bug fixes
+
+* simulator: Adjust DMCP month off-by-one error
+* Repair insertion of `while` loops and similar commands on the
+  command line
+* Use stack format when drawing an object with `DrawText` (`DISP`)
+* Arithmetic on unit objects no longer auto-simplifies, e.g.
+  `1_s 1_s -` returns `0_s` and not `0`.
+* Perform computations for `→Q` using integer values, which avoids an
+  issue where increasing the number of iterations with an unachievable
+  precision could prodduce `1/1` as the fractional result.
+* Repair auto-simplification for `i*i=-1`
+* Display a negative mixed fraction as `-1 1/3` and not `1 -1/3`.
+* Do not insert `()` after a multiplication in algebraic mode
+* Accept units and tagged objects in `PolarToReal` and `RealToPolar`
+* Accept angle units as input for `→DMS`
+* Off-by-one clipping error in header, erasing the shift annunciator
+* Fix help for `FC?` (incorrectly stating that it tested for flat set)
+* Lookup units and constants in a case sensitive way
+* Fix labels for `ExpFit` and `LinFit` in `RegressionMenu`.
+
+
+### Improvements
+
+* tests: Adjust tests to match bugs fixed in v0.6.5
+* dms: Accept entering minutes without third dot, e.g. `1.2.3 ENTER`
+* menus: Split the Time, Date and Alarm menus
+* Split rendered objects at space boundaries. This notably ensures
+  that large numbers are split at digit grouping boundaries, and makes
+  it possible to display larger programs on the stack. The rendering
+  of programs and matrices/vectors/lists has also been fine-tuned.
+* The "white circle" glyph has a thicker border, makes it more
+  readable in menus.
+* doc: Update the list of unimplemented features
+* menus: Draw a white circle for disabled flags, and allow the menu
+  function to toggle the flag. This made it possible to reduce the
+  number of menu entries for flag-heavy menus.
+* Mixed fractions are now the default, as opposed to improper
+  fractions
+* doc: Improve the quickstart guide
+* doc: Improve the documentation for sin, cos and tan
+* tests: Make it possible to interrupt a running test
+* help: Skip HTML tags, e.g. <video>
+* simulator: Add screenshot capability, and reduce window height
+* menus: `ToolsMenu` selects time, date or angle menu based on units
+
 
 ## Release 0.6.5 "Testimony": Small bug fixes
 
@@ -2787,13 +3018,19 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [CLEAR](#clearstack)
 * [CLLCD](#cllcd)
 * [CLΣ](#cleardata)
+* [COLΣ](#columndata)
 * [CONJ](#conj)
 * [CONT](#continue)
 * [CONVERT](#convert)
 * [COSH](#cosh)
 * [COS](#cos)
+* [COV](#covariance)
 * [CRDIR](#crdir)
 * [C→R](#complextoreal)
+* [DATE](#date)
+* [→DATE](#setdate)
+* [DATE+](#dateadd)
+* [DDAYS](#ddays)
 * [DBUG](#debug)
 * [DEC](#dec)
 * [DEG](#deg)
@@ -2812,6 +3049,8 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [DUP2](#dup2)
 * [DUPN](#dupn)
 * [DUP](#dup)
+* [D→R](#d-r)
+* [e](#constants)
 * [ELSE](#else)
 * [END](#end)
 * [ENG](#eng)
@@ -2821,6 +3060,7 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [EVAL](#eval)
 * [EXPAND](#expand)
 * [EXPAN](#expan)
+* [EXPFIT](#exponentialfit)
 * [EXPM](#expm)
 * [EXP](#exp)
 * [FACT](#fact)
@@ -2834,10 +3074,12 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [FUNCTION](#function)
 * [GAMMA](#gamma)
 * [GET](#get)
+* [GETI](#geti)
 * [GOR](#gor)
 * [GROB](#grob)
 * [GXOR](#gxor)
 * [HALT](#halt)
+* [HEAD](#head)
 * [HELP](#help) (Different meaning)
 * [HEX](#hex)
 * [HOME](#home)
@@ -2855,9 +3097,12 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [KILL](#kill)
 * [LASTARG](#lastarg)
 * [LINE](#line)
+* [LINFIT](#linearfit)
 * [LNP1](#lnp1)
 * [LN](#ln)
 * [LOG](#log)
+* [LOGFIT](#logarithmicfit)
+* [LR](#linearregression)
 * [MAX](#max)
 * [MAXΣ](#maxdata)
 * [MEAN](#mean)
@@ -2868,6 +3113,8 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [NEG](#neg)
 * [NEXT](#next)
 * [NOT](#not)
+* [NΣ](#datasize)
+* [NUM](#char-code)
 * [OBJ→](#explode)
 * [OCT](#oct)
 * [OFF](#off)
@@ -2879,12 +3126,21 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [PICK](#pick)
 * [PICT](#pict)
 * [POLAR](#polar)
+* [PMAX](#plotmax)
+* [PMIN](#plotmin)
 * [PURGE](#purge)
+* [PUT](#put)
+* [PUTI](#puti)
+* [PVAR](#populationvariance)
+* [PWRFIT](#powerfit)
 * [RAD](#rad)
 * [RCL](#rcl)
+* [RCLΣ](#recalldata)
 * [RCWS](#rcws)
+* [RE](#re)
 * [RECT](#rect) (Different meaning: draws a rectangle)
 * [REPEAT](#repeat)
+* [REVLIST](#reverselist)
 * [REWRITE](#rewrite) (Different meaning: performs a rewrite)
 * [RL](#rl)
 * [RLB](#rlb)
@@ -2898,7 +3154,11 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [RRC](#rrb)
 * [R→B](#realtobinary)
 * [R→C](#realtocomplex)
+* [R→D](#radianstodegrees)
 * [SAME](#same)
+* [SCALE](#plotscale)
+* [SCALEH](#xscale)
+* [SCALEW](#yscale)
 * [SCI](#sci)
 * [SF](#showflag)
 * [SIGN](#sign)
@@ -2907,48 +3167,65 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 * [SL](#sl)
 * [SLB](#slb)
 * [SLC](#slb)
+* [SORT](#sort)
 * [SQ](#sq)
+* [SR](#shiftright)
+* [SRB](#shiftrightbyte)
 * [SST](#stepover)
 * [SST↓](#singlestep)
+* [START](#start)
+* [STD](#standarddisplay)
 * [STEP](#step)
 * [STORE](#store) (Different meaning: long form of STO)
 * [STO](#sto)
+* [STOΣ](#storedata)
+* [STR→](#compile)
 * [STWS](#stws)
 * [SWAP](#swap)
+* [%T](#percenttotal)
+* [TAIL](#tail)
 * [TANH](#tanh)
 * [TAN](#tan)
 * [THEN](#then)
 * [TICKS](#ticks)
+* [TIME](#time)
+* [→TIME](#settime)
+* [TOT](#total)
 * [TYPE](#type)
 * [UBASE](#ubase)
 * [UFACT](#ufact)
 * [UNTIL](#until)
 * [UPDIR](#updir)
 * [UVAL](#uval)
+* [VAR](#variance)
 * [VERSION](#version)
 * [WAIT](#wait)
 * [WHILE](#while)
 * [XCOL](#independentcolumn)
 * [XOR](#xor)
+* [XRNG](#xrange)
 * [XROOT](#xroot)
+* [YRNG](#yrange)
 * [YCOL](#dependentcolumn)
+* [%](#percent)
 * [^](#pow) (Power)
 * [i](#iconstant)
 * [«»](#programs) (Program delimiters)
 * [×](#mul) (Multiply)
 * [÷](#div) (Divide)
+* [Σ+](#adddata)
 * [ΣXY](#sumofxy)
 * [ΣX](#sumofx)
 * [ΣX²](#sumofxsquares)
 * [ΣY](#sumofy)
 * [ΣY²](#sumofysquares)
+* [Σ–](#removedata)
 * [π](#pi) (Pi)
 * [–](#sub) (Subtract)
 * [→LIST](#tolist)
 * [→NUM](#todecimal)
 * [→Q](#tofraction)
 * [→STR](#totext)
-* [STR→](#compile)
 * [→TAG](#→tag)
 * [→UNIT](#→unit)
 * [→](#locals) (Create Local)
@@ -2963,9 +3240,8 @@ The following is a list of the HP50 RPL commands which are implemented in DB48X.
 
 # Unimplemented commands
 
-The following is a list of unimplemented HP50 RPL commands, which is a superset of the HP48
-
-commands.
+The following is a list of unimplemented HP50 RPL commands, which is a superset
+of the HP48 commands.
 
 * ABCUV
 * ACK
@@ -3025,7 +3301,6 @@ commands.
 * COL+
 * COLCT
 * COLLECT
-* COLΣ
 * COMB
 * CON
 * COND
@@ -3034,7 +3309,6 @@ commands.
 * CONST
 * CONSTANTS
 * CORR
-* COV
 * CR
 * CROSS
 * CSWP
@@ -3043,10 +3317,6 @@ commands.
 * CYLIN
 * C→PX
 * DARCY
-* DATE
-* →DATE
-* DATE+
-* DDAYS
 * DECR
 * DEDICACE
 * DEF
@@ -3081,8 +3351,6 @@ commands.
 * DRAW3DMATRIX
 * DROITE
 * DUPDUP
-* D→R
-* e
 * EDIT
 * EDITB
 * EGCD
@@ -3100,7 +3368,6 @@ commands.
 * EXP2HYP
 * EXP2POW
 * EXPANDMOD
-* EXPFIT
 * EXPLN
 * EYEPT
 * F0λ
@@ -3131,7 +3398,6 @@ commands.
 * GBASIS
 * GCD
 * GCDMOD
-* GETI
 * GRAD
 * GRAMSCHMIDT
 * GRAPH
@@ -3142,7 +3408,6 @@ commands.
 * *H
 * HADAMARD
 * HALFTAN
-* HEAD
 * HEADER→
 * →HEADER
 * HERMITE
@@ -3204,7 +3469,6 @@ commands.
 * LIMIT
 * LIN
 * ΣLINE
-* LINFIT
 * LININ
 * LINSOLVE
 * LIST→
@@ -3214,7 +3478,6 @@ commands.
 * LNAME
 * LNCOLLECT
 * LOCAL
-* LOGFIT
 * LQ
 * LR
 * LSQ
@@ -3256,9 +3519,7 @@ commands.
 * NEXTPRIME
 * NIP
 * NOVAL
-* NΣ
 * NSUB
-* NUM
 * NUMX
 * NUMY
 * OLDPRT
@@ -3287,8 +3548,6 @@ commands.
 * PKT
 * PLOT
 * PLOTADD
-* PMAX
-* PMIN
 * PMINI
 * POLYNOMIAL
 * POP
@@ -3316,12 +3575,8 @@ commands.
 * PTAYL
 * PTPROP
 * PUSH
-* PUT
-* PUTI
-* PVAR
 * PVARS
 * PVIEW
-* PWRFIT
 * PX→C
 * →Qπ
 * qr
@@ -3342,10 +3597,8 @@ commands.
 * RCLKEYS
 * RCLMENU
 * RCLVX
-* RCLΣ
 * RDM
 * RDZ
-* RE
 * RECN
 * RECV
 * REF
@@ -3356,7 +3609,6 @@ commands.
 * RES
 * RESTORE
 * RESULTANT
-* REVLIST
 * RISCH
 * RKF
 * RKFERR
@@ -3378,12 +3630,8 @@ commands.
 * RSD
 * RSWP
 * RULES
-* R→D
 * R→I
 * SBRK
-* SCALE
-* SCALEH
-* SCALEW
 * SCATRPLOT
 * SCATTER
 * SCHUR
@@ -3413,15 +3661,10 @@ commands.
 * SOLVEQN
 * SOLVER
 * SOLVEVX
-* SORT
 * SPHERE
-* SR
 * SRAD
-* SRB
 * SRECV
 * SREPL
-* START
-* STD
 * STEQ
 * STIME
 * STOALARM
@@ -3432,7 +3675,6 @@ commands.
 * STO–
 * STO*
 * STO/
-* STOΣ
 * STREAM
 * STRM
 * STURM
@@ -3445,10 +3687,8 @@ commands.
 * SYSEVAL
 * SYLVESTER
 * SYST2MAT
-* %T
 * TABVAL
 * TABVAR
-* TAIL
 * TAN2CS2
 * TAN2SC
 * TAN2SC2
@@ -3461,13 +3701,10 @@ commands.
 * TEVAL
 * TEXPAND
 * TEXT
-* TIME
-* →TIME
 * TINC
 * TLIN
 * TLINE
 * TMENU
-* TOT
 * TRACE
 * TRAN
 * TRANSIO
@@ -3501,7 +3738,6 @@ commands.
 * →V2
 * →V3
 * VANDERMONDE
-* VAR
 * VARS
 * VER
 * VISIT
@@ -3518,12 +3754,10 @@ commands.
 * XPUT
 * XQ
 * XRECV
-* XRNG
 * XSEND
 * XSERV
 * XVOL
 * XXRNG
-* YRNG
 * YSLICE
 * YVOL
 * YYRNG
@@ -3534,10 +3768,7 @@ commands.
 * ?
 * ∞
 * Σ
-* Σ+
-* Σ–
 * ∂
-* % (Percent)
 *  (Store)
 * ; (Semicolon)
 

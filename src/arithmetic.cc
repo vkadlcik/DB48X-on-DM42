@@ -1490,7 +1490,7 @@ INSERT_BODY(arithmetic)
     {
         auto mode = ui.editing_mode();
         if (mode == ui.ALGEBRAIC || mode == ui.PARENTHESES)
-            return ui.edit(utf8("·"), ui.ALGEBRAIC);
+            return ui.edit(utf8("·"), ui.INFIX);
     }
     return ui.edit(o->fancy(), ui.INFIX);
 }

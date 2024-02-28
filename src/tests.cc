@@ -369,14 +369,14 @@ void tests::keyboard_entry()
         .test(ADD).editor("'1=2+'")
         .test(KEY3).editor("'1=2+3'");
     step("F key in equation inserts parentheses")
-        .test(MUL).editor("'1=2+3·()'")
-        .test(F).editor("'1=2+3·( ())'");
+        .test(MUL).editor("'1=2+3·'")
+        .test(F).editor("'1=2+3· ()'");
     step("Automatic insertion of parentheses after functions")
-        .test(D).editor("'1=2+3·( (exp()))'")
-        .test(KEY0).editor("'1=2+3·( (exp(0)))'");
+        .test(D).editor("'1=2+3· (exp())'")
+        .test(KEY0).editor("'1=2+3· (exp(0))'");
     step("Space key in parentheses insert semi-colon")
-        .test(SPACE).editor("'1=2+3·( (exp(0;)))'")
-        .test(KEY7).editor("'1=2+3·( (exp(0;7)))'");
+        .test(SPACE).editor("'1=2+3· (exp(0;))'")
+        .test(KEY7).editor("'1=2+3· (exp(0;7))'");
 
     step("STO key while entering equation (bug #390)")
         .test(CLEAR, EXIT, KEY1, KEY2, F,
@@ -5560,8 +5560,8 @@ void tests::plotting()
          RSHIFT, O, F2).noerr().wait(200).image("polar-pgm");
     step("Polar plot: Equation");
     test(CLEAR, F, J, 611, MUL, ALPHA, X,
-         NOSHIFT, DOWN, DOWN, MUL, K, 271, MUL,
-         ALPHA, X, NOSHIFT, DOWN, DOWN, DOWN,
+         NOSHIFT, DOWN, MUL, K, 271, MUL,
+         ALPHA, X, NOSHIFT, DOWN,
          ADD, KEY2, DOT, KEY5, ENTER,
          RSHIFT, O,
          ENTER, F2).noerr().wait(200).image("polar-eq");

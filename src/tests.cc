@@ -498,7 +498,7 @@ void tests::data_types()
 
     step("Fractions");
     test(CLEAR, "1/3", ENTER).type(object::ID_fraction).expect("¹/₃");
-    test(CLEAR, "-80/60", ENTER).type(object::ID_neg_fraction).expect("-⁴/₃");
+    test(CLEAR, "-80/60", ENTER).type(object::ID_neg_fraction).expect("-1 ¹/₃");
     test(CLEAR, "20/60", ENTER).type(object::ID_fraction).expect("¹/₃");
 
     step("Large integers");
@@ -696,13 +696,13 @@ void tests::stack_operations()
     step("Dup2")
         .test(CLEAR, "13 25 Dup2 * + *", ENTER).expect("4 550");
     step("Over")
-        .test(CLEAR, "13 25 Over / +", ENTER).expect("¹⁹⁴/₁₃");
+        .test(CLEAR, "13 25 Over / +", ENTER).expect("14 ¹²/₁₃");
     step("Rot")
-        .test(CLEAR, "13 17 25 Rot / +", ENTER).expect("²⁴⁶/₁₃");
+        .test(CLEAR, "13 17 25 Rot / +", ENTER).expect("18 ¹²/₁₃");
     step("Over in stack menu")
-        .test(CLEAR, I, "13 25", F2, DIV, ADD).expect("¹⁹⁴/₁₃");
+        .test(CLEAR, I, "13 25", F2, DIV, ADD).expect("14 ¹²/₁₃");
     step("Rot in stack menu")
-        .test(CLEAR, "13 17 25", F1, DIV, ADD).expect("²⁴⁶/₁₃");
+        .test(CLEAR, "13 17 25", F1, DIV, ADD).expect("18 ¹²/₁₃");
     step("Depth in stack menu")
         .test(CLEAR, "13 17 25", F3).expect("3");
     step("Pick in stack menu")
@@ -1690,7 +1690,9 @@ void tests::fraction_display_formats()
         .test("SmallFractions", ENTER).expect("10 ¹⁰/₉₉ ₉₉₉ ₉₉₉");
     step("Improper fractions")
         .test("ImproperFractions", ENTER).expect("¹ ⁰⁰⁰ ⁰⁰⁰ ⁰⁰⁰/₉₉ ₉₉₉ ₉₉₉");
-    }
+    step("Back to mixed fractions")
+        .test("MixedFractions", ENTER).expect("10 ¹⁰/₉₉ ₉₉₉ ₉₉₉");
+}
 
 
 void tests::decimal_display_formats()
@@ -2780,8 +2782,8 @@ void tests::fraction_decimal_conversions()
 
     BEGIN(dfrac);
 
-    step("Selecting big fraction mode")
-        .test(CLEAR, "BigFractions", ENTER).noerr();
+    step("Selecting big mixed fraction mode")
+        .test(CLEAR, "BigFractions ImproperFractions", ENTER).noerr();
 
     for (uint c = 0; c < sizeof(cases) / sizeof(*cases); c += 2)
     {
@@ -2813,7 +2815,7 @@ void tests::fraction_decimal_conversions()
     test("→Num", ENTER).expect("2.66764 18906 2⁳⁻⁷");
 
     step("Restoring small fraction mode")
-        .test(CLEAR, "SmallFractions", ENTER).noerr();
+        .test(CLEAR, "SmallFractions MixedFractions", ENTER).noerr();
 }
 
 
@@ -3107,7 +3109,7 @@ void tests::complex_arithmetic()
     test("7+8ⅈ", DIV)
         .type(object::ID_rectangular).expect("3+8ⅈ");
     test("2+3ⅈ", DIV)
-        .type(object::ID_rectangular).expect("³⁰/₁₃+⁷/₁₃ⅈ");
+        .type(object::ID_rectangular).expect("2 ⁴/₁₃+⁷/₁₃ⅈ");
     test("2+3ⅈ", MUL)
         .type(object::ID_rectangular).expect("3+8ⅈ");
     step("Power");
@@ -3397,7 +3399,7 @@ void tests::units_and_conversions()
     step("Convert integer unit with soft key")
         .test(SHIFT, F2)
         .type(object::ID_unit)
-        .expect("¹²⁷/₅ mm");
+        .expect("25 ²/₅ mm");
     step("Convert decimal unit with soft key")
         .test(CLEAR, KEY2, DOT, F1, SHIFT, F2)
         .type(object::ID_unit)
@@ -3434,7 +3436,7 @@ void tests::units_and_conversions()
         .test(KEY1, F1, SHIFT, KEY5, SHIFT, F1, RSHIFT, F2)
         .type(object::ID_unit).expect("1 in/min")
         .test(RSHIFT, KEY5, F1) // Convert
-        .type(object::ID_unit).expect("²⁵⁰ ⁰⁰⁰/₃₈₁ in/min");
+        .type(object::ID_unit).expect("656 ⁶⁴/₃₈₁ in/min");
     step("Convert to unit")
         .test(CLEAR, KEY3, KEY7, ENTER).expect("37")
         .test(SHIFT, KEY5, KEY4, KEY2, F2, F3).expect("42 km/h")
@@ -3455,7 +3457,7 @@ void tests::units_and_conversions()
     step("Arithmetic on units")
         .test(CLEAR, KEY3, KEY7, SHIFT, KEY5, F2, F4).expect("37 mph")
         .test(SHIFT, KEY5, KEY4, KEY2, F2, F3).expect("42 km/h")
-        .test(ADD).expect("¹ ⁵⁸⁶ ⁶⁵²/₁₅ ₆₂₅ km/h");
+        .test(ADD).expect("101 ⁸ ⁵²⁷/₁₅ ₆₂₅ km/h");
     step("Arithmetic on units (decimal)")
         .test(CLEAR, KEY3, KEY7, DOT, SHIFT, KEY5, F2, F4).expect("37. mph")
         .test(SHIFT, KEY5, KEY4, KEY2, F2, F3).expect("42 km/h")
@@ -3731,7 +3733,7 @@ void tests::vector_functions()
 
     step("Non-homogneous data types");
     test(CLEAR, "[  \"ABC\"  'X' 3/2  ]", ENTER)
-        .type(object::ID_array).expect("[ \"ABC\" 'X' ³/₂ ]");
+        .type(object::ID_array).expect("[ \"ABC\" 'X' 1 ¹/₂ ]");
 
     step("Addition");
     test(CLEAR, "[1 2 3][4 5 6] +", ENTER)
@@ -3753,7 +3755,7 @@ void tests::vector_functions()
 
     step("Division (extension)");
     test(CLEAR, "[1 2  3 4 6][4 5 2 1 3] /", ENTER)
-        .expect("[ ¹/₄ ²/₅ ³/₂ 4 2 ]");
+        .expect("[ ¹/₄ ²/₅ 1 ¹/₂ 4 2 ");
     test(CLEAR, "[a b c][d e f] /", ENTER)
         .expect("[ 'a÷d' 'b÷e' 'c÷f' ]");
 
@@ -3831,7 +3833,7 @@ void tests::matrix_functions()
     step("Non-homogneous data types");
     test(CLEAR, "[  [ \"ABC\"  'X' ] 3/2  [ 4 [5] [6 7]]]", ENTER)
         .type(object::ID_array)
-        .want("[[ \"ABC\" 'X' ] ³/₂ [ 4 [ 5 ] [ 6 7 ] ] ]");
+        .want("[[ \"ABC\" 'X' ] 1 ¹/₂ [ 4 [ 5 ] [ 6 7 ] ] ]");
 
     step("Addition");
     test(CLEAR, "[[1 2] [3 4]] [[5 6][7 8]] +", ENTER)
@@ -3863,7 +3865,7 @@ void tests::matrix_functions()
     test(CLEAR,
          "[[5 12 1968][17 2 1969][30 3 1993]] "
          "[[16 5 1995][21 5 1999][28 5 2009]] /", ENTER)
-        .want("[[ ³⁴/₁₁ -⁵²/₁₁ -⁴³/₁₁ ] [ ³ ³⁵⁷/₁₀ -¹³ ⁴²⁷/₁₀ -¹⁶ ⁴³³/₁₀ ] [ -¹⁹/₂₂ ⁷⁵/₂₂ ¹¹³/₂₂ ]]");
+        .want("[[ 3 ¹/₁₁ -4 ⁸/₁₁ -3 ¹⁰/₁₁ ] [ 335 ⁷/₁₀ -1 342 ⁷/₁₀ -1 643 ³/₁₀ ] [ -¹⁹/₂₂ 3 ⁹/₂₂ 5 ³/₂₂ ]]");
     step("Division (symbolic)");
     test(CLEAR, "[[a b][c d]][[e f][g h]] /", ENTER)
         .want("[[ '(e⁻¹-f÷e·((-g)÷(e·h-g·f)))·a+(-(f÷e·(e÷(e·h-g·f))))·c' '(e⁻¹-f÷e·((-g)÷(e·h-g·f)))·b+(-(f÷e·(e÷(e·h-g·f))))·d' ] [ '(-g)÷(e·h-g·f)·a+e÷(e·h-g·f)·c' '(-g)÷(e·h-g·f)·b+e÷(e·h-g·f)·d' ]]");
@@ -3918,7 +3920,9 @@ void tests::matrix_functions()
 
     step("Inversion of a definite matrix");
     test(CLEAR, "[[1 2 3][4 5 6][7 8 19]] INV", ENTER)
-        .want("[[ -⁴⁷/₃₀ ⁷/₁₅ ¹/₁₀ ] [ ¹⁷/₁₅ ¹/₁₅ -¹/₅ ] [ ¹/₁₀ -¹/₅ ¹/₁₀ ]]");
+        .want("[[ -1 ¹⁷/₃₀ ⁷/₁₅ ¹/₁₀ ]"
+              " [ 1 ²/₁₅ ¹/₁₅ -¹/₅ ]"
+              " [ ¹/₁₀ -¹/₅ ¹/₁₀ ]]");
     test(CLEAR, "[[a b][c d]] INV", ENTER)
         .want("[[ 'a⁻¹-b÷a·((-c)÷(a·d-c·b))' '-(b÷a·(a÷(a·d-c·b)))' ] [ '(-c)÷(a·d-c·b)' 'a÷(a·d-c·b)' ]]");
 
@@ -3979,7 +3983,7 @@ void tests::numerical_integration_testing()
         .test(3, ENTER).expect("3")
         .test("'sq(Z)+Z'", ENTER).expect("'Z²+Z'")
         .test(F, ALPHA, Z, ENTER).expect("'Z'")
-        .test(SHIFT, KEY8, F2).wait(2500).expect("⁵³/₆"); // REVISIT: So slow?
+        .test(SHIFT, KEY8, F2).wait(2500).expect("8 ⁵/₆"); // REVISIT: So slow?
     step("Integration with decimals")
         .test(CLEAR, "2.", ENTER).expect("2.")
         .test("3.", ENTER).expect("3.")
@@ -4294,14 +4298,14 @@ void tests::cycle_test()
         .test(O).expect("9.95⁳³¹");
     step("Convert decimal to fraction")
         .test(CLEAR, KEY1, DOT, KEY2, ENTER).expect("1.2")
-        .test(O).expect("⁶/₅");
+        .test(O).expect("1 ¹/₅");
     step("Convert fraction to decimal")
         .test(B).expect("⁵/₆")
         .test(O).expect("8.33333 33333 3⁳⁻¹");
     step("Convert decimal to fraction with rounding")
         .test(O).expect("⁵/₆");
     step("Convert decimal to fraction with multiple digits")
-        .test(CLEAR, "1.325", ENTER, O).expect("⁵³/₄₀");
+        .test(CLEAR, "1.325", ENTER, O).expect("1 ¹³/₄₀");
     step("Convert rectangular to polar")
         .test(CLEAR, "DEG", ENTER,
               "10", SHIFT, G, F1, "10", ENTER).expect("10+10ⅈ")
@@ -5129,7 +5133,7 @@ void tests::hms_dms_operations()
         .test(CLEAR, "1.7550_dms", ENTER).expect("1°45′18″");
     step("Creating DMS using fractions menu")
         .test(CLEAR, "1.2345", LSHIFT, H)
-        .test(F6).expect("⁶⁷/₄₈")
+        .test(F6).expect("1 ¹⁹/₄₈")
         .test(F5).expect("1°23′45″");
     step("Creating DMS by adding zero")
         .test(CLEAR, "1.4241 0", LSHIFT, H)
@@ -5151,7 +5155,7 @@ void tests::hms_dms_operations()
         .test(CLEAR, "1.4241 1.2333", LSHIFT, H, LSHIFT, F4).expect("0°19′08″");
     step("DMS multiplication")
         .test(CLEAR, "1.2345", LSHIFT, H)
-        .test(F6).expect("⁶⁷/₄₈")
+        .test(F6).expect("1 ¹⁹/₄₈")
         .test(F5).expect("1°23′45″")
         .test(2, MUL).expect("2°47′30″");
     step("DMS division")
@@ -5492,8 +5496,8 @@ void tests::regression_checks()
               LSHIFT, H,
               100, RSHIFT, F3,
               20,  RSHIFT, F4)
-        .test("1968.1205", F4).expect("³ ⁹³⁶ ²⁴¹/₂ ₀₀₀")
-        .test("1968.0512", F4).expect("¹ ²³⁰ ⁰³²/₆₂₅")
+        .test("1968.1205", F4).expect("1 968 ²⁴¹/₂ ₀₀₀")
+        .test("1968.0512", F4).expect("1 968 ³²/₆₂₅")
         .test(LSHIFT, N, RSHIFT, F4);
 }
 
@@ -5949,7 +5953,13 @@ tests &tests::begin(cstring name)
 
     tname = name;
     tindex++;
-    fprintf(stderr, "%3u: %s\n", tindex, tname);
+#define BLACK "\033[40;97m"
+#define CLREOL "\033[K"
+#define RESET "\033[39;49;27m"
+    fprintf(stderr, BLACK "%3u: %-75s" CLREOL RESET "\n", tindex, tname);
+#undef BLACK
+#undef CLREOL
+#undef RESET
     sindex      = 0;
     ok          = true;
     explanation = "";

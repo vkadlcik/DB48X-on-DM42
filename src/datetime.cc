@@ -41,7 +41,7 @@
 //
 // ============================================================================
 
-bool to_time(object_p tobj, tm_t &tm)
+bool to_time(object_p tobj, tm_t &tm, bool error)
 // ----------------------------------------------------------------------------
 //   Convert a HH.MMSS time value to a time
 // ----------------------------------------------------------------------------
@@ -62,7 +62,8 @@ bool to_time(object_p tobj, tm_t &tm)
         time = tobj->as_real();
     if (!time)
     {
-        rt.type_error();
+        if (error)
+            rt.type_error();
         return false;
     }
 
@@ -77,7 +78,8 @@ bool to_time(object_p tobj, tm_t &tm)
     uint csec = time->as_uint32(false);
     if (hour >= 24 || min >= 60 || sec >= 60)
     {
-        rt.invalid_time_error();
+        if (error)
+            rt.invalid_time_error();
         return false;
     }
     tm.hour = hour;
@@ -89,7 +91,7 @@ bool to_time(object_p tobj, tm_t &tm)
 }
 
 
-uint to_date(object_p dtobj, dt_t &dt, tm_t &tm)
+uint to_date(object_p dtobj, dt_t &dt, tm_t &tm, bool error)
 // ----------------------------------------------------------------------------
 //   Convert a YYYYMMDD.HHMMSS value to a date and optional time
 // ----------------------------------------------------------------------------
@@ -107,7 +109,8 @@ uint to_date(object_p dtobj, dt_t &dt, tm_t &tm)
         date = dtobj->as_real();
     if (!date)
     {
-        rt.type_error();
+        if (error)
+            rt.type_error();
         return 0;
     }
 
@@ -125,7 +128,8 @@ uint to_date(object_p dtobj, dt_t &dt, tm_t &tm)
     bool bisext = m == 2 && y % 4 == 0 && (y % 100 != 0 || y % 400 == 0);
     if (m < 1 || m > 12 || d < 1 || d > days[m-1] + bisext)
     {
-        rt.invalid_date_error();
+        if (error)
+            rt.invalid_date_error();
         return 0;
     }
 
@@ -145,7 +149,8 @@ uint to_date(object_p dtobj, dt_t &dt, tm_t &tm)
         uint csec = time->as_uint32(false);
         if (hour >= 24 || min >= 60 || sec >= 60)
         {
-            rt.invalid_time_error();
+            if (error)
+                rt.invalid_time_error();
             return 0;
         }
         tm.hour = hour;
@@ -159,24 +164,60 @@ uint to_date(object_p dtobj, dt_t &dt, tm_t &tm)
 }
 
 
-ularge julian_day_number(const dt_t &dt)
+algebraic_p to_days(object_p dobj, bool error)
+// ----------------------------------------------------------------------------
+//   Return the value interpreted as a number of days
+// ----------------------------------------------------------------------------
+{
+    if (!dobj)
+        return nullptr;
+
+    algebraic_p dval = nullptr;
+    if (unit_g u = dobj->as<unit>())
+    {
+        unit_g day = unit::make(integer::make(1), +symbol::make("d"));
+        if (day->convert(u))
+            dval = u->value();
+        else if (!error)
+            rt.clear_error();
+    }
+    if (!dval)
+    {
+        dval = dobj->as_real();
+        if (!dval && error)
+            rt.type_error();
+    }
+    return dval;
+}
+
+
+algebraic_p julian_day_number(const dt_t &dt, const tm_t &tm)
 // ----------------------------------------------------------------------------
 //   Compute julian day number for a dt_t structure
 // ----------------------------------------------------------------------------
 {
-    return julian_day_number(dt.day, dt.month, dt.year);
+    ularge csecs = (tm.hour * 3600 + tm.min * 60 + tm.sec) * 100 + tm.csec;
+    ularge jval = julian_day_number(dt.day, dt.month, dt.year);
+    algebraic_g jdn = integer::make(jval);
+    if (csecs)
+    {
+        algebraic_g frac = +fraction::make(integer::make(csecs),
+                                           +integer::make(8640000));
+        jdn = jdn + frac;
+    }
+    return jdn;
 }
 
 
-ularge julian_day_number(algebraic_p dtobj)
+algebraic_p julian_day_number(algebraic_p dtobj, bool error)
 // ----------------------------------------------------------------------------
 //   Compute the Julian day number associate with a date value
 // ----------------------------------------------------------------------------
 {
     dt_t dt;
-    tm_t tm;
-    if (to_date(dtobj, dt, tm))
-        return julian_day_number(dt);
+    tm_t tm{};
+    if (to_date(dtobj, dt, tm, error))
+        return julian_day_number(dt, tm);
     return 0;
 }
 
@@ -195,6 +236,134 @@ ularge julian_day_number(int d, int m, int y)
     return jdn;
 }
 
+
+algebraic_p date_from_julian_day(object_p jdn, bool error)
+// ----------------------------------------------------------------------------
+//   Create a day from a Julian day object
+// ----------------------------------------------------------------------------
+{
+    if (!jdn)
+        return nullptr;
+
+    if (algebraic_g jval = jdn->as_real())
+    {
+        large jdn = jval->as_int64(error);
+
+        enum
+        {
+            y = 4716,
+            j = 1401,
+            m = 2,
+            n = 12,
+            r = 4,
+            p = 1461,
+            v = 3,
+            u = 5,
+            s = 153,
+            w = 2,
+            B = 274277,
+            C = -38
+        };
+
+        large f = jdn + j + (((4 * jdn + B) / 146097) * 3) / 4 + C;
+        large e = r * f + v;
+        large g = (e % p) / r;
+        large h = u * g + w;
+        uint day = (h % s) / u + 1;
+        uint month = (h / s + m ) % n + 1;
+        uint year = e / p - y + (n + m - month) / n;
+        ularge dval = year * 10000 + month * 100 + day;
+
+        algebraic_g date = integer::make(dval);
+        algebraic_g fp = integer::make(1);
+        fp = jval % fp;
+        if (!fp->is_zero())
+        {
+            algebraic_g factor = integer::make(86400);
+            fp = fp * factor;
+            ularge hval = fp->as_uint64(false);
+            uint hour = hval / 3600;
+            uint min = (hval / 60) % 60;
+            uint sec = hval % 60;
+            hval = hour * 10000 + min * 100 + sec;
+            fp = +fraction::make(integer::make(hval),
+                                 integer::make(1000000));
+            date = date + fp;
+        }
+        date = unit::make(date, +symbol::make("date"));
+        return date;
+    }
+
+    if (error)
+        rt.type_error();
+    return nullptr;
+}
+
+
+algebraic_p days_between_dates(object_p date1, object_p date2, bool error)
+// ----------------------------------------------------------------------------
+//   Compute the number of days between two dates
+// ----------------------------------------------------------------------------
+{
+    dt_t dt1, dt2;
+    tm_t tm1{}, tm2{};
+    if (to_date(date1, dt1, tm1, error) && to_date(date2, dt2, tm2, error))
+    {
+        algebraic_g day1 = julian_day_number(dt1, tm1);
+        algebraic_g day2 = julian_day_number(dt2, tm2);
+        if (algebraic_g diff = day1 - day2)
+            if (unit_p days= unit::make(+diff, +symbol::make("d")))
+                return days;
+    }
+    return nullptr;
+}
+
+
+static algebraic_p days_after(object_p date, object_p days, bool error, int s)
+// ----------------------------------------------------------------------------
+//   Compute the number of days after a given date
+// ----------------------------------------------------------------------------
+{
+    if (algebraic_g num = to_days(days, error))
+    {
+        dt_t dt;
+        tm_t tm{};
+        if (to_date(date, dt, tm, error))
+        {
+            algebraic_g jdn = julian_day_number(dt, tm);
+            jdn = s > 0 ? jdn + num : jdn - num;
+            num = date_from_julian_day(jdn);
+            return num;
+        }
+    }
+    return nullptr;
+}
+
+
+algebraic_p days_after(object_p date, object_p days, bool error)
+// ----------------------------------------------------------------------------
+//   Compute the number of days after a given date
+// ----------------------------------------------------------------------------
+{
+    return days_after(date, days, error, 1);
+}
+
+
+algebraic_p days_before(object_p date, object_p days, bool error)
+// ----------------------------------------------------------------------------
+//   Compute the number of days before a given date
+// ----------------------------------------------------------------------------
+{
+    return days_after(date, days, error, -1);
+}
+
+
+
+// ============================================================================
+//
+//   Date and time related RPL commands
+//
+// ============================================================================
 
 COMMAND_BODY(DateTime)
 // ----------------------------------------------------------------------------
@@ -699,6 +868,19 @@ COMMAND_BODY(DateAdd)
     if (!rt.args(2))
         return ERROR;
 
+    if (object_p d1 = rt.stack(1))
+    {
+        if (object_p d2 = rt.stack(0))
+        {
+            if (algebraic_p daf = days_after(d1, d2))
+                if (rt.drop() && rt.top(daf))
+                    return OK;
+            if (algebraic_p daf = days_after(d2, d1))
+                if (rt.drop() && rt.top(daf))
+                    return OK;
+        }
+    }
+
     return ERROR;
 }
 
@@ -711,23 +893,11 @@ COMMAND_BODY(DateSub)
     if (!rt.args(2))
         return ERROR;
 
-    dt_t dt1, dt2;
-    tm_t tm1, tm2;
     if (object_p d1 = rt.stack(1))
-    {
         if (object_p d2 = rt.stack(0))
-        {
-            if (to_date(d1, dt1, tm1) && to_date(d2, dt2, tm2))
-            {
-                ularge diff = julian_day_number(dt1) - julian_day_number(dt2);
-
-                if (integer_g d = integer::make(diff))
-                    if (unit_p dd = unit::make(+d, +symbol::make("d")))
-                        if (rt.drop() && rt.top(dd))
-                        return OK;
-            }
-        }
-    }
+            if (algebraic_p dd = days_between_dates(d1, d2))
+                if (rt.drop() && rt.top(dd))
+                    return OK;
     return ERROR;
 }
 
@@ -742,19 +912,9 @@ COMMAND_BODY(JulianDayNumber)
     dt_t dt;
     tm_t tm{};
     if (object_p d = rt.top())
-    {
         if (to_date(d, dt, tm))
-        {
-            ularge jdn = julian_day_number(dt);
-            ularge jf = (3600 * tm.hour + 60 * tm.min + tm.sec) * 100 + tm.csec;
-            ularge ratio = 8640000;
-            algebraic_g jdna = integer::make(jdn);
-            algebraic_g jdnf = +fraction::make(integer::make(jf),
-                                               integer::make(ratio));
-            jdna = jdna + jdnf;
-            if (jdna && rt.top(jdna))
-                return OK;
-        }
-    }
+            if (algebraic_g jdn = julian_day_number(dt, tm))
+                if (rt.top(jdn))
+                    return OK;
     return ERROR;
 }

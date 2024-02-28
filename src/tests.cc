@@ -116,6 +116,7 @@ TESTS(graphics,         "Graphic commands");
 TESTS(help,             "On-line help");
 TESTS(gstack,           "Graphic stack rendering")
 TESTS(hms,              "HMS and DMS operations");
+TESTS(date,             "Date operations");
 
 EXTRA(plotfns,          "Plot all functions");
 EXTRA(sysflags,         "Enable/disable every RPL flag");
@@ -140,7 +141,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        units_and_conversions();
+        date_operations();
     }
     else
     {
@@ -193,6 +194,7 @@ void tests::run(bool onlyCurrent)
         plotting_all_functions();
         graphic_commands();
         hms_dms_operations();
+        date_operations();
         online_help();
         graphic_stack_rendering();
         regression_checks();
@@ -5203,19 +5205,67 @@ void tests::hms_dms_operations()
         .test(F5).noerr().expect("1°02′03″")
         .test(LSHIFT, F5).noerr().expect("1:02:03")
         .test(LSHIFT, F5).noerr().expect("1:02:03");
+}
+
+
+void tests::date_operations()
+// ----------------------------------------------------------------------------
+//   Test date-related operations
+// ----------------------------------------------------------------------------
+{
+    BEGIN(date);
 
     step("Displaying a date")
-        .test(CLEAR, "1968.1205_date", ENTER)
-        .expect("5/Dec/1968");
+        .test(CLEAR, "19681205_date", ENTER)
+        .expect("Thu 5/Dec/1968");
     step("Displaying a date with a time")
-        .test(CLEAR, "1969.0217035501_date", ENTER)
-        .expect("17/Feb/1969, 3:55:01");
+        .test(CLEAR, "19690217.035501_date", ENTER)
+        .expect("Mon 17/Feb/1969, 3:55:01");
     step("Displaying a date with a fractional time")
-        .test(CLEAR, "1969.021703550197_date", ENTER)
-        .expect("17/Feb/1969, 3:55:01⁹⁷/₁₀₀");
+        .test(CLEAR, "19690217.03550197_date", ENTER)
+        .expect("Mon 17/Feb/1969, 3:55:01.97");
     step("Displaying invalid date and time")
-        .test(CLEAR, "99999.999999999999_date", ENTER)
-        .expect("99/99/99999, 99:99:99⁹⁹/₁₀₀");
+        .test(CLEAR, "999999999.99999999_date", ENTER)
+        .expect("Sat 99/99/99999, 99:99:99.99");
+
+    step("Difference between two dates using DDays")
+        .test(CLEAR, "20230908", ENTER)
+        .expect("20 230 908")
+        .test("19681205", ENTER)
+        .expect("19 681 205")
+        .test("DDays", ENTER)
+        .expect("20 000 d");
+    step("Difference between two dates using DDays (units)")
+        .test(CLEAR, "19681205_date", ENTER)
+        .expect("Thu 5/Dec/1968")
+        .test("20230908_date", ENTER)
+        .expect("Fri 8/Sep/2023")
+        .test("DDays", ENTER)
+        .expect("-20 000 d");
+    step("Difference between two dates using sub")
+        .test(CLEAR, "19681205_date", ENTER)
+        .expect("Thu 5/Dec/1968")
+        .test("20230908_date", ENTER)
+        .expect("Fri 8/Sep/2023")
+        .test(SUB)
+        .expect("-20 000 d");
+    step("Adding days to a date (before)")
+        .test("20240217_date", ENTER, NOSHIFT, ADD)
+        .expect("Fri 16/May/1969");
+    step("Adding days to a date (after)")
+        .test(CLEAR, "20240217_date", ENTER)
+        .expect("Sat 17/Feb/2024")
+        .test("42", NOSHIFT, ADD)
+        .expect("Sat 30/Mar/2024");
+    step("Subtracting days to a date")
+        .test("116", NOSHIFT, SUB)
+        .expect("Tue 5/Dec/2023");
+    step("Subtracting days to a date (with day unit)")
+        .test("112_d", NOSHIFT, SUB)
+        .expect("Tue 15/Aug/2023");
+    step("Adding days to a date (with time unit)")
+        .test("112_h", NOSHIFT, ADD)
+        .expect("Sat 19/Aug/2023, 16:00:00");
 }
 
 

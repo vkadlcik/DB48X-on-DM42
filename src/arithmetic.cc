@@ -33,6 +33,7 @@
 #include "bignum.h"
 #include "compare.h"
 #include "constants.h"
+#include "datetime.h"
 #include "decimal.h"
 #include "expression.h"
 #include "fraction.h"
@@ -117,14 +118,18 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
 //   - Object + text: Concatenation of object text + text
 {
     // Check addition of unit objects
-    if (unit_p xu = x->as<unit>())
+    if (unit_g xu = x->as<unit>())
     {
-        if (unit_p yu = y->as<unit>())
+        if (algebraic_p daf = days_after(x, y, false))
+            return daf;
+        if (algebraic_p daf = days_after(y, x, false))
+            return daf;
+
+        if (unit_g yu = y->as<unit>())
         {
-            unit_g xc = xu;
-            if (yu->convert(xc))
+            if (yu->convert(xu))
             {
-                algebraic_g xv = xc->value();
+                algebraic_g xv = xu->value();
                 algebraic_g yv = yu->value();
                 algebraic_g ye = yu->uexpr();
                 xv = xv + yv;
@@ -137,6 +142,9 @@ algebraic_p arithmetic::non_numeric<add>(algebraic_r x, algebraic_r y)
     }
     else if (y->type() == ID_unit)
     {
+        if (algebraic_p daf = days_after(y, x, false))
+            return daf;
+
         rt.inconsistent_units_error();
         return nullptr;
     }
@@ -278,14 +286,18 @@ algebraic_p arithmetic::non_numeric<sub>(algebraic_r x, algebraic_r y)
 //   This deals with vector and matrix operations
 {
     // Check subtraction of unit objects
-    if (unit_p xu = x->as<unit>())
+    if (unit_g xu = x->as<unit>())
     {
-        if (unit_p yu = y->as<unit>())
+        if (algebraic_p dbef = days_before(x, y, false))
+            return dbef;
+        if (unit_g yu = y->as<unit>())
         {
-            unit_g xc = xu;
-            if (yu->convert(xc))
+            if (algebraic_p ddays = days_between_dates(x, y, false))
+                return ddays;
+
+            if (yu->convert(xu))
             {
-                algebraic_g xv = xc->value();
+                algebraic_g xv = xu->value();
                 algebraic_g yv = yu->value();
                 algebraic_g ye = yu->uexpr();
                 xv = xv - yv;

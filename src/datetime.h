@@ -37,12 +37,16 @@
 
 
 // Convert time and date to their components
-bool to_time(object_p time, tm_t &tm);
-uint to_date(object_p date, dt_t &dt, tm_t &tm);
+bool to_time(object_p time, tm_t &tm, bool error = true);
+uint to_date(object_p date, dt_t &dt, tm_t &tm, bool error = true);
+algebraic_p to_days(object_p days, bool error = true);
 
 // Convert date value to Julian day number, or 0 if fails
-ularge julian_day_number(algebraic_p date);
+algebraic_p julian_day_number(algebraic_p date, bool error = true);
 ularge julian_day_number(int d, int m, int y);
+
+// Convert Julian day number to date
+algebraic_p date_from_julian_day(object_p jdn, bool error = true);
 
 // Convert algebraic to HMS or DMS
 algebraic_p to_hms_dms(algebraic_r x);
@@ -64,6 +68,12 @@ size_t render_dms(renderer &r, algebraic_g value,
                   cstring deg, cstring min, cstring sec);
 size_t render_date(renderer &r, algebraic_g date);
 
+// Difference between two dates
+algebraic_p days_between_dates(object_p date1, object_p date2, bool error=true);
+
+// Adding and subtracting days form a date
+algebraic_p days_after(object_p date1, object_p days, bool error = true);
+algebraic_p days_before(object_p date1, object_p days, bool error = true);
 
 
 // System date and time

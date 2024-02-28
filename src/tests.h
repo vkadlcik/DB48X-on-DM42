@@ -102,6 +102,7 @@ struct tests
     void plotting_all_functions();
     void graphic_commands();
     void hms_dms_operations();
+    void date_operations();
     void online_help();
     void graphic_stack_rendering();
     void regression_checks();

@@ -918,3 +918,19 @@ COMMAND_BODY(JulianDayNumber)
                     return OK;
     return ERROR;
 }
+
+
+COMMAND_BODY(DateFromJulianDayNumber)
+// ----------------------------------------------------------------------------
+//   Return the date for a given Julian day number
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+
+    if (object_p jdn = rt.top())
+        if (algebraic_p date = date_from_julian_day(jdn))
+            if (rt.top(date))
+                return OK;
+    return ERROR;
+}

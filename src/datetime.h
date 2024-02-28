@@ -96,5 +96,6 @@ COMMAND_DECLARE(DMSSub);        // Subtract numbers in HMS format
 COMMAND_DECLARE(DateAdd);       // Add a date and a number of days
 COMMAND_DECLARE(DateSub);       // Count days between two dates
 COMMAND_DECLARE(JulianDayNumber);// Return JDN for given date
+COMMAND_DECLARE(DateFromJulianDayNumber); // Date from JDN
 
 #endif // DATETIME_H

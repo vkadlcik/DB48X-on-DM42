@@ -1488,14 +1488,16 @@ MENU(DateMenu,
 //   Date operations
 // ----------------------------------------------------------------------------
      "_date",   ID_SelfInsert,
+     "_d",      ID_SelfInsert,
      "Date",    ID_Date,
      "Dt+Tm",   ID_DateTime,
      "∆Date",   ID_DateSub,
      "Date+",   ID_DateAdd,
-     "JDN",     ID_JulianDayNumber,
 
      "→Time",   ID_SetTime,
      "→Date",   ID_SetDate,
+     "JDN",     ID_JulianDayNumber,
+     "JDN→",    ID_DateFromJulianDayNumber,
      "Time",    ID_TimeMenu,
      "Alarms",  ID_AlarmMenu);
 

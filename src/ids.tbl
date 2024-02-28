@@ -509,7 +509,8 @@ OP(DMSAdd,      "DMS+")
 OP(DMSSub,      "DMS-")
 OP(DateAdd,     "Date+")
 OP(DateSub,     "DDays")
-CMD(JulianDayNumber)
+OP(JulianDayNumber, "JDN")
+OP(DateFromJulianDayNumber, "JDN→")
 
 // Angles
 OP(RadiansToDegrees, "Radians→Degrees") ALIAS(RadiansToDegrees, "R→D")

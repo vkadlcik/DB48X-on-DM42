@@ -31,6 +31,7 @@
 
 #include "arithmetic.h"
 #include "compare.h"
+#include "constants.h"
 #include "integer.h"
 #include "object.h"
 #include "program.h"
@@ -1528,6 +1529,82 @@ text_p runtime::command() const
     if (ErrorCommand)
         return ErrorCommand->as_text();
     return nullptr;
+}
+
+
+algebraic_p runtime::zero_divide(bool negative) const
+// ----------------------------------------------------------------------------
+//   Return a zero divide or an infinity constant
+// ----------------------------------------------------------------------------
+{
+    if (Settings.InfinityError())
+    {
+        rt.zero_divide_error();
+        return nullptr;
+    }
+    Settings.InfiniteResultIndicator(true);
+    algebraic_g infinity = constant::make("∞");
+    if (Settings.NumericalConstants() || Settings.NumericalResults())
+        infinity = constant_p(+infinity)->value();
+    if (negative)
+        infinity = -infinity;
+    return infinity;
+}
+
+
+algebraic_p runtime::numerical_overflow(bool negative) const
+// ----------------------------------------------------------------------------
+//   Return a numerical overflow result
+// ----------------------------------------------------------------------------
+{
+    if (Settings.OverflowError())
+    {
+        rt.overflow_error();
+        return nullptr;
+    }
+    Settings.OverflowIndicator(true);
+    algebraic_g infinity = constant::make("∞");
+    if (Settings.NumericalConstants() || Settings.NumericalResults())
+        infinity = constant_p(+infinity)->value();
+    if (negative)
+        infinity = -infinity;
+    return infinity;
+}
+
+
+algebraic_p runtime::numerical_underflow(bool negative) const
+// ----------------------------------------------------------------------------
+//   Return a numerical underflow result
+// ----------------------------------------------------------------------------
+{
+    if (Settings.UnderflowError())
+    {
+        if (negative)
+            rt.negative_underflow_error();
+        else
+            rt.positive_underflow_error();
+        return nullptr;
+    }
+    if (negative)
+        Settings.NegativeUnderflowIndicator(true);
+    else
+        Settings.PositiveUnderflowIndicator(true);
+    return integer::make(0);
+}
+
+
+algebraic_p runtime::undefined_result() const
+// ----------------------------------------------------------------------------
+//   Return an undefined result
+// ----------------------------------------------------------------------------
+{
+    if (Settings.UndefinedError())
+    {
+        rt.undefined_operation_error();
+        return nullptr;
+    }
+    Settings.UndefinedResultIndicator(true);
+    return constant::make("?");
 }
 
 

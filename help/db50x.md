@@ -1803,6 +1803,83 @@ They are represented by a name, and have an associated value.
 Like units, there are some built-in constants, and additional constants can be
 provided by a `config/constants.csv` file, which has exactly the same format as
 for the units file.
+
+
+## Infinite results
+
+Some operations such as `1/0` or `tan 90 °` are said to produce an
+*infinite result*. Like HP calculators, DB50X can either generate an error or
+produce a special result in these cases.
+
+* If the `InfinityValue` (-22) flag is clear, corresponding to the
+  `InfinityError` setting, then the operation generates a
+  `Division by zero` error. Note that the text of the error is different than
+  for Hewlett-Packard calculators, which generate an `Infinite result` error.
+
+* If the `InfinityValue` flag is set and `NumericalConstants` (-2) flag
+  is clear, corresponding to the `SymbolicConstants` setting, then the operation
+  generates the `∞` (infinity) constant with the appropriate sign for the
+  result, and the `InfiniteResultIndicator` (-26) flag is set.
+
+* If the `InfinityValue` flag is set and `NumericalConstants` flag is set,
+  then the operation generates the numerical value associated to the `∞`
+  constant with the appropriate sign for the result, and set the
+  `InfiniteResultIndicator` flag.
+
+By default, the numerical value of the `∞` constant is set to `9.99999E999999`,
+which is significantly smaller than what would actually cause a numerical
+[overflow](#overflow-and-underflow), but is easy to read. This value can be
+changed in the `config/constants.csv` file.
+
+
+## Overflow and underflow
+
+There is a maximum representable value for [decimal numbers](#decimal-numbers).
+This value is significantly larger than on HP calculators. Whereas HP RPL
+implementations could not represent decimal numbers with an exponent bigger than
+499 or smaller than -499, DB50X supports exponents ranging from -2^60 to 2^60
+(±1 152 921 504 606 846 976).
+
+An *overflow* happens if the result would have an exponent higher than the
+maximum. An *underflow* happens if the result would have an exponent lower than
+the minimum. Like HP calculators, DB50X can either generate an error or
+produce a special result in these cases.
+
+* If the `UnderflowValue` (-20) or `OverflowValue` (-21) is clear,
+  corresponding to the `UnderflowError` or `OverflowError`
+  setting, then the operation generates a `Positive numerical underflow`,
+  `Negative numerical underflow` or `Numerical overflow` error depending on the
+  computation. Note that the text of the error is different than for
+  Hewlett-Packard calculators, which generate an `Overflow`, `Positive
+  Underflow` or `Negative Underflow` error.
+
+* If the `UnderflowValue` or `OverflowValue` is set,
+  and `NumericalConstants` (-2) flag is clear, corresponding to the
+  `SymbolicConstants` setting, then overflowing operations generate the `∞`
+  (infinity) constant with the appropriate sign for the result, and underflowing
+  operations generate a zero value. The operation also sets the
+  `NegativeUnderflowIndicator` (-23), `PositiveOverflowIndicator` (-24) or
+  `OverflowIndicator` (-25) flag.
+
+* If the `UnderflowValue` or `OverflowValue` is set, and
+  `NumericalConstants` flag is set, then overflowing operations generate the
+  numerical value associated to the  `∞` constant, and underflowing operations
+  generate a zero value. The operation also sets the
+  `NegativeUnderflowIndicator` (-23), `PositiveOverflowIndicator` (-24) or
+  `OverflowIndicator` (-25) flag.
+
+
+## Undefined
+
+Some operations such as `0/0` are *undefined*, meaning that there isn't a single
+possible answer.
+
+If the `UndefinedValue` flag is set, such operations return the constant
+`?`, and further operations on the value will keep returning the same undefined
+result.
+
+If the `UndefinedValue` flag is is clear, which corresponds to `UndefinedError`
+being set, such operations will generate an `Undefined operation` error.
 # Release notes
 
 ## Release 0.6.5 "Testimony": Small bug fixes

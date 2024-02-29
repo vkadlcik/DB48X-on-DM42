@@ -86,9 +86,11 @@ struct object;                  // RPL object
 struct directory;               // Directory (storing global variables)
 struct symbol;                  // Symbols (references to a directory)
 struct text;
+struct algebraic;
 typedef const object *object_p;
 typedef const directory *directory_p;
 typedef const text *text_p;
+typedef const algebraic *algebraic_p;
 
 RECORDER_DECLARE(runtime);
 RECORDER_DECLARE(runtime_error);
@@ -927,8 +929,19 @@ struct runtime
     //
     // ========================================================================
 
+    algebraic_p zero_divide(bool negative) const;
+    algebraic_p numerical_overflow(bool negative) const;
+    algebraic_p numerical_underflow(bool negative) const;
+    algebraic_p undefined_result() const;
+    // ------------------------------------------------------------------------
+    //   Return the value for a divide by zero, overflow and underflow
+    // ------------------------------------------------------------------------
+
+
 #define ERROR(name, msg)        runtime &name##_error();
 #include "errors.tbl"
+
+
 
 
 protected:

@@ -117,6 +117,7 @@ TESTS(help,             "On-line help");
 TESTS(gstack,           "Graphic stack rendering")
 TESTS(hms,              "HMS and DMS operations");
 TESTS(date,             "Date operations");
+TESTS(infinity,         "Infinity and undefined operations");
 
 EXTRA(plotfns,          "Plot all functions");
 EXTRA(sysflags,         "Enable/disable every RPL flag");
@@ -141,7 +142,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        date_operations();
+        infinity_and_undefined();
     }
     else
     {
@@ -195,6 +196,7 @@ void tests::run(bool onlyCurrent)
         graphic_commands();
         hms_dms_operations();
         date_operations();
+        infinity_and_undefined();
         online_help();
         graphic_stack_rendering();
         regression_checks();
@@ -5355,6 +5357,164 @@ void tests::online_help()
 }
 
 
+void tests::infinity_and_undefined()
+// ----------------------------------------------------------------------------
+//   Check infinity and undefined operations
+// ----------------------------------------------------------------------------
+{
+    BEGIN(infinity);
+
+    step("Divide by zero error (integer)")
+        .test(CLEAR, "1 0", ENTER, NOSHIFT, DIV)
+        .error("Divide by zero");
+    step("Divide by zero error (decimal)")
+        .test(CLEAR, "1.0 0.0", ENTER, NOSHIFT, DIV)
+        .error("Divide by zero");
+    step("Divide by zero error (bignum)")
+        .test(CLEAR, "2 100 ^ 0", ENTER, NOSHIFT, DIV)
+        .error("Divide by zero");
+    step("Divide by zero error (fractions)")
+        .test(CLEAR, "1/3 0", ENTER, NOSHIFT, DIV)
+        .error("Divide by zero");
+
+    step("Setting infinity flag")
+        .test(CLEAR, "'InfinityValue' FS?", ENTER).expect("False")
+        .test("-22 SF", ENTER).noerr()
+        .test("'InfinityValue' FS?", ENTER).expect("True");
+
+    step("Divide by zero as symbolic infinity (integer)")
+        .test(CLEAR, "1 0", ENTER, NOSHIFT, DIV)
+        .expect("∞");
+    step("Divide by zero as symbolic infinity (decimal)")
+        .test(CLEAR, "1.0 0.0", ENTER, NOSHIFT, DIV)
+        .expect("∞");
+    step("Divide by zero as symbolic infinity (bignum)")
+        .test(CLEAR, "2 100 ^ 0", ENTER, NOSHIFT, DIV)
+        .expect("∞");
+    step("Divide by zero as symbolic infinity (fractions)")
+        .test(CLEAR, "1/3 0", ENTER, NOSHIFT, DIV)
+        .expect("∞");
+
+    step("Divide by zero as symbolic infinity (negative integer)")
+        .test(CLEAR, "-1 0", ENTER, NOSHIFT, DIV)
+        .expect("'-∞'");
+    step("Divide by zero as symbolic infinity (decimal)")
+        .test(CLEAR, "-1.0 0.0", ENTER, NOSHIFT, DIV)
+        .expect("'-∞'");
+    step("Divide by zero as symbolic infinity (bignum)")
+        .test(CLEAR, "2 100 ^ NEG 0", ENTER, NOSHIFT, DIV)
+        .expect("'-∞'");
+    step("Divide by zero as symbolic infinity (fractions)")
+        .test(CLEAR, "-1/3 0", ENTER, NOSHIFT, DIV)
+        .expect("'-∞'");
+
+    step("Setting numerical constants flag")
+        .test(CLEAR, "'NumericalConstants' FS?", ENTER).expect("False")
+        .test("-2 SF", ENTER).noerr()
+        .test("'NumericalConstants' FS?", ENTER).expect("True");
+
+    step("Divide by zero as numeric infinity (integer)")
+        .test(CLEAR, "1 0", ENTER, NOSHIFT, DIV)
+        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Divide by zero as numeric infinity (decimal)")
+        .test(CLEAR, "1.0 0.0", ENTER, NOSHIFT, DIV)
+        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Divide by zero as numeric infinity (bignum)")
+        .test(CLEAR, "2 100 ^ 0", ENTER, NOSHIFT, DIV)
+        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Divide by zero as numeric infinity (fractions)")
+        .test(CLEAR, "1/3 0", ENTER, NOSHIFT, DIV)
+        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+
+    step("Divide by zero as numeric infinity (negative integer)")
+        .test(CLEAR, "-1 0", ENTER, NOSHIFT, DIV)
+        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Divide by zero as numeric infinity (decimal)")
+        .test(CLEAR, "-1.0 0.0", ENTER, NOSHIFT, DIV)
+        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Divide by zero as numeric infinity (bignum)")
+        .test(CLEAR, "2 100 ^ NEG 0", ENTER, NOSHIFT, DIV)
+        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Divide by zero as numeric infinity (fractions)")
+        .test(CLEAR, "-1/3 0", ENTER, NOSHIFT, DIV)
+        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹");
+
+    step("Clearing numerical constants flag")
+        .test(CLEAR, "'NumericalConstants' FS?", ENTER).expect("True")
+        .test("-2 CF", ENTER).noerr()
+        .test("'NumericalConstants' FS?", ENTER).expect("False");
+    step("Setting numerical results flag")
+        .test(CLEAR, "'NumericalResults' FS?", ENTER).expect("False")
+        .test("-3 SF", ENTER).noerr()
+        .test("'NumericalResults' FS?", ENTER).expect("True");
+
+    step("Divide by zero as numeric infinity (integer)")
+        .test(CLEAR, "1 0", ENTER, NOSHIFT, DIV)
+        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Divide by zero as numeric infinity (decimal)")
+        .test(CLEAR, "1.0 0.0", ENTER, NOSHIFT, DIV)
+        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Divide by zero as numeric infinity (bignum)")
+        .test(CLEAR, "2 100 ^ 0", ENTER, NOSHIFT, DIV)
+        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Divide by zero as numeric infinity (fractions)")
+        .test(CLEAR, "1/3 0", ENTER, NOSHIFT, DIV)
+        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+
+    step("Divide by zero as numeric infinity (negative integer)")
+        .test(CLEAR, "-1 0", ENTER, NOSHIFT, DIV)
+        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Divide by zero as numeric infinity (decimal)")
+        .test(CLEAR, "-1.0 0.0", ENTER, NOSHIFT, DIV)
+        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Divide by zero as numeric infinity (bignum)")
+        .test(CLEAR, "2 100 ^ NEG 0", ENTER, NOSHIFT, DIV)
+        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Divide by zero as numeric infinity (fractions)")
+        .test(CLEAR, "-1/3 0", ENTER, NOSHIFT, DIV)
+        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹");
+
+    step("Clear numerical results flag")
+        .test(CLEAR, "'NumericalResults' FS?", ENTER).expect("True")
+        .test("-3 CF", ENTER).noerr()
+        .test("'NumericalResults' FS?", ENTER).expect("False");
+
+    step("Divide by zero as symbolic infinity (integer)")
+        .test(CLEAR, "1 0", ENTER, NOSHIFT, DIV)
+        .expect("∞");
+    step("Divide by zero as symbolic infinity (decimal)")
+        .test(CLEAR, "1.0 0.0", ENTER, NOSHIFT, DIV)
+        .expect("∞");
+    step("Divide by zero as symbolic infinity (bignum)")
+        .test(CLEAR, "2 100 ^ 0", ENTER, NOSHIFT, DIV)
+        .expect("∞");
+    step("Divide by zero as symbolic infinity (fractions)")
+        .test(CLEAR, "1/3 0", ENTER, NOSHIFT, DIV)
+        .expect("∞");
+
+
+    step("Clear infinity value flag")
+        .test(CLEAR, "'InfinityError' FS?", ENTER).expect("False")
+        .test("-22 CF", ENTER).noerr()
+        .test("'InfinityError' FS?", ENTER).expect("True");
+
+    step("Divide by zero error (integer)")
+        .test(CLEAR, "1 0", ENTER, NOSHIFT, DIV)
+        .error("Divide by zero");
+    step("Divide by zero error (decimal)")
+        .test(CLEAR, "1.0 0.0", ENTER, NOSHIFT, DIV)
+        .error("Divide by zero");
+    step("Divide by zero error (bignum)")
+        .test(CLEAR, "2 100 ^ 0", ENTER, NOSHIFT, DIV)
+        .error("Divide by zero");
+    step("Divide by zero error (fractions)")
+        .test(CLEAR, "1/3 0", ENTER, NOSHIFT, DIV)
+        .error("Divide by zero");
+
+    test(CLEAR);
+}
+
+
 void tests::graphic_stack_rendering()
 // ----------------------------------------------------------------------------
 //   Check the rendering of expressions in graphic mode
@@ -5382,7 +5542,7 @@ void tests::graphic_stack_rendering()
 
     step("Constants")
         .test(CLEAR, LSHIFT, I, F1, F1, F2, F3)
-        .image_noheader("constants");
+        .image_noheader("constants", 2);
 
     step("Vector")
         .test(CLEAR, LSHIFT, KEY9, "1 2 3", ENTER, EXIT)

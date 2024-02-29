@@ -593,18 +593,24 @@ algebraic_p arithmetic::non_numeric<struct div>(algebraic_r x, algebraic_r y)
         return unit::simple(yv, ye);
     }
 
+    // Check divide by zero
+    if (y->is_zero(false))
+    {
+        if (x->is_zero(false))
+        {
+            if (Settings.ZeroOverZeroIsUndefined())
+                return rt.undefined_result();
+            rt.zero_divide_error();
+            return nullptr;
+        }
+        return rt.zero_divide(x->is_negative());
+    }
+
     // Deal with basic auto-simplifications rules
     if (Settings.AutoSimplify() && x->is_algebraic() && y->is_algebraic())
     {
         if (x->is_zero(false))                  // 0 / X = 0
-        {
-            if (y->is_zero(false))
-            {
-                rt.zero_divide_error();
-                return nullptr;
-            }
             return x;
-        }
         if (y->is_one(false))                   // X / 1 = X
             return x;
         if (x->is_one(false) && y->is_symbolic())
@@ -872,7 +878,7 @@ algebraic_p arithmetic::non_numeric<struct pow>(algebraic_r x, algebraic_r y)
     if (x->is_zero(false) && y->is_zero(false))
     {
         if (Settings.ZeroPowerZeroIsUndefined())
-            rt.undefined_operation_error();
+            return rt.undefined_result();
         return integer::make(1);
     }
 

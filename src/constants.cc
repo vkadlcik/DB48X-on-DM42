@@ -146,6 +146,9 @@ static const cstring basic_constants[] =
     "π",        "=",                    // Evaluated specially (decimal-pi.h)
     "e",        "=",                    // Evaluated specially (decimal-e.h)
     "i",        "0+ⅈ1",                 // Imaginary unit
+    "∞",        "9.99999E999999",       // A small version of infinity
+    "?",        "Undefined",            // Undefined result
+
 
     // ------------------------------------------------------------------------
     //   Chemistry

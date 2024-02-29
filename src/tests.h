@@ -103,6 +103,7 @@ struct tests
     void graphic_commands();
     void hms_dms_operations();
     void date_operations();
+    void infinity_and_undefined();
     void online_help();
     void graphic_stack_rendering();
     void regression_checks();

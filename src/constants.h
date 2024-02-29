@@ -43,12 +43,12 @@ struct constant : symbol
     constant(id type, gcutf8 source, size_t len): symbol(type, source, len)
     { }
 
-    static constant_g make(cstring s)
+    static constant_p make(cstring s)
     {
         return rt.make<constant>(ID_constant, utf8(s), strlen(s));
     }
 
-    static constant_g make(gcutf8 s, size_t len)
+    static constant_p make(gcutf8 s, size_t len)
     {
         return rt.make<constant>(ID_constant, s, len);
     }

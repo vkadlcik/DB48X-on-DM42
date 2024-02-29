@@ -6,23 +6,155 @@ DB48X, and show you how to use it efficiently.
 [![Installation process](https://img.youtube.com/vi/rVWy4N0lBOI/maxresdefault.jpg)](https://www.youtube.com/watch?v=rVWy4N0lBOI&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf)
 
 
-## Installation process
+## Arithmetic operations
 
-**Downloading the software**
+Let's compute the area of a room made of a main section that is 6 meters by 8.3
+meters, with an additional smaller section that is 3.5 meters by 2.8.
 
-**Connecting the calculator to a computer**
+A first way to do it is to use the reverse polish stack-based approach, by
+typing the following sequence of keys: _6_, _ENTER_, _8_, _._, _3_, _×_, _3_,
+_._, _5_, _ENTER_, _2_, _._, _8_, _×_, _+_. The result, `59.6`, shows on the
+stack. Prior to pressing the _+_ key, the intermediate results for the two
+multiplications, `49.8` and `9.8`, could be seen on the stack.
 
-**Setup menu system (firmware menus)**
+RPL also supports the standard algebraic notation. Begin the computation with
+the _'()_ key. The editor contains quotes, `''` with the cursor between
+them. The cursor shows the latter `A`, indicating algebraic entry. Type _6_,
+_×_, _8_, _._, _3_, _+_, _3_, _._, _5_, _×_, _2_, _._, _8_. At this point,
+the text editor should show the whole expression, `'6·8.3+3.5·2.8'`
+or `'6×8.3+3.5×2.8'`. Press `ENTER` and the expression shows up on the
+stack. Hitting the _=_ / _EVAL_ / _SPC_ key (located between the _._ and _+_
+keys) evaluates the expression, to get the result `59.6`.
 
-**Exposing internal storage as a USB disk**
+Algebraic and reverse-polish computations are equivalent, and can be mixed and
+matched during computations. Using one or the other is stricly a matter of
+preference. Algebraic data entry makes it easier to view the entire
+expression. Reverse-polish makes it easier to see intermediate results.
 
-**Copying DB48X installation files**
 
-**Copying DM42 installation files**
+## Fractions
 
-**Installing the DB48X QSPI file**
+Let us now compute how many pies we need to feed 22 kids if we divide each pie
+in 8 slices. Using the RPL approach, we would type _2_, _2_, _ENTER_, _8_,
+_÷_. Using the algebraic notation, we would type _'()_, _2_, _2_, _÷_, _8_,
+_ENTER_ and then use the _=_ to perform the computation.
 
-**Installing the DB48X program file**
+With the default settings, you should see a mixed fraction, `2 ³/₄`. Unlike many
+calculators, DB48X by default perform exact computations on fractions instead of
+using approximate decimal numbers.
+
+You can convert that fraction to a decimal value and back using the `Cycle`
+command, which is bound to the _EEX_ key. A first press will show `2.75`, and a
+second press will show the value again as fraction `2 ³/₄`.
+
+
+## Mathematical functions
+
+DB48X features a number of mathematical functions. Some of the functions are
+directly available on the keyboard.
+
+We can compute the length of the diagonal of a rectangle with sides 2m and 3m
+using the Pythagorean theorem, and display it in millimeters.
+
+In RPL, we can type the following sequence: _2_, _x²_ (🟨 _C_), _3_, _x²_,
+_+_, _√x_ (_C_), _1_, _0_, _0_, _0_, _×_. The decimal result,
+`3 605.55127 546`, is shown on the stack. The digits in the whole part of the
+decimal number are grouped 3 by 3, while the digits in the fractional part are
+grouped 5 by 5.
+
+In algebraic mode, we can type the following sequence:
+_'()_, _1_, _0_, _0_, _0_, _×_, _√x_,
+_2_, _x²_ (🟨 _C_), _+_, _3_, _x²_, _ENTER_. The mathematical
+expresssion shows up on the stack graphically. It can then be evaluated using
+the _=_ key, and shows the same result as for RPL mode.
+
+
+## Mixing algebraic and reverse-polish operations
+
+In the algebraic expression, we have multiplied by 1000 first, whereas in the
+RPL case, we multiplied by 1000 last. We can also multiply by 1000 last in
+algebraic mode. There are at least two ways to do it.
+
+A first method is to use the arrow key to exit the parentheses around the
+argument of the square root function, as follows: _'()_, _√x_,
+_2_, _x²_, _+_, _3_, _x²_, _▶︎_, _×_, _1_, _0_, _0_, _0_,
+_ENTER_. The expression with the multiplication is then shown on the stack, and
+can then be evaluated with the _=_ key.
+
+A second method is to mix and match algebraic and RPL, by typing
+the following sequence: _'()_, _√x_, _2_, _x²_, _+_,
+_3_, _x²_, _ENTER_. At this point, the expression without the
+multiplication is on the stack. We can then multiply it by 1000 by typing
+_1_, _0_, _0_, _0_, _×_. The expression with the multiplication is then shown on
+the stack, and can then be evaluated with the _=_ key.
+
+
+## Trigonometric functions
+
+Consider that we need to build a plank ramp. We can ask a number of questions,
+like:
+
+* If the plank is 5 meters in length, and the slope is 10 degrees, how high
+  will it reach?
+
+* If we need to reach 60 cm above ground, what is the required slope?
+
+In RPL, can answer the first question by typing _1_, _0_, _SIN_, _5_,
+_×_. The result is shown in scientific format as `8.68240 88833 5×₁₀⁻¹`.
+In algebraic mode, we would type _'()_, _5_, _×_, _SIN_, _1_, _0_, _ENTER_
+and then evaluating the expression with _=_. This shows the same result.
+
+We can answer the second question using RPL by typing _6_, _0_, _ENTER_, _5_,
+_ENTER_, _1_, _0_, _0_, _×_, _÷_, _sin⁻¹_ (🟨 _J_). The result is shown as
+`6.89210 25793 5 °`. This is an example of *unit object*: the value is
+associated with a unit, in that case the `°` symbol indicating that we use
+degrees. DB48X supports three other angle modes, radians, grads and fractions of
+pi (piradians).
+
+Answering the same question using algebraic mode introduces a new little
+keyboard trick. Type _'()_,  _sin⁻¹_, _6_, _0_, _÷_, _'()_,
+ _5_, _×_, _1_, _0_, _0_, _ENTER_, and then evaluating the expression with the
+ _=_ key. Observe how the second use of the _'()_ key, which inserts parentheses
+ when used inside an expression.
+
+
+## Selecting display modes
+
+The scientific notation may not be the most readable in that case. How do we
+display this result with three digits? We will use a *menu* for that. Menus are
+an essential component of the DB48X user interface.
+
+Let us type 🟨 _O_ (_Disp_). This shows the `DisplayModesMenu`. The menu
+occupies three rows at the bottom of the screen, with six columns. Menus can
+give a quick access to 18 functions directly, six more with a single shift 🟨,
+and yet another six with the second shift 🟦. Hitting the shift key 🟨
+repeatedly will highlight the different rows of the menu.
+
+On the lower row of the menu, the second entry from the left is labeled `Fix`.
+The `Fix` display mode shows a fixed number of digits after the decimal
+separator. There are other modes, `Sci` to display in scientific notation, `Eng`
+to display with engineering multiples (the exponent is a multiple of three), and
+`Sig` to display at most a given number of digits.
+
+We can type _3_, _F2_, where _F2_ is the second key from the left on the top row
+of the keyboard. This activates the `Fix 3` mode, which shows three digits after
+the decimal separator. The display changes to `0.868` for the answer to the
+first question, and `6.892 °` for the answer to the second question.
+
+
+## Displaying the on-line help for a function
+
+Since the number of available commands in DB48X is quite high, it is useful to
+be able to consult the built-in help. In order to get help on a command, simply
+hold the corresponding key until the help shows up. For instance, to get
+[help about the command](#std) under the `Std` label, simply hold the _F1_ key.
+
+This also works for normal keyboard operations. For instance, if you hold the
+_SIN_ key, you will get the [help about the sine command](#sin).
+
+
+## Complex number operations
+
 
 
 ## Switching between DM42 and DB48X

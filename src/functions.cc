@@ -274,6 +274,8 @@ algebraic_p function::evaluate(algebraic_r xr, id op, ops_t ops)
         xv = ops.decop(xv);
         if (xv && !xv->is_normal())
         {
+            if (xv->is_infinity())
+                return rt.numerical_overflow(xv->is_negative());
             rt.domain_error();
             return nullptr;
         }

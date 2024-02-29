@@ -1277,13 +1277,15 @@ algebraic_p arithmetic::evaluate(id          op,
         // Here, x and y have the same type, a decimal type
         decimal_g xv = decimal_p(+x);
         decimal_g yv = decimal_p(+y);
-        x = ops.decop(xv, yv);
+        xv = ops.decop(xv, yv);
         if (xv && !xv->is_normal())
         {
+            if (xv->is_infinity())
+                return rt.numerical_overflow(xv->is_negative());
             rt.domain_error();
             return nullptr;
         }
-        return x;
+        return xv;
     }
 
     // Complex data types

@@ -70,7 +70,10 @@ HELP_BODY(decimal)
 }
 
 
-static void normalize(decimal::kint *&rb, size_t &rs, large &re)
+static bool normalize(object::id      type,
+                      decimal::kint *&rb,
+                      size_t         &rs,
+                      large          &re)
 // ----------------------------------------------------------------------------
 //   Normalize a result to have no leading or trailing zero
 // ----------------------------------------------------------------------------
@@ -103,6 +106,47 @@ static void normalize(decimal::kint *&rb, size_t &rs, large &re)
     // If result is zero, set exponent to 0
     if (!rs)
         re = 0;
+
+    // Check overflow and underflow
+    large maxexp = large(Settings.MaximumDecimalExponent());
+    if (re - 1 < -maxexp)
+    {
+        bool negative = type == object::ID_neg_decimal;
+        if (Settings.UnderflowError())
+        {
+            if (negative)
+                rt.negative_underflow_error();
+            else
+                rt.positive_underflow_error();
+            return false;
+        }
+        if (negative)
+            Settings.NegativeUnderflowIndicator(true);
+        else
+            Settings.PositiveUnderflowIndicator(true);
+        re = 0;
+        rs = 0;
+    }
+    else if (re - 1 > maxexp)
+    {
+        if (Settings.OverflowError())
+        {
+            rt.overflow_error();
+            return false;
+        }
+        Settings.OverflowIndicator(true);
+        re = maxexp + 2;
+    }
+    return true;
+}
+
+
+bool decimal::is_infinity() const
+// ----------------------------------------------------------------------------
+//  Check if the value overflowed and represents an infinity
+// ----------------------------------------------------------------------------
+{
+    return exponent() > large(Settings.MaximumDecimalExponent()) + 1;
 }
 
 
@@ -220,7 +264,8 @@ PARSE_BODY(decimal)
     // Normalize the parsed value (#762)
     kint *rb = (kint *) scr.scratch();
     size_t rs = scr.growth() / sizeof(kint);
-    normalize(rb, rs, exponent);
+    if (!normalize(type, rb, rs, exponent))
+        return ERROR;
 
     // Success: build the resulting number
     gcp<kint> kigits = rb;
@@ -807,6 +852,8 @@ bool decimal::is_normal() const
 // ----------------------------------------------------------------------------
 {
     info   s       = shape();
+    if (s.exponent > large(Settings.MaximumDecimalExponent())) // Infinity
+        return false;
     size_t nkigits = s.nkigits;
     byte_p bp      = s.base;
     if (nkigits == 0)
@@ -921,7 +968,8 @@ decimal_p decimal::truncate(large to_exp) const
 
     kint  *rp = (kint *) scr.scratch();
     size_t rs = copy + 1;
-    normalize(rp, rs, exp);
+    if (!normalize(ty, rp, rs, exp))
+        return nullptr;
     return rt.make<decimal>(ty, exp, rs, gcp<kint>(rp));
 }
 
@@ -1013,7 +1061,9 @@ decimal_p decimal::round(large to_exp) const
         *rp /= 10;
     }
 
-    normalize(rp, rs, exp);
+    if (!normalize(ty, rp, rs, exp))
+        return nullptr;
+
     return rt.make<decimal>(ty, exp, rs, gcp<kint>(rp));
 }
 
@@ -1085,8 +1135,8 @@ bool decimal::split(decimal_g &ip, decimal_g &fp, large to_exp) const
     size_t    irs   = copy + 1;
     kint     *frp   = irp + irs;
     size_t    frs   = nkigits - copy;
-    normalize(irp, irs, exp);
-    normalize(frp, frs, fexp);
+    if (!normalize(ty, irp, irs, exp) || !normalize(ty, frp, frs, fexp))
+        return false;
 
     gcp<kint> ibuf = irp;
     gcp<kint> fbuf = frp;
@@ -1534,7 +1584,8 @@ decimal_p decimal::add(decimal_r x, decimal_r y)
     }
 
     // Normalize result
-    normalize(rb, rs, xe);
+    if (!normalize(ty, rb, rs, xe))
+        return nullptr;
 
     // Build the result
     gcp<kint> kigits = rb;
@@ -1628,12 +1679,13 @@ decimal_p decimal::sub(decimal_r x, decimal_r y)
         lt = !lt;
     }
 
-    // Normalize result
-    normalize(rb, rs, xe);
-
     // Check if we need to change the sign
     if (lt)
         ty = negtype(ty);
+
+    // Normalize result
+    if (!normalize(ty, rb, rs, xe))
+        return nullptr;
 
     // Build the result
     gcp<kint> kigits = rb;
@@ -1667,11 +1719,6 @@ decimal_p decimal::mul(decimal_r x, decimal_r y)
     gcbytes  xb  = xi.base;
     gcbytes  yb  = yi.base;
     large    re  = xe + ye - 3;
-    if (re > DB48X_MAXEXPONENT || re < -DB48X_MAXEXPONENT)
-    {
-        rt.exponent_range_error();
-        return nullptr;
-    }
 
     // Size of result
     size_t   ps  = (Settings.Precision() + 2) / 3;
@@ -1754,7 +1801,8 @@ decimal_p decimal::mul(decimal_r x, decimal_r y)
     }
 
     // Normalize result
-    normalize(rb, rs, re);
+    if (!normalize(ty, rb, rs, re))
+        return nullptr;
 
     // Build the result
     gcp<kint> kigits = rb;
@@ -1926,7 +1974,8 @@ decimal_p decimal::div(decimal_r x, decimal_r y)
     }
 
     // Normalize result
-    normalize(qp, qs, re);
+    if (!normalize(ty, qp, qs, re))
+        return nullptr;
 
     if (qs >= rs)
         qs = rs - 1;

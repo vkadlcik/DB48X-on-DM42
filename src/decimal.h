@@ -50,6 +50,13 @@
 //   The bits in the bytes are as follows, wrapping every 5 bytes:
 //   |76543210|76543210|76543210|76543210|76543210|76543210|...
 //   |98765542|10987654|32109876|54321098|76543210|98765432|...
+//
+//   The decimal exponent is signed, and can go up to 2^61 safely without any
+//   risk of overflow when adding exponents to one another. The actual detection
+//   of overflow happens at `MaximumDecimalExponent`. Overflows are reported
+//   as an 'infinity' value, which is a value with a very large exponent.
+//   Setting the `MaximumDecimalExponent` to 499 makes it possible to have
+//   overflow detection at the same point than on the HP48.
 
 #include "algebraic.h"
 #include "runtime.h"
@@ -406,6 +413,7 @@ struct decimal : algebraic
     bool             is_negative_or_zero() const;
     bool             is_magnitude_less_than(uint kigit, large exp) const;
     bool             is_magnitude_less_than_half() const;
+    bool             is_infinity() const;
     // ------------------------------------------------------------------------
     //   Tests about the value of a given decimal number
     // ------------------------------------------------------------------------

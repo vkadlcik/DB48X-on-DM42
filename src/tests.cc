@@ -118,6 +118,7 @@ TESTS(gstack,           "Graphic stack rendering")
 TESTS(hms,              "HMS and DMS operations");
 TESTS(date,             "Date operations");
 TESTS(infinity,         "Infinity and undefined operations");
+TESTS(overflow,         "Overflow and underflow");
 
 EXTRA(plotfns,          "Plot all functions");
 EXTRA(sysflags,         "Enable/disable every RPL flag");
@@ -142,6 +143,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
+        overflow_and_underflow();
         infinity_and_undefined();
     }
     else
@@ -197,6 +199,7 @@ void tests::run(bool onlyCurrent)
         hms_dms_operations();
         date_operations();
         infinity_and_undefined();
+        overflow_and_underflow();
         online_help();
         graphic_stack_rendering();
         regression_checks();
@@ -5382,31 +5385,51 @@ void tests::infinity_and_undefined()
         .test("-22 SF", ENTER).noerr()
         .test("'InfinityValue' FS?", ENTER).expect("True");
 
+    step("Clear infinite result flag")
+        .test("-26 CF", ENTER).noerr()
+        .test("'InfiniteResultIndicator' FS?", ENTER).expect("False");
+
     step("Divide by zero as symbolic infinity (integer)")
-        .test(CLEAR, "1 0", ENTER, NOSHIFT, DIV)
-        .expect("∞");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("1 0", ENTER, NOSHIFT, DIV)
+        .expect("∞")
+        .test("-26 FS?C", ENTER).expect("True");
     step("Divide by zero as symbolic infinity (decimal)")
-        .test(CLEAR, "1.0 0.0", ENTER, NOSHIFT, DIV)
-        .expect("∞");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("1.0 0.0", ENTER, NOSHIFT, DIV)
+        .expect("∞")
+        .test("-26 FS?C", ENTER).expect("True");
     step("Divide by zero as symbolic infinity (bignum)")
-        .test(CLEAR, "2 100 ^ 0", ENTER, NOSHIFT, DIV)
-        .expect("∞");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("2 100 ^ 0", ENTER, NOSHIFT, DIV)
+        .expect("∞")
+        .test("'InfiniteResultIndicator' FS?C", ENTER).expect("True");
     step("Divide by zero as symbolic infinity (fractions)")
-        .test(CLEAR, "1/3 0", ENTER, NOSHIFT, DIV)
-        .expect("∞");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("1/3 0", ENTER, NOSHIFT, DIV)
+        .expect("∞")
+        .test("'InfiniteResultIndicator' FS?C", ENTER).expect("True");
 
     step("Divide by zero as symbolic infinity (negative integer)")
-        .test(CLEAR, "-1 0", ENTER, NOSHIFT, DIV)
-        .expect("'-∞'");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("-1 0", ENTER, NOSHIFT, DIV)
+        .expect("'-∞'")
+        .test("-26 FS?C", ENTER).expect("True");
     step("Divide by zero as symbolic infinity (decimal)")
-        .test(CLEAR, "-1.0 0.0", ENTER, NOSHIFT, DIV)
-        .expect("'-∞'");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("-1.0 0.0", ENTER, NOSHIFT, DIV)
+        .expect("'-∞'")
+        .test("-26 FS?C", ENTER).expect("True");
     step("Divide by zero as symbolic infinity (bignum)")
-        .test(CLEAR, "2 100 ^ NEG 0", ENTER, NOSHIFT, DIV)
-        .expect("'-∞'");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("2 100 ^ NEG 0", ENTER, NOSHIFT, DIV)
+        .expect("'-∞'")
+        .test("-26 FS?C", ENTER).expect("True");
     step("Divide by zero as symbolic infinity (fractions)")
-        .test(CLEAR, "-1/3 0", ENTER, NOSHIFT, DIV)
-        .expect("'-∞'");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("-1/3 0", ENTER, NOSHIFT, DIV)
+        .expect("'-∞'")
+        .test("-26 FS?C", ENTER).expect("True");
 
     step("Setting numerical constants flag")
         .test(CLEAR, "'NumericalConstants' FS?", ENTER).expect("False")
@@ -5414,30 +5437,46 @@ void tests::infinity_and_undefined()
         .test("'NumericalConstants' FS?", ENTER).expect("True");
 
     step("Divide by zero as numeric infinity (integer)")
-        .test(CLEAR, "1 0", ENTER, NOSHIFT, DIV)
-        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("1 0", ENTER, NOSHIFT, DIV)
+        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹")
+        .test("-26 FS?C", ENTER).expect("True");
     step("Divide by zero as numeric infinity (decimal)")
-        .test(CLEAR, "1.0 0.0", ENTER, NOSHIFT, DIV)
-        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("1.0 0.0", ENTER, NOSHIFT, DIV)
+        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹")
+        .test("-26 FS?C", ENTER).expect("True");
     step("Divide by zero as numeric infinity (bignum)")
-        .test(CLEAR, "2 100 ^ 0", ENTER, NOSHIFT, DIV)
-        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("2 100 ^ 0", ENTER, NOSHIFT, DIV)
+        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹")
+        .test("-26 FS?C", ENTER).expect("True");
     step("Divide by zero as numeric infinity (fractions)")
-        .test(CLEAR, "1/3 0", ENTER, NOSHIFT, DIV)
-        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("1/3 0", ENTER, NOSHIFT, DIV)
+        .expect("9.99999⁳⁹⁹⁹⁹⁹⁹")
+        .test("-26 FS?C", ENTER).expect("True");
 
     step("Divide by zero as numeric infinity (negative integer)")
-        .test(CLEAR, "-1 0", ENTER, NOSHIFT, DIV)
-        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("-1 0", ENTER, NOSHIFT, DIV)
+        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹")
+        .test("-26 FS?C", ENTER).expect("True");
     step("Divide by zero as numeric infinity (decimal)")
-        .test(CLEAR, "-1.0 0.0", ENTER, NOSHIFT, DIV)
-        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("-1.0 0.0", ENTER, NOSHIFT, DIV)
+        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹")
+        .test("-26 FS?C", ENTER).expect("True");
     step("Divide by zero as numeric infinity (bignum)")
-        .test(CLEAR, "2 100 ^ NEG 0", ENTER, NOSHIFT, DIV)
-        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("2 100 ^ NEG 0", ENTER, NOSHIFT, DIV)
+        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹")
+        .test("-26 FS?C", ENTER).expect("True");
     step("Divide by zero as numeric infinity (fractions)")
-        .test(CLEAR, "-1/3 0", ENTER, NOSHIFT, DIV)
-        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹");
+        .test(CLEAR, "-26 FS?", ENTER).expect("False")
+        .test("-1/3 0", ENTER, NOSHIFT, DIV)
+        .expect("-9.99999⁳⁹⁹⁹⁹⁹⁹")
+        .test("-26 FS?C", ENTER).expect("True");
 
     step("Clearing numerical constants flag")
         .test(CLEAR, "'NumericalConstants' FS?", ENTER).expect("True")
@@ -5492,7 +5531,6 @@ void tests::infinity_and_undefined()
         .test(CLEAR, "1/3 0", ENTER, NOSHIFT, DIV)
         .expect("∞");
 
-
     step("Clear infinity value flag")
         .test(CLEAR, "'InfinityError' FS?", ENTER).expect("False")
         .test("-22 CF", ENTER).noerr()
@@ -5512,6 +5550,126 @@ void tests::infinity_and_undefined()
         .error("Divide by zero");
 
     test(CLEAR);
+}
+
+
+void tests::overflow_and_underflow()
+// ----------------------------------------------------------------------------
+//   Test overflow and underflow
+// ----------------------------------------------------------------------------
+{
+    BEGIN(overflow);
+
+    step("Set maximum exponent to 499")
+        .test(CLEAR, "499 MaximumDecimalExponent", ENTER).noerr()
+        .test("'MaximumDecimalExponent' RCL", ENTER).expect("499");
+
+    step("Check that undeflow error is not set by default")
+        .test("'UnderflowError' FS?", ENTER).expect("False")
+        .test("'UnderflowValue' FS?", ENTER).expect("True");
+
+    step("Clear overflow and underflow indicators")
+        .test("-23 CF -24 CF -25 CF -26 CF", ENTER).noerr();
+    step("Check negative underflow indicator is clear")
+        .test("'NegativeUnderflowIndicator' FS?", ENTER).expect("False");
+    step("Check positive underflow indicator is clear")
+        .test("'PositiveUnderflowIndicator' FS?", ENTER).expect("False");
+    step("Check overflow indicator is clear")
+        .test("'OverflowIndicator' FS?", ENTER).expect("False");
+    step("Check infinite result indicator is clear")
+        .test("'InfiniteResultindicator' FS?", ENTER).expect("False");
+
+    step("Test numerical overflow as infinity for multiply")
+        .test(CLEAR)
+        .test("1E499 10 *", ENTER).expect("∞")
+        .test("-23 FS?C", ENTER).expect("False")
+        .test("-24 FS?C", ENTER).expect("False")
+        .test("-25 FS?C", ENTER).expect("True");
+    step("Test numerical overflow as infinity for exponential")
+        .test(CLEAR)
+        .test("1280 exp", ENTER).expect("∞")
+        .test("-23 FS?C", ENTER).expect("False")
+        .test("-24 FS?C", ENTER).expect("False")
+        .test("-25 FS?C", ENTER).expect("True");
+    step("Test numerical overflow as infinity")
+        .test(CLEAR)
+        .test("1E499 10 *", ENTER).expect("∞")
+        .test("-23 FS?C", ENTER).expect("False")
+        .test("-24 FS?C", ENTER).expect("False")
+        .test("-25 FS?C", ENTER).expect("True");
+    step("Test positive numerical underflow as zero")
+        .test(CLEAR)
+        .test("1E-499 10 /", ENTER).expect("0.")
+        .test("-23 FS?C", ENTER).expect("False")
+        .test("-24 FS?C", ENTER).expect("True")
+        .test("-25 FS?C", ENTER).expect("False");
+    step("Test negative numerical underflow as zero")
+        .test(CLEAR)
+        .test("-1E-499 10 /", ENTER).expect("-0.")
+        .test("-23 FS?C", ENTER).expect("True")
+        .test("-24 FS?C", ENTER).expect("False")
+        .test("-25 FS?C", ENTER).expect("False");
+
+    step("Set underflow as error")
+        .test(CLEAR, "-20 SF", ENTER).noerr()
+        .test("'UnderflowError' FS?", ENTER).expect("True");
+
+    step("Test numerical overflow as infinity")
+        .test(CLEAR)
+        .test("1E499 10 *", ENTER).expect("∞")
+        .test("-23 FS?C", ENTER).expect("False")
+        .test("-24 FS?C", ENTER).expect("False")
+        .test("-25 FS?C", ENTER).expect("True");
+    step("Test positive numerical underflow as error")
+        .test(CLEAR)
+        .test("1E-499 10 /", ENTER).error("Positive numerical underflow")
+        .test(BSP).expect("10")
+        .test(BSP).expect("1.⁳⁻⁴⁹⁹")
+        .test("-23 FS?C", ENTER).expect("False")
+        .test("-24 FS?C", ENTER).expect("False")
+        .test("-25 FS?C", ENTER).expect("False");
+    step("Test negative numerical underflow as error")
+        .test(CLEAR)
+        .test("-1E-499 10 /", ENTER).error("Negative numerical underflow")
+        .test(BSP).expect("10")
+        .test(BSP).expect("-1.⁳⁻⁴⁹⁹")
+        .test("-23 FS?C", ENTER).expect("False")
+        .test("-24 FS?C", ENTER).expect("False")
+        .test("-25 FS?C", ENTER).expect("False");
+
+    step("Set overflow as error")
+        .test(CLEAR, "-21 SF", ENTER).noerr()
+        .test("'OverflowError' FS?", ENTER).expect("True");
+
+    step("Test numerical overflow as infinity")
+        .test(CLEAR)
+        .test("1E499 10 *", ENTER).error("Numerical overflow")
+        .test(BSP).expect("10")
+        .test(BSP).expect("1.⁳⁴⁹⁹")
+        .test("-23 FS?C", ENTER).expect("False")
+        .test("-24 FS?C", ENTER).expect("False")
+        .test("-25 FS?C", ENTER).expect("False");
+    step("Test positive numerical underflow as error")
+        .test(CLEAR)
+        .test("1E-499 10 /", ENTER).error("Positive numerical underflow")
+        .test(BSP).expect("10")
+        .test(BSP).expect("1.⁳⁻⁴⁹⁹")
+        .test("-23 FS?C", ENTER).expect("False")
+        .test("-24 FS?C", ENTER).expect("False")
+        .test("-25 FS?C", ENTER).expect("False");
+    step("Test negative numerical underflow as error")
+        .test(CLEAR)
+        .test("-1E-499 10 /", ENTER).error("Negative numerical underflow")
+        .test(BSP).expect("10")
+        .test(BSP).expect("-1.⁳⁻⁴⁹⁹")
+        .test("-23 FS?C", ENTER).expect("False")
+        .test("-24 FS?C", ENTER).expect("False")
+        .test("-25 FS?C", ENTER).expect("False");
+
+    step("Reset modes")
+        .test(CLEAR, "ResetModes", ENTER)
+        .test("'MaximumDecimalExponent' RCL", ENTER)
+        .expect("1 152 921 504 606 846 976");
 }
 
 

@@ -164,6 +164,9 @@ help/$(TARGET).md: $(wildcard doc/*.md doc/calc-help/*.md doc/commands/*.md)
 	sed -e 's/DB48X/$(PRODUCT_NAME)/g' \
             -e 's/DM42/$(PRODUCT_MACHINE)/g' > $@
 	cp doc/*.png help/
+	mkdir -p help/img
+	rsync -av --delete doc/img/*.png help/img/
+
 check-ids: help/$(TARGET).md
 	@for I in $$(cpp -xc++ -D'ID(n)=n' src/ids.tbl | 		\
 		   sed -e 's/##//g' | sed -e 's/^#.*//g');		\

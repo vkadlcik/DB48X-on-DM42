@@ -33,9 +33,9 @@
 
 #include "menu.h"
 
-#include "user_interface.h"
 #include "settings.h"
-
+#include "unit.h"
+#include "user_interface.h"
 
 RECORDER(menu,          16, "RPL menu class");
 RECORDER(menu_error,    16, "Errors handling menus");
@@ -177,6 +177,32 @@ void menu::items(info &mi, cstring label, object_p action)
 //
 // ============================================================================
 
+static object::id unit_menu(unit_p u)
+// ----------------------------------------------------------------------------
+//  Return the menu for the given unit
+// ----------------------------------------------------------------------------
+{
+    object::id result = object::ID_UnitsConversionsMenu;
+    if (algebraic_g uexpr = u->uexpr())
+    {
+        if (symbol_p sym = uexpr->as_quoted<symbol>())
+        {
+            if (sym->matches("dms")  || sym->matches("°")  ||
+                sym->matches("pir")  || sym->matches("πr") ||
+                sym->matches("grad") || sym->matches("r"))
+                result = object::ID_AnglesMenu;
+            else if (sym->matches("hms") || sym->matches("h") ||
+                     sym->matches("min") || sym->matches("s"))
+                result = object::ID_TimeMenu;
+            else if (sym->matches("date") || sym->matches("d") ||
+                     sym->matches("yr"))
+                result = object::ID_DateMenu;
+        }
+    }
+    return result;
+}
+
+
 COMMAND_BODY(ToolsMenu)
 // ----------------------------------------------------------------------------
 //   Contextual tool menu
@@ -238,7 +264,7 @@ COMMAND_BODY(ToolsMenu)
             case ID_list:               menu = ID_ListMenu; break;
             case ID_array:              menu = ID_MatrixMenu; break;
             case ID_tag:                menu = ID_ObjectMenu; break;
-            case ID_unit:               menu = ID_UnitsConversionsMenu; break;
+            case ID_unit:               menu = unit_menu(unit_p(top)); break;
             default:                    break;
             }
         }
@@ -401,6 +427,7 @@ MENU(NumbersMenu,
      "Factors", ID_Unimplemented,
      "Random",  ID_Unimplemented,
      "Seed",    ID_Unimplemented);
+
 
 MENU(AnglesMenu,
 // ----------------------------------------------------------------------------

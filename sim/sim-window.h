@@ -87,6 +87,11 @@ public:
     QPixmap &screen() { return ui.screen->mainPixmap; }
     static MainWindow * theMainWindow() { return mainWindow; }
     static QPixmap &    theScreen()     { return mainWindow->screen(); }
+    static void         screenshot(cstring basename = "screens/",
+                                   int     x = 0,
+                                   int     y = 0,
+                                   int     w = LCD_W,
+                                   int     h = LCD_H);
 
 protected:
     virtual void keyPressEvent(QKeyEvent *ev);

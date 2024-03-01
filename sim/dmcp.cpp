@@ -113,6 +113,7 @@ int create_screenshot(int report_error)
 {
     record(dmcp_notyet,
            "create_screenshot(%d) not implemented", report_error);
+    MainWindow::screenshot();
     return 0;
 }
 

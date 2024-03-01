@@ -86,7 +86,7 @@ MainWindow::MainWindow(QWidget *parent)
                      highlight, SLOT(keyResizeSlot(const QRect &)));
 
     qreal dpratio = qApp->primaryScreen()->devicePixelRatio();
-    resize(210 * dpratio, 390 * dpratio);
+    resize(210 * dpratio, 370 * dpratio);
 
     rpl.start();
 
@@ -169,6 +169,8 @@ const int keyMap[] =
     Qt::Key_F4,         KB_F4,
     Qt::Key_F5,         KB_F5,
     Qt::Key_F6,         KB_F6,
+
+    Qt::Key_F8,         KEY_SCREENSHOT,
 
     Qt::Key_0,          KB_0,
     Qt::Key_1,          KB_1,
@@ -373,6 +375,14 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
             ui.keyboard->setStyleSheet("border-image: url(:/bitmap/keyboard.png) 0 0 0 0 stretch stretch;");
     }
 
+    if (k == Qt::Key_F9)
+    {
+        const int header_h = 22;
+        screenshot("screens/screenshot-", 0, header_h, LCD_W, LCD_H - header_h);
+        ev->accept();
+        return;
+    }
+
     if (k == Qt::Key_Shift)
     {
         shiftHeld = true;
@@ -536,6 +546,20 @@ bool MainWindow::eventFilter(QObject * obj, QEvent * ev)
     return false;
 }
 
+
+void MainWindow::screenshot(cstring basename, int x, int y, int w, int h)
+// ----------------------------------------------------------------------------
+//   Save a simulator screenshot under the "SCREEN" directory
+// ----------------------------------------------------------------------------
+{
+    QPixmap &screen = MainWindow::theScreen();
+    QPixmap img = screen.copy(x, y, w, h);
+    QDateTime today = QDateTime::currentDateTime();
+    QString name = basename;
+    name += today.toString("yyyyMMdd-hhmmss");
+    name += ".png";
+    img.save(name, "PNG");
+}
 
 
 bool tests::image_match(cstring file, int x, int y, int w, int h, bool force)

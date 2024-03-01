@@ -5328,12 +5328,12 @@ void tests::online_help()
         .image_noheader("help-page5");
     step("Follow link with ENTER")
         .test(ENTER).noerr()
-        .image_noheader("help-design");
+        .image_noheader("help-help");
     step("Back to previous topic with BSP")
         .test(BSP).noerr()
         .image_noheader("help-page6");
     step("Next link with F5")
-        .test(F2, F3, F5, ENTER).noerr()
+        .test(F2, F3, F3, F5, ENTER).noerr()
         .image_noheader("help-keyboard");
     step("Back with F6")
         .test(F6).noerr()

@@ -2432,6 +2432,20 @@ static coord draw_word(coord   x,
 }
 
 
+static coord skip_word(coord   x,
+                       size_t  sz,
+                       unicode word[],
+                       font_p  font)
+// ----------------------------------------------------------------------------
+//   Helper to draw a particular glyph
+// ----------------------------------------------------------------------------
+{
+    for (uint g = 0; g < sz; g++)
+        x += font->width(word[g]);
+    return x;
+}
+
+
 bool user_interface::draw_help()
 // ----------------------------------------------------------------------------
 //    Draw the help content
@@ -2514,7 +2528,7 @@ bool user_interface::draw_help()
         bool    blue       = false;
         style_name restyle = style;
 
-        if (last  == '\n' && !shown && y >= ytop)
+        if (last == '\n' && !shown && y >= ytop)
             shown  = helpfile.position();
 
         while (!emit)
@@ -2762,19 +2776,21 @@ bool user_interface::draw_help()
         }
 
         coord yf = y + height;
-        if (yf > ytop)
-        {
-            pattern color     = styles[style].color;
-            pattern bg        = styles[style].background;
-            bool    bold      = styles[style].bold;
-            bool    italic    = styles[style].italic;
-            bool    underline = styles[style].underline;
-            bool    box       = styles[style].box;
+        bool draw = yf > ytop;
 
-            // Draw a decoration
-            coord xl = x;
-            coord xr = x + width;
-            if (underline)
+        pattern color     = styles[style].color;
+        pattern bg        = styles[style].background;
+        bool    bold      = styles[style].bold;
+        bool    italic    = styles[style].italic;
+        bool    underline = styles[style].underline;
+        bool    box       = styles[style].box;
+
+        // Draw a decoration
+        coord xl = x;
+        coord xr = x + width;
+        if (underline)
+        {
+            if (draw)
             {
                 xl -= 2;
                 xr += 2;
@@ -2782,7 +2798,10 @@ bool user_interface::draw_help()
                 xl += 2;
                 xr -= 2;
             }
-            else if (box)
+        }
+        else if (box)
+        {
+            if (draw)
             {
                 xl += 1;
                 xr += 8;
@@ -2792,15 +2811,19 @@ bool user_interface::draw_help()
                 Screen.fill(xl, y, xr, y, bg);
                 xl -= 1;
                 xr -= 8;
-                kwidth += 4;
             }
-            else if (bg.bits != pattern::white.bits)
-            {
+            kwidth += 4;
+        }
+        else if (bg.bits != pattern::white.bits)
+        {
+            if (draw)
                 Screen.fill(xl, y, xr, yf, bg);
-            }
+        }
 
-            // Draw next word
-            for (int i = 0; i < 1 + 3 * italic; i++)
+        // Draw next word
+        for (int i = 0; i < 1 + 3 * italic; i++)
+        {
+            if (draw)
             {
                 x = xl + kwidth;
                 if (italic)
@@ -2815,22 +2838,30 @@ bool user_interface::draw_help()
                 coord x0 = x;
                 for (int b = 0; b <= bold; b++)
                     x = draw_word(x0 + b, y, widx, word, font, color);
-                x += kwidth;
             }
-            if (italic)
-                Screen.clip(r);
+            else
+            {
+                x = skip_word(x + bold, widx, word, font);
+            }
+            x += kwidth;
         }
+        if (italic)
+            if (draw)
+                Screen.clip(r);
 
         // Check special case of yellow shift key
         if (yellow || blue)
         {
-            const byte *source     = blue ? ann_right : ann_left;
-            pixword    *sw         = (pixword *) source;
-            surface     s(sw, ann_width, ann_height, 16);
+            if (draw)
+            {
+                const byte *source     = blue ? ann_right : ann_left;
+                pixword    *sw         = (pixword *) source;
+                surface     s(sw, ann_width, ann_height, 16);
 
-            rect shkey(x, y, x + ann_width + 7, y + height);
-            Screen.fill(shkey, pattern::black);
-            Screen.copy(s, x + 4, y + (height - ann_height)/2);
+                rect shkey(x, y, x + ann_width + 7, y + height);
+                Screen.fill(shkey, pattern::black);
+                Screen.copy(s, x + 4, y + (height - ann_height)/2);
+            }
             yellow = blue = false;
             x += ann_width + 7 + font->width(' ');
         }

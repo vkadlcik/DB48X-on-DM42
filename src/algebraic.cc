@@ -541,6 +541,145 @@ algebraic_g algebraic::pi()
 }
 
 
+algebraic::angle_unit algebraic::adjust_angle(algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   If we have an angle unit, use it for the computation
+// ----------------------------------------------------------------------------
+{
+    angle_unit amode = ID_object;
+    if (unit_p uobj = x->as<unit>())
+    {
+        algebraic_g uexpr = uobj->uexpr();
+        if (symbol_p sym = uexpr->as_quoted<symbol>())
+        {
+            if (sym->matches("dms") || sym->matches("°"))
+                amode = ID_Deg;
+            else if (sym->matches("r"))
+                amode = ID_Rad;
+            else if (sym->matches("pir") || sym->matches("πr"))
+                amode = ID_PiRadians;
+            else if (sym->matches("grad"))
+                amode = ID_Grad;
+        }
+        if (amode)
+            x = uobj->value();
+    }
+    return amode;
+}
+
+
+bool algebraic::add_angle(algebraic_g &x)
+// ----------------------------------------------------------------------------
+//   Add an angle unit if this is required
+// ----------------------------------------------------------------------------
+{
+    cstring uname;
+
+    switch(Settings.AngleMode())
+    {
+    case ID_Deg:        uname = "°";    break;
+    case ID_Grad:       uname = "grad"; break;
+    case ID_PiRadians:  uname = "πr";   break;
+    case ID_Rad:        uname = "r";    break;
+    default:
+        return false;
+    }
+
+    symbol_p uexpr = symbol::make(uname);
+    x = unit::make(x, uexpr);
+    return true;
+}
+
+
+algebraic_p algebraic::convert_angle(algebraic_r ra,
+                                     angle_unit  from,
+                                     angle_unit  to,
+                                     bool        negmod)
+// ----------------------------------------------------------------------------
+//   Convert to angle in current angle mode.
+// ----------------------------------------------------------------------------
+//   If radians is set, input is in radians.
+//   Otherwise, input is in fractions of pi (internal format for y() in polar).
+{
+    algebraic_g a = ra;
+    if (a->is_real() && (from != to || negmod))
+    {
+        switch (from)
+        {
+        case ID_Deg:
+            a = a / integer::make(180);
+            break;
+        case ID_Grad:
+            a = a / integer::make(200);
+            break;
+        case ID_Rad:
+        {
+            algebraic_g pi = algebraic::pi();
+            if (a->is_fraction())
+            {
+                fraction_g  f = fraction_p(+a);
+                algebraic_g n = algebraic_p(f->numerator());
+                algebraic_g d = algebraic_p(f->denominator());
+                a = n / pi / d;
+            }
+            else
+            {
+                a = a / pi;
+            }
+            break;
+        }
+        case ID_PiRadians:
+        default:
+            break;
+        }
+
+        // Check if we have (-1, 0π), change it to (1, 1π)
+        if (negmod)
+            a = a + algebraic_g(integer::make(1));
+
+        // Bring the result between -1 and 1
+        algebraic_g one = integer::make(1);
+        algebraic_g two = integer::make(2);
+        a = (one - a) % two;
+        if (!a)
+            return nullptr;
+        if (a->is_negative(false))
+            a = a + two;
+        a = one - a;
+
+        switch (to)
+        {
+        case ID_Deg:
+            a = a * integer::make(180);
+            break;
+        case ID_Grad:
+            a = a * integer::make(200);
+            break;
+        case ID_Rad:
+        {
+            algebraic_g pi = algebraic::pi();
+            if (a->is_fraction())
+            {
+                fraction_g f = fraction_p(+a);
+                algebraic_g n = algebraic_p(f->numerator());
+                algebraic_g d = algebraic_p(f->denominator());
+                a = pi * n / d;
+            }
+            else
+            {
+                a = a * pi;
+            }
+            break;
+        }
+        case ID_PiRadians:
+        default:
+            break;
+        }
+    }
+    return a;
+}
+
+
 algebraic_p algebraic::evaluate_function(program_r eq, algebraic_r x)
 // ----------------------------------------------------------------------------
 //   Evaluate the eq object as a function
@@ -603,7 +742,7 @@ algebraic_p algebraic::evaluate() const
 
     if (object_p obj = rt.pop())
     {
-        if (tag_p tagged = obj->as<tag>())
+        while (tag_p tagged = obj->as<tag>())
             obj = tagged->tagged_object();
         if (obj->is_algebraic())
             return algebraic_p(obj);

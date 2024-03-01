@@ -171,95 +171,6 @@ rectangular_p complex::make(int re, int im)
 }
 
 
-algebraic_p complex::convert_angle(algebraic_r ra,
-                                   angle_unit  from,
-                                   angle_unit  to,
-                                   bool        negmod)
-// ----------------------------------------------------------------------------
-//   Convert to angle in current angle mode.
-// ----------------------------------------------------------------------------
-//   If radians is set, input is in radians.
-//   Otherwise, input is in fractions of pi (internal format for y() in polar).
-{
-    algebraic_g a = ra;
-    if (a->is_real() && (from != to || negmod))
-    {
-        switch (from)
-        {
-        case ID_Deg:
-            a = a / integer::make(180);
-            break;
-        case ID_Grad:
-            a = a / integer::make(200);
-            break;
-        case ID_Rad:
-        {
-            algebraic_g pi = algebraic::pi();
-            if (a->is_fraction())
-            {
-                fraction_g  f = fraction_p(+a);
-                algebraic_g n = algebraic_p(f->numerator());
-                algebraic_g d = algebraic_p(f->denominator());
-                a = n / pi / d;
-            }
-            else
-            {
-                a = a / pi;
-            }
-            break;
-        }
-        case ID_PiRadians:
-        default:
-            break;
-        }
-
-        // Check if we have (-1, 0π), change it to (1, 1π)
-        if (negmod)
-            a = a + algebraic_g(integer::make(1));
-
-        // Bring the result between -1 and 1
-        algebraic_g one = integer::make(1);
-        algebraic_g two = integer::make(2);
-        a = (one - a) % two;
-        if (!a)
-            return nullptr;
-        if (a->is_negative(false))
-            a = a + two;
-        a = one - a;
-
-        switch (to)
-        {
-        case ID_Deg:
-            a = a * integer::make(180);
-            break;
-        case ID_Grad:
-            a = a * integer::make(200);
-            break;
-        case ID_Rad:
-        {
-            algebraic_g pi = algebraic::pi();
-            if (a->is_fraction())
-            {
-                fraction_g f = fraction_p(+a);
-                algebraic_g n = algebraic_p(f->numerator());
-                algebraic_g d = algebraic_p(f->denominator());
-                a = pi * n / d;
-            }
-            else
-            {
-                a = a * pi;
-            }
-            break;
-        }
-        case ID_PiRadians:
-        default:
-            break;
-        }
-    }
-    return a;
-}
-
-
 complex_g operator-(complex_r x)
 // ----------------------------------------------------------------------------
 //  Unary minus
@@ -954,8 +865,8 @@ COMMAND_BODY(RealToRectangular)
 {
     if (!rt.args(2))
         return ERROR;
-    object_g re = rt.stack(1);
-    object_g im = rt.stack(0);
+    object_g re = tag::strip(rt.stack(1));
+    object_g im = tag::strip(rt.stack(0));
     if (!re || !im)
         return ERROR;
     if (!(re->is_real() || re->is_symbolic()) ||
@@ -981,19 +892,28 @@ COMMAND_BODY(RealToPolar)
 {
     if (!rt.args(2))
         return ERROR;
-    object_g mod = rt.stack(1);
-    object_g arg = rt.stack(0);
+    object_g mod = tag::strip(rt.stack(1));
+    object_g arg = tag::strip(rt.stack(0));
     if (!mod || !arg)
         return ERROR;
+
+    algebraic::angle_unit amode = Settings.AngleMode();
+    if (algebraic_g arga = arg->as_algebraic())
+    {
+        if (algebraic::angle_unit givenmode = algebraic::adjust_angle(arga))
+        {
+            amode = givenmode;
+            arg = +arga;
+        }
+    }
+
     if (!(mod->is_real() || mod->is_symbolic()) ||
         !(arg->is_real() || arg->is_symbolic()))
     {
         rt.type_error();
         return ERROR;
     }
-    complex_g z = polar::make(algebraic_p(+mod),
-                              algebraic_p(+arg),
-                              Settings.AngleMode());
+    complex_g z = polar::make(algebraic_p(+mod), algebraic_p(+arg), amode);
     if (!z|| !rt.drop())
         return ERROR;
     if (!rt.top(z))
@@ -1009,7 +929,7 @@ COMMAND_BODY(RectangularToReal)
 {
     if (!rt.args(1))
         return ERROR;
-    object_g z = rt.top();
+    object_g z = tag::strip(rt.top());
     if (!z)
         return ERROR;
     if (!z->is_complex())
@@ -1037,7 +957,7 @@ COMMAND_BODY(PolarToReal)
 {
     if (!rt.args(1))
         return ERROR;
-    object_g z = rt.top();
+    object_g z = tag::strip(rt.top());
     if (!z)
         return ERROR;
     if (!z->is_complex())
@@ -1046,13 +966,15 @@ COMMAND_BODY(PolarToReal)
         return ERROR;
     }
     complex_g zz = complex_p(+z);
-    object_g mod = +zz->mod();
-    object_g arg = +zz->arg(Settings.AngleMode());
+    algebraic_g mod = +zz->mod();
+    algebraic_g arg = +zz->arg(Settings.AngleMode());
     if (!mod || !arg)
         return ERROR;
-    mod = +tag::make("mod", mod);
-    arg = +tag::make("arg", arg);
-    if (!mod || !arg || !rt.top(mod) || !rt.push(arg))
+    if (!complex::add_angle(arg))
+        return ERROR;
+    object_g modobj = +tag::make("mod", +mod);
+    object_g argobj = +tag::make("arg", +arg);
+    if (!modobj || !argobj || !rt.top(modobj) || !rt.push(argobj))
         return ERROR;
     return OK;
 }
@@ -1065,7 +987,7 @@ COMMAND_BODY(ToRectangular)
 {
     if (!rt.args(1))
         return ERROR;
-    object_g x = rt.top();
+    object_g x = tag::strip(rt.top());
     if (!x)
         return ERROR;
     if (!x->is_complex())
@@ -1090,7 +1012,7 @@ COMMAND_BODY(ToPolar)
 {
     if (!rt.args(1))
         return ERROR;
-    object_g x = rt.top();
+    object_g x = tag::strip(rt.top());
     if (!x)
         return ERROR;
     if (!x->is_complex())

@@ -77,6 +77,20 @@ struct algebraic : command
         return !x->is_big() || to_decimal(x);
     }
 
+    // Marking that we are talking about angle units
+    typedef id angle_unit;
+
+    // Adjust angle from unit object when explicitly given
+    static angle_unit adjust_angle(algebraic_g &x);
+
+    // Add the current angle mode as a unit
+    static bool add_angle(algebraic_g &x);
+
+    // Convert between angle units
+    static algebraic_p  convert_angle(algebraic_r arg,
+                                      angle_unit from, angle_unit to,
+                                      bool negmod = false);
+
     // Numerical value of pi
     static algebraic_g pi();
 

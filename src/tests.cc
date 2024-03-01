@@ -143,8 +143,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        overflow_and_underflow();
-        infinity_and_undefined();
+        complex_types();
     }
     else
     {
@@ -3066,6 +3065,18 @@ void tests::complex_types()
         .type(object::ID_tag)
         .expect("re:1.2");
 
+    step("Convert real to rectangular and back (strip tags)");
+    test(CLEAR, "1 2", LSHIFT, G, F3)
+        .type(object::ID_rectangular)
+        .expect("1+2ⅈ")
+        .test(F4).expect("im:2")
+        .test(F3).expect("1+2ⅈ");
+    test(CLEAR, "1.2 3.4", LSHIFT, G, F3)
+        .type(object::ID_rectangular)
+        .expect("1.2+3.4ⅈ")
+        .test(F4).expect("im:3.4")
+        .test(F3).expect("1.2+3.4ⅈ");
+
     step("Convert real to polar");
     test(CLEAR, LSHIFT, N, F1).noerr();
     test(CLEAR, "1 2", LSHIFT, G, RSHIFT, F3)
@@ -3078,16 +3089,33 @@ void tests::complex_types()
     step("Convert polar to real");
     test(CLEAR, "1∡2", LSHIFT, G, RSHIFT, F4)
         .type(object::ID_tag)
-        .expect("arg:2")
+        .expect("arg:2 °")
         .test(NOSHIFT, BSP)
         .type(object::ID_tag)
         .expect("mod:1");
     test(CLEAR, "1.2∡3.4", LSHIFT, G, RSHIFT, F4)
         .type(object::ID_tag)
-        .expect("arg:3.4")
+        .expect("arg:3.4 °")
         .test(NOSHIFT, BSP)
         .type(object::ID_tag)
         .expect("mod:1.2");
+
+    step("Convert real to polar and back (add units, strip tags)");
+    test(CLEAR, LSHIFT, N, F1).noerr();
+    test(CLEAR, "1 2", LSHIFT, G, RSHIFT, F3)
+        .type(object::ID_polar)
+        .expect("1∡2°")
+        .test(RSHIFT, F4).expect("arg:2 °")
+        .test("RAD", ENTER).expect("arg:2 °")
+        .test(RSHIFT, F3).expect("1∡3.49065 85039 9⁳⁻²ʳ")
+        .test("DEG", ENTER).expect("1∡2°");
+    test(CLEAR, "1.2 3.4", LSHIFT, G, RSHIFT, F3)
+        .type(object::ID_polar)
+        .expect("1.2∡3.4°")
+        .test(RSHIFT, F4).expect("arg:3.4 °")
+        .test("RAD", ENTER).expect("arg:3.4 °")
+        .test(RSHIFT, F3).expect("1.2∡5.93411 94567 8⁳⁻²ʳ")
+        .test("DEG", ENTER).expect("1.2∡3.4°");
 }
 
 

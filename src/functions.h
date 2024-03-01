@@ -91,16 +91,6 @@ public:
     //   Process exact trigonometry cases
     // ------------------------------------------------------------------------
 
-    static id adjust_angle(algebraic_g &x);
-    // ------------------------------------------------------------------------
-    //   Adjust angle from unit object when explicitly given
-    // ------------------------------------------------------------------------
-
-    static bool add_angle(algebraic_g &x);
-    // ------------------------------------------------------------------------
-    //   Add the current angle mode as a unit
-    // ------------------------------------------------------------------------
-
     static const bool does_matrices = false;
 
 };

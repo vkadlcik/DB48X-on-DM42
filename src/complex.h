@@ -48,8 +48,6 @@ struct complex : algebraic
 //    Base class shared by both rectangular and polar implementations
 // ----------------------------------------------------------------------------
 {
-    typedef id angle_unit;
-
     complex(id type, algebraic_r x, algebraic_r y): algebraic(type)
     {
         byte *p = (byte *) payload(this);
@@ -92,11 +90,6 @@ struct complex : algebraic
                              algebraic_r x, algebraic_r y,
                              angle_unit polar_unit);
     static rectangular_p make(int re = 0, int im = 1);
-
-    // Convert to/from angle in current angle mode
-    static algebraic_p  convert_angle(algebraic_r pimul,
-                                      angle_unit from, angle_unit to,
-                                      bool negmod = false);
 
     enum { I_MARK = L'ⅈ', ANGLE_MARK = L'∡' };
 

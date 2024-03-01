@@ -98,6 +98,14 @@ struct tag : object
         return object_p(p);
     }
 
+    static object_p strip(object_p obj)
+    {
+        if (obj)
+            while (tag_p tobj = obj->as<tag>())
+                obj = tobj->tagged_object();
+        return obj;
+    }
+
 public:
     OBJECT_DECL(tag);
     PARSE_DECL(tag);

@@ -152,57 +152,6 @@ bool function::exact_trig(id op, algebraic_g &x)
 }
 
 
-object::id function::adjust_angle(algebraic_g &x)
-// ----------------------------------------------------------------------------
-//   If we have an angle unit, use it for the computation
-// ----------------------------------------------------------------------------
-{
-    id amode = ID_object;
-    if (unit_p uobj = x->as<unit>())
-    {
-        algebraic_g uexpr = uobj->uexpr();
-        if (symbol_p sym = uexpr->as_quoted<symbol>())
-        {
-            if (sym->matches("dms") || sym->matches("°"))
-                amode = ID_Deg;
-            else if (sym->matches("r"))
-                amode = ID_Rad;
-            else if (sym->matches("pir") || sym->matches("πr"))
-                amode = ID_PiRadians;
-            else if (sym->matches("grad"))
-                amode = ID_Grad;
-        }
-        if (amode)
-            x = uobj->value();
-    }
-    return amode;
-}
-
-
-bool function::add_angle(algebraic_g &x)
-// ----------------------------------------------------------------------------
-//   Add an angle unit if this is required
-// ----------------------------------------------------------------------------
-{
-    cstring uname;
-
-    switch(Settings.AngleMode())
-    {
-    case object::ID_Deg:        uname = "°";    break;
-    case object::ID_Grad:       uname = "grad"; break;
-    case object::ID_PiRadians:  uname = "πr";   break;
-    case object::ID_Rad:        uname = "r";    break;
-    default:
-        return false;
-    }
-
-    symbol_p uexpr = symbol::make(uname);
-    x = unit::make(x, uexpr);
-    return true;
-}
-
-
-
 algebraic_p function::evaluate(algebraic_r xr, id op, ops_t ops)
 // ----------------------------------------------------------------------------
 //   Shared code for evaluation of all common math functions

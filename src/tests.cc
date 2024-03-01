@@ -143,7 +143,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        complex_types();
+        hms_dms_operations();
     }
     else
     {
@@ -5242,6 +5242,9 @@ void tests::hms_dms_operations()
         .test(F5).noerr().expect("1°02′03″")
         .test(LSHIFT, F5).noerr().expect("1:02:03")
         .test(LSHIFT, F5).noerr().expect("1:02:03");
+
+    step("Converting angles to DMS")
+        .test(CLEAR, "0.5", LSHIFT, J, A, RSHIFT, F1).expect("30°00′00″");
 }
 
 

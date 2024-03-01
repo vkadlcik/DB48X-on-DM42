@@ -29,10 +29,10 @@
 
 #include "datetime.h"
 
-#include "renderer.h"
-#include "unit.h"
 #include "arithmetic.h"
-
+#include "renderer.h"
+#include "tag.h"
+#include "unit.h"
 
 
 // ============================================================================
@@ -48,6 +48,7 @@ bool to_time(object_p tobj, tm_t &tm, bool error)
 {
     if (!tobj)
         return false;
+    tobj = tag::strip(tobj);
 
     algebraic_g time = nullptr;
     uint scale = 100;
@@ -98,6 +99,7 @@ uint to_date(object_p dtobj, dt_t &dt, tm_t &tm, bool error)
 {
     if (!dtobj)
         return 0;
+    dtobj = tag::strip(dtobj);
 
     algebraic_g date = nullptr;
     if (unit_p u = dtobj->as<unit>())
@@ -171,6 +173,7 @@ algebraic_p to_days(object_p dobj, bool error)
 {
     if (!dobj)
         return nullptr;
+    dobj = tag::strip(dobj);
 
     algebraic_p dval = nullptr;
     if (unit_g u = dobj->as<unit>())
@@ -659,8 +662,20 @@ algebraic_p to_hms_dms(algebraic_r x)
         algebraic_g uexpr = u->uexpr();
         if (symbol_p sym = uexpr->as_quoted<symbol>())
         {
-            if (sym->matches("dms") || sym->matches("hms"))
+            if (sym->matches("dms") || sym->matches("hms") || sym->matches("°"))
                 return u->value();
+            algebraic::angle_unit amode = object::ID_object;
+            if (sym->matches("pir")  || sym->matches("πr"))
+                amode = object::ID_PiRadians;
+            else if (sym->matches("grad"))
+                amode = object::ID_Grad;
+            else if (sym->matches("r"))
+                amode = object::ID_Rad;
+            if (amode)
+            {
+                algebraic_g angle = u->value();
+                return algebraic::convert_angle(angle, amode, object::ID_Deg);
+            }
         }
         rt.inconsistent_units_error();
         return nullptr;
@@ -681,7 +696,7 @@ object::result to_hms_dms(cstring name)
 {
     if (!rt.args(1))
         return object::ERROR;
-    algebraic_g x = algebraic_p(rt.top());
+    algebraic_g x = algebraic_p(tag::strip(rt.top()));
     algebraic_g xc = to_hms_dms(x);
     if (!xc)
         return object::ERROR;
@@ -751,7 +766,7 @@ object::result from_hms_dms(cstring name)
 {
     if (!rt.args(1))
         return object::ERROR;
-    algebraic_g x = algebraic_p(rt.top());
+    algebraic_g x = algebraic_p(tag::strip(rt.top()));
     x = from_hms_dms(x, name);
     if (x && rt.top(x))
         return object::OK;

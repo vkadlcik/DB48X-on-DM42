@@ -356,6 +356,12 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
             tests.onlyCurrent = k == Qt::Key_F11;
             tests.start();
         }
+        else
+        {
+            tests.terminate();
+            tests.wait();
+            fprintf(stderr, "\n\n\nTests interrupted\n");
+        }
     }
 
     if (k == Qt::Key_F10)

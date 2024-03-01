@@ -2598,7 +2598,8 @@ bool user_interface::draw_help()
                 break;
 
             case '!':
-                // Skip images
+            case '<':
+                // Skip images and HTML tags
                 if (last == '\n')
                 {
                     unicode c = helpfile.get();

@@ -1383,7 +1383,7 @@ bool user_interface::draw_header()
         rect clip = Screen.clip();
         rect header(0, 0, LCD_W, h);
 
-        Screen.clip(0, 0, 260, h);
+        Screen.clip(0, 0, 259, h);
         Screen.fill(header, pattern::black);
 
         char buffer[MAX_LCD_LINE_LEN];

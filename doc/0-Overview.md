@@ -671,8 +671,9 @@ This software is (C) 2022-2023 Christophe de Dinechin and the DB48X team.
 
 Additional contributors to the project include:
 
-* Camille Wormser
-* Jeff, aka spiff72
+* Camille Wormser (complex number fixes)
+* Jeff, aka spiff72 (keyboard overlay)
+* Conrado Seibel (help file fix)
 
 The authors would like to acknowledge
 

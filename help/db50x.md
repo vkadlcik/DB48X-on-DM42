@@ -960,7 +960,7 @@ DB50X is a RPL calculator, which means that:
   ![Command-line and catalog](img/command-line-and-catalog.png)
 
 
-[![Long demo of 0.7.0](http://img.youtube.com/vi/kzkjE8BZW10WU5Dg1mPkl8/0.jpg)](https://www.youtube.com/watch?v=kzkjE8BZW10WU5Dg1mPkl8&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf "Long demo of v0.7.0")
+[![Long demo of 0.7.0](http://img.youtube.com/vi/kzkjE8BZW10/0.jpg)](https://www.youtube.com/watch?v=kzkjE8BZW10&list=PLz1qkflzABy-Cs1R07zGB8A9K5Yjolmlf "Long demo of v0.7.0")
 
 
 ## Arithmetic operations

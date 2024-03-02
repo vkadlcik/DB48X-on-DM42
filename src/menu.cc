@@ -707,8 +707,8 @@ MENU(RegressionMenu,
 //   Statistics regression menu
 // ----------------------------------------------------------------------------
      "BestFit", ID_BestFit,
-     "ExpFit",  ID_LinearFit,
-     "LinFit",  ID_ExponentialFit,
+     "LinFit",  ID_LinearFit,
+     "ExpFit",  ID_ExponentialFit,
      "LogFit",  ID_PowerFit,
      "PwrFit",  ID_LogarithmicFit,
      "LR",      ID_LinearRegression,

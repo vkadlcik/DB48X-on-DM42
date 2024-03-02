@@ -1175,9 +1175,7 @@ symbol_g unit_file::lookup(utf8 what, size_t len, bool menu, bool seek0)
         {
             if (column == 0)
             {
-                found = found &&
-                    matching < len &&
-                    tolower(c) == tolower(what[matching++]);
+                found = found && matching < len && c == what[matching++];
             }
             else if (column == 1 && found)
             {

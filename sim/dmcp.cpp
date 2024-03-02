@@ -1010,7 +1010,7 @@ void rtc_read(tm_t * tm, dt_t *dt)
     tm->min = utm.tm_min;
     tm->sec = utm.tm_sec;
     tm->csec = tv.tv_usec / 10000;
-    tm->dow = utm.tm_wday;
+    tm->dow = (utm.tm_wday + 6) % 7;
 }
 
 void rtc_write(tm_t * tm, dt_t *dt)
@@ -1023,7 +1023,7 @@ void rtc_write(tm_t * tm, dt_t *dt)
 
 cstring get_wday_shortcut(int day)
 {
-    static cstring dow[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+    static cstring dow[] = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
     return dow[day];
 }
 

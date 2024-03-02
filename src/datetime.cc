@@ -620,7 +620,7 @@ size_t render_date(renderer &r, algebraic_g date)
     if (Settings.ShowDayOfWeek())
     {
         ularge jdn = julian_day_number(day, month, year);
-        uint dow = (jdn + 1) % 7;
+        uint dow = jdn % 7;
         r.printf("%s ", get_wday_shortcut(dow));
     }
 

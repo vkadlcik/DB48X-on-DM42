@@ -400,10 +400,12 @@ MENU_BODY(constant_menu)
             {
                 while (symbol_g mentry = cfile.next(false))
                 {
+                    uint posafter = cfile.position();
                     size_t mlen = 0;
                     utf8 mtxt = mentry->value(&mlen);
                     cfile.seek(position);
                     mentry = cfile.lookup(mtxt, mlen, false, false);
+                    cfile.seek(posafter);
                     if (mentry)
                     {
                         size_t vlen = 0;

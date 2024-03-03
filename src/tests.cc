@@ -3792,7 +3792,7 @@ void tests::vector_functions()
 
     step("Division (extension)");
     test(CLEAR, "[1 2  3 4 6][4 5 2 1 3] /", ENTER)
-        .expect("[ ¹/₄ ²/₅ 1 ¹/₂ 4 2 ");
+        .expect("[ ¹/₄ ²/₅ 1 ¹/₂ 4 2 ]");
     test(CLEAR, "[a b c][d e f] /", ENTER)
         .expect("[ 'a÷d' 'b÷e' 'c÷f' ]");
 

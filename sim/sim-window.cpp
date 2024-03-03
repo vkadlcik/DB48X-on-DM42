@@ -27,23 +27,23 @@
 //   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 // ****************************************************************************
 
-#include <QtGui>
-#include <QtCore>
-#include <QFileDialog>
-#include <QFile>
-#include <QFileInfo>
-#include <QMessageBox>
-#include <QKeyEvent>
-#include <QStandardPaths>
-
-#include <dmcp.h>
-#include <target.h>
-
 #include "sim-window.h"
-#include "sim-rpl.h"
-#include "ui_sim-window.h"
+
+#include "dmcp.h"
 #include "recorder.h"
+#include "sim-rpl.h"
 #include "tests.h"
+#include "ui_sim-window.h"
+
+#include <QFile>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QKeyEvent>
+#include <QMessageBox>
+#include <QStandardPaths>
+#include <QtCore>
+#include <QtGui>
+#include <target.h>
 
 
 RECORDER(sim_keys, 16, "Recorder keys from the simulator");

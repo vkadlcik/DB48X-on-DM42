@@ -32,6 +32,7 @@
 #include "arithmetic.h"
 #include "bignum.h"
 #include "decimal.h"
+#include "dmcp.h"
 #include "fraction.h"
 #include "integer.h"
 #include "parser.h"
@@ -49,7 +50,6 @@
 #include "version.h"
 
 #include <ctype.h>
-#include <dmcp.h>
 #include <stdio.h>
 
 RECORDER(command,       16, "RPL Commands");

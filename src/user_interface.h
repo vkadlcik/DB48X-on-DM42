@@ -30,13 +30,13 @@
 // ****************************************************************************
 
 #include "blitter.h"
+#include "dmcp.h"
 #include "file.h"
 #include "object.h"
 #include "runtime.h"
 #include "text.h"
 #include "types.h"
 
-#include <dmcp.h>
 #include <string>
 #include <vector>
 

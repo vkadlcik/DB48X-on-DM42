@@ -31,9 +31,9 @@
 #include "main.h"
 
 #include "blitter.h"
+#include "dmcp.h"
 #include "expression.h"
 #include "font.h"
-#include "num.h"
 #include "program.h"
 #include "recorder.h"
 #include "stack.h"
@@ -46,13 +46,13 @@
 #  include "tests.h"
 #endif
 
+
 #include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <dmcp.h>
 
 using std::max;
 using std::min;
@@ -383,7 +383,8 @@ extern "C" void program_main()
             }
             if (key == tests::KEYSYNC)
             {
-                record(main, "Key sync done %u from %u", keysync_sent, keysync_done);
+                record(main, "Key sync done %u from %u",
+                       keysync_sent, keysync_done);
                 redraw_lcd(true);
                 keysync_done = keysync_sent;
                 key = 0;

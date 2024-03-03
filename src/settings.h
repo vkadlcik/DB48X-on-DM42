@@ -33,9 +33,7 @@
 #include "menu.h"
 #include "renderer.h"
 #include "target.h"
-
-#include <types.h>
-
+#include "types.h"
 
 struct renderer;
 

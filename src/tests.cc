@@ -29,13 +29,13 @@
 
 #include "tests.h"
 
+#include "dmcp.h"
 #include "recorder.h"
 #include "settings.h"
 #include "stack.h"
 #include "types.h"
 #include "user_interface.h"
 
-#include <dmcp.h>
 #include <regex.h>
 #include <stdio.h>
 

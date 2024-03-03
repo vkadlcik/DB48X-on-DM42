@@ -29,12 +29,12 @@
 
 #include "font.h"
 
+#include "dmcp.h"
 #include "parser.h"
 #include "recorder.h"
 #include "renderer.h"
 #include "runtime.h"
 
-#include <dmcp.h>
 #include <stdio.h>
 #include <stdlib.h>
 

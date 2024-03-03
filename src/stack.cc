@@ -30,6 +30,7 @@
 #include "stack.h"
 
 #include "blitter.h"
+#include "dmcp.h"
 #include "grob.h"
 #include "renderer.h"
 #include "runtime.h"
@@ -37,8 +38,6 @@
 #include "target.h"
 #include "user_interface.h"
 #include "utf8.h"
-
-#include <dmcp.h>
 
 
 stack    Stack;

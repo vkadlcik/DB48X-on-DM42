@@ -32,6 +32,7 @@
 #include "arithmetic.h"
 #include "blitter.h"
 #include "command.h"
+#include "dmcp.h"
 #include "functions.h"
 #include "list.h"
 #include "menu.h"
@@ -51,7 +52,6 @@
 #endif // SIMULATOR
 
 #include <ctype.h>
-#include <dmcp.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <wctype.h>

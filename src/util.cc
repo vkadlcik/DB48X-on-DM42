@@ -29,11 +29,10 @@
 
 #include "util.h"
 
+#include "dmcp.h"
+#include "program.h"
 #include "settings.h"
 #include "target.h"
-#include "program.h"
-
-#include <dmcp.h>
 
 
 void invert_screen()

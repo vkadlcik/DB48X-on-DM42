@@ -30,13 +30,12 @@
 #include "files.h"
 
 #include "array.h"
+#include "dmcp.h"
 #include "file.h"
 #include "list.h"
 #include "program.h"
 #include "runtime.h"
 #include "settings.h"
-
-#include <dmcp.h>
 
 
 // ============================================================================

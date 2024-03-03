@@ -29,10 +29,11 @@
 
 #include "sim-screen.h"
 
+#include "dmcp.h"
+
 #include <QBitmap>
 #include <QGraphicsPixmapItem>
 #include <QTimer>
-#include <dmcp.h>
 #include <target.h>
 
 

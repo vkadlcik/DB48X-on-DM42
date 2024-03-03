@@ -28,8 +28,9 @@
 // ****************************************************************************
 
 #include "sim-rpl.h"
+
+#include "dmcp.h"
 #include "tests.h"
-#include <dmcp.h>
 
 extern int key_remaining();
 

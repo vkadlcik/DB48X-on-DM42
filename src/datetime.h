@@ -31,9 +31,8 @@
 
 #include "algebraic.h"
 #include "command.h"
+#include "dmcp.h"
 #include "types.h"
-
-#include <dmcp.h>
 
 
 // Convert time and date to their components

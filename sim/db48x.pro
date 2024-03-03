@@ -104,7 +104,7 @@ DEFINES += SIMULATOR CONFIG_FIXED_BASED_OBJECTS
 debug:DEFINES += DEBUG
 
 # For DMCP headers
-DEFINES += __packed=
+DEFINES += __packed= USE_QT
 macx:DEFINES += _WCHAR_T_DEFINED
 
 # COnfigure Intel Decimal Floating Point Library

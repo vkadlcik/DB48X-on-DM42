@@ -31,21 +31,23 @@
 
 #include "dmcp_fonts.c"
 #include "recorder.h"
-#include "sim-rpl.h"
-#include "sim-screen.h"
-#include "sim-window.h"
+#include "target.h"
 #include "types.h"
 
 #include <iostream>
-#include <QFileDialog>
-#include <QSettings>
 #include <stdarg.h>
 #include <stdio.h>
 #include <sys/select.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <target.h>
 
+#ifdef USE_QT
+#include "sim-rpl.h"
+#include "sim-screen.h"
+#include "sim-window.h"
+#include <QFileDialog>
+#include <QSettings>
+#endif // USE_QT
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
@@ -62,6 +64,9 @@ RECORDER(lcd_width,     64, "Width of strings and chars");
 RECORDER(lcd_warning,   64, "Warnings from lcd/display functions");
 
 #undef ppgm_fp
+
+extern volatile uint keysync_sent;
+extern volatile uint keysync_done;
 
 volatile int       lcd_needsupdate = 0;
 int                lcd_buf_cleared = 0;
@@ -113,7 +118,9 @@ int create_screenshot(int report_error)
 {
     record(dmcp_notyet,
            "create_screenshot(%d) not implemented", report_error);
+#ifdef USE_QT
     MainWindow::screenshot();
+#endif
     return 0;
 }
 
@@ -271,7 +278,9 @@ int key_push(int k)
            k, keywr, keyrd,
            shiftHeld ? altHeld ? "Shift+Alt" : "Shift"
            : altHeld ? "Alt" : "None");
+#ifdef USE_QT
     MainWindow::theMainWindow()->pushKey(k);
+#endif
     if (keywr - keyrd < nkeys)
         keys[keywr++ % nkeys] = k;
     else
@@ -766,7 +775,9 @@ int sys_free_mem()
 
 void sys_delay(uint32_t ms_delay)
 {
+#ifdef USE_QT
     QThread::msleep(ms_delay);
+#endif
 }
 
 static struct timer
@@ -783,7 +794,9 @@ void sys_sleep()
         for (int i = 0; i < 4; i++)
             if (timers[i].enabled && int(timers[i].deadline - now) < 0)
                 return;
+#ifdef USE_QT
         QThread::msleep(20);
+#endif
     }
     CLR_ST(STAT_SUSPENDED | STAT_OFF | STAT_PGM_END);
 }
@@ -850,6 +863,7 @@ int file_selection_screen(const char   *title,
     if (*base_dir == '/' || *base_dir == '\\')
         base_dir++;
 
+#ifdef USE_QT
     QString path;
     bool done = false;
 
@@ -881,6 +895,8 @@ int file_selection_screen(const char   *title,
     ret = sel_fn(path.toStdString().c_str(),
                  name.toStdString().c_str(),
                  data);
+#endif
+
     return ret;
 }
 
@@ -956,8 +972,10 @@ void disp_disk_info(const char *hdr)
 
 void set_reset_state_file(const char * str)
 {
+#ifdef USE_QT
     QSettings settings;
     settings.setValue("state", str);
+#endif // USE_QT
     record(dmcp, "Setting saved state: %s", str);
 }
 
@@ -965,11 +983,13 @@ void set_reset_state_file(const char * str)
 char *get_reset_state_file()
 {
     static char result[256];
+    result[0] = 0;
+#ifdef USE_QT
     QSettings settings;
     QString file = settings.value("state").toString();
-    result[0] = 0;
     if (!file.isNull())
         strncpy(result, file.toStdString().c_str(), sizeof(result));
+#endif // USE_QT
     record(dmcp, "Saved state: %+s", result);
     return result;
 }

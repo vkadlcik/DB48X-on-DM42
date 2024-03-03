@@ -29,6 +29,7 @@
 
 #include "sysmenu.h"
 
+#include "dmcp.h"
 #include "file.h"
 #include "main.h"
 #include "object.h"
@@ -43,8 +44,6 @@
 #include "variables.h"
 
 #include <cstdio>
-#include <dmcp.h>
-
 
 
 // ============================================================================

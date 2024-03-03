@@ -32,7 +32,7 @@
 #include "types.h"
 
 extern "C" {
-#include <dmcp.h>
+#include "dmcp.h"
 }
 
 enum menu_item

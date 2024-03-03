@@ -4556,7 +4556,7 @@ size_t user_interface::insert(size_t offset, unicode c)
 object::result user_interface::insert_softkey(int     key,
                                               cstring before,
                                               cstring after,
-                                              char    term)
+                                              bool    midcursor)
 // ----------------------------------------------------------------------------
 //   Insert the name associated with the key if editing
 // ----------------------------------------------------------------------------
@@ -4566,15 +4566,9 @@ object::result user_interface::insert_softkey(int     key,
         if (*text)
         {
             size_t length = 0;
-            uint   cursor = cursor_position();
             if (symbol_p name = label(key - KEY_F1))
             {
                 text = (cstring) name->value(&length);
-            }
-            else if (term)
-            {
-                cstring found = strchr(text, term);
-                length = found ? found - text : strlen(text);
             }
             else
             {
@@ -4583,14 +4577,40 @@ object::result user_interface::insert_softkey(int     key,
 
             insert(cursor, utf8(before), strlen(before));
             insert(cursor, utf8(text), length);
+            uint mid = cursor_position();
             insert(cursor, utf8(after), strlen(after));
 
-            cursor_position(cursor);
+            if (midcursor)
+                cursor_position(mid);
 
             return object::OK;
         }
     }
 
+    return object::ERROR;
+}
+
+
+object::result user_interface::insert_object(object_p obj,
+                                             cstring before, cstring after,
+                                             bool midcursor)
+// ----------------------------------------------------------------------------
+//   Insert the object in the editor
+// ----------------------------------------------------------------------------
+{
+    if (text_g text = obj->as_text())
+    {
+        size_t len = 0;
+        utf8 txt = text->value(&len);
+
+        insert(cursor, utf8(before), strlen(before));
+        insert(cursor, utf8(txt), len);
+        uint mid = cursor_position();
+        insert(cursor, utf8(after), strlen(after));
+        if (midcursor)
+            cursor_position(mid);
+        return object::OK;
+    }
     return object::ERROR;
 }
 

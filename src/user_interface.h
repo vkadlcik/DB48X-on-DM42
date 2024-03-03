@@ -180,7 +180,10 @@ struct user_interface
     size_t      remove(size_t offset, size_t len);
     result      insert_softkey(int key,
                                cstring before, cstring after,
-                               char term = 0);
+                               bool midcursor);
+    result      insert_object(object_p obj,
+                              cstring bef="", cstring aft="",
+                              bool midcursor = false);
     void        load_help(utf8 topic, size_t len = 0);
 
 protected:

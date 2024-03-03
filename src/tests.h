@@ -107,6 +107,7 @@ struct tests
     void overflow_and_underflow();
     void online_help();
     void graphic_stack_rendering();
+    void insertion_of_variables_constants_and_units();
     void regression_checks();
 
     enum key

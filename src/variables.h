@@ -218,9 +218,10 @@ public:
     MENU_DECL(VariablesMenu);
 };
 
-COMMAND_DECLARE(VariablesMenuExecute);
-COMMAND_DECLARE(VariablesMenuRecall);
-COMMAND_DECLARE(VariablesMenuStore);
+COMMAND_DECLARE_INSERT(VariablesMenuExecute);
+COMMAND_DECLARE_INSERT(VariablesMenuRecall);
+COMMAND_DECLARE_INSERT(VariablesMenuStore);
+
 
 
 // ============================================================================

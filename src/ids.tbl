@@ -850,6 +850,10 @@ CMD(SystemSetup)
 
 CMD(Unimplemented)              // Last command in catalog
 
+CMD(VariablesMenuExecute)
+CMD(VariablesMenuRecall)
+CMD(VariablesMenuStore)
+
 
 
 // ============================================================================
@@ -1016,12 +1020,8 @@ CMD(MenuNextPage)
 CMD(MenuPreviousPage)
 CMD(MenuFirstPage)
 
-CMD(VariablesMenuExecute)
-CMD(VariablesMenuRecall)
-CMD(VariablesMenuStore)
-
 CMD(Undo)                       // Immediate: do not save stack before Undo
-CMD(LastMenu)                   // Immediate: do not insert in programs
+CMD(LastMenu)                   // Last parseable command
 
 
 // ============================================================================
@@ -1031,11 +1031,9 @@ CMD(LastMenu)                   // Immediate: do not insert in programs
 // ============================================================================
 
 CMD(IfErrThen)                  // Special tests
-CMD(IfErrThenElse)
+CMD(IfErrThenElse)              // Last programmable command
 
 CMD(SelfInsert)                 // Last immediate command
-
-
 
 
 // ============================================================================

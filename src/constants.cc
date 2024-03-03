@@ -566,14 +566,6 @@ COMMAND_BODY(ConstantName)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    if (rt.editing())
-    {
-        if (ui.editing_mode() != ui.DIRECT)
-            return ui.insert_softkey(key, "■", " ");
-        if (!ui.end_edit())
-            return object::ERROR;
-    }
-
     if (constant_p constant = key_constant(key))
         if (rt.push(constant))
             return OK;
@@ -583,25 +575,40 @@ COMMAND_BODY(ConstantName)
 }
 
 
+INSERT_BODY(ConstantName)
+// ----------------------------------------------------------------------------
+//   Put the name of a constant in the editor
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    return ui.insert_softkey(key, "₭", " ", false);
+}
+
+
 COMMAND_BODY(ConstantValue)
 // ----------------------------------------------------------------------------
 //   Put the value of a constant on the stack
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    if (rt.editing())
-    {
-        if (ui.editing_mode() != ui.DIRECT)
-            return ui.insert_softkey(key, "", " ");
-        if (!ui.end_edit())
-            return object::ERROR;
-    }
-
     if (constant_p constant = key_constant(key))
         if (object_p value = constant->value())
             if (rt.push(value))
                 return OK;
     if (!rt.error())
         rt.type_error();
+    return ERROR;
+}
+
+
+INSERT_BODY(ConstantValue)
+// ----------------------------------------------------------------------------
+//   Insert the value of a constant
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    if (constant_p constant = key_constant(key))
+        if (object_p value = constant->value())
+            return ui.insert_object(value, " ", " ");
     return ERROR;
 }

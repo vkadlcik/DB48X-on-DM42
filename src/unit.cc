@@ -1652,18 +1652,10 @@ COMMAND_BODY(ApplyUnit)
 //   Apply a unit from a unit menu
 // ----------------------------------------------------------------------------
 {
-    int key = ui.evaluating;
-    if (rt.editing())
-    {
-        if (ui.editing_mode() != ui.DIRECT)
-            return ui.insert_softkey(key, "_", " ");
-        if (!ui.end_edit())
-            return object::ERROR;
-    }
-
     if (!rt.args(1))
         return ERROR;
 
+    int key = ui.evaluating;
     if (algebraic_g uname = key_unit(key, true))
         if (object_p value = rt.top())
             if (algebraic_g alg = value->as_algebraic())
@@ -1677,20 +1669,22 @@ COMMAND_BODY(ApplyUnit)
 }
 
 
+INSERT_BODY(ApplyUnit)
+// ----------------------------------------------------------------------------
+//   Insert the application of the unit
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    return ui.insert_softkey(key, " 1_", " * ", false);
+}
+
+
 COMMAND_BODY(ApplyInverseUnit)
 // ----------------------------------------------------------------------------
 //   Apply the invserse of a unit from a unit menu
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    if (rt.editing())
-    {
-        if (ui.editing_mode() != ui.DIRECT)
-            return ui.insert_softkey(key, "_(", ")⁻¹ ");
-        if (!ui.end_edit())
-            return object::ERROR;
-    }
-
     if (!rt.args(1))
         return ERROR;
 
@@ -1707,20 +1701,22 @@ COMMAND_BODY(ApplyInverseUnit)
 }
 
 
+INSERT_BODY(ApplyInverseUnit)
+// ----------------------------------------------------------------------------
+//   Insert the application of the inverse of a unit
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    return ui.insert_softkey(key, " 1_", " / ", false);
+}
+
+
 COMMAND_BODY(ConvertToUnit)
 // ----------------------------------------------------------------------------
 //   Apply conversion to a given menu unit
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    if (rt.editing())
-    {
-        if (ui.editing_mode() != ui.DIRECT)
-            return ui.insert_softkey(key, " 1_", " Convert ");
-        if (!ui.end_edit())
-            return object::ERROR;
-    }
-
     if (!rt.args(1))
         return ERROR;
 
@@ -1733,6 +1729,16 @@ COMMAND_BODY(ConvertToUnit)
                             return OK;
 
     return ERROR;
+}
+
+
+INSERT_BODY(ConvertToUnit)
+// ----------------------------------------------------------------------------
+//   Insert a conversion to the given unit
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    return ui.insert_softkey(key, " 1_", " Convert ", false);
 }
 
 
@@ -1764,13 +1770,6 @@ COMMAND_BODY(ConvertToUnitPrefix)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    if (rt.editing())
-    {
-        if (ui.editing_mode() != ui.DIRECT)
-            return ui.insert_softkey(key, "_", "", ' ');
-        if (!ui.end_edit())
-            return object::ERROR;
-    }
     if (key < KEY_F1 || key > KEY_F6)
         return object::OK;
 
@@ -1915,6 +1914,17 @@ static object::result toAngleUnit(cstring angleUnit)
     if (targetUnit && targetUnit->convert(uobj) && rt.top(uobj))
         return object::OK;
     return object::ERROR;
+}
+
+
+INSERT_BODY(ConvertToUnitPrefix)
+// ----------------------------------------------------------------------------
+//   This is not a programmable command, since we need to have the unit
+// ----------------------------------------------------------------------------
+{
+    rt.command(command::static_object(ID_ConvertToUnitPrefix));
+    rt.not_programmable_error();
+    return ERROR;
 }
 
 

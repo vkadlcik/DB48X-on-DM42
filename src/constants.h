@@ -96,7 +96,7 @@ public:
 #define CONSTANT_MENU(ConstantMenu)     struct ConstantMenu : constant_menu {};
 #include "ids.tbl"
 
-COMMAND_DECLARE(ConstantName);
-COMMAND_DECLARE(ConstantValue);
+COMMAND_DECLARE_INSERT(ConstantName);
+COMMAND_DECLARE_INSERT(ConstantValue);
 
 #endif // CONSTANT_H

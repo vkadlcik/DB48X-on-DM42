@@ -341,6 +341,10 @@ inline bool is_valid_as_name_initial(unicode cp)
 {
     if ((cp >= 'A' && cp <= 'Z') || (cp >= 'a' && cp <= 'z'))
         return true;
+    static utf8 valid = utf8("!$%&?");
+    for (utf8 p = valid; *p; p = utf8_next(p))
+        if (cp == utf8_codepoint(p))
+            return true;
     if (cp < 0x80)
         return false;
 
@@ -366,7 +370,7 @@ inline bool is_valid_in_name(unicode cp)
 //   Check if character is valid in a name after the initial character
 // ----------------------------------------------------------------------------
 {
-    return (cp >= '0' && cp <= '9') || is_valid_as_name_initial(cp);
+    return ((cp >= '0' && cp <= '9') || is_valid_as_name_initial(cp));
 }
 
 

@@ -119,6 +119,7 @@ TESTS(hms,              "HMS and DMS operations");
 TESTS(date,             "Date operations");
 TESTS(infinity,         "Infinity and undefined operations");
 TESTS(overflow,         "Overflow and underflow");
+TESTS(insert,           "Insertion of variables, units and constants");
 
 EXTRA(plotfns,          "Plot all functions");
 EXTRA(sysflags,         "Enable/disable every RPL flag");
@@ -143,7 +144,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        hms_dms_operations();
+        insertion_of_variables_constants_and_units();
     }
     else
     {
@@ -201,6 +202,7 @@ void tests::run(bool onlyCurrent)
         overflow_and_underflow();
         online_help();
         graphic_stack_rendering();
+        insertion_of_variables_constants_and_units();
         regression_checks();
     }
     summary();
@@ -1131,6 +1133,8 @@ void tests::global_variables()
         .test(CLEAR, "Updir Foo", ENTER).expect("242");
     step("Two independent variables with the same name")
         .test(CLEAR, "DirTest2 Foo", ENTER).expect("\"Hello\"");
+    step("Cleanup")
+        .test(CLEAR, "'Foo' Purge", ENTER).noerr();
 
     step("Save to file as text")
         .test(CLEAR, "1.42 \"Hello.txt\"", NOSHIFT, G).noerr();
@@ -5774,6 +5778,176 @@ void tests::graphic_stack_rendering()
         .wait(100)
         .image_noheader("list-horizontal");
 
+}
+
+
+void tests::insertion_of_variables_constants_and_units()
+// ----------------------------------------------------------------------------
+//   Check that we correctly insert constant and variables in programs
+// ----------------------------------------------------------------------------
+{
+    BEGIN(insert);
+
+    step("Select constant menu")
+        .test(CLEAR, LSHIFT, I, F1).image("constants-menu", 0, 240-22, 400, 22);
+    step("Insert pi")
+        .test(CLEAR, F1).expect("π");
+    step("Insert e")
+        .test(CLEAR, F2).expect("e");
+    step("Insert i")
+        .test(CLEAR, F3).expect("i");
+    step("Insert infinity")
+        .test(CLEAR, F4).expect("∞");
+    step("Insert undefined")
+        .test(CLEAR, F5).expect("?");
+
+    step("Insert pi value")
+        .test(CLEAR, LSHIFT, F1).expect("3.14159 26535 9");
+    step("Insert e value")
+        .test(CLEAR, LSHIFT, F2).expect("2.71828 18284 6");
+    step("Insert i value")
+        .test(CLEAR, LSHIFT, F3).expect("0+1ⅈ");
+    step("Insert infinity value")
+        .test(CLEAR, LSHIFT, F4).expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+    step("Insert undefined value")
+        .test(CLEAR, LSHIFT, F5).expect("Undefined");
+
+
+    step("Begin program")
+        .test(CLEAR, LSHIFT, RUNSTOP).editor("«»");
+    step("Insert pi")
+        .test(F1).editor("«₭π »");
+    step("Insert e")
+        .test(F2).editor("«₭π ₭e »");
+    step("Insert i")
+        .test(F3).editor("«₭π ₭e ₭i »");
+    step("Insert infinity")
+        .test(F4).editor("«₭π ₭e ₭i ₭∞ »");
+    step("Insert undefined")
+        .test(F5).editor("«₭π ₭e ₭i ₭∞ ₭? »");
+
+    step("Insert pi value")
+        .test(LSHIFT, F1).editor("«₭π ₭e ₭i ₭∞ ₭?  "
+                                 "3.14159 26535 89793 23846 264 »");
+    step("Insert e value")
+        .test(LSHIFT, F2).editor("«₭π ₭e ₭i ₭∞ ₭?  "
+                                 "3.14159 26535 89793 23846 264  "
+                                 "2.71828 18284 59045 23536 028 »");
+    step("Insert i value")
+        .test(LSHIFT, F3).editor("«₭π ₭e ₭i ₭∞ ₭?  "
+                                 "3.14159 26535 89793 23846 264  "
+                                 "2.71828 18284 59045 23536 028  "
+                                 "0+ⅈ1 »");
+    step("Insert infinity value")
+        .test(LSHIFT, F4).editor("«₭π ₭e ₭i ₭∞ ₭?  "
+                                 "3.14159 26535 89793 23846 264  "
+                                 "2.71828 18284 59045 23536 028  "
+                                 "0+ⅈ1  "
+                                 "9.99999⁳999999 »");
+    step("Insert undefined value")
+        .test(LSHIFT, F5).editor("«₭π ₭e ₭i ₭∞ ₭?  "
+                                 "3.14159 26535 89793 23846 264  "
+                                 "2.71828 18284 59045 23536 028  "
+                                 "0+ⅈ1  "
+                                 "9.99999⁳999999  "
+                                 "Undefined »");
+
+    step("Test that constants parse")
+        .test(ENTER)
+        .expect("« π e i ∞ ? "
+                "3.14159 26535 9 2.71828 18284 6 0+1ⅈ 9.99999⁳⁹⁹⁹⁹⁹⁹ "
+                "Undefined »");
+
+    step("Select units menu")
+        .test(CLEAR, LSHIFT, KEY5, F4).image("units-menu",
+                                             0, 240-3*22, 400, 3*22);
+    step("Select meter")
+        .test(CLEAR, KEY1, F1).expect("1 m");
+    step("Convert to yards")
+        .test(LSHIFT, F2).expect("1 ¹⁰⁷/₁ ₁₄₃ yd");
+    step("Select yards")
+        .test(CLEAR, KEY1, F2).expect("1 yd");
+    step("Convert to feet")
+        .test(LSHIFT, F3).expect("3 ft");
+    step("Select feet")
+        .test(CLEAR, KEY1, F3).expect("1 ft");
+    step("Convert to meters")
+        .test(LSHIFT, F1).expect("³⁸¹/₁ ₂₅₀ m");
+
+    step("Enter 27_m in program and evaluate it")
+        .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
+        .test("27", NOSHIFT, F1).editor("«27 1_m * »")
+        .test(ENTER).expect("« 27 1 m × »")
+        .test(RUNSTOP).expect("27 m");
+    step("Enter 27_yd in program and evaluate it")
+        .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
+        .test("27", NOSHIFT, F2).editor("«27 1_yd * »")
+        .test(ENTER).expect("« 27 1 yd × »")
+        .test(RUNSTOP).expect("27 yd");
+    step("Enter 27_ft in program and evaluate it")
+        .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
+        .test("27", NOSHIFT, F3).editor("«27 1_ft * »")
+        .test(ENTER).expect("« 27 1 ft × »")
+        .test(RUNSTOP).expect("27 ft");
+
+    step("Enter 27_m⁻¹ in program and evaluate it")
+        .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
+        .test("27", RSHIFT, F1).editor("«27 1_m / »")
+        .test(ENTER).expect("« 27 1 m ÷ »")
+        .test(RUNSTOP).expect("27 m⁻¹");
+    step("Enter 27_yd⁻¹ in program and evaluate it")
+        .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
+        .test("27", RSHIFT, F2).editor("«27 1_yd / »")
+        .test(ENTER).expect("« 27 1 yd ÷ »")
+        .test(RUNSTOP).expect("27 yd⁻¹");
+    step("Enter 27_ft⁻¹ in program and evaluate it")
+        .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
+        .test("27", RSHIFT, F3).editor("«27 1_ft / »")
+        .test(ENTER).expect("« 27 1 ft ÷ »")
+        .test(RUNSTOP).expect("27 ft⁻¹");
+
+    step("Select variables menu")
+        .test(CLEAR, NOSHIFT, H).noerr();
+    step("Create variables named Foo and Baz")
+        .test(CLEAR, "1968 'Foo'", NOSHIFT, G).noerr()
+        .test("42", NOSHIFT, F, "Baz", NOSHIFT, G).noerr();
+
+    step("Check we can read the variables back")
+        .test(CLEAR, F1).expect("42")
+        .test(CLEAR, F2).expect("1 968");
+
+    step("Insert evaluation code")
+        .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
+        .test(F1).editor("« Baz »")
+        .test(F2).editor("« Baz  Foo »");
+    step("Check position of insertion point")
+        .test("ABC").editor("« Baz  Foo ABC»");
+    step("Check we can parse resulting program")
+        .test(ENTER).expect("« Baz Foo ABC »");
+    step("Check evaluation of program")
+        .test(RUNSTOP).expect("'ABC'")
+        .test(BSP).expect("1 968")
+        .test(BSP).expect("42")
+        .test(BSP, BSP).error("Too few arguments");
+
+    step("Insert recall code")
+        .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
+        .test(LSHIFT, F1).editor("« 'Baz' Recall »")
+        .test(LSHIFT, F2).editor("« 'Baz' Recall  'Foo' Recall »");
+    step("Insert store code")
+        .test(RSHIFT, F1).editor("« 'Baz' Recall  'Foo' Recall  "
+                                 "'Baz' Store »")
+        .test(RSHIFT, F2).editor("« 'Baz' Recall  'Foo' Recall  "
+                                 "'Baz' Store  'Foo' Store »");
+    step("Check that it parses")
+        .test(ENTER).expect("« 'Baz' Recall 'Foo' Recall "
+                            "'Baz' Store 'Foo' Store »");
+    step("Check evaluation")
+        .test(RUNSTOP)
+        .test(CLEAR, F1).expect("1 968")
+        .test(CLEAR, F2).expect("42");
+    step("Cleanup")
+        .test(CLEAR, "'Foo' Purge 'Baz' Purge", ENTER);
 }
 
 

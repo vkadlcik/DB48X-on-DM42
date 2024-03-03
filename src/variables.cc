@@ -1098,14 +1098,6 @@ COMMAND_BODY(VariablesMenuExecute)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    if (rt.editing())
-    {
-        if (ui.editing_mode() != ui.DIRECT)
-            return ui.insert_softkey(key, "", " ");
-        if (!ui.end_edit())
-            return object::ERROR;
-    }
-
     if (key >= KEY_F1 && key <= KEY_F6)
     {
         if (directory *dir = rt.variables(0))
@@ -1129,20 +1121,22 @@ COMMAND_BODY(VariablesMenuExecute)
 }
 
 
+INSERT_BODY(VariablesMenuExecute)
+// ----------------------------------------------------------------------------
+//   Insert the name of a variable
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    return ui.insert_softkey(key, " ", " ", false);
+}
+
+
 COMMAND_BODY(VariablesMenuRecall)
 // ----------------------------------------------------------------------------
 //   Recall a variable from the VariablesMenu
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    if (rt.editing())
-    {
-        if (ui.editing_mode() != ui.DIRECT)
-            return ui.insert_softkey(key, "'", "' Recall ");
-        if (!ui.end_edit())
-            return object::ERROR;
-    }
-
     if (key >= KEY_F1 && key <= KEY_F6)
     {
         if (directory *dir = rt.variables(0))
@@ -1158,20 +1152,22 @@ COMMAND_BODY(VariablesMenuRecall)
 }
 
 
+INSERT_BODY(VariablesMenuRecall)
+// ----------------------------------------------------------------------------
+//   Insert the name of a variable with `Recall` after it
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    return ui.insert_softkey(key, " '", "' Recall ", false);
+}
+
+
 COMMAND_BODY(VariablesMenuStore)
 // ----------------------------------------------------------------------------
 //   Store a variable from the VariablesMenu
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    if (rt.editing())
-    {
-        if (ui.editing_mode() != ui.DIRECT)
-            return ui.insert_softkey(key, "'", "' Store ");
-        if (!ui.end_edit())
-            return object::ERROR;
-    }
-
     if (key >= KEY_F1 && key <= KEY_F6)
     {
         if (directory *dir = rt.variables(0))
@@ -1184,6 +1180,16 @@ COMMAND_BODY(VariablesMenuStore)
         }
     }
     return ERROR;
+}
+
+
+INSERT_BODY(VariablesMenuStore)
+// ----------------------------------------------------------------------------
+//   Insert the name of a variable with `Store` after it
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    return ui.insert_softkey(key, " '", "' Store ", false);
 }
 
 

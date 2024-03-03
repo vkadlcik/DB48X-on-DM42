@@ -86,12 +86,13 @@ ERROR(no_equation,              "EQ variable not found")
 ERROR(no_data,                  "ΣData variable not found")
 ERROR(malformed_local_program,  "Malformed local program")
 ERROR(invalid_setting,          "Invalid setting command")
+ERROR(not_programmable,         "Not a programmable command")
 ERROR(screenshot_capture,       "Screenshot capture failed")
 ERROR(unsupported_flag,         "Unsupported system flag")
 ERROR(precision_loss,           "Numerical precision lost")
 ERROR(invalid_date,             "Invalid date")
 ERROR(invalid_time,             "Invalid time")
-ERROR(graph_does_not_fit,       "Object does not fit (increase MaxW or MaxH)")
+ERROR(graph_does_not_fit,       "Object does not fit in MaxW")
 
 // Filesystem errors
 #ifndef FRROR

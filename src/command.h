@@ -94,7 +94,11 @@ struct derived : base                                   \
 #define COMMAND_DECLARE(derived)                        \
     COMMAND_DECLARE_SPECIAL(derived, command, )
 
-#define COMMAND_BODY(derived)                   \
+#define COMMAND_DECLARE_INSERT(derived)                 \
+    COMMAND_DECLARE_SPECIAL(derived, command,           \
+                            INSERT_DECL(derived);)
+
+#define COMMAND_BODY(derived)                           \
     object::result derived::evaluate()
 
 #define COMMAND(derived)                                \

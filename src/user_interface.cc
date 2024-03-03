@@ -1278,7 +1278,7 @@ bool user_interface::draw_menus()
                             mcw -= mkw;
                             if (alignLeft)
                                 trect.x1 += mkw;
-                            else
+                            else if (marker != L'◥')
                                 trect.x2 -= mkw;
                         }
                     }
@@ -1302,7 +1302,7 @@ bool user_interface::draw_menus()
                 if (marker)
                 {
                     Screen.clip(mrect);
-                    bool dossier = marker==L'◥';
+                    bool dossier = marker == L'◥';
                     if (dossier)
                     {
                         if (alt || square)

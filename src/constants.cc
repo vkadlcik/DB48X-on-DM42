@@ -162,7 +162,7 @@ static const cstring basic_constants[] =
     "R",        "8.31451_J/(mol*K)",    // Universal gas constant
     "StdT",     "273.15_K",             // Standard temperature
     "StdP",     "101.325_kPa",          // Standard temperature
-    "σ",        "5.67051E-8_W/(m²*K^4)", // Stefan-Boltzmann
+    "σ",        "5.67051E-8_W/(m^2*K^4)", // Stefan-Boltzmann
 
     // ------------------------------------------------------------------------
     //   Physics
@@ -174,7 +174,7 @@ static const cstring basic_constants[] =
     "ε0",       "8.85418781761E-12_F/m",// Vaccuum permittivity
     "μ0",       "1.25663706144E-6_H/m", // Vaccuum permeability
     "g",        "9.80665_m/s²",         // Acceleration of Earth gravity
-    "G",        "6.67259E-11_m³/(s²•kg)",// Gravitation constant
+    "G",        "6.67259E-11_m^3/(s^2•kg)",// Gravitation constant
     "h",        "6.6260755E-34_J*s",    // Planck
     "hbar",     "1.05457266E-34_J*s",   // Dirac
     "q",        "1.60217733E-19_C",     // Electronic charge
@@ -201,7 +201,7 @@ static const cstring basic_constants[] =
     "qε0",      "1.4185978E-30_F*C/ m", // q*ε0
     "εsi",      "11.9",                 // Dielectric constant
     "εox",      "3.9",                  // SiO2 dielectric constant
-    "I0",       "0.000000000001_W/m²"   // Ref intensity
+    "I0",       "0.000000000001_W/m^2"  // Ref intensity
 };
 //   clang-format on
 

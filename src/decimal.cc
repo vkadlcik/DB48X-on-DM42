@@ -397,31 +397,23 @@ RENDER_BODY(decimal)
         {
             if (realexp < 0)
             {
-                if (mode <= object::ID_Fix)
+                // Need to round up if last digit is above 5
+                bool roundup = rmdigit >= 5;
+                int shown = digits + realexp + roundup;
+                int minfix = ds.MinimumSignificantDigits();
+                if (minfix < 0)
                 {
-                    // Need to round up if last digit is above 5
-                    bool roundup = rmdigit >= 5;
-                    int shown = digits + realexp + roundup;
-                    int minfix = ds.MinimumSignificantDigits();
-                    if (minfix < 0)
+                    if (shown < 0)
                     {
-                        if (shown < 0)
-                        {
-                            nkigits = 0;
-                            realexp = -digits;
-                        }
-                    }
-                    else
-                    {
-                        if (minfix > mexp)
-                            minfix = mexp;
-                        hasexp = shown < minfix;
+                        nkigits = 0;
+                        realexp = -digits;
                     }
                 }
                 else
                 {
-                    int minexp = dispdigs < std_exp ? dispdigs : std_exp;
-                    hasexp = mexp - realexp - 1 >= minexp;
+                    if (minfix > mexp)
+                        minfix = mexp;
+                    hasexp = shown < minfix || realexp < -std_exp;
                 }
             }
             else

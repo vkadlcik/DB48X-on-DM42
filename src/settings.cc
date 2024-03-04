@@ -337,7 +337,7 @@ EVAL_BODY(value_setting)
 {
     id ty   = o->type();
 
-    if (ty >= ID_Fix && ty <= ID_Sig)
+    if (ty >= ID_Sig && ty <= ID_Eng)
     {
         using type = typeof(Settings.DisplayDigits());
         type digits = Settings.DisplayDigits();

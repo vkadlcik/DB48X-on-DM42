@@ -6319,13 +6319,23 @@ Select the maximum exponent before switching to scientific notation. The default
 
 ## MinimumSignificantDigits
 
-Select the minimum number of significant digits before switching to scientific notation in `FIX` mode.
+Select the minimum number of significant digits before switching to scientific
+notation in `FIX` and `SIG` mode. The default value is `3`, meaning that at
+least 3 significant digits will be shown.
 
-The default value is 0, which is similar to how HP calculators before the HP Prime perform. For example, with `2 FIX`, the value `0.055` will display as `0.06`, and `0.0055` will display as `0.01`.
+A value of 0 is similar to how HP calculators before the HP Prime perform. For
+example, with `2 FIX`, the value `0.055` will display as `0.06`, and `0.0055`
+will display as `0.01`.
 
-A higher value will switch to scienfic mode to show at least the given number of digits. For instance, with `2 FIX`, if the value is `1`, then `0.055` will still display as `0.06` but `0.0055` will display as `5.50E-3`. If the value is `2`, then `0.055` will display as `5.5E-2`. A setting of `1` correspond to what the HP Prime does.
+A higher value will switch to scienfic mode to show at least the given number of
+digits. For instance, with `2 FIX`, if the value is `1`, then `0.055` will still
+display as `0.06` but `0.0055` will display as `5.50E-3`. If the value is `2`,
+then `0.055` will display as `5.5E-2`. A setting of `1` correspond to what the
+HP Prime does.
 
-A value of `-1` indicates that you do not want `FIX` mode to ever go to scientific notation for negative exponents. In that case, `0.00055` will display as `0.00`.
+A value of `-1` indicates that you do not want `FIX` mode to ever go to
+scientific notation for negative exponents. In that case, `0.00055` will display
+as `0.00`. This corresponds to how older HP calculators render numbers.
 
 
 ## TrailingDecimal

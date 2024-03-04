@@ -1,5 +1,22 @@
 # Release notes
 
+## Release 0.7.1 "Whip" - Bug fixes
+
+Inserting variables, constants or units in a program was broken.
+Also a few less critical fixes.
+
+### Bug fixes
+
+* decimal: Apply `MinimumSignificantDigits` to `Sig` modes
+* tests: Fix missing `]` at end of vector
+* ui: Insert commands for unit conversions, constants and variables
+* tests: Adjust help screen snapshot for authors
+* menus: Do not clip text for hierarchical menus
+* constants: Do not use units that don't parse correctly
+* dmcp: Day of week convention adjustment
+* help: Fix YouTube video preview
+
+
 ## Release 0.7.0 "Temple" - Graphics Equation Rendering
 
 This release introduces a few major improvements, including graphical

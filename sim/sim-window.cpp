@@ -31,7 +31,9 @@
 
 #include "dmcp.h"
 #include "recorder.h"
+#include "sim-dmcp.h"
 #include "sim-rpl.h"
+#include "target.h"
 #include "tests.h"
 #include "ui_sim-window.h"
 
@@ -43,7 +45,7 @@
 #include <QStandardPaths>
 #include <QtCore>
 #include <QtGui>
-#include <target.h>
+#include <iostream>
 
 
 RECORDER(sim_keys, 16, "Recorder keys from the simulator");
@@ -559,6 +561,111 @@ void MainWindow::screenshot(cstring basename, int x, int y, int w, int h)
     name += today.toString("yyyyMMdd-hhmmss");
     name += ".png";
     img.save(name, "PNG");
+}
+
+
+
+// ============================================================================
+//
+//   Interface with DMCP and the test harness
+//
+// ============================================================================
+
+void ui_screenshot()
+// ----------------------------------------------------------------------------
+//   Take a screen snapshot
+// ----------------------------------------------------------------------------
+{
+    MainWindow::screenshot();
+}
+
+
+void ui_push_key(int k)
+// ----------------------------------------------------------------------------
+//   Update display when pushing a key
+// ----------------------------------------------------------------------------
+{
+    MainWindow::theMainWindow()->pushKey(k);
+}
+
+
+void ui_ms_sleep(uint ms_delay)
+// ----------------------------------------------------------------------------
+//   Suspend the current thread for the given interval in milliseconds
+// ----------------------------------------------------------------------------
+{
+    QThread::msleep(ms_delay);
+}
+
+
+int ui_file_selector(const char *title,
+                     const char *base_dir,
+                     const char *ext,
+                     file_sel_fn callback,
+                     void       *data,
+                     int         disp_new,
+                     int         overwrite_check)
+// ----------------------------------------------------------------------------
+//  File selector function
+// ----------------------------------------------------------------------------
+{
+    QString path;
+    bool done = false;
+
+    postToThread([&]{ // the functor captures parent and text by value
+        path =
+            disp_new
+            ? QFileDialog::getSaveFileName(nullptr,
+                                           title,
+                                           base_dir,
+                                           QString("*") + QString(ext),
+                                           nullptr,
+                                           overwrite_check
+                                           ? QFileDialog::Options()
+                                           : QFileDialog::DontConfirmOverwrite)
+            : QFileDialog::getOpenFileName(nullptr,
+                                           title,
+                                           base_dir,
+                                           QString("*") + QString(ext));
+        std::cout << "Selected path: " << path.toStdString() << "\n";
+        done = true;
+    });
+
+    while (!done)
+        sys_sleep();
+
+    std::cout << "Got path: " << path.toStdString() << "\n";
+    QFileInfo fi(path);
+    QString name = fi.fileName();
+    int ret = callback(path.toStdString().c_str(),
+                       name.toStdString().c_str(),
+                       data);
+    return ret;
+}
+
+
+void ui_save_setting(const char *name, const char *value)
+// ----------------------------------------------------------------------------
+//  Save some settings
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.setValue(name, value);
+}
+
+
+size_t ui_read_setting(const char *name, char *value, size_t maxlen)
+// ----------------------------------------------------------------------------
+//  Save some settings
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    QString current = settings.value(name).toString();
+    if (current.isNull())
+        return 0;
+    if (value)
+        strncpy(value, current.toStdString().c_str(), maxlen);
+    return current.length();
 }
 
 

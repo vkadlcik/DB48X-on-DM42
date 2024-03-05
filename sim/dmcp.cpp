@@ -31,6 +31,7 @@
 
 #include "dmcp_fonts.c"
 #include "recorder.h"
+#include "sim-dmcp.h"
 #include "target.h"
 #include "types.h"
 
@@ -41,13 +42,6 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
-#ifdef USE_QT
-#include "sim-rpl.h"
-#include "sim-screen.h"
-#include "sim-window.h"
-#include <QFileDialog>
-#include <QSettings>
-#endif // USE_QT
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
@@ -118,9 +112,7 @@ int create_screenshot(int report_error)
 {
     record(dmcp_notyet,
            "create_screenshot(%d) not implemented", report_error);
-#ifdef USE_QT
-    MainWindow::screenshot();
-#endif
+    ui_screenshot();
     return 0;
 }
 
@@ -278,9 +270,7 @@ int key_push(int k)
            k, keywr, keyrd,
            shiftHeld ? altHeld ? "Shift+Alt" : "Shift"
            : altHeld ? "Alt" : "None");
-#ifdef USE_QT
-    MainWindow::theMainWindow()->pushKey(k);
-#endif
+    ui_push_key(k);
     if (keywr - keyrd < nkeys)
         keys[keywr++ % nkeys] = k;
     else
@@ -775,9 +765,7 @@ int sys_free_mem()
 
 void sys_delay(uint32_t ms_delay)
 {
-#ifdef USE_QT
-    QThread::msleep(ms_delay);
-#endif
+    ui_ms_sleep(ms_delay);
 }
 
 static struct timer
@@ -794,9 +782,7 @@ void sys_sleep()
         for (int i = 0; i < 4; i++)
             if (timers[i].enabled && int(timers[i].deadline - now) < 0)
                 return;
-#ifdef USE_QT
-        QThread::msleep(20);
-#endif
+        ui_ms_sleep(20);
     }
     CLR_ST(STAT_SUSPENDED | STAT_OFF | STAT_PGM_END);
 }
@@ -863,39 +849,9 @@ int file_selection_screen(const char   *title,
     if (*base_dir == '/' || *base_dir == '\\')
         base_dir++;
 
-#ifdef USE_QT
-    QString path;
-    bool done = false;
-
-    postToThread([&]{ // the functor captures parent and text by value
-        path =
-            disp_new
-            ? QFileDialog::getSaveFileName(nullptr,
-                                           title,
-                                           base_dir,
-                                           QString("*") + QString(ext),
-                                           nullptr,
-                                           overwrite_check
-                                           ? QFileDialog::Options()
-                                           : QFileDialog::DontConfirmOverwrite)
-            : QFileDialog::getOpenFileName(nullptr,
-                                           title,
-                                           base_dir,
-                                           QString("*") + QString(ext));
-        std::cout << "Selected path: " << path.toStdString() << "\n";
-        done = true;
-    });
-
-    while (!done)
-        sys_sleep();
-
-    std::cout << "Got path: " << path.toStdString() << "\n";
-    QFileInfo fi(path);
-    QString name = fi.fileName();
-    ret = sel_fn(path.toStdString().c_str(),
-                 name.toStdString().c_str(),
-                 data);
-#endif
+    return ui_file_selector(title, base_dir, ext,
+                            sel_fn, data,
+                            disp_new, overwrite_check);
 
     return ret;
 }
@@ -972,10 +928,7 @@ void disp_disk_info(const char *hdr)
 
 void set_reset_state_file(const char * str)
 {
-#ifdef USE_QT
-    QSettings settings;
-    settings.setValue("state", str);
-#endif // USE_QT
+    ui_save_setting("state", str);
     record(dmcp, "Setting saved state: %s", str);
 }
 
@@ -984,12 +937,7 @@ char *get_reset_state_file()
 {
     static char result[256];
     result[0] = 0;
-#ifdef USE_QT
-    QSettings settings;
-    QString file = settings.value("state").toString();
-    if (!file.isNull())
-        strncpy(result, file.toStdString().c_str(), sizeof(result));
-#endif // USE_QT
+    ui_read_setting("state", result, sizeof(result));
     record(dmcp, "Saved state: %+s", result);
     return result;
 }

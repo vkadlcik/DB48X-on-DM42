@@ -56,11 +56,11 @@ typedef unsigned int uint;
 extern volatile uint keysync_sent;
 extern volatile uint keysync_done;
 
-extern volatile int  lcd_needsupdate;
-extern int           lcd_buf_cleared;
+extern volatile int  lcd_updates;
+extern int           lcd_buf_cleared_result;
 extern uint8_t       lcd_buffer[SIM_LCD_SCANLINE * SIM_LCD_H / 8];
-extern bool          shiftHeld;
-extern bool          altHeld;
+extern bool          shift_held;
+extern bool          alt_held;
 
 
 // ============================================================================
@@ -72,6 +72,7 @@ extern bool          altHeld;
 typedef int (*file_sel_fn)(const char *fpath, const char *fname, void *data);
 
 void      ui_refresh();
+uint      ui_refresh_count();
 void      ui_screenshot();
 void      ui_push_key(int k);
 void      ui_ms_sleep(uint delay);
@@ -84,6 +85,7 @@ int       ui_file_selector(const char *title,
                            int         overwrite_check);
 void      ui_save_setting(const char *name, const char *value);
 size_t    ui_read_setting(const char *name, char *value, size_t maxlen);
-
+uint      ui_battery();         // Between 0 and 1000
+bool      ui_charging();        // On USB power
 
 #endif // SIM_DMCP

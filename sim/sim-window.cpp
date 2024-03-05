@@ -52,8 +52,8 @@ RECORDER(sim_keys, 16, "Recorder keys from the simulator");
 
 extern bool run_tests;
 extern bool db48x_keyboard;
-extern bool shiftHeld;
-extern bool altHeld;
+extern bool shift_held;
+extern bool alt_held;
 MainWindow *MainWindow::mainWindow = nullptr;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -387,17 +387,17 @@ void MainWindow::keyPressEvent(QKeyEvent * ev)
 
     if (k == Qt::Key_Shift)
     {
-        shiftHeld = true;
+        shift_held = true;
     }
     else if (k == Qt::Key_Alt)
     {
-        altHeld = true;
+        alt_held = true;
     }
     else if (k >= Qt::Key_A && k <= Qt::Key_Z)
     {
-        if (shiftHeld)
+        if (shift_held)
             key_push(KEY_UP);
-        else if (altHeld)
+        else if (alt_held)
             key_push(KEY_DOWN);
     }
 
@@ -430,9 +430,9 @@ void MainWindow::keyReleaseEvent(QKeyEvent * ev)
     int k = ev->key();
     record(sim_keys, "Key release %d", k);
     if (k == Qt::Key_Shift)
-        shiftHeld = false;
+        shift_held = false;
     else if (k == Qt::Key_Alt)
-        altHeld = false;
+        alt_held = false;
 
     for (int i = 0; keyMap[i] != 0; i += 2)
     {
@@ -571,6 +571,26 @@ void MainWindow::screenshot(cstring basename, int x, int y, int w, int h)
 //
 // ============================================================================
 
+void ui_refresh()
+// ----------------------------------------------------------------------------
+//   Request a refresh of the LCD
+// ----------------------------------------------------------------------------
+{
+    postToThread([&]{ // the functor captures parent and text by value
+        SimScreen::refresh_lcd();
+    });
+}
+
+
+uint ui_refresh_count()
+// ----------------------------------------------------------------------------
+//   Return the number of times the display was actually udpated
+// ----------------------------------------------------------------------------
+{
+    return SimScreen::redraw_count();
+}
+
+
 void ui_screenshot()
 // ----------------------------------------------------------------------------
 //   Take a screen snapshot
@@ -666,6 +686,47 @@ size_t ui_read_setting(const char *name, char *value, size_t maxlen)
     if (value)
         strncpy(value, current.toStdString().c_str(), maxlen);
     return current.length();
+}
+
+
+uint last_battery_ms = 0;
+uint battery = 1000;
+bool charging = false;
+
+uint ui_battery()
+// ----------------------------------------------------------------------------
+//   Return the battery voltage
+// ----------------------------------------------------------------------------
+{
+    uint now = sys_current_ms();
+    if (last_battery_ms < now - 1000)
+        last_battery_ms = now - 1000;
+
+    if (charging)
+    {
+        battery += (1000 - battery) * (now - last_battery_ms) / 6000;
+        if (battery >= 990)
+            charging = false;
+    }
+    else
+    {
+        battery -= (now - last_battery_ms) / 10;
+        uint v = battery * (BATTERY_VMAX - BATTERY_VMIN) / 1000 + BATTERY_VMIN;
+        if (v < BATTERY_VLOW)
+            charging = true;
+    }
+
+    last_battery_ms = now;
+    return battery;
+}
+
+
+bool ui_charging()
+// ----------------------------------------------------------------------------
+//   Return true if USB-powered or not
+// ----------------------------------------------------------------------------
+{
+    return charging;
 }
 
 

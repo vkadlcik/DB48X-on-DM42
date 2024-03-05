@@ -30,6 +30,7 @@
 #include "sim-screen.h"
 
 #include "dmcp.h"
+#include "sim-dmcp.h"
 
 #include <QBitmap>
 #include <QGraphicsPixmapItem>
@@ -37,25 +38,24 @@
 #include <target.h>
 
 
+SimScreen *SimScreen::theScreen = nullptr;
+
+
 SimScreen::SimScreen(QWidget *parent)
 // ----------------------------------------------------------------------------
 //   Initialize the screen
 // ----------------------------------------------------------------------------
     : QGraphicsView(parent),
-      screen_width(LCD_W),
-      screen_height(LCD_H),
+      screen_width(SIM_LCD_W),
+      screen_height(SIM_LCD_H),
       scale(1),
       bgColor(230, 230, 230),
       fgColor(0, 0, 0),
       bgPen(bgColor),
       fgPen(fgColor),
-      screenTimer(new QTimer(this)),
-      mainPixmap(LCD_W, LCD_H)
+      mainPixmap(SIM_LCD_W, SIM_LCD_H),
+      redraws(0)
 {
-    connect(&screenTimer, SIGNAL(timeout()), this, SLOT(update()));
-    screenTimer.setSingleShot(true);
-    screenTimer.start(20);
-
     screen.clear();
     screen.setBackgroundBrush(QBrush(Qt::black));
 
@@ -69,6 +69,8 @@ SimScreen::SimScreen(QWidget *parent)
     setScale(4.0);
 
     show();
+
+    theScreen = this;
 }
 
 
@@ -88,7 +90,7 @@ void SimScreen::setPixel(int x, int y, int on)
     // Pixels[offset]->setBrush(GrayBrush[color & 15]);
     QPainter pt(&mainPixmap);
     pt.setPen(on ? fgPen : bgPen);
-    pt.drawPoint(LCD_W - x, y);
+    pt.drawPoint(SIM_LCD_W - x, y);
     pt.end();
 }
 
@@ -113,35 +115,23 @@ void SimScreen::update()
 //   Refresh the screen
 // ----------------------------------------------------------------------------
 {
-    if (lcd_needsupdate != lcd_update)
-    {
-        lcd_update = lcd_needsupdate;
-    }
-    else
-    {
-        screenTimer.setSingleShot(true);
-        screenTimer.start(20);
-        return;
-    }
-
     // Monochrome screen
     screen.setBackgroundBrush(QBrush(fgColor));
     QPainter      pt(&mainPixmap);
 
-    for (int y = 0; y < LCD_H; y++)
+    for (int y = 0; y < SIM_LCD_H; y++)
     {
-        for (int x = 0; x < LCD_W; x++)
+        for (int x = 0; x < SIM_LCD_W; x++)
         {
-            unsigned bo = y * LCD_SCANLINE + x;
+            unsigned bo = y * SIM_LCD_SCANLINE + x;
             int on = (lcd_buffer[bo/8] >> (bo % 8)) & 1;
             pt.setPen(on ? bgPen : fgPen);
-            pt.drawPoint(LCD_W - x, y);
+            pt.drawPoint(SIM_LCD_W - x, y);
         }
     }
     pt.end();
 
     mainScreen->setPixmap(mainPixmap);
     QGraphicsView::update();
-    screenTimer.setSingleShot(true);
-    screenTimer.start(20);
+    redraws++;
 }

@@ -32,6 +32,7 @@
 #include "dmcp.h"
 #include "recorder.h"
 #include "settings.h"
+#include "sim-dmcp.h"
 #include "stack.h"
 #include "types.h"
 #include "user_interface.h"
@@ -40,7 +41,6 @@
 #include <stdio.h>
 
 extern bool run_tests;
-extern volatile int lcd_needsupdate;
 volatile uint keysync_sent = 0;
 volatile uint keysync_done = 0;
 
@@ -6658,10 +6658,11 @@ tests &tests::itest(tests::key k, bool release)
     while (!key_empty())
         sys_delay(delay_time);
 
+    uint lcd_updates = ui_refresh_count();
     record(tests,
            "Push key %d update %u->%u last %d",
-           k, lcd_update, lcd_needsupdate, last_key);
-    lcd_update = lcd_needsupdate;
+           k, refresh_count, lcd_updates, last_key);
+    refresh_count = lcd_updates;
     Stack.catch_up();
     last_key = k;
 
@@ -6680,8 +6681,8 @@ tests &tests::itest(tests::key k, bool release)
             sys_delay(delay_time);
         record(tests,
                "Release key %d update %u->%u last %d",
-               k, lcd_update, lcd_needsupdate, last_key);
-        lcd_update = lcd_needsupdate;
+               k, refresh_count, lcd_updates, last_key);
+        refresh_count = lcd_updates;
         Stack.catch_up();
         last_key = -k;
         key_push(RELEASE);
@@ -7065,7 +7066,7 @@ tests &tests::refreshed()
 {
     // Wait for a screen redraw
     record(tests, "Waiting for screen update");
-    while (lcd_needsupdate == lcd_update)
+    while (ui_refresh_count() == refresh_count)
         sys_delay(delay_time);
 
     // Wait for a stack update
@@ -7097,8 +7098,8 @@ tests &tests::refreshed()
     record(tests,
            "Refreshed, key %d, needs=%u update=%u available=%u",
            Stack.key(),
-           lcd_needsupdate,
-           lcd_update,
+           refresh_count,
+           ui_refresh_count(),
            Stack.available());
 
     return *this;

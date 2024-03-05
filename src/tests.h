@@ -361,8 +361,7 @@ protected:
     uint                 sindex;
     uint                 cindex;
     uint                 count;
-    uint                 refresh;
-    int                  lcd_update;
+    uint                 refresh_count;
     int                  last_key;
     bool                 ok;
     bool                 longpress;

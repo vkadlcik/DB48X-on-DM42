@@ -62,16 +62,16 @@ RECORDER(lcd_warning,   64, "Warnings from lcd/display functions");
 extern volatile uint keysync_sent;
 extern volatile uint keysync_done;
 
-volatile int       lcd_needsupdate = 0;
-int                lcd_buf_cleared = 0;
-uint8_t            lcd_buffer[LCD_SCANLINE * LCD_H / 8];
-bool               shiftHeld = false;
-bool               altHeld   = false;
+uint                 lcd_refresh_requested = 0;
+int                  lcd_buf_cleared_result = 0;
+uint8_t              lcd_buffer[LCD_SCANLINE * LCD_H / 8];
+bool                 shift_held = false;
+bool                 alt_held   = false;
 
-static disp_stat_t t20_ds = { .f = &lib_mono_10x17 };
-static disp_stat_t t24_ds = { .f = &lib_mono_12x20 };
-static disp_stat_t fReg_ds = { .f = &lib_mono_17x25 };
-static FIL ppgm_fp_file;
+static disp_stat_t   t20_ds     = { .f = &lib_mono_10x17 };
+static disp_stat_t   t24_ds     = { .f = &lib_mono_12x20 };
+static disp_stat_t   fReg_ds    = { .f = &lib_mono_17x25 };
+static FIL           ppgm_fp_file;
 
 sys_sdb_t sdb =
 {
@@ -95,17 +95,17 @@ void LCD_power_on()
 
 uint32_t read_power_voltage()
 {
-    return BATTERY_VOFF + 25 + sys_current_ms() % (BATTERY_VMAX - BATTERY_VMIN);
+    return ui_battery() * (BATTERY_VMAX - BATTERY_VMIN) / 1000 + BATTERY_VMIN;
 }
 
 int get_lowbat_state()
 {
-    return read_power_voltage() < 2300;
+    return read_power_voltage() < BATTERY_VLOW;
 }
 
 int usb_powered()
 {
-    return sys_current_ms() / 10000 % 3;
+    return ui_charging();
 }
 
 int create_screenshot(int report_error)
@@ -268,8 +268,8 @@ int key_push(int k)
 {
     record(keys, "Push key %d (wr %u rd %u) shifts=%+s",
            k, keywr, keyrd,
-           shiftHeld ? altHeld ? "Shift+Alt" : "Shift"
-           : altHeld ? "Alt" : "None");
+           shift_held ? alt_held ? "Shift+Alt" : "Shift"
+           : alt_held ? "Alt" : "None");
     ui_push_key(k);
     if (keywr - keyrd < nkeys)
         keys[keywr++ % nkeys] = k;
@@ -282,12 +282,12 @@ int key_push(int k)
 int read_key(int *k1, int *k2)
 {
     uint count = keywr - keyrd;
-    if (shiftHeld || altHeld)
+    if (shift_held || alt_held)
     {
         *k1 = keys[(keywr - 1) % nkeys];
         if (*k1)
         {
-            *k2 = shiftHeld ? KEY_UP : KEY_DOWN;
+            *k2 = shift_held ? KEY_UP : KEY_DOWN;
             return 2;
         }
     }
@@ -460,8 +460,8 @@ int lcd_for_calc(int what)
 }
 int lcd_get_buf_cleared()
 {
-    record(lcd, "get_buf_cleared returns %d", lcd_buf_cleared);
-    return lcd_buf_cleared;
+    record(lcd, "get_buf_cleared returns %d", lcd_buf_cleared_result);
+    return lcd_buf_cleared_result;
 }
 int lcd_lineHeight(disp_stat_t * ds)
 {
@@ -514,34 +514,43 @@ void lcd_print(disp_stat_t * ds, const char* fmt, ...)
 
 void lcd_forced_refresh()
 {
-    record(lcd, "Forced refresh");
-    lcd_needsupdate++;
+    record(lcd, "Forced refresh requested %u drawn %u",
+           lcd_refresh_requested, ui_refresh_count());
+    lcd_refresh_requested++;
     ui_refresh();
 }
 void lcd_refresh()
 {
-    record(lcd_refresh, "Refresh %u", lcd_needsupdate);
-    lcd_needsupdate++;
+    record(lcd, "Normal refresh requested %u drawn %u",
+           lcd_refresh_requested, ui_refresh_count());
+    lcd_refresh_requested++;
     ui_refresh();
 }
 void lcd_refresh_dma()
 {
-    record(lcd_refresh, "Refresh DMA %u", lcd_needsupdate);
-    lcd_needsupdate++;
+    record(lcd, "DMA refresh requested %u drawn %u",
+           lcd_refresh_requested, ui_refresh_count());
+    record(lcd_refresh, "Refresh DMA %u", lcd_refresh_requested);
+    lcd_refresh_requested++;
     ui_refresh();
 }
 void lcd_refresh_wait()
 {
-    record(lcd_refresh, "Refresh wait %u", lcd_needsupdate);
-    lcd_needsupdate++;
+    record(lcd, "Wait refresh requested %u drawn %u",
+           lcd_refresh_requested, ui_refresh_count());
+    lcd_refresh_requested++;
     ui_refresh();
 }
 void lcd_refresh_lines(int ln, int cnt)
 {
-    record(lcd_refresh, "Refresh lines %u (%d-%d) count %d",
-           lcd_needsupdate, ln, ln+cnt-1, cnt);
-    lcd_needsupdate += (ln >= 0 && cnt > 0);
-    ui_refresh();
+    record(lcd_refresh, "Refresh lines (%d-%d) count %d, requested %u drawn %u",
+           ln, ln+cnt-1, cnt,
+           lcd_refresh_requested, ui_refresh_count());
+    if (ln >= 0 && cnt > 0)
+    {
+        lcd_refresh_requested++;
+        ui_refresh();
+    }
 }
 void lcd_setLine(disp_stat_t * ds, int ln_nr)
 {
@@ -559,7 +568,7 @@ void lcd_setXY(disp_stat_t * ds, int x, int y)
 void lcd_set_buf_cleared(int val)
 {
     record(lcd, "Set buffer cleared %d", val);
-    lcd_buf_cleared = val;
+    lcd_buf_cleared_result = val;
 }
 void lcd_switchFont(disp_stat_t * ds, int nr)
 {

@@ -516,27 +516,32 @@ void lcd_forced_refresh()
 {
     record(lcd, "Forced refresh");
     lcd_needsupdate++;
+    ui_refresh();
 }
 void lcd_refresh()
 {
     record(lcd_refresh, "Refresh %u", lcd_needsupdate);
     lcd_needsupdate++;
+    ui_refresh();
 }
 void lcd_refresh_dma()
 {
     record(lcd_refresh, "Refresh DMA %u", lcd_needsupdate);
     lcd_needsupdate++;
+    ui_refresh();
 }
 void lcd_refresh_wait()
 {
     record(lcd_refresh, "Refresh wait %u", lcd_needsupdate);
     lcd_needsupdate++;
+    ui_refresh();
 }
 void lcd_refresh_lines(int ln, int cnt)
 {
     record(lcd_refresh, "Refresh lines %u (%d-%d) count %d",
            lcd_needsupdate, ln, ln+cnt-1, cnt);
     lcd_needsupdate += (ln >= 0 && cnt > 0);
+    ui_refresh();
 }
 void lcd_setLine(disp_stat_t * ds, int ln_nr)
 {

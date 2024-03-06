@@ -98,6 +98,9 @@ VP = Variable Precision
 ID = Intel Decimal Library
 HW = Hardware-accelerated (`float` or `double` types)
 
+
+### Variable Precision vs. Intel Decimal
+
 For 100000 loops, we see that the variable-precision implementation at 24-digit
 is roughly 10 times slower than the fixed precision implementation at 34 digits
 (128 bits).
@@ -108,7 +111,8 @@ is roughly 10 times slower than the fixed precision implementation at 34 digits
 | 0.5.2 (ID)   |  215421 |  143412 |
 
 
-For 1000 loops, comparing variable-precision decimal with the earlier Intel decimal
+For 1000 loops, comparing variable-precision decimal with the earlier Intel
+decimal
 
 | Version      | DM32 ms | DM42 ms |
 |--------------|---------|---------|
@@ -116,6 +120,9 @@ For 1000 loops, comparing variable-precision decimal with the earlier Intel deci
 | 0.6.4 (VP12) |   13720 |   10548 |
 | 0.6.4 (VP6)  |    6905 |    5623 |
 | 0.5.2 (ID)   |    2154 |    1434 |
+
+
+### 1000 loops in various implementations
 
 Time in millisecond for 1000 loops:
 
@@ -133,8 +140,21 @@ Time in millisecond for 1000 loops:
 | 0.6.0 (Note) |      |      |      |       | 17685 |       |
 | 0.5.2 (ID)   | 1434 |      |      |       |       |       |
 
-Note: Results for 0.6.0 with variable precision are rtificially good because
+Note: Results for 0.6.0 with variable precision are artificially good because
 intermediate computations were not made with increased precision.
+
+
+### 1M loops and iPhone results
+
+1 million loops (tests performed with 0.7.1 while on battery):
+
+| Version        | Time (ms) | Result                                      |
+|----------------|-----------|---------------------------------------------|
+| DM32 HW7       | 1748791   | 1'384'348.25                                |
+| DM32 HW16      | 2188113   | 1'395'612.15872'53834'6                     |
+| DM42 HW7       |  605102   | 1'384'348.25                                |
+| DM42 HW16      |  806730   | 1'395'612.15872'53834'6                     |
+
 
 
 ## Drawing `sin X` with `FunctionPlot`

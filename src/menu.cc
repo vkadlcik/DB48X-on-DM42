@@ -818,10 +818,11 @@ MENU(DebugMenu,
      "Over",            ID_StepOver,
      "Steps",           ID_MultipleSteps,
      "Continue",        ID_Continue,
-     "Prog",            ID_ProgramMenu,
-     "Halt",            ID_Halt,
      "Kill",            ID_Kill,
-     "Step↑",           ID_StepOut);
+     "Halt",            ID_Halt,
+     "Step↑",           ID_StepOut,
+     "Prog",            ID_ProgramMenu);
+
 
 MENU(TestsMenu,
 // ----------------------------------------------------------------------------

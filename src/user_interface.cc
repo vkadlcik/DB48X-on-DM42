@@ -4060,7 +4060,7 @@ bool user_interface::handle_functions(int key)
            "Handle function for key %d (plane %d) ", key, shift_plane());
     if (object_p obj = object_for_key(key))
     {
-        save<int> save(evaluating, key);
+        save<int> saveEvaluating(evaluating, key);
         object::id ty = obj->type();
         bool imm = object::is_immediate(ty);
         bool editing = rt.editing();
@@ -4123,6 +4123,7 @@ bool user_interface::handle_functions(int key)
             if (Settings.SaveLastArguments())
                 rt.need_save();
         }
+        save<bool> no_halt(program::halted, false);
         obj->evaluate();
         draw_idle();
         dirtyStack = true;

@@ -174,29 +174,37 @@ PARSE_BODY(decimal)
     }
 
     // Scan digits and decimal dot
-    kint   kigit      = 0;
-    uint   kigc       = 0;
-    large  exponent   = 0;
-    int    decimalDot = -1;
-    size_t digits     = 0;
-    bool   zeroes     = true;
+    kint    kigit      = 0;
+    uint    kigc       = 0;
+    large   exponent   = 0;
+    int     decimalDot = -1;
+    size_t  digits     = 0;
+    bool    zeroes     = true;
+    unicode sep        = Settings.NumberSeparator();
+    unicode expsep     = Settings.ExponentSeparator();
     while (+s < +last)
     {
-        if (*s >= '0' && *s <= '9')
+        unicode cp = utf8_codepoint(s);
+        if (cp == sep)
+        {
+            s = utf8_next(+s);
+            continue;
+        }
+        if (cp >= '0' && cp <= '9')
         {
             digits++;
-            if (!zeroes || *s != '0')
+            if (!zeroes || cp != '0')
             {
                 if (decimalDot < 0)
                     exponent++;
-                kigit = kigit * 10 + (*s - '0');
+                kigit = kigit * 10 + (cp - '0');
                 if (++kigc == 3)
                 {
                     kint *kigp = (kint *) rt.allocate(sizeof(kint));
                     if (!kigp)
                         return ERROR;
                     *kigp = kigit;
-                    kigc = 0;
+                    kigc  = 0;
                     kigit = 0;
                 }
                 zeroes = false;
@@ -206,7 +214,7 @@ PARSE_BODY(decimal)
                 exponent--;
             }
         }
-        else if (decimalDot < 0 && (*s == '.' || *s == ','))
+        else if (decimalDot < 0 && (cp == '.' || cp == ','))
         {
             decimalDot = +s - +source;
         }
@@ -241,24 +249,27 @@ PARSE_BODY(decimal)
 
     // Check if we were given an exponent
     utf8 expsrc = nullptr;
-    if (+s < +last && (*s == 'e' || *s == 'E' ||
-                       utf8_codepoint(s) == Settings.ExponentSeparator()))
+    if (+s < +last)
     {
-        s = utf8_next(s);
-        expsrc = s;
-        if (*s == '+' || *s == '-')
-            ++s;
-        utf8 expstart = s;
-        while (+s < +last && (*s >= '0' && *s <= '9'))
-            ++s;
-        if (s == expstart)
+        unicode cp = utf8_codepoint(+s);
+        if (cp == 'e' || cp == 'E' || cp == expsep)
         {
-            rt.exponent_error().source(s);
-            return ERROR;
-        }
+            s = utf8_next(s);
+            expsrc = s;
+            if (*s == '+' || *s == '-')
+                ++s;
+            utf8 expstart = s;
+            while (+s < +last && (*s >= '0' && *s <= '9'))
+                ++s;
+            if (s == expstart)
+            {
+                rt.exponent_error().source(s);
+                return ERROR;
+            }
 
-        large expval =  atoll(cstring(expsrc));
-        exponent += expval;
+            large expval =  atoll(cstring(expsrc));
+            exponent += expval;
+        }
     }
 
     // Normalize the parsed value (#762)

@@ -144,7 +144,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        date_operations();
+        text_functions();
     }
     else
     {
@@ -3748,6 +3748,22 @@ void tests::text_functions()
               RSHIFT, KEY4, SHIFT, F2)
         .type(object::ID_text).expect("\"èéêëπ√∫\"");
 
+
+    step("Ensure we can parse integer numbers with separators in them")
+        .test(CLEAR, "100000", ENTER).expect("100 000")
+        .test(RSHIFT, ENTER, NOSHIFT, ENTER).expect("\"\"")
+        .test(NOSHIFT, ADD).expect("\"100 000\"")
+        .test(NOSHIFT, A, F2).expect("100 000");
+    step("Ensure we can parse decimal numbers with separators in them")
+        .test(CLEAR, "100000.123456123456", ENTER).expect("100 000.12345 6")
+        .test(RSHIFT, ENTER, NOSHIFT, ENTER).expect("\"\"")
+        .test(NOSHIFT, ADD).expect("\"100 000.12345 61234 56\"")
+        .test(NOSHIFT, A, F2).expect("100 000.12345 6");
+    step("Ensure we can parse base numbers with separators in them")
+        .test(CLEAR, "16#ABCD1234", ENTER).expect("#ABCD 1234₁₆")
+        .test(RSHIFT, ENTER, NOSHIFT, ENTER).expect("\"\"")
+        .test(NOSHIFT, ADD).expect("\"#ABCD 1234\"")
+        .test(NOSHIFT, A, F2).expect("#ABCD 1234₁₆");
 }
 
 

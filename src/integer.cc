@@ -213,6 +213,8 @@ PARSE_BODY(integer)
         bool   big    = false;
         size_t digits = 0;
         byte   v;
+        unicode sep = Settings.NumberSeparator();
+
         if (is_fraction && value[*s] == NODIGIT)
         {
             rt.syntax_error();
@@ -221,8 +223,10 @@ PARSE_BODY(integer)
 
         while (!endp || s < endp)
         {
+            unicode cp = utf8_codepoint(s);
+
             // Check new syntax for based numbers
-            if (*s == '#')
+            if (cp == '#')
             {
                 if (result < 2 || result > 36)
                 {
@@ -232,7 +236,13 @@ PARSE_BODY(integer)
                 base = result;
                 result = 0;
                 type = ID_based_integer;
+                sep = Settings.BasedSeparator();
                 s++;
+                continue;
+            }
+            if (cp == sep)
+            {
+                s = utf8_next(s);
                 continue;
             }
 

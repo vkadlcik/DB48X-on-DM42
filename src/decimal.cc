@@ -293,7 +293,6 @@ RENDER_BODY(decimal)
     // Read formatting information from the renderer
     r.flush();
     bool      editing  = r.editing();
-    bool      raw      = r.file_save();
     size_t    rsize    = r.size();
 
     // Read settings
@@ -336,20 +335,11 @@ RENDER_BODY(decimal)
         break;
     }
 
-    if (raw || editing)
+    if (editing)
     {
         mode = object::ID_Std;
         digits += mexp;
         fancy = false;
-    }
-    if (raw)
-    {
-        std_exp = 9;
-        showdec = true;
-        space = 0;
-        mant_spc = 0;
-        frac_spc = 0;
-        decimal = '.';
     }
     if (mode == object::ID_Std)
         mode = object::ID_Sig;

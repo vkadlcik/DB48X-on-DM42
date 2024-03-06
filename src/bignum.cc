@@ -123,8 +123,7 @@ HELP_BODY(bignum)
 static size_t render_num(renderer &r,
                          bignum_p  num,
                          uint      base,
-                         cstring   fmt,
-                         bool      raw = false)
+                         cstring   fmt)
 // ----------------------------------------------------------------------------
 //   Convert an bignum value to the proper format
 // ----------------------------------------------------------------------------
@@ -136,7 +135,7 @@ static size_t render_num(renderer &r,
     if (r.file_save())
     {
         renderer tmp(r.expression(), r.editing(), r.stack());
-        size_t result = render_num(tmp, num, base, fmt, true);
+        size_t result = render_num(tmp, num, base, fmt);
         r.put(tmp.text(), result);
         return result;
     }
@@ -164,13 +163,6 @@ static size_t render_num(renderer &r,
     bool fancy_base = based && r.stack();
     uint spacing = based ? Settings.BasedSpacing() : Settings.MantissaSpacing();
     unicode space = based ? Settings.BasedSeparator() : Settings.NumberSeparator();
-
-    if (raw)
-    {
-        fancy_base = false;
-        spacing = 0;
-        space = 0;
-    }
 
     // Copy the '#' or '-' sign
     if (*fmt)

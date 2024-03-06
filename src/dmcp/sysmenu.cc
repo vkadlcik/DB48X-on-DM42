@@ -247,11 +247,17 @@ static int state_save_callback(cstring fpath, cstring fname, void *)
     }
 
     // Always render things to disk using default settings
+    // See also what depends on "raw" (r.file_save()) in renderers
     renderer render(&prog);
     settings saved = Settings;
     Settings = settings();
     Settings.FancyExponent(false);
     Settings.StandardExponent(1);
+    Settings.MantissaSpacing(0);
+    Settings.BasedSpacing(0);
+    Settings.FractionSpacing(0);
+    Settings.DisplayDigits(DB48X_MAXDIGITS);
+    Settings.MinimumSignificantDigits(DB48X_MAXDIGITS);
 
     // Save global variables
     gcp<directory> home = rt.homedir();

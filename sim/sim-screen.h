@@ -53,7 +53,7 @@ public:
     QGraphicsPixmapItem *mainScreen;
     QPixmap              mainPixmap;
 
-    uint                redraws;
+    uint                 redraws;
 
     static SimScreen    *theScreen;
 
@@ -62,10 +62,11 @@ public:
     ~SimScreen();
 
   public:
-    void        setPixel(int x, int y, int on);
     void        setScale(qreal _scale);
-    void        update();
-    static void refresh_lcd()   { theScreen->update(); }
+    void        updatePixmap();
+    void        refreshScreen();
+    static void update_pixmap() { theScreen->updatePixmap(); }
+    static void refresh_lcd()   { theScreen->refreshScreen(); }
     static uint redraw_count()  { return theScreen->redraws; }
 };
 

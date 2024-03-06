@@ -691,6 +691,7 @@ void ui_refresh()
 //   Request a refresh of the LCD
 // ----------------------------------------------------------------------------
 {
+    SimScreen::update_pixmap();
     postToThread([&] { SimScreen::refresh_lcd(); });
 }
 

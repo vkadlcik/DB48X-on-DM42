@@ -40,6 +40,9 @@
 
 SimScreen *SimScreen::theScreen = nullptr;
 
+// A copy of the LCD buffer
+uint8_t lcd_copy[LCD_SCANLINE * LCD_H / 8];
+
 
 SimScreen::SimScreen(QWidget *parent)
 // ----------------------------------------------------------------------------
@@ -59,6 +62,7 @@ SimScreen::SimScreen(QWidget *parent)
     screen.clear();
     screen.setBackgroundBrush(QBrush(Qt::black));
 
+    mainPixmap.fill(bgColor);
     mainScreen = screen.addPixmap(mainPixmap);
     mainScreen->setOffset(0.0, 0.0);
 
@@ -67,6 +71,9 @@ SimScreen::SimScreen(QWidget *parent)
     centerOn(qreal(screen_width) / 2, qreal(screen_height) / 2);
     scale = 1.0;
     setScale(4.0);
+
+    for (size_t i = 0; i < sizeof(lcd_copy); i++)
+        lcd_copy[i] = ~lcd_buffer[i];
 
     show();
 
@@ -79,19 +86,6 @@ SimScreen::~SimScreen()
 //   SimScreen destructor
 // ----------------------------------------------------------------------------
 {
-}
-
-
-void SimScreen::setPixel(int x, int y, int on)
-// ----------------------------------------------------------------------------
-//    Set the given screen
-// ----------------------------------------------------------------------------
-{
-    // Pixels[offset]->setBrush(GrayBrush[color & 15]);
-    QPainter pt(&mainPixmap);
-    pt.setPen(on ? fgPen : bgPen);
-    pt.drawPoint(SIM_LCD_W - x, y);
-    pt.end();
 }
 
 
@@ -110,27 +104,44 @@ void SimScreen::setScale(qreal sf)
 }
 
 
-void SimScreen::update()
+void SimScreen::updatePixmap()
 // ----------------------------------------------------------------------------
-//   Refresh the screen
+//   Recompute the pixmap
 // ----------------------------------------------------------------------------
+//   This should be done on the RPL thread to get a consistent picture
 {
     // Monochrome screen
-    screen.setBackgroundBrush(QBrush(fgColor));
-    QPainter      pt(&mainPixmap);
-
+    QPainter pt(&mainPixmap);
     for (int y = 0; y < SIM_LCD_H; y++)
     {
-        for (int x = 0; x < SIM_LCD_W; x++)
+        for (int xb = 0; xb < SIM_LCD_W/8; xb++)
         {
-            unsigned bo = y * SIM_LCD_SCANLINE + x;
-            int on = (lcd_buffer[bo/8] >> (bo % 8)) & 1;
-            pt.setPen(on ? bgPen : fgPen);
-            pt.drawPoint(SIM_LCD_W - x, y);
+            unsigned byteoffs = y * (SIM_LCD_SCANLINE/8) + xb;
+            if (uint8_t diffs = lcd_copy[byteoffs] ^ lcd_buffer[byteoffs])
+            {
+                for (int bit = 0; bit < 8; bit++)
+                {
+                    if ((diffs >> bit) & 1)
+                    {
+                        int on = (lcd_buffer[byteoffs] >> bit) & 1;
+                        pt.setPen(on ? bgPen : fgPen);
+                        pt.drawPoint(SIM_LCD_W - (8*xb + bit), y);
+                    }
+                }
+                lcd_copy[byteoffs] = lcd_buffer[byteoffs];
+            }
         }
     }
     pt.end();
+}
 
+
+void SimScreen::refreshScreen()
+// ----------------------------------------------------------------------------
+//   Transfer the pixmap to the screen
+// ----------------------------------------------------------------------------
+//   This must be done on the main screen
+{
     mainScreen->setPixmap(mainPixmap);
     QGraphicsView::update();
     redraws++;

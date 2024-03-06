@@ -149,7 +149,6 @@ static const cstring basic_constants[] =
     "∞",        "9.99999E999999",       // A small version of infinity
     "?",        "Undefined",            // Undefined result
 
-
     // ------------------------------------------------------------------------
     //   Chemistry
     // ------------------------------------------------------------------------
@@ -201,7 +200,29 @@ static const cstring basic_constants[] =
     "qε0",      "1.4185978E-30_F*C/ m", // q*ε0
     "εsi",      "11.9",                 // Dielectric constant
     "εox",      "3.9",                  // SiO2 dielectric constant
-    "I0",       "0.000000000001_W/m^2"  // Ref intensity
+    "I0",       "0.000000000001_W/m^2", // Ref intensity
+
+    // ------------------------------------------------------------------------
+    //  Dates (just to show we can)
+    // ------------------------------------------------------------------------
+    "Dates",    nullptr,
+
+    "BastilleDay",              "17890714_date",
+    "MartinLutherKingDeath",    "19680404_date",
+    "IndependenceDay",          "17760704_date",
+
+
+    // ------------------------------------------------------------------------
+    //  Computing
+    // ------------------------------------------------------------------------
+    "Comp",   nullptr,
+
+    "No",                       "False",                // No value = false
+    "Yes",                      "True",                 // Yes value = true
+    "UnixEpoch",                "19700101_date",
+    "SinclairZX81RAM",          "1_KiB",
+    "PageSize",                 "4_KiB",
+    "HelloWorld",               "\"Hello World\""
 };
 //   clang-format on
 
@@ -267,8 +288,12 @@ algebraic_p constant::value() const
         else
         {
             if (object_p obj = object::parse(utf8(cdef), clen))
+            {
                 if (algebraic_p alg = obj->as_algebraic())
                     return alg;
+                if (text_p txt = obj->as<text>())
+                    return txt;
+            }
         }
     }
     rt.invalid_constant_error();

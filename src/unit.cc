@@ -1136,7 +1136,19 @@ symbol_g unit_file::lookup(utf8 what, size_t len, bool menu, bool seek0)
 
         if (c == '"')
         {
-            quoted = !quoted;
+            if (quoted && peek() == '"') // Treat double "" as a data quote
+            {
+                c = getchar();
+                if (column == 1 && found)
+                {
+                    byte *buf = rt.allocate(1);
+                    *buf = byte(c);
+                }
+            }
+            else
+            {
+                quoted = !quoted;
+            }
             if (quoted)
             {
                 if (!column)

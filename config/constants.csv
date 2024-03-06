@@ -50,3 +50,18 @@
 "εsi",      "11.9"
 "εox",      "3.9"
 "I0",       "0.000000000001_W/m^2"
+
+"Dates"
+
+"BastilleDay",              "17890714_date"
+"MartinLutherKingDeath",    "19680404_date"
+"IndependenceDay",          "17760704_date"
+
+"Comp"
+
+"No",                       "False"
+"Yes",                      "True"
+"UnixEpoch",                "19700101_date"
+"SinclairZX81RAM",          "1_KiB"
+"PageSize",                 "4_KiB"
+"HelloWorld",               """Hello World"""

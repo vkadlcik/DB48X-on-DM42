@@ -529,6 +529,7 @@ void render_time(renderer &r, algebraic_g &value,
         return;
     bool as_time = *hrs == ':';
     uint h = value->as_uint32(false);
+    r.flush();
     r.printf("%u", h);
     r.put(hrs);
 

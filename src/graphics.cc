@@ -34,6 +34,7 @@
 #include "blitter.h"
 #include "compare.h"
 #include "complex.h"
+#include "decimal.h"
 #include "grob.h"
 #include "integer.h"
 #include "list.h"
@@ -599,6 +600,13 @@ COMMAND_BODY(Show)
 {
     if (object_g obj = rt.top())
     {
+        uint digits = Settings.DisplayDigits();
+        if (obj->is_decimal())
+            digits = decimal_p(+obj)->kigits() * 3;
+        else if (obj->is_complex())
+            digits = Settings.Precision();
+        settings::SaveDisplayDigits sdd(digits);
+
         using size = grob::pixsize;
         grob_g graph = nullptr;
         size    width  = LCD_W;

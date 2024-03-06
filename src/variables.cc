@@ -31,6 +31,7 @@
 
 #include "bignum.h"
 #include "command.h"
+#include "constants.h"
 #include "expression.h"
 #include "files.h"
 #include "integer.h"
@@ -412,6 +413,9 @@ object_p directory::recall_all(object_p name, bool report_missing)
         files_g disk = files::make("data");
         return disk->recall(text_p(name));
     }
+
+    case ID_constant:
+        return constant_p(name)->value();
 
     // Special names that are allowed as variable names
     case ID_StatsData:

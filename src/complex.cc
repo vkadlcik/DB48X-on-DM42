@@ -343,7 +343,7 @@ PARSE_BODY(complex)
     utf8        ybeg   = nullptr;
     size_t      xlen   = 0;
     size_t      ylen   = 0;
-    bool        paren  = false;
+    uint        paren  = false;
     bool        signok = false;
     bool        ineq   = false;
     char        sign   = 0;
@@ -446,6 +446,16 @@ PARSE_BODY(complex)
             // Case of ∡ as a separator (case h)
             ybeg = last + utf8_size(cp);
             xlen = last - first;
+        }
+
+        // Check parentheses inside units
+        else if (type == ID_unit && cp == '(')
+        {
+            paren++;
+        }
+        else if (type == ID_unit && paren && cp == ')')
+        {
+            paren--;
         }
 
         // Check if we found a space or ';' inside parentheses

@@ -147,6 +147,7 @@ struct user_interface
     void        cursor_position(uint p) { cursor = p; dirtyEditor = true; edRows = 0; }
     bool        current_word(size_t &start, size_t &size);
     bool        current_word(utf8 &start, size_t &size);
+    bool        at_end_of_number();
 
     uint        shift_plane()   { return xshift ? 2 : shift ? 1 : 0; }
     void        clear_help();

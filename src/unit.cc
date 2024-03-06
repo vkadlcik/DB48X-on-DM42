@@ -1687,6 +1687,8 @@ INSERT_BODY(ApplyUnit)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
+    if (ui.at_end_of_number())
+        return ui.insert_softkey(key, "_", " ", false);
     return ui.insert_softkey(key, " 1_", " * ", false);
 }
 
@@ -1719,6 +1721,8 @@ INSERT_BODY(ApplyInverseUnit)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
+    if (ui.at_end_of_number())
+        return ui.insert_softkey(key, "_(", ")⁻¹ ", false);
     return ui.insert_softkey(key, " 1_", " / ", false);
 }
 
@@ -1750,6 +1754,7 @@ INSERT_BODY(ConvertToUnit)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
+    ui.at_end_of_number();
     return ui.insert_softkey(key, " 1_", " Convert ", false);
 }
 

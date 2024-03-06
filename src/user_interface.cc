@@ -767,6 +767,119 @@ void user_interface::update_mode()
 }
 
 
+bool user_interface::at_end_of_number()
+// ----------------------------------------------------------------------------
+//   Check if we are at the end of a number in the editor
+// ----------------------------------------------------------------------------
+{
+    size_t  len     = rt.editing();
+    utf8    ed      = rt.editor();
+    utf8    last    = ed + len;
+    utf8    curs    = ed + cursor;
+    uint    lastnum = ~0U;
+    bool    quoted  = false;
+    bool    numok   = true;
+    bool    hadexp  = false;
+    bool    inexp = false;
+
+    for (utf8 p = ed; p < last; p = utf8_next(p))
+    {
+        unicode code = utf8_codepoint(p);
+
+        // Avoid text
+        if (code == '"')
+        {
+            quoted = !quoted;
+            continue;
+        }
+        if (quoted)
+            continue;
+
+        if (code >= '0' && code <= '9')
+        {
+            hadexp = false;
+            if (numok)
+                lastnum = p - ed;
+            continue;
+        }
+        if (code == '+' || code == '-')
+        {
+            if (hadexp)
+            {
+                hadexp = false;
+            }
+            else if (~lastnum)       // 12+3: no longer have a number,
+            {
+                lastnum = ~0U;
+                numok = true;
+            }
+            continue;
+        }
+
+        // Check characters accepted inside a number
+        if (~lastnum)
+        {
+            // An exponent must be followed by numbers
+            if (code == L'⁳' || code == 'E' || code == 'e')
+            {
+                hadexp = true;
+                inexp = true;
+                continue;
+            }
+
+            // A decimal separator
+            if (code == '.'  || code == ',')
+            {
+                if (inexp)
+                {
+                    lastnum = ~0U;
+                    numok = false;
+                    inexp = hadexp = false;
+                }
+                else
+                {
+                    lastnum = p - ed;
+                }
+                continue;
+            }
+            if (code == settings::SPACE_DEFAULT || code == L'’' || code == '_')
+                continue;
+        }
+
+        // If we had a space, keep position of last number, accept numbers
+        if (isspace(code) || is_separator(code))
+        {
+            numok = true;
+            inexp = false;
+            continue;
+        }
+
+        // Any other character means we no longer have a number
+        if (p < curs)
+        {
+            lastnum = ~0U;
+            numok = false;
+            hadexp = false;
+            inexp = false;
+        }
+        else
+        {
+            // Past cursor: we are done searching
+            break;
+        }
+    }
+
+    // If lastnum was not found, say we have no number
+    if (~lastnum == 0)
+        return false;
+
+    // Move cursor here
+    cursor_position(lastnum + 1);
+    select = ~0U;
+    return true;
+}
+
+
 void user_interface::menu(menu_p menu, uint page)
 // ----------------------------------------------------------------------------
 //   Set menu and page
@@ -4080,6 +4193,7 @@ bool user_interface::handle_functions(int key)
             switch (mode)
             {
             case PROGRAM:
+            case MATRIX:
                 if (obj->is_program_cmd())
                 {
                     dirtyEditor = true;

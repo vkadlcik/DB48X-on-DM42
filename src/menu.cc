@@ -854,25 +854,25 @@ MENU(CompareMenu,
 // ----------------------------------------------------------------------------
 //   Comparisons
 // ----------------------------------------------------------------------------
-     "<",       ID_TestLT,
-     "=",       ID_TestEQ,
-     ">",       ID_TestGT,
-     "≤",       ID_TestLE,
-     "≠",       ID_TestNE,
-     "≥",       ID_TestGE,
+     "<",               ID_TestLT,
+     "=",               ID_TestEQ,
+     ">",               ID_TestGT,
+     "≤",               ID_TestLE,
+     "≠",               ID_TestNE,
+     "≥",               ID_TestGE,
 
-     "and",     ID_And,
-     "or",      ID_Or,
-     "xor",     ID_Xor,
-     "not",     ID_Not,
-     "==",      ID_TestSame,
-     "",        ID_Unimplemented,
+     "and",             ID_And,
+     "or",              ID_Or,
+     "xor",             ID_Xor,
+     "not",             ID_Not,
+     "==",              ID_TestSame,
+     "",                ID_Unimplemented,
 
-     "true",    ID_True,
-     "false",   ID_False,
-     "Tests",   ID_TestsMenu,
-     "Loops",   ID_LoopsMenu,
-     "Prog",    ID_ProgramMenu);
+     "true",            ID_True,
+     "false",           ID_False,
+     "Tests",           ID_TestsMenu,
+     "Loops",           ID_LoopsMenu,
+     "Prog",            ID_ProgramMenu);
 
 
 MENU(FlagsMenu,
@@ -1051,8 +1051,8 @@ MENU(StackMenu,
      "Over",    ID_Over,
      "Depth",   ID_Depth,
      "Pick",    ID_Pick,
-     "Roll",    ID_Roll,
-     "RollDn",  ID_RollD,
+     "Roll↑",   ID_Roll,
+     "Roll↓",   ID_RollD,
 
      "Dup",     ID_Dup,
      "Drop",    ID_Drop,

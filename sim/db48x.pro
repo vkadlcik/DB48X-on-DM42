@@ -19,7 +19,7 @@
 #  This software is licensed under the terms described in LICENSE.txt
 #******************************************************************************
 
-QT += core gui quick widgets quickcontrols2 quickwidgets
+QT += core gui quick widgets quickcontrols2 quickwidgets multimedia
 TEMPLATE = app
 
 CONFIG += debug

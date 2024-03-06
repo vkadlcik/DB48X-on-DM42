@@ -34,6 +34,10 @@
 #include "ui_sim-window.h"
 
 #include <QAbstractEventDispatcher>
+#include <QAudio>
+#include <QAudioSink>
+#include <QBuffer>
+#include <QByteArray>
 #include <QFile>
 #include <QMainWindow>
 
@@ -61,6 +65,9 @@ public:
 
 
 class Highlight : public QWidget
+// ----------------------------------------------------------------------------
+//   Highlight of a key
+// ----------------------------------------------------------------------------
 {
     Q_OBJECT;
 public:
@@ -71,15 +78,26 @@ public slots:
     void keyResizeSlot(const QRect &rect);
 };
 
+
 class MainWindow : public QMainWindow
+// ----------------------------------------------------------------------------
+//   Main window for the simulator
+// ----------------------------------------------------------------------------
 {
     Q_OBJECT;
 
-    Ui::MainWindow ui;
-    RPLThread      rpl;
-    TestsThread    tests;
+    static MainWindow *mainWindow;
+    Ui::MainWindow     ui;
+    RPLThread          rpl;
+    TestsThread        tests;
+    Highlight         *highlight;
+    QByteArray        *samples;
+    QBuffer           *audiobuf;
+    QAudioSink        *audio;
 
-public:
+    enum { SAMPLE_RATE = 20000, SAMPLE_COUNT = SAMPLE_RATE };
+
+  public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
@@ -93,26 +111,32 @@ public:
                                    int     w = LCD_W,
                                    int     h = LCD_H);
 
+    void startBuzzer(uint frequency);
+    void stopBuzzer();
+    bool buzzerPlaying();
+
 protected:
     virtual void keyPressEvent(QKeyEvent *ev);
     virtual void keyReleaseEvent(QKeyEvent *ev);
     bool         eventFilter(QObject *obj, QEvent *ev);
     void         resizeEvent(QResizeEvent *event);
 
-protected:
-    static MainWindow *mainWindow;
-    Highlight *highlight;
-
 signals:
     void keyResizeSignal(const QRect &rect);
-
+public slots:
+    void handleAudioStateChanged(QAudio::State newState);
 };
 
 
 template <typename F>
-static void postToThread(F && fun, QThread *thread = qApp->thread()) {
+static void postToThread(F && fun, QThread *thread = qApp->thread())
+// ----------------------------------------------------------------------------
+//   Post something on another thread, typically the main thread
+// ----------------------------------------------------------------------------
+{
    auto *obj = QAbstractEventDispatcher::instance(thread);
    Q_ASSERT(obj);
    QMetaObject::invokeMethod(obj, std::forward<F>(fun));
 }
+
 #endif // SIM_WINDOW_H

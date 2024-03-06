@@ -88,4 +88,7 @@ size_t    ui_read_setting(const char *name, char *value, size_t maxlen);
 uint      ui_battery();         // Between 0 and 1000
 bool      ui_charging();        // On USB power
 
+void      ui_start_buzzer(uint frequency);
+void      ui_stop_buzzer();
+
 #endif // SIM_DMCP

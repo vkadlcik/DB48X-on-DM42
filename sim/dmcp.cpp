@@ -764,11 +764,13 @@ void run_help_file_style(const char * help_file, user_style_fn_t *user_style_fn)
 }
 void start_buzzer_freq(uint32_t freq)
 {
-    record(dmcp_error, "start_buzzer");
+    record(dmcp_error, "start_buzzer %u.%03uHz", freq / 1000, freq % 1000);
+    ui_start_buzzer(freq);
 }
 void stop_buzzer()
 {
-    record(dmcp_notyet, "stop_buzzer not implemented");
+    record(dmcp_notyet, "stop_buzzer");
+    ui_stop_buzzer();
 }
 
 int sys_free_mem()

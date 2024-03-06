@@ -37,18 +37,24 @@
 #include "tests.h"
 #include "ui_sim-window.h"
 
+#include <iostream>
+#include <QAudioDevice>
+#include <QAudioFormat>
+#include <QAudioOutput>
+#include <QAudioSink>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QKeyEvent>
+#include <QMediaDevices>
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QtCore>
 #include <QtGui>
-#include <iostream>
 
 
 RECORDER(sim_keys, 16, "Recorder keys from the simulator");
+RECORDER(sim_audio, 16, "Recorder keys from the simulator");
 
 extern bool run_tests;
 extern bool db48x_keyboard;
@@ -60,7 +66,8 @@ MainWindow::MainWindow(QWidget *parent)
 // ----------------------------------------------------------------------------
 //    The main window of the simulator
 // ----------------------------------------------------------------------------
-    : QMainWindow(parent), ui(), rpl(this), tests(this), highlight()
+    : QMainWindow(parent), ui(), rpl(this), tests(this), highlight(),
+      samples(), audiobuf(), audio()
 {
     mainWindow = this;
 
@@ -74,9 +81,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui.screen->setAttribute(Qt::WA_AcceptTouchEvents);
     ui.screen->installEventFilter(this);
     if (db48x_keyboard)
-        ui.keyboard->setStyleSheet("border-image: url(:/bitmap/keyboard-db48x.png) 0 0 0 0 stretch stretch;");
+        ui.keyboard->setStyleSheet("border-image: "
+                                   "url(:/bitmap/keyboard-db48x.png) "
+                                   "0 0 0 0 stretch stretch;");
     else
-        ui.keyboard->setStyleSheet("border-image: url(:/bitmap/keyboard.png) 0 0 0 0 stretch stretch;");
+        ui.keyboard->setStyleSheet("border-image: "
+                                   "url(:/bitmap/keyboard.png) "
+                                   "0 0 0 0 stretch stretch;");
 
     highlight = new Highlight(ui.keyboard);
     highlight->setGeometry(0,0,0,0);
@@ -92,6 +103,27 @@ MainWindow::MainWindow(QWidget *parent)
 
     rpl.start();
 
+    // Setup audio output
+    QAudioFormat format;
+    format.setSampleRate(SAMPLE_RATE);
+    format.setChannelCount(1);
+    format.setSampleFormat(QAudioFormat::SampleFormat::UInt8);
+
+    QAudioDevice device(QMediaDevices::defaultAudioOutput());
+    if (!device.isFormatSupported(format))
+    {
+        record(sim_audio, "Unsupported audio format, cannot beep");
+    }
+    else
+    {
+        audio = new QAudioSink(device, format, this);
+        connect(audio, SIGNAL(stateChanged(QAudio::State)),
+                this, SLOT(handleAudioStateChanged(QAudio::State)));
+    }
+
+    samples = new QByteArray();
+    samples->resize(SAMPLE_COUNT);
+
     if (run_tests)
         tests.start();
 }
@@ -102,6 +134,9 @@ MainWindow::~MainWindow()
 // ----------------------------------------------------------------------------
 {
     key_push(tests::EXIT_PGM);
+    delete audio;
+    delete audiobuf;
+    delete samples;
 }
 
 
@@ -564,6 +599,86 @@ void MainWindow::screenshot(cstring basename, int x, int y, int w, int h)
 }
 
 
+void MainWindow::startBuzzer(uint frequency)
+// ----------------------------------------------------------------------------
+//   Start a buzzer
+// ----------------------------------------------------------------------------
+{
+    for (size_t i = 0; i < SAMPLE_COUNT; i++)
+        (*samples)[i] = (i * frequency / (SAMPLE_COUNT * 1000)) & 1 ? 64U : 0;
+
+    delete audiobuf;
+    audiobuf = new QBuffer(samples);
+    audiobuf->open(QIODevice::ReadOnly);
+    if (audio)
+        audio->start(audiobuf);
+}
+
+void MainWindow::stopBuzzer()
+// ----------------------------------------------------------------------------
+//   Start a buzzer
+// ----------------------------------------------------------------------------
+{
+    delete audiobuf;
+    audiobuf = nullptr;
+    audio->stop();
+}
+
+
+bool MainWindow::buzzerPlaying()
+// ----------------------------------------------------------------------------
+//   Check if the buzzer is actually playing
+// ----------------------------------------------------------------------------
+{
+    return audiobuf && (!audio || audio->state() == QAudio::ActiveState);
+}
+
+
+void MainWindow::handleAudioStateChanged(QAudio::State newState)
+// ----------------------------------------------------------------------------
+//   Restart audio buffer when it's done
+// ----------------------------------------------------------------------------
+{
+    record(sim_audio, "Audio state %u\n",  newState);
+    switch (newState)
+    {
+    case QAudio::IdleState:
+        // Finished playing (no more data)
+        record(sim_audio, "Idle %u\n",  newState);
+        audio->stop();
+        if (audiobuf)
+        {
+            audiobuf->open(QIODevice::ReadOnly);
+            audio->start(audiobuf);
+        }
+        break;
+
+    case QAudio::StoppedState:
+        record(sim_audio, "Stopped %u\n",  newState);
+        // Stopped for other reasons
+        if (audio->error() != QAudio::NoError)
+            record(sim_audio, "Audio error\n");
+        if (audiobuf)
+        {
+            audiobuf->open(QIODevice::ReadOnly);
+            audio->start(audiobuf);
+        }
+        break;
+
+    case QAudio::ActiveState:
+        record(sim_audio, "Active %u\n",  newState);
+        break;
+
+    case QAudio::SuspendedState:
+        record(sim_audio, "Suspended %u\n",  newState);
+        break;
+
+    default:
+        record(sim_audio, "Ooops %u\n",  newState);
+        break;
+    }
+}
+
 
 // ============================================================================
 //
@@ -576,9 +691,7 @@ void ui_refresh()
 //   Request a refresh of the LCD
 // ----------------------------------------------------------------------------
 {
-    postToThread([&]{ // the functor captures parent and text by value
-        SimScreen::refresh_lcd();
-    });
+    postToThread([&] { SimScreen::refresh_lcd(); });
 }
 
 
@@ -728,6 +841,35 @@ bool ui_charging()
 {
     return charging;
 }
+
+
+void ui_start_buzzer(uint frequency)
+// ----------------------------------------------------------------------------
+//   Start buzzer at given frequency
+// ----------------------------------------------------------------------------
+{
+    MainWindow *main = MainWindow::theMainWindow();
+    if (main->buzzerPlaying())
+        ui_stop_buzzer();
+
+    postToThread([&] { main->startBuzzer(frequency); });
+
+    while (!main->buzzerPlaying())
+        sys_delay(20);
+}
+
+
+void ui_stop_buzzer()
+// ----------------------------------------------------------------------------
+//  Stop buzzer in simulator
+// ----------------------------------------------------------------------------
+{
+    MainWindow *main = MainWindow::theMainWindow();
+    postToThread([&] { main->stopBuzzer(); });
+    while (main->buzzerPlaying())
+        sys_delay(20);
+}
+
 
 
 bool tests::image_match(cstring file, int x, int y, int w, int h, bool force)

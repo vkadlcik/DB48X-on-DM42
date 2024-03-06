@@ -1501,11 +1501,12 @@ MENU(TimeMenu,
      "Ticks",   ID_Ticks,
      "Dt+Tm",   ID_DateTime,
      "T→Str",   ID_ToText,
-     "ClkAdj",  ID_Unimplemented,
-     "TmBench", ID_Unimplemented,
+     "Wait",    ID_Wait,
+     "TEval",   ID_TimedEval,
 
      "→Time",   ID_SetTime,
      "→Date",   ID_SetDate,
+     "ClkAdj",  ID_Unimplemented,
      "Dates",   ID_DateMenu,
      "Alarms",  ID_AlarmMenu);
 

@@ -801,6 +801,12 @@ struct object
     // ------------------------------------------------------------------------
 
 
+    static object_p static_object(id i);
+    // ------------------------------------------------------------------------
+    //   Get a static pointer for the given object (typically for commands)
+    // ------------------------------------------------------------------------
+
+
 
     // ========================================================================
     //
@@ -809,9 +815,16 @@ struct object
     // ========================================================================
 
 #define OBJECT_DECL(D)  static const id static_id = ID_##D;
+
+
 #define PARSE_DECL(D)   static result   do_parse(parser &p UNUSED)
 #define HELP_DECL(D)    static utf8     do_help(const D *o UNUSED)
-#define EVAL_DECL(D)    static result   do_evaluate(const D *o UNUSED)
+#define EVAL_DECL(D)                                                    \
+    static const D *static_self()                                       \
+    {                                                                   \
+        return (const D *) static_object(static_id);                    \
+    }                                                                   \
+    static result   do_evaluate(const D *o UNUSED = static_self())
 #define SIZE_DECL(D)    static size_t   do_size(const D *o UNUSED)
 #define RENDER_DECL(D)  static size_t   do_render(const D *o UNUSED,renderer &r UNUSED)
 #define GRAPH_DECL(D)   static grob_p   do_graph(const D *o UNUSED,grapher &g UNUSED)

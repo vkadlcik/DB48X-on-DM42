@@ -156,27 +156,6 @@ RENDER_BODY(command)
 }
 
 
-object_p command::static_object(id i)
-// ----------------------------------------------------------------------------
-//   Return a pointer to a static object representing the command
-// ----------------------------------------------------------------------------
-{
-    static byte cmds[] =
-    {
-#define ID(id)                                                \
-    object::ID_##id < 0x80 ? (object::ID_##id & 0x7F) | 0x00  \
-                           : (object::ID_##id & 0x7F) | 0x80, \
-    object::ID_##id < 0x80 ? 0 : ((object::ID_##id) >> 7),
-#include "ids.tbl"
-    };
-
-    if (i >= NUM_IDS)
-        i = ID_object;
-
-    return (object_p) (cmds + 2 * i);
-}
-
-
 uint32_t command::uint32_arg(uint level)
 // ----------------------------------------------------------------------------
 //   Get an unsigned value from the stack

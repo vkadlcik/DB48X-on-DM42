@@ -144,7 +144,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        insertion_of_variables_constants_and_units();
+        date_operations();
     }
     else
     {
@@ -5310,6 +5310,12 @@ void tests::date_operations()
     step("Adding days to a date (with time unit)")
         .test("112_h", NOSHIFT, ADD)
         .expect("Sat 19/Aug/2023, 16:00:00");
+
+    step("Runing TEVAL to time something")
+        .test(CLEAR, LSHIFT, RUNSTOP,
+              "0 1 10 FOR i i + 0.01 WAIT NEXT", ENTER,
+              "TEVAL", ENTER, WAIT(200)).noerr()
+        .match("duration:[1-3][0-9][0-9] ms");
 }
 
 

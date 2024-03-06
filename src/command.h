@@ -59,9 +59,6 @@ struct command : object
         return def;
     }
 
-    // Get a static command pointer for a given command
-    static object_p static_object(id i);
-
     // Get the top of the stack as an integer
     static uint32_t uint32_arg(uint level = 0);
     static int32_t  int32_arg (uint level = 0);

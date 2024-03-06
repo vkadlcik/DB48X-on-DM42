@@ -30,6 +30,7 @@
 #include "datetime.h"
 
 #include "arithmetic.h"
+#include "dmcp.h"
 #include "renderer.h"
 #include "tag.h"
 #include "unit.h"
@@ -947,5 +948,26 @@ COMMAND_BODY(DateFromJulianDayNumber)
         if (algebraic_p date = date_from_julian_day(jdn))
             if (rt.top(date))
                 return OK;
+    return ERROR;
+}
+
+
+COMMAND_BODY(TimedEval)
+// ----------------------------------------------------------------------------
+//   Evaluate and return the time it took
+// ----------------------------------------------------------------------------
+{
+    if (!rt.args(1))
+        return ERROR;
+    uint start = sys_current_ms();
+    if (result err = Eval::do_evaluate())
+        return err;
+    uint end = sys_current_ms();
+    if (integer_g duration = integer::make(end - start))
+        if (symbol_g ms = symbol::make("ms"))
+            if (unit_g result = unit::make(+duration, +ms))
+                if (tag_g tval = tag::make("duration", +result))
+                    if (rt.push(+tval))
+                        return OK;
     return ERROR;
 }

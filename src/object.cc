@@ -1366,6 +1366,27 @@ bool object::is_big() const
 }
 
 
+object_p object::static_object(id i)
+// ----------------------------------------------------------------------------
+//   Return a pointer to a static object representing the command
+// ----------------------------------------------------------------------------
+{
+    static byte cmds[] =
+    {
+#define ID(id)                                                \
+    object::ID_##id < 0x80 ? (object::ID_##id & 0x7F) | 0x00  \
+                           : (object::ID_##id & 0x7F) | 0x80, \
+    object::ID_##id < 0x80 ? 0 : ((object::ID_##id) >> 7),
+#include "ids.tbl"
+    };
+
+    if (i >= NUM_IDS)
+        i = ID_object;
+
+    return (object_p) (cmds + 2 * i);
+}
+
+
 #if DEBUG
 cstring object::debug() const
 // ----------------------------------------------------------------------------

@@ -244,6 +244,21 @@ public:
 #define SETTING_BITS(Name, Bits, Low, High, Init)       \
     SETTING(Name, Low, High, Init)
 #include "ids.tbl"
+
+    struct PrepareForProgramEvaluation
+    {
+        SaveSaveLastArguments    saveLastArgs;
+        SaveProgramLastArguments saveProgramLastArg;
+        SaveSaveStack            saveLastStack;
+        SaveSetAngleUnits        saveAngleUnits; // For sin, cos, tan
+
+        PrepareForProgramEvaluation()
+            : saveLastArgs(false),
+              saveProgramLastArg(false),
+              saveLastStack(false),
+              saveAngleUnits(false)
+        {}
+    };
 };
 
 

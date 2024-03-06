@@ -127,6 +127,9 @@ algebraic_p solve(program_g eq, symbol_g name, object_g guess)
     x = lx;
     record(solve, "Initial range %t-%t", +lx, +hx);
 
+    // We will run programs, do not save stack, etc.
+    settings::PrepareForProgramEvaluation wilLRunPrograms;
+
     // Set independent variable
     save<symbol_g *> iref(expression::independent, &name);
     int              prec = Settings.SolverPrecision();

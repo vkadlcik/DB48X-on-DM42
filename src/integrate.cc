@@ -104,6 +104,9 @@ algebraic_p integrate(program_g   eq,
 //   At each step, the size of C is one more than P.
 //   In the implementation below, those arrays are on the stack, P above C.
 {
+    // We will run commands below, do not save stack while doing it
+    settings::PrepareForProgramEvaluation wilLRunPrograms;
+
     // Check if the guess is an algebraic or if we need to extract one
     algebraic_g x, dx, dx2;
     algebraic_g y, dy, sy, sy2;

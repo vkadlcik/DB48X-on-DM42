@@ -68,8 +68,6 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
     id yt = y->type();
 
     /* Integer types */
-    bool ok = false;
-
     if (is_integer(xt) && is_integer(yt))
     {
         // Check if this is a bignum comparison
@@ -109,7 +107,7 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
     /* Real data types */
     algebraic_g xa = algebraic_p(+x);
     algebraic_g ya = algebraic_p(+y);
-    if (!ok && hwfp_promotion(xa, ya))
+    if (hwfp_promotion(xa, ya))
     {
         // Here we have two identical hardware floats types
         if (hwfloat_p xf = xa->as<hwfloat>())
@@ -135,7 +133,7 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
         *cmp = decimal::compare(xd, yd);
         return true;
     }
-    if (!ok && decimal_promotion(xa, ya))
+    if (decimal_promotion(xa, ya))
     {
         /* Here, x and y have a decimal type */
         decimal_g xd = decimal_p(+xa);
@@ -144,8 +142,8 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
         return true;
     }
 
-    if (!ok && ((xt == ID_text && yt == ID_text) ||
-                (xt == ID_symbol && yt == ID_symbol)))
+    if (((xt == ID_text && yt == ID_text) ||
+         (xt == ID_symbol && yt == ID_symbol)))
     {
         // Lexical comparison
         size_t xl = 0;
@@ -168,8 +166,8 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
         return true;
     }
 
-    if (!ok && ((xt == ID_list && yt == ID_list) ||
-                (xt == ID_array && yt == ID_array)))
+    if (((xt == ID_list && yt == ID_list) ||
+         (xt == ID_array && yt == ID_array)))
     {
         list_p xl = list_p(+x);
         list_p yl = list_p(+y);
@@ -201,7 +199,29 @@ bool comparison::compare(int *cmp, algebraic_r x, algebraic_r y)
         return true;
     }
 
-    // All other cases are errors
+    if (xt == ID_True || xt == ID_False)
+    {
+        int xtruth = xt == ID_True;
+        int ytruth = y->as_truth(false);
+        if (ytruth >= 0)
+        {
+            *cmp = xtruth - ytruth;
+            return true;
+        }
+    }
+    if (yt == ID_True || yt == ID_False)
+    {
+        int xtruth = x->as_truth(false);
+        int ytruth = yt == ID_True;
+        if (xtruth >= 0)
+        {
+            *cmp = xtruth - ytruth;
+            return true;
+        }
+    }
+
+    // All other cases are type errors
+    rt.type_error();
     return false;
 }
 
@@ -372,23 +392,21 @@ template object::result comparison::evaluate<TestNE>();
 
 COMMAND_BODY(True)
 // ----------------------------------------------------------------------------
-//   Evaluate as self
+//   Evaluate as a static (non-GC) version of True
 // ----------------------------------------------------------------------------
 {
-    if (rt.args(0))
-        if (rt.push(command::static_object(ID_True)))
-            return OK;
+    if (rt.push(True::static_self()))
+        return OK;
     return ERROR;
 }
 
 COMMAND_BODY(False)
 // ----------------------------------------------------------------------------
-//   Evaluate as self
+//   Evaluate as a static (non-GC) version of False
 // ----------------------------------------------------------------------------
 {
-    if (rt.args(0))
-        if (rt.push(command::static_object(ID_False)))
-            return OK;
+    if (rt.push(False::static_self()))
+        return OK;
     return ERROR;
 }
 

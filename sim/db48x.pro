@@ -42,6 +42,7 @@ SOURCES +=                                      \
         ../src/array.cc                         \
         ../src/bignum.cc                        \
         ../src/catalog.cc                       \
+        ../src/characters.cc                    \
         ../src/command.cc                       \
         ../src/comment.cc                       \
         ../src/compare.cc                       \

@@ -1211,7 +1211,6 @@ symbol_g unit_file::next(bool menu)
     symbol_g sym      = nullptr;
     scribble scr;
 
-    sym = nullptr;
     while (valid())
     {
         char c = getchar();

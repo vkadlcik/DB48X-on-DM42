@@ -338,7 +338,7 @@ MENU(MainMenu,
 
      "Time",    ID_TimeMenu,
      "I/O",     ID_IOMenu,
-     "Chars",   ID_CharsMenu);
+     "Chars",   ID_CharactersMenu);
 
 
 MENU(MathMenu,
@@ -1276,17 +1276,6 @@ MENU(ClearThingsMenu,
      "Mem",     ID_Unimplemented,
      "Error",   ID_err0,
      "LCD",     ID_ClLCD);
-
-MENU(CharsMenu,
-// ----------------------------------------------------------------------------
-//   Will be dynamic
-// ----------------------------------------------------------------------------
-     "→",       ID_SelfInsert,
-     "∂",       ID_SelfInsert,
-     "∫",       ID_SelfInsert,
-     "∑",       ID_SelfInsert,
-     "∏",       ID_SelfInsert,
-     "∆",       ID_SelfInsert);
 
 MENU(ModesMenu,
 // ----------------------------------------------------------------------------

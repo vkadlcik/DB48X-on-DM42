@@ -34,6 +34,7 @@
 #include "array.h"
 #include "bignum.h"
 #include "catalog.h"
+#include "characters.h"
 #include "comment.h"
 #include "compare.h"
 #include "complex.h"

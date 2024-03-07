@@ -228,6 +228,7 @@ CXX_SOURCES +=				\
 	src/catalog.cc			\
 	src/command.cc			\
 	src/comment.cc		        \
+	src/characters.cc		\
 	src/compare.cc			\
 	src/complex.cc			\
 	src/conditionals.cc		\

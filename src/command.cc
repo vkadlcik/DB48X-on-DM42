@@ -324,7 +324,13 @@ COMMAND_BODY(SelfInsert)
         uint plane = ui.shift_plane();
         uint menu_idx = key - KEY_F1 + plane * ui.NUM_SOFTKEYS;
         uint count = 0;
-        if (cstring lbl = ui.label_text(menu_idx))
+        if (symbol_p sym = ui.label(menu_idx))
+        {
+            size_t len = 0;
+            utf8 txt = sym->value(&len);
+            ui.edit(txt, len, ui.TEXT);
+        }
+        else if (cstring lbl = ui.label_text(menu_idx))
         {
             uint cpos = ui.cursor_position();
             for (utf8 p = utf8(lbl); *p; p = utf8_next(p))

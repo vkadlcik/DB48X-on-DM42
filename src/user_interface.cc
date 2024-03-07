@@ -220,6 +220,9 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
         select = ~0U;
         dirtyStack = true;
     }
+    else if (m == TEXT)
+    {
+    }
     else if ((!is_algebraic(mode) || !is_algebraic(m)) &&
              cursor > 0 && ed[cursor-1] != ' ')
     {
@@ -229,7 +232,11 @@ object::result user_interface::edit(utf8 text, size_t len, modes m, int offset)
 
     size_t added = insert(cursor, text, len);
 
-    if ((m == POSTFIX || m == INFIX || m == CONSTANT) && is_algebraic(mode))
+    if (m == TEXT)
+    {
+    }
+    else if ((m == POSTFIX || m == INFIX || m == CONSTANT) &&
+             is_algebraic(mode))
     {
         /* nothing */
     }
@@ -4108,7 +4115,7 @@ static const byte defaultSecondShiftedCommand[2*user_interface::NUM_KEYS] =
     OP2BYTES(KEY_MUL,   menu::ID_NumbersMenu),
     OP2BYTES(KEY_SHIFT, 0),
     OP2BYTES(KEY_1,     menu::ID_DebugMenu),
-    OP2BYTES(KEY_2,     menu::ID_CharsMenu),
+    OP2BYTES(KEY_2,     menu::ID_CharactersMenu),
     OP2BYTES(KEY_3,     menu::ID_TestsMenu),
     OP2BYTES(KEY_SUB,   menu::ID_IOMenu),
     OP2BYTES(KEY_EXIT,  command::ID_SaveState),

@@ -54,7 +54,7 @@
   In the inner block, A and B will be index 0 and 1 respectively, X and Y will
   be index 2 and 3 respectively, referring to the outer block.
 
-  When exiting a local scope, a local name like 'X' on the stack or in an
+  com  When exiting a local scope, a local name like 'X' on the stack or in an
   algebraic object or elsewhere becomes invalid. It is a program error to
   do so. A local object referring beyond the last object will show up as
   'InvalidLocal'.

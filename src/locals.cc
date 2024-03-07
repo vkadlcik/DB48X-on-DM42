@@ -97,8 +97,8 @@ PARSE_BODY(locals)
         }
         if (!is_valid_as_name_initial(cp))
         {
-            object_p cmd = static_object(ID_locals);
-            rt.syntax_error().source(s).command(cmd);
+            object_p cmd = symbol::make("Local variables block");
+            rt.missing_variable_error().source(s).command(cmd);
             return ERROR;
         }
 

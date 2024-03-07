@@ -374,6 +374,9 @@ COMMAND_BODY(DateTime)
 //   Return current date and time
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
+
     dt_t dt;
     tm_t tm;
     rtc_wakeup_delay();
@@ -395,6 +398,9 @@ COMMAND_BODY(Date)
 //   Return current date
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
+
     dt_t dt;
     tm_t tm;
     rtc_wakeup_delay();
@@ -445,6 +451,9 @@ COMMAND_BODY(Time)
 //   Return the current time
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
+
     dt_t dt;
     tm_t tm;
     rtc_wakeup_delay();
@@ -467,6 +476,9 @@ COMMAND_BODY(ChronoTime)
 //   Return the current time with a precision of 1/100th of a second
 // ----------------------------------------------------------------------------
 {
+    if (!rt.args(0))
+        return ERROR;
+
     dt_t dt;
     tm_t tm;
     rtc_wakeup_delay();

@@ -128,6 +128,7 @@ COMMAND_DECLARE(Compile);       // Compile and evalaute a text
 COMMAND_DECLARE(Explode);       // Explode an object (aka Obj→)
 COMMAND_DECLARE(ToText);        // Convert an object to text
 COMMAND_DECLARE(SelfInsert);    // Enter menu label in the editor
+COMMAND_DECLARE(ReplaceChar);   // Replace character with label in editor
 COMMAND_DECLARE(Ticks);         // Return number of ticks
 COMMAND_DECLARE(Wait);          // Wait a given amount of time
 COMMAND_DECLARE(Bytes);         // Return the bytes representation of object

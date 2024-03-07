@@ -52,6 +52,12 @@ struct character_menu : menu
 {
     character_menu(id type) : menu(type) { }
 
+    static uint build_general_menu(menu_info &mi);
+    static uint build_at_cursor(menu_info &mi);
+    static uint build_for_code(menu_info &mi, unicode cp);
+    static uint build_from_characters(menu_info &mi,
+                                      utf8 chars, size_t len, size_t offset);
+
 public:
     MENU_DECL(character_menu);
 };

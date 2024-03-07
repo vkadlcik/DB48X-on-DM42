@@ -1063,6 +1063,7 @@ CMD(LastMenu)                   // Last parseable command
 CMD(IfErrThen)                  // Special tests
 CMD(IfErrThenElse)              // Last programmable command
 
+CMD(ReplaceChar)
 CMD(SelfInsert)                 // Last immediate command
 
 

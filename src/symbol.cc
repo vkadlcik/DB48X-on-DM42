@@ -103,7 +103,7 @@ RENDER_BODY(symbol)
 
 symbol_g operator+(symbol_r x, symbol_r y)
 // ----------------------------------------------------------------------------
-//   Concatenate two texts
+//   Concatenate the text in two symbols
 // ----------------------------------------------------------------------------
 {
     if (!x)

@@ -887,6 +887,52 @@ bool user_interface::at_end_of_number()
 }
 
 
+unicode user_interface::character_left_of_cursor()
+// ----------------------------------------------------------------------------
+//    Return the unicode character at left of cursor
+// ----------------------------------------------------------------------------
+{
+    size_t edlen = rt.editing();
+    utf8   ed    = rt.editor();
+    if (!ed || edlen == 0)
+        return 0;
+
+    uint    ppos = utf8_previous(ed, cursor);
+    utf8    prev = ed + ppos;
+    unicode code = utf8_codepoint(prev);
+    return code;
+}
+
+
+bool user_interface::replace_character_left_of_cursor(symbol_p sym)
+// ----------------------------------------------------------------------------
+//    Replace the character left of cursor with teh symbol
+// ----------------------------------------------------------------------------
+{
+    size_t len = 0;
+    utf8   txt = sym->value(&len);
+    return replace_character_left_of_cursor(txt, len);
+}
+
+
+bool user_interface::replace_character_left_of_cursor(utf8 text, size_t len)
+// ----------------------------------------------------------------------------
+//   Replace the character left of cursor with the new text
+// ----------------------------------------------------------------------------
+{
+    size_t edlen = rt.editing();
+    utf8   ed    = rt.editor();
+    if (ed && edlen)
+    {
+        uint ppos = utf8_previous(ed, cursor);
+        if (ppos != cursor)
+            remove(ppos, cursor - ppos);
+    }
+    edit(text, len, TEXT);
+    return true;
+}
+
+
 void user_interface::menu(menu_p menu, uint page)
 // ----------------------------------------------------------------------------
 //   Set menu and page
@@ -899,8 +945,8 @@ void user_interface::menu(menu_p menu, uint page)
     if (mid != *menuStack)
     {
         pageStack[0] = menuPage;
-        memmove(menuStack + 1, menuStack, sizeof(menuStack) - sizeof(*menuStack));
-        memmove(pageStack + 1, pageStack, sizeof(pageStack) - sizeof(*pageStack));
+        memmove(menuStack+1, menuStack, sizeof(menuStack) - sizeof(*menuStack));
+        memmove(pageStack+1, pageStack, sizeof(pageStack) - sizeof(*pageStack));
         if (menu)
         {
             menuStack[0] = mid;

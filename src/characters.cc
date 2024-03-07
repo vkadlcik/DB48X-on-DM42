@@ -77,6 +77,7 @@ symbol_g characters_file::next()
             *buf = byte(c);
         }
     }
+
     return result;
 }
 
@@ -94,14 +95,168 @@ static const cstring basic_characters[] =
 // ----------------------------------------------------------------------------
 //   clang-format off
 {
+    //           123456123456123456
+    "",         ("AÀÁÂÃaàáâãÄÅĀĂĄäåāăąǍÆǼǺ@ǎæǽǻªΑΆАЯẠαάаяạ"
+                 "ẢẤẦẨẪảấầẩẫẬẮẰẲẴậắằẳẵẶặ"),
+    "",         "BΒБВЪЬbβбвъьßẞЫы",
+    "",         "CÇĆĈĊcçćĉċČĆĈĊČčćĉċčСΓсγ©¢ℂ℅",
+    "",         "DÐĎĐΔДdðďđδдЂђ₫",
+    "",         ("EÈÉÊËeèéêëĒĔĖĘĚěēĕėęЀЁЄЄЭѐёєєэЕΕΈΗΉεέηήе"
+                 "ẸẺẼẾỀẹẻẽếềỂỄỆÆ€ểễệæ&"),
+    "",         "FΦФfφфϕƒ₣",
+    "",         "GĜĞĠĢgĝğġģΓГЃҐγгѓґℊ",
+    "",         "HĤĦΗΉХhĥħηήхЧШЩчшщℎℏ",
+    "",         "IÌÍÎÏiìíîïĨĪĬĮİĩīĭįıǏĲΙΊΪǐĳιίΐΪЇІИЍϊїіиѝЙỈỊйỉị",
+    "",         "JĴĲЈjĵĳȷј",
+    "",         "KĶΚΧЌКķkκχќкĸ",
+    "",         "LĹĻĽĿŁlĺļľŀłΛЛЉλљ₤ℓ",
+    "",         "MΜМmµмμ",
+    "",         "NÑŃŅŇŊnñńņňŋΝЊНνΰњнŉⁿ№",
+    "",         ("OÒÓÔÕoòóôõÖŌŎŐƠöōŏőơǑØǾŒΌǒøǿœόΩΏОỌỎωώоọỏ"
+                 "ỐỒỔỖỘốồổỗộỚỜỞỠỢớờởỡợ°0º℅"),
+    "",         "PΠПРΨpπпрψϖ¶₧",
+    "",         "Qq",
+    "",         "RŔŖŘΡРРřrŕŗρрʳ",
+    "",         "SŚŜŞŠȘsśŝşšșΣЅСσѕс$§ßẞſ",
+    "",         "TŢŤŦȚtţťŧțΘΤТÞЋθτтþћЦц℡™",
+    "",         ("UÙÚÛÜuùúûüŨŪŬŮŰũūŭůűŲƯǓǕǙųưǔǖǘǛΫΎЎУǜϋύўу"
+                 "ỤỦỨỪỬụủứừửỮỰЮữựю"),
+    "",         "VВvв",
+    "",         "WŴẀẂẄΩwŵẁẃẅω",
+    "",         "XΞΧХxξχх",
+    "",         "YÝŶŸΥyýÿŷυΎỲỴỶỸύỳỵỷỹΫЫЮЯ¥ϋыюя",
+    "",         "ZŹŻŽΖЏzźżžζџЖЗжз",
+    "",         "0₀⁰°º",
+    "",         "1₁¹¼½",
+    "",         "2₂²½",
+    "",         "3₃³¾",
+    "",         "4₄⁴¼¾",
+    "",         "5₅⁵",
+    "",         "6₆⁶",
+    "",         "7₇⁷",
+    "",         "8₈⁸",
+    "",         "9₉⁹",
+    "",         "‽?¿¡ˀ,.·;!‼",
+    "",         "^⁳ˆˇˉ˘˙˚˛˜˝̣ʹ͵",
+    "",         "-‐–—―−_‗‾",
+    "",         "'\"′″`´‘’‚‛“”„",
+    "",         "|†‡",
+    "",         "*×·•",
+    "",         "/÷⁄",
+    "",         ".…",
+    "",         "%‰½¼¾℅",
+    "",         "<‹«>»›",
+    "",         "$€¢£¤¥₣₤₧₫₭₹₺₽ƒ",
+
     "RPL",      "→«»Σ∏∆" "⇄{}≤≠≥" "ⅈ∡_∂∫|",
-    "Math",     "Σ∏∆∂∫|" "+-*/×÷" "<=>≤≠≥",
-    "Punct",    ".,;:!?" "#$%&'\\" "()[]{}",
-    "Greek",    "αβγδεΑΒΓΔΕάΆ·ΈέζηθικΖΗΘΙΚΉήϊίΊλμνξοΛΜΝΞΟʹ͵΅ΌόπρστυΠΡΣΤΥ ϋςΎύφχψωΰΦΧΨΩ΄ϕ;ϖώΏ",
-    "LtrLike",  "©®℗™℠№" "ªº℀℁℅℆" "℔℥ℨℬℊ℞",
-    "Arrows",   "→←↑↓↔︎↕︎" "↵↩︎↺↻↳↪︎" "↖︎↘︎",
+    "Arith",    "+-*/×÷" "<=>≤≠≥" "·%^↑\\±",
+    "Math",     ("Σ∏∆∂∫" "πℼ′″°" "ⅈⅉℂℚℝ"
+                 "+-±^↑" "*×·∙∡" "/÷%‰⁳"
+                 "₀₁₂₃₄" "₅₆₇₈₉" "½¼¾ø∞"
+                 "⁰¹²³⁴" "⁵⁶⁷⁸⁹" "⅛⅜⅝⅞|"
+                 "≤≠≈≡≥" "√∛∜ℎℏ" "⌐¬⌠⌡−"
+                 "∩∟∠∡⊿")
+    ,
+    "Punct",    ".,;:!?" "#$%&'\"" "¡¿`´~\\",
+    "Delim",    "()[]{}" "«»'\"¦§" "¨­¯",
+    "Greek",    ("αβγδεΑΒΓΔΕάΆ·ΈέζηθικΖΗΘΙΚΉήϊίΊλμνξοΛΜΝΞΟʹ͵΅Όό"
+                 "πρστυΠΡΣΤΥ ϋςΎύφχψωΰΦΧΨΩ΄ϕ;ϖώΏ"),
+
+    "Arrows",   ("←↑→↓↔"
+                 "↕⇄⇆↨⌂"
+                 "▲▼◀▬▶"
+                 "◢◣◄▪►"
+                 "◥◤◀■▶"),
+    "Blocks",   ("┌┬┐─"
+                 "├┼┤│"
+                 "└┴┘▬"
+                 "╒╤╕▄"
+                 "╞╪╡█"
+                 "╘╧╛▀"
+                 "╓╥╖▌"
+                 "╟╫╢▐"
+                 "╙╨╜▪"
+                 "╔╦╗═"
+                 "╠╬╣║"
+                 "╚╩╝■ "
+                 "░▒▓□▫"),
+
+
+    "Bullets",  ("·∙►▶→"
+                 "■□▪▫▬"
+                 "○●◊◘◙"),
+    "Currency", "$€¢£¤¥₣₤₧₫₭₹₺₽ƒ",
+    "Europe",   ("ÀÁÂÃÄ"
+                 "àáâãä"
+                 "ÅÆÇ"
+                 "åæç"
+                 "ÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞß"
+                 "èéêëìíîïðñòóôõöøùúûüýþÿ"
+                 "ĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģ"
+                 "ĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋ"
+                 "ŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲų"
+                 "ŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ"
+                 "ȘșȚțȷ"),
+    "Cyrillic", ("АБВГДабвгд     "
+                 "ЕЖЗИЙежзий     "
+                 "КЛМНОклмно     "
+                 "ПРСТУпрсту     "
+                 "ФХЦЧШфхцчш     "
+                 "ЩЪЫЬЭщъыьэ     "
+                 "ЮЯ   юя        "),
+
+    "Fill",    ("▪▫░▒▓"
+                "▀▄█▌▐"
+                "■□"),
+"",
+    "Picto",    ("⌂№℡™⚙"
+                 "☺☻☼♀♂"
+                 "♠♣♥♦◊"
+                 "♪♫○●▬"),
+    "Boxes",    "",
+    "Num-like", ("⁰¹²³⁴"
+                 "₀₁₂₃₄"
+                 "ⅠⅡⅢⅣⅤ"
+                 "⁵⁶⁷⁸⁹"
+                 "₅₆₇₈₉"
+                 "ⅥⅦⅧⅨⅩ"
+                 "ⅪⅫⅬⅭⅮ"
+                 "Ⅿ⅛⅜⅝⅞"
+                 "⁳№"),
+    "Ltr-like", "$&@¢©¥ℂ℅ℊℎℏℓ№ℚℝ℡™Å℮ℼⅈⅉⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫⅬⅭⅮⅯ",
+
+    "All",      (" !\"#$%&'()*+,-./0123456789:;<=>?@"
+                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
+                 "abcdefghijklmnopqrstuvwxyz{|}~"
+                 " ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿À"
+                 "ÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæ"
+                 "çèéêëìíîïðñòóôõö÷øùúûüýþÿĀ"
+                 "āĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħ"
+                 "ĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁł"
+                 "ŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠš"
+                 "ŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſ"
+                 "ƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿȘșȚțȷ"
+                 "ʳˀˆˇˉ˘˙˚˛˜˝̣ʹ͵;"
+                 "΄Ά·ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫ"
+                 "άέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϕϖ"
+                 "ЀЁЂЃЄЅІЇЈЉЊЋЌЍЎЏ"
+                 "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+                 "абвгдежзийклмнопрстуфхцчшщъыьэюя"
+                 "ѐёђѓєѕіїјљњћќѝўџҐґ"
+                 "ẀẁẂẃẄẅẞẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾếỀ"
+                 "ềỂểỄễỆệỈỉỊịỌọỎỏỐốỒồỔổỖỗỘộỚớỜờỞởỠỡỢợỤụỦủỨứỪừỬửỮữỰựỲỳỴỵỶỷỸỹ"
+                 "      ‐–—―‗‘’‚‛“”„†‡•…‰′″‹›‼‽‾"
+                 "⁄ ⁰⁳⁴⁵⁶⁷⁸⁹⁻ⁿ₀₁₂₃₄₅₆₇₈₉₣₤₧₫€₭₹₺₽"
+                 "ℂ℅ℊℎℏℓ№ℚℝ℡™ΩÅ℮ℼⅈⅉ⅛⅜⅝⅞"
+                 "ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫⅬⅭⅮⅯ"
+                 "←↑→↓↔↕↨⇄⇆∂∆∏∑−∕∙√∛∜∞∟∠∡∩∫≈≠≡≤≥⊿⌂⌐⌠⌡"
+                 "─│┌┐└┘├┤┬┴┼═║╒╓╔╕╖╗╘╙╚╛╜╝╞╟╠╡╢╣╤╥╦╧╨╩╪╫╬"
+                 "▀▄█▌▐░▒▓■□▪▫▬▲▶►▼◀◄◊"
+                 "○●◘◙◢◣◤◥◦☺☻☼♀♂♠♣♥♦♪♫⚙")
 };
 //   clang-format on
+
+
 
 
 
@@ -126,10 +281,10 @@ MENU_BODY(character_menu)
 
     if (cfile.valid())
     {
-        while (cfile.next())
+        while (text_p mname = cfile.next())
         {
             mchars = cfile.next();
-            if (mchars)
+            if (mchars && mname->length())
             {
                 if (menu == type)
                 {
@@ -150,16 +305,19 @@ MENU_BODY(character_menu)
     {
         for (size_t u = 0; u < maxu; u += 2)
         {
-            if (menu == type)
+            if (basic_characters[u] && *basic_characters[u])
             {
-                utf8   mtxt = utf8(basic_characters[u + 1]);
-                size_t len  = strlen(cstring(mtxt));
-                mchars      = symbol::make(mtxt, len);
-                for (utf8 p = mtxt; *p; p = utf8_next(p))
-                    matching++;
-                break;
+                if (menu == type)
+                {
+                    utf8   mtxt = utf8(basic_characters[u + 1]);
+                    size_t len  = strlen(cstring(mtxt));
+                    mchars      = symbol::make(mtxt, len);
+                    for (utf8 p = mtxt; *p; p = utf8_next(p))
+                        matching++;
+                    break;
+                }
+                menu = id(menu + 1);
             }
-            menu = id(menu + 1);
         }
     }
 
@@ -185,6 +343,16 @@ MENU_BODY(CharactersMenu)
 //   The characters menu is dynamically populated
 // ----------------------------------------------------------------------------
 {
+    character_menu::build_general_menu(mi);
+    return true;
+}
+
+
+uint character_menu::build_general_menu(menu_info &mi)
+// ----------------------------------------------------------------------------
+//   Build a menu displaying the various possible classes of character
+// ----------------------------------------------------------------------------
+{
     uint   infile   = 0;
     uint   count    = 0;
     uint   maxmenus = ID_CharactersMenu99 - ID_CharactersMenu00;
@@ -195,13 +363,16 @@ MENU_BODY(CharactersMenu)
     if (cfile.valid())
         while (symbol_g mname = cfile.next())
             if (symbol_g mvalue = cfile.next())
-                if (infile++ >= maxmenus)
-                    break;
+                if (mname->length())
+                    if (infile++ >= maxmenus)
+                        break;
 
     // Count built-in character menu titles
     if (!infile || Settings.ShowBuiltinCharacters())
     {
-        count += maxu / 2;
+        for (size_t u = 0; u < maxu; u += 2)
+            if (basic_characters[u] && *basic_characters[u])
+                count++;
         if (infile + count > maxmenus)
             count = maxmenus - infile;
     }
@@ -215,9 +386,12 @@ MENU_BODY(CharactersMenu)
         {
             if (symbol_g mvalue = cfile.next())
             {
-                if (infile >= maxmenus)
-                    break;
-                items(mi, mname, id(ID_CharactersMenu00 + infile++));
+                if (mname && mname->length())
+                {
+                    if (infile >= maxmenus)
+                        break;
+                    items(mi, mname, id(ID_CharactersMenu00 + infile++));
+                }
             }
         }
     }
@@ -225,11 +399,153 @@ MENU_BODY(CharactersMenu)
     {
         for (size_t u = 0; u < maxu; u += 2)
         {
-            if (infile >= maxmenus)
-                break;
-            items(mi, basic_characters[u], id(ID_CharactersMenu00+infile++));
+            if (basic_characters[u] && *basic_characters[u])
+            {
+                if (infile >= maxmenus)
+                    break;
+                items(mi, basic_characters[u],
+                      id(ID_CharactersMenu00+infile++));
+            }
         }
     }
 
     return true;
+}
+
+
+uint character_menu::build_at_cursor(menu_info &mi)
+// ----------------------------------------------------------------------------
+//   Build character catalog for cursor position
+// ----------------------------------------------------------------------------
+{
+    unicode cp = ui.character_left_of_cursor();
+    return build_for_code(mi, cp);
+}
+
+
+uint character_menu::build_for_code(menu_info &mi, unicode cp)
+// ----------------------------------------------------------------------------
+//   Build character catalog for a given code point
+// ----------------------------------------------------------------------------
+{
+    // Use the characters loaded from the characters file
+    characters_file cfile(CFILE);
+    size_t   maxu      = sizeof(basic_characters) / sizeof(basic_characters[0]);
+    symbol_g menuchars = nullptr;
+    uint     offset    = 0;
+
+    if (cfile.valid())
+    {
+        while (text_p mname = cfile.next())
+        {
+            symbol_g mchars = cfile.next();
+            if (mchars && !mname->length())
+            {
+                if (cp)
+                {
+                    size_t len = 0;
+                    utf8 val = mchars->value(&len);
+                    utf8 end = val + len;
+                    uint found = ~0U;
+                    for (utf8 p = val; !~found && p < end; p = utf8_next(p))
+                        if (utf8_codepoint(p) == cp)
+                            found = p - val;
+                    if (~found)
+                    {
+                        if (!menuchars)
+                            offset = found;
+                        menuchars = menuchars + mchars;
+                    }
+                }
+                else
+                {
+                    menuchars = menuchars + mchars;
+                }
+            }
+        }
+    }
+
+     // Disable built-in characters if we loaded a file
+    if (!menuchars || Settings.ShowBuiltinCharacters())
+    {
+        for (size_t u = 0; u < maxu; u += 2)
+        {
+            if (!basic_characters[u] || !*basic_characters[u])
+            {
+                utf8 mtxt = utf8(basic_characters[u + 1]);
+                if (cp)
+                {
+                    uint found = ~0U;
+                    for (utf8 p = mtxt; !~found && *p; p = utf8_next(p))
+                        if (utf8_codepoint(p) == cp)
+                            found = p - mtxt;
+                    if (~found)
+                    {
+                        if (!menuchars)
+                            offset = found;
+                        symbol_g mchars = symbol::make(cstring(mtxt));
+                        menuchars = menuchars + mchars;
+                    }
+                }
+                else
+                {
+                    symbol_g mchars = symbol::make(cstring(mtxt));
+                    menuchars = menuchars + mchars;
+                }
+            }
+        }
+    }
+
+    if (menuchars)
+    {
+        size_t len   = 0;
+        utf8   txt   = menuchars->value(&len);
+        return build_from_characters(mi, txt, len, offset);
+    }
+    return build_general_menu(mi);
+}
+
+
+uint character_menu::build_from_characters(menu_info &mi,
+                                           utf8 txt, size_t len,
+                                           size_t offset)
+// ----------------------------------------------------------------------------
+//   Build a character menu from the given characters
+// ----------------------------------------------------------------------------
+{
+    utf8   end   = txt + len;
+    uint   count = 0;
+    uint   index = 0;
+    for (utf8 p = txt; p < end; p = utf8_next(p))
+    {
+        count++;
+        if (p == txt + offset)
+            index = count;
+    }
+    if (count)
+    {
+        items_init(mi, count);
+        index = (index + count - 3) % count;
+        for (utf8 p = txt; p < end; p = utf8_next(p))
+        {
+            if (index-- == 0)
+            {
+                offset = p - txt;
+                break;
+            }
+        }
+
+        utf8 next = nullptr;
+        for (utf8 p = txt + offset; count--; p = next)
+        {
+            next           = utf8_next(p);
+            symbol_g label = symbol::make(p, size_t(next -p));
+            items(mi, label, ID_ReplaceChar);
+            if (next >= end)
+                next = txt;
+        }
+        return count;
+    }
+
+    return 0;
 }

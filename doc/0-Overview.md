@@ -249,7 +249,7 @@ Here are a few of the interesting RPL-specific key mappings:
 
 * 🟦 _A_ (_MAIN_, DM-32 _PARTS_) selects the [MainMenu](#MainMenu), a top-level
   menu giving indicrect access to all other menus and features in DB48X (see
-  also the [Catalog](#CatalogMenu) feature).
+  also the [Catalog](#Catalog) feature).
 
 * _F_ (_' ()_, DM-42 _XEQ_, DM-32 _Σ+_) opens an algebraic expression, i.e. it
   shows `''` on the command-line and switches to equation entry. If already
@@ -314,9 +314,11 @@ Here are a few of the interesting RPL-specific key mappings:
   `{` and `}`.
 
 * 🟨 _+_ (_CAT_, DM-42 _CATALOG_, DM-32 _LBL_) shows a complete
-  context-sensitive [catalog](#CatalogMenu) of all available functions, and
+  context-sensitive [catalog](#Catalog) of all available functions, and
   enables auto-completion using the soft-menu keys. Note that the `+` key alone
-  (without shift) activates the catalog while in *Alpha* mode.
+  (without shift) activates the catalog while in *Alpha* mode. When inside text,
+  the catalog presents alternates for the character at the left of the cursor,
+  providing a convenient way to select diacritics and accents..
 
 * 🟦 _+_ (_HELP_, DM-32 _RTN_) activates the context-sensitive help system.
 
@@ -380,7 +382,7 @@ unintentional differences, since the implementation is completely new.
   file named `/HELP/DB48X.md`, stored in the calculator's flash storage.
 
 * DB48X features auto-completion for commands while typing, through
-  the  _Catalog_ key ([CatalogMenu](#CatalogMenu)).
+  the  _CAT_ key (a [Catalog](#Catalog) of all commands).
 
 * Many RPL words exist in short and long form, and a user preference selects how
   a program shows. For example, the [Negate](#negate) command, which the HP48

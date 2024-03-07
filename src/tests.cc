@@ -4323,7 +4323,7 @@ void tests::catalog_test()
         .test(B, U).editor("{ %Change abs BU}")
         .test(F1).editor("{ %Change abs Debug }");
     step("Catalog with nothing entered")
-        .test(F6, F3).editor("{ %Change abs Debug + }");
+        .test(F6, F3).editor("{ %Change abs Debug abs }");
 
     step("Test the default menu")
         .test(CLEAR, EXIT, A, RSHIFT, RUNSTOP).editor("{}")

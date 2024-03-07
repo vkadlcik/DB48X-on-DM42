@@ -148,6 +148,9 @@ struct user_interface
     bool        current_word(size_t &start, size_t &size);
     bool        current_word(utf8 &start, size_t &size);
     bool        at_end_of_number();
+    unicode     character_left_of_cursor();
+    bool        replace_character_left_of_cursor(symbol_p sym);
+    bool        replace_character_left_of_cursor(utf8 text, size_t len);
 
     uint        shift_plane()   { return xshift ? 2 : shift ? 1 : 0; }
     void        clear_help();

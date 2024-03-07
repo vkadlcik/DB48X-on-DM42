@@ -51,6 +51,8 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <string.h>
+
 
 RECORDER(command,       16, "RPL Commands");
 RECORDER(command_error, 16, "Errors processing a command");
@@ -311,6 +313,24 @@ COMMAND_BODY(Explode)
         }
     }
     return ERROR;
+}
+
+
+COMMAND_BODY(ReplaceChar)
+// ----------------------------------------------------------------------------
+//   Find the label associated to the menu and enter it in the editor
+// ----------------------------------------------------------------------------
+{
+    if (int key = ui.evaluating_function_key())
+    {
+        uint plane = ui.shift_plane();
+        uint menu_idx = key - KEY_F1 + plane * ui.NUM_SOFTKEYS;
+        if (symbol_p sym = ui.label(menu_idx))
+            ui.replace_character_left_of_cursor(sym);
+        else if (cstring lbl = ui.label_text(menu_idx))
+            ui.replace_character_left_of_cursor(utf8(lbl), strlen(lbl));
+    }
+    return OK;
 }
 
 

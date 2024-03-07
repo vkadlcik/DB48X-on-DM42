@@ -28,11 +28,13 @@
 // ****************************************************************************
 
 #include "catalog.h"
+
+#include "characters.h"
 #include "runtime.h"
 #include "user_interface.h"
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 MENU_BODY(Catalog)
@@ -40,12 +42,21 @@ MENU_BODY(Catalog)
 //   Process the MENU command for Catalog
 // ----------------------------------------------------------------------------
 {
-    uint  nitems = count_commands();
-    items_init(mi, nitems, 1);
-    ui.menu_auto_complete();
-    list_commands(mi);
-    if (mi.page >= mi.pages)
-        mi.page = 0;
+    if (ui.editing_mode() == ui.TEXT)
+    {
+        // Character catalog
+        character_menu::build_at_cursor(mi);
+    }
+    else
+    {
+        // Command catalog
+        uint  nitems = count_commands();
+        items_init(mi, nitems);
+        ui.menu_auto_complete();
+        list_commands(mi);
+        if (mi.page >= mi.pages)
+            mi.page = 0;
+    }
     return OK;
 }
 

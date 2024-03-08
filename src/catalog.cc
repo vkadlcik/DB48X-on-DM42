@@ -37,6 +37,9 @@
 #include <string.h>
 
 
+RECORDER(catalog_error, 16, "Errors building the catalog");
+
+
 MENU_BODY(Catalog)
 // ----------------------------------------------------------------------------
 //   Process the MENU command for Catalog
@@ -61,7 +64,8 @@ MENU_BODY(Catalog)
 }
 
 
-static uint16_t *sorted_ids = nullptr;
+static uint16_t *sorted_ids       = nullptr;
+static size_t    sorted_ids_count = 0;
 
 
 static int sort_ids(const void *left, const void *right)
@@ -83,13 +87,45 @@ static void initialize_sorted_ids()
 // ----------------------------------------------------------------------------
 {
     size_t count = object::spelling_count;
+    uint   cmd    = 0;
     sorted_ids   = (uint16_t *) realloc(sorted_ids, count * sizeof(uint16_t));
     if (sorted_ids)
     {
         for (uint i = 0; i < count; i++)
             sorted_ids[i] = i;
         qsort(sorted_ids, count, sizeof(sorted_ids[0]), sort_ids);
+
+        // Make sure we have unique commands in the catalog
+        cstring spelling = nullptr;
+        for (uint i = 0; i < count; i++)
+        {
+            uint16_t j = sorted_ids[i];
+            auto &s = object::spellings[j];
+
+            if (object::is_command(s.type))
+            {
+                cstring sp = s.name;
+                if (!spelling ||
+                    (spelling != sp && strcasecmp(sp, spelling) != 0))
+                {
+                    sorted_ids[cmd++] = sorted_ids[i];
+                    spelling = sp;
+                }
+                else if (cmd)
+                {
+                    uint c = sorted_ids[cmd - 1];
+                    auto &last = object::spellings[c];
+                    if (s.type != last.type)
+                    {
+                        record(catalog_error,
+                               "Types %u and %u have same spelling %+s and %+s",
+                               s.type, last.type, spelling, sp);
+                    }
+                }
+            }
+        }
     }
+    sorted_ids_count = cmd;
 }
 
 
@@ -147,15 +183,30 @@ void Catalog::list_commands(info &mi)
     if (!sorted_ids)
         initialize_sorted_ids();
 
-    for (size_t i = 0; i < spelling_count; i++)
+    if (sorted_ids)
     {
-        uint16_t j = sorted_ids ? sorted_ids[i] : i;
-        object::id ty = object::spellings[j].type;
-        if (!object::is_command(ty))
-            continue;
+        for (size_t i = 0; i < sorted_ids_count; i++)
+        {
+            uint16_t j = sorted_ids[i];
+            auto &s = object::spellings[j];
+            id ty  = s.type;
+            if (cstring name = s.name)
+                if (!filter || matches(start, size, utf8(name)))
+                    menu::items(mi, name, command::static_object(ty));
+        }
+    }
+    else
+    {
+        // Fallback if we did not have enough memory for sorted_ids
+        for (size_t i = 0; i < spelling_count; i++)
+        {
+            object::id ty = object::spellings[i].type;
+            if (!object::is_command(ty))
+                continue;
 
-        if (cstring name = spellings[j].name)
-            if (!filter || matches(start, size, utf8(name)))
-                menu::items(mi, name, command::static_object(ty));
+            if (cstring name = spellings[i].name)
+                if (!filter || matches(start, size, utf8(name)))
+                    menu::items(mi, name, command::static_object(ty));
+        }
     }
 }

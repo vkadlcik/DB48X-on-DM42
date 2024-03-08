@@ -46,9 +46,10 @@ volatile uint keysync_done = 0;
 
 RECORDER_DECLARE(errors);
 
-uint wait_time  = 200;
-uint delay_time = 2;
-uint long_tests = 0;
+uint tests::default_wait_time  = 200;
+uint tests::image_wait_time = 500;
+uint tests::key_delay_time = 2;
+uint tests::refresh_delay_time = 50;
 
 #define TEST_CATEGORY(name, enabled, descr)                     \
     RECORDER_TWEAK_DEFINE(est_##name, enabled, "Test " descr);  \
@@ -2624,7 +2625,7 @@ void tests::high_precision_numerical_functions()
     TFN(exp2).expect("1.24919 61256 53376 70052 14667 82085 80659 83711 96789 11078 50872 03968 89639 54927 57400 23696 00219 70718 47302 80643 90803 89872 28867 485");
     TFN(erf).expect("0.35014 42208 20023 82355 16032 45050 23912 83120 71924 29072 35684 90423 15676 68631 26483 67740 59618 93127 36786 06239 23468 00013 58887 2181");
     TFN(erfc).expect("0.64985 57791 79976 17644 83967 54949 76087 16879 28075 70927 64315 09576 84323 31368 73516 32259 40381 06872 63213 93760 76531 99986 41112 7819");
-    TFN(tgamma).wait(500).expect("2.78663 45408 45472 36795 07642 12781 77275 03497 82995 16602 55760 07828 51424 44941 90542 89306 12905 33223 77665 62678 93736 34160 48127 165");
+    TFN(tgamma).expect("2.78663 45408 45472 36795 07642 12781 77275 03497 82995 16602 55760 07828 51424 44941 90542 89306 12905 33223 77665 62678 93736 34160 48127 165", 2000);
     TFN(lgamma).wait(500).expect("1.02483 46099 57313 19869 10927 53834 88666 18028 66769 43209 08437 87004 46327 04911 25770 09539 00530 12325 23947 42518 21539 89107 12509 699");
     TFN(gamma).wait(500).expect("2.78663 45408 45472 36795 07642 12781 77275 03497 82995 16602 55760 07828 51424 44941 90542 89306 12905 33223 77665 62678 93736 34160 48127 165");
     TFN(cbrt).expect("0.68470 21277 57224 16184 09277 32646 81496 28057 14749 53139 45950 35873 52977 73009 35191 71304 84396 28932 73625 07589 02266 77954 73690 2353");
@@ -4036,13 +4037,13 @@ void tests::numerical_integration_testing()
         .test(3, ENTER).expect("3")
         .test("'sq(Z)+Z'", ENTER).expect("'Z²+Z'")
         .test(F, ALPHA, Z, ENTER).expect("'Z'")
-        .test(SHIFT, KEY8, F2).wait(2500).expect("8 ⁵/₆"); // REVISIT: So slow?
+        .test(SHIFT, KEY8, F2).expect("8 ⁵/₆", 5000); // REVISIT: So slow?
     step("Integration with decimals")
         .test(CLEAR, "2.", ENTER).expect("2.")
         .test("3.", ENTER).expect("3.")
         .test("'sq(Z)+Z'", ENTER).expect("'Z²+Z'")
         .test(F, ALPHA, Z, ENTER).expect("'Z'")
-        .test(SHIFT, KEY8, F2).wait(250).expect("8.83333 33333 3");
+        .test(SHIFT, KEY8, F2).expect("8.83333 33333 3", 350);
 }
 
 
@@ -6684,7 +6685,7 @@ tests &tests::itest(tests::key k, bool release)
 
     // Wait for the RPL thread to process the keys (to be revisited on DM42)
     while (!key_empty())
-        sys_delay(delay_time);
+        sys_delay(key_delay_time);
 
     uint lcd_updates = ui_refresh_count();
     record(tests,
@@ -6701,12 +6702,12 @@ tests &tests::itest(tests::key k, bool release)
         longpress = false;
         release   = false;
     }
-    sys_delay(delay_time);
+    sys_delay(key_delay_time);
 
     if (release && k != RELEASE)
     {
         while (!key_remaining())
-            sys_delay(delay_time);
+            sys_delay(key_delay_time);
         record(tests,
                "Release key %d update %u->%u last %d",
                k, refresh_count, lcd_updates, last_key);
@@ -6720,7 +6721,7 @@ tests &tests::itest(tests::key k, bool release)
         record(tests, "Key sync sent %u done %u", keysync_sent, keysync_done);
         key_push(KEYSYNC);
         while (keysync_done != keysync_sent)
-            sys_delay(delay_time);
+            sys_delay(key_delay_time);
         record(tests, "Key sync done %u sent %u", keysync_done, keysync_sent);
     }
 
@@ -7035,37 +7036,44 @@ tests &tests::itest(tests::WAIT delay)
 //
 // ============================================================================
 
-tests &tests::clear()
+tests &tests::clear(uint extrawait)
 // ----------------------------------------------------------------------------
 //   Make sure we are in a clean state
 // ----------------------------------------------------------------------------
 {
-    nokeys();
+    nokeys(extrawait);
     key_push(CLEAR);
-    while (!key_empty())
-        sys_delay(delay_time);
+    nokeys(extrawait);
     return *this;
 }
 
 
-tests &tests::ready()
+tests &tests::ready(uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check if the calculator is ready and we can look at it
 // ----------------------------------------------------------------------------
 {
-    nokeys();
-    refreshed();
+    nokeys(extrawait);
+    refreshed(extrawait);
     return *this;
 }
 
 
-tests &tests::nokeys()
+tests &tests::nokeys(uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check until the key buffer is empty, indicates that calculator is done
 // ----------------------------------------------------------------------------
 {
-    while (!key_empty())
-        sys_delay(delay_time);
+    uint start = sys_current_ms();
+    uint wait_time = default_wait_time + extrawait;
+    while (sys_current_ms() - start < wait_time && !key_empty())
+        sys_delay(refresh_delay_time);
+    if (!key_empty())
+    {
+        explain("Unable to get an empty keyboard buffer");
+        fail();
+        rt.clear_error();
+    }
     return *this;
 }
 
@@ -7087,40 +7095,64 @@ tests &tests::data_entry_noerr()
 }
 
 
-tests &tests::refreshed()
+tests &tests::refreshed(uint extrawait)
 // ----------------------------------------------------------------------------
 //    Wait until the screen was updated by the calculator
 // ----------------------------------------------------------------------------
 {
+    uint start     = sys_current_ms();
+    uint wait_time = default_wait_time + extrawait;
+
     // Wait for a screen redraw
     record(tests, "Waiting for screen update");
-    while (ui_refresh_count() == refresh_count)
-        sys_delay(delay_time);
+    while (sys_current_ms() - start < wait_time &&
+           ui_refresh_count() == refresh_count)
+        sys_delay(refresh_delay_time);
+    if (ui_refresh_count() == refresh_count)
+    {
+        explain("No screen refresh");
+        fail();
+        return *this;
+    }
 
     // Wait for a stack update
-    uint32_t start = sys_current_ms();
     record(tests, "Waiting for key %d in stack at %u", last_key, start);
+    start = sys_current_ms();
+    bool found = false;
+    bool updated = false;
     while (sys_current_ms() - start < wait_time)
     {
         if (!Stack.available())
         {
-            sys_delay(delay_time);
+            sys_delay(refresh_delay_time);
         }
         else if (Stack.available() > 1)
         {
             record(tests, "Consume extra stack");
             Stack.consume();
+            updated = true;
         }
         else if (Stack.key() == last_key)
         {
-            record(tests, "Consume extra stack");
+            found = true;
+            record(tests, "Consume expected stack");
             break;
         }
         else
         {
             record(tests, "Wrong key %d", Stack.key());
             Stack.consume();
+            updated = true;
         }
+    }
+    if (!found)
+    {
+        if (updated)
+            explain("Stack was updated but for wrong key %d != %d",
+                    Stack.key(), last_key);
+        else
+            explain("Stack was not updated in expected delay");
+        fail();
     }
 
     record(tests,
@@ -7145,25 +7177,26 @@ tests &tests::wait(uint ms)
 }
 
 
-tests &tests::want(cstring ref)
+tests &tests::want(cstring ref, uint extrawait)
 // ----------------------------------------------------------------------------
 //   We want something that looks like this (ignore spacing)
 // ----------------------------------------------------------------------------
 {
     record(tests, "Expect [%+s] ignoring spacing", ref);
-    ready();
+    ready(extrawait);
     cindex++;
-    if (rt.error())
+
+    uint start = sys_current_ms();
+    uint wait_time = default_wait_time + extrawait;
+    while (sys_current_ms() - start < wait_time)
     {
-        explain("Expected output [",
-                ref,
-                "], got error [",
-                rt.error(),
-                "] instead");
-        return fail();
-    }
-    for (uint i = 0; i < 10; i++)
-    {
+        if (rt.error())
+        {
+            explain("Expected output [", ref, "], "
+                    "got error [", rt.error(), "] instead");
+            return fail();
+        }
+
         if (cstring out = cstring(Stack.recorded()))
         {
             record(tests, "Comparing [%s] to [%+s] ignoring spaces", out, ref);
@@ -7199,7 +7232,7 @@ tests &tests::want(cstring ref)
                     "[", ref, "] differs from [", out, "]");
             return fail();
         }
-        wait(50);
+        sys_delay(refresh_delay_time);
     }
     record(tests, "No output");
     explain("Expected output [", ref, "] but got no stack change");
@@ -7207,22 +7240,24 @@ tests &tests::want(cstring ref)
 }
 
 
-tests &tests::expect(cstring output)
+tests &tests::expect(cstring output, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the output at first level of stack matches the string
 // ----------------------------------------------------------------------------
 {
     record(tests, "Expecting [%+s]", output);
-    ready();
+    ready(extrawait);
     cindex++;
-    if (rt.error())
+    uint start = sys_current_ms();
+    uint wait_time = default_wait_time + extrawait;
+    while (sys_current_ms() - start < wait_time)
     {
-        explain("Expected output [", output, "], "
-                "got error [", rt.error(), "] instead");
-        return fail();
-    }
-    for (uint i = 0; i < 10; i++)
-    {
+        if (rt.error())
+        {
+            explain("Expected output [", output, "], "
+                    "got error [", rt.error(), "] instead");
+            return fail();
+        }
         if (utf8 out = Stack.recorded())
         {
             record(tests, "Comparing [%s] to [%+s] %+s", out, output,
@@ -7233,7 +7268,7 @@ tests &tests::expect(cstring output)
                     "got [", cstring(out), "] instead");
             return fail();
         }
-        wait(50);
+        sys_delay(refresh_delay_time);
     }
     record(tests, "No output");
     explain("Expected output [", output, "] but got no stack change");
@@ -7241,113 +7276,129 @@ tests &tests::expect(cstring output)
 }
 
 
-tests &tests::expect(int output)
+tests &tests::expect(int output, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the output matches an integer value
 // ----------------------------------------------------------------------------
 {
     char num[32];
     snprintf(num, sizeof(num), "%d", output);
-    return expect(num);
+    return expect(num, extrawait);
 }
 
 
-tests &tests::expect(unsigned int output)
+tests &tests::expect(unsigned int output, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the output matches an integer value
 // ----------------------------------------------------------------------------
 {
     char num[32];
     snprintf(num, sizeof(num), "%u", output);
-    return expect(num);
+    return expect(num, extrawait);
 }
 
 
-tests &tests::expect(long output)
+tests &tests::expect(long output, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the output matches an integer value
 // ----------------------------------------------------------------------------
 {
     char num[32];
     snprintf(num, sizeof(num), "%ld", output);
-    return expect(num);
+    return expect(num, extrawait);
 }
 
 
-tests &tests::expect(unsigned long output)
+tests &tests::expect(unsigned long output, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the output matches an integer value
 // ----------------------------------------------------------------------------
 {
     char num[32];
     snprintf(num, sizeof(num), "%lu", output);
-    return expect(num);
+    return expect(num, extrawait);
 }
 
 
-tests &tests::expect(long long output)
+tests &tests::expect(long long output, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the output matches an integer value
 // ----------------------------------------------------------------------------
 {
     char num[32];
     snprintf(num, sizeof(num), "%lld", output);
-    return expect(num);
+    return expect(num, extrawait);
 }
 
 
-tests &tests::expect(unsigned long long output)
+tests &tests::expect(unsigned long long output, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the output matches an integer value
 // ----------------------------------------------------------------------------
 {
     char num[32];
     snprintf(num, sizeof(num), "%llu", output);
-    return expect(num);
+    return expect(num, extrawait);
 }
 
 
-tests &tests::match(cstring restr)
+tests &tests::match(cstring restr, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the output at first level of stack matches the string
 // ----------------------------------------------------------------------------
 {
-    ready();
+    ready(extrawait);
     cindex++;
-    if (utf8 out = Stack.recorded())
-    {
-        regex_t    re;
-        regmatch_t rm;
 
-        regcomp(&re, restr, REG_EXTENDED | REG_ICASE);
-        bool ok = regexec(&re, cstring(out), 1, &rm, 0) == 0 && rm.rm_so == 0 &&
-                  out[rm.rm_eo] == 0;
-        regfree(&re);
-        if (ok)
-            return *this;
-        explain("Expected output matching [", restr, "], "
-                "got [", out, "]");
-        return fail();
+    uint start = sys_current_ms();
+    uint wait_time = default_wait_time + extrawait;
+    while (sys_current_ms() - start < wait_time)
+    {
+        if (rt.error())
+        {
+            explain("Expected output matching [", restr, "], "
+                    "got error [", rt.error(), "] instead");
+            return fail();
+        }
+
+        if (utf8 out = Stack.recorded())
+        {
+            regex_t    re;
+            regmatch_t rm;
+
+            regcomp(&re, restr, REG_EXTENDED | REG_ICASE);
+            bool ok = regexec(&re, cstring(out), 1, &rm, 0) == 0 && rm.rm_so == 0 &&
+                out[rm.rm_eo] == 0;
+            regfree(&re);
+            if (ok)
+                return *this;
+            explain("Expected output matching [", restr, "], "
+                    "got [", out, "]");
+            return fail();
+        }
+        sys_delay(refresh_delay_time);
     }
     explain("Expected output matching [", restr, "] but stack not updated");
     return fail();
 }
 
 
-tests &tests::image(cstring file, int x, int y, int w, int h)
+tests &tests::image(cstring file, int x, int y, int w, int h, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the output in the screen matches what is in the file
 // ----------------------------------------------------------------------------
 {
-    ready();
+    nokeys(extrawait);
     cindex++;
 
     // If it is not good, keep it on screen a bit longer
-    for (uint i = 0; i < 10; i++)
+    uint start = sys_current_ms();
+    uint wait_time = image_wait_time + extrawait;
+    while (sys_current_ms() - start < wait_time)
     {
-        wait(100);
         if (image_match(file, x, y, w, h, false))
             return *this;
+        sys_delay(refresh_delay_time);
     }
 
     explain("Expected screen to match [", file, "]");
@@ -7356,32 +7407,46 @@ tests &tests::image(cstring file, int x, int y, int w, int h)
 }
 
 
-tests &tests::image_noheader(cstring name, uint ignoremenus)
+tests &tests::image_noheader(cstring name, uint ignoremenus, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Image, skipping the header area
 // ----------------------------------------------------------------------------
 {
     const int header_h = 20;
     const int menu_h = 22 * ignoremenus;
-    return image(name, 0, header_h, LCD_W, LCD_H - header_h - menu_h);
+    return image(name, 0, header_h, LCD_W, LCD_H - header_h - menu_h, extrawait);
 }
 
 
-tests &tests::type(object::id ty)
+tests &tests::type(object::id ty, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the top of stack matches the type
 // ----------------------------------------------------------------------------
 {
-    ready();
+    ready(extrawait);
     cindex++;
-    if (utf8 out = Stack.recorded())
+
+    uint start = sys_current_ms();
+    uint wait_time = image_wait_time + extrawait;
+    while (sys_current_ms() - start < wait_time)
     {
-        object::id tty = Stack.type();
-        if (tty == ty)
-            return *this;
-        explain("Expected type ", object::name(ty), " (", int(ty), ")"
-                " but got ", object::name(tty), " (", int(tty), ")");
-        return fail();
+        if (rt.error())
+        {
+            explain("Expected type [", object::name(ty), "], "
+                    "got error [", rt.error(), "] instead");
+            return fail();
+        }
+
+        if (utf8 out = Stack.recorded())
+        {
+            object::id tty = Stack.type();
+            if (tty == ty)
+                return *this;
+            explain("Expected type ", object::name(ty), " (", int(ty), ")"
+                    " but got ", object::name(tty), " (", int(tty), ")");
+            return fail();
+        }
+        sys_delay(refresh_delay_time);
     }
     explain("Expected type ", object::name(ty), " (", int(ty), ")"
             " but stack not updated");
@@ -7389,64 +7454,64 @@ tests &tests::type(object::id ty)
 }
 
 
-tests &tests::shift(bool s)
+tests &tests::shift(bool s, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the shift state matches expectations
 // ----------------------------------------------------------------------------
 {
-    nokeys();
+    nokeys(extrawait);
     return check(ui.shift == s, "Expected shift ", s, ", got ", ui.shift);
 }
 
 
-tests &tests::xshift(bool x)
+tests &tests::xshift(bool x, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the right shift state matches expectations
 // ----------------------------------------------------------------------------
 {
-    nokeys();
+    nokeys(extrawait);
     return check(ui.xshift == x, "Expected xshift ", x, " got ", ui.xshift);
 }
 
 
-tests &tests::alpha(bool a)
+tests &tests::alpha(bool a, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the alpha state matches expectations
 // ----------------------------------------------------------------------------
 {
-    nokeys();
+    nokeys(extrawait);
     return check(ui.alpha == a, "Expected alpha ", a, " got ", ui.alpha);
 }
 
 
-tests &tests::lower(bool l)
+tests &tests::lower(bool l, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the lowercase state matches expectations
 // ----------------------------------------------------------------------------
 {
-    nokeys();
+    nokeys(extrawait);
     return check(ui.lowercase == l, "Expected alpha ", l, " got ", ui.alpha);
 }
 
 
-tests &tests::editing()
+tests &tests::editing(uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that we are editing, without checking the length
 // ----------------------------------------------------------------------------
 {
-    ready();
+    nokeys(extrawait);
     return check(rt.editing(),
                  "Expected to be editing, got length ",
                  rt.editing());
 }
 
 
-tests &tests::editing(size_t length)
+tests &tests::editing(size_t length, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the editor has exactly the expected length
 // ----------------------------------------------------------------------------
 {
-    ready();
+    nokeys(extrawait);
     return check(rt.editing() == length,
                  "Expected editing length to be ",
                  length,
@@ -7455,103 +7520,154 @@ tests &tests::editing(size_t length)
 }
 
 
-tests &tests::editor(cstring text)
+tests &tests::editor(cstring text, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the editor contents matches the text
 // ----------------------------------------------------------------------------
 {
-    ready();
-    byte_p ed = rt.editor();
-    size_t sz = rt.editing();
+    byte_p ed = nullptr;
+    size_t sz = 0;
+
+    nokeys(extrawait);
+
+    uint start = sys_current_ms();
+    uint wait_time = image_wait_time + extrawait;
+    while (sys_current_ms() - start < wait_time)
+    {
+        if (rt.error())
+        {
+            explain("Expected editor [", text, "], "
+                    "got error [", rt.error(), "] instead");
+            return fail();
+        }
+
+        ed = rt.editor();
+        sz = rt.editing();
+        if (ed && sz == strlen(text) && memcmp(ed, text, sz) == 0)
+            return *this;
+
+        sys_delay(refresh_delay_time);
+    }
 
     if (!ed)
-        return explain("Expected editor to contain [", text, "], "
-                       "but it's empty")
-            .fail();
+        explain("Expected editor to contain [", text, "], "
+                "but it's empty");
     if (sz != strlen(text))
-        return explain("Expected ", strlen(text), " characters in editor"
-                       " [", text, "], "
-                       "but got ", sz, " characters "
-                       " [", std::string(cstring(ed), sz), "]")
-            .fail();
+        explain("Expected ", strlen(text), " characters in editor"
+                " [", text, "], "
+                "but got ", sz, " characters "
+                " [", std::string(cstring(ed), sz), "]");
     if (memcmp(ed, text, sz))
-        return explain("Expected editor to contain [", text, "], "
-                       "but it contains [", std::string(cstring(ed), sz), "]")
-            .fail();
+        explain("Expected editor to contain [", text, "], "
+                       "but it contains [", std::string(cstring(ed), sz), "]");
 
+    fail();
     return *this;
 }
 
 
-tests &tests::cursor(size_t csr)
+tests &tests::cursor(size_t csr, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the cursor is at expected position
 // ----------------------------------------------------------------------------
 {
-    ready();
+    nokeys(extrawait);
     return check(ui.cursor == csr,
                  "Expected cursor to be at position ", csr,
                  " but it's at position ", ui.cursor);
 }
 
 
-tests &tests::error(cstring msg)
+tests &tests::error(cstring msg, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the error message matches expectations
 // ----------------------------------------------------------------------------
 {
-    ready();
-    utf8 err = rt.error();
+    utf8 err = nullptr;
+    nokeys(extrawait);
 
+    uint start = sys_current_ms();
+    uint wait_time = image_wait_time + extrawait;
+    while (sys_current_ms() - start < wait_time)
+    {
+        err = rt.error();
+        if (!msg == !err && (!msg || strcmp(cstring(err), msg) == 0))
+            return *this;
+        sys_delay(refresh_delay_time);
+    }
     if (!msg && err)
-        return explain("Expected no error, got [", err, "]")
-            .itest(CLEAR).fail();
+        explain("Expected no error, got [", err, "]").itest(CLEAR);
     if (msg && !err)
-        return explain("Expected error message [", msg, "], got none").fail();
+        explain("Expected error message [", msg, "], got none");
     if (msg && err && strcmp(cstring(err), msg) != 0)
-        return explain("Expected error message [", msg, "], "
-                       "got [", err, "]")
-            .fail();
+        explain("Expected error message [", msg, "], "
+                "got [", err, "]");
+    fail();
     return *this;
 }
 
 
-tests &tests::command(cstring ref)
+tests &tests::command(cstring ref, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the command result matches expectations
 // ----------------------------------------------------------------------------
 {
-    ready();
-    text_p cmdo = rt.command();
-    size_t sz = 0;
-    utf8 cmd = cmdo->value(&sz);
+    text_p cmdo = nullptr;
+    size_t sz   = 0;
+    utf8   cmd  = nullptr;
+
+    nokeys(extrawait);
+
+    uint start = sys_current_ms();
+    uint wait_time = image_wait_time + extrawait;
+    while (sys_current_ms() - start < wait_time)
+    {
+        cmdo = rt.command();
+        cmd = cmdo->value(&sz);
+        if (!ref == !cmd && (!ref || strcmp(ref, cstring(cmd)) == 0))
+            return *this;
+
+        sys_delay(refresh_delay_time);
+    }
+
 
     if (!ref && cmd)
-        return explain("Expected no command, got [", cmd, "]").fail();
+        explain("Expected no command, got [", cmd, "]");
     if (ref && !cmd)
-        return explain("Expected command [", ref, "], got none").fail();
+        explain("Expected command [", ref, "], got none");
     if (ref && cmd && strcmp(ref, cstring(cmd)) != 0)
-        return explain("Expected command [", ref, "], got [", cmd, "]").fail();
+        explain("Expected command [", ref, "], got [", cmd, "]");
 
+    fail();
     return *this;
 }
 
 
-tests &tests::source(cstring ref)
+tests &tests::source(cstring ref, uint extrawait)
 // ----------------------------------------------------------------------------
 //   Check that the source indicated in the editor matches expectations
 // ----------------------------------------------------------------------------
 {
-    ready();
-    utf8 src = rt.source();
+    utf8 src = nullptr;
+    nokeys();
+
+    uint start = sys_current_ms();
+    uint wait_time = image_wait_time + extrawait;
+    while (sys_current_ms() - start < wait_time)
+    {
+        utf8 src = rt.source();
+        if (!src == !ref && (!ref || strcmp(ref, cstring(src)) == 0))
+            return *this;
+        sys_delay(refresh_delay_time);
+    }
 
     if (!ref && src)
-        return explain("Expected no source, got [", src, "]").fail();
+        explain("Expected no source, got [", src, "]");
     if (ref && !src)
-        return explain("Expected source [", ref, "], got none").fail();
+        explain("Expected source [", ref, "], got none");
     if (ref && src && strcmp(ref, cstring(src)) != 0)
-        return explain("Expected source [", ref, "], " "got [", src, "]")
-            .fail();
+        explain("Expected source [", ref, "], " "got [", src, "]");
 
+    fail();
     return *this;
 }

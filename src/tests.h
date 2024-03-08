@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 
+
 struct tests
 // ----------------------------------------------------------------------------
 //   Run a series of tests
@@ -282,37 +283,39 @@ public:
         return itest(first).itest(args...);
     }
 
-    tests &clear();
-    tests &nokeys();
-    tests &refreshed();
-    tests &ready();
+    tests &clear(uint extrawait = 1000);
+    tests &nokeys(uint extrawait = 0);
+    tests &refreshed(uint extrawait = 0);
+    tests &ready(uint extrawait = 0);
     tests &shifts(bool lshift, bool rshift, bool alpha, bool lowercase);
     tests &wait(uint ms);
-    tests &want(cstring output);
-    tests &expect(cstring output);
-    tests &expect(int output);
-    tests &expect(unsigned int output);
-    tests &expect(long output);
-    tests &expect(unsigned long output);
-    tests &expect(long long output);
-    tests &expect(unsigned long long output);
-    tests &match(cstring regexp);
-    tests &image(cstring name, int x=0, int y=0, int w=LCD_W, int h=LCD_H);
-    tests &image_noheader(cstring name, uint ignoremenus=0);
-    tests &type(object::id ty);
-    tests &shift(bool s);
-    tests &xshift(bool x);
-    tests &alpha(bool a);
-    tests &lower(bool l);
-    tests &editing();
-    tests &editing(size_t length);
-    tests &editor(cstring text);
-    tests &cursor(size_t csr);
-    tests &error(cstring msg);
-    tests &noerr()      { return error(nullptr); }
+    tests &want(cstring output, uint extrawait = 0);
+    tests &expect(cstring output, uint extrawait = 0);
+    tests &expect(int output, uint extrawait = 0);
+    tests &expect(unsigned int output, uint extrawait = 0);
+    tests &expect(long output, uint extrawait = 0);
+    tests &expect(unsigned long output, uint extrawait = 0);
+    tests &expect(long long output, uint extrawait = 0);
+    tests &expect(unsigned long long output, uint extrawait = 0);
+    tests &match(cstring regexp, uint extrawait = 0);
+    tests &image(cstring name, int x=0, int y=0, int w=LCD_W, int h=LCD_H,
+                 uint extrawait = 0);
+    tests &image_noheader(cstring name, uint ignoremenus=0,
+                          uint extrawait = 0);
+    tests &type(object::id ty, uint extrawait = 0);
+    tests &shift(bool s, uint extrawait = 0);
+    tests &xshift(bool x, uint extrawait = 0);
+    tests &alpha(bool a, uint extrawait = 0);
+    tests &lower(bool l, uint extrawait = 0);
+    tests &editing(uint extrawait = 0);
+    tests &editing(size_t length, uint extrawait = 0);
+    tests &editor(cstring text, uint extrawait = 0);
+    tests &cursor(size_t csr, uint extrawait = 0);
+    tests &error(cstring msg, uint extrawait = 0);
+    tests &noerr(uint extrawait = 0)      { return error(nullptr, extrawait); }
     tests &data_entry_noerr();
-    tests &command(cstring msg);
-    tests &source(cstring msg);
+    tests &command(cstring msg, uint extrawait);
+    tests &source(cstring msg, uint extrawait);
 
     template<typename ...Args>
     tests &explain(Args... args)
@@ -352,7 +355,7 @@ public:
 
     bool image_match(cstring file, int x, int y, int w, int h, bool force);
 
-protected:
+  protected:
     cstring              file;
     uint                 line;
     cstring              tname;
@@ -367,6 +370,12 @@ protected:
     bool                 longpress;
     std::vector<failure> failures;
     std::string          explanation;
+
+  public:
+    static uint          default_wait_time;
+    static uint          key_delay_time;
+    static uint          refresh_delay_time;
+    static uint          image_wait_time;
 };
 
 #define step(...)       position(__FILE__, __LINE__).istep(__VA_ARGS__)

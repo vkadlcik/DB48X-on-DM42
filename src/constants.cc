@@ -49,33 +49,29 @@ RECORDER(constants_error,   16, "Error on constant objects");
 #define CFILE   "config/constants.csv"
 
 
+// ============================================================================
+//
+//   Parsing the constant from teh constant file
+//
+// ============================================================================
+
 PARSE_BODY(constant)
 // ----------------------------------------------------------------------------
-//    Try to parse this as a constant
+//    Skip, the actual parsing is done in the symbol parser
 // ----------------------------------------------------------------------------
 {
-    utf8    source = p.source;
-    size_t  max    = p.length;
-    size_t  parsed = 0;
+    return SKIP;
+}
 
-    // First character must be a constant marker
-    unicode cp = utf8_codepoint(source);
-    if (cp != settings::CONSTANT_MARKER)
-        return SKIP;
-    parsed = utf8_next(source, parsed, max);
-    size_t first = parsed;
 
-    // Other characters must be alphabetic
-    while (parsed < max && is_valid_in_name(source + parsed))
-        parsed = utf8_next(source, parsed, max);
-    if (parsed <= first)
-        return SKIP;
-
-    gcutf8 text   = source + first;
-    p.end         = parsed;
-    p.out         = rt.make<constant>(ID_constant, text, parsed - first);
-
-    return OK;
+SIZE_BODY(constant)
+// ----------------------------------------------------------------------------
+//   Compute the size
+// ----------------------------------------------------------------------------
+{
+    object_p p = object_p(payload(o));
+    p += leb128size(p);
+    return byte_p(p) - byte_p(o);
 }
 
 
@@ -87,8 +83,6 @@ RENDER_BODY(constant)
     size_t len    = 0;
     utf8   txt    = o->name(&len);
     auto   format = r.editing() ? ID_LongFormNames : Settings.NameDisplayMode();
-    if (r.editing())
-        r.put(unicode(settings::CONSTANT_MARKER));
     r.put(format, txt, len);
     return r.size();
 }
@@ -143,9 +137,9 @@ static const cstring basic_constants[] =
     // ------------------------------------------------------------------------
     "Math",   nullptr,
 
-    "π",        "=",                    // Evaluated specially (decimal-pi.h)
-    "e",        "=",                    // Evaluated specially (decimal-e.h)
-    "i",        "0+ⅈ1",                 // Imaginary unit
+    "π",        "π",                    // Evaluated specially (decimal-pi.h)
+    "e",        "e",                    // Evaluated specially (decimal-e.h)
+    "ⅉ",        "0+ⅈ1",                 // Imaginary unit
     "∞",        "9.99999E999999",       // A small version of infinity
     "?",        "Undefined",            // Undefined result
 
@@ -228,72 +222,145 @@ static const cstring basic_constants[] =
 
 
 
+constant_p constant::lookup(utf8 txt, size_t len, bool error)
+// ----------------------------------------------------------------------------
+//   Scan the table and file to see if there is matching constant
+// ----------------------------------------------------------------------------
+{
+    if (unit::mode)
+        return nullptr;
+
+    unit_file cfile(CFILE);
+    size_t    maxu = sizeof(basic_constants) / sizeof(basic_constants[0]);
+    cstring   ctxt = nullptr;
+    size_t    clen = 0;
+    uint      idx  = 0;
+
+    // Check in-file constants
+    if (cfile.valid())
+    {
+        cfile.seek(0);
+        while (symbol_p name = cfile.next(false))
+        {
+            ctxt = cstring(name->value(&clen));
+
+            // Constant name comparison is case-sensitive
+            if (len == clen && memcmp(txt, ctxt, len) == 0)
+                return constant::make(idx);
+            idx++;
+        }
+    }
+
+    // Check built-in constants
+    for (size_t u = 0; u < maxu; u += 2)
+    {
+        ctxt = basic_constants[u];
+        if (ctxt[len] == 0 && memcmp(ctxt, txt, len) == 0)
+            return constant::make(idx);
+        idx++;
+    }
+
+    if (error)
+        rt.invalid_constant_error();
+    return nullptr;
+}
+
+
+utf8 constant::name(size_t *len) const
+// ----------------------------------------------------------------------------
+//   Return the name for the constant
+// ----------------------------------------------------------------------------
+{
+    unit_file cfile(CFILE);
+    size_t    maxu = sizeof(basic_constants) / sizeof(basic_constants[0]);
+    cstring   ctxt = nullptr;
+    uint      idx  = index();
+
+    // Check in-file constants
+    if (cfile.valid())
+    {
+        cfile.seek(0);
+        while (symbol_p sym = cfile.next(false))
+        {
+            if (!idx)
+                return sym->value(len);
+            idx--;
+        }
+    }
+
+    // Check built-in constants
+    for (size_t u = 0; u < maxu; u += 2)
+    {
+        ctxt = basic_constants[u];
+        if (!idx)
+        {
+            if (len)
+                *len = strlen(ctxt);
+            return utf8(ctxt);
+        }
+        idx--;
+    }
+    return nullptr;
+}
+
+
 algebraic_p constant::value() const
 // ----------------------------------------------------------------------------
 //   Lookup a built-in constant
 // ----------------------------------------------------------------------------
 {
-    size_t    len  = 0;
-    gcutf8    gtxt = name(&len);
     unit_file cfile(CFILE);
-    size_t    maxu = sizeof(basic_constants) / sizeof(basic_constants[0]);
-
-    utf8      txt  = +gtxt;
-    cstring   ctxt = nullptr;
-    cstring   cdef = nullptr;
-    size_t    clen = 0;
+    size_t    maxu  = sizeof(basic_constants) / sizeof(basic_constants[0]);
+    symbol_g  csym  = nullptr;
+    size_t    clen  = 0;
+    uint      idx   = index();
 
     // Check in-file constants
     if (cfile.valid())
     {
-        bool first = true;
-        while (symbol_p def = cfile.lookup(txt, len, false, first))
+        cfile.seek(0);
+        uint position = cfile.position();
+        while (symbol_p sym = cfile.next(false))
         {
-            first     = false;
-            utf8 fdef = def->value(&clen);
-
-            // If definition begins with '=', only show constant in menus
-            if (*fdef != '=')
+            if (!idx)
             {
-                cdef = cstring(fdef);
-                ctxt = cstring(txt);
+                utf8 ctxt = sym->value(&clen);
+                cfile.seek(position);
+                csym = cfile.lookup(ctxt, clen, false, false);
                 break;
             }
+            position = cfile.position();
+            idx--;
         }
     }
 
     // Check built-in constants
-    for (size_t u = 0; !cdef && u < maxu; u += 2)
+    for (size_t u = 0; !csym && u < maxu; u += 2)
     {
-        ctxt = basic_constants[u];
-        if (memcmp(ctxt, txt, len) == 0 && ctxt[len] == 0)
+        if (!idx)
         {
-            cdef = basic_constants[u + 1];
-            if (cdef)
-                clen = strlen(cdef);
+            csym = symbol::make(basic_constants[u+1]);
+            break;
         }
+        idx--;
     }
 
     // If we found a definition, use that unless it begins with '='
-    if (cdef)
+    if (csym)
     {
         // Special cases for pi and e where we have built-in constants
-        if (cdef[0] == '=' && cdef[1] == 0)
+        if (csym->matches("π"))
+            return decimal::pi();
+        else if (csym->matches("e"))
+            return decimal::e();
+
+        utf8 cdef = csym->value(&clen);
+        if (object_p obj = object::parse(cdef, clen))
         {
-            if (!strcmp(ctxt, "π"))
-                return decimal::pi();
-            else if (!strcmp(ctxt, "e"))
-                return decimal::e();
-        }
-        else
-        {
-            if (object_p obj = object::parse(utf8(cdef), clen))
-            {
-                if (algebraic_p alg = obj->as_algebraic())
-                    return alg;
-                if (text_p txt = obj->as<text>())
-                    return txt;
-            }
+            if (algebraic_p alg = obj->as_algebraic())
+                return alg;
+            if (text_p txt = obj->as<text>())
+                return txt;
         }
     }
     rt.invalid_constant_error();
@@ -435,19 +502,14 @@ MENU_BODY(constant_menu)
                     {
                         size_t vlen = 0;
                         utf8 vtxt = mentry->value(&vlen);
-                        if (vlen == 1 && *vtxt == '=')
-                        {
-                            decimal_g value = nullptr;
-                            settings::SaveDisplayDigits sdd(6);
-                            if (!memcmp(mtxt, "π", mlen))
-                                value = decimal::pi();
-                            else if (!memcmp(mtxt, "e", mlen))
+                        decimal_g value = nullptr;
+                        settings::SaveDisplayDigits sdd(6);
+                        if (!memcmp(vtxt, "π", mlen))
+                            value = decimal::pi();
+                        else if (!memcmp(vtxt, "e", mlen))
                                 value = decimal::e();
-                            if (value)
-                                mentry = value->as_symbol(false);
-                            else
-                                mentry = (symbol_p) "???";
-                        }
+                        if (value)
+                            mentry = value->as_symbol(false);
                         items(mi, mentry, type);
                     }
                 }
@@ -455,11 +517,11 @@ MENU_BODY(constant_menu)
         }
         for (uint i = 0; i < count; i++)
         {
-            cstring label = basic_constants[first + 2*i + plane];
-            if (label[0] == '=' && label[1] == 0)
+            cstring   label = basic_constants[first + 2 * i + plane];
+            cstring   ctxt  = basic_constants[first + 2 * i + 1];
+            decimal_g value = nullptr;
+            if (plane)
             {
-                cstring ctxt = basic_constants[first + 2*i];
-                decimal_g value = nullptr;
                 settings::SaveDisplayDigits sdd(6);
                 if (!strcmp(ctxt, "π"))
                     value = decimal::pi();
@@ -467,8 +529,6 @@ MENU_BODY(constant_menu)
                     value = decimal::e();
                 if (value)
                     label = (cstring) value->as_symbol(false);
-                else
-                    label = "???";
             }
             items(mi, label, type);
         }
@@ -566,17 +626,9 @@ static constant_p key_constant(uint key)
 
         if (txt)
         {
-            char   buffer[32];
-            size_t sz = utf8_encode(unicode(settings::CONSTANT_MARKER),
-                                    (byte *) buffer);
-            if (len + sz <= sizeof(buffer))
-            {
-                memcpy(buffer+sz, txt, len);
-                len += sz;
-                if (object_p uobj = object::parse(utf8(buffer), len))
-                    if (constant_p u = uobj->as<constant>())
-                        return u;
-            }
+            if (object_p uobj = object::parse(txt, len))
+                if (constant_p u = uobj->as<constant>())
+                    return u;
             rt.invalid_constant_error();
             return nullptr;
         }

@@ -31,6 +31,7 @@
 
 #include "algebraic.h"
 #include "command.h"
+#include "constants.h"
 #include "expression.h"
 #include "grob.h"
 #include "parser.h"
@@ -80,9 +81,13 @@ PARSE_BODY(symbol)
     while (parsed < max && is_valid_in_name(source + parsed))
         parsed = utf8_next(source, parsed, max);
 
+    // Check if we have a known constant
     gcutf8 text   = source;
     p.end         = parsed;
-    p.out         = rt.make<symbol>(ID_symbol, text, parsed);
+    if (constant_p cst = constant::lookup(source, parsed, false))
+        p.out = cst;
+    else
+        p.out = rt.make<symbol>(ID_symbol, text, parsed);
 
     return OK;
 }

@@ -1543,7 +1543,9 @@ algebraic_p runtime::zero_divide(bool negative) const
         return nullptr;
     }
     Settings.InfiniteResultIndicator(true);
-    algebraic_g infinity = constant::make("∞");
+    algebraic_g infinity = constant::lookup("∞");
+    if (!infinity)
+        return nullptr;
     if (Settings.NumericalConstants() || Settings.NumericalResults())
         infinity = constant_p(+infinity)->value();
     if (negative)
@@ -1563,7 +1565,9 @@ algebraic_p runtime::numerical_overflow(bool negative) const
         return nullptr;
     }
     Settings.OverflowIndicator(true);
-    algebraic_g infinity = constant::make("∞");
+    algebraic_g infinity = constant::lookup("∞");
+    if (!infinity)
+        return nullptr;
     if (Settings.NumericalConstants() || Settings.NumericalResults())
         infinity = constant_p(+infinity)->value();
     if (negative)
@@ -1604,7 +1608,7 @@ algebraic_p runtime::undefined_result() const
         return nullptr;
     }
     Settings.UndefinedResultIndicator(true);
-    return constant::make("?");
+    return constant::lookup("?");
 }
 
 

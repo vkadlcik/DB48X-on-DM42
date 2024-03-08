@@ -31,37 +31,49 @@
 
 #include "command.h"
 #include "menu.h"
-#include "symbol.h"
+#include "algebraic.h"
 
 GCP(constant);
 
-struct constant : symbol
+struct constant : algebraic
 // ----------------------------------------------------------------------------
 //   A constant is a symbol where the value is looked up from a file
 // ----------------------------------------------------------------------------
 {
-    constant(id type, gcutf8 source, size_t len): symbol(type, source, len)
-    { }
-
-    static constant_p make(cstring s)
+    constant(id type, uint index) : algebraic(type)
     {
-        return rt.make<constant>(ID_constant, utf8(s), strlen(s));
+        byte *p = (byte *) payload(this);
+        leb128(p, index);
     }
 
-    static constant_p make(gcutf8 s, size_t len)
+    static size_t required_memory(id i, uint index)
     {
-        return rt.make<constant>(ID_constant, s, len);
+        return leb128size(i) + leb128size(index);
     }
 
 
-    utf8 name(size_t *size = nullptr) const
+    static constant_p make(uint index)
     {
-        return text::value(size);
+        return rt.make<constant>(ID_constant, index);
     }
+
+    static constant_p lookup(utf8 name, size_t len, bool error);
+    static constant_p lookup(cstring name, bool error = true)
+    {
+        return lookup(utf8(name), strlen(name), error);
+    }
+
+    uint        index() const
+    {
+        byte_p p = payload();
+        return leb128<uint>(p);
+    }
+
+    utf8        name(size_t *size = nullptr) const;
     algebraic_p value() const;
-    bool is_imaginary_unit() const              { return matches("i"); }
-    bool is_pi() const                          { return matches("π"); }
-    bool matches(cstring ref) const
+    bool        is_imaginary_unit() const       { return matches("ⅉ"); }
+    bool        is_pi() const                   { return matches("π"); }
+    bool        matches(cstring ref) const
     {
         size_t nlen = strlen(ref);
         size_t len = 0;
@@ -71,6 +83,7 @@ struct constant : symbol
 
 public:
     OBJECT_DECL(constant);
+    SIZE_DECL(constant);
     EVAL_DECL(constant);
     PARSE_DECL(constant);
     RENDER_DECL(constant);

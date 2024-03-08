@@ -5817,7 +5817,7 @@ void tests::insertion_of_variables_constants_and_units()
     step("Insert e")
         .test(CLEAR, F2).expect("e");
     step("Insert i")
-        .test(CLEAR, F3).expect("i");
+        .test(CLEAR, F3).expect("ⅉ");
     step("Insert infinity")
         .test(CLEAR, F4).expect("∞");
     step("Insert undefined")
@@ -5876,7 +5876,7 @@ void tests::insertion_of_variables_constants_and_units()
 
     step("Test that constants parse")
         .test(ENTER)
-        .expect("« π e i ∞ ? "
+        .expect("« π e ⅉ ∞ ? "
                 "3.14159 26535 9 2.71828 18284 6 0+1ⅈ 9.99999⁳⁹⁹⁹⁹⁹⁹ "
                 "Undefined »");
 
@@ -5898,34 +5898,40 @@ void tests::insertion_of_variables_constants_and_units()
 
     step("Enter 27_m in program and evaluate it")
         .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
-        .test("27", NOSHIFT, F1).editor("«27 1_m * »")
-        .test(ENTER).expect("« 27 1 m × »")
+        .test("27", NOSHIFT, F1).editor("«27_m »")
+        .test(ENTER).expect("« 27 m »")
         .test(RUNSTOP).expect("27 m");
     step("Enter 27_yd in program and evaluate it")
         .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
-        .test("27", NOSHIFT, F2).editor("«27 1_yd * »")
-        .test(ENTER).expect("« 27 1 yd × »")
+        .test("27", NOSHIFT, F2).editor("«27_yd »")
+        .test(ENTER).expect("« 27 yd »")
         .test(RUNSTOP).expect("27 yd");
     step("Enter 27_ft in program and evaluate it")
         .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
-        .test("27", NOSHIFT, F3).editor("«27 1_ft * »")
-        .test(ENTER).expect("« 27 1 ft × »")
+        .test("27", NOSHIFT, F3).editor("«27_ft »")
+        .test(ENTER).expect("« 27 ft »")
         .test(RUNSTOP).expect("27 ft");
+
+    step("Enter A with unit _m in program and evaluate it")
+        .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
+        .test("A", NOSHIFT, F1).editor("«A 1_m * »")
+        .test(ENTER).expect("« A 1 m × »")
+        .test(RUNSTOP).expect("'A' m");
 
     step("Enter 27_m⁻¹ in program and evaluate it")
         .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
-        .test("27", RSHIFT, F1).editor("«27 1_m / »")
-        .test(ENTER).expect("« 27 1 m ÷ »")
+        .test("27", RSHIFT, F1).editor("«27_(m)⁻¹ »")
+        .test(ENTER).expect("« 27 m⁻¹ »")
         .test(RUNSTOP).expect("27 m⁻¹");
     step("Enter 27_yd⁻¹ in program and evaluate it")
         .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
-        .test("27", RSHIFT, F2).editor("«27 1_yd / »")
-        .test(ENTER).expect("« 27 1 yd ÷ »")
+        .test("27", RSHIFT, F2).editor("«27_(yd)⁻¹ »")
+        .test(ENTER).expect("« 27 yd⁻¹ »")
         .test(RUNSTOP).expect("27 yd⁻¹");
     step("Enter 27_ft⁻¹ in program and evaluate it")
         .test(CLEAR, LSHIFT, RUNSTOP).editor("«»")
-        .test("27", RSHIFT, F3).editor("«27 1_ft / »")
-        .test(ENTER).expect("« 27 1 ft ÷ »")
+        .test("27", RSHIFT, F3).editor("«27_(ft)⁻¹ »")
+        .test(ENTER).expect("« 27 ft⁻¹ »")
         .test(RUNSTOP).expect("27 ft⁻¹");
 
     step("Select variables menu")

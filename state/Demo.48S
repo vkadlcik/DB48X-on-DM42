@@ -515,12 +515,12 @@
 	0 Wait DROP
 
 	Ticks
-	0 255 for r
-		0 255 for g
-			0 255 for b
-				r 255 /
-				g 255 /
-				b 255 /
+	0 255 for red
+		0 255 for green
+			0 255 for blue
+				red   255 /
+				green 255 /
+				blue  255 /
 				RGB Foreground
 
 				{ } 10#1 g * 400 * 255 / 0 + +  10#1 b * 240 * 255 / 0 + +

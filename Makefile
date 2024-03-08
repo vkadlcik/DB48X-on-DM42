@@ -410,7 +410,7 @@ src/decimal-%.h: src/decimal-%.txt $(DECIMIZE)
 
 $(OBJECTS): $(DECIMAL_SOURCES) $(VERSION_H)
 
-sim: $(DECIMAL_SOURCES)
+all sim: $(DECIMAL_SOURCES)
 
 $(BUILD)/%.hex: $(BUILD)/%.elf | $(BUILD)
 	$(HEX) $< $@

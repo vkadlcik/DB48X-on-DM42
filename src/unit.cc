@@ -1112,7 +1112,7 @@ unit_p unit::custom_cycle(symbol_r sym) const
 }
 
 
-symbol_g unit_file::lookup(utf8 what, size_t len, bool menu, bool seek0)
+symbol_g unit_file::lookup(gcutf8 what, size_t len, bool menu, bool seek0)
 // ----------------------------------------------------------------------------
 //   Find the next row that begins with "what", return definition for it
 // ----------------------------------------------------------------------------
@@ -1187,7 +1187,7 @@ symbol_g unit_file::lookup(utf8 what, size_t len, bool menu, bool seek0)
         {
             if (column == 0)
             {
-                found = found && matching < len && c == what[matching++];
+                found = found && matching < len && c == (+what)[matching++];
             }
             else if (column == 1 && found)
             {

@@ -217,8 +217,8 @@ static const cstring basic_constants[] =
     // ------------------------------------------------------------------------
     "Math",   nullptr,
 
-    "π",        "π",                    // Evaluated specially (decimal-pi.h)
-    "e",        "e",                    // Evaluated specially (decimal-e.h)
+    "π",        "3.14159",              // Evaluated specially (decimal-pi.h)
+    "e",        "2.71828",              // Evaluated specially (decimal-e.h)
     "ⅈ",        "0+ⅈ1",                 // Imaginary unit
     "ⅉ",        "0+ⅈ1",                 // Imaginary unit
     "∞",        "9.99999E999999",       // A small version of infinity
@@ -469,6 +469,7 @@ algebraic_p constant::do_value(config_r cfg) const
     size_t    maxb     = cfg.nbuiltins;
     auto      builtins = cfg.builtins;
     symbol_g  csym     = nullptr;
+    symbol_g  cname    = nullptr;
     size_t    clen     = 0;
     uint      idx      = index();
 
@@ -481,6 +482,7 @@ algebraic_p constant::do_value(config_r cfg) const
         {
             if (!idx)
             {
+                cname = sym;
                 utf8 ctxt = sym->value(&clen);
                 cfile.seek(position);
                 csym = cfile.lookup(ctxt, clen, false, false);
@@ -496,6 +498,7 @@ algebraic_p constant::do_value(config_r cfg) const
     {
         if (!idx)
         {
+            cname = symbol::make(builtins[b]);
             csym = symbol::make(builtins[b+1]);
             break;
         }
@@ -506,9 +509,9 @@ algebraic_p constant::do_value(config_r cfg) const
     if (csym)
     {
         // Special cases for pi and e where we have built-in constants
-        if (csym->matches("π"))
+        if (cname->matches("π"))
             return decimal::pi();
-        else if (csym->matches("e"))
+        else if (cname->matches("e"))
             return decimal::e();
 
         utf8 cdef = csym->value(&clen);

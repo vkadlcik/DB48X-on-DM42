@@ -52,12 +52,39 @@ struct constant : algebraic
     }
 
 
+    typedef const cstring *builtins_p;
+    struct config
+    // ------------------------------------------------------------------------
+    //   Configuration for a kind of file-based constants
+    // ------------------------------------------------------------------------
+    {
+        id         type;       // Type for constants, e.g. ID_xlib
+        id         first_menu; // First possible menu, e.g. ID_EquationsMenu00
+        id         last_menu;  // Last possible menu, e.g. ID_EquationsMenu99
+        id         name;       // Menu command for the name
+        id         value;      // Menu command for the value
+        cstring    file;       // CSV file for names and definitions
+        builtins_p builtins;   // Builtins defintions
+        size_t     nbuiltins;  // Number of entries in builtins[]
+        void      (*error)();  // Emit error message
+    };
+    typedef const config &config_r;
+
     static constant_p make(uint index)
     {
         return rt.make<constant>(ID_constant, index);
     }
 
-    static constant_p lookup(utf8 name, size_t len, bool error);
+    static constant_p make(id type, uint index)
+    {
+        return rt.make<constant>(type, index);
+    }
+
+    static constant_p lookup(utf8 name, size_t len, bool error)
+    {
+        return do_lookup(constants, name, len, error);
+    }
+
     static constant_p lookup(cstring name, bool error = true)
     {
         return lookup(utf8(name), strlen(name), error);
@@ -69,8 +96,14 @@ struct constant : algebraic
         return leb128<uint>(p);
     }
 
-    utf8        name(size_t *size = nullptr) const;
-    algebraic_p value() const;
+    utf8        name(size_t *size = nullptr) const
+    {
+        return do_name(constants, size);
+    }
+    algebraic_p value() const
+    {
+        return do_value(constants);
+    }
     bool        is_imaginary_unit() const       { return matches("ⅉ"); }
     bool        is_pi() const                   { return matches("π"); }
     bool        matches(cstring ref) const
@@ -81,6 +114,15 @@ struct constant : algebraic
         return len == nlen && memcmp(ref, txt, len) == 0;
     }
 
+protected:
+    static constant_p do_lookup(config_r cfg, utf8 name, size_t len, bool error);
+    utf8              do_name(config_r cfg, size_t *size = nullptr) const;
+    algebraic_p       do_value(config_r cfg) const;
+
+public:
+    static bool       do_collection_menu(config_r cfg, menu_info &mi);
+    static object_p   do_key(config_r cfg, int key);
+
 public:
     OBJECT_DECL(constant);
     SIZE_DECL(constant);
@@ -89,6 +131,9 @@ public:
     RENDER_DECL(constant);
     GRAPH_DECL(constant);
     HELP_DECL(constant);
+
+public:
+    static const config constants;
 };
 
 
@@ -99,6 +144,11 @@ struct constant_menu : menu
 {
     constant_menu(id type) : menu(type) { }
     static utf8 name(id type, size_t &len);
+
+protected:
+  using config_r = constant::config_r;
+  bool        do_submenu(config_r cfg, menu_info &mi) const;
+  static utf8 do_name(config_r cfg, id base, size_t &len);
 
 public:
     MENU_DECL(constant_menu);

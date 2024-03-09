@@ -226,15 +226,16 @@ CXX_SOURCES +=				\
 	src/array.cc			\
 	src/bignum.cc			\
 	src/catalog.cc			\
+	src/characters.cc		\
 	src/command.cc			\
 	src/comment.cc		        \
-	src/characters.cc		\
 	src/compare.cc			\
 	src/complex.cc			\
 	src/conditionals.cc		\
 	src/constants.cc		\
 	src/datetime.cc			\
 	src/decimal.cc			\
+	src/equations.cc		\
 	src/expression.cc		\
 	src/file.cc			\
 	src/files.cc			\
@@ -246,6 +247,7 @@ CXX_SOURCES +=				\
 	src/hwfp.cc			\
 	src/integer.cc			\
 	src/integrate.cc		\
+	src/library.cc			\
 	src/list.cc			\
 	src/locals.cc			\
 	src/logical.cc			\

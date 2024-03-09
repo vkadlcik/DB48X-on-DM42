@@ -336,6 +336,7 @@ MENU(MainMenu,
      "Eqns",    ID_EquationsMenu,
      "UI",      ID_UserInterfaceModesMenu,
 
+     "Lib",     ID_Library,
      "Time",    ID_TimeMenu,
      "I/O",     ID_IOMenu,
      "Chars",   ID_CharactersMenu);
@@ -745,18 +746,6 @@ MENU(SignalProcessingMenu,
 // ----------------------------------------------------------------------------
      "FFT",     ID_Unimplemented,
      "InvFFT",  ID_Unimplemented);
-
-
-MENU(EquationsMenu,
-// ----------------------------------------------------------------------------
-//   Equations (to be loaded from file on disk)
-// ----------------------------------------------------------------------------
-
-     "Columns and Beams",       ID_Unimplemented,
-     "Elastic Buckling",        ID_Unimplemented,
-     "Eccentric Columns",       ID_Unimplemented,
-     "Simple Deflection",       ID_Unimplemented,
-     "Simple Slope",            ID_Unimplemented);
 
 
 MENU(SymbolicMenu,
@@ -1466,14 +1455,6 @@ MENU(MemMenu,
      "System",  ID_SystemMemory,
      "Recall",  ID_Rcl,
      "PgAll",   ID_PurgeAll);
-
-
-MENU(LibsMenu,
-// ----------------------------------------------------------------------------
-//   Library operations
-// ----------------------------------------------------------------------------
-     "Attach",  ID_Unimplemented,
-     "Detach",  ID_Unimplemented);
 
 
 MENU(TimeMenu,

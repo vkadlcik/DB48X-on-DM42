@@ -62,6 +62,14 @@
 #define CONSTANT_MENU(id)       ID(id)
 #endif
 
+#ifndef EQUATION_MENU
+#define EQUATION_MENU(id)       ID(id)
+#endif
+
+#ifndef LIBRARY_MENU
+#define LIBRARY_MENU(id)        ID(id)
+#endif
+
 #ifndef CHARACTER_MENU
 #define CHARACTER_MENU(id)      ID(id)
 #endif
@@ -144,6 +152,8 @@ ID(expression)
 ID(local)
 ID(symbol)
 ID(constant)
+ID(equation)
+ID(xlib)
 ID(array)
 ID(menu)
 
@@ -612,9 +622,13 @@ CMD(ConvertToUnit)
 CMD(ApplyInverseUnit)
 CMD(ConvertToUnitPrefix)
 
-// Constants menu
+// Constants, equations and program library
 CMD(ConstantName)
 CMD(ConstantValue)
+CMD(EquationName)
+CMD(EquationValue)
+CMD(XlibName)
+CMD(XlibValue)
 
 // Last things and stack
 NAMED(LastArg, "LastArguments")
@@ -894,6 +908,7 @@ MENU(PopulationMenu)
 MENU(SignalProcessingMenu)
 MENU(ConstantsMenu)
 MENU(EquationsMenu)
+MENU(Library)
 MENU(UnitsMenu)
 MENU(UnitsConversionsMenu)
 MENU(SymbolicMenu)
@@ -934,7 +949,6 @@ MENU(AlarmMenu)
 MENU(PlotMenu)
 MENU(GraphicsMenu)
 MENU(MemMenu)
-MENU(LibsMenu)
 MENU(TextMenu)
 
 // Special menus
@@ -996,6 +1010,52 @@ CONSTANT_MENUS(ConstantsMenu6)
 CONSTANT_MENUS(ConstantsMenu7)
 CONSTANT_MENUS(ConstantsMenu8)
 CONSTANT_MENUS(ConstantsMenu9)
+
+#define EQUATION_MENUS(Base)                    \
+    EQUATION_MENU(Base##0)                      \
+    EQUATION_MENU(Base##1)                      \
+    EQUATION_MENU(Base##2)                      \
+    EQUATION_MENU(Base##3)                      \
+    EQUATION_MENU(Base##4)                      \
+    EQUATION_MENU(Base##5)                      \
+    EQUATION_MENU(Base##6)                      \
+    EQUATION_MENU(Base##7)                      \
+    EQUATION_MENU(Base##8)                      \
+    EQUATION_MENU(Base##9)
+
+EQUATION_MENUS(EquationsMenu0)
+EQUATION_MENUS(EquationsMenu1)
+EQUATION_MENUS(EquationsMenu2)
+EQUATION_MENUS(EquationsMenu3)
+EQUATION_MENUS(EquationsMenu4)
+EQUATION_MENUS(EquationsMenu5)
+EQUATION_MENUS(EquationsMenu6)
+EQUATION_MENUS(EquationsMenu7)
+EQUATION_MENUS(EquationsMenu8)
+EQUATION_MENUS(EquationsMenu9)
+
+#define LIBRARY_MENUS(Base)                    \
+    LIBRARY_MENU(Base##0)                      \
+    LIBRARY_MENU(Base##1)                      \
+    LIBRARY_MENU(Base##2)                      \
+    LIBRARY_MENU(Base##3)                      \
+    LIBRARY_MENU(Base##4)                      \
+    LIBRARY_MENU(Base##5)                      \
+    LIBRARY_MENU(Base##6)                      \
+    LIBRARY_MENU(Base##7)                      \
+    LIBRARY_MENU(Base##8)                      \
+    LIBRARY_MENU(Base##9)
+
+LIBRARY_MENUS(LibraryMenu0)
+LIBRARY_MENUS(LibraryMenu1)
+LIBRARY_MENUS(LibraryMenu2)
+LIBRARY_MENUS(LibraryMenu3)
+LIBRARY_MENUS(LibraryMenu4)
+LIBRARY_MENUS(LibraryMenu5)
+LIBRARY_MENUS(LibraryMenu6)
+LIBRARY_MENUS(LibraryMenu7)
+LIBRARY_MENUS(LibraryMenu8)
+LIBRARY_MENUS(LibraryMenu9)
 
 #define CHARACTER_MENUS(Base)                    \
     CHARACTER_MENU(Base##0)                      \
@@ -1097,6 +1157,8 @@ ID(case_end_conditional)
 #undef MENU
 #undef UNIT_MENU
 #undef CONSTANT_MENU
+#undef EQUATION_MENU
+#undef LIBRARY_MENU
 #undef CHARACTER_MENU
 #undef NAMED
 #undef ALIAS

@@ -32,6 +32,8 @@
 #include "algebraic.h"
 #include "command.h"
 #include "constants.h"
+#include "equations.h"
+#include "library.h"
 #include "expression.h"
 #include "grob.h"
 #include "parser.h"
@@ -86,6 +88,10 @@ PARSE_BODY(symbol)
     p.end         = parsed;
     if (constant_p cst = constant::lookup(source, parsed, false))
         p.out = cst;
+    else if (equation_p eq = equation::lookup(source, parsed, false))
+        p.out = eq;
+    else if (xlib_p libobj = xlib::lookup(source, parsed, false))
+        p.out = libobj;
     else
         p.out = rt.make<symbol>(ID_symbol, text, parsed);
 

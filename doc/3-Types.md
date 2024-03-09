@@ -235,6 +235,10 @@ Like units, there are some built-in constants, and additional constants can be
 provided by a `config/constants.csv` file, which has exactly the same format as
 for the units file.
 
+You can edit the constants catalog by recalling its content on the stack using
+`"/config/equations.csv" RCL`, editing the values, and then storing the content
+back to disk using `"/config/equations.csv" STO`.
+
 
 ## Infinite results
 
@@ -311,3 +315,23 @@ result.
 
 If the `UndefinedValue` flag is is clear, which corresponds to `UndefinedError`
 being set, such operations will generate an `Undefined operation` error.
+
+
+## Library
+
+The `Library` is a catalog of frequently used and rarely modified objects that
+are stored on disk in the `config/library.csv` file.
+
+You can edit it by recalling its content on the stack using
+`"/config/library.csv" RCL`, editing the values, and then storing the content
+back to disk using `"/config/library.csv" STO`.
+
+
+## Equations Library
+
+The equations library is a catalog of common equations that are stored on disk
+in the `config/equations.csv` file.
+
+You can edit it by recalling its content on the stack using
+`"/config/equations.csv" RCL`, editing the values, and then storing the content
+back to disk using `"/config/equations.csv" STO`.

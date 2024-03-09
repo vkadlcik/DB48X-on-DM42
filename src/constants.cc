@@ -46,8 +46,6 @@
 RECORDER(constants,         16, "Constant objects");
 RECORDER(constants_error,   16, "Error on constant objects");
 
-#define CFILE   "config/constants.csv"
-
 
 // ============================================================================
 //
@@ -119,10 +117,96 @@ HELP_BODY(constant)
 }
 
 
+MENU_BODY(constant_menu)
+// ----------------------------------------------------------------------------
+//   Build a constants menu
+// ----------------------------------------------------------------------------
+{
+    return o->do_submenu(constant::constants, mi);
+}
+
+
+MENU_BODY(ConstantsMenu)
+// ----------------------------------------------------------------------------
+//   The constants menu is dynamically populated
+// ----------------------------------------------------------------------------
+{
+    return constant::do_collection_menu(constant::constants, mi);
+}
+
+
+utf8 constant_menu::name(id type, size_t &len)
+// ----------------------------------------------------------------------------
+//   Return the name for a menu entry
+// ----------------------------------------------------------------------------
+{
+    return do_name(constant::constants, type, len);
+}
+
+
+
+
+COMMAND_BODY(ConstantName)
+// ----------------------------------------------------------------------------
+//   Put the name of a constant on the stack
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    if (object_p cstobj = constant::do_key(constant::constants, key))
+        if (constant_p cst = cstobj->as<constant>())
+            if (rt.push(cst))
+                return OK;
+    if (!rt.error())
+        rt.type_error();
+    return ERROR;
+}
+
+
+INSERT_BODY(ConstantName)
+// ----------------------------------------------------------------------------
+//   Put the name of a constant in the editor
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    return ui.insert_softkey(key, " ", " ", false);
+}
+
+
+COMMAND_BODY(ConstantValue)
+// ----------------------------------------------------------------------------
+//   Put the value of a constant on the stack
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    if (object_p cstobj = constant::do_key(constant::constants, key))
+        if (constant_p cst = cstobj->as<constant>())
+            if (object_p value = cst->value())
+                if (rt.push(value))
+                    return OK;
+    if (!rt.error())
+        rt.type_error();
+    return ERROR;
+}
+
+
+INSERT_BODY(ConstantValue)
+// ----------------------------------------------------------------------------
+//   Insert the value of a constant
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    if (object_p cstobj = constant::do_key(constant::constants, key))
+        if (constant_p cst = cstobj->as<constant>())
+            if (object_p value = cst->value())
+                return ui.insert_object(value, " ", " ");
+    return ERROR;
+}
+
+
 
 // ============================================================================
 //
-//   Constant lookup
+//   Constant definitions
 //
 // ============================================================================
 
@@ -221,8 +305,34 @@ static const cstring basic_constants[] =
 //   clang-format on
 
 
+static void invalid_constant_error()
+// ----------------------------------------------------------------------------
+//    Return the error message for invalid constants
+// ----------------------------------------------------------------------------
+{
+    rt.invalid_constant_error();
+}
 
-constant_p constant::lookup(utf8 txt, size_t len, bool error)
+
+const constant::config constant::constants =
+// ----------------------------------------------------------------------------
+//  Define the configuration for the constants
+// ----------------------------------------------------------------------------
+{
+    .type           = ID_constant,
+    .first_menu     = ID_ConstantsMenu00,
+    .last_menu      = ID_ConstantsMenu99,
+    .name           = ID_ConstantName,
+    .value          = ID_ConstantValue,
+    .file           = "config/constants.csv",
+    .builtins       = basic_constants,
+    .nbuiltins      = sizeof(basic_constants) / sizeof(*basic_constants),
+    .error          = invalid_constant_error
+};
+
+
+
+constant_p constant::do_lookup(config_r cfg, utf8 txt, size_t len, bool error)
 // ----------------------------------------------------------------------------
 //   Scan the table and file to see if there is matching constant
 // ----------------------------------------------------------------------------
@@ -230,11 +340,12 @@ constant_p constant::lookup(utf8 txt, size_t len, bool error)
     if (unit::mode)
         return nullptr;
 
-    unit_file cfile(CFILE);
-    size_t    maxu = sizeof(basic_constants) / sizeof(basic_constants[0]);
-    cstring   ctxt = nullptr;
-    size_t    clen = 0;
-    uint      idx  = 0;
+    unit_file cfile(cfg.file);
+    size_t    maxb     = cfg.nbuiltins;
+    auto      builtins = cfg.builtins;
+    cstring   ctxt     = nullptr;
+    size_t    clen     = 0;
+    uint      idx      = 0;
 
     // Check in-file constants
     if (cfile.valid())
@@ -252,29 +363,30 @@ constant_p constant::lookup(utf8 txt, size_t len, bool error)
     }
 
     // Check built-in constants
-    for (size_t u = 0; u < maxu; u += 2)
+    for (size_t b = 0; b < maxb; b += 2)
     {
-        ctxt = basic_constants[u];
+        ctxt = builtins[b];
         if (ctxt[len] == 0 && memcmp(ctxt, txt, len) == 0)
-            return constant::make(idx);
+            return constant::make(cfg.type, idx);
         idx++;
     }
 
     if (error)
-        rt.invalid_constant_error();
+        cfg.error();
     return nullptr;
 }
 
 
-utf8 constant::name(size_t *len) const
+utf8 constant::do_name(config_r cfg, size_t *len) const
 // ----------------------------------------------------------------------------
 //   Return the name for the constant
 // ----------------------------------------------------------------------------
 {
-    unit_file cfile(CFILE);
-    size_t    maxu = sizeof(basic_constants) / sizeof(basic_constants[0]);
-    cstring   ctxt = nullptr;
-    uint      idx  = index();
+    unit_file cfile(cfg.file);
+    size_t    maxb     = cfg.nbuiltins;
+    auto      builtins = cfg.builtins;
+    cstring   ctxt     = nullptr;
+    uint      idx      = index();
 
     // Check in-file constants
     if (cfile.valid())
@@ -289,9 +401,9 @@ utf8 constant::name(size_t *len) const
     }
 
     // Check built-in constants
-    for (size_t u = 0; u < maxu; u += 2)
+    for (size_t b = 0; b < maxb; b += 2)
     {
-        ctxt = basic_constants[u];
+        ctxt = builtins[b];
         if (!idx)
         {
             if (len)
@@ -304,16 +416,17 @@ utf8 constant::name(size_t *len) const
 }
 
 
-algebraic_p constant::value() const
+algebraic_p constant::do_value(config_r cfg) const
 // ----------------------------------------------------------------------------
 //   Lookup a built-in constant
 // ----------------------------------------------------------------------------
 {
-    unit_file cfile(CFILE);
-    size_t    maxu  = sizeof(basic_constants) / sizeof(basic_constants[0]);
-    symbol_g  csym  = nullptr;
-    size_t    clen  = 0;
-    uint      idx   = index();
+    unit_file cfile(cfg.file);
+    size_t    maxb     = cfg.nbuiltins;
+    auto      builtins = cfg.builtins;
+    symbol_g  csym     = nullptr;
+    size_t    clen     = 0;
+    uint      idx      = index();
 
     // Check in-file constants
     if (cfile.valid())
@@ -335,17 +448,17 @@ algebraic_p constant::value() const
     }
 
     // Check built-in constants
-    for (size_t u = 0; !csym && u < maxu; u += 2)
+    for (size_t b = 0; !csym && b < maxb; b += 2)
     {
         if (!idx)
         {
-            csym = symbol::make(basic_constants[u+1]);
+            csym = symbol::make(builtins[b+1]);
             break;
         }
         idx--;
     }
 
-    // If we found a definition, use that unless it begins with '='
+    // If we found a definition, use that
     if (csym)
     {
         // Special cases for pi and e where we have built-in constants
@@ -363,7 +476,7 @@ algebraic_p constant::value() const
                 return txt;
         }
     }
-    rt.invalid_constant_error();
+    cfg.error();
     return nullptr;
 }
 
@@ -375,13 +488,13 @@ algebraic_p constant::value() const
 //
 // ============================================================================
 
-utf8 constant_menu::name(id type, size_t &len)
+utf8 constant_menu::do_name(constant::config_r cfg, id type, size_t &len)
 // ----------------------------------------------------------------------------
 //   Return the name associated with the type
 // ----------------------------------------------------------------------------
 {
-    uint count = type - ID_ConstantsMenu00;
-    unit_file cfile(CFILE);
+    uint count = type - cfg.first_menu;
+    unit_file cfile(cfg.file);
 
     // List all preceding entries
     if (cfile.valid())
@@ -392,15 +505,16 @@ utf8 constant_menu::name(id type, size_t &len)
 
     if (Settings.ShowBuiltinConstants())
     {
-        size_t maxu = sizeof(basic_constants) / sizeof(basic_constants[0]);
-        for (size_t u = 0; u < maxu; u += 2)
+        size_t maxb     = cfg.nbuiltins;
+        auto   builtins = cfg.builtins;
+        for (size_t b = 0; b < maxb; b += 2)
         {
-            if (!basic_constants[u+1] || !*basic_constants[u+1])
+            if (!builtins[b+1] || !*builtins[b+1])
             {
                 if (!count--)
                 {
-                    len = strlen(basic_constants[u]);
-                    return utf8(basic_constants[u]);
+                    len = strlen(builtins[b]);
+                    return utf8(builtins[b]);
                 }
             }
         }
@@ -410,21 +524,21 @@ utf8 constant_menu::name(id type, size_t &len)
 }
 
 
-MENU_BODY(constant_menu)
+bool constant_menu::do_submenu(constant::config_r cfg, menu_info &mi) const
 // ----------------------------------------------------------------------------
-//   Build a constants menu
+//   Load the menu from a file
 // ----------------------------------------------------------------------------
 {
     // Use the constants loaded from the constants file
-    unit_file cfile(CFILE);
+    unit_file cfile(cfg.file);
     size_t    matching = 0;
-    size_t    maxu     = sizeof(basic_constants) / sizeof(basic_constants[0]);
     uint      position = 0;
     uint      count    = 0;
+    id        type     = this->type();
+    id        menu     = cfg.first_menu;
+    id        lastm    = cfg.last_menu;
     size_t    first    = 0;
-    size_t    last     = maxu;
-    id        type     = o->type();
-    id        menu     = ID_ConstantsMenu00;
+    size_t    last     = cfg.nbuiltins;
 
     if (cfile.valid())
     {
@@ -440,28 +554,34 @@ MENU_BODY(constant_menu)
                 break;
             }
             menu = id(menu + 1);
+            if (menu > lastm)
+                break;
         }
     }
 
      // Disable built-in constants if we loaded a file
     if (!matching || Settings.ShowBuiltinConstants())
     {
-        bool found = false;
-        for (size_t u = 0; u < maxu; u += 2)
+        bool   found    = false;
+        auto   builtins = cfg.builtins;
+        size_t maxb     = cfg.nbuiltins;
+        for (size_t b = 0; b < maxb; b += 2)
         {
-            if (!basic_constants[u+1] || !*basic_constants[u+1])
+            if (!builtins[b + 1] || !*builtins[b + 1])
             {
                 if (found)
                 {
-                    last = u;
+                    last = b;
                     break;
                 }
                 if (menu == type)
                 {
                     found = true;
-                    first = u + 2;
+                    first = b + 2;
                 }
                 menu = id(menu + 1);
+                if (menu > lastm)
+                    break;
             }
         }
         count = (last - first) / 2;
@@ -470,10 +590,12 @@ MENU_BODY(constant_menu)
     items_init(mi, count + matching, 2, 1);
 
     // Insert the built-in constants after the ones from the file
-    uint skip = mi.skip;
-    for (uint plane = 0; plane < 2; plane++)
+    uint skip     = mi.skip;
+    uint planes   = 1 + !!cfg.value;
+    id   ids[2]   = { cfg.name, cfg.value };
+    auto builtins = cfg.builtins;
+    for (uint plane = 0; plane < planes; plane++)
     {
-        static const id ids[2] = { ID_ConstantName, ID_ConstantValue };
         mi.plane  = plane;
         mi.planes = plane + 1;
         mi.index  = plane * ui.NUM_SOFTKEYS;
@@ -499,37 +621,13 @@ MENU_BODY(constant_menu)
                     mentry = cfile.lookup(mtxt, mlen, false, false);
                     cfile.seek(posafter);
                     if (mentry)
-                    {
-                        size_t vlen = 0;
-                        utf8 vtxt = mentry->value(&vlen);
-                        decimal_g value = nullptr;
-                        settings::SaveDisplayDigits sdd(6);
-                        if (!memcmp(vtxt, "π", mlen))
-                            value = decimal::pi();
-                        else if (!memcmp(vtxt, "e", mlen))
-                                value = decimal::e();
-                        if (value)
-                            mentry = value->as_symbol(false);
                         items(mi, mentry, type);
-                    }
                 }
             }
         }
         for (uint i = 0; i < count; i++)
         {
-            cstring   label = basic_constants[first + 2 * i + plane];
-            cstring   ctxt  = basic_constants[first + 2 * i + 1];
-            decimal_g value = nullptr;
-            if (plane)
-            {
-                settings::SaveDisplayDigits sdd(6);
-                if (!strcmp(ctxt, "π"))
-                    value = decimal::pi();
-                else if (!strcmp(ctxt, "e"))
-                    value = decimal::e();
-                if (value)
-                    label = (cstring) value->as_symbol(false);
-            }
+            cstring   label = builtins[first + 2 * i + plane];
             items(mi, label, type);
         }
     }
@@ -538,16 +636,17 @@ MENU_BODY(constant_menu)
 }
 
 
-MENU_BODY(ConstantsMenu)
+bool constant::do_collection_menu(constant::config_r cfg, menu_info &mi)
 // ----------------------------------------------------------------------------
-//   The constants menu is dynamically populated
+//   Build the collection menu for the given config
 // ----------------------------------------------------------------------------
 {
     uint      infile   = 0;
     uint      count    = 0;
-    uint      maxmenus = ID_ConstantsMenu99 - ID_ConstantsMenu00;
-    size_t    maxu     = sizeof(basic_constants) / sizeof(basic_constants[0]);
-    unit_file cfile(CFILE);
+    uint      maxmenus = cfg.last_menu - cfg.first_menu;
+    size_t    maxb     = cfg.nbuiltins;
+    auto      builtins = cfg.builtins;
+    unit_file cfile(cfg.file);
 
     // List all menu entries in the file (up to 100)
     if (cfile.valid())
@@ -559,14 +658,14 @@ MENU_BODY(ConstantsMenu)
     // Count built-in constant menu titles
     if (!infile || Settings.ShowBuiltinConstants())
     {
-        for (size_t u = 0; u < maxu; u += 2)
-            if (!basic_constants[u+1] || !*basic_constants[u+1])
+        for (size_t b = 0; b < maxb; b += 2)
+            if (!builtins[b+1] || !*builtins[b+1])
                 count++;
         if (infile + count > maxmenus)
             count = maxmenus - infile;
     }
 
-    items_init(mi, 1 + infile + count);
+    menu::items_init(mi, infile + count);
     infile = 0;
     if (cfile.valid())
     {
@@ -577,18 +676,18 @@ MENU_BODY(ConstantsMenu)
                 continue;
             if (infile >= maxmenus)
                 break;
-            items(mi, mname, id(ID_ConstantsMenu00 + infile++));
+            menu::items(mi, mname, id(cfg.first_menu + infile++));
         }
     }
     if (!infile || Settings.ShowBuiltinConstants())
     {
-        for (size_t u = 0; u < maxu; u += 2)
+        for (size_t b = 0; b < maxb; b += 2)
         {
-            if (!basic_constants[u+1] || !*basic_constants[u+1])
+            if (!builtins[b+1] || !*builtins[b+1])
             {
                 if (infile >= maxmenus)
                     break;
-                items(mi, basic_constants[u], id(ID_ConstantsMenu00+infile++));
+                menu::items(mi, builtins[b], id(cfg.first_menu + infile++));
             }
         }
     }
@@ -604,7 +703,7 @@ MENU_BODY(ConstantsMenu)
 //
 // ============================================================================
 
-static constant_p key_constant(uint key)
+object_p constant::do_key(config_r cfg, int key)
 // ----------------------------------------------------------------------------
 //   Return a softkey label as a constant value
 // ----------------------------------------------------------------------------
@@ -626,66 +725,12 @@ static constant_p key_constant(uint key)
 
         if (txt)
         {
-            if (object_p uobj = object::parse(txt, len))
-                if (constant_p u = uobj->as<constant>())
-                    return u;
-            rt.invalid_constant_error();
+            if (object_p obj = object::parse(txt, len))
+                return obj;
+            if (!rt.error())
+                cfg.error();
             return nullptr;
         }
     }
     return nullptr;
-}
-
-
-COMMAND_BODY(ConstantName)
-// ----------------------------------------------------------------------------
-//   Put the name of a constant on the stack
-// ----------------------------------------------------------------------------
-{
-    int key = ui.evaluating;
-    if (constant_p constant = key_constant(key))
-        if (rt.push(constant))
-            return OK;
-    if (!rt.error())
-        rt.type_error();
-    return ERROR;
-}
-
-
-INSERT_BODY(ConstantName)
-// ----------------------------------------------------------------------------
-//   Put the name of a constant in the editor
-// ----------------------------------------------------------------------------
-{
-    int key = ui.evaluating;
-    return ui.insert_softkey(key, "₭", " ", false);
-}
-
-
-COMMAND_BODY(ConstantValue)
-// ----------------------------------------------------------------------------
-//   Put the value of a constant on the stack
-// ----------------------------------------------------------------------------
-{
-    int key = ui.evaluating;
-    if (constant_p constant = key_constant(key))
-        if (object_p value = constant->value())
-            if (rt.push(value))
-                return OK;
-    if (!rt.error())
-        rt.type_error();
-    return ERROR;
-}
-
-
-INSERT_BODY(ConstantValue)
-// ----------------------------------------------------------------------------
-//   Insert the value of a constant
-// ----------------------------------------------------------------------------
-{
-    int key = ui.evaluating;
-    if (constant_p constant = key_constant(key))
-        if (object_p value = constant->value())
-            return ui.insert_object(value, " ", " ");
-    return ERROR;
 }

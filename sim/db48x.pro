@@ -54,6 +54,7 @@ SOURCES +=                                      \
         ../src/dmcp/main.cc                     \
         ../src/dmcp/sysmenu.cc                  \
         ../src/dmcp/target.cc                   \
+        ../src/equations.cc                     \
         ../src/expression.cc                    \
         ../src/file.cc                          \
         ../src/files.cc                         \
@@ -65,6 +66,7 @@ SOURCES +=                                      \
         ../src/hwfp.cc                          \
         ../src/integer.cc                       \
         ../src/integrate.cc                     \
+        ../src/library.cc                       \
         ../src/list.cc                          \
         ../src/locals.cc                        \
         ../src/logical.cc                       \
@@ -86,7 +88,7 @@ SOURCES +=                                      \
         ../src/unit.cc                          \
         ../src/user_interface.cc                \
         ../src/util.cc                          \
-        ../src/variables.cc                     \
+        ../src/variables.cc
 
 HEADERS +=                                      \
 	sim-window.h                            \

@@ -886,7 +886,7 @@ Hewlett-Packard RPL implementation.
 * [LastMenu](#lastmenu): Select last menu
 * [LastX](#lastx): Return last X argument (for easier translation of RPN programs)
 * [LengthUnitsMenu](#lengthunitsmenu)
-* [LibsMenu](#libsmenu)
+* [LibrariesMenu](#librariesmenu)
 * [LightUnitsMenu](#lightunitsmenu)
 * [LineWidth](#linewidth): Select line width for line drawing operations
 * [LinearSolverMenu](#linearsolvermenu)

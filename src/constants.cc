@@ -58,7 +58,7 @@ PARSE_BODY(constant)
 //    Skip, the actual parsing is done in the symbol parser
 // ----------------------------------------------------------------------------
 {
-    return SKIP;
+    return do_parsing(constants, p);
 }
 
 
@@ -78,11 +78,7 @@ RENDER_BODY(constant)
 //   Render the constant into the given constant buffer
 // ----------------------------------------------------------------------------
 {
-    size_t len    = 0;
-    utf8   txt    = o->name(&len);
-    auto   format = r.editing() ? ID_LongFormNames : Settings.NameDisplayMode();
-    r.put(format, txt, len);
-    return r.size();
+    return do_rendering(constants, o, r);
 }
 
 
@@ -168,7 +164,7 @@ INSERT_BODY(ConstantName)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    return ui.insert_softkey(key, " ", " ", false);
+    return ui.insert_softkey(key, " Ⓒ", " ", false);
 }
 
 
@@ -223,6 +219,7 @@ static const cstring basic_constants[] =
 
     "π",        "π",                    // Evaluated specially (decimal-pi.h)
     "e",        "e",                    // Evaluated specially (decimal-e.h)
+    "ⅈ",        "0+ⅈ1",                 // Imaginary unit
     "ⅉ",        "0+ⅈ1",                 // Imaginary unit
     "∞",        "9.99999E999999",       // A small version of infinity
     "?",        "Undefined",            // Undefined result
@@ -247,6 +244,7 @@ static const cstring basic_constants[] =
 
     "Phys",     nullptr,
 
+    "ⅉ",        "0+ⅈ1",                 // Imaginary unit in physics
     "c",        "299792458_m/s",        // Speed of light
     "ε0",       "8.85418781761E-12_F/m",// Vaccuum permittivity
     "μ0",       "1.25663706144E-6_H/m", // Vaccuum permeability
@@ -319,6 +317,7 @@ const constant::config constant::constants =
 //  Define the configuration for the constants
 // ----------------------------------------------------------------------------
 {
+    .prefix         = L'Ⓒ',
     .type           = ID_constant,
     .first_menu     = ID_ConstantsMenu00,
     .last_menu      = ID_ConstantsMenu99,
@@ -330,6 +329,51 @@ const constant::config constant::constants =
     .error          = invalid_constant_error
 };
 
+
+
+object::result constant::do_parsing(config_r cfg, parser &p)
+// ----------------------------------------------------------------------------
+//    Try to parse this as a constant
+// ----------------------------------------------------------------------------
+{
+    utf8    source = p.source;
+    size_t  max    = p.length;
+    size_t  parsed = 0;
+
+    // First character must be a constant marker
+    unicode cp = utf8_codepoint(source);
+    if (cp != cfg.prefix)
+        return SKIP;
+    parsed = utf8_next(source, parsed, max);
+    size_t first = parsed;
+
+    // Other characters must be alphabetic
+    while (parsed < max && !is_separator(source + parsed))
+        parsed = utf8_next(source, parsed, max);
+    if (parsed <= first)
+        return SKIP;
+
+    size_t     len = parsed - first;
+    constant_p cst = do_lookup(cfg, source + first, len, true);
+    p.end          = parsed;
+    p.out          = cst;
+    return cst ? OK : ERROR;
+}
+
+
+size_t constant::do_rendering(config_r cfg, constant_p o, renderer &r)
+// ----------------------------------------------------------------------------
+//   Rendering of a constant
+// ----------------------------------------------------------------------------
+{
+    constant_g cst = o;
+    size_t     len = 0;
+    utf8       txt = cst->do_name(cfg, &len);
+    if (r.editing())
+        r.put(cfg.prefix);
+    r.put(txt, len);
+    return r.size();
+}
 
 
 constant_p constant::do_lookup(config_r cfg, utf8 txt, size_t len, bool error)
@@ -703,7 +747,7 @@ bool constant::do_collection_menu(constant::config_r cfg, menu_info &mi)
 //
 // ============================================================================
 
-object_p constant::do_key(config_r cfg, int key)
+constant_p constant::do_key(config_r cfg, int key)
 // ----------------------------------------------------------------------------
 //   Return a softkey label as a constant value
 // ----------------------------------------------------------------------------
@@ -724,13 +768,7 @@ object_p constant::do_key(config_r cfg, int key)
         }
 
         if (txt)
-        {
-            if (object_p obj = object::parse(txt, len))
-                return obj;
-            if (!rt.error())
-                cfg.error();
-            return nullptr;
-        }
+            return do_lookup(cfg, txt, len, true);
     }
     return nullptr;
 }

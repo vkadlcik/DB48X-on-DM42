@@ -77,6 +77,7 @@ const xlib::config xlib::library =
 //  Define the configuration for the library
 // ----------------------------------------------------------------------------
 {
+    .prefix         = L'Ⓛ',
     .type           = ID_xlib,
     .first_menu     = ID_LibraryMenu00,
     .last_menu      = ID_LibraryMenu99,
@@ -95,6 +96,15 @@ const xlib::config xlib::library =
 //   Menu implementation
 //
 // ============================================================================
+
+PARSE_BODY(xlib)
+// ----------------------------------------------------------------------------
+//   Parse library entries
+// ----------------------------------------------------------------------------
+{
+    return do_parsing(library, p);
+}
+
 
 EVAL_BODY(xlib)
 // ----------------------------------------------------------------------------
@@ -118,11 +128,7 @@ RENDER_BODY(xlib)
 //   Render the xlib into the given buffer
 // ----------------------------------------------------------------------------
 {
-    size_t     len    = 0;
-    utf8       txt    = o->name(&len);
-    auto   format = r.editing() ? ID_LongFormNames : Settings.NameDisplayMode();
-    r.put(format, txt, len);
-    return r.size();
+    return do_rendering(library, o, r);
 }
 
 
@@ -184,7 +190,7 @@ INSERT_BODY(XlibName)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    return ui.insert_softkey(key, " ", " ", false);
+    return ui.insert_softkey(key, " Ⓛ", " ", false);
 }
 
 
@@ -194,8 +200,8 @@ COMMAND_BODY(XlibValue)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    if (object_p cstobj = xlib::do_key(xlib::library, key))
-        if (xlib_p xl = cstobj->as<xlib>())
+    if (constant_p cst = xlib::do_key(xlib::library, key))
+        if (xlib_p xl = cst->as<xlib>())
             if (object_p value = xl->value())
                 if (rt.push(value))
                     return OK;

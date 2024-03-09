@@ -82,7 +82,9 @@ public:
 
         SPACE_DEFAULT           = SPACE_MEDIUM_MATH,
         SPACE_UNIT              = SPACE_6_PER_EM,
-        CONSTANT_MARKER         = L'₭', // SPACE_THIN, L'■',
+        CONSTANT_MARKER         = L'Ⓒ',
+        EQUATION_MARKER         = L'Ⓔ',
+        XLIB_MARKER             = L'Ⓛ',
 
         MARK                    = L'●', // L'■'
         CLEAR_MARK              = L'○',

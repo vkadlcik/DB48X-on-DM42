@@ -79,6 +79,7 @@ struct equation : constant
 
     static const config equations;
     OBJECT_DECL(equation);
+    PARSE_DECL(equation);
     EVAL_DECL(equation);
     RENDER_DECL(equation);
     HELP_DECL(equation);

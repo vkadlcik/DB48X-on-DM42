@@ -86,14 +86,7 @@ PARSE_BODY(symbol)
     // Check if we have a known constant
     gcutf8 text   = source;
     p.end         = parsed;
-    if (constant_p cst = constant::lookup(source, parsed, false))
-        p.out = cst;
-    else if (equation_p eq = equation::lookup(source, parsed, false))
-        p.out = eq;
-    else if (xlib_p libobj = xlib::lookup(source, parsed, false))
-        p.out = libobj;
-    else
-        p.out = rt.make<symbol>(ID_symbol, text, parsed);
+    p.out = rt.make<symbol>(ID_symbol, text, parsed);
 
     return OK;
 }

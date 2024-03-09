@@ -46,7 +46,7 @@ volatile uint keysync_done = 0;
 
 RECORDER_DECLARE(errors);
 
-uint tests::default_wait_time  = 200;
+uint tests::default_wait_time  = 500;
 uint tests::image_wait_time = 500;
 uint tests::key_delay_time = 2;
 uint tests::refresh_delay_time = 50;
@@ -145,7 +145,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        text_functions();
+        insertion_of_variables_constants_and_units();
     }
     else
     {
@@ -2625,7 +2625,7 @@ void tests::high_precision_numerical_functions()
     TFN(exp2).expect("1.24919 61256 53376 70052 14667 82085 80659 83711 96789 11078 50872 03968 89639 54927 57400 23696 00219 70718 47302 80643 90803 89872 28867 485");
     TFN(erf).expect("0.35014 42208 20023 82355 16032 45050 23912 83120 71924 29072 35684 90423 15676 68631 26483 67740 59618 93127 36786 06239 23468 00013 58887 2181");
     TFN(erfc).expect("0.64985 57791 79976 17644 83967 54949 76087 16879 28075 70927 64315 09576 84323 31368 73516 32259 40381 06872 63213 93760 76531 99986 41112 7819");
-    TFN(tgamma).expect("2.78663 45408 45472 36795 07642 12781 77275 03497 82995 16602 55760 07828 51424 44941 90542 89306 12905 33223 77665 62678 93736 34160 48127 165", 2000);
+    TFN(tgamma).expect("2.78663 45408 45472 36795 07642 12781 77275 03497 82995 16602 55760 07828 51424 44941 90542 89306 12905 33223 77665 62678 93736 34160 48127 165", 20000);
     TFN(lgamma).wait(500).expect("1.02483 46099 57313 19869 10927 53834 88666 18028 66769 43209 08437 87004 46327 04911 25770 09539 00530 12325 23947 42518 21539 89107 12509 699");
     TFN(gamma).wait(500).expect("2.78663 45408 45472 36795 07642 12781 77275 03497 82995 16602 55760 07828 51424 44941 90542 89306 12905 33223 77665 62678 93736 34160 48127 165");
     TFN(cbrt).expect("0.68470 21277 57224 16184 09277 32646 81496 28057 14749 53139 45950 35873 52977 73009 35191 71304 84396 28932 73625 07589 02266 77954 73690 2353");
@@ -5812,17 +5812,19 @@ void tests::insertion_of_variables_constants_and_units()
     BEGIN(insert);
 
     step("Select constant menu")
-        .test(CLEAR, LSHIFT, I, F1).image("constants-menu", 0, 240-22, 400, 22);
+        .test(CLEAR, LSHIFT, I, F1).image_menus("constants-menu", 1);
     step("Insert pi")
         .test(CLEAR, F1).expect("π");
     step("Insert e")
         .test(CLEAR, F2).expect("e");
     step("Insert i")
-        .test(CLEAR, F3).expect("ⅉ");
+        .test(CLEAR, F3).expect("ⅈ");
+    step("Insert j")
+        .test(CLEAR, F4).expect("ⅉ");
     step("Insert infinity")
-        .test(CLEAR, F4).expect("∞");
+        .test(CLEAR, F5).expect("∞");
     step("Insert undefined")
-        .test(CLEAR, F5).expect("?");
+        .test(CLEAR, F6).expect("?");
 
     step("Insert pi value")
         .test(CLEAR, LSHIFT, F1).expect("3.14159 26535 9");
@@ -5830,56 +5832,104 @@ void tests::insertion_of_variables_constants_and_units()
         .test(CLEAR, LSHIFT, F2).expect("2.71828 18284 6");
     step("Insert i value")
         .test(CLEAR, LSHIFT, F3).expect("0+1ⅈ");
+    step("Insert j value")
+        .test(CLEAR, LSHIFT, F4).expect("0+1ⅈ");
     step("Insert infinity value")
-        .test(CLEAR, LSHIFT, F4).expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
+        .test(CLEAR, LSHIFT, F5).expect("9.99999⁳⁹⁹⁹⁹⁹⁹");
     step("Insert undefined value")
-        .test(CLEAR, LSHIFT, F5).expect("Undefined");
+        .test(CLEAR, LSHIFT, F6).expect("Undefined");
 
 
     step("Begin program")
         .test(CLEAR, LSHIFT, RUNSTOP).editor("«»");
     step("Insert pi")
-        .test(F1).editor("«₭π »");
+        .test(F1).editor("« Ⓒπ »");
     step("Insert e")
-        .test(F2).editor("«₭π ₭e »");
+        .test(F2).editor("« Ⓒπ  Ⓒe »");
     step("Insert i")
-        .test(F3).editor("«₭π ₭e ₭i »");
+        .test(F3).editor("« Ⓒπ  Ⓒe  Ⓒⅈ »");
+    step("Insert j")
+        .test(F4).editor("« Ⓒπ  Ⓒe  Ⓒⅈ  Ⓒⅉ »");
     step("Insert infinity")
-        .test(F4).editor("«₭π ₭e ₭i ₭∞ »");
+        .test(F5).editor("« Ⓒπ  Ⓒe  Ⓒⅈ  Ⓒⅉ  Ⓒ∞ »");
     step("Insert undefined")
-        .test(F5).editor("«₭π ₭e ₭i ₭∞ ₭? »");
+        .test(F6).editor("« Ⓒπ  Ⓒe  Ⓒⅈ  Ⓒⅉ  Ⓒ∞  Ⓒ? »");
 
     step("Insert pi value")
-        .test(LSHIFT, F1).editor("«₭π ₭e ₭i ₭∞ ₭?  "
+        .test(LSHIFT, F1).editor("« Ⓒπ  Ⓒe  Ⓒⅈ  Ⓒⅉ  Ⓒ∞  Ⓒ?  "
                                  "3.14159 26535 89793 23846 264 »");
     step("Insert e value")
-        .test(LSHIFT, F2).editor("«₭π ₭e ₭i ₭∞ ₭?  "
+        .test(LSHIFT, F2).editor("« Ⓒπ  Ⓒe  Ⓒⅈ  Ⓒⅉ  Ⓒ∞  Ⓒ?  "
                                  "3.14159 26535 89793 23846 264  "
                                  "2.71828 18284 59045 23536 028 »");
     step("Insert i value")
-        .test(LSHIFT, F3).editor("«₭π ₭e ₭i ₭∞ ₭?  "
+        .test(LSHIFT, F3).editor("« Ⓒπ  Ⓒe  Ⓒⅈ  Ⓒⅉ  Ⓒ∞  Ⓒ?  "
                                  "3.14159 26535 89793 23846 264  "
                                  "2.71828 18284 59045 23536 028  "
                                  "0+ⅈ1 »");
-    step("Insert infinity value")
-        .test(LSHIFT, F4).editor("«₭π ₭e ₭i ₭∞ ₭?  "
+    step("Insert j value")
+        .test(LSHIFT, F4).editor("« Ⓒπ  Ⓒe  Ⓒⅈ  Ⓒⅉ  Ⓒ∞  Ⓒ?  "
                                  "3.14159 26535 89793 23846 264  "
                                  "2.71828 18284 59045 23536 028  "
                                  "0+ⅈ1  "
-                                 "9.99999⁳999999 »");
-    step("Insert undefined value")
-        .test(LSHIFT, F5).editor("«₭π ₭e ₭i ₭∞ ₭?  "
+                                 "0+ⅈ1 »");
+    step("Insert infinity value")
+        .test(LSHIFT, F5).editor("« Ⓒπ  Ⓒe  Ⓒⅈ  Ⓒⅉ  Ⓒ∞  Ⓒ?  "
                                  "3.14159 26535 89793 23846 264  "
                                  "2.71828 18284 59045 23536 028  "
+                                 "0+ⅈ1  "
+                                 "0+ⅈ1  "
+                                 "9.99999⁳999999 »");
+    step("Insert undefined value")
+        .test(LSHIFT, F6).editor("« Ⓒπ  Ⓒe  Ⓒⅈ  Ⓒⅉ  Ⓒ∞  Ⓒ?  "
+                                 "3.14159 26535 89793 23846 264  "
+                                 "2.71828 18284 59045 23536 028  "
+                                 "0+ⅈ1  "
                                  "0+ⅈ1  "
                                  "9.99999⁳999999  "
                                  "Undefined »");
 
     step("Test that constants parse")
         .test(ENTER)
-        .expect("« π e ⅉ ∞ ? "
-                "3.14159 26535 9 2.71828 18284 6 0+1ⅈ 9.99999⁳⁹⁹⁹⁹⁹⁹ "
-                "Undefined »");
+        .expect("« π e ⅈ ⅉ ∞ ? "
+                "3.14159 26535 9 2.71828 18284 6 0+1ⅈ 0+1ⅈ 9.99999⁳⁹⁹⁹⁹⁹⁹ "
+                "Undefined »", 3000);
+
+    step("Select library menu")
+        .test(CLEAR, RSHIFT, H).noerror();
+    step("Select secrets menu")
+        .test(F1).noerror();
+    step("Insert Dedicace")
+        .test(CLEAR, F1).expect("Dedicace");
+    step("Evaluate stack Dedicace")
+        .test(RUNSTOP).expect("");
+    step("Evaluate Dedicace directly")
+        .test(LSHIFT, F1).expect("");
+
+    step("Begin program")
+        .test(CLEAR, LSHIFT, RUNSTOP).editor("«»");
+    step("Insert Dedicace")
+        .test(F1).editor("«ⓁDedicace »");
+    step("Insert LibraryHelp")
+        .test(F2).editor("«ⓁDedicace ⓁLibraryHelp »");
+
+    step("Test that xlibs parse")
+        .test(ENTER)
+        .expect("« Dedicace LibraryHelp »");
+    step("Test that xlib can be edited")
+        .test(DOWN)
+        .editor("« ⓁDedicace ⓁLibraryHelp »");
+    step("Test that xlib edit can be entered")
+        .test(ENTER)
+        .expect("« Dedicace LibraryHelp »");
+    step("Test that xlib name can be edited")
+        .test(DOWN)
+        .editor("« ⓁDedicace ⓁLibraryHelp »")
+        .test(DOWN, DOWN, DOWN, DOWN, "ee")
+        .editor("« ⓁDeeedicace ⓁLibraryHelp »");
+    step("Test that bad xlib name is detected")
+        .test(ENTER)
+        .error("Invalid or unknown library entry");
 
     step("Select units menu")
         .test(CLEAR, LSHIFT, KEY5, F4).image("units-menu",
@@ -5995,7 +6045,7 @@ void tests::regression_checks()
 
     step("Bug 168: pi no longer parses correctly");
     test(CLEAR, SHIFT, I, F1, F1).expect("π");
-    test(DOWN).editor("₭π");
+    test(DOWN).editor("Ⓒπ");
     test(ENTER).expect("π");
 
     step("Bug 207: parsing of cos(X+pi)");

@@ -75,6 +75,7 @@ const equation::config equation::equations =
 //  Define the configuration for the equations
 // ----------------------------------------------------------------------------
 {
+    .prefix         = L'Ⓔ',
     .type           = ID_equation,
     .first_menu     = ID_EquationsMenu00,
     .last_menu      = ID_EquationsMenu99,
@@ -94,6 +95,15 @@ const equation::config equation::equations =
 //
 // ============================================================================
 
+PARSE_BODY(equation)
+// ----------------------------------------------------------------------------
+//    Skip, the actual parsing is done in the symbol parser
+// ----------------------------------------------------------------------------
+{
+    return do_parsing(equations, p);
+}
+
+
 EVAL_BODY(equation)
 // ----------------------------------------------------------------------------
 //   Equations always evaluate to their value
@@ -109,14 +119,11 @@ RENDER_BODY(equation)
 //   Render the equation into the given buffer
 // ----------------------------------------------------------------------------
 {
-    equation_g eq     = o;
-    size_t     len    = 0;
-    utf8       txt    = o->name(&len);
-    auto   format = r.editing() ? ID_LongFormNames : Settings.NameDisplayMode();
-    r.put(format, txt, len);
+    equation_g eq = o;
+    do_rendering(equations, o, r);
     if (!r.editing())
     {
-        if (object_p obj = eq->value())
+        if (object_g obj = eq->value())
         {
             r.put(':');
             obj->render(r);
@@ -168,9 +175,9 @@ COMMAND_BODY(EquationName)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    if (object_p cstobj = equation::do_key(equation::equations, key))
-        if (equation_p cst = cstobj->as<equation>())
-            if (rt.push(cst))
+    if (constant_p cst = equation::do_key(equation::equations, key))
+        if (equation_p eq = cst->as<equation>())
+            if (rt.push(eq))
                 return OK;
     if (!rt.error())
         rt.type_error();
@@ -184,7 +191,7 @@ INSERT_BODY(EquationName)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    return ui.insert_softkey(key, " ", " ", false);
+    return ui.insert_softkey(key, " Ⓔ", " ", false);
 }
 
 
@@ -194,8 +201,8 @@ COMMAND_BODY(EquationValue)
 // ----------------------------------------------------------------------------
 {
     int key = ui.evaluating;
-    if (object_p cstobj = equation::do_key(equation::equations, key))
-        if (equation_p eq = cstobj->as<equation>())
+    if (constant_p cst = equation::do_key(equation::equations, key))
+        if (equation_p eq = cst->as<equation>())
             if (object_p value = eq->value())
                 if (rt.push(value))
                     return OK;

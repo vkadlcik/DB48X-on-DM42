@@ -58,15 +58,16 @@ struct constant : algebraic
     //   Configuration for a kind of file-based constants
     // ------------------------------------------------------------------------
     {
-        id         type;       // Type for constants, e.g. ID_xlib
-        id         first_menu; // First possible menu, e.g. ID_EquationsMenu00
-        id         last_menu;  // Last possible menu, e.g. ID_EquationsMenu99
-        id         name;       // Menu command for the name
-        id         value;      // Menu command for the value
-        cstring    file;       // CSV file for names and definitions
-        builtins_p builtins;   // Builtins defintions
-        size_t     nbuiltins;  // Number of entries in builtins[]
-        void      (*error)();  // Emit error message
+        unicode    prefix;      // Prefix identifying constant type (Ⓒ, Ⓔ, Ⓛ)
+        id         type;        // Type for constants, e.g. ID_xlib
+        id         first_menu;  // First possible menu, e.g. ID_EquationsMenu00
+        id         last_menu;   // Last possible menu, e.g. ID_EquationsMenu99
+        id         name;        // Menu command for the name
+        id         value;       // Menu command for the value
+        cstring    file;        // CSV file for names and definitions
+        builtins_p builtins;    // Builtins defintions
+        size_t     nbuiltins;   // Number of entries in builtins[]
+        void      (*error)();   // Emit error message
     };
     typedef const config &config_r;
 
@@ -104,8 +105,14 @@ struct constant : algebraic
     {
         return do_value(constants);
     }
-    bool        is_imaginary_unit() const       { return matches("ⅉ"); }
-    bool        is_pi() const                   { return matches("π"); }
+    bool is_imaginary_unit() const
+    {
+        return matches("ⅈ") || matches("ⅉ");
+    }
+    bool        is_pi() const
+    {
+        return matches("π");
+    }
     bool        matches(cstring ref) const
     {
         size_t nlen = strlen(ref);
@@ -115,19 +122,21 @@ struct constant : algebraic
     }
 
 protected:
+    static result     do_parsing(config_r cfg, parser &p);
+    static size_t     do_rendering(config_r cfg, constant_p o, renderer &r);
     static constant_p do_lookup(config_r cfg, utf8 name, size_t len, bool error);
     utf8              do_name(config_r cfg, size_t *size = nullptr) const;
     algebraic_p       do_value(config_r cfg) const;
 
 public:
     static bool       do_collection_menu(config_r cfg, menu_info &mi);
-    static object_p   do_key(config_r cfg, int key);
+    static constant_p do_key(config_r cfg, int key);
 
 public:
     OBJECT_DECL(constant);
+    PARSE_DECL(constant);
     SIZE_DECL(constant);
     EVAL_DECL(constant);
-    PARSE_DECL(constant);
     RENDER_DECL(constant);
     GRAPH_DECL(constant);
     HELP_DECL(constant);

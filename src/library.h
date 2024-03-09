@@ -79,6 +79,7 @@ struct xlib : constant
 
     static const config library;
     OBJECT_DECL(xlib);
+    PARSE_DECL(xlib);
     EVAL_DECL(xlib);
     RENDER_DECL(xlib);
     HELP_DECL(xlib);

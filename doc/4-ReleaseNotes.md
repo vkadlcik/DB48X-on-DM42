@@ -1,5 +1,102 @@
 # Release notes
 
+## Release 0.7.2 "Light" - Libraries, Characters menu
+
+This release introduces four relatively significant features:
+
+1. An Equation Library
+2. A more general Library
+3. Character menus
+4. A character modification catalog
+
+There are also a number of bug fixes and improvements.
+
+
+### Features
+
+* The *Equation Library* is similar in principle to what is found in the HP50G.
+  It is intended to store equations covering a variety of topics.
+  The Equation Library is accessible using the _EQS_ key (🟦 _'()'_).
+  It is presently only very sparsely populated, but a future release should
+  add the equations listed in Chapter 5 of the *HP50G Advanced User's Reference
+  Manual*. Elements of the Equation Library appear as named *Equation Objects*.
+  The Equation Library is configured by file `config/equations.csv`.
+
+* The *Library* is similar to the Equation Library, but for all kinds of objects
+  such as programs or code snippets. The Library is accessible using the _LIB_
+  key (🟦 _VAR_). It can be used to customize your calculator, and is intended
+  to play the roles of the `CST` variable (quick access to common features)
+  and Library Objects / XLIB (external extensions to RPL). Elements of the
+  Library appear as named *Library Objects*.
+  The Library is configured by file `config/library.csv`.
+
+* The *Characters Menu* lets you enter Unicode characters easily, by presenting
+  various classes of characters, such as `RPL`, `Greek` or `Punct`.
+  The Characters Menus is accessible using the _CHAR_ key (🟦 _2_).
+  It can be used to enter international characters (e.g. Greek or Cyrillic), as
+  well as special characters such as arrows or blocks.
+  The Characters Menu is configured by file `config/characters.csv`.
+
+* The *Characters Catalog* appears when the `Catalog` is active and the cursor
+  is inside some text object. It gives you access to characters that are
+  visually close to the character on the left of the cursor. For example, after
+  typing `A`, the presented choices include `À`, `a` or `α`.
+  The Characters Catalog is configured by file `config/characters.csv`.
+
+* compare: Add comparisons for `true` and `false` values
+
+* Add `TEVAL` command (timed evaluation)
+
+
+### Bug fixes
+
+* Do not add unnecessary parentheses in ratios, e.g. `(A+B)/(X-Y)`
+* Make sure we can save back the configuration files correctly
+* Improve access path checks to accept `config:constants.csv`.
+* Avoid syntax error in `1/(1+x)` due to `1/` being seen as a fraction
+* unitfile: Remove slight risk of bad menu display after garbage collection
+* date/time: Make sure we save the stack and last args for `Date`, `Time`, ...
+* parser: Skip spacing when parsing numbers (to parse back `→Text` result)
+* time: Fix rendering of DMS time in lists, matrices, vectors
+* catalog: Fix a subtle bug on DM32 leading to a crash using the catalog
+
+
+### Improvements
+
+* constants: Get values of special `π` and `e` by name
+* constants: Add prefix in editor to identify constants, equations and xlib
+* constants: Represent constants with an index for memory and performance
+* constants: Parse units containing text
+* constants: Allow `RCL` to recall a constant value
+* units: Direct insertion of units after numbers
+* menu: Update `Roll` and `RollDown` menu entries
+* show: Show all decimals for decimal values
+* help: Display the correct on-line help topic for constants
+* catalog: Use less memory for the sorted IDs
+* integrate: Use numerical computations for faster convergence
+* locals: Improve error message for bad locals
+* graph: Improve graphical rendering of constants (bold) and equations
+* graph: Do not add unnecessary parentheses in ratios
+* tests: Add tests for characters menu/catalog
+* tests: Fix the `.` vs `0.` test
+* ui: Do not enter DMS inside text
+* tests: Display disabled tests in gray
+* catalog: Keep a single spelling, e.g. no `add` duplicates
+* tests: Add extra delay in the wait for update
+* makefile: Add dependency of 'all' to the decimal constants
+* save: Improve rendering control when saving files
+* stack: Do not save stack in plot, integration or solver
+* debug: Disable debugging when launching a program from function key
+* simulator: Avoid piling up QT draw requests
+* doc: Update performance numbers for 1M loops
+* simulator: Add sound support
+* simulator: Lazy screen refresh
+* dmcp: Add UI refresh callback
+* simulator: Move QT-dependent code out of dmcp.cpp
+* Add reduced font
+* runtime: Various changes to isolate QT build from the rest
+
+
 ## Release 0.7.1 "Whip" - Bug fixes
 
 Inserting variables, constants or units in a program was broken.

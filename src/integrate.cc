@@ -121,6 +121,9 @@ algebraic_p integrate(program_g   eq,
     int              prec = Settings.IntegratePrecision();
     algebraic_g      eps = decimal::make(1, -prec);
 
+    // Select numerical computations (doing this with fraction is slow)
+    settings::SaveNumericalResults snr(true);
+
     // Initial integration step and first trapezoidal step
     dx              = hx - lx;
     sy              = algebraic::evaluate_function(eq, lx);

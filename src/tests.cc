@@ -146,7 +146,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        character_menu();
+        numerical_integration_testing();
     }
     else
     {
@@ -4041,7 +4041,7 @@ void tests::numerical_integration_testing()
         .test(3, ENTER).expect("3")
         .test("'sq(Z)+Z'", ENTER).expect("'Z²+Z'")
         .test(F, ALPHA, Z, ENTER).expect("'Z'")
-        .test(SHIFT, KEY8, F2).expect("8 ⁵/₆", 5000); // REVISIT: So slow?
+        .test(SHIFT, KEY8, F2).expect("8.83333 33333 3", 350);
     step("Integration with decimals")
         .test(CLEAR, "2.", ENTER).expect("2.")
         .test("3.", ENTER).expect("3.")

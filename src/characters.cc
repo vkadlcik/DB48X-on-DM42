@@ -62,9 +62,15 @@ symbol_g characters_file::next()
         if (c == '"')
         {
             if (quoted && peek() == '"') // Treat double "" as a data quote
+            {
                 c = getchar();
+                byte *buf = rt.allocate(1);
+                *buf = byte(c);
+            }
             else
+            {
                 quoted = !quoted;
+            }
             if (!quoted)
             {
                 result = symbol::make(scr.scratch(), scr.growth());
@@ -538,7 +544,7 @@ uint character_menu::build_from_characters(menu_info &mi,
         utf8 next = nullptr;
         for (utf8 p = txt + offset; count--; p = next)
         {
-            next           = utf8_next(p);
+            next = utf8_next(p);
             symbol_g label = symbol::make(p, size_t(next -p));
             items(mi, label, ID_ReplaceChar);
             if (next >= end)

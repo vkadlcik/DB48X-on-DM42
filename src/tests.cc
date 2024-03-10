@@ -121,6 +121,7 @@ TESTS(date,             "Date operations");
 TESTS(infinity,         "Infinity and undefined operations");
 TESTS(overflow,         "Overflow and underflow");
 TESTS(insert,           "Insertion of variables, units and constants");
+TESTS(characters,       "Character menu and catalog");
 
 EXTRA(plotfns,          "Plot all functions");
 EXTRA(sysflags,         "Enable/disable every RPL flag");
@@ -145,7 +146,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        decimal_display_formats();
+        character_menu();
     }
     else
     {
@@ -204,6 +205,7 @@ void tests::run(bool onlyCurrent)
         online_help();
         graphic_stack_rendering();
         insertion_of_variables_constants_and_units();
+        character_menu();
         regression_checks();
     }
     summary();
@@ -5909,16 +5911,18 @@ void tests::insertion_of_variables_constants_and_units()
     step("Insert Dedicace")
         .test(CLEAR, F1).expect("Dedicace");
     step("Evaluate stack Dedicace")
-        .test(RUNSTOP).expect("");
+        .test(RUNSTOP).expect("\"À tous ceux qui se souviennent de "
+                              "Maubert électronique\"");
     step("Evaluate Dedicace directly")
-        .test(LSHIFT, F1).expect("");
+        .test(LSHIFT, F1).expect("\"À tous ceux qui se souviennent de "
+                                 "Maubert électronique\"");
 
     step("Begin program")
         .test(CLEAR, LSHIFT, RUNSTOP).editor("«»");
     step("Insert Dedicace")
-        .test(F1).editor("«ⓁDedicace »");
+        .test(F1).editor("« ⓁDedicace »");
     step("Insert LibraryHelp")
-        .test(F2).editor("«ⓁDedicace ⓁLibraryHelp »");
+        .test(F2).editor("« ⓁDedicace  ⓁLibraryHelp »");
 
     step("Test that xlibs parse")
         .test(ENTER)
@@ -5936,7 +5940,8 @@ void tests::insertion_of_variables_constants_and_units()
         .editor("« ⓁDeeedicace ⓁLibraryHelp »");
     step("Test that bad xlib name is detected")
         .test(ENTER)
-        .error("Invalid or unknown library entry");
+        .error("Invalid or unknown library entry")
+        .test(EXIT);
 
     step("Select units menu")
         .test(CLEAR, LSHIFT, KEY5, F4).image("units-menu",
@@ -6034,6 +6039,207 @@ void tests::insertion_of_variables_constants_and_units()
         .test(CLEAR, F2).expect("42");
     step("Cleanup")
         .test(CLEAR, "'Foo' Purge 'Baz' Purge", ENTER);
+}
+
+
+void tests::character_menu()
+// ----------------------------------------------------------------------------
+//   Character menu and character catalog
+// ----------------------------------------------------------------------------
+{
+    BEGIN(characters);
+
+    step("Character menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .image_menus("char-menu", 3);
+
+    step("RPL menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(F1, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5, F6,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5, LSHIFT, F6,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5, RSHIFT, F6,
+              ENTER)
+        .expect("\"→«»Σ∏∆⇄{}≤≠≥ⅈ∡_∂∫|\"");
+    step("Arith menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(F2, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5, F6,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5, LSHIFT, F6,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5, RSHIFT, F6,
+              ENTER)
+        .expect("\"+-*/×÷<=>≤≠≥·%^↑\\±\"");
+    step("Math menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(F3, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5,
+              ENTER)
+        .expect("\"Σ∏∆∂∫πℼ′″°ⅈⅉℂℚℝ\"");
+    step("French menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(F4, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5,
+              ENTER)
+        .expect("\"àéèêôÀÉÈÊÔëîïûü\"");
+    step("Punct menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(F5, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5, F6,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5, LSHIFT, F6, LSHIFT, F6,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5, RSHIFT, F6,
+              ENTER)
+        .expect("\".,;:!?#$%&'\"\"¡¿`´~\\\"");
+    step("Delim menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(F6, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5, F6,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F4, LSHIFT, F5, LSHIFT, F6,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              ENTER)
+        .expect("\"()[]{}«»'\"\"¦§¨­¯\"");
+
+    step("Arrows menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(LSHIFT, F1, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5,
+              ENTER)
+        .expect("\"←↑→↓↔↕⇄⇆↨⌂▲▼◀▬▶\"");
+    step("Blocks menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(LSHIFT, F2, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5,
+              ENTER)
+        .expect("\"┌┬┐─├┼┤│└┴┘▬╒╤╕\"");
+    step("Bullets menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(LSHIFT, F3, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5, LSHIFT, F6,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              ENTER)
+        .expect("\"·∙►▶→□▪▫▬○●◊◘◙\"");
+    step("Currency menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(LSHIFT, F4, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5, LSHIFT, F6,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              ENTER)
+        .expect("\"$€¢£¤₣₤₧₫₭₹₺₽ƒ\"");
+    step("Greek menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(LSHIFT, F5, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5,
+              ENTER)
+        .expect("\"αβγδεΑΒΓΔΕάΆ·Έέ\"");
+    step("Europe menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(LSHIFT, F6, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5,
+              ENTER)
+        .expect("\"ÀÁÂÃÄàáâãäÅÆÇåæ\"");
+
+    step("Cyrillic menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(RSHIFT, F1, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5,
+              ENTER)
+        .expect("\"АБВГДабвгд\"");
+    step("Picto menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(RSHIFT, F2, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5,
+              ENTER)
+        .expect("\"⌂№℡™⚙☺☻☼♀♂♠♣♥♦◊\"");
+    step("Boxes menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(RSHIFT, F3, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5, F6,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5, LSHIFT, F6,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5, RSHIFT, F6,
+              ENTER)
+        .expect("\"→«»Σ∏∆⇄{}≤≠≥ⅈ∡_∂∫|\"");
+    step("Num-like menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(RSHIFT, F4, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5,
+              ENTER)
+        .expect("\"₀₁₂₃₄⁰¹²³⁴ⅠⅡⅢⅣⅤ\"");
+    step("Ltr-like menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(RSHIFT, F5, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5,
+              ENTER)
+        .expect("\"$&@¢©¥ℂ℅ℊℎℏℓ№ℚℝ\"");
+    step("All menu")
+        .test(CLEAR, RSHIFT, KEY2).noerror()
+        .test(RSHIFT, F6, RSHIFT, ENTER)
+        .test(NOSHIFT, F1, F2, F3, F3, F4, F5,
+              LSHIFT, F1, LSHIFT, F2, LSHIFT, F3,
+              LSHIFT, F4, LSHIFT, F5,
+              RSHIFT, F1, RSHIFT, F2, RSHIFT, F3,
+              RSHIFT, F4, RSHIFT, F5,
+              ENTER)
+        .expect("\" !\"\"#$%&'()*+,-.\"");
+
+    step("Catalog")
+        .test(CLEAR, RSHIFT, ENTER, ADD, A, F4).editor("\"À\"")
+        .test(F2).editor("\"A\"")
+        .test(LSHIFT, F3).editor("\"a\"");
+    step("Générons un peu de français")
+        .test(CLEAR, RSHIFT, ENTER, ADD,
+              "Ge", F5, "ne", F5, "rons un peu de franc", F4, "ais")
+        .editor("\"Générons un peu de français\"")
+        .test(ENTER).expect("\"Générons un peu de français\"");
 }
 
 
@@ -7477,6 +7683,16 @@ tests &tests::image_noheader(cstring name, uint ignoremenus, uint extrawait)
     const int header_h = 20;
     const int menu_h = 22 * ignoremenus;
     return image(name, 0, header_h, LCD_W, LCD_H - header_h - menu_h, extrawait);
+}
+
+
+tests &tests::image_menus(cstring name, uint menus, uint extrawait)
+// ----------------------------------------------------------------------------
+//   Image, skipping the header area
+// ----------------------------------------------------------------------------
+{
+    const int menu_h = 22 * menus;
+    return image(name, 0, LCD_H-menu_h, LCD_W, menu_h, extrawait);
 }
 
 

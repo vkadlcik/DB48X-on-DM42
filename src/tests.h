@@ -109,6 +109,7 @@ struct tests
     void online_help();
     void graphic_stack_rendering();
     void insertion_of_variables_constants_and_units();
+    void character_menu();
     void regression_checks();
 
     enum key
@@ -302,6 +303,7 @@ public:
                  uint extrawait = 0);
     tests &image_noheader(cstring name, uint ignoremenus=0,
                           uint extrawait = 0);
+    tests &image_menus(cstring name, uint menus=3, uint extrawait = 0);
     tests &type(object::id ty, uint extrawait = 0);
     tests &shift(bool s, uint extrawait = 0);
     tests &xshift(bool x, uint extrawait = 0);

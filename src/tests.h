@@ -256,7 +256,7 @@ public:
     };
 
     // Naming / identifying tests
-    tests &begin(cstring name);
+    tests &begin(cstring name, bool disabled = false);
     tests &istep(cstring name);
     tests &position(cstring file, uint line);
     tests &check(bool test);

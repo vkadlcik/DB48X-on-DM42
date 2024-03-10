@@ -57,7 +57,7 @@ uint tests::refresh_delay_time = 50;
     {                                                           \
         bool result = RECORDER_TWEAK(est_##name);               \
         if (!result)                                            \
-            t.begin("Skipping " #name ": " descr);              \
+            t.begin("Skipping " #name ": " descr, true);        \
         else                                                    \
             t.begin(#name ": " descr);                          \
         return result;                                          \
@@ -6541,7 +6541,7 @@ static void passfail(bool ok)
 #undef RESET
 }
 
-tests &tests::begin(cstring name)
+tests &tests::begin(cstring name, bool disabled)
 // ----------------------------------------------------------------------------
 //   Beginning of a test
 // ----------------------------------------------------------------------------
@@ -6556,9 +6556,13 @@ tests &tests::begin(cstring name)
     tname = name;
     tindex++;
 #define BLACK "\033[40;97m"
+#define GREY  "\033[100;37m"
 #define CLREOL "\033[K"
 #define RESET "\033[39;49;27m"
-    fprintf(stderr, BLACK "%3u: %-75s" CLREOL RESET "\n", tindex, tname);
+    if (disabled)
+        fprintf(stderr,  GREY "%3u: %-75s" CLREOL RESET "\n", tindex, tname);
+    else
+        fprintf(stderr, BLACK "%3u: %-75s" CLREOL RESET "\n", tindex, tname);
 #undef BLACK
 #undef CLREOL
 #undef RESET

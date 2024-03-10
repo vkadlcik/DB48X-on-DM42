@@ -145,7 +145,7 @@ void tests::run(bool onlyCurrent)
     if (onlyCurrent)
     {
         // Test the current thing
-        insertion_of_variables_constants_and_units();
+        decimal_display_formats();
     }
     else
     {
@@ -226,7 +226,7 @@ void tests::reset_settings()
 
     // Check that we have actually reset the settings
     step("Select Modes menu")
-        .test("ModesMenu", ENTER).noerr();
+        .test("ModesMenu", ENTER).noerror();
     step("Checking output modes")
         .test("Modes", ENTER)
         .expect("« ModesMenu »");
@@ -240,7 +240,7 @@ void tests::reset_settings()
         .expect("« 3 FixedDisplay 3 DisplayDigits DisplayModesMenu »");
     step("Reseting with command")
         .test("ResetModes", ENTER)
-        .noerr()
+        .noerror()
         .test("Modes", ENTER)
         .expect("« DisplayModesMenu »");
 }
@@ -387,9 +387,9 @@ void tests::keyboard_entry()
 
     step("STO key while entering equation (bug #390)")
         .test(CLEAR, EXIT, KEY1, KEY2, F,
-              ALPHA, A, B, C, NOSHIFT, G).noerr()
+              ALPHA, A, B, C, NOSHIFT, G).noerror()
         .test(F, ALPHA, A, B, C, ENTER, SPACE).expect("12")
-        .test("'ABC'", ENTER, RSHIFT, G, F6).noerr();
+        .test("'ABC'", ENTER, RSHIFT, G, F6).noerror();
 
     step("Inserting a colon in text editor inserts tag delimiters")
         .test(CLEAR, ALPHA, KEY0).editor("::");
@@ -553,7 +553,7 @@ void tests::data_types()
         .match("#1 81....");
 
     step("Type command (direct mode)");
-    test(CLEAR, "DetailedTypes", ENTER).noerr();
+    test(CLEAR, "DetailedTypes", ENTER).noerror();
     test(CLEAR, "12 type", ENTER)
         .type(object::ID_neg_integer)
         .expect(~int(object::ID_integer));
@@ -562,7 +562,7 @@ void tests::data_types()
         .expect(~int(object::ID_expression));
 
     step("Type command (compatible mode)");
-    test(CLEAR, "CompatibleTypes", ENTER).noerr();
+    test(CLEAR, "CompatibleTypes", ENTER).noerror();
     test(CLEAR, "12 type", ENTER)
         .type(object::ID_integer)
         .expect(28);
@@ -660,7 +660,7 @@ void tests::editor_operations()
         .test(RSHIFT, UP).editor("H");
     step("EXIT key still saves editor contents")
         .test(CLEAR, "ABCD").editor("ABCD")
-        .test(EXIT).editor("").noerr()
+        .test(EXIT).editor("").noerror()
         .test(RSHIFT, UP).editor("ABCD");
     step("End of editor")
         .test(CLEAR);
@@ -676,11 +676,11 @@ void tests::stack_operations()
 
     step("Multi-line stack rendering")
         .test(CLEAR, "[[1 2][3 4]]", ENTER)
-        .noerr().expect("[[ 1 2 ]\n  [ 3 4 ]]")
+        .noerror().expect("[[ 1 2 ]\n  [ 3 4 ]]")
         .test("SingleLineResult", ENTER)
-        .noerr().expect("[[ 1 2 ][ 3 4 ]]")
+        .noerror().expect("[[ 1 2 ][ 3 4 ]]")
         .test("MultiLineResult", ENTER)
-        .noerr().expect("[[ 1 2 ]\n  [ 3 4 ]]");
+        .noerror().expect("[[ 1 2 ]\n  [ 3 4 ]]");
     step("Multi-line stack rendering does not impact editing")
         .test(NOSHIFT, DOWN)
         .editor("[[ 1 2 ]\n  [ 3 4 ]]")
@@ -688,14 +688,14 @@ void tests::stack_operations()
         .editor("[[ 1 2 ]\n  [ 3 4 ]]")
         .test(ENTER, "MultiLineResult", ENTER, DOWN)
         .editor("[[ 1 2 ]\n  [ 3 4 ]]")
-        .test(ENTER).noerr();
+        .test(ENTER).noerror();
 
     step("Dup with ENTER")
         .test(CLEAR, "12", ENTER, ENTER, ADD).expect("24");
     step("Drop with Backspace")
-        .test(CLEAR, "12 34", ENTER).noerr().expect("34")
-        .test(BSP).noerr().expect("12")
-        .test(BSP).noerr()
+        .test(CLEAR, "12 34", ENTER).noerror().expect("34")
+        .test(BSP).noerror().expect("12")
+        .test(BSP).noerror()
         .test(BSP).error("Too few arguments");
 
     step("Dup in program")
@@ -721,7 +721,7 @@ void tests::stack_operations()
         .test(BSP).expect("25")
         .test(BSP).expect("17")
         .test(BSP).expect("13")
-        .test(BSP).noerr()
+        .test(BSP).noerror()
         .test(BSP).error("Too few arguments");
     step("RollDn in stack menu")
         .test(CLEAR, "13 17 25 42 21 372 4", F6).expect("21")
@@ -730,12 +730,12 @@ void tests::stack_operations()
         .test(BSP).expect("372")
         .test(BSP).expect("17")
         .test(BSP).expect("13")
-        .test(BSP).noerr()
+        .test(BSP).noerror()
         .test(BSP).error("Too few arguments");
     step("DropN in stack menu")
         .test(CLEAR, "13 17 25 42 21 372 4", SHIFT, F6).expect("17")
         .test(BSP).expect("13")
-        .test(BSP).noerr()
+        .test(BSP).noerror()
         .test(BSP).error("Too few arguments");
     step("DupN in stack menu")
         .test(CLEAR, "13 17 25 42 21 372 4", SHIFT, F5).expect("372")
@@ -748,7 +748,7 @@ void tests::stack_operations()
         .test(BSP).expect("25")
         .test(BSP).expect("17")
         .test(BSP).expect("13")
-        .test(BSP).noerr()
+        .test(BSP).noerror()
         .test(BSP).error("Too few arguments");
     step("Drop2 in stack menu")
         .test(CLEAR, "13 17 25 42 21 372 4", SHIFT, F4).expect("21")
@@ -756,7 +756,7 @@ void tests::stack_operations()
         .test(BSP).expect("25")
         .test(BSP).expect("17")
         .test(BSP).expect("13")
-        .test(BSP).noerr()
+        .test(BSP).noerror()
         .test(BSP).error("Too few arguments");
     step("Dup2 in stack menu")
         .test(CLEAR, "13 17 25 42", SHIFT, F3).expect("42")
@@ -765,7 +765,7 @@ void tests::stack_operations()
         .test(BSP).expect("25")
         .test(BSP).expect("17")
         .test(BSP).expect("13")
-        .test(BSP).noerr()
+        .test(BSP).noerror()
         .test(BSP).error("Too few arguments");
     step("Simple stack commands from menu")
         .test(CLEAR, SHIFT, RUNSTOP,
@@ -777,7 +777,7 @@ void tests::stack_operations()
               ENTER)
         .expect("« Rot Over Depth Pick Roll RollDown "
                 "Duplicate Drop Duplicate2 Drop2 DuplicateN DropN "
-                "Swap LastArguments Clear LastX »").test(BSP).noerr();
+                "Swap LastArguments Clear LastX »").test(BSP).noerror();
 
     step("LastArg")
         .test(CLEAR, "1 2").shifts(false, false, false, false)
@@ -785,25 +785,25 @@ void tests::stack_operations()
         .test(SHIFT, M).expect("2")
         .test(BSP).expect("1")
         .test(BSP).expect("3")
-        .test(BSP).noerr()
+        .test(BSP).noerror()
         .test(BSP).error("Too few arguments");
     step("Undo")
         .test(CLEAR, "1 2").shifts(false, false, false, false)
         .test(ADD).expect("3")
         .test(RSHIFT, M).expect("2")
         .test(BSP).expect("1")
-        .test(BSP).noerr()
+        .test(BSP).noerror()
         .test(BSP).error("Too few arguments");
     step("LastX")
         .test(CLEAR, "1 2").shifts(false, false, false, false)
         .test(ADD).expect("3")
         .test(RSHIFT, F5).expect("2")
         .test(BSP).expect("3")
-        .test(BSP).noerr()
+        .test(BSP).noerror()
         .test(BSP).error("Too few arguments");
     step("ClearStk")
         .test(CLEAR, "1 2 3 4", ENTER)
-        .test(RSHIFT, F3).noerr()
+        .test(RSHIFT, F3).noerror()
         .test(BSP).error("Too few arguments");
 }
 
@@ -991,13 +991,13 @@ void tests::arithmetic()
     test(CLEAR, "-2 -3 ^", ENTER).expect("-¹/₈");
 
     step("Special case of 0^0")
-        .test(CLEAR, "0 0 ^", ENTER).noerr().expect("1")
+        .test(CLEAR, "0 0 ^", ENTER).noerror().expect("1")
         .test(CLEAR,
               "ZeroPowerZeroIsUndefined", ENTER,
               "0 0 ^", ENTER).error("Undefined operation")
         .test(CLEAR,
               "ZeroPowerZeroIsOne", ENTER,
-              "0 0 ^", ENTER).noerr().expect("1");
+              "0 0 ^", ENTER).noerror().expect("1");
 
     step("xroot");
     test(CLEAR, "8 3 xroot", ENTER).expect("2.");
@@ -1015,17 +1015,17 @@ void tests::global_variables()
     step("Store in global variable");
     test(CLEAR, 12345, ENTER).expect("12 345");
     test(XEQ, "A", ENTER).expect("'A'");
-    test(STO).noerr();
+    test(STO).noerror();
     step("Recall global variable");
     test(CLEAR, 1, ENTER, XEQ, "A", ENTER).expect("'A'");
-    test("RCL", ENTER).noerr().expect("12 345");
+    test("RCL", ENTER).noerror().expect("12 345");
 
     step("Store in long-name global variable");
     test(CLEAR, "\"Hello World\"", ENTER, XEQ, "SomeLongVariable", ENTER, STO)
-        .noerr();
+        .noerror();
     step("Recall global variable");
     test(CLEAR, XEQ, "SomeLongVariable", ENTER, "recall", ENTER)
-        .noerr()
+        .noerror()
         .expect("\"Hello World\"");
 
     step("Recall non-existent variable");
@@ -1040,28 +1040,28 @@ void tests::global_variables()
          "RCL", ENTER).error("Invalid name").clear();
 
     step("Store and recall to EQ");
-    test(CLEAR, "'X+Y' 'eq' STO", ENTER).noerr();
+    test(CLEAR, "'X+Y' 'eq' STO", ENTER).noerror();
     test(CLEAR, "'EQ' RCL", ENTER).expect("'X+Y'");
     test(CLEAR, "'equation' RCL", ENTER).expect("'X+Y'");
-    test(CLEAR, "'Equation' PURGE", ENTER).noerr();
+    test(CLEAR, "'Equation' PURGE", ENTER).noerror();
 
     step("Store and recall to ΣData");
-    test(CLEAR, "[1 2 3] 'ΣData' STO", ENTER).noerr();
+    test(CLEAR, "[1 2 3] 'ΣData' STO", ENTER).noerror();
     test(CLEAR, "'ΣDat' RCL", ENTER).expect("[ 1 2 3 ]");
     test(CLEAR, "'StatsData' RCL", ENTER).expect("[ 1 2 3 ]");
-    test(CLEAR, "'ΣData' PURGE", ENTER).noerr();
+    test(CLEAR, "'ΣData' PURGE", ENTER).noerror();
 
     step("Store and recall to StatsParameters");
-    test(CLEAR, "{0} 'ΣParameters' STO", ENTER).noerr();
+    test(CLEAR, "{0} 'ΣParameters' STO", ENTER).noerror();
     test(CLEAR, "'ΣPar' RCL", ENTER).expect("{ 0 }");
     test(CLEAR, "'StatsParameters' RCL", ENTER).expect("{ 0 }");
-    test(CLEAR, "'ΣPar' purge", ENTER).noerr();
+    test(CLEAR, "'ΣPar' purge", ENTER).noerror();
 
     step("Store and recall to PlotParameters");
-    test(CLEAR, "{1} 'PPAR' STO", ENTER).noerr();
+    test(CLEAR, "{1} 'PPAR' STO", ENTER).noerror();
     test(CLEAR, "'PlotParameters' RCL", ENTER).expect("{ 1 }");
     test(CLEAR, "'ppar' RCL", ENTER).expect("{ 1 }");
-    test(CLEAR, "'PPAR' purge", ENTER).noerr();
+    test(CLEAR, "'PPAR' purge", ENTER).noerror();
 
     step("Numbered store and recall should fail by default");
     test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).error("Invalid name");
@@ -1069,26 +1069,26 @@ void tests::global_variables()
     test(CLEAR, 1234, ENTER, "Purge", ENTER).error("Invalid name");
 
     step("Enable NumberedVariables");
-    test(CLEAR, "NumberedVariables", ENTER).noerr();
-    test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).noerr();
-    test(CLEAR, 1234, ENTER, "RCL", ENTER).noerr().expect("5 678");
-    test(CLEAR, 1234, ENTER, "Purge", ENTER).noerr();
+    test(CLEAR, "NumberedVariables", ENTER).noerror();
+    test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).noerror();
+    test(CLEAR, 1234, ENTER, "RCL", ENTER).noerror().expect("5 678");
+    test(CLEAR, 1234, ENTER, "Purge", ENTER).noerror();
 
     step("Disable NumberedVariables");
-    test(CLEAR, "NoNumberedVariables", ENTER).noerr();
+    test(CLEAR, "NoNumberedVariables", ENTER).noerror();
     test(CLEAR, 5678, ENTER, 1234, ENTER, "STO", ENTER).error("Invalid name");
     test(CLEAR, 1234, ENTER, "RCL", ENTER).error("Invalid name");
     test(CLEAR, 1234, ENTER, "Purge", ENTER).error("Invalid name");
 
     step("Store program in global variable");
-    test(CLEAR, "« 1 + »", ENTER, XEQ, "INCR", ENTER, STO).noerr();
+    test(CLEAR, "« 1 + »", ENTER, XEQ, "INCR", ENTER, STO).noerror();
     step("Evaluate global variable");
     test(CLEAR, "A INCR", ENTER).expect("12 346");
 
     step("Purge global variable");
-    test(CLEAR, XEQ, "A", ENTER, "PURGE", ENTER).noerr();
-    test(CLEAR, XEQ, "INCR", ENTER, "PURGE", ENTER).noerr();
-    test(CLEAR, XEQ, "SomeLongVariable", ENTER, "PURGE", ENTER).noerr();
+    test(CLEAR, XEQ, "A", ENTER, "PURGE", ENTER).noerror();
+    test(CLEAR, XEQ, "INCR", ENTER, "PURGE", ENTER).noerror();
+    test(CLEAR, XEQ, "SomeLongVariable", ENTER, "PURGE", ENTER).noerror();
 
     test(CLEAR, XEQ, "A", ENTER, "RCL", ENTER).error("Undefined name").clear();
     test(CLEAR, XEQ, "INCR", ENTER, "RCL", ENTER)
@@ -1099,13 +1099,13 @@ void tests::global_variables()
         .clear();
 
     step("Go to top-level")
-        .test(CLEAR, "Home", ENTER).noerr();
+        .test(CLEAR, "Home", ENTER).noerror();
     step("Clear 'DirTest'")
         .test(CLEAR, "'DirTest' pgdir", ENTER);
     step("Create directory")
-        .test(CLEAR, "'DirTest' crdir", ENTER).noerr();
+        .test(CLEAR, "'DirTest' crdir", ENTER).noerror();
     step("Enter directory")
-        .test(CLEAR, "DirTest", ENTER).noerr();
+        .test(CLEAR, "DirTest", ENTER).noerror();
     step("Path function")
         .test(CLEAR, "PATH", ENTER).expect("{ HomeDirectory DirTest }");
     step("Updir function")
@@ -1115,19 +1115,19 @@ void tests::global_variables()
     step("Current directory content")
         .test(CLEAR, "CurrentDirectory", ENTER).want("Directory { }");
     step("Store in subdirectory")
-        .test(CLEAR, "242 'Foo' STO", ENTER).noerr();
+        .test(CLEAR, "242 'Foo' STO", ENTER).noerror();
     step("Recall from subdirectory")
         .test(CLEAR, "Foo", ENTER).expect("242");
     step("Recursive directory")
-        .test(CLEAR, "'DirTest2' crdir", ENTER).noerr();
+        .test(CLEAR, "'DirTest2' crdir", ENTER).noerror();
     step("Entering sub-subdirectory")
-        .test(CLEAR, "DirTest2", ENTER).noerr();
+        .test(CLEAR, "DirTest2", ENTER).noerror();
     step("Path in sub-subdirectory")
         .test(CLEAR, "path", ENTER).expect("{ HomeDirectory DirTest DirTest2 }");
     step("Find variable from level above")
         .test(CLEAR, "Foo", ENTER).expect("242");
     step("Create local variable")
-        .test(CLEAR, "\"Hello\" 'Foo' sto", ENTER).noerr();
+        .test(CLEAR, "\"Hello\" 'Foo' sto", ENTER).noerror();
     step("Local variable hides variable above")
         .test(CLEAR, "Foo", ENTER).expect("\"Hello\"");
     step("Updir shows shadowed variable again")
@@ -1135,20 +1135,20 @@ void tests::global_variables()
     step("Two independent variables with the same name")
         .test(CLEAR, "DirTest2 Foo", ENTER).expect("\"Hello\"");
     step("Cleanup")
-        .test(CLEAR, "'Foo' Purge", ENTER).noerr();
+        .test(CLEAR, "'Foo' Purge", ENTER).noerror();
 
     step("Save to file as text")
-        .test(CLEAR, "1.42 \"Hello.txt\"", NOSHIFT, G).noerr();
+        .test(CLEAR, "1.42 \"Hello.txt\"", NOSHIFT, G).noerror();
     step("Restore from file as text")
-        .test(CLEAR, "\"Hello.txt\" RCL", ENTER).noerr().expect("\"1.42\"");
+        .test(CLEAR, "\"Hello.txt\" RCL", ENTER).noerror().expect("\"1.42\"");
     step("Save to file as source")
-        .test(CLEAR, "1.42 \"Hello.48s\"", NOSHIFT, G).noerr();
+        .test(CLEAR, "1.42 \"Hello.48s\"", NOSHIFT, G).noerror();
     step("Restore from file as source")
-        .test(CLEAR, "\"Hello.48s\" RCL", ENTER).noerr().expect("1.42");
+        .test(CLEAR, "\"Hello.48s\" RCL", ENTER).noerror().expect("1.42");
     step("Save to file as binary")
-        .test(CLEAR, "1.42 \"Hello.48b\"", NOSHIFT, G).noerr();
+        .test(CLEAR, "1.42 \"Hello.48b\"", NOSHIFT, G).noerror();
     step("Restore from file as text")
-        .test(CLEAR, "\"Hello.48b\" RCL", ENTER).noerr().expect("1.42");
+        .test(CLEAR, "\"Hello.48b\" RCL", ENTER).noerror().expect("1.42");
 }
 
 
@@ -1162,7 +1162,7 @@ void tests::local_variables()
     step("Creating a local block");
     cstring source = "« → A B C « A B + A B - × B C + B C - × ÷ » »";
     test(CLEAR, source, ENTER).type(object::ID_program).want(source);
-    test(XEQ, "LocTest", ENTER, STO).noerr();
+    test(XEQ, "LocTest", ENTER, STO).noerror();
 
     step("Calling a local block with numerical values");
     test(CLEAR, 1, ENTER, 2, ENTER, 3, ENTER, "LocTest", ENTER).expect("³/₅");
@@ -1176,7 +1176,7 @@ void tests::local_variables()
         .expect("'(X+Y)·(X-Y)÷((Y+Z)·(Y-Z))'");
 
     step("Cleanup");
-    test(CLEAR, XEQ, "LocTest", ENTER, "PurgeAll", ENTER).noerr();
+    test(CLEAR, XEQ, "LocTest", ENTER, "PurgeAll", ENTER).noerror();
 }
 
 
@@ -1190,68 +1190,68 @@ void tests::for_loops()
     step("Simple 1..10");
     cstring pgm  = "« 0 1 10 FOR i i SQ + NEXT »";
     cstring pgmo = "« 0 1 10 for i i x² + next »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
-    test(RUNSTOP).noerr().type(object::ID_integer).expect(385);
+    test(CLEAR, pgm, ENTER).noerror().type(object::ID_program).want(pgmo);
+    test(RUNSTOP).noerror().type(object::ID_integer).expect(385);
 
     step("Algebraic 1..10");
     pgm  = "« 'X' 1 5 FOR i i SQ + NEXT »";
     pgmo = "« 'X' 1 5 for i i x² + next »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
-    test(RUNSTOP).noerr().type(object::ID_expression).expect("'X+1+4+9+16+25'");
+    test(CLEAR, pgm, ENTER).noerror().type(object::ID_program).want(pgmo);
+    test(RUNSTOP).noerror().type(object::ID_expression).expect("'X+1+4+9+16+25'");
 
     step("Stepping by 2");
     pgm  = "« 0 1 10 FOR i i SQ + 2 STEP »";
     pgmo = "« 0 1 10 for i i x² + 2 step »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
-    test(RUNSTOP).noerr().type(object::ID_integer).expect(165);
+    test(CLEAR, pgm, ENTER).noerror().type(object::ID_program).want(pgmo);
+    test(RUNSTOP).noerror().type(object::ID_integer).expect(165);
 
     step("Stepping by i");
     pgm  = "« 'X' 1 100 FOR i i SQ + i step »";
     pgmo = "« 'X' 1 100 for i i x² + i step »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
+    test(CLEAR, pgm, ENTER).noerror().type(object::ID_program).want(pgmo);
     test(RUNSTOP)
-        .noerr()
+        .noerror()
         .type(object::ID_expression)
         .expect("'X+1+4+16+64+256+1 024+4 096'");
 
     step("Negative stepping");
     pgm  = "« 0 10 1 FOR i i SQ + -1 STEP »";
     pgmo = "« 0 10 1 for i i x² + -1 step »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
-    test(RUNSTOP).noerr().type(object::ID_integer).expect(385);
+    test(CLEAR, pgm, ENTER).noerror().type(object::ID_program).want(pgmo);
+    test(RUNSTOP).noerror().type(object::ID_integer).expect(385);
 
     step("Negative stepping algebraic");
     pgm  = "« 'X' 10 1 FOR i i SQ + -1 step »";
     pgmo = "« 'X' 10 1 for i i x² + -1 step »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
+    test(CLEAR, pgm, ENTER).noerror().type(object::ID_program).want(pgmo);
     test(RUNSTOP)
-        .noerr()
+        .noerror()
         .type(object::ID_expression)
         .expect("'X+100+81+64+49+36+25+16+9+4+1'");
 
     step("Fractional");
     pgm  = "« 'X' 0.1 0.9 FOR i i SQ + 0.1 step »";
     pgmo = "« 'X' 0.1 0.9 for i i x² + 0.1 step »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
+    test(CLEAR, pgm, ENTER).noerror().type(object::ID_program).want(pgmo);
     test(RUNSTOP)
-        .noerr()
+        .noerror()
         .type(object::ID_expression)
         .expect("'X+0.01+0.04+0.09+0.16+0.25+0.36+0.49+0.64+0.81'");
 
     step("Fractional down");
     pgm  = "« 'X' 0.9 0.1 FOR i i SQ + -0.1 step »";
     pgmo = "« 'X' 0.9 0.1 for i i x² + -0.1 step »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
+    test(CLEAR, pgm, ENTER).noerror().type(object::ID_program).want(pgmo);
     test(RUNSTOP)
-        .noerr()
+        .noerror()
         .type(object::ID_expression)
         .expect("'X+0.81+0.64+0.49+0.36+0.25+0.16+0.09+0.04+0.01'");
 
     step("Execute at least once");
     pgm  = "« 'X' 10 1 FOR i i SQ + NEXT »";
     pgmo = "« 'X' 10 1 for i i x² + next »";
-    test(CLEAR, pgm, ENTER).noerr().type(object::ID_program).want(pgmo);
-    test(RUNSTOP).noerr().type(object::ID_expression).expect("'X+100'");
+    test(CLEAR, pgm, ENTER).noerror().type(object::ID_program).want(pgmo);
+    test(RUNSTOP).noerror().type(object::ID_expression).expect("'X+100'");
 }
 
 
@@ -1390,7 +1390,7 @@ void tests::logical_operations()
     step("Default word size");
     test("RCWS", ENTER).expect("64");
     step("Set word size to 16");
-    test(CLEAR, "16 STWS", ENTER).noerr();
+    test(CLEAR, "16 STWS", ENTER).noerror();
 
     step("Binary not");
     test(CLEAR, "#12 not", ENTER).expect("#FFED₁₆");
@@ -1418,34 +1418,34 @@ void tests::logical_operations()
     test(CLEAR, "#72 #A23 excludes", ENTER).expect("#50₁₆");
 
     step("Set word size to 32");
-    test(CLEAR, "32 STWS", ENTER).noerr();
+    test(CLEAR, "32 STWS", ENTER).noerror();
     test(CLEAR, "#12 not", ENTER).expect("#FFFF FFED₁₆");
     test("not", ENTER).expect("#12₁₆");
 
     step("Set word size to 30");
-    test(CLEAR, "30 STWS", ENTER).noerr();
+    test(CLEAR, "30 STWS", ENTER).noerror();
     test(CLEAR, "#142 not", ENTER).expect("#3FFF FEBD₁₆");
     test("not", ENTER).expect("#142₁₆");
 
     step("Set word size to 48");
-    test(CLEAR, "48 STWS", ENTER).noerr();
+    test(CLEAR, "48 STWS", ENTER).noerror();
     test(CLEAR, "#233 not", ENTER).expect("#FFFF FFFF FDCC₁₆");
     test("not", ENTER).expect("#233₁₆");
 
     step("Set word size to 64");
-    test(CLEAR, "64 STWS", ENTER).noerr();
+    test(CLEAR, "64 STWS", ENTER).noerror();
     test(CLEAR, "#64123 not", ENTER).expect("#FFFF FFFF FFF9 BEDC₁₆");
     test("not", ENTER).expect("#6 4123₁₆");
 
     step("Set word size to 128");
-    test(CLEAR, "128 STWS", ENTER).noerr();
+    test(CLEAR, "128 STWS", ENTER).noerror();
     test(CLEAR, "#12 not", ENTER)
         .expect("#FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFED₁₆");
     test("dup not", ENTER).expect("#12₁₆");
     test("xor not", ENTER).expect("#0₁₆");
 
     step("Set word size to 623");
-    test(CLEAR, "623 STWS", ENTER).noerr();
+    test(CLEAR, "623 STWS", ENTER).noerror();
     test(CLEAR, "#12 not", ENTER)
         .expect("#7FFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF "
                 "FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF "
@@ -1455,17 +1455,17 @@ void tests::logical_operations()
     test("xor not", ENTER).expect("#0₁₆");
 
     step("Check that arithmetic truncates to small word size (#624)")
-        .test("15 STWS", ENTER).noerr()
+        .test("15 STWS", ENTER).noerror()
         .test("#0 #4 -", ENTER).expect("#7FFC₁₆")
         .test("#321 *", ENTER).expect("#737C₁₆")
         .test("#27 /", ENTER).expect("#2F6₁₆")
-        .test("13 STWS", ENTER).noerr()
+        .test("13 STWS", ENTER).noerror()
         .test("#0 #6 -", ENTER).expect("#1FFA₁₆")
         .test("#321 *", ENTER).expect("#D3A₁₆")
         .test("#27 /", ENTER).expect("#56₁₆");
 
     step("Reset word size to default")
-        .test(CLEAR, "64 WordSize", ENTER).noerr();
+        .test(CLEAR, "64 WordSize", ENTER).noerror();
 }
 
 
@@ -1487,7 +1487,7 @@ void tests::command_display_formats()
         "start step next start step for i next for i step "
         "while repeat end do until end » ";
 
-    test(CLEAR, prgm, ENTER).noerr();
+    test(CLEAR, prgm, ENTER).noerror();
     step("Lower case");
     test("lowercase", ENTER)
         .want("« 1 1. + - * / ^ sin cos tan asin acos atan "
@@ -1527,11 +1527,11 @@ void tests::integer_display_formats()
 
     step("Reset settings to defaults");
     test(CLEAR)
-        .test("3 MantissaSpacing", ENTER)       .noerr()
-        .test("5 FractionSpacing", ENTER)       .noerr()
-        .test("4 BasedSpacing", ENTER)          .noerr()
-        .test("NumberSpaces", ENTER)            .noerr()
-        .test("BasedSpaces", ENTER)             .noerr();
+        .test("3 MantissaSpacing", ENTER)       .noerror()
+        .test("5 FractionSpacing", ENTER)       .noerror()
+        .test("4 BasedSpacing", ENTER)          .noerror()
+        .test("NumberSpaces", ENTER)            .noerror()
+        .test("BasedSpaces", ENTER)             .noerror();
 
     step("Default integer rendering");
     test(CLEAR, 1, ENTER)
@@ -1597,7 +1597,7 @@ void tests::integer_display_formats()
         .expect("123 456 789 012 345 678 901 234 567 890");
 
     step("Entering numbers with spacing");
-    test(CLEAR, "FancyExponent", ENTER).noerr();
+    test(CLEAR, "FancyExponent", ENTER).noerror();
 
     test(CLEAR, "1").editor("1");
     test(CHS).editor("-1");
@@ -1612,7 +1612,7 @@ void tests::integer_display_formats()
     test(CHS).editor("-12 345⁳-34");
     test(" ").editor("-12 345⁳-34 ");
     test("12345.45678901234").editor("-12 345⁳-34 12 345.45678 90123 4");
-    test(ENTER).noerr();
+    test(ENTER).noerror();
 
     step("Based number rendering");
     test(CLEAR, "#1234ABCDEFh", ENTER)
@@ -1712,16 +1712,18 @@ void tests::decimal_display_formats()
     BEGIN(dformat);
 
     step("Standard mode");
-    test(CLEAR, "STD", ENTER).noerr();
+    test(CLEAR, "STD", ENTER).noerror();
 
     step("Small number");
     test(CLEAR, "1.03", ENTER)
         .type(object::ID_decimal)
         .expect("1.03");
 
-    step("Zero");
-    test(CLEAR, ".", ENTER).error("Syntax error");
-    test(CLEAR, "0.", ENTER).type(object::ID_decimal).expect("0.");
+    step("Zero with dot is an error")
+        .test(CLEAR, ".", ENTER).error("Syntax error").test(EXIT);
+    step("Zero as 0. is accepted")
+        .test(CLEAR, "0.").editor("0.")
+        .test(ENTER).type(object::ID_decimal).expect("0.");
 
     // Regression test for bug #726
     step("Showing 0.2");
@@ -1788,7 +1790,7 @@ void tests::decimal_display_formats()
         .expect("2.5⁳⁻¹³");
 
     step("FIX 4 mode");
-    test(CLEAR, "4 FIX", ENTER).noerr();
+    test(CLEAR, "4 FIX", ENTER).noerror();
     test(CLEAR, "1.01", ENTER).expect("1.0100")
         .test(CHS).expect("-1.0100");
     test(CLEAR, "1.0123", ENTER).expect("1.0123");
@@ -1800,13 +1802,13 @@ void tests::decimal_display_formats()
         .test(CHS).expect("-2.0000⁳⁻¹¹");
 
     step("FIX 24 mode");
-    test(CLEAR, "24 FIX", ENTER).noerr();
+    test(CLEAR, "24 FIX", ENTER).noerror();
     test(CLEAR, "1.01", ENTER).expect("1.01000 00000 00000 00000 0000");
     test(CLEAR, "1.0123 log", ENTER)
         .expect("0.01222 49696 22568 97092 2453");
 
     step("SCI 3 mode");
-    test(CLEAR, "3 Sci", ENTER).noerr();
+    test(CLEAR, "3 Sci", ENTER).noerror();
     test(CLEAR, "1.01", ENTER).expect("1.010⁳⁰")
         .test(CHS).expect("-1.010⁳⁰");
     test(CLEAR, "1.0123", ENTER).expect("1.012⁳⁰");
@@ -1818,7 +1820,7 @@ void tests::decimal_display_formats()
         .test(CHS).expect("-2.000⁳⁻¹¹");
 
     step("ENG 3 mode");
-    test(CLEAR, "3 eng", ENTER).noerr();
+    test(CLEAR, "3 eng", ENTER).noerror();
     test(CLEAR, "1.01", ENTER).expect("1.010⁳⁰")
         .test(CHS).expect("-1.010⁳⁰");
     test(CLEAR, "1.0123", ENTER).expect("1.012⁳⁰");
@@ -1830,7 +1832,7 @@ void tests::decimal_display_formats()
         .test(CHS).expect("-20.00⁳⁻¹²");
 
     step("SIG 3 mode");
-    test(CLEAR, "3 sig", ENTER).noerr();
+    test(CLEAR, "3 sig", ENTER).noerror();
     test(CLEAR, "1.01", ENTER).expect("1.01")
         .test(CHS).expect("-1.01");
     test(CLEAR, "1.0123", ENTER).expect("1.01");
@@ -1842,7 +1844,7 @@ void tests::decimal_display_formats()
         .test(CHS).expect("-2.⁳⁻¹¹");
 
     step("SCI 5 mode");
-    test(CLEAR, "5 Sci", ENTER).noerr();
+    test(CLEAR, "5 Sci", ENTER).noerror();
     test(CLEAR, "1.01", ENTER).expect("1.01000⁳⁰")
         .test(CHS).expect("-1.01000⁳⁰");
     test(CLEAR, "1.0123", ENTER).expect("1.01230⁳⁰");
@@ -1854,7 +1856,7 @@ void tests::decimal_display_formats()
         .test(CHS).expect("-2.00000⁳⁻¹¹");
 
     step("ENG 5 mode");
-    test(CLEAR, "5 eng", ENTER).noerr();
+    test(CLEAR, "5 eng", ENTER).noerror();
     test(CLEAR, "1.01", ENTER).expect("1.01000⁳⁰")
         .test(CHS).expect("-1.01000⁳⁰");
     test(CLEAR, "1.0123", ENTER).expect("1.01230⁳⁰");
@@ -1866,7 +1868,7 @@ void tests::decimal_display_formats()
         .test(CHS).expect("-20.0000⁳⁻¹²");
 
     step("SIG 5 mode");
-    test(CLEAR, "5 sig", ENTER).noerr();
+    test(CLEAR, "5 sig", ENTER).noerror();
     test(CLEAR, "1.01", ENTER).expect("1.01")
         .test(CHS).expect("-1.01");
     test(CLEAR, "1.0123", ENTER).expect("1.0123");
@@ -1878,7 +1880,7 @@ void tests::decimal_display_formats()
         .test(CHS).expect("-2.⁳⁻¹¹");
 
     step("SCI 13 mode");
-    test(CLEAR, "13 Sci", ENTER).noerr();
+    test(CLEAR, "13 Sci", ENTER).noerror();
     test(CLEAR, "1.01", ENTER).expect("1.01000 00000 000⁳⁰")
         .test(CHS).expect("-1.01000 00000 000⁳⁰");
     test(CLEAR, "1.0123", ENTER).expect("1.01230 00000 000⁳⁰");
@@ -1890,7 +1892,7 @@ void tests::decimal_display_formats()
         .test(CHS).expect("-1.99999 90000 000⁳⁻¹¹");
 
     step("ENG 13 mode");
-    test(CLEAR, "13 eng", ENTER).noerr();
+    test(CLEAR, "13 eng", ENTER).noerror();
     test(CLEAR, "1.01", ENTER).expect("1.01000 00000 000⁳⁰")
         .test(CHS).expect("-1.01000 00000 000⁳⁰");
     test(CLEAR, "1.0123", ENTER).expect("1.01230 00000 000⁳⁰");
@@ -1902,7 +1904,7 @@ void tests::decimal_display_formats()
         .test(CHS).expect("-19.99999 00000 00⁳⁻¹²");
 
     step("SIG 13 mode");
-    test(CLEAR, "13 sig", ENTER).noerr();
+    test(CLEAR, "13 sig", ENTER).noerror();
     test(CLEAR, "1.01", ENTER).expect("1.01")
         .test(CHS).expect("-1.01");
     test(CLEAR, "1.0123", ENTER).expect("1.0123");
@@ -1914,7 +1916,7 @@ void tests::decimal_display_formats()
         .test(CHS).expect("-1.99999 9⁳⁻¹¹");
 
     step("FIX 4 in HP48-compatible mode")
-        .test(CLEAR, "4", LSHIFT, O, F2, "0", LSHIFT, F5).noerr()
+        .test(CLEAR, "4", LSHIFT, O, F2, "0", LSHIFT, F5).noerror()
         .test("0.635", ENTER).expect("0.6350")
         .test("10", DIV).expect("0.0635")
         .test("10", DIV).expect("0.0064")
@@ -1924,7 +1926,7 @@ void tests::decimal_display_formats()
         .test("10", DIV).expect("6.3500⁳⁻⁷");
 
     step("FIX 4 showing 2 significant digits")
-        .test(CLEAR, "2", LSHIFT, F5).noerr()
+        .test(CLEAR, "2", LSHIFT, F5).noerror()
         .test("0.635", ENTER).expect("0.6350")
         .test("10", DIV).expect("0.0635")
         .test("10", DIV).expect("0.0064")
@@ -1934,7 +1936,7 @@ void tests::decimal_display_formats()
         .test("10", DIV).expect("6.3500⁳⁻⁷");
 
     step("FIX 4 showing 12 significant digits")
-        .test(CLEAR, "12", LSHIFT, F5).noerr()
+        .test(CLEAR, "12", LSHIFT, F5).noerror()
         .test("0.635", ENTER).expect("0.6350")
         .test("10", DIV).expect("0.0635")
         .test("10", DIV).expect("6.3500⁳⁻³")
@@ -1944,7 +1946,7 @@ void tests::decimal_display_formats()
         .test("10", DIV).expect("6.3500⁳⁻⁷");
 
     step("FIX 4 in old HP style (showing 0.0000)")
-        .test(CLEAR, "-1", LSHIFT, F5).noerr()
+        .test(CLEAR, "-1", LSHIFT, F5).noerror()
         .test("0.635", ENTER).expect("0.6350")
         .test("10", DIV).expect("0.0635")
         .test("10", DIV).expect("0.0064")
@@ -1954,7 +1956,7 @@ void tests::decimal_display_formats()
         .test("10", DIV).expect("0.0000");
 
     step("Reset defaults");
-    test(CLEAR, LSHIFT, O, F1, KEY3, LSHIFT, F5).noerr();
+    test(CLEAR, LSHIFT, O, F1, KEY3, LSHIFT, F5).noerror();
 
     step("Test display of 5000.");
     test(CLEAR, "5000.", ENTER)        .expect("5 000.");
@@ -2002,7 +2004,7 @@ void tests::decimal_numerical_functions()
     BEGIN(dfunctions);
 
     step("Select 34-digit precision to match Intel Decimal 128");
-    test(CLEAR, "34 PRECISION 64 SIG", ENTER).noerr();
+    test(CLEAR, "34 PRECISION 64 SIG", ENTER).noerror();
 
     step("Addition")
         .test(CLEAR, "1.23 2.34", NOSHIFT, ADD).expect("3.57")
@@ -2093,7 +2095,7 @@ void tests::decimal_numerical_functions()
         .test("abs", ENTER, 1, ADD).expect("4.21");
 
     step("Setting radians mode");
-    test(CLEAR, "RAD", ENTER).noerr();
+    test(CLEAR, "RAD", ENTER).noerror();
 
 #define TFNA(name, arg)                                         \
     step(#name).test(CLEAR, #arg " " #name, ENTER)
@@ -2154,12 +2156,12 @@ void tests::decimal_numerical_functions()
         .expect("-1.93671 70284 36984 00445 39742 77784 19614");
 
     step("Restore default 24-digit precision");
-    test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerr();
+    test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerror();
 
     step("→Frac should work for integers")
-        .test(CLEAR, "0 →Frac", ENTER).noerr().expect("0")
-        .test(CLEAR, "1 →Frac", ENTER).noerr().expect("1")
-        .test(CLEAR, "-123 →Frac", ENTER).noerr().expect("-123");
+        .test(CLEAR, "0 →Frac", ENTER).noerror().expect("0")
+        .test(CLEAR, "1 →Frac", ENTER).noerror().expect("1")
+        .test(CLEAR, "-123 →Frac", ENTER).noerror().expect("-123");
 }
 
 
@@ -2171,12 +2173,12 @@ void tests::float_numerical_functions()
     BEGIN(float);
 
     step("Select float acceleration")
-        .test(CLEAR, "7 PRECISION 10 SIG HardFP", ENTER).noerr();
+        .test(CLEAR, "7 PRECISION 10 SIG HardFP", ENTER).noerror();
     step("Binary representation does not align with decimal")
-        .test(CLEAR, "1.2", ENTER).noerr().expect("1.20000 0048");
+        .test(CLEAR, "1.2", ENTER).noerror().expect("1.20000 0048");
     step("Select 6-digit precision for output stability")
         .test("6 SIG", ENTER)
-        .noerr();
+        .noerror();
 
     step("Addition")
         .test(CLEAR, "1.23 2.34", NOSHIFT, ADD).expect("3.57")
@@ -2267,7 +2269,7 @@ void tests::float_numerical_functions()
         .test("abs", ENTER, 1, ADD).expect("4.21");
 
     step("Setting radians mode");
-    test(CLEAR, "RAD", ENTER).noerr();
+    test(CLEAR, "RAD", ENTER).noerror();
 
 #define TFNA(name, arg)         step(#name).test(CLEAR, #arg " " #name, ENTER)
 #define TFN(name)               TFNA(name, 0.321)
@@ -2327,7 +2329,7 @@ void tests::float_numerical_functions()
         .expect("-1.93672");
 
     step("Restore default 24-digit precision");
-    test(CLEAR, "24 PRECISION 12 SIG SoftFP", ENTER).noerr();
+    test(CLEAR, "24 PRECISION 12 SIG SoftFP", ENTER).noerror();
 }
 
 
@@ -2339,11 +2341,11 @@ void tests::double_numerical_functions()
     BEGIN(double);
 
     step("Select double acceleration")
-        .test(CLEAR, "16 PRECISION 24 SIG HardFP", ENTER).noerr();
+        .test(CLEAR, "16 PRECISION 24 SIG HardFP", ENTER).noerror();
     step("Binary representation does not align with decimal")
-        .test(CLEAR, "1.2", ENTER).noerr().expect("1.19999 99999 99999 96");
+        .test(CLEAR, "1.2", ENTER).noerror().expect("1.19999 99999 99999 96");
     step("Select 15-digit precision for output stability")
-        .test("15 SIG", ENTER).noerr();
+        .test("15 SIG", ENTER).noerror();
 
     step("Addition")
         .test(CLEAR, "1.23 2.34", NOSHIFT, ADD).expect("3.57")
@@ -2434,7 +2436,7 @@ void tests::double_numerical_functions()
         .test("abs", ENTER, 1, ADD).expect("4.21");
 
     step("Setting radians mode");
-    test(CLEAR, "RAD", ENTER).noerr();
+    test(CLEAR, "RAD", ENTER).noerror();
 
 #define TFNA(name, arg)         step(#name).test(CLEAR, #arg " " #name, ENTER)
 #define TFN(name)               TFNA(name, 0.321)
@@ -2494,7 +2496,7 @@ void tests::double_numerical_functions()
         .expect("-1.93671 70284 3698");
 
     step("Restore default 24-digit precision");
-    test(CLEAR, "24 PRECISION 12 SIG SoftFP", ENTER).noerr();
+    test(CLEAR, "24 PRECISION 12 SIG SoftFP", ENTER).noerror();
 }
 
 
@@ -2506,7 +2508,7 @@ void tests::high_precision_numerical_functions()
     BEGIN(highp);
 
     step("Select 120-digit precision");
-    test(CLEAR, "120 PRECISION 119 SIG", ENTER).noerr();
+    test(CLEAR, "120 PRECISION 119 SIG", ENTER).noerror();
 
     step("Addition")
         .test(CLEAR, "1.23 2.34", NOSHIFT, ADD).expect("3.57")
@@ -2597,7 +2599,7 @@ void tests::high_precision_numerical_functions()
         .test("abs", ENTER, 1, ADD).expect("4.21");
 
     step("Setting radians mode");
-    test(CLEAR, "RAD", ENTER).noerr();
+    test(CLEAR, "RAD", ENTER).noerror();
 
 #define TFNA(name, arg)         step(#name).test(CLEAR, #arg " " #name, ENTER)
 #define TFN(name)               TFNA(name, 0.321)
@@ -2657,7 +2659,7 @@ void tests::high_precision_numerical_functions()
         .expect("-1.93671 70284 36984 00445 39742 77784 19614 09228 14972 69013 57207 96225 22144 30998 44778 15307 33025 32493 05294 47540 14534 16384 29680 297");
 
     step("Restore default 24-digit precision");
-    test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerr();
+    test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerror();
 }
 
 
@@ -2672,12 +2674,12 @@ void tests::exact_trig_cases()
     int circle[] = { 400, 360, 2 };
 
     step("Switch to big fractions")
-        .test("BigFractions", ENTER).noerr();
+        .test("BigFractions", ENTER).noerror();
 
     for (uint unit = 0; unit < 3; unit++)
     {
         step(unit_names[unit]);
-        test(CLEAR, unit_names[unit], ENTER).noerr();
+        test(CLEAR, unit_names[unit], ENTER).noerror();
 
         int base = ((lrand48() & 0xFF) - 0x80) * 360;
         char buf[80];
@@ -2765,7 +2767,7 @@ void tests::exact_trig_cases()
     }
 
     step("Cleaning up")
-        .test(CLEAR, "SmallFractions DEG", ENTER).noerr();
+        .test(CLEAR, "SmallFractions DEG", ENTER).noerror();
 }
 
 
@@ -2792,7 +2794,7 @@ void tests::fraction_decimal_conversions()
     BEGIN(dfrac);
 
     step("Selecting big mixed fraction mode")
-        .test(CLEAR, "BigFractions ImproperFractions", ENTER).noerr();
+        .test(CLEAR, "BigFractions ImproperFractions", ENTER).noerror();
 
     for (uint c = 0; c < sizeof(cases) / sizeof(*cases); c += 2)
     {
@@ -2824,7 +2826,7 @@ void tests::fraction_decimal_conversions()
     test("→Num", ENTER).expect("0.00000 02667 64");
 
     step("Restoring small fraction mode")
-        .test(CLEAR, "SmallFractions MixedFractions", ENTER).noerr();
+        .test(CLEAR, "SmallFractions MixedFractions", ENTER).noerror();
 }
 
 
@@ -2836,48 +2838,48 @@ void tests::trig_units()
     BEGIN(trigunits);
 
     step("Select degrees mode")
-        .test(CLEAR, LSHIFT, N, F1).noerr();
+        .test(CLEAR, LSHIFT, N, F1).noerror();
     step("Disable trig units mode")
-        .test("NoAngleUnits", ENTER).noerr();
+        .test("NoAngleUnits", ENTER).noerror();
     step("Check that arc-sin produces numerical value")
 
         .test(CLEAR, "0.2", LSHIFT, J)
-        .noerr()
+        .noerror()
         .type(object::ID_decimal)
         .expect("11.53695 90328");
     step("Check that arc-sin numerical value depends on angle mode")
         .test(CLEAR, LSHIFT, N, F2)
         .test("0.2", LSHIFT, J)
-        .noerr()
+        .noerror()
         .type(object::ID_decimal)
         .expect("0.20135 79207 9");
 
     step("Enable trig units mode")
-        .test("SetAngleUnits", ENTER).noerr();
+        .test("SetAngleUnits", ENTER).noerror();
     step("Select degrees mode")
-        .test(CLEAR, LSHIFT, N, F1).noerr();
+        .test(CLEAR, LSHIFT, N, F1).noerror();
     step("Check that arc-sin produces unit value with degrees")
 
         .test("0.2", LSHIFT, J)
-        .noerr()
+        .noerror()
         .type(object::ID_unit)
         .expect("11.53695 90328 °");
     step("Check that arc-sin produces radians unit")
         .test(F2)
         .test("0.2", LSHIFT, J)
-        .noerr()
+        .noerror()
         .type(object::ID_unit)
         .expect("0.20135 79207 9 r");
     step("Check that arc-sin produces pi-radians unit")
         .test(F3)
         .test("0.2", LSHIFT, J)
-        .noerr()
+        .noerror()
         .type(object::ID_unit)
         .expect("0.06409 42168 49 πr");
     step("Check that arc-sin produces grads unit")
         .test(LSHIFT, F1)
         .test("0.2", LSHIFT, J)
-        .noerr()
+        .noerror()
         .type(object::ID_unit)
         .expect("12.81884 33698 grad");
 
@@ -2899,16 +2901,16 @@ void tests::trig_units()
         .test(BSP);
 
     step ("Numerical conversion from degrees to radians")
-        .test(CLEAR, "1.2 R→D", ENTER).noerr().expect("68.75493 54157");
+        .test(CLEAR, "1.2 R→D", ENTER).noerror().expect("68.75493 54157");
     step ("Symbolic conversion from degrees to radians")
-        .test(CLEAR, "'X' R→D", ENTER).noerr().expect("'57.29577 95131·X'");
+        .test(CLEAR, "'X' R→D", ENTER).noerror().expect("'57.29577 95131·X'");
     step ("Numerical conversion from radians to degrees")
-        .test(CLEAR, "1.2 D→R", ENTER).noerr().expect("0.02094 39510 24");
+        .test(CLEAR, "1.2 D→R", ENTER).noerror().expect("0.02094 39510 24");
     step ("Symbolic conversion from radians to degrees")
-        .test(CLEAR, "'X' D→R", ENTER).noerr().expect("'0.01745 32925 2·X'");
+        .test(CLEAR, "'X' D→R", ENTER).noerror().expect("'0.01745 32925 2·X'");
 
     step("Select degrees mode")
-        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F1).noerr();
+        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F1).noerror();
     step("Numerical conversion to degrees in degrees mode")
         .test("1.2", LSHIFT, F1).expect("1.2 °");
     step("Numerical conversion to radians in degrees mode")
@@ -2919,7 +2921,7 @@ void tests::trig_units()
         .test("1.2", LSHIFT, F4).expect("0.00666 66666 67 πr");
 
     step("Select radians mode")
-        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F2).noerr();
+        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F2).noerror();
     step("Numerical conversion to degrees in radians mode")
         .test("1.2", LSHIFT, F1).expect("68.75493 54157 °");
     step("Numerical conversion to radians in radians mode")
@@ -2930,7 +2932,7 @@ void tests::trig_units()
         .test("1.2", LSHIFT, F4).expect("0.38197 18634 21 πr");
 
     step("Select grads mode")
-        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F3).noerr();
+        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F3).noerror();
     step("Numerical conversion to degrees in grads mode")
         .test("1.2", LSHIFT, F1).expect("1.08 °");
     step("Numerical conversion to radians in grads mode")
@@ -2941,7 +2943,7 @@ void tests::trig_units()
         .test("1.2", LSHIFT, F4).expect("0.006 πr");
 
     step("Select pi-radians mode")
-        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F4).noerr();
+        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F4).noerror();
     step("Numerical conversion to degrees in pi-radians mode")
         .test("1.2", LSHIFT, F1).expect("216. °");
     step("Numerical conversion to radians in pi-radians mode")
@@ -2952,7 +2954,7 @@ void tests::trig_units()
         .test("1.2", LSHIFT, F4).expect("1.2 πr");
 
     step("Selecting degrees")
-        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F1).noerr();
+        .test(CLEAR, LSHIFT, N, LSHIFT, F2, F1).noerror();
     step("Creating a degrees value")
         .test(CLEAR, "1/2", LSHIFT, F1).expect("¹/₂ °");
     step("Converting to grad")
@@ -2976,7 +2978,7 @@ void tests::complex_types()
     BEGIN(ctypes);
 
     step("Select degrees for the angle");
-    test(CLEAR, "DEG", ENTER).noerr();
+    test(CLEAR, "DEG", ENTER).noerror();
 
     step("Integer rectangular form");
     test(CLEAR, "0ⅈ0", ENTER)
@@ -3083,7 +3085,7 @@ void tests::complex_types()
         .test(F3).expect("1.2+3.4ⅈ");
 
     step("Convert real to polar");
-    test(CLEAR, LSHIFT, N, F1).noerr();
+    test(CLEAR, LSHIFT, N, F1).noerror();
     test(CLEAR, "1 2", LSHIFT, G, RSHIFT, F3)
         .type(object::ID_polar)
         .expect("1∡2°");
@@ -3106,7 +3108,7 @@ void tests::complex_types()
         .expect("mod:1.2");
 
     step("Convert real to polar and back (add units, strip tags)");
-    test(CLEAR, LSHIFT, N, F1).noerr();
+    test(CLEAR, LSHIFT, N, F1).noerror();
     test(CLEAR, "1 2", LSHIFT, G, RSHIFT, F3)
         .type(object::ID_polar)
         .expect("1∡2°")
@@ -3132,7 +3134,7 @@ void tests::complex_arithmetic()
     BEGIN(carith);
 
     step("Use degrees");
-    test("DEG", ENTER).noerr();
+    test("DEG", ENTER).noerror();
 
     step("Addition");
     test(CLEAR, "1ⅈ2", ENTER, "3+ⅈ4", ENTER, ADD)
@@ -3236,10 +3238,10 @@ void tests::complex_functions()
     BEGIN(cfunctions);
 
     step("Select 34-digit precision to match Intel Decimal 128");
-    test(CLEAR, "34 PRECISION 20 SIG", ENTER).noerr();
+    test(CLEAR, "34 PRECISION 20 SIG", ENTER).noerror();
 
     step("Using radians");
-    test(CLEAR, "RAD", ENTER).noerr();
+    test(CLEAR, "RAD", ENTER).noerror();
 
     step("Square root (optimized negative case)");
     test(CLEAR, "-1ⅈ0", ENTER, SQRT).expect("0+1.ⅈ");
@@ -3403,7 +3405,7 @@ void tests::complex_functions()
     test(CLEAR, "31.234 conj", ENTER).expect("31.234");
 
     step("Restore default 24-digit precision");
-    test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerr();
+    test(CLEAR, "24 PRECISION 12 SIG", ENTER).noerror();
 }
 
 
@@ -3503,7 +3505,7 @@ void tests::units_and_conversions()
     step("Unit parsing on command line")
         .test(CLEAR, "12_km/s^2", ENTER).expect("12 km/s↑2");
     step("Parsing degrees as a unit")
-        .test(CLEAR, "DEG", ENTER).noerr()
+        .test(CLEAR, "DEG", ENTER).noerror()
         .test("1∡90", ENTER).expect("1∡90°")
         .test(DOWN).editor("1∡90°")
         .test(DOWN, DOWN, BSP, DOWN, DOWN, "_").editor("190_°")
@@ -3514,15 +3516,15 @@ void tests::units_and_conversions()
         .error("Inconsistent units");
     step("No auto-simplification for unit subtraction")
         .test(CLEAR, "1_s", ENTER, ENTER, SUB)
-        .noerr()
+        .noerror()
         .expect("0 s");
     step("No auto-simplification for unit multiplication")
         .test(CLEAR, "1_s", ENTER, "1", NOSHIFT, MUL)
-        .noerr()
+        .noerror()
         .expect("1 s");
     step("No auto-simplification for unit division")
         .test(CLEAR, "1_s", ENTER, "1", NOSHIFT, DIV)
-        .noerr()
+        .noerror()
         .expect("1 s");
 }
 
@@ -4011,10 +4013,10 @@ void tests::solver_testing()
 
     step("Solver with expression")
         .test(CLEAR, "'X+3' 'X' 0 ROOT", ENTER)
-        .noerr().expect("X:-3.");
+        .noerror().expect("X:-3.");
     step("Solver with equation")
         .test(CLEAR, "'sq(x)=3' 'X' 0 ROOT", ENTER)
-        .noerr().expect("X:1.73205 08075 7");
+        .noerror().expect("X:1.73205 08075 7");
     step("Solver without solution")
         .test(CLEAR, "'sq(x)+3=0' 'X' 0 ROOT", ENTER)
         .error("No solution?");
@@ -4030,7 +4032,7 @@ void tests::numerical_integration_testing()
 
     step("Integrate with expression")
         .test(CLEAR, "1 2 '1/X' 'X' INTEGRATE", ENTER)
-        .noerr().expect("0.69314 71805 6")
+        .noerror().expect("0.69314 71805 6")
         .test(KEY2, E, SUB).expect("3.00876⁳⁻¹⁹");
     step("Integration through menu")
         .test(CLEAR, 2, ENTER).expect("2")
@@ -4055,7 +4057,7 @@ void tests::auto_simplification()
     BEGIN(simplify);
 
     step("Enable auto simplification");
-    test(CLEAR, "AutoSimplify", ENTER).noerr();
+    test(CLEAR, "AutoSimplify", ENTER).noerror();
 
     step("X + 0 = X");
     test(CLEAR, "X 0 +", ENTER).expect("'X'");
@@ -4135,14 +4137,14 @@ void tests::auto_simplification()
         .expect("{ 1 2 3 0 }");
 
     step("Disable auto simplification");
-    test(CLEAR, "NoAutoSimplify", ENTER).noerr();
+    test(CLEAR, "NoAutoSimplify", ENTER).noerror();
 
     step("When disabled, get the complicated expression");
     test(CLEAR, "[[3 0 2][2 0 -2][ 0 1 1 ]] [x y z] *", ENTER)
         .expect("[ '3·x+0·y+2·z' '2·x+0·y+-2·z' '0·x+1·y+1·z' ]");
 
     step("Re-enable auto simplification");
-    test(CLEAR, "AutoSimplify", ENTER).noerr();
+    test(CLEAR, "AutoSimplify", ENTER).noerror();
 }
 
 
@@ -4451,7 +4453,7 @@ void tests::shift_and_rotate()
     BEGIN(rotate);
 
     step("Default word size should be 64")
-        .test(CLEAR, "RCWS", ENTER).noerr().expect("64");
+        .test(CLEAR, "RCWS", ENTER).noerror().expect("64");
 
     step("Shift left")
         .test(CLEAR, "#123A", LSHIFT, KEY4, F6)
@@ -4547,7 +4549,7 @@ void tests::shift_and_rotate()
         .test(LSHIFT, F2).expect("#FFFE 0000₁₆");
 
     step("32-bit test")
-        .test(CLEAR, "32 STWS", ENTER, EXIT).noerr();
+        .test(CLEAR, "32 STWS", ENTER, EXIT).noerror();
     step("Shift left")
         .test(CLEAR, "#123A", LSHIFT, KEY4, F6)
         .test(F1).expect("#2474₁₆")
@@ -4629,7 +4631,7 @@ void tests::shift_and_rotate()
         .test(LSHIFT, F2).expect("#0₁₆");
 
     step("128-bit test")
-        .test(CLEAR, "128 STWS", ENTER, EXIT).noerr();
+        .test(CLEAR, "128 STWS", ENTER, EXIT).noerror();
     step("Shift left")
         .test(CLEAR, "#123A", LSHIFT, KEY4, F6)
         .test(F1).expect("#2474₁₆")
@@ -4733,7 +4735,7 @@ void tests::shift_and_rotate()
         .test(LSHIFT, F2).expect("#FFFC 0000 0000 0000 0000 0000₁₆");
 
     step("16-bit test")
-        .test(CLEAR, "16 STWS", ENTER, EXIT).noerr();
+        .test(CLEAR, "16 STWS", ENTER, EXIT).noerror();
     step("Shift left")
         .test(CLEAR, "#123A", LSHIFT, KEY4, F6)
         .test(F1).expect("#2474₁₆")
@@ -4804,7 +4806,7 @@ void tests::shift_and_rotate()
         .test(LSHIFT, F2).expect("#0₁₆");
 
     step("13-bit test")
-        .test(CLEAR, "13 STWS", ENTER, EXIT).noerr();
+        .test(CLEAR, "13 STWS", ENTER, EXIT).noerror();
     step("Shift left")
         .test(CLEAR, "#123A", LSHIFT, KEY4, F6)
         .test(F1).expect("#474₁₆")
@@ -4889,7 +4891,7 @@ void tests::shift_and_rotate()
         .test(RSHIFT, M).expect("#0₁₆");
 
     step("72-bit test")
-        .test(CLEAR, "72 STWS", ENTER, EXIT).noerr();
+        .test(CLEAR, "72 STWS", ENTER, EXIT).noerror();
     step("Shift left")
         .test(CLEAR, "#123A", LSHIFT, KEY4, F6)
         .test(F1).expect("#2474₁₆")
@@ -5000,19 +5002,19 @@ void tests::flags_functions()
 
     step("Check that flags are initially clear");
     for (uint f = 0; f < nflags; f++)
-        test(CLEAR, (f * 23) % 128, " FS?", ENTER).noerr().expect("False");
+        test(CLEAR, (f * 23) % 128, " FS?", ENTER).noerror().expect("False");
 
     step("Setting random flags");
     large fset = lrand48() & ((1<<nflags)-1);
     for (uint f = 0; f < 13; f++)
         test(CLEAR,
-             (f * 23) % 128, (fset & (1<<f)) ? " SF" : " CF", ENTER).noerr();
+             (f * 23) % 128, (fset & (1<<f)) ? " SF" : " CF", ENTER).noerror();
 
     step("Getting flags value")
-        .test(CLEAR, LSHIFT, KEY6, LSHIFT, F1).noerr()
+        .test(CLEAR, LSHIFT, KEY6, LSHIFT, F1).noerror()
         .type(object::ID_based_bignum);
     step("Clearing flag values from menu")
-        .test("#0", LSHIFT, F2).noerr();
+        .test("#0", LSHIFT, F2).noerror();
     step("Check that flags are initially clear");
     for (uint f = 0; f < nflags; f++)
         if (fset & (1 << f))
@@ -5020,7 +5022,7 @@ void tests::flags_functions()
         else
             test((f * 23) % 128, LSHIFT, F6).expect("True").test(BSP);
     step("Restore values of flags from binary")
-        .test(LSHIFT, KEY6, LSHIFT, F2).noerr();
+        .test(LSHIFT, KEY6, LSHIFT, F2).noerror();
 
     step("Check that flags were set as expected");
     for (uint f = 0; f < nflags; f++)
@@ -5042,7 +5044,7 @@ void tests::flags_functions()
         .test(CLEAR, LSHIFT, KEY6);
     for (uint f = 0; f < 13; f++)
         test(CLEAR,
-             (f * 23) % 128, (fset & (1<<f)) ? F2 : F1).noerr();
+             (f * 23) % 128, (fset & (1<<f)) ? F2 : F1).noerror();
     step("Check that flags were clear and clear them");
     for (uint f = 0; f < nflags; f++)
         test(CLEAR, (f * 23) % 128, F6, ENTER)
@@ -5052,7 +5054,7 @@ void tests::flags_functions()
         test(CLEAR, (f * 23) % 128, " FC?", ENTER).expect("True");
     step("Clear flags with menus");
     for (uint f = 0; f < 13; f++)
-        test(CLEAR, (f * 23) % 128, F2).noerr();
+        test(CLEAR, (f * 23) % 128, F2).noerror();
     step("Check that flags are still all clear");
     for (uint f = 0; f < nflags; f++)
         test(CLEAR, (f * 23) % 128, " FC?", ENTER).expect("True");
@@ -5061,7 +5063,7 @@ void tests::flags_functions()
         .test(CLEAR, LSHIFT, KEY6);
     for (uint f = 0; f < 13; f++)
         if (fset & (1<<f))
-            test(CLEAR, (f * 23) % 128, LSHIFT, F4).noerr();
+            test(CLEAR, (f * 23) % 128, LSHIFT, F4).noerror();
     step("Check that required flags were flipped using FC?");
     for (uint f = 0; f < nflags; f++)
         test(CLEAR, (f * 23) % 128, " FC?", ENTER)
@@ -5088,13 +5090,13 @@ void tests::flags_by_name()
 #define FLAG(Enable, Disable)                           \
     step("Setting flag " #Enable)                       \
         .test(#Enable, ENTER)                           \
-        .noerr();                                       \
+        .noerror();                                     \
     step("Clearing flag " #Disable " (default)")        \
         .test(#Disable, ENTER)                          \
-        .noerr();
+        .noerror();
 #define SETTING(Name, Low, High, Init)          \
     step("Setting " #Name " to default " #Init) \
-        .noerr();
+        .noerror();
 #include "ids.tbl"
 }
 
@@ -5111,10 +5113,10 @@ void tests::settings_by_name()
 #define SETTING(Name, Low, High, Init)                  \
     step("Getting " #Name " current value")             \
         .test("'" #Name "' RCL", ENTER)                 \
-        .noerr();                                       \
+        .noerror();                                       \
     step("Setting " #Name " to its current value")      \
         .test("" #Name "", ENTER)                       \
-        .noerr();
+        .noerror();
 #include "ids.tbl"
 }
 
@@ -5265,9 +5267,9 @@ void tests::hms_dms_operations()
         .test(1, DOT, 2, DOT, 3, ENTER).expect("1°02′03″")
         .test(LSHIFT, H, LSHIFT, F5).expect("1:02:03")
         .test(F5).expect("1°02′03″")
-        .test(F5).noerr().expect("1°02′03″")
-        .test(LSHIFT, F5).noerr().expect("1:02:03")
-        .test(LSHIFT, F5).noerr().expect("1:02:03");
+        .test(F5).noerror().expect("1°02′03″")
+        .test(LSHIFT, F5).noerror().expect("1:02:03")
+        .test(LSHIFT, F5).noerror().expect("1:02:03");
 
     step("Converting angles to DMS")
         .test(CLEAR, "0.5", LSHIFT, J, A, RSHIFT, F1).expect("30°00′00″");
@@ -5336,7 +5338,7 @@ void tests::date_operations()
     step("Runing TEVAL to time something")
         .test(CLEAR, LSHIFT, RUNSTOP,
               "0 1 10 FOR i i + 0.01 WAIT NEXT", ENTER,
-              "TEVAL", ENTER, WAIT(200)).noerr()
+              "TEVAL", ENTER, WAIT(200)).noerror()
         .match("duration:[1-3][0-9][0-9] ms");
 }
 
@@ -5349,66 +5351,66 @@ void tests::online_help()
     BEGIN(help);
 
     step("Main menu shows help as F1")
-        .test(CLEAR, EXIT, A, F1).wait(100).noerr()
+        .test(CLEAR, EXIT, A, F1).wait(100).noerror()
         .image_noheader("help");
     step("Exiting help with EXIT")
-        .test(EXIT).noerr()
+        .test(EXIT).noerror()
         .image_noheader("help-exit");
     step("Help with keyboard shortcut")
-        .test(CLEAR, RSHIFT, ADD).noerr()
+        .test(CLEAR, RSHIFT, ADD).noerror()
         .image_noheader("help");
     step("Following link with ENTER")
-        .test(ENTER).noerr()
+        .test(ENTER).noerror()
         .image_noheader("help-topic");
     step("Help with command line")
-        .test(CLEAR, "help", ENTER).noerr()
+        .test(CLEAR, "help", ENTER).noerror()
         .image_noheader("help");
     step("History across invokations")
-        .test(NOSHIFT, BSP).noerr()
+        .test(NOSHIFT, BSP).noerror()
         .image_noheader("help-topic");
     step("Help topic - Integers")
-        .test(CLEAR, EXIT, "123", RSHIFT, ADD).noerr()
+        .test(CLEAR, EXIT, "123", RSHIFT, ADD).noerror()
         .image_noheader("help-integers");
     step("Help topic - Decimal")
-        .test(CLEAR, EXIT, "123.5", RSHIFT, ADD).noerr()
+        .test(CLEAR, EXIT, "123.5", RSHIFT, ADD).noerror()
         .image_noheader("help-decimal");
     step("Help topic - topic")
         .test(CLEAR, EXIT, "\"authors\"",
               NOSHIFT, RSHIFT, ADD, DOWN, DOWN, DOWN, DOWN)
-        .noerr()
+        .noerror()
         .image_noheader("help-authors");
     step("Returning to main screen with F1")
-        .test(F1).noerr()
+        .test(F1).noerror()
         .image_noheader("help");
     step("Page up and down with F2 and F3")
-        .test(F3).noerr()
+        .test(F3).noerror()
         .image_noheader("help-page2")
-        .test(F3).noerr()
+        .test(F3).noerror()
         .image_noheader("help-page3")
-        .test(F2).noerr()
+        .test(F2).noerror()
         .image_noheader("help-page4")
-        .test(F3).noerr()
+        .test(F3).noerror()
         .image_noheader("help-page5");
     step("Follow link with ENTER")
-        .test(ENTER).noerr()
+        .test(ENTER).noerror()
         .image_noheader("help-help");
     step("Back to previous topic with BSP")
-        .test(BSP).noerr()
+        .test(BSP).noerror()
         .image_noheader("help-page6");
     step("Next link with F5")
-        .test(F2, F3, F3, F5, ENTER).noerr()
+        .test(F2, F3, F3, F5, ENTER).noerror()
         .image_noheader("help-keyboard");
     step("Back with F6")
-        .test(F6).noerr()
+        .test(F6).noerror()
         .image_noheader("help-page7");
     step("Previous topic with F4")
-        .test(F4).noerr()
+        .test(F4).noerror()
         .image_noheader("help-page8");
     step("Select topic with ENTER")
-        .test(ENTER).wait(200).noerr()
+        .test(ENTER).wait(200).noerror()
         .image_noheader("help-design");
     step("Exit to normal command line")
-        .test(EXIT, CLEAR, EXIT).noerr();
+        .test(EXIT, CLEAR, EXIT).noerror();
     step("Invoke help about SIN command with long press")
         .test(LONGPRESS, J).wait(20)
         .image_noheader("help-sin");
@@ -5445,11 +5447,11 @@ void tests::infinity_and_undefined()
 
     step("Setting infinity flag")
         .test(CLEAR, "'InfinityValue' FS?", ENTER).expect("False")
-        .test("-22 SF", ENTER).noerr()
+        .test("-22 SF", ENTER).noerror()
         .test("'InfinityValue' FS?", ENTER).expect("True");
 
     step("Clear infinite result flag")
-        .test("-26 CF", ENTER).noerr()
+        .test("-26 CF", ENTER).noerror()
         .test("'InfiniteResultIndicator' FS?", ENTER).expect("False");
 
     step("Divide by zero as symbolic infinity (integer)")
@@ -5496,7 +5498,7 @@ void tests::infinity_and_undefined()
 
     step("Setting numerical constants flag")
         .test(CLEAR, "'NumericalConstants' FS?", ENTER).expect("False")
-        .test("-2 SF", ENTER).noerr()
+        .test("-2 SF", ENTER).noerror()
         .test("'NumericalConstants' FS?", ENTER).expect("True");
 
     step("Divide by zero as numeric infinity (integer)")
@@ -5543,11 +5545,11 @@ void tests::infinity_and_undefined()
 
     step("Clearing numerical constants flag")
         .test(CLEAR, "'NumericalConstants' FS?", ENTER).expect("True")
-        .test("-2 CF", ENTER).noerr()
+        .test("-2 CF", ENTER).noerror()
         .test("'NumericalConstants' FS?", ENTER).expect("False");
     step("Setting numerical results flag")
         .test(CLEAR, "'NumericalResults' FS?", ENTER).expect("False")
-        .test("-3 SF", ENTER).noerr()
+        .test("-3 SF", ENTER).noerror()
         .test("'NumericalResults' FS?", ENTER).expect("True");
 
     step("Divide by zero as numeric infinity (integer)")
@@ -5578,7 +5580,7 @@ void tests::infinity_and_undefined()
 
     step("Clear numerical results flag")
         .test(CLEAR, "'NumericalResults' FS?", ENTER).expect("True")
-        .test("-3 CF", ENTER).noerr()
+        .test("-3 CF", ENTER).noerror()
         .test("'NumericalResults' FS?", ENTER).expect("False");
 
     step("Divide by zero as symbolic infinity (integer)")
@@ -5596,7 +5598,7 @@ void tests::infinity_and_undefined()
 
     step("Clear infinity value flag")
         .test(CLEAR, "'InfinityError' FS?", ENTER).expect("False")
-        .test("-22 CF", ENTER).noerr()
+        .test("-22 CF", ENTER).noerror()
         .test("'InfinityError' FS?", ENTER).expect("True");
 
     step("Divide by zero error (integer)")
@@ -5624,7 +5626,7 @@ void tests::overflow_and_underflow()
     BEGIN(overflow);
 
     step("Set maximum exponent to 499")
-        .test(CLEAR, "499 MaximumDecimalExponent", ENTER).noerr()
+        .test(CLEAR, "499 MaximumDecimalExponent", ENTER).noerror()
         .test("'MaximumDecimalExponent' RCL", ENTER).expect("499");
 
     step("Check that undeflow error is not set by default")
@@ -5632,7 +5634,7 @@ void tests::overflow_and_underflow()
         .test("'UnderflowValue' FS?", ENTER).expect("True");
 
     step("Clear overflow and underflow indicators")
-        .test("-23 CF -24 CF -25 CF -26 CF", ENTER).noerr();
+        .test("-23 CF -24 CF -25 CF -26 CF", ENTER).noerror();
     step("Check negative underflow indicator is clear")
         .test("'NegativeUnderflowIndicator' FS?", ENTER).expect("False");
     step("Check positive underflow indicator is clear")
@@ -5674,7 +5676,7 @@ void tests::overflow_and_underflow()
         .test("-25 FS?C", ENTER).expect("False");
 
     step("Set underflow as error")
-        .test(CLEAR, "-20 SF", ENTER).noerr()
+        .test(CLEAR, "-20 SF", ENTER).noerror()
         .test("'UnderflowError' FS?", ENTER).expect("True");
 
     step("Test numerical overflow as infinity")
@@ -5701,7 +5703,7 @@ void tests::overflow_and_underflow()
         .test("-25 FS?C", ENTER).expect("False");
 
     step("Set overflow as error")
-        .test(CLEAR, "-21 SF", ENTER).noerr()
+        .test(CLEAR, "-21 SF", ENTER).noerror()
         .test("'OverflowError' FS?", ENTER).expect("True");
 
     step("Test numerical overflow as infinity")
@@ -5991,10 +5993,10 @@ void tests::insertion_of_variables_constants_and_units()
         .test(RUNSTOP).expect("27 ft⁻¹");
 
     step("Select variables menu")
-        .test(CLEAR, NOSHIFT, H).noerr();
+        .test(CLEAR, NOSHIFT, H).noerror();
     step("Create variables named Foo and Baz")
-        .test(CLEAR, "1968 'Foo'", NOSHIFT, G).noerr()
-        .test("42", NOSHIFT, F, "Baz", NOSHIFT, G).noerr();
+        .test(CLEAR, "1968 'Foo'", NOSHIFT, G).noerror()
+        .test("42", NOSHIFT, F, "Baz", NOSHIFT, G).noerror();
 
     step("Check we can read the variables back")
         .test(CLEAR, F1).expect("42")
@@ -6092,11 +6094,11 @@ void tests::regression_checks()
          UP, BSP, DOWN, DOWN, UP,       // «→N«»»
          N,                             // «→N«N»»
          ENTER)
-        .noerr().type(object::ID_program)
+        .noerror().type(object::ID_program)
         .test(RUNSTOP)
-        .noerr().type(object::ID_program).expect("« N »")
+        .noerror().type(object::ID_program).expect("« N »")
         .test(BSP)
-        .noerr().type(object::ID_expression).expect("'→N'");
+        .noerror().type(object::ID_expression).expect("'→N'");
 
     step("Bug 822: Fraction iteration")
         .test(CLEAR,
@@ -6117,85 +6119,85 @@ void tests::plotting()
     BEGIN(plotting);
 
     step("Select radians");
-    test(CLEAR, "RAD", ENTER).noerr();
+    test(CLEAR, "RAD", ENTER).noerror();
 
     step("Function plot: Sine wave");
-    test(CLEAR, "'3*sin(x)' FunctionPlot", ENTER).noerr()
+    test(CLEAR, "'3*sin(x)' FunctionPlot", ENTER).noerror()
         .wait(200).image("plot-sine");
     step("Function plot: Sine wave without axes");
-    test(CLEAR, "NoPlotAxes '3*sin(x)' FunctionPlot", ENTER).noerr()
+    test(CLEAR, "NoPlotAxes '3*sin(x)' FunctionPlot", ENTER).noerror()
         .wait(200).image("plot-sine-noaxes");
     step("Function plot: Sine wave not connected no axes");
-    test(CLEAR, "NoCurveFilling '3*sin(x)' FunctionPlot", ENTER).noerr()
+    test(CLEAR, "NoCurveFilling '3*sin(x)' FunctionPlot", ENTER).noerror()
         .wait(200).image("plot-sine-noaxes-nofill");
     step("Function plot: Sine wave with axes no fill");
-    test(CLEAR, "-29 CF '3*sin(x)' FunctionPlot", ENTER).noerr()
+    test(CLEAR, "-29 CF '3*sin(x)' FunctionPlot", ENTER).noerror()
         .wait(200).image("plot-sine-nofill");
     step("Function plot: Sine wave defaults");
-    test(CLEAR, "-31 CF '3*sin(x)' FunctionPlot", ENTER).noerr()
+    test(CLEAR, "-31 CF '3*sin(x)' FunctionPlot", ENTER).noerror()
         .wait(200).image("plot-sine");
 
     step("Function plot: Equation");
     test(CLEAR,
          ALPHA, X, ENTER, ENTER, J, 3, MUL, M, 21, MUL, COS, 2, MUL, ADD,
-         RSHIFT, O, F1).noerr()
+         RSHIFT, O, F1).noerror()
         .wait(200).image("plot-eq");
     step("Function plot: Program");
     test(CLEAR, SHIFT, RUNSTOP,
          I, SHIFT, F1, L, M, 41, MUL, J, MUL, ENTER, ENTER,
-         RSHIFT, O, F1).wait(200).image("plot-pgm").noerr();
+         RSHIFT, O, F1).wait(200).image("plot-pgm").noerror();
     step("Function plot: Disable curve filling");
     test(CLEAR, RSHIFT, UP, ENTER, "NoCurveFilling", ENTER,
-         RSHIFT, O, F1).wait(200).image("plot-nofill").noerr();
+         RSHIFT, O, F1).wait(200).image("plot-nofill").noerror();
     step("Function plot: Disable curve filling with flag -31");
     test(CLEAR, RSHIFT, UP, ENTER, "-31 CF", ENTER,
-         RSHIFT, O, F1).wait(200).image("plot-pgm").noerr();
+         RSHIFT, O, F1).wait(200).image("plot-pgm").noerror();
 
     step("Polar plot: Program");
     test(CLEAR, SHIFT, RUNSTOP,
          61, MUL, L, SHIFT, C, 2, ADD, ENTER,
-         RSHIFT, O, F2).noerr().wait(200).image("polar-pgm");
+         RSHIFT, O, F2).noerror().wait(200).image("polar-pgm");
     step("Polar plot: Program, no fill");
     test(CLEAR, "NoCurveFilling", ENTER,
          SHIFT, RUNSTOP,
          61, MUL, L, SHIFT, C, 2, ADD, ENTER,
-         RSHIFT, O, F2).noerr().wait(200).image("polar-pgm-nofill");
+         RSHIFT, O, F2).noerror().wait(200).image("polar-pgm-nofill");
     step("Polar plot: Program, curve filling");
     test(CLEAR, "CurveFilling", ENTER,
          SHIFT, RUNSTOP,
          61, MUL, L, SHIFT, C, 2, ADD, ENTER,
-         RSHIFT, O, F2).noerr().wait(200).image("polar-pgm");
+         RSHIFT, O, F2).noerror().wait(200).image("polar-pgm");
     step("Polar plot: Equation");
     test(CLEAR, F, J, 611, MUL, ALPHA, X,
          NOSHIFT, DOWN, MUL, K, 271, MUL,
          ALPHA, X, NOSHIFT, DOWN,
          ADD, KEY2, DOT, KEY5, ENTER,
          RSHIFT, O,
-         ENTER, F2).noerr().wait(200).image("polar-eq");
+         ENTER, F2).noerror().wait(200).image("polar-eq");
     step("Polar plot: Zoom in X and Y");
-    test(EXIT, "0.5 XSCALE 0.5 YSCALE", ENTER).noerr()
-        .test(ENTER, F2).noerr().wait(200).image("polar-zoomxy");
+    test(EXIT, "0.5 XSCALE 0.5 YSCALE", ENTER).noerror()
+        .test(ENTER, F2).noerror().wait(200).image("polar-zoomxy");
     step("Polar plot: Zoom out Y");
-    test(EXIT, "2 YSCALE", ENTER).noerr()
-        .test(ENTER, F2).noerr().wait(200).image("polar-zoomy");
+    test(EXIT, "2 YSCALE", ENTER).noerror()
+        .test(ENTER, F2).noerror().wait(200).image("polar-zoomy");
     step("Polar plot: Zoom out X");
-    test(EXIT, "2 XSCALE", ENTER).noerr()
-        .test(ENTER, F2).noerr().wait(200).image("polar-zoomx");
+    test(EXIT, "2 XSCALE", ENTER).noerror()
+        .test(ENTER, F2).noerror().wait(200).image("polar-zoomx");
     step("Saving plot parameters")
         .test("PPAR", ENTER, NOSHIFT, M);
     step("Polar plot: Select min point with PMIN");
-    test(EXIT, "-3-4ⅈ PMIN", ENTER).noerr()
-        .test(ENTER, RSHIFT, O, F2).noerr().wait(200).image("polar-pmin");
+    test(EXIT, "-3-4ⅈ PMIN", ENTER).noerror()
+        .test(ENTER, RSHIFT, O, F2).noerror().wait(200).image("polar-pmin");
 
     step("Polar plot: Select max point with PMAX");
-    test(EXIT, "5+6ⅈ pmax", ENTER).noerr()
-        .test(ENTER, RSHIFT, O, F2).noerr().wait(200).image("polar-pmax");
+    test(EXIT, "5+6ⅈ pmax", ENTER).noerror()
+        .test(ENTER, RSHIFT, O, F2).noerror().wait(200).image("polar-pmax");
     step("Polar plot: Select X range with XRNG");
-    test(EXIT, "-6 7 xrng", ENTER).noerr()
-        .test(ENTER, F2).noerr().wait(200).image("polar-xrng");
+    test(EXIT, "-6 7 xrng", ENTER).noerror()
+        .test(ENTER, F2).noerror().wait(200).image("polar-xrng");
     step("Polar plot: Select Y range with YRNG");
-    test(EXIT, "-3 2.5 yrng", ENTER).noerr()
-        .test(ENTER, F2).noerr().wait(200).image("polar-yrng");
+    test(EXIT, "-3 2.5 yrng", ENTER).noerror()
+        .test(ENTER, F2).noerror().wait(200).image("polar-yrng");
     step("Restoring plot parameters")
         .test(NOSHIFT, M, "'PPAR'", NOSHIFT, G);
 
@@ -6203,30 +6205,30 @@ void tests::plotting()
     test(CLEAR, SHIFT, RUNSTOP,
          "'9.5*sin(31.27*X)' eval '5.5*cos(42.42*X)' eval RealToComplex",
          ENTER, ENTER, F3)
-        .noerr().wait(200).image("pplot-pgm");
+        .noerror().wait(200).image("pplot-pgm");
     step("Parametric plot: Degrees");
-    test("DEG 2 LINEWIDTH", ENTER, F3).noerr().wait(200).image("pplot-deg");
+    test("DEG 2 LINEWIDTH", ENTER, F3).noerror().wait(200).image("pplot-deg");
     step("Parametric plot: Equation");
     test(CLEAR,
          "3 LINEWIDTH 0.25 GRAY FOREGROUND "
          "'exp((0.17ⅈ5.27)*x+(1.5ⅈ8))' ParametricPlot", ENTER)
-        .noerr().wait(200).image("pplot-eq");
+        .noerror().wait(200).image("pplot-eq");
 
     step("Bar plot");
     test(CLEAR,
          "[[ 1 -1 ][2 -2][3 -3][4 -4][5 -6][7 -8][9 -10]]", ENTER,
          33, MUL, K, 2, MUL,
-         RSHIFT, O, F5).noerr().wait(200).image("barplot");
+         RSHIFT, O, F5).noerror().wait(200).image("barplot");
 
     step("Scatter plot");
     test(CLEAR,
          "[[ -5 -5][ -3 0][ -5 5][ 0 3][ 5 5][ 3 0][ 5 -5][ 0 -3][-5 -5]]",
          ENTER,
          "4 LineWidth ScatterPlot", ENTER)
-        .noerr().wait(200).image("scatterplot");
+        .noerror().wait(200).image("scatterplot");
 
      step("Reset drawing parameters");
-     test(CLEAR, "1 LineWidth 0 GRAY Foreground", ENTER).noerr();
+     test(CLEAR, "1 LineWidth 0 GRAY Foreground", ENTER).noerror();
 }
 
 
@@ -6238,23 +6240,23 @@ void tests::plotting_all_functions()
     BEGIN(plotfns);
 
     step("Select radians")
-        .test(CLEAR, SHIFT, N, F2).noerr();
+        .test(CLEAR, SHIFT, N, F2).noerror();
 
     step("Select 24-digit precision")
-        .test(CLEAR, SHIFT, O, 24, F6).noerr();
+        .test(CLEAR, SHIFT, O, 24, F6).noerror();
 
     step("Purge the `PlotParameters` variable")
-        .test(CLEAR, "'PPAR' purge", ENTER).noerr();
+        .test(CLEAR, "'PPAR' purge", ENTER).noerror();
 
     step("Select plotting menu")
-        .test(CLEAR, RSHIFT, O).noerr();
+        .test(CLEAR, RSHIFT, O).noerror();
 
     uint dur = 300;
 
 #define FUNCTION(name)                          \
     step("Plotting " #name);                    \
     test(CLEAR, "'" #name "(x)'", F1)           \
-        .wait(dur).noerr()                      \
+        .wait(dur).noerror()                      \
         .image("fnplot-" #name)
 
     FUNCTION(sqrt);
@@ -6268,10 +6270,10 @@ void tests::plotting_all_functions()
     FUNCTION(atan);
 
     step("Select degrees");
-    test(CLEAR, SHIFT, N, F1).noerr();
+    test(CLEAR, SHIFT, N, F1).noerror();
 
     step("Reselect plotting menu");
-    test(CLEAR, RSHIFT, O).noerr();
+    test(CLEAR, RSHIFT, O).noerror();
 
     FUNCTION(sinh);
     FUNCTION(cosh);
@@ -6325,7 +6327,7 @@ void tests::graphic_commands()
 
     step("Clear LCD");
     test(CLEAR, "ClearLCD", ENTER)
-        .noerr().wait(200).image("cllcd").test(ENTER);
+        .noerror().wait(200).image("cllcd").test(ENTER);
 
     step("Draw graphic objects")
         .test(CLEAR,
@@ -6343,53 +6345,53 @@ void tests::graphic_commands()
               "4.12 ⅈ * i * exp 4.22 0.08 i * + * Swap "
               "GOr "
               "next", ENTER)
-        .wait(200).noerr().image("walkman").test(EXIT);
+        .wait(200).noerror().image("walkman").test(EXIT);
 
     step("Displaying text, compatibility mode");
     test(CLEAR,
          "\"Hello World\" 1 DISP "
          "\"Compatibility mode\" 2 DISP", ENTER)
-        .noerr().wait(200).image("text-compat").test(ENTER);
+        .noerror().wait(200).image("text-compat").test(ENTER);
 
     step("Displaying text, fractional row");
     test(CLEAR,
          "\"Gutentag\" 1.5 DrawText "
          "\"Fractional row\" 3.8 DrawText", ENTER)
-        .noerr().wait(200).image("text-frac").test(ENTER);
+        .noerror().wait(200).image("text-frac").test(ENTER);
 
     step("Displaying text, pixel row");
     test(CLEAR,
          "\"Bonjour tout le monde\" #5d DISP "
          "\"Pixel row mode\" #125d DISP", ENTER)
-        .noerr().wait(200).image("text-pixrow").test(ENTER);
+        .noerror().wait(200).image("text-pixrow").test(ENTER);
 
     step("Displaying text, x-y coordinates");
     test(CLEAR, "\"Hello\" { 0 0 } DISP ", ENTER)
-        .noerr().wait(200).image("text-xy").test(ENTER);
+        .noerror().wait(200).image("text-xy").test(ENTER);
 
     step("Displaying text, x-y pixel coordinates");
     test(CLEAR, "\"Hello\" { #20d #20d } DISP ", ENTER)
-        .noerr().wait(200).image("text-pixxy").test(ENTER);
+        .noerror().wait(200).image("text-pixxy").test(ENTER);
 
     step("Displaying text, font ID");
     test(CLEAR, "\"Hello\" { 0 0 0 } DISP \"World\" { 0 1 2 } DISP ", ENTER)
-        .noerr().wait(200).image("text-font").test(ENTER);
+        .noerror().wait(200).image("text-font").test(ENTER);
 
     step("Displaying text, erase and invert");
     test(CLEAR, "\"Inverted\" { 0 0 0 true true } DISP", ENTER)
-        .noerr().wait(200).image("text-invert").test(ENTER);
+        .noerror().wait(200).image("text-invert").test(ENTER);
 
     step("Displaying text, background and foreground");
     test(CLEAR,
          "0.25 Gray Foreground 0.75 Gray Background "
          "\"Grayed\" { 0 0 } Disp", ENTER)
-        .noerr().wait(200).image("text-gray").test(ENTER);
+        .noerror().wait(200).image("text-gray").test(ENTER);
 
     step("Displaying text, restore background and foreground");
     test(CLEAR,
          "0 Gray Foreground 1 Gray Background "
          "\"Grayed\" { 0 0 } Disp", ENTER)
-        .noerr().wait(200).image("text-normal").test(ENTER);
+        .noerror().wait(200).image("text-normal").test(ENTER);
 
     step("Displaying text, type check");
     test(CLEAR, "\"Bad\" \"Hello\" DISP", ENTER)
@@ -6397,7 +6399,7 @@ void tests::graphic_commands()
 
     step("Lines");
     test(CLEAR, "3 50 for i ⅈ i * exp i 2 + ⅈ * exp 5 * Line next", ENTER)
-        .noerr().wait(200).image("lines").test(ENTER);
+        .noerror().wait(200).image("lines").test(ENTER);
 
     step("Line width");
     test(CLEAR,
@@ -6407,7 +6409,7 @@ void tests::graphic_commands()
          "i LineWidth Line "
          "next "
          "1 LineWidth", ENTER)
-        .noerr().wait(200).image("line-width").test(ENTER);
+        .noerror().wait(200).image("line-width").test(ENTER);
 
     step("Line width, grayed");
     test(CLEAR,
@@ -6418,7 +6420,7 @@ void tests::graphic_commands()
          "i LineWidth Line "
          "next "
          "1 LineWidth 0 Gray Foreground", ENTER)
-        .noerr().wait(200).image("line-width-gray").test(ENTER);
+        .noerror().wait(200).image("line-width-gray").test(ENTER);
 
     step("Circles");
     test(CLEAR,
@@ -6426,14 +6428,14 @@ void tests::graphic_commands()
          "{ 0 0 } i Circle "
          "{ 0 1 } i 0.25 * Circle "
          "next ", ENTER)
-        .noerr().wait(200).image("circles").test(ENTER);
+        .noerror().wait(200).image("circles").test(ENTER);
 
     step("Circles, complex coordinates");
     test(CLEAR,
          "2 150 for i "
          "ⅈ i 0.12 * * exp 0.75 0.05 i * + * 0.4 0.003 i * +  Circle "
          "next ", ENTER)
-        .noerr().wait(200).image("circles-complex").test(ENTER);
+        .noerror().wait(200).image("circles-complex").test(ENTER);
 
     step("Circles, fill and patterns");
     test(CLEAR,
@@ -6442,7 +6444,7 @@ void tests::graphic_commands()
          "i 0.0053 * gray Foreground "
          "ⅈ i 0.12 * * exp 0.75 0.05 i * + * 0.1 0.008 i * +  Circle "
          "next ", ENTER)
-        .noerr().wait(200).image("circles-fill").test(ENTER);
+        .noerror().wait(200).image("circles-fill").test(ENTER);
 
     step("Ellipses");
     test(CLEAR,
@@ -6452,7 +6454,7 @@ void tests::graphic_commands()
          "i 0.17 * ⅈ * exp 0.05 i * 0.75 + * "
          " Ellipse "
          "next ", ENTER)
-        .noerr().wait(200).image("ellipses").test(ENTER);
+        .noerror().wait(200).image("ellipses").test(ENTER);
 
     step("Ellipses, fill and patterns");
     test(CLEAR,
@@ -6463,7 +6465,7 @@ void tests::graphic_commands()
          "1.27 ⅈ * exp 5.45 0.01 i * - * neg "
          " Ellipse "
          "next ", ENTER)
-        .noerr().wait(200).image("ellipses-fill").test(ENTER);
+        .noerror().wait(200).image("ellipses-fill").test(ENTER);
 
     step("Rectangles");
     test(CLEAR,
@@ -6473,7 +6475,7 @@ void tests::graphic_commands()
          "i 0.17 * ⅈ * exp 0.05 i * 0.75 + * "
          " Rect "
          "next ", ENTER)
-        .noerr().wait(200).image("rectangles").test(ENTER);
+        .noerror().wait(200).image("rectangles").test(ENTER);
 
     step("Rectangles, fill and patterns");
     test(CLEAR,
@@ -6484,7 +6486,7 @@ void tests::graphic_commands()
          "1.27 ⅈ * exp 5.45 0.01 i * - * neg "
          " Rect "
          "next ", ENTER)
-        .noerr().wait(200).image("rectangle-fill").test(ENTER);
+        .noerror().wait(200).image("rectangle-fill").test(ENTER);
 
     step("Rounded rectangles");
     test(CLEAR,
@@ -6494,7 +6496,7 @@ void tests::graphic_commands()
          "i 0.17 * ⅈ * exp 0.05 i * 0.75 + * "
          "0.8 RRect "
          "next ", ENTER)
-        .noerr().wait(200).image("rounded-rectangle").test(ENTER);
+        .noerror().wait(200).image("rounded-rectangle").test(ENTER);
 
     step("Rounded rectangles, fill and patterns");
     test(CLEAR,
@@ -6505,7 +6507,7 @@ void tests::graphic_commands()
          "1.27 ⅈ * exp 5.45 0.01 i * - * neg "
          "0.8 RRect "
          "next ", ENTER)
-        .noerr().wait(200).image("rounded-rectangle-fill").test(ENTER);
+        .noerror().wait(200).image("rounded-rectangle-fill").test(ENTER);
 
     step("Clipping");
     test(CLEAR,
@@ -6515,13 +6517,13 @@ void tests::graphic_commands()
          "ⅈ i 0.12 * * exp 0.75 0.05 i * + * 0.1 0.008 i * +  Circle "
          "next "
          "{} Clip", ENTER)
-        .wait(200).noerr().image("clip-circles").test(ENTER);
+        .wait(200).noerror().image("clip-circles").test(ENTER);
 
     step("Cleanup");
     test(CLEAR,
          "1 LineWidth 0 Gray Foreground 1 Gray Background "
          "{ -1 -1 } { 3 2 } rect",
-         ENTER).noerr().wait(200).image("cleanup");
+         ENTER).noerror().wait(200).image("cleanup");
 }
 
 
@@ -7050,7 +7052,7 @@ tests &tests::shifts(bool lshift, bool rshift, bool alpha, bool lowercase)
     nokeys();
 
     // Check that we have no error here
-    data_entry_noerr();
+    data_entry_noerror();
 
     // Check invalid input: can only have one shift
     if (lshift && rshift)
@@ -7063,7 +7065,7 @@ tests &tests::shifts(bool lshift, bool rshift, bool alpha, bool lowercase)
     // First change lowercase state as necessary, since this messes up shift
     while (lowercase != ui.lowercase || alpha != ui.alpha)
     {
-        data_entry_noerr();
+        data_entry_noerror();
         while (!ui.shift)
             itest(SHIFT, NOKEYS);
         itest(ENTER, NOKEYS);
@@ -7103,6 +7105,7 @@ tests &tests::clear(uint extrawait)
     nokeys(extrawait);
     key_push(CLEAR);
     nokeys(extrawait);
+    noerror(extrawait);
     return *this;
 }
 
@@ -7137,7 +7140,7 @@ tests &tests::nokeys(uint extrawait)
 }
 
 
-tests &tests::data_entry_noerr()
+tests &tests::data_entry_noerror()
 // ----------------------------------------------------------------------------
 //  During data entry, check that no error message pops up
 // ----------------------------------------------------------------------------

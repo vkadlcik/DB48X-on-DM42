@@ -312,8 +312,11 @@ public:
     tests &editor(cstring text, uint extrawait = 0);
     tests &cursor(size_t csr, uint extrawait = 0);
     tests &error(cstring msg, uint extrawait = 0);
-    tests &noerr(uint extrawait = 0)      { return error(nullptr, extrawait); }
-    tests &data_entry_noerr();
+    tests &noerror(uint extrawait = 0)
+    {
+        return error(nullptr, extrawait);
+    }
+    tests &data_entry_noerror();
     tests &command(cstring msg, uint extrawait);
     tests &source(cstring msg, uint extrawait);
 

@@ -3920,7 +3920,7 @@ bool user_interface::handle_digits(int key)
         }
         if (c == '_')
             return false;
-        if (c == '.')
+        if (c == '.' && mode != TEXT)
         {
             // Check if we enter a DMS value
             byte   *ed    = rt.editor();

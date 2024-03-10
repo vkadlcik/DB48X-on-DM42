@@ -5254,6 +5254,11 @@ void tests::hms_dms_operations()
         .test(DOT).editor("1°_dms")
         .test(DOT).editor("1.")
         .test(ENTER).expect("1.");
+    step("DMS disabled in text")
+        .test(CLEAR, RSHIFT, ENTER,"1", NOSHIFT, DOT).editor("\"1.\"")
+        .test(DOT).editor("\"1..\"")
+        .test(DOT).editor("\"1...\"")
+        .test(ENTER).expect("\"1...\"");
 
     step("Converting DMS to HMS")
         .test(CLEAR)

@@ -248,7 +248,7 @@ static int state_save_callback(cstring fpath, cstring fname, void *)
 
     // Always render things to disk using default settings
     // See also what depends on "raw" (r.file_save()) in renderers
-    renderer render(&prog);
+    renderer render(prog);
     settings saved = Settings;
     Settings = settings();
     Settings.FancyExponent(false);

@@ -271,7 +271,7 @@ Here are a few of the interesting RPL-specific key mappings:
 
 * 🟨 _I_ (_CONST_, DM-42 _π_, DM-32 _HYP_) shows a
   [ConstantsMenu](#ConstantsMenu) giving access to various constants. You can
-  provide your own constants in a `CONFIG/CONSTANTS.CSV` file on disk.
+  provide your own constants in a `config/constants.csv` file on disk.
 
 * _M_ (_X⇆Y_) executes the RPL [Swap](#swap) function
 

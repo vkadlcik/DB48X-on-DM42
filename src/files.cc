@@ -148,11 +148,8 @@ bool files::store_source(text_p name, object_p value) const
         file f(filename(name, true), true);
         if (f.valid())
         {
-            text_p source = value->as_text(true, false);
-            size_t len = 0;
-            utf8   txt    = source->value(&len);
-            if (f.write(cstring(txt), len))
-                return true;
+            renderer r(f);
+            value->render(r);
         }
         rt.error(f.error());
     }
@@ -191,6 +188,7 @@ bool files::store_list(text_p name, list_p value) const
         file f(filename(name, true), true);
         if (f.valid())
         {
+            renderer r(f);
             bool ok = true;
             for (object_p row : *value)
             {
@@ -206,12 +204,7 @@ bool files::store_list(text_p name, list_p value) const
                         if (!first)
                             ok = f.write(";", 1);
                         if (ok)
-                        {
-                            text_p item = col->as_text(true, false);
-                            size_t len = 0;
-                            utf8   txt  = item->value(&len);
-                            ok = f.write(cstring(txt), len);
-                        }
+                            col->render(r);
                         first = false;
                         if (!ok)
                             break;
@@ -221,11 +214,8 @@ bool files::store_list(text_p name, list_p value) const
                 }
                 else
                 {
-                    text_p item = row->as_text(true, false);
-                    size_t len = 0;
-                    utf8   txt  = item->value(&len);
-                    ok = f.write(cstring(txt), len);
-                    if (!ok)
+                    row->render(r);
+                    if (ok)
                         ok = f.write("\n", 1);
                 }
                 if (!ok)
@@ -443,6 +433,7 @@ list_p files::recall_list(text_p name, bool as_array) const
     uint     paren  = 0;
     uint     brack  = 0;
     uint     curly  = 0;
+    uint     nonsp  = 0;
 
     // Loop on the input file and process it as if it was being typed
     size_t   bytes  = 0;
@@ -462,12 +453,18 @@ list_p files::recall_list(text_p name, bool as_array) const
         }
         bool sepok = !paren && !brack && !curly && !intxt && !ineqn;
 
-        if (c == ';' || (sepok && (c == ',' || c == '\n')))
+        if (!isspace(c))
+            nonsp++;
+        if (sepok && (c == ',' || c == ';' || c == '\n'))
         {
             text_p parsed = rt.close_editor(true);
             size_t len    = 0;
             utf8   txt    = parsed->value(&len);
-            item = object::parse(txt, len);
+            if (nonsp)
+                item = object::parse(txt, len);
+            else
+                item = +symbol::make("");;
+            nonsp = 0;
             if (!item)
                 break;
             byte_p b  = byte_p(+item);

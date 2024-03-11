@@ -54,8 +54,8 @@ struct renderer
           expr(equation), stk(stk), mlstk(ml), txt(false),
           needSpace(false), gotSpace(false),
           needCR(false), gotCR(false) {}
-    renderer(file *f)
-        : target(), length(~0U), written(0), saving(f), tabs(0),
+    renderer(file &f)
+        : target(), length(~0U), written(0), saving(&f), tabs(0),
           edit(true),
           expr(false), stk(false), mlstk(false), txt(false),
           needSpace(false), gotSpace(false),

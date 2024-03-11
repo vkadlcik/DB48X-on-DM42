@@ -223,7 +223,7 @@ Here are a few of the interesting RPL-specific key mappings:
 
 * 🟨 _I_ (_CONST_, DM-42 _π_, DM-32 _HYP_) shows a
   [ConstantsMenu](#ConstantsMenu) giving access to various constants. You can
-  provide your own constants in a `CONFIG/CONSTANTS.CSV` file on disk.
+  provide your own constants in a `config/constants.csv` file on disk.
 
 * _M_ (_X⇆Y_) executes the RPL [Swap](#swap) function
 
@@ -2176,8 +2176,8 @@ On the command-line, constant names are prefixed with _CST_, which is a way to
 distinguish them from normal symbols.
 
 You can edit the constants catalog by recalling its content on the stack using
-`"/config/equations.csv" RCL`, editing the values, and then storing the content
-back to disk using `"/config/equations.csv" STO`.
+`"config:equations.csv" RCL`, editing the values, and then storing the content
+back to disk using `"config:equations.csv" STO`.
 
 
 ## Infinite results
@@ -2263,8 +2263,8 @@ The `Library` is a catalog of frequently used and rarely modified objects that
 are stored on disk in the `config/library.csv` file.
 
 You can edit it by recalling its content on the stack using
-`"/config/library.csv" RCL`, editing the values, and then storing the content
-back to disk using `"/config/library.csv" STO`.
+`"config:library.csv" RCL`, editing the values, and then storing the content
+back to disk using `"config:library.csv" STO`.
 
 
 ## Equations Library
@@ -2273,8 +2273,8 @@ The equations library is a catalog of common equations that are stored on disk
 in the `config/equations.csv` file.
 
 You can edit it by recalling its content on the stack using
-`"/config/equations.csv" RCL`, editing the values, and then storing the content
-back to disk using `"/config/equations.csv" STO`.
+`"config:equations.csv" RCL`, editing the values, and then storing the content
+back to disk using `"config:equations.csv" STO`.
 # Release notes
 
 ## Release 0.7.1 "Whip" - Bug fixes

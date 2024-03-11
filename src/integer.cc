@@ -217,8 +217,10 @@ PARSE_BODY(integer)
 
         if (is_fraction && value[*s] == NODIGIT)
         {
-            rt.syntax_error();
-            return ERROR;
+            // This can be something like `1/(1+x)`
+            number = numerator;
+            s = +p.source + is_fraction;
+            break;
         }
 
         while (!endp || s < endp)

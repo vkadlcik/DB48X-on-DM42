@@ -958,11 +958,14 @@ CMD(VariablesMenu)
 CMD(ToolsMenu)
 CMD(Catalog)
 
+CMD(Undo)                       // Immediate: do not save stack before Undo
+CMD(LastMenu)                   // Last parseable command
+
 
 
 // ============================================================================
 //
-//  Unit menus
+//  Unit menus (not parseable, do not show up in catalog)
 //
 // ============================================================================
 
@@ -1110,9 +1113,6 @@ CMD(EditorFlip)
 CMD(MenuNextPage)
 CMD(MenuPreviousPage)
 CMD(MenuFirstPage)
-
-CMD(Undo)                       // Immediate: do not save stack before Undo
-CMD(LastMenu)                   // Last parseable command
 
 
 // ============================================================================

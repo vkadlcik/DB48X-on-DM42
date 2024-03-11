@@ -86,17 +86,28 @@ static void initialize_sorted_ids()
 //   Sort IDs alphabetically
 // ----------------------------------------------------------------------------
 {
-    size_t count = object::spelling_count;
-    uint   cmd    = 0;
-    sorted_ids   = (uint16_t *) realloc(sorted_ids, count * sizeof(uint16_t));
+    // Count number of items to put in the list
+    uint count = 0;
+    for (uint i = 0; i < object::spelling_count; i++)
+        if (object::id ty = object::spellings[i].type)
+            if (object::is_command(ty))
+                if (object::spellings[i].name)
+                    count++;
+
+    sorted_ids = (uint16_t *) realloc(sorted_ids, count * sizeof(uint16_t));
     if (sorted_ids)
     {
-        for (uint i = 0; i < count; i++)
-            sorted_ids[i] = i;
+        uint cmd = 0;
+        for (uint i = 0; i < object::spelling_count; i++)
+            if (object::id ty = object::spellings[i].type)
+                if (object::is_command(ty))
+                    if (object::spellings[i].name)
+                        sorted_ids[cmd++] = i;
         qsort(sorted_ids, count, sizeof(sorted_ids[0]), sort_ids);
 
         // Make sure we have unique commands in the catalog
         cstring spelling = nullptr;
+        cmd = 0;
         for (uint i = 0; i < count; i++)
         {
             uint16_t j = sorted_ids[i];
@@ -104,28 +115,31 @@ static void initialize_sorted_ids()
 
             if (object::is_command(s.type))
             {
-                cstring sp = s.name;
-                if (!spelling ||
-                    (spelling != sp && strcasecmp(sp, spelling) != 0))
+                if (cstring sp = s.name)
                 {
-                    sorted_ids[cmd++] = sorted_ids[i];
-                    spelling = sp;
-                }
-                else if (cmd)
-                {
-                    uint c = sorted_ids[cmd - 1];
-                    auto &last = object::spellings[c];
-                    if (s.type != last.type)
+                    if (!spelling ||
+                        (spelling != sp && strcasecmp(sp, spelling) != 0))
                     {
-                        record(catalog_error,
-                               "Types %u and %u have same spelling %+s and %+s",
-                               s.type, last.type, spelling, sp);
+                        sorted_ids[cmd++] = sorted_ids[i];
+                        spelling = sp;
+                    }
+                    else if (cmd)
+                    {
+                        uint c = sorted_ids[cmd - 1];
+                        auto &last = object::spellings[c];
+                        if (s.type != last.type)
+                        {
+                            record(catalog_error,
+                                   "Types %u and %u have same spelling "
+                                   "%+s and %+s",
+                                   s.type, last.type, spelling, sp);
+                        }
                     }
                 }
             }
         }
+        sorted_ids_count = cmd;
     }
-    sorted_ids_count = cmd;
 }
 
 
@@ -201,12 +215,10 @@ void Catalog::list_commands(info &mi)
         for (size_t i = 0; i < spelling_count; i++)
         {
             object::id ty = object::spellings[i].type;
-            if (!object::is_command(ty))
-                continue;
-
-            if (cstring name = spellings[i].name)
-                if (!filter || matches(start, size, utf8(name)))
-                    menu::items(mi, name, command::static_object(ty));
+            if (object::is_command(ty))
+                if (cstring name = spellings[i].name)
+                    if (!filter || matches(start, size, utf8(name)))
+                        menu::items(mi, name, command::static_object(ty));
         }
     }
 }

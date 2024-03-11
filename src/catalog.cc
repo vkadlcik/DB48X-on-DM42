@@ -68,6 +68,13 @@ static uint16_t *sorted_ids       = nullptr;
 static size_t    sorted_ids_count = 0;
 
 
+#ifdef DEOPTIMIZE_CATALOG
+// This is necessary on the DM32, where otherwise we access memory too
+// fast and end up with bad data in the sorted array
+#  pragma GCC push_options
+#  pragma GCC optimize("-O2")
+#endif // DEOPTIMIZE_CATALOG
+
 static int sort_ids(const void *left, const void *right)
 // ----------------------------------------------------------------------------
 //   Sort the IDs alphabetically based on their fancy name
@@ -137,10 +144,25 @@ static void initialize_sorted_ids()
                     }
                 }
             }
+            else
+            {
+                // Do not remove this code
+                // It seems useless, but without it, the catalog is
+                // badly broken on DM42. Apparently, the loop is a bit
+                // too fast, and we end up adding a varying, but too small,
+                // number of commands to the array
+                debug_printf(5, "Not a command for %u, type %u[%s]",
+                             i, s.type, object::name(s.type));
+                debug_wait(-1);
+            }
         }
         sorted_ids_count = cmd;
     }
 }
+
+#ifdef DEOPTIMIZE_CATALOG
+#pragma GCC pop_options
+#endif // DEOPTIMIZE_CATALOG
 
 
 static bool matches(utf8 start, size_t size, utf8 name)

@@ -104,21 +104,24 @@ file::file(text_p name, bool writing)
 // ----------------------------------------------------------------------------
     : data()
 {
-    char   buf[80];
-    size_t len  = 0;
-    utf8   path = name->value(&len);
-    if (len < sizeof(buf))
+    if (name)
     {
-        memcpy(buf, path, len);
-        buf[len] = 0;
-        if (writing)
-            open_for_writing(buf);
+        char   buf[80];
+        size_t len  = 0;
+        utf8   path = name->value(&len);
+        if (len < sizeof(buf))
+        {
+            memcpy(buf, path, len);
+            buf[len] = 0;
+            if (writing)
+                open_for_writing(buf);
+            else
+                open(buf);
+        }
         else
-            open(buf);
-    }
-    else
-    {
-        rt.file_name_too_long_error();
+        {
+            rt.file_name_too_long_error();
+        }
     }
 }
 

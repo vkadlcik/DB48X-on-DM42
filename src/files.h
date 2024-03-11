@@ -80,9 +80,6 @@ struct files : text
     // Purge (unlink) a file
     bool     purge(text_p name) const;
 
-    // Create directory as needed
-    bool     mkdir() const;
-
     // Build a file name from current path
     text_p   filename(text_p name, bool writing = false) const;
 };

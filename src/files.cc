@@ -427,7 +427,8 @@ list_p files::recall_list(text_p name, bool as_array) const
     file f(filename(name), false);
     if (!f.valid())
     {
-        rt.error(f.error());
+        if (!rt.error())
+            rt.error(f.error());
         return nullptr;
     }
 
@@ -552,55 +553,126 @@ bool files::purge(text_p name) const
 }
 
 
-bool files::mkdir() const
+static inline size_t find_colon(utf8 txt, size_t len)
 // ----------------------------------------------------------------------------
-//   Create a directory at the current location
-// ----------------------------------------------------------------------------
-{
-    size_t len = 0;
-    byte * txt = (byte *) value(&len);
-    if (len == 0 || (len == 1 && *txt == '/'))
-        return true;
-    save<byte> zero(txt[len], 0); // A bit hacky
-    return check_create_dir(cstring(txt));
-}
-
-
-static inline bool find_colon(utf8 txt, size_t len)
-// ----------------------------------------------------------------------------
-//   Check if there is a colon in the given text
+//   Check if there is a colon after letters/digits, e.g. A: or SDCARD:
 // ----------------------------------------------------------------------------
 {
+    utf8 start = txt;
     while (len--)
-        if (*txt++ == ':')
-            return true;
-    return false;
+    {
+        char c = *txt++;
+        if (c == ':')
+            return txt - start;
+        if (!isalnum(c))
+            break;
+    }
+    return 0;
 }
 
 
-text_p files::filename(text_p name, bool writing) const
+static inline bool is_path_separator(char c)
+// ----------------------------------------------------------------------------
+//   Check path separator
+// ----------------------------------------------------------------------------
+{
+    return c == '/' || c == '\\';
+}
+
+
+text_p files::filename(text_p fname, bool writing) const
 // ----------------------------------------------------------------------------
 //   Build a filename from given input
 // ----------------------------------------------------------------------------
+// In order to work in the simulator case, absolute paths are treated as
+// being relative to current working directory.
+// We also accept "pools", like C: or SD:, which are turned to directories
 {
+    text_g path = this;
+    text_g name = fname;
+
     // If name is an absolute path, use it directly
-    size_t len = 0;
-    utf8   txt = name->value(&len);
-    if (txt[0] == '/' || find_colon(txt, len))
-        return name;
+    size_t len  = 0;
+    utf8   txt  = name->value(&len);
+
+    // Check if we have C: or SDCARD:, if so, turn it to a base path
+    bool   in_pool = false;
+    if (size_t colon = find_colon(txt, len))
+    {
+        if (colon + 1 < len)
+        {
+            path = text::make(txt, colon - 1);
+            txt += colon;
+            len -= colon;
+            in_pool = true;
+            name = text::make(txt, len);
+            txt = name->value(&len);
+        }
+    }
+
+    // Check if we have an absolute path
+    bool absolute = len > 0 && is_path_separator(*txt);
+    if (absolute)
+    {
+        txt++;
+        len--;
+
+        // Turn CONFIG:/CONSTANTS.CSV into CONFIG/CONSTANTS.CSV
+        if (in_pool)
+            absolute = false;
+        name = text::make(txt, len);
+    }
 
     // Check if length of this one is zero or if it's just '/'
-    txt = value(&len);
-    if (len == 0 || (len == 1 && *txt == '/'))
-        return name;
+    size_t plen = 0;
+    utf8   ptxt = path->value(&plen);
+    if (plen == 0 || (plen == 1 && is_path_separator(*ptxt)))
+        absolute = true;
 
-    // If we want to write, make sur that the directory exists
-    if (writing)
-        mkdir();
+    // Build the path if necessary
+    if (!absolute)
+    {
+        text_g sep = text::make("/", 1);
+        name = path + sep + name;
+    }
 
-    // Concatenate the two texts
-    text_g base = this;
-    text_g sep  = text::make("/", 1);
-    text_g path = name;
-    return base + sep + path;
+    // Make sure that we do not evade the sandbox
+    uint depth = 0;
+    char last = 0;
+    txt = name->value(&len);
+    for (utf8 p = txt; len--; p++)
+    {
+        byte c = *p;
+        if (c == '.')
+        {
+            if (last == '.')
+            {
+                if (!depth)
+                {
+                    rt.invalid_path_error();
+                    return nullptr;
+                }
+                depth--;
+            }
+        }
+        if (is_path_separator(c))
+        {
+            if (last != '.' && !is_path_separator(last))
+            {
+                depth++;
+
+                // If we want to write, make sure all directories exist
+                if (writing)
+                {
+                    // Hack: overwrite '/' with 0 to null-terminate string
+                    byte *term = (byte *) p;
+                    save<byte> ssep(*term, 0);
+                    check_create_dir(cstring(txt));
+                }
+            }
+        }
+        last = c;
+    }
+
+    return name;
 }

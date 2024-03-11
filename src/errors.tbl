@@ -95,6 +95,7 @@ ERROR(invalid_date,             "Invalid date")
 ERROR(invalid_time,             "Invalid time")
 ERROR(graph_does_not_fit,       "Object does not fit in MaxW")
 ERROR(internal,                 "Internal error, please report")
+ERROR(invalid_path,             "Invalid path, access denied")
 
 // Filesystem errors
 #ifndef FRROR

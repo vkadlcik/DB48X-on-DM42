@@ -1660,10 +1660,13 @@ grob_p expression::graph(grapher &g, uint depth, int &precedence)
                     return prefix(g, ov, op, av, arg);
                 }
 
-                if (lprec < prec)
-                    lg = parentheses(g, lg);
-                if (rprec <= prec && oid != ID_pow)
-                    rg = parentheses(g, rg);
+                if (oid != ID_div)
+                {
+                    if (lprec < prec)
+                        lg = parentheses(g, lg);
+                    if (rprec <= prec && oid != ID_pow)
+                        rg = parentheses(g, rg);
+                }
                 precedence = prec;
                 switch (oid)
                 {

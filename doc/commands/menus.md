@@ -31,3 +31,14 @@ the `config/characters.csv` file. Each row in that file contains two texts:
   shown, but is used to find characters related to a given character.
 
 * The second is the list of characters to be shown.
+
+
+## ConstantsMenu
+
+The `ConstantsMenu` gives access to numerous [constants](#constants), shown in
+various categories. This includes basic mathematical constants such as `π` or
+`e`, as well as constants related to chemistry, physics, computer science or
+history.
+
+The constants menu is defined by the `config/constants.csv` file. You are
+encouraged to tailor this file to suit your own needs.

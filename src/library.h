@@ -87,23 +87,24 @@ struct xlib : constant
 };
 
 
-struct xlib_menu : constant_menu
+struct library_menu : constant_menu
 // ----------------------------------------------------------------------------
-//   A xlib menu is like a constants menu but for library items (xlib)
+//   A library menu is like a constants menu but for library items (xlib)
 // ----------------------------------------------------------------------------
 {
-    xlib_menu(id type) : constant_menu(type) { }
+    library_menu(id type) : constant_menu(type) { }
     static utf8 name(id type, size_t &len);
-    MENU_DECL(xlib_menu);
+    MENU_DECL(library_menu);
+    HELP_DECL(library_menu);
 };
 
 
 #define ID(i)
-#define LIBRARY_MENU(XlibMenu)     struct XlibMenu : xlib_menu {};
+#define LIBRARY_MENU(LibMenu)           struct LibMenu : library_menu {};
 #include "ids.tbl"
 
-COMMAND_DECLARE_INSERT(XlibName);
-COMMAND_DECLARE_INSERT(XlibValue);
+COMMAND_DECLARE_INSERT_HELP(XlibName);
+COMMAND_DECLARE_INSERT_HELP(XlibValue);
 
 
 

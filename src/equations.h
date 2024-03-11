@@ -95,6 +95,7 @@ struct equation_menu : constant_menu
     equation_menu(id type) : constant_menu(type) { }
     static utf8 name(id type, size_t &len);
     MENU_DECL(equation_menu);
+    HELP_DECL(equation_menu);
 };
 
 
@@ -103,7 +104,7 @@ struct equation_menu : constant_menu
 #define EQUATION_MENU(EquationMenu)     struct EquationMenu : equation_menu {};
 #include "ids.tbl"
 
-COMMAND_DECLARE_INSERT(EquationName);
-COMMAND_DECLARE_INSERT(EquationValue);
+COMMAND_DECLARE_INSERT_HELP(EquationName);
+COMMAND_DECLARE_INSERT_HELP(EquationValue);
 
 #endif // EQUATIONS_H

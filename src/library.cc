@@ -77,6 +77,8 @@ const xlib::config xlib::library =
 //  Define the configuration for the library
 // ----------------------------------------------------------------------------
 {
+    .menu_help      = "Library",
+    .help           = "",
     .prefix         = L'Ⓛ',
     .type           = ID_xlib,
     .first_menu     = ID_LibraryMenu00,
@@ -146,16 +148,25 @@ HELP_BODY(xlib)
 //   Help topic for libraries
 // ----------------------------------------------------------------------------
 {
-    return utf8("Library");
+    return o->do_instance_help(xlib::library);
 }
 
 
-MENU_BODY(xlib_menu)
+MENU_BODY(library_menu)
 // ----------------------------------------------------------------------------
 //   Build a library menu
 // ----------------------------------------------------------------------------
 {
     return o->do_submenu(xlib::library, mi);
+}
+
+
+HELP_BODY(library_menu)
+// ----------------------------------------------------------------------------
+//   Show the help for the given library menu
+// ----------------------------------------------------------------------------
+{
+    return o->do_menu_help(xlib::library, o);
 }
 
 
@@ -168,7 +179,7 @@ MENU_BODY(Library)
 }
 
 
-utf8 xlib_menu::name(id type, size_t &len)
+utf8 library_menu::name(id type, size_t &len)
 // ----------------------------------------------------------------------------
 //   Return the name for a menu entry
 // ----------------------------------------------------------------------------
@@ -203,6 +214,19 @@ INSERT_BODY(XlibName)
 }
 
 
+HELP_BODY(XlibName)
+// ----------------------------------------------------------------------------
+//   Put the help for a given xlib function key
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    if (object_p cstobj = xlib::do_key(xlib::library, key))
+        if (xlib_p cst = cstobj->as<xlib>())
+            return cst->help();
+    return utf8("Library");
+}
+
+
 COMMAND_BODY(XlibValue)
 // ----------------------------------------------------------------------------
 //   Put the value of a xlib on the stack
@@ -231,4 +255,13 @@ INSERT_BODY(XlibValue)
             if (object_p value = xl->value())
                 return ui.insert_object(value, " ", " ");
     return ERROR;
+}
+
+
+HELP_BODY(XlibValue)
+// ----------------------------------------------------------------------------
+//   Put the help for a given library function ley
+// ----------------------------------------------------------------------------
+{
+    return XlibName::do_help(nullptr);
 }

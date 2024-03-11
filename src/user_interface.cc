@@ -3144,6 +3144,7 @@ bool user_interface::handle_help(int &key)
             if (object_p obj = object_for_key(key))
             {
                 record(help, "Looking for help topic for key %d\n", key);
+                save<int> seval(evaluating, key);
                 if (utf8 htopic = obj->help())
                 {
                     record(help, "Help topic is %s\n", htopic);

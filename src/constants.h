@@ -33,7 +33,10 @@
 #include "menu.h"
 #include "algebraic.h"
 
+
 GCP(constant);
+GCP(constant_menu);
+
 
 struct constant : algebraic
 // ----------------------------------------------------------------------------
@@ -58,6 +61,8 @@ struct constant : algebraic
     //   Configuration for a kind of file-based constants
     // ------------------------------------------------------------------------
     {
+        cstring    menu_help;   // Help base for menus
+        cstring    help;        // Help base for objects of the category
         unicode    prefix;      // Prefix identifying constant type (Ⓒ, Ⓔ, Ⓛ)
         id         type;        // Type for constants, e.g. ID_xlib
         id         first_menu;  // First possible menu, e.g. ID_EquationsMenu00
@@ -127,6 +132,7 @@ protected:
     static constant_p do_lookup(config_r cfg, utf8 name, size_t len, bool error);
     utf8              do_name(config_r cfg, size_t *size = nullptr) const;
     algebraic_p       do_value(config_r cfg) const;
+    utf8              do_instance_help(config_r cfg) const;
 
 public:
     static bool       do_collection_menu(config_r cfg, menu_info &mi);
@@ -155,12 +161,14 @@ struct constant_menu : menu
     static utf8 name(id type, size_t &len);
 
 protected:
-  using config_r = constant::config_r;
-  bool        do_submenu(config_r cfg, menu_info &mi) const;
-  static utf8 do_name(config_r cfg, id base, size_t &len);
+    using config_r = constant::config_r;
+    bool        do_submenu(config_r cfg, menu_info &mi) const;
+    static utf8 do_name(config_r cfg, id base, size_t &len);
+    utf8        do_menu_help(config_r cfg, constant_menu_p o) const;
 
 public:
     MENU_DECL(constant_menu);
+    HELP_DECL(constant_menu);
 };
 
 
@@ -168,7 +176,7 @@ public:
 #define CONSTANT_MENU(ConstantMenu)     struct ConstantMenu : constant_menu {};
 #include "ids.tbl"
 
-COMMAND_DECLARE_INSERT(ConstantName);
-COMMAND_DECLARE_INSERT(ConstantValue);
+COMMAND_DECLARE_INSERT_HELP(ConstantName);
+COMMAND_DECLARE_INSERT_HELP(ConstantValue);
 
 #endif // CONSTANT_H

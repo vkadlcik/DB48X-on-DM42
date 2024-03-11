@@ -132,7 +132,7 @@ HELP_BODY(constant)
 //   Help topic for constants
 // ----------------------------------------------------------------------------
 {
-    return utf8("Constants");
+    return o->do_instance_help(constant::constants);
 }
 
 
@@ -142,6 +142,15 @@ MENU_BODY(constant_menu)
 // ----------------------------------------------------------------------------
 {
     return o->do_submenu(constant::constants, mi);
+}
+
+
+HELP_BODY(constant_menu)
+// ----------------------------------------------------------------------------
+//   Show the help for the given constant
+// ----------------------------------------------------------------------------
+{
+    return o->do_menu_help(constant::constants, o);
 }
 
 
@@ -161,8 +170,6 @@ utf8 constant_menu::name(id type, size_t &len)
 {
     return do_name(constant::constants, type, len);
 }
-
-
 
 
 COMMAND_BODY(ConstantName)
@@ -188,6 +195,19 @@ INSERT_BODY(ConstantName)
 {
     int key = ui.evaluating;
     return ui.insert_softkey(key, " Ⓒ", " ", false);
+}
+
+
+HELP_BODY(ConstantName)
+// ----------------------------------------------------------------------------
+//   Put the help for a given constant name
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    if (object_p cstobj = constant::do_key(constant::constants, key))
+        if (constant_p cst = cstobj->as<constant>())
+            return cst->help();
+    return utf8("Constants");
 }
 
 
@@ -219,6 +239,15 @@ INSERT_BODY(ConstantValue)
             if (object_p value = cst->value())
                 return ui.insert_object(value, " ", " ");
     return ERROR;
+}
+
+
+HELP_BODY(ConstantValue)
+// ----------------------------------------------------------------------------
+//   Put the help for a given constant name
+// ----------------------------------------------------------------------------
+{
+    return ConstantName::do_help(nullptr);
 }
 
 
@@ -340,6 +369,8 @@ const constant::config constant::constants =
 //  Define the configuration for the constants
 // ----------------------------------------------------------------------------
 {
+    .menu_help      = "Constants",
+    .help           = "Constant",
     .prefix         = L'Ⓒ',
     .type           = ID_constant,
     .first_menu     = ID_ConstantsMenu00,
@@ -562,6 +593,21 @@ algebraic_p constant::do_value(config_r cfg) const
 }
 
 
+utf8 constant::do_instance_help(constant::config_r cfg) const
+// ----------------------------------------------------------------------------
+//   Generate the help topic for a given constant menu
+// ----------------------------------------------------------------------------
+{
+    static char buf[64];
+    size_t len = 0;
+    utf8 base = do_name(cfg, &len);
+    snprintf(buf, sizeof(buf), "%.*s %s", int(len), base, cfg.help);
+    return utf8(buf);
+}
+
+
+
+
 
 // ============================================================================
 //
@@ -715,6 +761,19 @@ bool constant_menu::do_submenu(constant::config_r cfg, menu_info &mi) const
 
     return true;
 }
+
+
+utf8 constant_menu::do_menu_help(constant::config_r cfg,
+                                 constant_menu_p    cst) const
+// ----------------------------------------------------------------------------
+//   Generate the help topic for a given constant menu
+// ----------------------------------------------------------------------------
+{
+    static char buf[64];
+    size_t len = 0;
+    utf8 base = do_name(cfg, cst->type(), len);
+    snprintf(buf, sizeof(buf), "%.*s %s", int(len), base, cfg.menu_help);
+    return utf8(buf);}
 
 
 bool constant::do_collection_menu(constant::config_r cfg, menu_info &mi)

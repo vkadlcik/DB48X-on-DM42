@@ -2169,8 +2169,11 @@ between circumference and diameter of a circle `π`, or the speed of light `c`.
 They are represented by a name, and have an associated value.
 
 Like units, there are some built-in constants, and additional constants can be
-provided by a `config/constants.csv` file, which has exactly the same format as
+provided by a `config/constants.csv` file, which has the same format as
 for the units file.
+
+On the command-line, constant names are prefixed with _CST_, which is a way to
+distinguish them from normal symbols.
 
 You can edit the constants catalog by recalling its content on the stack using
 `"/config/equations.csv" RCL`, editing the values, and then storing the content
@@ -5974,6 +5977,17 @@ the `config/characters.csv` file. Each row in that file contains two texts:
   shown, but is used to find characters related to a given character.
 
 * The second is the list of characters to be shown.
+
+
+## ConstantsMenu
+
+The `ConstantsMenu` gives access to numerous [constants](#constants), shown in
+various categories. This includes basic mathematical constants such as `π` or
+`e`, as well as constants related to chemistry, physics, computer science or
+history.
+
+The constants menu is defined by the `config/constants.csv` file. You are
+encouraged to tailor this file to suit your own needs.
 # Numerical functions
 
 ## ∫ (Integrate)

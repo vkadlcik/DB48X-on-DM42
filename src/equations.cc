@@ -77,6 +77,8 @@ const equation::config equation::equations =
 //  Define the configuration for the equations
 // ----------------------------------------------------------------------------
 {
+    .menu_help      = "Equations",
+    .help           = "Equation",
     .prefix         = L'Ⓔ',
     .type           = ID_equation,
     .first_menu     = ID_EquationsMenu00,
@@ -176,7 +178,7 @@ HELP_BODY(equation)
 //   Help topic for equations
 // ----------------------------------------------------------------------------
 {
-    return utf8("Equations Library");
+    return o->do_instance_help(equation::equations);
 }
 
 
@@ -186,6 +188,15 @@ MENU_BODY(equation_menu)
 // ----------------------------------------------------------------------------
 {
     return o->do_submenu(equation::equations, mi);
+}
+
+
+HELP_BODY(equation_menu)
+// ----------------------------------------------------------------------------
+//   Show the help for the given equation menu
+// ----------------------------------------------------------------------------
+{
+    return o->do_menu_help(equation::equations, o);
 }
 
 
@@ -233,6 +244,19 @@ INSERT_BODY(EquationName)
 }
 
 
+HELP_BODY(EquationName)
+// ----------------------------------------------------------------------------
+//   Put the help for a given equation name
+// ----------------------------------------------------------------------------
+{
+    int key = ui.evaluating;
+    if (constant_p cst = equation::do_key(equation::equations, key))
+        if (equation_p eq = cst->as<equation>())
+            return eq->help();
+    return utf8("Equations");
+}
+
+
 COMMAND_BODY(EquationValue)
 // ----------------------------------------------------------------------------
 //   Put the value of a equation on the stack
@@ -261,4 +285,13 @@ INSERT_BODY(EquationValue)
             if (object_p value = eq->value())
                 return ui.insert_object(value, " ", " ");
     return ERROR;
+}
+
+
+HELP_BODY(EquationValue)
+// ----------------------------------------------------------------------------
+//   Put the help for a given equation value
+// ----------------------------------------------------------------------------
+{
+    return EquationName::do_help(nullptr);
 }

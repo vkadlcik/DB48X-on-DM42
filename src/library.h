@@ -82,6 +82,7 @@ struct xlib : constant
     PARSE_DECL(xlib);
     EVAL_DECL(xlib);
     RENDER_DECL(xlib);
+    GRAPH_DECL(xlib);
     HELP_DECL(xlib);
 };
 

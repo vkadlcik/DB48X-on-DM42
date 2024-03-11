@@ -29,6 +29,8 @@
 
 #include "equations.h"
 
+#include "expression.h"
+#include "grob.h"
 #include "renderer.h"
 
 RECORDER(equations,         16, "Equation objects");
@@ -121,7 +123,7 @@ RENDER_BODY(equation)
 {
     equation_g eq = o;
     do_rendering(equations, o, r);
-    if (!r.editing())
+    if (!r.editing() && Settings.ShowEquationBody())
     {
         if (object_g obj = eq->value())
         {
@@ -130,6 +132,42 @@ RENDER_BODY(equation)
         }
     }
     return r.size();
+}
+
+
+GRAPH_BODY(equation)
+// ----------------------------------------------------------------------------
+//   Render "normally"
+// ----------------------------------------------------------------------------
+{
+    equation_g eq = o;
+    if (Settings.ShowEquationBody())
+    {
+        if (algebraic_g val = eq->value())
+        {
+            size_t namelen = 0;
+            utf8 name = eq->name(&namelen);
+            if (symbol_g namesym = symbol::make(name, namelen))
+            {
+                if (grob_g valg = val->graph(g))
+                {
+                    coord vv = g.voffset;
+                    g.voffset = 0;
+                    if (grob_g nameg = object::do_graph(+namesym, g))
+                    {
+                        coord nv = g.voffset;
+                        g.voffset = 0;
+                        grob_g r = expression::infix(g,
+                                                     nv, nameg,
+                                                     0, ":",
+                                                     vv, valg);
+                        return r;
+                    }
+                }
+            }
+        }
+    }
+    return object::do_graph(o, g);
 }
 
 

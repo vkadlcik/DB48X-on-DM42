@@ -82,6 +82,7 @@ struct equation : constant
     PARSE_DECL(equation);
     EVAL_DECL(equation);
     RENDER_DECL(equation);
+    GRAPH_DECL(equation);
     HELP_DECL(equation);
 };
 

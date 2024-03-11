@@ -35,13 +35,13 @@
 #include "expression.h"
 #include "file.h"
 #include "functions.h"
+#include "grob.h"
 #include "parser.h"
 #include "renderer.h"
 #include "settings.h"
 #include "unit.h"
 #include "user_interface.h"
 #include "utf8.h"
-
 
 RECORDER(constants,         16, "Constant objects");
 RECORDER(constants_error,   16, "Error on constant objects");
@@ -84,10 +84,33 @@ RENDER_BODY(constant)
 
 GRAPH_BODY(constant)
 // ----------------------------------------------------------------------------
-//   Do not italicize constants
+//   Do not italicize constants, but render as bold
 // ----------------------------------------------------------------------------
 {
-    return object::do_graph(o, g);
+    using pixsize = grob::pixsize;
+
+    grob_g sym = object::do_graph(o, g);
+    if (!sym)
+        return nullptr;
+
+    pixsize sw    = sym->width();
+    pixsize sh    = sym->height();
+    pixsize rw    = sw + 1;
+    pixsize rh    = sh;
+    grob_g result = g.grob(rw, rh);
+    if (!result)
+        return nullptr;
+
+    surface ss = sym->pixels();
+    surface rs = result->pixels();
+
+    rs.fill(0, 0, rw, rh, g.background);
+    rs.copy(ss, 0, 0);
+    blitter::blit<blitter::COPY>(rs, ss,
+                                 rect(1, 0, sw, sh-1), point(),
+                                 blitter::blitop_and, pattern::black);
+
+    return result;
 }
 
 
@@ -395,14 +418,17 @@ constant_p constant::do_lookup(config_r cfg, utf8 txt, size_t len, bool error)
     if (cfile.valid())
     {
         cfile.seek(0);
-        while (symbol_p name = cfile.next(false))
+        while (symbol_g category = cfile.next(true))
         {
-            ctxt = cstring(name->value(&clen));
+            while (symbol_p name = cfile.next(false))
+            {
+                ctxt = cstring(name->value(&clen));
 
-            // Constant name comparison is case-sensitive
-            if (len == clen && memcmp(txt, ctxt, len) == 0)
-                return constant::make(idx);
-            idx++;
+                // Constant name comparison is case-sensitive
+                if (len == clen && memcmp(txt, ctxt, len) == 0)
+                    return constant::make(cfg.type, idx);
+                idx++;
+            }
         }
     }
 
@@ -436,11 +462,14 @@ utf8 constant::do_name(config_r cfg, size_t *len) const
     if (cfile.valid())
     {
         cfile.seek(0);
-        while (symbol_p sym = cfile.next(false))
+        while (symbol_g category = cfile.next(true))
         {
-            if (!idx)
-                return sym->value(len);
-            idx--;
+            while (symbol_p sym = cfile.next(false))
+            {
+                if (!idx)
+                    return sym->value(len);
+                idx--;
+            }
         }
     }
 
@@ -477,19 +506,24 @@ algebraic_p constant::do_value(config_r cfg) const
     if (cfile.valid())
     {
         cfile.seek(0);
-        uint position = cfile.position();
-        while (symbol_p sym = cfile.next(false))
+        while (symbol_g category = cfile.next(true))
         {
-            if (!idx)
+            uint position = cfile.position();
+            while (symbol_p sym = cfile.next(false))
             {
-                cname = sym;
-                utf8 ctxt = sym->value(&clen);
-                cfile.seek(position);
-                csym = cfile.lookup(ctxt, clen, false, false);
-                break;
+                if (!idx)
+                {
+                    cname = sym;
+                    utf8 ctxt = sym->value(&clen);
+                    cfile.seek(position);
+                    csym = cfile.lookup(ctxt, clen, false, false);
+                    break;
+                }
+                position = cfile.position();
+                idx--;
             }
-            position = cfile.position();
-            idx--;
+            if (csym)
+                break;
         }
     }
 
